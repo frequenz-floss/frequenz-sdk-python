@@ -1,0 +1,101 @@
+name: frequenz-sdk-python
+
+on:
+  push:
+    branches: [ v0.x.x ]
+
+  pull_request:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        python: [ "3.8", "3.9", "3.10" ]
+        os: [ ubuntu-20.04 ]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Fetch sources
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.CI_ACCESS_TOKEN || github.token }}
+          submodules: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/minimum-requirements-ci.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install required Python packages
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install nox wheel
+
+      - name: Set up SSH keys and known_hosts
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a ${SSH_AUTH_SOCK} > /dev/null
+          ssh-add - <<< "${{ secrets.CI_SSH_PRIVATE_KEY }}"
+
+      - name: run nox
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: nox -e ci_checks_max pytest_min
+        timeout-minutes: 10
+
+  build-wheels:
+    runs-on: ubuntu-20.04
+    needs: test
+
+    steps:
+    - name: Fetch sources
+      uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.CI_ACCESS_TOKEN || github.token }}
+        submodules: true
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/minimum-requirements-ci.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install required Python packages
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install wheel
+
+    - name: Set up SSH keys and known_hosts
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      run: |
+        ssh-agent -a ${SSH_AUTH_SOCK} > /dev/null
+        ssh-add - <<< "${{ secrets.CI_SSH_PRIVATE_KEY }}"
+
+    - name: make wheel
+      run: python -m pip wheel --no-deps -w dist .
+
+    - name: upload wheels
+      uses: actions/upload-artifact@v2
+      with:
+        name: frequenz-sdk-python-wheels
+        path: dist/*.whl
