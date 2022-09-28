@@ -1,0 +1,10 @@
+# -*- mode: ini -*-
+
+[darglint]
+docstring_style=google
+
+# DAR402: The docstring describes an exception not explicitly raised.
+#
+# Ignoring DAR402 because there are cases where public methods
+# document exceptions raised by underlying functions.
+ignore=DAR402
