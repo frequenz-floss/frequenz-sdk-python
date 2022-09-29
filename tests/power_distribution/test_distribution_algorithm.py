@@ -153,10 +153,10 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
                 id=2 * i,
                 battery=Battery(properties=BatteryProperties(capacity=capacity[i])),
             )
-            battery = BatteryData(bat_msg)
+            battery = BatteryData.from_proto(bat_msg)
 
             inv_msg = microgrid_pb.ComponentData(id=2 * i + 1, inverter=Inverter())
-            inverter = InverterData(inv_msg)
+            inverter = InverterData.from_proto(inv_msg)
 
             components.append(InvBatPair(battery, inverter))
         return components
@@ -327,7 +327,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
         components: List[InvBatPair] = []
         for i in range(0, num):
-            battery = BatteryData(
+            battery = BatteryData.from_proto(
                 create_battery_msg(
                     2 * i,
                     capacity[i],
@@ -335,7 +335,9 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
                     power[2 * i],
                 )
             )
-            inverter = InverterData(create_inverter_msg(2 * i + 1, power[2 * i + 1]))
+            inverter = InverterData.from_proto(
+                create_inverter_msg(2 * i + 1, power[2 * i + 1])
+            )
             components.append(InvBatPair(battery, inverter))
         return components
 

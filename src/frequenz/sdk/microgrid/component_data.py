@@ -6,10 +6,12 @@ Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 License
 MIT
 """
+from __future__ import annotations
 
-from abc import ABC
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Tuple
+from typing import Optional, Tuple
 
 import frequenz.api.microgrid.microgrid_pb2 as microgrid_pb
 import pytz
@@ -17,229 +19,201 @@ import pytz
 from .component_states import EVChargerCableState
 
 
-class _BaseComponentData(ABC):
-    """A private base class for strongly typed component data classes."""
+@dataclass(frozen=True)
+class ComponentData(ABC):
+    """A private base class for strongly typed component data classes.
 
-    _raw: microgrid_pb.ComponentData
+    Attributes:
+        component_id: the ID identifying this component in the microgrid
+        timestamp: the timestamp of when the data was measured.
+        raw: raw component data as decoded from the wire
+    """
 
-    @property
-    def component_id(self) -> int:
-        """Return the component id of the message.
+    component_id: int
+    timestamp: datetime
+    # The `raw` attribute is excluded from the constructor as it can only be provided
+    # when instantiating `ComponentData` using the `from_proto` method, which reads
+    # data from a protobuf message. The whole protobuf message is stored as the `raw`
+    # attribute. When `ComponentData` is not instantiated from a protobuf message,
+    # i.e. using the constructor, `raw` will be set to `None`.
+    raw: Optional[microgrid_pb.ComponentData] = field(default=None, init=False)
 
-        Returns:
-            Component id of the message.
+    def _set_raw(self, raw: microgrid_pb.ComponentData) -> None:
+        """Store raw protobuf message.
+
+        It is preferred to keep the dataclasses immutable (frozen) and make the `raw`
+            attribute read-only, which is why the approach of writing to `__dict__`
+            was used, instead of mutating the `self.raw = raw` attribute directly.
+
+        Args:
+            raw: raw component data as decoded from the wire.
         """
-        return self._raw.id
+        self.__dict__["raw"] = raw
 
-    @property
-    def timestamp(self) -> datetime:
-        """Return the timestamp of the message.
+    @classmethod
+    @abstractmethod
+    def from_proto(cls, raw: microgrid_pb.ComponentData) -> ComponentData:
+        """Create ComponentData from a protobuf message.
 
-        Returns:
-            Timestamp of the message.
+        Args:
+            raw: raw component data as decoded from the wire.
         """
-        return self._raw.ts.ToDatetime(tzinfo=pytz.UTC)
 
 
-class MeterData(_BaseComponentData):
+@dataclass(frozen=True)
+class MeterData(ComponentData):
     """A wrapper class for holding meter data."""
 
-    def __init__(self, raw: microgrid_pb.ComponentData) -> None:
-        """Create a `MeterData` instance.
+    active_power: float
+    current_per_phase: Tuple[float, float, float]
+    voltage_per_phase: Tuple[float, float, float]
+
+    @classmethod
+    def from_proto(cls, raw: microgrid_pb.ComponentData) -> MeterData:
+        """Create MeterData from a protobuf message.
 
         Args:
             raw: raw component data as decoded from the wire.
-        """
-        self._raw = raw
-
-    @property
-    def active_power(self) -> float:
-        """Get current power with which the meter is being discharged.
 
         Returns:
-            Current power with which the meter is being discharged.
+            Instance of MeterData created from the protobuf message.
         """
-        return self._raw.meter.data.ac.power_active.value
-
-    @property
-    def current_per_phase(self) -> Tuple[float, float, float]:
-        """Get apparant current measured by the meter per-phase.
-
-        Returns:
-            Current values for each phase.
-        """
-        phase_1 = self._raw.meter.data.ac.phase_1.current.value
-        phase_2 = self._raw.meter.data.ac.phase_2.current.value
-        phase_3 = self._raw.meter.data.ac.phase_3.current.value
-        return (phase_1, phase_2, phase_3)
-
-    @property
-    def voltage_per_phase(self) -> Tuple[float, float, float]:
-        """Get voltages measured by the meter per phase.
-
-        Returns:
-            Voltage values for each phase.
-        """
-        phase_1 = self._raw.meter.data.ac.phase_1.voltage.value
-        phase_2 = self._raw.meter.data.ac.phase_2.voltage.value
-        phase_3 = self._raw.meter.data.ac.phase_3.voltage.value
-        return (phase_1, phase_2, phase_3)
+        meter_data = cls(
+            component_id=raw.id,
+            timestamp=raw.ts.ToDatetime(tzinfo=pytz.UTC),
+            active_power=raw.meter.data.ac.power_active.value,
+            current_per_phase=(
+                raw.meter.data.ac.phase_1.current.value,
+                raw.meter.data.ac.phase_2.current.value,
+                raw.meter.data.ac.phase_3.current.value,
+            ),
+            voltage_per_phase=(
+                raw.meter.data.ac.phase_1.voltage.value,
+                raw.meter.data.ac.phase_2.voltage.value,
+                raw.meter.data.ac.phase_3.voltage.value,
+            ),
+        )
+        meter_data._set_raw(raw=raw)
+        return meter_data
 
 
-class BatteryData(_BaseComponentData):
-    """A wrapper class for holding battery data."""
+@dataclass(frozen=True)
+class BatteryData(ComponentData):
+    """A wrapper class for holding battery data.
 
-    def __init__(self, raw: microgrid_pb.ComponentData) -> None:
-        """Create a `BatteryData` instance.
+    soc: battery's overall SoC in percent (%).
+
+    soc_lower_bound: the SoC below which discharge commands will be blocked by the
+        system, in percent (%).
+
+    soc_upper_bound: the SoC above which charge commands will be blocked by the
+        system, in percent (%).
+
+    capacity: the capacity of the battery in Wh (Watt-hour)
+
+    power_lower_bound: the maximum discharge power, in Watts, represented in the
+        passive sign convention. This will be a negative number, or zero if no
+        discharging is possible.
+
+    power_upper_bound: the maximum charge power, in Watts, represented in the
+        passive sign convention. This will be a positive number, or zero if no
+        charging is possible.
+    """
+
+    soc: float
+    soc_lower_bound: float
+    soc_upper_bound: float
+    capacity: float
+    power_lower_bound: float
+    power_upper_bound: float
+
+    @classmethod
+    def from_proto(cls, raw: microgrid_pb.ComponentData) -> BatteryData:
+        """Create BatteryData from a protobuf message.
 
         Args:
             raw: raw component data as decoded from the wire.
-        """
-        self._raw = raw
-
-    @property
-    def soc(self) -> float:
-        """Get current SoC level.
 
         Returns:
-            SoC level.
+            Instance of BatteryData created from the protobuf message.
         """
-        return self._raw.battery.data.soc.avg
-
-    @property
-    def soc_upper_bound(self) -> float:
-        """Get SoC upper bound.
-
-        Returns:
-            Maximum SoC level.
-        """
-        return self._raw.battery.data.soc.system_bounds.upper
-
-    @property
-    def soc_lower_bound(self) -> float:
-        """Get SoC lower bound.
-
-        Returns:
-            Minimum SoC level.
-        """
-        return self._raw.battery.data.soc.system_bounds.lower
-
-    @property
-    def capacity(self) -> float:
-        """Get battery capacity.
-
-        Returns:
-            Capacity of the battery.
-        """
-        return self._raw.battery.properties.capacity
-
-    @property
-    def power_upper_bound(self) -> float:
-        """Get maximum power with which the battery can be charged.
-
-        Returns:
-            Maximum power with which the battery can be charged.
-        """
-        return self._raw.battery.data.dc.power.system_bounds.upper
-
-    @property
-    def power_lower_bound(self) -> float:
-        """Get minimum power with which the battery can be discharged.
-
-        Returns:
-            Minimum power with which the battery can be discharged.
-        """
-        return self._raw.battery.data.dc.power.system_bounds.lower
+        battery_data = cls(
+            component_id=raw.id,
+            timestamp=raw.ts.ToDatetime(tzinfo=pytz.UTC),
+            soc=raw.battery.data.soc.avg,
+            soc_lower_bound=raw.battery.data.soc.system_bounds.lower,
+            soc_upper_bound=raw.battery.data.soc.system_bounds.upper,
+            capacity=raw.battery.properties.capacity,
+            power_lower_bound=raw.battery.data.dc.power.system_bounds.lower,
+            power_upper_bound=raw.battery.data.dc.power.system_bounds.upper,
+        )
+        battery_data._set_raw(raw=raw)
+        return battery_data
 
 
-class InverterData(_BaseComponentData):
+@dataclass(frozen=True)
+class InverterData(ComponentData):
     """A wrapper class for holding inverter data."""
 
-    def __init__(self, raw: microgrid_pb.ComponentData) -> None:
-        """Create a `InverterData` instance.
+    active_power: float
+    active_power_lower_bound: float
+    active_power_upper_bound: float
+
+    @classmethod
+    def from_proto(cls, raw: microgrid_pb.ComponentData) -> InverterData:
+        """Create InverterData from a protobuf message.
 
         Args:
             raw: raw component data as decoded from the wire.
-        """
-        self._raw = raw
-
-    @property
-    def active_power(self) -> float:
-        """Get current power with which the inverter is being discharged.
 
         Returns:
-            Current power with which the inverter is being discharged.
+            Instance of InverterData created from the protobuf message.
         """
-        return self._raw.inverter.data.ac.power_active.value
-
-    @property
-    def active_power_upper_bound(self) -> float:
-        """Get maximum power with which the inverter can be charged.
-
-        Returns:
-            Maximum power with which the inverter can be charged.
-        """
-        return self._raw.inverter.data.ac.power_active.system_bounds.upper
-
-    @property
-    def active_power_lower_bound(self) -> float:
-        """Get minimum power with which the inverter can be discharged.
-
-        Returns:
-            Minimum power with which the inverter can be discharged.
-        """
-        return self._raw.inverter.data.ac.power_active.system_bounds.lower
+        inverter_data = cls(
+            component_id=raw.id,
+            timestamp=raw.ts.ToDatetime(tzinfo=pytz.UTC),
+            active_power=raw.inverter.data.ac.power_active.value,
+            active_power_lower_bound=raw.inverter.data.ac.power_active.system_bounds.lower,
+            active_power_upper_bound=raw.inverter.data.ac.power_active.system_bounds.upper,
+        )
+        inverter_data._set_raw(raw=raw)
+        return inverter_data
 
 
-class EVChargerData(_BaseComponentData):
+@dataclass(frozen=True)
+class EVChargerData(ComponentData):
     """A wrapper class for holding ev_charger data."""
 
-    def __init__(self, raw: microgrid_pb.ComponentData) -> None:
-        """Create a `EVChargerData` instance.
+    active_power: float
+    current_per_phase: Tuple[float, float, float]
+    voltage_per_phase: Tuple[float, float, float]
+    cable_state: EVChargerCableState
+
+    @classmethod
+    def from_proto(cls, raw: microgrid_pb.ComponentData) -> EVChargerData:
+        """Create EVChargerData from a protobuf message.
 
         Args:
             raw: raw component data as decoded from the wire.
-        """
-        self._raw = raw
-
-    @property
-    def active_power(self) -> float:
-        """Get current power with which the EV charger is being charged.
 
         Returns:
-            Current power with which the EV charger is being charged.
+            Instance of EVChargerData created from the protobuf message.
         """
-        return self._raw.ev_charger.data.ac.power_active.value
-
-    @property
-    def current_per_phase(self) -> Tuple[float, float, float]:
-        """Get apparant current consumed by the ev charger, per-phase.
-
-        Returns:
-            Current values for each phase.
-        """
-        phase_1 = self._raw.ev_charger.data.ac.phase_1.current.value
-        phase_2 = self._raw.ev_charger.data.ac.phase_2.current.value
-        phase_3 = self._raw.ev_charger.data.ac.phase_3.current.value
-        return (phase_1, phase_2, phase_3)
-
-    @property
-    def voltage_per_phase(self) -> Tuple[float, float, float]:
-        """Get voltages measured by the ev charger, per phase.
-
-        Returns:
-            Voltage values for each phase.
-        """
-        phase_1 = self._raw.ev_charger.data.ac.phase_1.voltage.value
-        phase_2 = self._raw.ev_charger.data.ac.phase_2.voltage.value
-        phase_3 = self._raw.ev_charger.data.ac.phase_3.voltage.value
-        return (phase_1, phase_2, phase_3)
-
-    @property
-    def cable_state(self) -> EVChargerCableState:
-        """Get cable state of the ev charger.
-
-        Returns:
-            Cable state.
-        """
-        return EVChargerCableState.from_pb(self._raw.ev_charger.state.cable_state)
+        ev_charger_data = cls(
+            component_id=raw.id,
+            timestamp=raw.ts.ToDatetime(tzinfo=pytz.UTC),
+            active_power=raw.ev_charger.data.ac.power_active.value,
+            current_per_phase=(
+                raw.meter.data.ac.phase_1.current.value,
+                raw.meter.data.ac.phase_2.current.value,
+                raw.meter.data.ac.phase_3.current.value,
+            ),
+            voltage_per_phase=(
+                raw.meter.data.ac.phase_1.voltage.value,
+                raw.meter.data.ac.phase_2.voltage.value,
+                raw.meter.data.ac.phase_3.voltage.value,
+            ),
+            cable_state=EVChargerCableState.from_pb(raw.ev_charger.state.cable_state),
+        )
+        ev_charger_data._set_raw(raw=raw)
+        return ev_charger_data
