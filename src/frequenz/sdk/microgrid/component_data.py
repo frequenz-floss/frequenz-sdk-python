@@ -62,7 +62,20 @@ class ComponentData(ABC):
 
 @dataclass(frozen=True)
 class MeterData(ComponentData):
-    """A wrapper class for holding meter data."""
+    """A wrapper class for holding meter data.
+
+    Attributes:
+        active_power: the 3-phase active power, in Watts, represented in the passive
+            sign convention.
+            +ve current means consumption, away from the grid.
+            -ve current means supply into the grid.
+        current_per_phase: AC current in Amperes (A) for phase/line 1,2 and 3
+            respectively.
+            +ve current means consumption, away from the grid.
+            -ve current means supply into the grid.
+        voltage_per_phase: the AC voltage in Volts (V) between the line and the neutral
+            wire for phase/line 1,2 and 3 respectively.
+    """
 
     active_power: float
     current_per_phase: Tuple[float, float, float]
@@ -101,23 +114,19 @@ class MeterData(ComponentData):
 class BatteryData(ComponentData):
     """A wrapper class for holding battery data.
 
-    soc: battery's overall SoC in percent (%).
-
-    soc_lower_bound: the SoC below which discharge commands will be blocked by the
-        system, in percent (%).
-
-    soc_upper_bound: the SoC above which charge commands will be blocked by the
-        system, in percent (%).
-
-    capacity: the capacity of the battery in Wh (Watt-hour)
-
-    power_lower_bound: the maximum discharge power, in Watts, represented in the
-        passive sign convention. This will be a negative number, or zero if no
-        discharging is possible.
-
-    power_upper_bound: the maximum charge power, in Watts, represented in the
-        passive sign convention. This will be a positive number, or zero if no
-        charging is possible.
+    Attributes:
+        soc: battery's overall SoC in percent (%).
+        soc_lower_bound: the SoC below which discharge commands will be blocked by the
+            system, in percent (%).
+        soc_upper_bound: the SoC above which charge commands will be blocked by the
+            system, in percent (%).
+        capacity: the capacity of the battery in Wh (Watt-hour)
+        power_lower_bound: the maximum discharge power, in Watts, represented in the
+            passive sign convention. This will be a negative number, or zero if no
+            discharging is possible.
+        power_upper_bound: the maximum charge power, in Watts, represented in the
+            passive sign convention. This will be a positive number, or zero if no
+            charging is possible.
     """
 
     soc: float
@@ -153,7 +162,20 @@ class BatteryData(ComponentData):
 
 @dataclass(frozen=True)
 class InverterData(ComponentData):
-    """A wrapper class for holding inverter data."""
+    """A wrapper class for holding inverter data.
+
+    Attributes:
+        active_power: the 3-phase active power, in Watts, represented in the passive
+            sign convention.
+            +ve current means consumption, away from the grid.
+            -ve current means supply into the grid.
+        active_power_lower_bound: the maximum discharge power, in Watts, represented in
+            the passive sign convention. This will be a negative number, or zero if no
+            discharging is possible.
+        active_power_upper_bound: the maximum charge power, in Watts, represented in
+            the passive sign convention. This will be a positive number, or zero if no
+            charging is possible.
+    """
 
     active_power: float
     active_power_lower_bound: float
@@ -182,7 +204,21 @@ class InverterData(ComponentData):
 
 @dataclass(frozen=True)
 class EVChargerData(ComponentData):
-    """A wrapper class for holding ev_charger data."""
+    """A wrapper class for holding ev_charger data.
+
+    Attributes:
+        active_power_consumption: the 3-phase active power, in Watts, represented in
+            the passive sign convention.
+            +ve current means consumption, away from the grid.
+            -ve current means supply into the grid.
+        current_per_phase: AC current in Amperes (A) for phase/line 1,2 and 3
+            respectively.
+            +ve current means consumption, away from the grid.
+            -ve current means supply into the grid.
+        voltage_per_phase: the AC voltage in Volts (V) between the line and the neutral
+            wire for phase/line 1,2 and 3 respectively.
+        cable_state: the state of the ev charger's cable
+    """
 
     active_power: float
     current_per_phase: Tuple[float, float, float]
