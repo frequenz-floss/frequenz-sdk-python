@@ -1,0 +1,24 @@
+name: Pull Request Labeler
+
+# XXX: !!! SECURITY WARNING !!!
+# pull_request_target has write access to the repo, and can read secrets. We
+# need to audit any external actions executed in this workflow and make sure no
+# checked out code is run (not even installing dependencies, as installing
+# dependencies usually can execute pre/post-install scripts). We should also
+# only use hashes to pick the action to execute (instead of tags or branches).
+# For more details read:
+# https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+on: [pull_request_target]
+
+jobs:
+  Label:
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Labeler
+        # Only use hashes, see the security comment above
+        uses: actions/labeler@e54e5b338fbd6e6cdb5d60f51c22335fc57c401e  # 4.0.1
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
