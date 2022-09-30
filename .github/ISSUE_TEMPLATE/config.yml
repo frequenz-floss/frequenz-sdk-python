@@ -1,0 +1,8 @@
+# GitHub issue template chooser. For more information see:
+# https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository#configuring-the-template-chooser
+
+blank_issues_enabled: true
+contact_links:
+  - name: Ask a question ❓
+    url: https://github.com/frequenz-floss/frequenz-sdk-python/discussions/new?category=support
+    about: Use this if you are not sure how to do something, have installation problems, etc.
