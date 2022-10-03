@@ -8,6 +8,8 @@
 
 <!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with --> 
 
+* `PowerDistributor` - type of `Request`'s `request_timeout_sec` has been changed from `int` to `float`
+
 ## New Features
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->

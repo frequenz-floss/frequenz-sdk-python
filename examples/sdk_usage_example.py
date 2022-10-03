@@ -90,7 +90,7 @@ class DecisionMakingActor:
                 Request(
                     power_to_set,
                     batteries=self._batteries,
-                    request_timeout_sec=2,
+                    request_timeout_sec=2.0,
                 )
             )
             try:

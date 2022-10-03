@@ -93,7 +93,7 @@ class PowerDistributor:
     client_handle = channel.client_handle
 
     # Set power 1200W to given batteries.
-    request = Request(power=1200, batteries=batteries_ids, request_timeout_sec=10)
+    request = Request(power=1200, batteries=batteries_ids, request_timeout_sec=10.0)
     await client_handle.send(request)
 
     # It is recommended to use timeout when waiting for the response!
