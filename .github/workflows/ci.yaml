@@ -66,16 +66,64 @@ jobs:
           path: dist/
           if-no-files-found: error
 
-  publish-to-pypi:
+  create-github-release:
     needs: ["test", "build-dist"]
-    # Publish only on tags creation
+    # Create a release only on tags creation
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    permissions:
+      # We need write permissions on contents to create GitHub releases and on
+      # discussions to create the release announcement in the discussion forums
+      contents: write
+      discussions: write
     runs-on: ubuntu-20.04
     steps:
       - name: Download dist files
         uses: actions/download-artifact@v3
         with:
           name: frequenz-sdk-python-dist
+          path: dist
+
+      - name: Download RELEASE_NOTES.md
+        run: |
+          set -ux
+          gh api \
+              -X GET \
+              -f ref=$REF \
+              -H "Accept: application/vnd.github.raw" \
+              "/repos/$REPOSITORY/contents/RELEASE_NOTES.md" \
+            > RELEASE_NOTES.md
+        env:
+          REF: ${{ github.ref }}
+          REPOSITORY: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub release
+        run: |
+          set -ux
+          extra_opts=
+          if echo "$REF_NAME" | grep -- -; then extra_opts=" --prerelease"; fi
+          gh release create \
+            -R "$REPOSITORY" \
+            --discussion-category announcements \
+            --notes-file RELEASE_NOTES.md \
+            --generate-notes \
+            $extra_opts \
+            $REF_NAME \
+            dist/*
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          REPOSITORY: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-to-pypi:
+    needs: ["create-github-release"]
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Download dist files
+        uses: actions/download-artifact@v3
+        with:
+          name: frequenz-sdk-python-dist
+          path: dist
 
       - name: Publish the Python distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
