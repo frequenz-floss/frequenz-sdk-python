@@ -15,9 +15,6 @@ jobs:
     steps:
       - name: Fetch sources
         uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.CI_ACCESS_TOKEN || github.token }}
-          submodules: true
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -47,9 +44,6 @@ jobs:
     steps:
     - name: Fetch sources
       uses: actions/checkout@v3
-      with:
-        token: ${{ secrets.CI_ACCESS_TOKEN || github.token }}
-        submodules: true
 
     - name: Set up Python
       uses: actions/setup-python@v4
