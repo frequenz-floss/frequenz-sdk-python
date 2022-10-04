@@ -27,9 +27,9 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('minimum-requirements-ci.txt', 'pyproject.toml') }}
+          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashFiles('minimum-requirements-ci.txt', 'pyproject.toml') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-${{ matrix.python-version }}-pip-
 
       - name: Install required Python packages
         run: |
@@ -56,9 +56,9 @@ jobs:
     - uses: actions/cache@v3
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('minimum-requirements-ci.txt', 'pyproject.toml') }}
+        key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashFiles('minimum-requirements-ci.txt', 'pyproject.toml') }}
         restore-keys: |
-          ${{ runner.os }}-pip-
+          ${{ runner.os }}-${{ matrix.python-version }}-pip-
 
     - name: Install required Python packages
       run: |
