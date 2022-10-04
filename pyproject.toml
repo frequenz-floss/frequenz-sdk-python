@@ -9,6 +9,21 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "frequenz-sdk"
+description = "Frequenz Python SDK"
+readme = "README.md"
+license = { text = "MIT" }
+keywords = [ "frequenz", "sdk", "microgrid", "actor" ]
+classifiers = [
+   "Development Status :: 3 - Alpha",
+   "Intended Audience :: Developers",
+   "License :: OSI Approved :: MIT License",
+   "Programming Language :: Python :: 3",
+   "Programming Language :: Python :: 3 :: Only",
+   "Programming Language :: Python :: 3.8",
+   "Programming Language :: Python :: 3.9",
+   "Programming Language :: Python :: 3.10",
+   "Topic :: Software Development :: Libraries",
+]
 requires-python = ">= 3.8, < 4"
 dependencies = [
     "frequenz-api-microgrid >= 0.11.0, < 0.12.0",
@@ -31,6 +46,13 @@ dynamic = [ "version" ]
 
 [[project.authors]]
 name ="Frequenz Energy-as-a-Service GmbH"
+email = "floss@frequenz.com"
+
+[project.urls]
+Changelog = "https://github.com/frequenz-floss/frequenz-sdk-python/releases"
+Repository = "https://github.com/frequenz-floss/frequenz-sdk-python"
+Issues = "https://github.com/frequenz-floss/frequenz-sdk-python/issues"
+Support = "https://github.com/frequenz-floss/frequenz-sdk-python/discussions/categories/support"
 
 [tool.setuptools]
 include-package-data = true
