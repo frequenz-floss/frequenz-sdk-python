@@ -1,0 +1,9 @@
+exclude .darglint
+exclude .gitignore
+exclude CODEOWNERS
+exclude minimum-requirements-ci.txt
+exclude noxfile.py
+recursive-exclude .github *
+recursive-exclude benchmarks *
+recursive-exclude examples *
+recursive-exclude tests *
