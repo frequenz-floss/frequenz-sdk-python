@@ -1,10 +1,6 @@
 name: frequenz-sdk-python
 
-on:
-  push:
-    branches: [ v0.x.x ]
-
-  pull_request:
+on: [pull_request, push, workflow_dispatch]
 
 env:
   REGISTRY: ghcr.io
