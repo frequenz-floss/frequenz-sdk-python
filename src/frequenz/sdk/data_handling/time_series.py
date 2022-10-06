@@ -66,7 +66,7 @@ class MeterField(ComponentField):
 class EVChargerField(ComponentField):
     """Name of the fields from streamed ev charger data."""
 
-    ACTIVE_POWER_CONSUMPTION = "active_power_consumption"
+    ACTIVE_POWER = "active_power"
 
 
 @dataclass(frozen=True)

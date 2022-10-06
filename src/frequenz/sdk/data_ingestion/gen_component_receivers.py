@@ -26,7 +26,7 @@ from .constants import (
     METRIC_ACTIVE_POWER_UPPER_BOUND,
     METRIC_CAPACITY,
     METRIC_COMPONENT_ID,
-    METRIC_EV_ACTIVE_POWER_CONSUMPTION,
+    METRIC_EV_ACTIVE_POWER,
     METRIC_POWER_LOWER_BOUND,
     METRIC_POWER_UPPER_BOUND,
     METRIC_SOC,
@@ -48,7 +48,7 @@ def transform_ev_charger_data(
     result: Dict[str, Any] = {}
     result[METRIC_COMPONENT_ID] = data.component_id
     result[METRIC_TIMESTAMP] = data.timestamp
-    result[METRIC_EV_ACTIVE_POWER_CONSUMPTION] = data.active_power_consumption
+    result[METRIC_EV_ACTIVE_POWER] = data.active_power
     return result
 
 

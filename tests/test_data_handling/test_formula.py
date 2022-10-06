@@ -109,7 +109,7 @@ def test_formula_with_broken_meter() -> None:
         "meter_1_active_power",
         "meter_2_active_power",
         "meter_3_active_power",
-        "ev_charger_4_active_power_consumption",
+        "ev_charger_4_active_power",
         "inverter_5_active_power",
     ]
 
@@ -134,7 +134,7 @@ def test_formula_with_broken_meter() -> None:
         ts.SymbolMapping(
             ts.SymbolComponentCategory.EV_CHARGER,
             4,
-            ts.EVChargerField.ACTIVE_POWER_CONSUMPTION,
+            ts.EVChargerField.ACTIVE_POWER,
         ),
         ts.SymbolMapping(
             ts.SymbolComponentCategory.INVERTER, 5, ts.InverterField.ACTIVE_POWER

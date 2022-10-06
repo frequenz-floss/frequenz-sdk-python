@@ -6,7 +6,10 @@
 
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with --> 
+<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
+
+* `EVChargerData`'s `active_power_consumption` has been renamed to `active_power`
+
 
 * `PowerDistributor` - type of `Request`'s `request_timeout_sec` has been changed from `int` to `float`
 

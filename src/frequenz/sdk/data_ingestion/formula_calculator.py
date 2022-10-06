@@ -173,7 +173,7 @@ class FormulaCalculator:  # pylint: disable=too-many-instance-attributes
                         if meter_group_info.connections[i] == ComponentCategory.CHP
                     ]
                     + [
-                        f"ev_charger_{ev_charger_group_info.ids[i]}_active_power_consumption"
+                        f"ev_charger_{ev_charger_group_info.ids[i]}_active_power"
                         for i in range(len(ev_charger_group_info.ids))
                     ]
                     + [
@@ -223,7 +223,7 @@ class FormulaCalculator:  # pylint: disable=too-many-instance-attributes
                         if meter_group_info.connections[i] == ComponentCategory.CHP
                     ]
                     + [
-                        f"ev_charger_{ev_charger_group_info.ids[i]}_active_power_consumption"
+                        f"ev_charger_{ev_charger_group_info.ids[i]}_active_power"
                         for i in range(len(ev_charger_group_info.ids))
                     ]
                     + [
@@ -296,7 +296,7 @@ class FormulaCalculator:  # pylint: disable=too-many-instance-attributes
         """Create formula for ev_active_power_consumption.
 
         SUM(current_consumption_power[i] for i in all_ev_chargers)
-        where current_consumption_power = METRIC_EV_ACTIVE_POWER_CONSUMPTION
+        where current_consumption_power = METRIC_EV_ACTIVE_POWER
 
         Args:
             ev_charger_ids: ev charger ids
@@ -308,7 +308,7 @@ class FormulaCalculator:  # pylint: disable=too-many-instance-attributes
             return TimeSeriesFormula(
                 " + ".join(
                     [
-                        f"ev_charger_{ev_charger_id}_active_power_consumption"
+                        f"ev_charger_{ev_charger_id}_active_power"
                         for ev_charger_id in ev_charger_ids
                     ]
                 )
@@ -637,7 +637,7 @@ class FormulaCalculator:  # pylint: disable=too-many-instance-attributes
                 SymbolMapping(
                     SymbolComponentCategory.EV_CHARGER,
                     evid,
-                    EVChargerField.ACTIVE_POWER_CONSUMPTION,
+                    EVChargerField.ACTIVE_POWER,
                 )
             )
         return symbol_mappings

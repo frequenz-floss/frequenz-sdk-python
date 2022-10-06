@@ -32,9 +32,8 @@ METRIC_ACTIVE_POWER_UPPER_BOUND = "active_power_upper_bound"
 METRIC_ACTIVE_POWER_LOWER_BOUND = "active_power_lower_bound"
 
 # Current consume power from EvCharger (0, +inf)
-# And name for the formula that computes sum of current consume power for each ev
-# charger.
-METRIC_EV_ACTIVE_POWER_CONSUMPTION = "active_power_consumption"
+# And name for the formula that computes sum of active power for each ev charger.
+METRIC_EV_ACTIVE_POWER = "active_power"
 
 # Active power now for inverter, battery or meter
 # And name for the formula that computes sum of active power for all inverters.
@@ -66,7 +65,7 @@ METRIC_CLIENT_LOAD = "client_load"
 # Name of the formula that computes pv active_power for all pv_meters
 METRIC_PV_PROD = "pv_prod"
 
-# Name of the formula that computes active_power_consumption for all ev_chargers
+# Name of the formula that computes active_power for all ev_chargers
 METRIC_EV_CHARGERS_CONSUMPTION = "ev_chargers_consumption"
 
 # Name of the formula that computes total capacity of all batteries
