@@ -10,6 +10,10 @@ import pytest
 
 from frequenz.sdk.actor import decorator
 
+# Used to impose a hard time limit for some async tasks in tests so that tests don't
+# run forever in case of a bug
+SAFETY_TIMEOUT = 10.0
+
 
 @pytest.fixture(scope="session", autouse=True)
 def disable_actor_auto_restart():  # type: ignore
