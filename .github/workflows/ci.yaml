@@ -1,85 +1,132 @@
 name: frequenz-sdk-python
 
-on:
-  push:
-    branches: [ v0.x.x ]
-
-  pull_request:
-
-env:
-  REGISTRY: ghcr.io
+on: [pull_request, push, workflow_dispatch]
 
 jobs:
   test:
     strategy:
       fail-fast: false
       matrix:
-        python: [ "3.8", "3.9", "3.10" ]
-        os: [ ubuntu-20.04 ]
-
+        os:
+          - ubuntu-20.04
+        python:
+          - "3.8"
+          - "3.9"
+          - "3.10"
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Fetch sources
-        uses: actions/checkout@v2
-        with:
-          token: ${{ secrets.CI_ACCESS_TOKEN || github.token }}
-          submodules: true
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/minimum-requirements-ci.txt') }}
+          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashFiles('minimum-requirements-ci.txt', 'pyproject.toml') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-${{ matrix.python-version }}-pip-
 
       - name: Install required Python packages
         run: |
           python -m pip install --upgrade pip
-          python -m pip install nox wheel
+          python -m pip install nox
 
       - name: run nox
         run: nox -e ci_checks_max pytest_min
         timeout-minutes: 10
 
-  build-wheels:
+  build-dist:
     runs-on: ubuntu-20.04
-    needs: test
-
     steps:
-    - name: Fetch sources
-      uses: actions/checkout@v2
-      with:
-        token: ${{ secrets.CI_ACCESS_TOKEN || github.token }}
-        submodules: true
+      - name: Fetch sources
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
 
-    - uses: actions/cache@v2
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/minimum-requirements-ci.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+      - name: Install build dependencies
+        run: |
+          python -m pip install -U pip
+          python -m pip install -U build
 
-    - name: Install required Python packages
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install wheel
+      - name: Build the source and binary distribution
+        run: python -m build
 
-    - name: make wheel
-      run: python -m pip wheel --no-deps -w dist .
+      - name: Upload dist files
+        uses: actions/upload-artifact@v3
+        with:
+          name: frequenz-sdk-python-dist
+          path: dist/
+          if-no-files-found: error
 
-    - name: upload wheels
-      uses: actions/upload-artifact@v2
-      with:
-        name: frequenz-sdk-python-wheels
-        path: dist/*.whl
+  create-github-release:
+    needs: ["test", "build-dist"]
+    # Create a release only on tags creation
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    permissions:
+      # We need write permissions on contents to create GitHub releases and on
+      # discussions to create the release announcement in the discussion forums
+      contents: write
+      discussions: write
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Download dist files
+        uses: actions/download-artifact@v3
+        with:
+          name: frequenz-sdk-python-dist
+          path: dist
+
+      - name: Download RELEASE_NOTES.md
+        run: |
+          set -ux
+          gh api \
+              -X GET \
+              -f ref=$REF \
+              -H "Accept: application/vnd.github.raw" \
+              "/repos/$REPOSITORY/contents/RELEASE_NOTES.md" \
+            > RELEASE_NOTES.md
+        env:
+          REF: ${{ github.ref }}
+          REPOSITORY: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub release
+        run: |
+          set -ux
+          extra_opts=
+          if echo "$REF_NAME" | grep -- -; then extra_opts=" --prerelease"; fi
+          gh release create \
+            -R "$REPOSITORY" \
+            --discussion-category announcements \
+            --notes-file RELEASE_NOTES.md \
+            --generate-notes \
+            $extra_opts \
+            $REF_NAME \
+            dist/*
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          REPOSITORY: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-to-pypi:
+    needs: ["create-github-release"]
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Download dist files
+        uses: actions/download-artifact@v3
+        with:
+          name: frequenz-sdk-python-dist
+          path: dist
+
+      - name: Publish the Python distribution to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          skip_existing: true
