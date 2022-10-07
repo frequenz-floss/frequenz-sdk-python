@@ -32,7 +32,7 @@ class Request:
     # In which batteries the power should be set
     batteries: Set[int]
     # Timeout for the server to respond on the request.
-    request_timeout_sec: int = 5
+    request_timeout_sec: float = 5.0
     # If True and requested power value is out of bound, then
     # PowerDistributor will decrease the power to match the bounds and
     # distribute only decreased power.

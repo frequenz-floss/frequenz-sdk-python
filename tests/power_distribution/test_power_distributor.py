@@ -228,7 +228,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
 
             client_handle = channel.client_handle
             await client_handle.send(
-                Request(power=1200, batteries={106, 206}, request_timeout_sec=30)
+                Request(power=1200, batteries={106, 206}, request_timeout_sec=30.0)
             )
 
             done, pending = await asyncio.wait([client_handle.receive()], timeout=0.1)
@@ -284,12 +284,12 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
 
             user1_handle = channel1.client_handle
             task1 = user1_handle.send(
-                Request(power=1200, batteries={106, 206}, request_timeout_sec=30)
+                Request(power=1200, batteries={106, 206}, request_timeout_sec=30.0)
             )
 
             user2_handle = channel2.client_handle
             task2 = user2_handle.send(
-                Request(power=1300, batteries={106, 206}, request_timeout_sec=30)
+                Request(power=1300, batteries={106, 206}, request_timeout_sec=30.0)
             )
 
             await asyncio.gather(*[task1, task2])
@@ -350,7 +350,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
 
             user1_handle = channel1.client_handle
             await user1_handle.send(
-                Request(power=1200, batteries={106, 208}, request_timeout_sec=30)
+                Request(power=1200, batteries={106, 208}, request_timeout_sec=30.0)
             )
 
             done, _ = await asyncio.wait([user1_handle.receive()], timeout=0.05)
@@ -407,17 +407,17 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
 
             user1_handle = channel1.client_handle
             task1 = user1_handle.send(
-                Request(power=1200, batteries={106, 206}, request_timeout_sec=30)
+                Request(power=1200, batteries={106, 206}, request_timeout_sec=30.0)
             )
 
             user2_handle = channel2.client_handle
             task2 = user2_handle.send(
-                Request(power=1200, batteries={106, 306}, request_timeout_sec=30)
+                Request(power=1200, batteries={106, 306}, request_timeout_sec=30.0)
             )
 
             user3_handle = channel3.client_handle
             task3 = user3_handle.send(
-                Request(power=1200, batteries={106, 206}, request_timeout_sec=1)
+                Request(power=1200, batteries={106, 206}, request_timeout_sec=1.0)
             )
 
             await asyncio.gather(*[task1, task2, task3])
@@ -487,7 +487,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                 Request(
                     power=1200,
                     batteries={106, 206},
-                    request_timeout_sec=30,
+                    request_timeout_sec=30.0,
                     adjust_power=False,
                 )
             )
@@ -545,7 +545,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                 Request(
                     power=1000,
                     batteries={106, 206},
-                    request_timeout_sec=30,
+                    request_timeout_sec=30.0,
                     adjust_power=False,
                 )
             )
@@ -610,7 +610,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
 
             client_handle = channel.client_handle
             await client_handle.send(
-                Request(power=1200, batteries={106, 206}, request_timeout_sec=30)
+                Request(power=1200, batteries={106, 206}, request_timeout_sec=30.0)
             )
 
             done, pending = await asyncio.wait([client_handle.receive()], timeout=0.05)
@@ -680,7 +680,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
 
             client_handle = channel.client_handle
             await client_handle.send(
-                Request(power=1200, batteries={106, 206}, request_timeout_sec=30)
+                Request(power=1200, batteries={106, 206}, request_timeout_sec=30.0)
             )
 
             done, pending = await asyncio.wait([client_handle.receive()], timeout=0.05)
