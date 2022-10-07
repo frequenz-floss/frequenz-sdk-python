@@ -203,7 +203,7 @@ class EVChargerData(_BaseComponentData):
         self._raw = raw
 
     @property
-    def active_power_consumption(self) -> float:
+    def active_power(self) -> float:
         """Get current power with which the EV charger is being charged.
 
         Returns:
