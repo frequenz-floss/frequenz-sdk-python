@@ -23,6 +23,7 @@ class ComponentCategory(Enum):
     INVERTER = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
     BATTERY = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
     EV_CHARGER = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER
+    LOAD = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_LOAD
 
     # types not yet supported by the API but which can be inferred
     # from available graph info
