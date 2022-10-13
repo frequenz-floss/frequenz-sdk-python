@@ -19,8 +19,13 @@ class ChannelRegistry:
     between each other.  Channels are identified by string names.
     """
 
-    def __init__(self) -> None:
-        """Create a `ChannelRegistry` instance."""
+    def __init__(self, *, name: str) -> None:
+        """Create a `ChannelRegistry` instance.
+
+        Args:
+            name: A unique name for the registry.
+        """
+        self._name = name
         self._channels: Dict[str, Broadcast[Any]] = {}
 
     def get_sender(self, key: str) -> Sender[Any]:
@@ -33,7 +38,7 @@ class ChannelRegistry:
             A sender to a dynamically created channel with the given key.
         """
         if key not in self._channels:
-            self._channels[key] = Broadcast(f"dynamic-channel-{key}")
+            self._channels[key] = Broadcast(f"{self._name}-{key}")
         return self._channels[key].get_sender()
 
     def get_receiver(self, key: str) -> Receiver[Any]:
@@ -46,5 +51,5 @@ class ChannelRegistry:
             A receiver for a dynamically created channel with the given key.
         """
         if key not in self._channels:
-            self._channels[key] = Broadcast(f"dynamic-channel-{key}")
+            self._channels[key] = Broadcast(f"{self._name}-{key}")
         return self._channels[key].get_receiver()
