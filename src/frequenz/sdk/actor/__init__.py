@@ -7,6 +7,7 @@ License
 MIT
 """
 
+from .channel_registry import ChannelRegistry
 from .decorator import actor
 
-__all__ = ["actor"]
+__all__ = ["actor", "ChannelRegistry"]
