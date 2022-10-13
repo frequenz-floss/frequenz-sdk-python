@@ -7,25 +7,23 @@ License
 MIT
 """
 
-from typing import Any, Dict, Generic, TypeVar
+from typing import Any, Dict
 
 from frequenz.channels import Broadcast, Receiver, Sender
 
-T = TypeVar("T")
 
-
-class ChannelRegistry(Generic[T]):
+class ChannelRegistry:
     """Dynamically creates, own and provide access to channels.
 
     It can be used by actors to dynamically establish a communication channel
-    between each other.  Channels are identified by hashable key objects.
+    between each other.  Channels are identified by string names.
     """
 
     def __init__(self) -> None:
         """Create a `ChannelRegistry` instance."""
-        self._channels: Dict[T, Broadcast[Any]] = {}
+        self._channels: Dict[str, Broadcast[Any]] = {}
 
-    def get_sender(self, key: T) -> Sender[Any]:
+    def get_sender(self, key: str) -> Sender[Any]:
         """Get a sender to a dynamically created channel with the given key.
 
         Args:
@@ -38,7 +36,7 @@ class ChannelRegistry(Generic[T]):
             self._channels[key] = Broadcast(f"dynamic-channel-{key}")
         return self._channels[key].get_sender()
 
-    def get_receiver(self, key: T) -> Receiver[Any]:
+    def get_receiver(self, key: str) -> Receiver[Any]:
         """Get a receiver to a dynamically created channel with the given key.
 
         Args:
