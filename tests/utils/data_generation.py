@@ -70,7 +70,7 @@ def generate_battery_data(
     if overrides is not None and component_id in overrides:
         _params.update(overrides[component_id])
 
-    return BatteryData(
+    return BatteryData.from_proto(
         microgrid_pb.ComponentData(
             ts=timestamp,
             id=component_id,
@@ -124,7 +124,7 @@ def generate_inverter_data(
     if overrides is not None and component_id in overrides:
         _params.update(overrides[component_id])
 
-    return InverterData(
+    return InverterData.from_proto(
         microgrid_pb.ComponentData(
             ts=timestamp,
             id=component_id,
@@ -174,7 +174,7 @@ def generate_meter_data(
     if overrides is not None and component_id in overrides:
         _params.update(overrides[component_id])
 
-    return MeterData(
+    return MeterData.from_proto(
         microgrid_pb.ComponentData(
             ts=timestamp,
             id=component_id,
@@ -235,7 +235,7 @@ def generate_ev_charger_data(
     if overrides is not None and component_id in overrides:
         _params.update(overrides[component_id])
 
-    return EVChargerData(
+    return EVChargerData.from_proto(
         microgrid_pb.ComponentData(
             ts=timestamp,
             id=component_id,

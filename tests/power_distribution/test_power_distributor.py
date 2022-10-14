@@ -210,7 +210,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                 soc=Metric(40, Bound(20, 80)),
                 power=Bound(-1000, 1000),
             )
-            await sender.send(BatteryData(bat))
+            await sender.send(BatteryData.from_proto(bat))
 
         for key_id, inv_chan in inv_channels.items():
             inv_sender = inv_chan.get_sender()
@@ -218,7 +218,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                 key_id,
                 power=Bound(-500, 500),
             )
-            await inv_sender.send(InverterData(inv))
+            await inv_sender.send(InverterData.from_proto(inv))
 
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
         with mock.patch("asyncio.sleep", new_callable=AsyncMock):
@@ -262,7 +262,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                 soc=Metric(40, Bound(20, 80)),
                 power=Bound(-1000, 1000),
             )
-            await sender.send(BatteryData(bat))
+            await sender.send(BatteryData.from_proto(bat))
 
         for key_id, inv_chan in inv_channels.items():
             inv_sender = inv_chan.get_sender()
@@ -270,7 +270,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                 key_id,
                 power=Bound(-500, 500),
             )
-            await inv_sender.send(InverterData(inv))
+            await inv_sender.send(InverterData.from_proto(inv))
 
         channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
         channel2 = Bidirectional[Request, Result]("user2", "power_distributor")
@@ -331,7 +331,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                 soc=Metric(40, Bound(20, 80)),
                 power=Bound(-1000, 1000),
             )
-            await sender.send(BatteryData(bat))
+            await sender.send(BatteryData.from_proto(bat))
 
         for key_id, inv_chan in inv_channels.items():
             inv_sender = inv_chan.get_sender()
@@ -339,7 +339,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                 key_id,
                 power=Bound(-500, 500),
             )
-            await inv_sender.send(InverterData(inv))
+            await inv_sender.send(InverterData.from_proto(inv))
 
         channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
         service_channels = {
@@ -383,7 +383,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                 soc=Metric(40, Bound(20, 80)),
                 power=Bound(-1000, 1000),
             )
-            await sender.send(BatteryData(bat))
+            await sender.send(BatteryData.from_proto(bat))
 
         for key_id, inv_chan in inv_channels.items():
             inv_sender = inv_chan.get_sender()
@@ -391,7 +391,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                 key_id,
                 power=Bound(-500, 500),
             )
-            await inv_sender.send(InverterData(inv))
+            await inv_sender.send(InverterData.from_proto(inv))
 
         channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
         channel2 = Bidirectional[Request, Result]("user2", "power_distributor")
@@ -464,7 +464,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                 soc=Metric(40, Bound(20, 80)),
                 power=Bound(-1000, 1000),
             )
-            await sender.send(BatteryData(bat))
+            await sender.send(BatteryData.from_proto(bat))
 
         for key_id, inv_chan in inv_channels.items():
             inv_sender = inv_chan.get_sender()
@@ -472,7 +472,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                 key_id,
                 power=Bound(-500, 500),
             )
-            await inv_sender.send(InverterData(inv))
+            await inv_sender.send(InverterData.from_proto(inv))
 
         channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
         service_channels = {
@@ -522,7 +522,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                 soc=Metric(40, Bound(20, 80)),
                 power=Bound(-1000, 1000),
             )
-            await sender.send(BatteryData(bat))
+            await sender.send(BatteryData.from_proto(bat))
 
         for key_id, inv_chan in inv_channels.items():
             inv_sender = inv_chan.get_sender()
@@ -530,7 +530,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                 key_id,
                 power=Bound(-500, 500),
             )
-            await inv_sender.send(InverterData(inv))
+            await inv_sender.send(InverterData.from_proto(inv))
 
         channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
         service_channels = {
@@ -591,7 +591,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                     soc=Metric(40, Bound(20, 80)),
                     power=Bound(-1000, 1000),
                 )
-            await sender.send(BatteryData(bat))
+            await sender.send(BatteryData.from_proto(bat))
 
         for key_id, inv_chan in inv_channels.items():
             inv_sender = inv_chan.get_sender()
@@ -599,7 +599,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                 key_id,
                 power=Bound(-500, 500),
             )
-            await inv_sender.send(InverterData(inv))
+            await inv_sender.send(InverterData.from_proto(inv))
 
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
 
@@ -654,7 +654,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                     soc=Metric(40, Bound(20, 80)),
                     power=Bound(-1000, 1000),
                 )
-            await sender.send(BatteryData(bat))
+            await sender.send(BatteryData.from_proto(bat))
 
         for key_id, inv_chan in inv_channels.items():
             inv_sender = inv_chan.get_sender()
@@ -669,7 +669,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                     key_id,
                     power=Bound(-500, 500),
                 )
-            await inv_sender.send(InverterData(inv))
+            await inv_sender.send(InverterData.from_proto(inv))
 
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
 

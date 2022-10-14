@@ -45,7 +45,7 @@ def gen_market_data(component_id: int) -> MeterData:
     """
     timestamp = Timestamp()
     timestamp.GetCurrentTime()
-    return MeterData(
+    return MeterData.from_proto(
         microgrid_pb.ComponentData(
             id=component_id,
             ts=timestamp,
@@ -69,7 +69,7 @@ def gen_pv_data(component_id: int) -> MeterData:
     """
     timestamp = Timestamp()
     timestamp.GetCurrentTime()
-    return MeterData(
+    return MeterData.from_proto(
         microgrid_pb.ComponentData(
             id=component_id,
             ts=timestamp,
@@ -93,7 +93,7 @@ def gen_battery_data(component_id: int) -> BatteryData:
     """
     timestamp = Timestamp()
     timestamp.GetCurrentTime()
-    return BatteryData(
+    return BatteryData.from_proto(
         microgrid_pb.ComponentData(
             id=component_id,
             ts=timestamp,
@@ -123,7 +123,7 @@ def gen_inverter_data(component_id: int) -> InverterData:
     """
     timestamp = Timestamp()
     timestamp.GetCurrentTime()
-    return InverterData(
+    return InverterData.from_proto(
         microgrid_pb.ComponentData(
             id=component_id,
             ts=timestamp,

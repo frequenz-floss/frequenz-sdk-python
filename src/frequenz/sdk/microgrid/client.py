@@ -413,7 +413,9 @@ class MicrogridGrpcClient(MicrogridApiClient):
             A channel receiver that provides realtime meter data.
         """
         await self._expect_category(component_id, ComponentCategory.METER)
-        return self._get_component_data_channel(component_id, MeterData).get_receiver()
+        return self._get_component_data_channel(
+            component_id, MeterData.from_proto
+        ).get_receiver()
 
     async def battery_data(
         self,
@@ -436,7 +438,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
         """
         await self._expect_category(component_id, ComponentCategory.BATTERY)
         return self._get_component_data_channel(
-            component_id, BatteryData
+            component_id, BatteryData.from_proto
         ).get_receiver()
 
     async def inverter_data(
@@ -460,7 +462,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
         """
         await self._expect_category(component_id, ComponentCategory.INVERTER)
         return self._get_component_data_channel(
-            component_id, InverterData
+            component_id, InverterData.from_proto
         ).get_receiver()
 
     async def ev_charger_data(
@@ -484,7 +486,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
         """
         await self._expect_category(component_id, ComponentCategory.EV_CHARGER)
         return self._get_component_data_channel(
-            component_id, EVChargerData
+            component_id, EVChargerData.from_proto
         ).get_receiver()
 
     async def set_power(self, component_id: int, power_w: int) -> Empty:
