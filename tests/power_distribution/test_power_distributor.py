@@ -25,6 +25,7 @@ from frequenz.sdk.microgrid.graph import _MicrogridComponentGraph
 from frequenz.sdk.power_distribution.power_distributor import PowerDistributor
 from frequenz.sdk.power_distribution.utils import Request, Result
 
+from ..conftest import SAFETY_TIMEOUT
 from .test_distribution_algorithm import (
     Bound,
     Metric,
@@ -228,10 +229,14 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
 
             client_handle = channel.client_handle
             await client_handle.send(
-                Request(power=1200, batteries={106, 206}, request_timeout_sec=30.0)
+                Request(
+                    power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
+                )
             )
 
-            done, pending = await asyncio.wait([client_handle.receive()], timeout=0.1)
+            done, pending = await asyncio.wait(
+                [client_handle.receive()], timeout=SAFETY_TIMEOUT
+            )
             await distributor._stop()  # type: ignore # pylint: disable=no-member
 
         assert len(pending) == 0
@@ -284,18 +289,22 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
 
             user1_handle = channel1.client_handle
             task1 = user1_handle.send(
-                Request(power=1200, batteries={106, 206}, request_timeout_sec=30.0)
+                Request(
+                    power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
+                )
             )
 
             user2_handle = channel2.client_handle
             task2 = user2_handle.send(
-                Request(power=1300, batteries={106, 206}, request_timeout_sec=30.0)
+                Request(
+                    power=1300, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
+                )
             )
 
             await asyncio.gather(*[task1, task2])
 
             done, pending = await asyncio.wait(
-                [user1_handle.receive(), user2_handle.receive()], timeout=0.05
+                [user1_handle.receive(), user2_handle.receive()], timeout=SAFETY_TIMEOUT
             )
             await distributor._stop()  # type: ignore # pylint: disable=no-member
 
@@ -350,10 +359,14 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
 
             user1_handle = channel1.client_handle
             await user1_handle.send(
-                Request(power=1200, batteries={106, 208}, request_timeout_sec=30.0)
+                Request(
+                    power=1200, batteries={106, 208}, request_timeout_sec=SAFETY_TIMEOUT
+                )
             )
 
-            done, _ = await asyncio.wait([user1_handle.receive()], timeout=0.05)
+            done, _ = await asyncio.wait(
+                [user1_handle.receive()], timeout=SAFETY_TIMEOUT
+            )
             await distributor._stop()  # type: ignore # pylint: disable=no-member
 
         assert len(done) == 1
@@ -407,17 +420,23 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
 
             user1_handle = channel1.client_handle
             task1 = user1_handle.send(
-                Request(power=1200, batteries={106, 206}, request_timeout_sec=30.0)
+                Request(
+                    power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
+                )
             )
 
             user2_handle = channel2.client_handle
             task2 = user2_handle.send(
-                Request(power=1200, batteries={106, 306}, request_timeout_sec=30.0)
+                Request(
+                    power=1200, batteries={106, 306}, request_timeout_sec=SAFETY_TIMEOUT
+                )
             )
 
             user3_handle = channel3.client_handle
             task3 = user3_handle.send(
-                Request(power=1200, batteries={106, 206}, request_timeout_sec=1.0)
+                Request(
+                    power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
+                )
             )
 
             await asyncio.gather(*[task1, task2, task3])
@@ -428,7 +447,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                     user2_handle.receive(),
                     user3_handle.receive(),
                 ],
-                timeout=0.5,
+                timeout=SAFETY_TIMEOUT,
             )
             await distributor._stop()  # type: ignore # pylint: disable=no-member
 
@@ -487,11 +506,13 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                 Request(
                     power=1200,
                     batteries={106, 206},
-                    request_timeout_sec=30.0,
+                    request_timeout_sec=SAFETY_TIMEOUT,
                     adjust_power=False,
                 )
             )
-            done, pending = await asyncio.wait([user1_handle.receive()], timeout=0.05)
+            done, pending = await asyncio.wait(
+                [user1_handle.receive()], timeout=SAFETY_TIMEOUT
+            )
             await distributor._stop()  # type: ignore # pylint: disable=no-member
 
         assert len(pending) == 0
@@ -545,12 +566,14 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                 Request(
                     power=1000,
                     batteries={106, 206},
-                    request_timeout_sec=30.0,
+                    request_timeout_sec=SAFETY_TIMEOUT,
                     adjust_power=False,
                 )
             )
 
-            done, pending = await asyncio.wait([user1_handle.receive()], timeout=0.05)
+            done, pending = await asyncio.wait(
+                [user1_handle.receive()], timeout=SAFETY_TIMEOUT
+            )
             await distributor._stop()  # type: ignore # pylint: disable=no-member
 
         assert len(pending) == 0
@@ -610,10 +633,14 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
 
             client_handle = channel.client_handle
             await client_handle.send(
-                Request(power=1200, batteries={106, 206}, request_timeout_sec=30.0)
+                Request(
+                    power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
+                )
             )
 
-            done, pending = await asyncio.wait([client_handle.receive()], timeout=0.05)
+            done, pending = await asyncio.wait(
+                [client_handle.receive()], timeout=SAFETY_TIMEOUT
+            )
             await distributor._stop()  # type: ignore # pylint: disable=no-member
 
         assert len(pending) == 0
@@ -680,10 +707,14 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
 
             client_handle = channel.client_handle
             await client_handle.send(
-                Request(power=1200, batteries={106, 206}, request_timeout_sec=30.0)
+                Request(
+                    power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
+                )
             )
 
-            done, pending = await asyncio.wait([client_handle.receive()], timeout=0.05)
+            done, pending = await asyncio.wait(
+                [client_handle.receive()], timeout=SAFETY_TIMEOUT
+            )
             await distributor._stop()  # type: ignore # pylint: disable=no-member
 
         assert len(pending) == 0
