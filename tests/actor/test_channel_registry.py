@@ -10,9 +10,9 @@ MIT
 from frequenz.sdk.actor import ChannelRegistry
 
 
-async def test_channel_registry_with_string() -> None:
+async def test_channel_registry() -> None:
     """Tests for ChannelRegistry, with string as key type."""
-    reg = ChannelRegistry[str]()
+    reg = ChannelRegistry(name="test-registry")
 
     sender20 = reg.get_sender("20-hello")
     receiver20 = reg.get_receiver("20-hello")
