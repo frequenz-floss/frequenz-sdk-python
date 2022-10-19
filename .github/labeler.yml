@@ -6,9 +6,16 @@
 # For more details on the configuration please see:
 # https://github.com/marketplace/actions/labeler
 
+"part:data-pipeline":
+  - "src/frequenz/sdk/data_handling/**"
+  - "src/frequenz/sdk/data_ingestion/**"
+
 "part:docs": 
   - "**/*.md"
   - LICENSE
+
+"part:power-distribution":
+  - "src/frequenz/sdk/power_distribution/**"
 
 "part:tests":
   - "tests/**"
@@ -23,10 +30,3 @@
   - "*requirements*.txt"
   - setup.cfg
   - setup.py
-
-"part:data-pipeline":
-  - "src/frequenz/sdk/data_handling/**"
-  - "src/frequenz/sdk/data_ingestion/**"
-
-"part:power-distribution":
-  - "src/frequenz/sdk/power_distribution/**"

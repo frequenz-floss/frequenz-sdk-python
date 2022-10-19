@@ -47,11 +47,11 @@ body:
       multiple: true
       options:
         - I don't know (part:❓)
+        - Data pipeline (part:data-pipeline)
         - Documentation (part:docs)
+        - Battery power distribution (part:power-distribution)
         - Unit, integration and performance tests (part:tests)
         - Build script, CI, dependencies, etc. (part:tooling)
-        - Battery power distribution (part:power-distribution)
-        - Data pipeline (part:data-pipeline)
     validations:
       required: true
   - type: textarea
