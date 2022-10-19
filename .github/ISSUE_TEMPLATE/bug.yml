@@ -47,8 +47,12 @@ body:
       multiple: true
       options:
         - I don't know (part:❓)
+        - Actors or actors utilities (decorator, etc.) (part:actor)
+        - Configuration management (part:config)
+        - Core components (data structures, etc.) (part:core)
         - Data pipeline (part:data-pipeline)
         - Documentation (part:docs)
+        - Microgrid (API, component graph, etc.) (part:microgrid)
         - Battery power distribution (part:power-distribution)
         - Unit, integration and performance tests (part:tests)
         - Build script, CI, dependencies, etc. (part:tooling)

@@ -12,8 +12,12 @@ caseSensitive: true
 
 # Explicit keyword mappings to labels. Form of match:label. Required.
 labelMappings:
+  "part:actor": "part:actor"
+  "part:config": "part:config"
+  "part:core": "part:core"
   "part:data-pipeline": "part:data-pipeline"
   "part:docs": "part:docs"
+  "part:microgrid": "part:microgrid"
   "part:power-distribution": "part:power-distribution"
   "part:tests": "part:tests"
   "part:tooling": "part:tooling"

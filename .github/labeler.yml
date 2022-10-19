@@ -6,6 +6,15 @@
 # For more details on the configuration please see:
 # https://github.com/marketplace/actions/labeler
 
+"part:actor":
+  - "src/frequenz/sdk/actor/**"
+
+"part:config":
+  - "src/frequenz/sdk/config/**"
+
+"part:core":
+  - "src/frequenz/sdk/_internal/**"
+
 "part:data-pipeline":
   - "src/frequenz/sdk/data_handling/**"
   - "src/frequenz/sdk/data_ingestion/**"
@@ -13,6 +22,9 @@
 "part:docs": 
   - "**/*.md"
   - LICENSE
+
+"part:microgrid":
+  - "src/frequenz/sdk/microgrid/**"
 
 "part:power-distribution":
   - "src/frequenz/sdk/power_distribution/**"
