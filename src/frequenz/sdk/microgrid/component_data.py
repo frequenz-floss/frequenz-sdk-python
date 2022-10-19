@@ -127,6 +127,8 @@ class BatteryData(ComponentData):
         power_upper_bound: the maximum charge power, in Watts, represented in the
             passive sign convention. This will be a positive number, or zero if no
             charging is possible.
+        temperature: The aggregated values of all the temperature measurements of a
+            battery, in Celsius (°C).
     """
 
     soc: float
@@ -135,6 +137,7 @@ class BatteryData(ComponentData):
     capacity: float
     power_lower_bound: float
     power_upper_bound: float
+    temperature: float
 
     @classmethod
     def from_proto(cls, raw: microgrid_pb.ComponentData) -> BatteryData:
@@ -155,6 +158,7 @@ class BatteryData(ComponentData):
             capacity=raw.battery.properties.capacity,
             power_lower_bound=raw.battery.data.dc.power.system_bounds.lower,
             power_upper_bound=raw.battery.data.dc.power.system_bounds.upper,
+            temperature=raw.battery.data.temperature.max,
         )
         battery_data._set_raw(raw=raw)
         return battery_data
