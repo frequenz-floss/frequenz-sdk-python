@@ -240,14 +240,14 @@ class EVChargerData(ComponentData):
             timestamp=raw.ts.ToDatetime(tzinfo=pytz.UTC),
             active_power=raw.ev_charger.data.ac.power_active.value,
             current_per_phase=(
-                raw.meter.data.ac.phase_1.current.value,
-                raw.meter.data.ac.phase_2.current.value,
-                raw.meter.data.ac.phase_3.current.value,
+                raw.ev_charger.data.ac.phase_1.current.value,
+                raw.ev_charger.data.ac.phase_2.current.value,
+                raw.ev_charger.data.ac.phase_3.current.value,
             ),
             voltage_per_phase=(
-                raw.meter.data.ac.phase_1.voltage.value,
-                raw.meter.data.ac.phase_2.voltage.value,
-                raw.meter.data.ac.phase_3.voltage.value,
+                raw.ev_charger.data.ac.phase_1.voltage.value,
+                raw.ev_charger.data.ac.phase_2.voltage.value,
+                raw.ev_charger.data.ac.phase_3.voltage.value,
             ),
             cable_state=EVChargerCableState.from_pb(raw.ev_charger.state.cable_state),
         )
