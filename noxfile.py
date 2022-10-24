@@ -121,6 +121,7 @@ def docstrings(session: nox.Session, install_deps: bool = True) -> None:
     )
     session.run(
         "darglint",
+        "-v2",  # for verbose error messages.
         *darglint_paths,
     )
 
