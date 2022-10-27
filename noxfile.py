@@ -5,7 +5,7 @@ import nox
 FMT_DEPS = ["black", "isort"]
 LINT_DEPS = ["mypy", "pylint"]
 DOCSTRING_DEPS = ["pydocstyle", "darglint"]
-PYTEST_DEPS = ["pytest", "pytest-cov", "pytest-mock", "pytest-asyncio"]
+PYTEST_DEPS = ["pytest", "pytest-cov", "pytest-mock", "pytest-asyncio", "time-machine"]
 
 
 def source_file_paths(session: nox.Session) -> List[str]:
