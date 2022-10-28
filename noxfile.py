@@ -68,8 +68,9 @@ def mypy(session: nox.Session, install_deps: bool = True) -> None:
     # Since we use other packages in the frequenz namespace, we need to run the
     # checks for frequenz.sdk from the installed package instead of the src
     # directory.
-    mypy_paths = [path for path in source_file_paths(session)
-            if not path.startswith("src")]
+    mypy_paths = [
+        path for path in source_file_paths(session) if not path.startswith("src")
+    ]
 
     mypy_cmd = [
         "mypy",
@@ -115,10 +116,7 @@ def docstrings(session: nox.Session, install_deps: bool = True) -> None:
     # This is needed only for the `src` dir, so we exclude the other top level
     # dirs that contain code.
     darglint_paths = filter(
-        lambda path: not (
-            path.startswith("tests")
-            or path.startswith("benchmarks")
-        ),
+        lambda path: not (path.startswith("tests") or path.startswith("benchmarks")),
         source_file_paths(session),
     )
     session.run(
