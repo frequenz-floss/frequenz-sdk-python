@@ -24,6 +24,9 @@ from .component_data import BatteryData, EVChargerData, InverterData, MeterData
 from .connection import Connection
 from .retry import LinearBackoff, RetryStrategy
 
+# Default timeout applied to all gRPC calls
+DEFAULT_GRPC_CALL_TIMEOUT = 60.0
+
 # A generic type for representing various component data types, used in the
 # generic function `MicrogridGrpcClient._component_data_task` that fetches
 # component data and transforms it into one of the specific types.
@@ -197,11 +200,13 @@ class MicrogridGrpcClient(MicrogridApiClient):
             Iterator whose elements are all the components in the microgrid.
 
         Raises:
-            AioRpcError: if connection to Microgrid API cannot be established
+            AioRpcError: if connection to Microgrid API cannot be established or
+                when the api call exceeded timeout
         """
         try:
             component_list = await self.api.ListComponents(
-                microgrid_pb.ComponentFilter()
+                microgrid_pb.ComponentFilter(),
+                timeout=DEFAULT_GRPC_CALL_TIMEOUT,
             )
         except grpc.aio.AioRpcError as err:
             msg = f"Failed to list components. Microgrid API: {self.target}. Err: {err.details()}"
@@ -244,12 +249,16 @@ class MicrogridGrpcClient(MicrogridApiClient):
             Microgrid connections matching the provided start and end filters.
 
         Raises:
-            AioRpcError: if connection to Microgrid API cannot be established
+            AioRpcError: if connection to Microgrid API cannot be established or
+                when the api call exceeded timeout
         """
         connection_filter = microgrid_pb.ConnectionFilter(starts=starts, ends=ends)
         try:
             valid_components, all_connections = await asyncio.gather(
-                self.components(), self.api.ListConnections(connection_filter)
+                self.components(),
+                self.api.ListConnections(
+                    connection_filter, timeout=DEFAULT_GRPC_CALL_TIMEOUT
+                ),
             )
         except grpc.aio.AioRpcError as err:
             msg = f"Failed to list connections. Microgrid API: {self.target}. Err: {err.details()}"
@@ -289,6 +298,9 @@ class MicrogridGrpcClient(MicrogridApiClient):
             transform: A method for transforming raw component data into the
                 desired output type.
             sender: A channel sender, to send the component data to.
+
+        Raises:
+            AioRpcError: if connection to Microgrid API cannot be established
         """
         retry_spec: RetryStrategy = self._retry_spec.copy()
         while True:
@@ -297,7 +309,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
             )
             try:
                 call = self.api.GetComponentData(
-                    microgrid_pb.ComponentIdParam(id=component_id)
+                    microgrid_pb.ComponentIdParam(id=component_id),
                 )
                 async for msg in call:
                     await sender.send(transform(msg))
@@ -364,7 +376,9 @@ class MicrogridGrpcClient(MicrogridApiClient):
         return chan
 
     async def _expect_category(
-        self, component_id: int, expected_category: ComponentCategory
+        self,
+        component_id: int,
+        expected_category: ComponentCategory,
     ) -> None:
         """Check if the given component_id is of the expected type.
 
@@ -412,9 +426,13 @@ class MicrogridGrpcClient(MicrogridApiClient):
         Returns:
             A channel receiver that provides realtime meter data.
         """
-        await self._expect_category(component_id, ComponentCategory.METER)
+        await self._expect_category(
+            component_id,
+            ComponentCategory.METER,
+        )
         return self._get_component_data_channel(
-            component_id, MeterData.from_proto
+            component_id,
+            MeterData.from_proto,
         ).get_receiver()
 
     async def battery_data(
@@ -436,9 +454,13 @@ class MicrogridGrpcClient(MicrogridApiClient):
         Returns:
             A channel receiver that provides realtime battery data.
         """
-        await self._expect_category(component_id, ComponentCategory.BATTERY)
+        await self._expect_category(
+            component_id,
+            ComponentCategory.BATTERY,
+        )
         return self._get_component_data_channel(
-            component_id, BatteryData.from_proto
+            component_id,
+            BatteryData.from_proto,
         ).get_receiver()
 
     async def inverter_data(
@@ -460,9 +482,13 @@ class MicrogridGrpcClient(MicrogridApiClient):
         Returns:
             A channel receiver that provides realtime inverter data.
         """
-        await self._expect_category(component_id, ComponentCategory.INVERTER)
+        await self._expect_category(
+            component_id,
+            ComponentCategory.INVERTER,
+        )
         return self._get_component_data_channel(
-            component_id, InverterData.from_proto
+            component_id,
+            InverterData.from_proto,
         ).get_receiver()
 
     async def ev_charger_data(
@@ -484,9 +510,13 @@ class MicrogridGrpcClient(MicrogridApiClient):
         Returns:
             A channel receiver that provides realtime ev charger data.
         """
-        await self._expect_category(component_id, ComponentCategory.EV_CHARGER)
+        await self._expect_category(
+            component_id,
+            ComponentCategory.EV_CHARGER,
+        )
         return self._get_component_data_channel(
-            component_id, EVChargerData.from_proto
+            component_id,
+            EVChargerData.from_proto,
         ).get_receiver()
 
     async def set_power(self, component_id: int, power_w: int) -> Empty:
@@ -505,21 +535,24 @@ class MicrogridGrpcClient(MicrogridApiClient):
             Empty response.
 
         Raises:
-            AioRpcError: if connection to Microgrid API cannot be established
+            AioRpcError: if connection to Microgrid API cannot be established or
+                when the api call exceeded timeout
         """
         try:
             if power_w >= 0:
                 result: Empty = await self.api.Charge(
                     microgrid_pb.PowerLevelParam(
                         component_id=component_id, power_w=power_w
-                    )
+                    ),
+                    timeout=DEFAULT_GRPC_CALL_TIMEOUT,
                 )
             else:
                 power_w *= -1
                 result = await self.api.Discharge(
                     microgrid_pb.PowerLevelParam(
                         component_id=component_id, power_w=power_w
-                    )
+                    ),
+                    timeout=DEFAULT_GRPC_CALL_TIMEOUT,
                 )
         except grpc.aio.AioRpcError as err:
             msg = f"Failed to set power. Microgrid API: {self.target}. Err: {err.details()}"
@@ -532,7 +565,12 @@ class MicrogridGrpcClient(MicrogridApiClient):
             )
         return result
 
-    async def set_bounds(self, component_id: int, lower: float, upper: float) -> None:
+    async def set_bounds(
+        self,
+        component_id: int,
+        lower: float,
+        upper: float,
+    ) -> None:
         """Send `SetBoundsParam`s received from a channel to nitrogen.
 
         Args:
@@ -544,6 +582,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
             ValueError: when upper bound is less than 0, or when lower bound is
                 greater than 0.
             grpc.aio.AioRpcError: if connection to Microgrid API cannot be established
+                or when the api call exceeded timeout
         """
         api_details = f"Microgrid API: {self.target}."
         if upper < 0:
@@ -551,7 +590,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
         if lower > 0:
             raise ValueError(f"Lower bound {upper} must be less than or equal to 0.")
 
-        set_bounds_call = self.api.SetBounds()
+        set_bounds_call = self.api.SetBounds(timeout=DEFAULT_GRPC_CALL_TIMEOUT)
         try:
             await set_bounds_call.write(
                 microgrid_pb.SetBoundsParam(
@@ -559,7 +598,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
                     # pylint: disable=no-member,line-too-long
                     target_metric=microgrid_pb.SetBoundsParam.TargetMetric.TARGET_METRIC_POWER_ACTIVE,
                     bounds=common_pb.Bounds(lower=lower, upper=upper),
-                )
+                ),
             )
         except grpc.aio.AioRpcError as err:
             logger.error(
