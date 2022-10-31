@@ -166,7 +166,7 @@ def crop_df_list_by_time(
 
     Returns:
         All dataframes in the list combined to one and cropped to fit within the
-        specified start and end times.
+            specified start and end times.
     """
     df0 = pd.concat(df_list).reset_index(drop=True)
     df0["ts"] = pd.to_datetime(df0["ts"]).dt.tz_localize(pytz.UTC)
@@ -269,8 +269,7 @@ class LoadHistoricData:
         """Generate the list of historic parquet files to read.
 
         Args:
-            data_dir: directory of all the historic data of the particular
-                component
+            data_dir: directory of all the historic data of the particular component
             dates: the dates over which histori data should be read
             start_time: will read from this timestamp onwards
             end_time: will read up to this timestamp
@@ -364,9 +363,9 @@ class LoadHistoricData:
             end_time: will read up to this timestamp.
 
         Returns:
-            Dataframe containing historical data with column `timestamp`
-            specifying the timestamp and the features generated with names
-            `FeatureGenerator.feature` in feature_generators.
+            Dataframe containing historical data with column `timestamp` specifying
+                the timestamp and the features generated with names
+                `FeatureGenerator.feature` in feature_generators.
         """
         data_dir = os.path.join(
             self.histdata_dir,

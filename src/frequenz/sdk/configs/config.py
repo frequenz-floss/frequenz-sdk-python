@@ -144,7 +144,7 @@ class Config:
 
         Returns:
             Dictionary if the corresponding value is a subsection in the .toml
-            file or a primitive type it is a simple value.
+                file or a primitive type it is a simple value.
         """
         value = self._conf_store.get(key, None)
         if value is None:

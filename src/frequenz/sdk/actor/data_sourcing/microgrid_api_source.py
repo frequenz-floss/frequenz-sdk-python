@@ -93,8 +93,8 @@ class MicrogridApiSource:
             comp_id: Id of the requested component.
 
         Returns:
-            The category of the given component, if it is a valid component, or
-            None otherwise.
+            The category of the given component, if it is a valid component, or None
+                otherwise.
         """
         if comp_id in self._comp_categories_cache:
             return self._comp_categories_cache[comp_id]
@@ -246,7 +246,7 @@ class MicrogridApiSource:
 
         Returns:
             A method that accepts a `ComponentData` object and returns a float
-            representing the given metric.
+                representing the given metric.
         """
         if category == ComponentCategory.BATTERY:
             return _BatteryDataMethods[metric]
@@ -267,12 +267,12 @@ class MicrogridApiSource:
 
         Args:
             category: The category of the component.
-            requests: A list of metric requests received from external actors
-                for a certain component.
+            requests: A list of metric requests received from external actors for a
+                certain component.
 
         Returns:
-            A dictionary of output metric names to channel senders from the
-            channel registry.
+            A dictionary of output metric names to channel senders from the channel
+                registry.
         """
         return [
             (

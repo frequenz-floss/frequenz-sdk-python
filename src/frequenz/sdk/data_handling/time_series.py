@@ -182,8 +182,8 @@ class LatestEntryCache(Generic[Key, Value]):
         """Get the most recently observed timestamp across all keys in the cache.
 
         Returns:
-            The highest timestamp out of all entries in the cache, or
-            `datetime.min` if there are no cache entries.
+            The highest timestamp out of all entries in the cache, or `datetime.min`
+                if there are no cache entries.
         """
         return self._latest_timestamp
 
@@ -218,16 +218,14 @@ class LatestEntryCache(Generic[Key, Value]):
             key: key for which to look up the cached entry
             timedelta_tolerance: maximum permitted time difference between
                 `latest_timestamp` and the timestamp of the cached entry
-            default: what to return if the `key` is not found in the cache, or
-                if the cached entry is not within the limits of
-                `timedelta_tolerance`
+            default: what to return if the `key` is not found in the cache, or if the
+                cached entry is not within the limits of `timedelta_tolerance`
 
         Returns:
             The cached entry associated with the provided `key`, or `default` if
-            either there is no entry for the `key`, or if the difference between
-            the cached timestamp and `latest_timestamp` is greater than
-            `timedelta_tolerance`
-
+                either there is no entry for the `key`, or if the difference between the
+                cached timestamp and `latest_timestamp` is greater than
+                `timedelta_tolerance`
 
         Raises:
             ValueError: when either timedelta_tolerance is negative or an entry
@@ -430,40 +428,39 @@ class TimeSeriesFormula(Formula, Generic[Value]):
     ) -> Optional[TimeSeriesEntry[Value]]:
         """Evaluate the formula using time-series values from the provided cache.
 
-        The underlying assumption of the evaluation process is that measurements
-        from each time series will be offset slightly in time, but may still be
-        combined if that offset is small enough.  By default the permitted
-        offset is the maximum possible `timedelta`, in which case the mere
-        existence of a value in each time series will be enough.
+        The underlying assumption of the evaluation process is that measurements from
+        each time series will be offset slightly in time, but may still be combined if
+        that offset is small enough.  By default the permitted offset is the maximum
+        possible `timedelta`, in which case the mere existence of a value in each time
+        series will be enough.
 
-        This is probably not desirable for real-world use case so users should
-        take care to always set the `timedelta_tolerance` parameter to a value
-        that matches their use-case (for example, if the rate of update of time
-        series is 0.2 sec, a `timedelta_tolerance` of 0.2 sec is recommended).
+        This is probably not desirable for real-world use case so users should take care
+        to always set the `timedelta_tolerance` parameter to a value that matches their
+        use-case (for example, if the rate of update of time series is 0.2 sec, a
+        `timedelta_tolerance` of 0.2 sec is recommended).
 
         Args:
-            cache: cache of the most recent time series values, where the key
-                should match the variable name in the formula (so e.g. if the
-                formula is `x + y` then the cache should contain keys `"x"` and
-                `"y"`)
+            cache: cache of the most recent time series values, where the key should
+                match the variable name in the formula (so e.g. if the formula is `x +
+                y` then the cache should contain keys `"x"` and `"y"`)
             formula_name: user-defined name for the formula
             symbol_to_symbol_mapping: mapping of symbols in string representation to
                 symbol mappings
             timedelta_tolerance: maximum permitted time difference between
-                `cache.latest_timestamp` and the timestamp of any cached entry
-                (if this is violated, the result will be the same as if an entry
-                for the given key does not exist)
-            default_entry: what entry to use if the entry for a given symbol is
-                not found in the cache, or if the cached entry is not within the
-                limits of `timedelta_tolerance`. If None, then formula won't be
-                evaluated and None will be returned.
+                `cache.latest_timestamp` and the timestamp of any cached entry (if this
+                is violated, the result will be the same as if an entry for the given
+                key does not exist)
+            default_entry: what entry to use if the entry for a given symbol is not
+                found in the cache, or if the cached entry is not within the limits of
+                `timedelta_tolerance`. If None, then formula won't be evaluated and None
+                will be returned.
 
         Returns:
-            Result of the formula, with a `timestamp` equal to the highest
-            timestamp among all of the combined time series entries, and a
-            `value` that equals the formula result, or `None` if any of the
-            required time series variables are not present in `cache` or are
-            older than `timedelta_tolerance`
+            Result of the formula, with a `timestamp` equal to the highest timestamp
+                among all of the combined time series entries, and a `value` that equals
+                the formula result, or `None` if any of the required time series
+                variables are not present in `cache` or are older than
+                `timedelta_tolerance`
         """
         kwargs: Dict[str, Optional[Value]] = {}
         timestamp = pytz.utc.localize(datetime.datetime.min)

@@ -69,8 +69,8 @@ class Component:
         """Check if this instance contains valid data.
 
         Returns:
-            `True` if `id > 0` and `type` is a valid `ComponentCategory`, or if
-            `id == 0` and `type` is `GRID`, `False` otherwise
+            `True` if `id > 0` and `type` is a valid `ComponentCategory`, or if `id
+                == 0` and `type` is `GRID`, `False` otherwise
         """
         return (
             self.component_id > 0 and any(t == self.category for t in ComponentCategory)

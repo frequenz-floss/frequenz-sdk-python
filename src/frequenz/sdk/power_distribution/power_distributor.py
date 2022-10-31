@@ -432,7 +432,8 @@ class PowerDistributor:
 
         Returns:
             Tuple where first element is map between battery and adjacent inverter,
-            second element of the tuple is map between inverter and adjacent battery.
+                second element of the tuple is map between inverter and adjacent
+                battery.
         """
         bat_inv_map: Dict[int, int] = {}
         inv_bat_map: Dict[int, int] = {}
@@ -571,8 +572,8 @@ class PowerDistributor:
             request_timeout_sec: timeout which has been used for request.
 
         Returns:
-            Tuple where first element tells if any task didn't succeed,
-            and the second element is total amount of power that failed.
+            Tuple where first element tells if any task didn't succeed, and the
+                second element is total amount of power that failed.
         """
         any_fail: bool = False
         failed_power: int = 0

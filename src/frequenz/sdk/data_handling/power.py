@@ -48,10 +48,10 @@ class ComplexPower:
             ac_message: protobuf message describing the AC power of a component
 
         Returns:
-            Complex power value whose real (active) part is equal to the
-            difference between consumption and supply in the `AC` message, and
-            whose imaginary (reactive) part is equal to the difference between
-            the message's inductive and capacitive power.
+            Complex power value whose real (active) part is equal to the difference
+                between consumption and supply in the `AC` message, and whose imaginary
+                (reactive) part is equal to the difference between the message's
+                inductive and capacitive power.
         """
         active = ac_message.power_active.value
         reactive = ac_message.power_reactive.value
@@ -63,12 +63,12 @@ class ComplexPower:
         """Create a ComplexPower value from a numerical active power value.
 
         Args:
-            active_power: value of active power, following the passive sign
-                convention (positive => consumption, negative => supply)
+            active_power: value of active power, following the passive sign convention
+                (positive => consumption, negative => supply)
 
         Returns:
-            Value with real (active) part equal to the provided active power
-            value, and zero imaginary (reactive) part.
+            Value with real (active) part equal to the provided active power value,
+                and zero imaginary (reactive) part.
         """
         return cls(complex(active_power, 0))
 
@@ -81,8 +81,8 @@ class ComplexPower:
                 convention (positive => inductive, negative => capacitive)
 
         Returns:
-            value with zero real (active) part and imaginary (reactive) part
-            equal to the provided reactive power value
+            value with zero real (active) part and imaginary (reactive) part equal
+                to the provided reactive power value
         """
         return cls(complex(0, reactive_power))
 
@@ -92,7 +92,7 @@ class ComplexPower:
 
         Returns:
             Value of the real component, following the passive sign convention
-            (positive => consumption, negative => supply)
+                (positive => consumption, negative => supply)
         """
         return self._complex_power.real
 
@@ -102,7 +102,7 @@ class ComplexPower:
 
         Returns:
             Value of the real component, following the passive sign convention
-            (positive => consumption, negative => supply)
+                (positive => consumption, negative => supply)
         """
         return self.real
 
@@ -111,8 +111,8 @@ class ComplexPower:
         """Get the power consumption.
 
         Returns:
-            Value of the real (active) component of the complex power value if
-            it is positive, or zero otherwise
+            Value of the real (active) component of the complex power value if it is
+                positive, or zero otherwise
         """
         return max(self.real, 0)
 
@@ -121,8 +121,8 @@ class ComplexPower:
         """Get the power supply.
 
         Returns:
-            Absolute value of the real (active) component of the complex power
-            value if the latter is negative, or zero otherwise
+            Absolute value of the real (active) component of the complex power value
+                if the latter is negative, or zero otherwise
         """
         return max(-self.real, 0)
 
@@ -131,8 +131,8 @@ class ComplexPower:
         """Get the reactive component of the complex power value.
 
         Returns:
-            Value of the imaginary component, following the passive sign
-            convention (positive => inductive, negative => capacitive)
+            Value of the imaginary component, following the passive sign convention
+                (positive => inductive, negative => capacitive)
         """
         return self._complex_power.imag
 
@@ -141,8 +141,8 @@ class ComplexPower:
         """Get the imaginary component of the complex power value.
 
         Returns:
-            Value of the imaginary component, following the passive sign
-            convention (positive => inductive, negative => capacitive)
+            Value of the imaginary component, following the passive sign convention
+                (positive => inductive, negative => capacitive)
         """
         return self.imag
 
@@ -151,8 +151,8 @@ class ComplexPower:
         """Get the inductive power.
 
         Returns:
-            Value of the imaginary (reactive) component of the complex power
-            value if it is positive, or zero otherwise
+            Value of the imaginary (reactive) component of the complex power value
+                if it is positive, or zero otherwise
         """
         return max(self.imag, 0)
 
@@ -162,7 +162,7 @@ class ComplexPower:
 
         Returns:
             Absolute value of the imaginary (reactive) component of the complex
-            power value if the latter is negative, or zero otherwise
+                power value if the latter is negative, or zero otherwise
         """
         return max(-self.imag, 0)
 
@@ -170,8 +170,7 @@ class ComplexPower:
         """Generate the negative of this value.
 
         Returns:
-            Value whose real and imaginary parts are the negative of this
-            instance's
+            Value whose real and imaginary parts are the negative of this instance's
         """
         return ComplexPower(-self._complex_power)
 
@@ -240,8 +239,7 @@ class ComplexPower:
             other: `ComplexPower` value to compare this one to.
 
         Returns:
-            `True` if the underlying complex numbers are equal, `False`
-            otherwise
+            `True` if the underlying complex numbers are equal, `False` otherwise
         """
         if not isinstance(other, ComplexPower):
             return NotImplemented

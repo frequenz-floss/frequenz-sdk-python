@@ -209,9 +209,9 @@ class DistributionAlgorithm:
 
         Returns:
             Tuple where first argument is battery availability ratio for each
-            battery-inverter pair. The list is sorted by ratio in descending
-            order.  The second element of the tuple is total sum of all battery
-            ratios in the list.
+                battery-inverter pair. The list is sorted by ratio in
+                descending order.  The second element of the tuple is total sum
+                of all battery ratios in the list.
         """
         total_capacity = self._total_capacity(components)
         battery_availability_ratio: List[Tuple[InvBatPair, float]] = []

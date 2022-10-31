@@ -21,6 +21,6 @@ class Connection(NamedTuple):
 
         Returns:
             `True` if `start >= 0`, `end > 0`, and `start != end`, `False`
-            otherwise.
+                otherwise.
         """
         return self.start >= 0 and self.end > 0 and self.start != self.end

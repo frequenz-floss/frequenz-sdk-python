@@ -109,17 +109,14 @@ class HandleHistData:
         """Load necessary data to compute specified quantities in `hd_formulas`.
 
         Args:
-            start_time: starting time of time period over which to load historic
-                data.
-            end_time: ending time of time period over which to load historic
-                data.
-            data_sampling_rate: the rate at which to resample the data;
-                following pandas resampling convention.
+            start_time: starting time of time period over which to load historic data.
+            end_time: ending time of time period over which to load historic data.
+            data_sampling_rate: the rate at which to resample the data; following pandas
+                resampling convention.
 
         Returns:
-            Resultant dataframe with columns timestamp and individual columns
-            for each of the specified `Formula()`s between start_time and
-            end_time.
+            Resultant dataframe with columns timestamp and individual columns for
+                each of the specified `Formula()`s between start_time and end_time.
         """
         dfs_hist0 = []
         for hdl in self.hd_loaders:
@@ -185,14 +182,14 @@ class HandleHistData:
         Args:
             start_time: starting time from which to load historic data.
             end_time: ending time up till which to load historic data.
-            data_sampling_rate: the rate at which to resample the data;
-                following pandas resampling convention.
-            read_freq: load individual component data per this specified rate
-                before computing the fomula.
+            data_sampling_rate: the rate at which to resample the data; following pandas
+                resampling convention.
+            read_freq: load individual component data per this specified rate before
+                computing the fomula.
 
         Returns:
-            Result data frame with columns timestamp and individual columns for
-            each of the specified quantities from the hd_formulas
+            Result data frame with columns timestamp and individual columns for each
+                of the specified quantities from the hd_formulas
         """
         res: Dict[str, Any] = {"timestamp": []}
         for hdf in self.hd_formulas:
