@@ -9,9 +9,9 @@ License
 MIT
 """
 import asyncio
-import datetime as dt
 import logging
 from asyncio.tasks import ALL_COMPLETED
+from datetime import datetime, timezone
 from typing import (  # pylint: disable=unused-import
     Any,
     Dict,
@@ -24,7 +24,6 @@ from typing import (  # pylint: disable=unused-import
 )
 
 import grpc
-import pytz
 from frequenz.channels import BidirectionalHandle, Peekable, Receiver
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
@@ -528,7 +527,7 @@ class PowerDistributor:
             )
             return False
 
-        now = dt.datetime.now(tz=pytz.UTC)
+        now = datetime.now(timezone.utc)
         time_delta = now - component_data.timestamp
         if time_delta.total_seconds() > self.component_data_timeout_sec:
             _logger.warning(

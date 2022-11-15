@@ -8,10 +8,9 @@ License
 MIT
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Sequence
 
-import pytz
 import time_machine
 
 from frequenz.sdk.data_pipeline import Sample
@@ -51,7 +50,7 @@ def test_component_metric_resampler_remove_outdated_samples() -> None:
         resampling_function=resampling_function_sum,
     )
 
-    timestamp = datetime.now(tz=pytz.UTC)
+    timestamp = datetime.now(timezone.utc)
     sample1 = Sample(timestamp, value=5.0)
     sample2 = Sample(timestamp + timedelta(seconds=1), value=12.0)
     resampler.add_sample(sample1)
@@ -73,7 +72,7 @@ def test_component_metric_resampler_resample() -> None:
         resampling_function=resampling_function_sum,
     )
 
-    timestamp = datetime.now(tz=pytz.UTC) - timedelta(seconds=0.5)
+    timestamp = datetime.now(timezone.utc) - timedelta(seconds=0.5)
 
     value1 = 5.0
     value2 = 15.0
@@ -98,7 +97,7 @@ def test_component_metric_resampler_resample_with_outdated_samples() -> None:
         resampling_function=resampling_function_sum,
     )
 
-    timestamp = datetime.now(tz=pytz.UTC)
+    timestamp = datetime.now(timezone.utc)
 
     value3 = 100.0
     value1 = 5.0
@@ -132,7 +131,7 @@ def test_component_metric_group_resampler() -> None:
     resampler.add_time_series(time_series_id=time_series_id_1)
     resampler.add_time_series(time_series_id=time_series_id_2)
 
-    timestamp = datetime.now(tz=pytz.UTC)
+    timestamp = datetime.now(timezone.utc)
 
     value1 = 5.0
     value2 = 15.0

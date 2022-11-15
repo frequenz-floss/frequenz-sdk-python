@@ -10,10 +10,8 @@ MIT
 
 import logging
 from collections import deque
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Callable, Deque, Dict, Generator, Optional, Sequence, Tuple
-
-import pytz
 
 from ..data_pipeline import Sample
 
@@ -88,7 +86,7 @@ class ComponentMetricResampler:
         """
         # It might be better to provide `now` from the outside so that all
         # individual resamplers use the same `now`
-        now = datetime.now(tz=pytz.UTC)
+        now = datetime.now(timezone.utc)
         threshold = now - timedelta(
             seconds=self._max_data_age_in_periods * self._resampling_period_s
         )
@@ -182,6 +180,6 @@ class ComponentMetricGroupResampler:
         Yields:
             iterator of time series ids and their newly resampled samples
         """
-        now = datetime.now(tz=pytz.UTC)
+        now = datetime.now(timezone.utc)
         for time_series_id, resampler in self._resamplers.items():
             yield time_series_id, Sample(timestamp=now, value=resampler.resample())
