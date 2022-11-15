@@ -13,9 +13,7 @@ from frequenz.channels import Broadcast, MergeNamed
 
 from frequenz.sdk.actor import ChannelRegistry
 from frequenz.sdk.actor.data_sourcing import DataSourcingActor
-from frequenz.sdk.data_ingestion.resampling.component_metrics_resampling_actor import (
-    ComponentMetricsResamplingActor,
-)
+from frequenz.sdk.actor.resampling import ComponentMetricsResamplingActor
 from frequenz.sdk.data_pipeline import ComponentMetricId, ComponentMetricRequest
 from frequenz.sdk.microgrid import ComponentCategory, microgrid_api
 
