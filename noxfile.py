@@ -53,8 +53,9 @@ def formatting(session: nox.Session, install_deps: bool = True) -> None:
     if install_deps:
         session.install(*FMT_DEPS)
 
-    session.run("black", "--check", *source_file_paths(session))
-    session.run("isort", "--check", *source_file_paths(session))
+    paths = source_file_paths(session)
+    session.run("black", "--check", *paths)
+    session.run("isort", "--check", *paths)
 
 
 @nox.session
@@ -64,13 +65,6 @@ def mypy(session: nox.Session, install_deps: bool = True) -> None:
         # install the package itself as editable, so that it is possible to do
         # fast local tests with `nox -R -e mypy`.
         session.install("-e", ".", "mypy", *PYTEST_DEPS)
-
-    # Since we use other packages in the frequenz namespace, we need to run the
-    # checks for frequenz.sdk from the installed package instead of the src
-    # directory.
-    mypy_paths = [
-        path for path in source_file_paths(session) if not path.startswith("src")
-    ]
 
     mypy_cmd = [
         "mypy",
@@ -83,9 +77,21 @@ def mypy(session: nox.Session, install_deps: bool = True) -> None:
         "--strict",
     ]
 
+    # If we have session arguments, we just use those...
+    if session.posargs:
+        session.run(*mypy_cmd, *session.posargs)
+        return
+
     # Runs on the installed package
     session.run(*mypy_cmd, "-p", "frequenz.sdk")
+
     # Runs on the rest of the source folders
+    # Since we use other packages in the frequenz namespace, we need to run the
+    # checks for frequenz.sdk from the installed package instead of the src
+    # directory.
+    mypy_paths = [
+        path for path in source_file_paths(session) if not path.startswith("src")
+    ]
     session.run(*mypy_cmd, *mypy_paths)
 
 
@@ -97,10 +103,11 @@ def pylint(session: nox.Session, install_deps: bool = True) -> None:
         # fast local tests with `nox -R -e pylint`.
         session.install("-e", ".", "pylint", *PYTEST_DEPS)
 
+    paths = source_file_paths(session)
     session.run(
         "pylint",
         "--extension-pkg-whitelist=pydantic",
-        *source_file_paths(session),
+        *paths,
     )
 
 
@@ -110,12 +117,14 @@ def docstrings(session: nox.Session, install_deps: bool = True) -> None:
     if install_deps:
         session.install(*DOCSTRING_DEPS, "toml")
 
-    session.run("pydocstyle", *source_file_paths(session))
+    paths = source_file_paths(session)
+    session.run("pydocstyle", *paths)
 
     # Darglint checks that function argument and return values are documented.
     # This is needed only for the `src` dir, so we exclude the other top level
-    # dirs that contain code.
-    darglint_paths = filter(
+    # dirs that contain code, unless some paths were specified by argument, in
+    # which case we use those untouched.
+    darglint_paths = session.posargs or filter(
         lambda path: not (path.startswith("tests") or path.startswith("benchmarks")),
         source_file_paths(session),
     )
@@ -158,4 +167,5 @@ def _pytest_impl(
         "--cov=frequenz.sdk",
         "--cov-report=term",
         f"--cov-report=html:.htmlcov-{max_or_min_deps}",
+        *session.posargs,
     )
