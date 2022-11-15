@@ -208,10 +208,12 @@ class ComponentMetricsResamplingActor:
                 component_data_receiver=MergeNamed(**self._input_receivers),
             )
             while await select.ready():
-                if _ := select.resampling_timer:
+                if msg := select.resampling_timer:
+                    assert msg.inner is not None, "The timer should never be 'closed'"
+                    timestamp = msg.inner
                     awaitables = [
                         self._output_senders[channel_name].send(sample)
-                        for channel_name, sample in self._resampler.resample()
+                        for channel_name, sample in self._resampler.resample(timestamp)
                     ]
                     await asyncio.gather(*awaitables)
                 if msg := select.component_data_receiver:

@@ -179,12 +179,22 @@ class ComponentMetricGroupResampler:
                 f"No resampler for time series {time_series_id} found!"
             ) from err
 
-    def resample(self) -> Generator[Tuple[str, Sample], None, None]:
+    def resample(
+        self, timestamp: Optional[datetime] = None
+    ) -> Generator[Tuple[str, Sample], None, None]:
         """Resample samples for all time series.
+
+        Args:
+            timestamp: the timestamp to use to emit the new samples (and to
+                consider stored samples relevant for resampling. If `None`,
+                the current datetime (in UTC) will be used.
 
         Yields:
             iterator of time series ids and their newly resampled samples
         """
-        now = datetime.now(timezone.utc)
+        if timestamp is None:
+            timestamp = datetime.now(timezone.utc)
         for time_series_id, resampler in self._resamplers.items():
-            yield time_series_id, Sample(timestamp=now, value=resampler.resample(now))
+            yield time_series_id, Sample(
+                timestamp=timestamp, value=resampler.resample(timestamp)
+            )

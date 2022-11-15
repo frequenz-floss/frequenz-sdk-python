@@ -143,17 +143,17 @@ def test_component_metric_group_resampler() -> None:
     resampler.add_time_series(time_series_id=time_series_id_1)
     resampler.add_time_series(time_series_id=time_series_id_2)
 
-    timestamp = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc)
 
     value11 = 5.0
     value12 = 15.0
     value21 = 100.0
     value22 = 999.0
 
-    sample11 = Sample(timestamp - timedelta(seconds=0.7), value=value11)
-    sample12 = Sample(timestamp - timedelta(seconds=0.5), value=value12)
-    sample21 = Sample(timestamp - timedelta(seconds=5.05), value=value21)
-    sample22 = Sample(timestamp - timedelta(seconds=0.99), value=value22)
+    sample11 = Sample(now - timedelta(seconds=0.7), value=value11)
+    sample12 = Sample(now - timedelta(seconds=0.5), value=value12)
+    sample21 = Sample(now - timedelta(seconds=5.05), value=value21)
+    sample22 = Sample(now - timedelta(seconds=0.99), value=value22)
 
     resampler.add_sample(time_series_id=time_series_id_1, sample=sample11)
     resampler.add_sample(time_series_id=time_series_id_1, sample=sample12)
@@ -162,8 +162,17 @@ def test_component_metric_group_resampler() -> None:
 
     resampled_samples = dict(resampler.resample())
 
-    assert resampled_samples[time_series_id_1].timestamp >= timestamp
+    assert resampled_samples[time_series_id_1].timestamp >= now
     assert resampled_samples[time_series_id_1].value == sum([value11, value12])
 
-    assert resampled_samples[time_series_id_2].timestamp >= timestamp
+    assert resampled_samples[time_series_id_2].timestamp >= now
     assert resampled_samples[time_series_id_2].value == value22
+
+    timestamp = now + timedelta(seconds=0.5)
+    resampled_samples = dict(resampler.resample(timestamp))
+
+    assert resampled_samples[time_series_id_1].timestamp == timestamp
+    assert resampled_samples[time_series_id_1].value == value12
+
+    assert resampled_samples[time_series_id_2].timestamp == timestamp
+    assert resampled_samples[time_series_id_2].value is None
