@@ -15,11 +15,8 @@ from typing import Dict, Sequence
 
 from frequenz.channels import MergeNamed, Receiver, Select, Sender, Timer
 
-from ..data_ingestion.resampling.component_metric_group_resampler import (
-    ComponentMetricGroupResampler,
-)
-from ..data_ingestion.resampling.component_metric_resampler import ResamplingFunction
 from ..data_pipeline import ComponentMetricRequest, Sample
+from ..timeseries.resampler import ComponentMetricGroupResampler, ResamplingFunction
 from . import ChannelRegistry, actor
 
 logger = logging.Logger(__name__)
