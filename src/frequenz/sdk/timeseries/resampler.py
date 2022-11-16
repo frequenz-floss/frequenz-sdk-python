@@ -77,17 +77,22 @@ class ComponentMetricResampler:
 
             self._buffer.popleft()
 
-    def resample(self) -> Optional[float]:
+    def resample(self, timestamp: Optional[datetime] = None) -> Optional[float]:
         """Resample samples from the buffer and produce a single sample.
+
+        Args:
+            timestamp: the timestamp to use to as the current resampling
+                timestamp when calculating which stored past samples are
+                relevant to pass to the resampling function. If `None`, the
+                current datetime (in UTC) will be used.
 
         Returns:
             Samples resampled into a single sample or `None` if the
                 `resampling_function` cannot produce a valid Sample.
         """
-        # It might be better to provide `now` from the outside so that all
-        # individual resamplers use the same `now`
-        now = datetime.now(timezone.utc)
-        threshold = now - timedelta(
+        if timestamp is None:
+            timestamp = datetime.now(timezone.utc)
+        threshold = timestamp - timedelta(
             seconds=self._max_data_age_in_periods * self._resampling_period_s
         )
         self.remove_outdated_samples(threshold=threshold)
@@ -182,4 +187,4 @@ class ComponentMetricGroupResampler:
         """
         now = datetime.now(timezone.utc)
         for time_series_id, resampler in self._resamplers.items():
-            yield time_series_id, Sample(timestamp=now, value=resampler.resample())
+            yield time_series_id, Sample(timestamp=now, value=resampler.resample(now))

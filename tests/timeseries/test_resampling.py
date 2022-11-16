@@ -56,6 +56,12 @@ def test_component_metric_resampler_remove_outdated_samples() -> None:
     resampler.add_sample(sample1)
     resampler.add_sample(sample2)
 
+    resampler.remove_outdated_samples(threshold=timestamp)
+    assert list(resampler._buffer) == [
+        sample1,
+        sample2,
+    ]  # pylint: disable=protected-access
+
     resampler.remove_outdated_samples(threshold=timestamp + timedelta(seconds=0.5))
     assert list(resampler._buffer) == [sample2]  # pylint: disable=protected-access
 
@@ -72,13 +78,15 @@ def test_component_metric_resampler_resample() -> None:
         resampling_function=resampling_function_sum,
     )
 
-    timestamp = datetime.now(timezone.utc) - timedelta(seconds=0.5)
+    now = datetime.now(timezone.utc)
+    timestamp1 = now - timedelta(seconds=0.5)
+    timestamp2 = now - timedelta(seconds=0.2)
 
     value1 = 5.0
     value2 = 15.0
 
-    sample1 = Sample(timestamp, value=value1)
-    sample2 = Sample(timestamp, value=value2)
+    sample1 = Sample(timestamp1, value=value1)
+    sample2 = Sample(timestamp2, value=value2)
 
     resampler.add_sample(sample1)
     resampler.add_sample(sample2)
@@ -86,6 +94,10 @@ def test_component_metric_resampler_resample() -> None:
     value = resampler.resample()
     assert value is not None
     assert value == sum([value1, value2])
+
+    value = resampler.resample(now + timedelta(seconds=0.6))
+    assert value is not None
+    assert value == value2
 
 
 @time_machine.travel(0, tick=False)
