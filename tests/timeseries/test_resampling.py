@@ -99,21 +99,21 @@ def test_component_metric_resampler_resample_with_outdated_samples() -> None:
 
     timestamp = datetime.now(timezone.utc)
 
-    value3 = 100.0
-    value1 = 5.0
+    value1 = 100.0
     value2 = 15.0
+    value3 = 5.0
 
-    sample3 = Sample(timestamp - timedelta(seconds=1.01), value=value3)
-    sample1 = Sample(timestamp - timedelta(seconds=0.5), value=value1)
+    sample1 = Sample(timestamp - timedelta(seconds=1.01), value=value1)
     sample2 = Sample(timestamp - timedelta(seconds=0.7), value=value2)
+    sample3 = Sample(timestamp - timedelta(seconds=0.5), value=value3)
 
-    resampler.add_sample(sample3)
     resampler.add_sample(sample1)
     resampler.add_sample(sample2)
+    resampler.add_sample(sample3)
 
     value = resampler.resample()
     assert value is not None
-    assert value == sum([value1, value2])
+    assert value == sum([value2, value3])
 
 
 @time_machine.travel(datetime.now())
@@ -138,8 +138,8 @@ def test_component_metric_group_resampler() -> None:
     value3 = 100.0
     value4 = 999.0
 
-    sample1 = Sample(timestamp - timedelta(seconds=0.5), value=value1)
-    sample2 = Sample(timestamp - timedelta(seconds=0.7), value=value2)
+    sample1 = Sample(timestamp - timedelta(seconds=0.7), value=value1)
+    sample2 = Sample(timestamp - timedelta(seconds=0.5), value=value2)
     sample3 = Sample(timestamp - timedelta(seconds=5.05), value=value3)
     sample4 = Sample(timestamp - timedelta(seconds=0.99), value=value4)
 
