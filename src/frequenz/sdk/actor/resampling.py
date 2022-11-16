@@ -15,7 +15,8 @@ from typing import Dict, Sequence
 
 from frequenz.channels import MergeNamed, Receiver, Select, Sender, Timer
 
-from ..data_pipeline import ComponentMetricRequest, Sample
+from ..data_pipeline import ComponentMetricRequest
+from ..timeseries import Sample
 from ..timeseries.resampler import ComponentMetricGroupResampler, ResamplingFunction
 from . import ChannelRegistry, actor
 

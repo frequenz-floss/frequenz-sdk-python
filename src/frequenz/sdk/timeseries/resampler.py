@@ -13,7 +13,7 @@ from collections import deque
 from datetime import datetime, timedelta, timezone
 from typing import Callable, Deque, Dict, Generator, Optional, Sequence, Tuple
 
-from ..data_pipeline import Sample
+from .sample import Sample
 
 logger = logging.Logger(__name__)
 

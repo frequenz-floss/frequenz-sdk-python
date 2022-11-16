@@ -18,9 +18,11 @@ from .resampler import (
     ComponentMetricResampler,
     ResamplingFunction,
 )
+from .sample import Sample
 
 __all__ = [
     "ComponentMetricGroupResampler",
     "ComponentMetricResampler",
     "ResamplingFunction",
+    "Sample",
 ]

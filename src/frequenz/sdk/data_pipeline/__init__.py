@@ -7,10 +7,9 @@ License
 MIT
 """
 
-from .types import ComponentMetricId, ComponentMetricRequest, Sample
+from .types import ComponentMetricId, ComponentMetricRequest
 
 __all__ = [
     "ComponentMetricRequest",
     "ComponentMetricId",
-    "Sample",
 ]

@@ -13,10 +13,10 @@ from typing import Sequence
 
 import time_machine
 
-from frequenz.sdk.data_pipeline import Sample
-from frequenz.sdk.timeseries.resampler import (
+from frequenz.sdk.timeseries import (
     ComponentMetricGroupResampler,
     ComponentMetricResampler,
+    Sample,
 )
 
 
