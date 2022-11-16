@@ -41,7 +41,7 @@ def resampling_function_sum(
     return sum(sample.value for sample in samples if sample.value is not None)
 
 
-@time_machine.travel(datetime.now())
+@time_machine.travel(0, tick=False)
 def test_component_metric_resampler_remove_outdated_samples() -> None:
     """Test if outdated samples are being properly removed."""
     resampler = ComponentMetricResampler(
@@ -63,7 +63,7 @@ def test_component_metric_resampler_remove_outdated_samples() -> None:
     assert len(resampler._buffer) == 0  # pylint: disable=protected-access
 
 
-@time_machine.travel(datetime.now())
+@time_machine.travel(0, tick=False)
 def test_component_metric_resampler_resample() -> None:
     """Test if resampling function works as expected."""
     resampler = ComponentMetricResampler(
@@ -88,7 +88,7 @@ def test_component_metric_resampler_resample() -> None:
     assert value == sum([value1, value2])
 
 
-@time_machine.travel(datetime.now())
+@time_machine.travel(0, tick=False)
 def test_component_metric_resampler_resample_with_outdated_samples() -> None:
     """Test that resampling function doesn't take outdated samples into account."""
     resampler = ComponentMetricResampler(
@@ -116,7 +116,7 @@ def test_component_metric_resampler_resample_with_outdated_samples() -> None:
     assert value == sum([value2, value3])
 
 
-@time_machine.travel(datetime.now())
+@time_machine.travel(0, tick=False)
 def test_component_metric_group_resampler() -> None:
     """Test if resampling is properly delegated to component metric resamplers."""
     resampler = ComponentMetricGroupResampler(
