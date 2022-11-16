@@ -19,6 +19,27 @@ logger = logging.Logger(__name__)
 
 
 ResamplingFunction = Callable[[Sequence[Sample], float], float]
+"""Resampling function type.
+
+A resampling function produces a new sample based on a list of pre-existing
+samples. It can do "upsampling" when there data rate of the `input_samples`
+period is smaller than the `resampling_period_s`, or "downsampling" if it is
+bigger.
+
+In general a resampling window is the same as the `resampling_period_s`, and
+this function might receive input samples from multiple windows in the past to
+enable extrapolation, but no samples from the future (so the timestamp of the
+new sample that is going to be produced will always be bigger than the biggest
+timestamp in the input data).
+
+Args:
+    input_samples (Sequence[Sample]): the sequence of pre-existing samples.
+    resampling_period_s (float): the period in seconds (i.e. how ofter a new sample is
+        produced.
+
+Returns:
+    new_sample (float): The value of new sample produced after the resampling.
+"""
 
 
 class ComponentMetricResampler:
