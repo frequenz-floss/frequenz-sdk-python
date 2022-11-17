@@ -55,14 +55,13 @@ class ComponentGraph(ABC):
         """Fetch the components of the microgrid.
 
         Args:
-            component_id: filter out any components not matching one of the
-                provided IDs
-            component_category: filter out any components not matching one of
-                the provided types
+            component_id: filter out any components not matching one of the provided IDs
+            component_category: filter out any components not matching one of the
+                provided types
 
         Returns:
-            Set of the components currently connected to the microgrid, filtered
-            by the provided `component_id` and `component_category` values.
+            Set of the components currently connected to the microgrid, filtered by
+                the provided `component_id` and `component_category` values.
         """
 
     @abstractmethod
@@ -74,14 +73,14 @@ class ComponentGraph(ABC):
         """Fetch the connections between microgrid components.
 
         Args:
-            start: filter out any connections whose `start` does not match one
-                of these component IDs
-            end: filter out any connections whose `end` does not match one of
-                these component IDs
+            start: filter out any connections whose `start` does not match one of these
+                component IDs
+            end: filter out any connections whose `end` does not match one of these
+                component IDs
 
         Returns:
-            Set of the connections between components in the microgrid, filtered
-            by the provided `start`/`end` choices.
+            Set of the connections between components in the microgrid, filtered by
+                the provided `start`/`end` choices.
         """
 
     @abstractmethod
@@ -89,13 +88,13 @@ class ComponentGraph(ABC):
         """Fetch the graph predecessors of the specified component.
 
         Args:
-            component_id: numerical ID of the component whose predecessors
-                should be fetched
+            component_id: numerical ID of the component whose predecessors should be
+                fetched
 
         Returns:
-            Set of IDs of the components that are predecessors of
-            `component_id`, i.e. for which there is a connection from each of
-            these components to `component_id`.
+            Set of IDs of the components that are predecessors of `component_id`,
+                i.e. for which there is a connection from each of these components to
+                `component_id`.
 
         Raises:
             KeyError: if the specified `component_id` is not in the graph
@@ -106,13 +105,13 @@ class ComponentGraph(ABC):
         """Fetch the graph successors of the specified component.
 
         Args:
-            component_id: numerical ID of the component whose successors should
-                be fetched
+            component_id: numerical ID of the component whose successors should be
+                fetched
 
         Returns:
-            Set of IDs of the components that are successors of
-            `component_id`, i.e. for which there is a connection from
-            `component_id` to each of these components.
+            Set of IDs of the components that are successors of `component_id`,
+                i.e. for which there is a connection from `component_id` to each of
+                these components.
 
         Raises:
             KeyError: if the specified `component_id` is not in the graph
@@ -166,14 +165,13 @@ class _MicrogridComponentGraph(ComponentGraph):
         """Fetch the components of the microgrid.
 
         Args:
-            component_id: filter out any components not matching one of the
-                provided IDs
-            component_category: filter out any components not matching one of
-                the provided types
+            component_id: filter out any components not matching one of the provided IDs
+            component_category: filter out any components not matching one of the
+                provided types
 
         Returns:
-            Set of the components currently connected to the microgrid, filtered
-            by the provided `component_id` and `component_category` values.
+            Set of the components currently connected to the microgrid, filtered by
+                the provided `component_id` and `component_category` values.
         """
         if component_id is None:
             # If any node has not node[1], then it will not pass validations step.
@@ -198,14 +196,14 @@ class _MicrogridComponentGraph(ComponentGraph):
         """Fetch the connections between microgrid components.
 
         Args:
-            start: filter out any connections whose `start` does not match one
-                of these component IDs
-            end: filter out any connections whose `end` does not match one of
-                these component IDs
+            start: filter out any connections whose `start` does not match one of these
+                component IDs
+            end: filter out any connections whose `end` does not match one of these
+                component IDs
 
         Returns:
-            Set of the connections between components in the microgrid, filtered
-            by the provided `start`/`end` choices.
+            Set of the connections between components in the microgrid, filtered by
+                the provided `start`/`end` choices.
         """
         if start is None:
             if end is None:
@@ -225,13 +223,13 @@ class _MicrogridComponentGraph(ComponentGraph):
         """Fetch the graph predecessors of the specified component.
 
         Args:
-            component_id: numerical ID of the component whose predecessors
-                should be fetched
+            component_id: numerical ID of the component whose predecessors should be
+                fetched
 
         Returns:
-            Set of IDs of the components that are predecessors of
-            `component_id`, i.e. for which there is a connection from each of
-            these components to `component_id`.
+            Set of IDs of the components that are predecessors of `component_id`,
+                i.e. for which there is a connection from each of these components to
+                `component_id`.
 
         Raises:
             KeyError: if the specified `component_id` is not in the graph
@@ -251,13 +249,13 @@ class _MicrogridComponentGraph(ComponentGraph):
         """Fetch the graph successors of the specified component.
 
         Args:
-            component_id: numerical ID of the component whose successors should
-                be fetched
+            component_id: numerical ID of the component whose successors should be
+                fetched
 
         Returns:
-            Set of IDs of the components that are successors of
-            `component_id`, i.e. for which there is a connection from
-            `component_id` to each of these components.
+            Set of IDs of the components that are successors of `component_id`,
+                i.e. for which there is a connection from `component_id` to each of
+                these components.
 
         Raises:
             KeyError: if the specified `component_id` is not in the graph

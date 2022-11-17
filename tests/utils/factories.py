@@ -83,16 +83,16 @@ def battery_data_factory(
     Args:
         interval: Value describing how often to send data.
         timeout: Value describing when factory should stop sending data.
-        params: Params to be returned by all battery
-            components. If not provided, default params will be used.
-        overrides: Params to be returned by
-            battery components with specific IDs. If not provided, all battery
-            components will return the same data, either `params` or default params.
+        params: Params to be returned by all battery components. If not provided,
+            default params will be used.
+        overrides: Params to be returned by battery components with specific IDs. If not
+            provided, all battery components will return the same data, either `params`
+            or default params.
 
     Returns:
         A mocked function used to replace `battery_data` in the MicrogridGrpcClient
-        class. It will return a channel receiver that provides an `BatteryData`
-        stream.
+            class. It will return a channel receiver that provides an `BatteryData`
+            stream.
     """
 
     async def send_data(component_id: int, sender: Sender[BatteryData]) -> None:
@@ -125,16 +125,16 @@ def inverter_data_factory(
     Args:
         interval: Value describing how often to send data.
         timeout: Value describing when factory should stop sending data.
-        params: Params to be returned by all inverter
-            components. If not provided, default params will be used.
-        overrides: Params to be returned by
-            inverter components with specific IDs. If not provided, all inverter
-            components will return the same data, either `params` or default params.
+        params: Params to be returned by all inverter components. If not provided,
+            default params will be used.
+        overrides: Params to be returned by inverter components with specific IDs. If
+            not provided, all inverter components will return the same data, either
+            `params` or default params.
 
     Returns:
         A mocked function used to replace `inverter_data` in the MicrogridGrpcClient
-        class. It will return a channel receiver that provides an `InverterData`
-        stream.
+            class. It will return a channel receiver that provides an `InverterData`
+            stream.
     """
 
     async def send_data(component_id: int, sender: Sender[InverterData]) -> None:
@@ -167,16 +167,16 @@ def meter_data_factory(
     Args:
         interval: Value describing how often to send data.
         timeout: Value describing when factory should stop sending data.
-        params: Params to be returned by all meter
-            components. If not provided, default params will be used.
-        overrides: Params to be returned by
-            meter components with specific IDs. If not provided, all meter
-            components will return the same data, either `params` or default params.
+        params: Params to be returned by all meter components. If not provided, default
+            params will be used.
+        overrides: Params to be returned by meter components with specific IDs. If not
+            provided, all meter components will return the same data, either `params` or
+            default params.
 
     Returns:
         A mocked function used to replace `meter_data` in the MicrogridGrpcClient
-        class. It will return a channel receiver that provides an `MeterData`
-        stream.
+            class. It will return a channel receiver that provides an `MeterData`
+            stream.
     """
 
     async def send_data(component_id: int, sender: Sender[MeterData]) -> None:
@@ -211,16 +211,16 @@ def ev_charger_data_factory(
     Args:
         interval: Value describing how often to send data.
         timeout: Value describing when factory should stop sending data.
-        params: Params to be returned by all EV charger
-            components. If not provided, default params will be used.
-        overrides: Params to be returned by
-            EV charger components with specific IDs. If not provided, all EV charger
-            components will return the same data, either `params` or default params.
+        params: Params to be returned by all EV charger components. If not provided,
+            default params will be used.
+        overrides: Params to be returned by EV charger components with specific IDs. If
+            not provided, all EV charger components will return the same data, either
+            `params` or default params.
 
     Returns:
         A mocked function used to replace `ev_charger_data` in the MicrogridGrpcClient
-        class. It will return a channel receiver that provides an `EVChargerData`
-        stream.
+            class. It will return a channel receiver that provides an `EVChargerData`
+            stream.
     """
 
     async def send_data(component_id: int, sender: Sender[EVChargerData]) -> None:

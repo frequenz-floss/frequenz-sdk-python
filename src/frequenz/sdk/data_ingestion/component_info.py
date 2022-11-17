@@ -39,8 +39,8 @@ def infer_microgrid_config(
         graph: component graph of microgrid
 
     Returns:
-        Tuple containing 1) list of components relevant for calculation of
-        microgrid data. 2) mappings between batteries and battery inverters.
+        Tuple containing 1) list of components relevant for calculation of microgrid
+            data. 2) mappings between batteries and battery inverters.
     """
     component_infos = []
     bat_inv_mappings = {}

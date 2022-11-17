@@ -522,7 +522,7 @@ class FormulaCalculator:  # pylint: disable=too-many-instance-attributes
 
         Returns:
             Components grouped by type, where groups hold information about
-            component IDs and meter connections.
+                component IDs and meter connections.
         """
         meter_connections = self._make_group(
             ComponentCategory.METER, "meter_connection"

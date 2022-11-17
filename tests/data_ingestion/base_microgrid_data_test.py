@@ -312,7 +312,7 @@ class BaseMicrogridDataTest(IsolatedAsyncioTestCase):
 
         Raises:
             LookupError if the first segment of the `name` is an int (component_id) and
-            the component with that ID doesn't exist in the graph.
+                the component with that ID doesn't exist in the graph.
         """
         fields = name.split(".")
         component_id = None

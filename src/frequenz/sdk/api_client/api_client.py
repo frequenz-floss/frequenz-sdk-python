@@ -45,5 +45,5 @@ class ApiClient(ABC):
 
         Returns:
             The ApiProtocol value representing the API type being targeted in a
-            concrete implementation.
+                concrete implementation.
         """
