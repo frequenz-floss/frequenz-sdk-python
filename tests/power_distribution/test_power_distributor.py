@@ -9,7 +9,7 @@ MIT
 import asyncio
 import re
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from functools import partial
 from typing import Dict, Set, Tuple, TypeVar, Union
 from unittest import IsolatedAsyncioTestCase, mock
@@ -605,7 +605,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                     capacity=Metric(98000),
                     soc=Metric(40, Bound(20, 80)),
                     power=Bound(-1000, 1000),
-                    timestamp=datetime.utcnow() - timedelta(seconds=62),
+                    timestamp=datetime.now(timezone.utc) - timedelta(seconds=62),
                 )
             else:
                 bat = create_battery_msg(
@@ -672,7 +672,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                     capacity=Metric(98000),
                     soc=Metric(40, Bound(20, 80)),
                     power=Bound(-1000, 1000),
-                    timestamp=datetime.utcnow() - timedelta(seconds=62),
+                    timestamp=datetime.now(timezone.utc) - timedelta(seconds=62),
                 )
             else:
                 bat = create_battery_msg(
@@ -689,7 +689,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
                 inv = create_inverter_msg(
                     key_id,
                     power=Bound(-500, 500),
-                    timestamp=datetime.utcnow() - timedelta(seconds=62),
+                    timestamp=datetime.now(timezone.utc) - timedelta(seconds=62),
                 )
             else:
                 inv = create_inverter_msg(

@@ -11,11 +11,10 @@ License
 MIT
 """
 import asyncio
-import datetime as dt
 import logging
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set
 
-import pytz
 from frequenz.channels import Broadcast, Merge, Receiver, Select, Sender
 
 from ..actor.decorator import actor
@@ -99,7 +98,7 @@ class MicrogridData:  # pylint: disable=too-many-instance-attributes
         await asyncio.sleep(self._wait_for_data_sec)
         tasks: List["asyncio.Task[bool]"] = []
         while True:
-            start_time = dt.datetime.now(tz=pytz.UTC)
+            start_time = datetime.now(timezone.utc)
             # For every formula that was updated at least once, send that formula.
             for name, formula_result in self.formula_calculator.results.items():
                 if name not in self._outputs:
@@ -114,7 +113,7 @@ class MicrogridData:  # pylint: disable=too-many-instance-attributes
                     tasks.append(task)
 
             await asyncio.gather(*tasks, return_exceptions=True)
-            diff: float = (dt.datetime.now(pytz.UTC) - start_time).total_seconds()
+            diff: float = (datetime.now(timezone.utc) - start_time).total_seconds()
             if diff >= self._formula_update_interval_sec:
                 logger.error(
                     "Sending results of formulas took too long: %f, "

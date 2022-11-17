@@ -6,12 +6,11 @@ Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 License
 MIT
 """
-import datetime as dt
+from datetime import datetime, timedelta, timezone
 from typing import Dict
 
 import pandas as pd
 import pytest
-import pytz
 import sympy
 
 from frequenz.sdk.data_handling import TimeSeriesEntry, formula
@@ -101,9 +100,9 @@ def test_formula_with_broken_meter() -> None:
     """Test a microgrid formula with a broken meter."""
     cache = ts.LatestEntryCache[str, float]()
 
-    ts1 = dt.datetime.fromisoformat("2021-03-11T10:49:00+00:00")
-    outdated_ts = ts1 - dt.timedelta(minutes=5)
-    timedelta_tolerance = dt.timedelta(minutes=3)
+    ts1 = datetime.fromisoformat("2021-03-11T10:49:00+00:00")
+    outdated_ts = ts1 - timedelta(minutes=5)
+    timedelta_tolerance = timedelta(minutes=3)
 
     symbols = [
         "meter_1_active_power",
@@ -166,9 +165,9 @@ def test_formula_with_broken_battery() -> None:
     """Test a microgrid formula with a broken battery."""
     cache = ts.LatestEntryCache[str, float]()
 
-    ts1 = dt.datetime.fromisoformat("2021-03-11T10:49:00+00:00")
-    outdated_ts = ts1 - dt.timedelta(minutes=5)
-    timedelta_tolerance = dt.timedelta(minutes=3)
+    ts1 = datetime.fromisoformat("2021-03-11T10:49:00+00:00")
+    outdated_ts = ts1 - timedelta(minutes=5)
+    timedelta_tolerance = timedelta(minutes=3)
 
     symbols = [
         "battery_1_soc",
@@ -227,7 +226,7 @@ def test_formula_with_broken_battery() -> None:
         symbol_to_symbol_mapping=symbol_to_symbol_mapping,
         timedelta_tolerance=timedelta_tolerance,
         default_entry=TimeSeriesEntry[float](
-            timestamp=pytz.utc.localize(dt.datetime.now()), value=0.0
+            timestamp=datetime.now(timezone.utc), value=0.0
         ),
     )
 

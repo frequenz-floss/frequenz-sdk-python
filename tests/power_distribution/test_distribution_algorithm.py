@@ -8,7 +8,7 @@ License
 MIT
 """
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 import frequenz.api.microgrid.microgrid_pb2 as microgrid_pb
@@ -72,7 +72,7 @@ def create_battery_msg(  # pylint: disable=too-many-arguments
     capacity: Metric,
     soc: Metric,
     power: Bound,
-    timestamp: datetime = datetime.utcnow(),
+    timestamp: datetime = datetime.now(timezone.utc),
 ) -> microgrid_pb.ComponentData:
     """Create protobuf battery components with given arguments.
 
@@ -111,7 +111,7 @@ def create_battery_msg(  # pylint: disable=too-many-arguments
 def create_inverter_msg(
     component_id: int,
     power: Bound,
-    timestamp: datetime = datetime.utcnow(),
+    timestamp: datetime = datetime.now(timezone.utc),
 ) -> microgrid_pb.ComponentData:
     """Create protobuf inverter components with given arguments.
 

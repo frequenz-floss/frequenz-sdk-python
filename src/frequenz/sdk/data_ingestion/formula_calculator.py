@@ -7,13 +7,12 @@ Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 License
 MIT
 """
-import datetime as dt
 import logging
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from itertools import chain
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-import pytz
 import sympy
 
 from ..data_handling.time_series import (
@@ -834,11 +833,9 @@ class FormulaCalculator:  # pylint: disable=too-many-instance-attributes
                 cache=self.symbol_values,
                 formula_name=formula_name,
                 symbol_to_symbol_mapping=self.symbol_mappings,
-                timedelta_tolerance=dt.timedelta(
-                    seconds=self.component_data_timeout_sec
-                ),
+                timedelta_tolerance=timedelta(seconds=self.component_data_timeout_sec),
                 default_entry=TimeSeriesEntry[Any](
-                    timestamp=pytz.utc.localize(dt.datetime.now()), value=0.0
+                    timestamp=datetime.now(timezone.utc), value=0.0
                 ),
             )
             if res is not None:

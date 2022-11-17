@@ -7,7 +7,7 @@ License
 MIT
 """
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Dict, NamedTuple, Optional, Set
 
@@ -100,7 +100,7 @@ class BrokenComponents:
         Args:
             component_id: component id
         """
-        self._broken[component_id] = datetime.now()
+        self._broken[component_id] = datetime.now(timezone.utc)
 
     def update_retry(self, timeout_sec: float) -> None:
         """Change how long the component should be marked as broken.
@@ -121,7 +121,9 @@ class BrokenComponents:
         """
         if component_id in self._broken:
             last_broken = self._broken[component_id]
-            if (datetime.now() - last_broken).total_seconds() < self._timeout_sec:
+            if (
+                datetime.now(timezone.utc) - last_broken
+            ).total_seconds() < self._timeout_sec:
                 return True
 
             del self._broken[component_id]
