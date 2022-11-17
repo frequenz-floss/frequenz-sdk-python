@@ -6,138 +6,91 @@ Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 License
 MIT
 """
-import time
-from typing import Iterator
+import dataclasses
+from datetime import datetime, timedelta, timezone
 
-import grpc
-from frequenz.api.microgrid import microgrid_pb2
-from frequenz.api.microgrid.battery_pb2 import Battery
-from frequenz.api.microgrid.battery_pb2 import Data as BatteryData
-from frequenz.api.microgrid.common_pb2 import MetricAggregation
-from frequenz.api.microgrid.microgrid_pb2 import ComponentData, ComponentIdParam
+import time_machine
 from frequenz.channels import Broadcast
-from google.protobuf.timestamp_pb2 import Timestamp  # pylint: disable=no-name-in-module
-from pytest_mock import MockerFixture
 
 from frequenz.sdk.actor import ChannelRegistry
-from frequenz.sdk.actor.data_sourcing import DataSourcingActor
 from frequenz.sdk.actor.resampling import ComponentMetricsResamplingActor
 from frequenz.sdk.data_pipeline import ComponentMetricId, ComponentMetricRequest
-from frequenz.sdk.microgrid import microgrid_api
-from tests.test_microgrid import mock_api
+from frequenz.sdk.timeseries import Sample
 
 
-async def test_component_metrics_resampling_actor(mocker: MockerFixture) -> None:
+def _now(*, shift: float = 0.0) -> datetime:
+    return datetime.now(timezone.utc) + timedelta(seconds=shift)
+
+
+@time_machine.travel(0)
+async def test_component_metrics_resampling_actor() -> None:
     """Run main functions that initializes and creates everything."""
 
-    servicer = mock_api.MockMicrogridServicer()
+    channel_registry = ChannelRegistry(name="test")
+    data_source_req_chan = Broadcast[ComponentMetricRequest]("data-source-req")
+    data_source_req_recv = data_source_req_chan.get_receiver()
+    resampling_req_chan = Broadcast[ComponentMetricRequest]("resample-req")
+    resampling_req_sender = resampling_req_chan.get_sender()
 
-    # pylint: disable=unused-argument
-    def get_component_data(
-        request: ComponentIdParam, context: grpc.ServicerContext
-    ) -> Iterator[ComponentData]:
-        """Return an iterator for mock ComponentData."""
-        # pylint: disable=stop-iteration-return
+    resampling_actor = ComponentMetricsResamplingActor(
+        channel_registry=channel_registry,
+        subscription_sender=data_source_req_chan.get_sender(),
+        subscription_receiver=resampling_req_chan.get_receiver(),
+        resampling_period_s=0.2,
+        max_data_age_in_periods=2,
+    )
 
-        def next_msg(value: float) -> ComponentData:
-            timestamp = Timestamp()
-            timestamp.GetCurrentTime()
-            return ComponentData(
-                id=request.id,
-                ts=timestamp,
-                battery=Battery(
-                    data=BatteryData(
-                        soc=MetricAggregation(avg=value),
-                    )
-                ),
-            )
+    subs_req = ComponentMetricRequest(
+        namespace="Resampling",
+        component_id=9,
+        metric_id=ComponentMetricId.SOC,
+        start_time=None,
+    )
 
-        for value in [3, 6, 9]:
-            yield next_msg(value=value)
-            time.sleep(0.1)
+    await resampling_req_sender.send(subs_req)
+    data_source_req = await data_source_req_recv.receive()
+    assert data_source_req is not None
+    assert data_source_req == dataclasses.replace(subs_req, namespace="Source")
 
-    mocker.patch.object(servicer, "GetComponentData", get_component_data)
+    timeseries_receiver = channel_registry.get_receiver(subs_req.get_channel_name())
+    timeseries_sender = channel_registry.get_sender(data_source_req.get_channel_name())
 
-    server = mock_api.MockGrpcServer(servicer, port=57899)
-    await server.start()
+    new_sample = await timeseries_receiver.receive()  # At ~0.2s (timer)
+    assert new_sample is not None
+    assert new_sample.value is None
 
-    try:
+    sample = Sample(_now(shift=0.1), 3)  # ts = ~0.3s
+    await timeseries_sender.send(sample)
+    new_sample = await timeseries_receiver.receive()  # At ~0.4s (timer)
+    assert new_sample is not None
+    assert new_sample.value == 3
+    assert new_sample.timestamp >= sample.timestamp
 
-        servicer.add_component(1, microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_GRID)
-        servicer.add_component(
-            3, microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_JUNCTION
-        )
-        servicer.add_component(4, microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_METER)
-        servicer.add_component(7, microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_METER)
-        servicer.add_component(
-            8, microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_INVERTER
-        )
-        servicer.add_component(
-            9, microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_BATTERY
-        )
+    sample = Sample(_now(shift=0.05), 4)  # ts = ~0.45s
+    await timeseries_sender.send(sample)
+    new_sample = await timeseries_receiver.receive()  # At ~0.6s (timer)
+    assert new_sample is not None
+    assert new_sample.value == 3.5  # avg(3, 4)
+    assert new_sample.timestamp >= sample.timestamp
 
-        servicer.add_connection(1, 3)
-        servicer.add_connection(3, 4)
-        servicer.add_connection(3, 7)
-        servicer.add_connection(7, 8)
-        servicer.add_connection(8, 9)
+    await timeseries_sender.send(Sample(_now(shift=0.05), 8))  # ts = ~0.65s
+    await timeseries_sender.send(Sample(_now(shift=0.1), 1))  # ts = ~0.7s
+    sample = Sample(_now(shift=0.15), 9)  # ts = ~0.75s
+    await timeseries_sender.send(sample)
+    new_sample = await timeseries_receiver.receive()  # At ~0.8s (timer)
+    assert new_sample is not None
+    assert new_sample.value == 5.5  # avg(4, 8, 1, 9)
+    assert new_sample.timestamp >= sample.timestamp
 
-        await microgrid_api.initialize("[::1]", 57899)
+    # No more samples sent
+    new_sample = await timeseries_receiver.receive()  # At ~1.0s (timer)
+    assert new_sample is not None
+    assert new_sample.value == 6  # avg(8, 1, 9)
+    assert new_sample.timestamp >= sample.timestamp
 
-        channel_registry = ChannelRegistry(name="Microgrid Channel Registry")
+    # No more samples sent
+    new_sample = await timeseries_receiver.receive()  # At ~1.2s (timer)
+    assert new_sample is not None
+    assert new_sample.value is None
 
-        data_source_request_channel = Broadcast[ComponentMetricRequest](
-            "Data Source Request Channel"
-        )
-        data_source_request_sender = data_source_request_channel.get_sender()
-        data_source_request_receiver = data_source_request_channel.get_receiver()
-
-        resampling_actor_request_channel = Broadcast[ComponentMetricRequest](
-            "Resampling Actor Request Channel"
-        )
-        resampling_actor_request_sender = resampling_actor_request_channel.get_sender()
-        resampling_actor_request_receiver = resampling_actor_request_channel.get_receiver()
-
-        DataSourcingActor(
-            request_receiver=data_source_request_receiver, registry=channel_registry
-        )
-
-        ComponentMetricsResamplingActor(
-            channel_registry=channel_registry,
-            subscription_sender=data_source_request_sender,
-            subscription_receiver=resampling_actor_request_receiver,
-            resampling_period_s=0.1,
-        )
-
-        subscription_request = ComponentMetricRequest(
-            namespace="Resampling",
-            component_id=9,
-            metric_id=ComponentMetricId.SOC,
-            start_time=None,
-        )
-
-        await resampling_actor_request_sender.send(subscription_request)
-
-        index = 0
-        expected_sample_values = [
-            3.0,
-            4.5,
-            6.0,
-            7.5,
-            9.0,
-            None,
-            None,
-            None,
-        ]
-
-        async for sample in channel_registry.get_receiver(
-            subscription_request.get_channel_name()
-        ):
-            assert sample.value == expected_sample_values[index]
-            index += 1
-            if index >= len(expected_sample_values):
-                break
-
-    finally:
-        await server.stop(0.1)
-        microgrid_api._MICROGRID_API = None  # pylint: disable=protected-access
+    await resampling_actor._stop()  # type: ignore # pylint: disable=no-member, protected-access
