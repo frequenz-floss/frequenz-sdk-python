@@ -108,7 +108,10 @@ class TestMicrogridGrpcClient:
                 [
                     (66, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_LOAD),
                     (99, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR),
-                    (100, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_UNSPECIFIED),
+                    (
+                        100,
+                        microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_UNSPECIFIED,
+                    ),
                     (101, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_GRID),
                     (103, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_JUNCTION),
                     (104, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_METER),
@@ -168,7 +171,8 @@ class TestMicrogridGrpcClient:
             servicer.set_connections([(999, 9), (99, 19), (909, 101), (99, 91)])
             for component_id in [999, 99, 19, 909, 101, 91]:
                 servicer.add_component(
-                    component_id, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
+                    component_id,
+                    microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY,
                 )
 
             assert set(await microgrid.connections()) == {
@@ -180,7 +184,8 @@ class TestMicrogridGrpcClient:
 
             for component_id in [1, 2, 3, 4, 5, 6, 7, 8]:
                 servicer.add_component(
-                    component_id, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
+                    component_id,
+                    microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY,
                 )
 
             servicer.set_connections(
@@ -261,7 +266,9 @@ class TestMicrogridGrpcClient:
             }
 
             # different filters combine with AND logic
-            assert set(await microgrid.connections(starts={1, 2, 4}, ends={4, 5, 6})) == {
+            assert set(
+                await microgrid.connections(starts={1, 2, 4}, ends={4, 5, 6})
+            ) == {
                 Connection(2, 4),
                 Connection(2, 5),
                 Connection(4, 5),
@@ -309,7 +316,8 @@ class TestMicrogridGrpcClient:
             assert list(await microgrid.connections()) == []
             for component_id in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
                 servicer.add_component(
-                    component_id, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
+                    component_id,
+                    microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY,
                 )
             servicer.set_connections(
                 [
@@ -344,7 +352,8 @@ class TestMicrogridGrpcClient:
             assert set(await microgrid.connections(starts={1})) == unfiltered
             assert set(await microgrid.connections(ends={9})) == unfiltered
             assert (
-                set(await microgrid.connections(starts={1, 7}, ends={3, 9})) == unfiltered
+                set(await microgrid.connections(starts={1, 7}, ends={3, 9}))
+                == unfiltered
             )
 
         finally:
