@@ -1,6 +1,6 @@
 # CI must ensure these dependency versions are supported
 frequenz-api-microgrid==0.11.0
-frequenz-channels==0.10.0
+frequenz-channels@git+https://github.com/frequenz-floss/frequenz-channels-python@v0.x.x
 google-api-python-client==2.15
 grpcio==1.47
 grpcio-tools==1.47
