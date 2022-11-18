@@ -13,7 +13,7 @@ License
 MIT
 """
 
-from .resampler import GroupResampler, Resampler, ResamplingFunction
+from ._resampler import GroupResampler, Resampler, ResamplingFunction
 from .sample import Sample
 
 __all__ = [
