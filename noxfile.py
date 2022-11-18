@@ -15,7 +15,13 @@ def source_file_paths(session: nox.Session) -> List[str]:
     not, we use all source files."""
     if session.posargs:
         return session.posargs
-    return ["src", "tests", "examples", "benchmarks"]
+    return [
+            "benchmarks",
+            "docs",
+            "examples",
+            "src",
+            "tests",
+            ]
 
 
 # Run all checks except `ci_checks` by default.  When running locally with just
@@ -38,7 +44,8 @@ def ci_checks_max(session: nox.Session) -> None:
 
     This does NOT run pytest_min, so that needs to be run separately as well.
     """
-    session.install(".", *PYTEST_DEPS, *FMT_DEPS, *LINT_DEPS, *DOCSTRING_DEPS)
+    session.install(".[docs]", *PYTEST_DEPS, *FMT_DEPS, *LINT_DEPS,
+            *DOCSTRING_DEPS)
 
     formatting(session, False)
     mypy(session, False)
@@ -101,7 +108,7 @@ def pylint(session: nox.Session, install_deps: bool = True) -> None:
     if install_deps:
         # install the package itself as editable, so that it is possible to do
         # fast local tests with `nox -R -e pylint`.
-        session.install("-e", ".", "pylint", *PYTEST_DEPS)
+        session.install("-e", ".[docs]", "pylint", *PYTEST_DEPS)
 
     paths = source_file_paths(session)
     session.run(

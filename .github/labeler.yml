@@ -21,6 +21,7 @@
 
 "part:docs": 
   - "**/*.md"
+  - "docs/**"
   - LICENSE
 
 "part:microgrid":
@@ -35,11 +36,14 @@
 "part:tooling":
   - "**/*.ini"
   - "**/*.toml"
+  - "**/*.yaml"
+  - "**/*.yml"
   - "*requirements*.txt"
   - ".git*"
   - ".git*/**"
   - CODEOWNERS
   - MANIFEST.in
+  - docs/mkdocstrings_autoapi.py
   - noxfile.py
   - setup.cfg
   - setup.py

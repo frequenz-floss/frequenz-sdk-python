@@ -10,5 +10,4 @@ A development kit to interact with the Frequenz development platform.
 ## Contributing
 
 If you want to know how to build this project and contribute to it, please
-check out the [Contributing
-Guide](https://github.com/frequenz-floss/frequenz-sdk-python/CONTRIBUTING.md).
+check out the [Contributing Guide](CONTRIBUTING.md).
