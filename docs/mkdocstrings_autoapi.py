@@ -31,8 +31,8 @@ for path in sorted(Path(SRC_PATH).rglob("*.py")):
 
     nav[parts] = doc_path.as_posix()
 
-    with mkdocs_gen_files.open(full_doc_path, "w") as fd:
-        fd.write(f"::: {'.'.join(parts)}\n")
+    with mkdocs_gen_files.open(full_doc_path, "w") as output_file:
+        output_file.write(f"::: {'.'.join(parts)}\n")
 
     mkdocs_gen_files.set_edit_path(full_doc_path, Path("..") / path)
 
