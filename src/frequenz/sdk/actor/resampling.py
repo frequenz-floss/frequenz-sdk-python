@@ -33,15 +33,13 @@ def average(samples: Sequence[Sample], resampling_period_s: float) -> float:
     """Calculate average of the provided values.
 
     Args:
-        samples: sequences of samples to apply the average to
-        resampling_period_s: value describing how often resampling should be performed,
-            in seconds
+        samples: sequences of samples to apply the average to. It must be
+            non-empty.
+        resampling_period_s: value describing how often resampling should be
+            performed, in seconds
 
     Returns:
         average of all the sample values
-
-    Raises:
-        AssertionError if there are no provided samples
     """
     assert len(samples) > 0, "Average cannot be given an empty list of samples"
     values = list(sample.value for sample in samples if sample.value is not None)
