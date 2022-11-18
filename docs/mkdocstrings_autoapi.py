@@ -8,11 +8,29 @@ https://mkdocstrings.github.io/recipes/#automatic-code-reference-pages
 """
 
 from pathlib import Path
+from typing import Tuple
 
 import mkdocs_gen_files
 
 SRC_PATH = "src"
 DST_PATH = "reference"
+
+
+def is_internal(path_parts: Tuple[str, ...]) -> bool:
+    """Tell if the path is internal judging by the parts.
+
+    Args:
+        path_parts: Path.parts of the path to check.
+
+    Returns:
+        True if the path is internal.
+    """
+
+    def with_underscore_not_init(part: str) -> bool:
+        return part.startswith("_") and part != "__init__"
+
+    return any(p for p in path_parts if with_underscore_not_init(p))
+
 
 # type ignore because mkdocs_gen_files uses a very weird module-level
 # __getattr__() which messes up the type system
@@ -24,6 +42,8 @@ for path in sorted(Path(SRC_PATH).rglob("*.py")):
     doc_path = path.relative_to(SRC_PATH).with_suffix(".md")
     full_doc_path = Path(DST_PATH, doc_path)
     parts = tuple(module_path.parts)
+    if is_internal(parts):
+        continue
     if parts[-1] == "__init__":
         doc_path = doc_path.with_name("index.md")
         full_doc_path = full_doc_path.with_name("index.md")
