@@ -33,12 +33,12 @@
   - "tests/**"
 
 "part:tooling":
+  - "**/*.ini"
+  - "**/*.toml"
+  - "*requirements*.txt"
   - ".git*"
   - ".git*/**"
-  - "**/*.toml"
-  - "**/*.ini"
   - CODEOWNERS
   - MANIFEST.in
-  - "*requirements*.txt"
   - setup.cfg
   - setup.py
