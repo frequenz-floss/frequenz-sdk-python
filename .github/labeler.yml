@@ -40,5 +40,6 @@
   - ".git*/**"
   - CODEOWNERS
   - MANIFEST.in
+  - noxfile.py
   - setup.cfg
   - setup.py
