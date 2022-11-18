@@ -103,13 +103,14 @@ class Config:
             Value for the specified key, converted to specified type.
 
         Example:
-            For var1='[1, 2.0, 3.5]':
-                * get_as("var1", List[int]) -> [1,2,3]
-                * get_as("var1", List[float]) -> [1.0,2.0,3.5]
-                * get_as("var1", List[pydantic.StrictInt]) -> ValueError
-                * get_as("var1", List[pydantic.StrictFloat]) -> ValueError
-            For var1='[1,2,3]':
-                * get_as("var1", List[pydantic.StrictInt]) -> [1,2,3]
+            For `var1='[1, 2.0, 3.5]'`:
+                * `get_as("var1", List[int])` -> `[1,2,3]`
+                * `get_as("var1", List[float])` -> `[1.0,2.0,3.5]`
+                * `get_as("var1", List[pydantic.StrictInt])` -> [ValueError][]
+                * `get_as("var1", List[pydantic.StrictFloat])` -> [ValueError][]
+
+            For `var1='[1,2,3]'`:
+                * `get_as("var1", List[pydantic.StrictInt])` -> `[1,2,3]`
 
         """
         value = self[key]
