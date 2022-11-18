@@ -28,63 +28,85 @@ class DistributionResult:
 
 
 class DistributionAlgorithm:
-    """Distribute power between many components.
+    r"""Distribute power between many components.
 
     The purpose of this tool is to keep equal SoC level in the batteries.
     It takes total power that should be to be set for some subset of battery-inverter
     pairs. The total power is distributed between given battery-inverter pairs.
     Distribution is calculated based on data below:
-        * Battery current SoC.
-        * Battery upper and lower SoC bound.
-        * Battery capacity.
-        * Battery lower and upper power bound.
-        * Inverter lower and upper active power bound.
 
-    Distribution algorithm:
+    * Battery current SoC.
+    * Battery upper and lower SoC bound.
+    * Battery capacity.
+    * Battery lower and upper power bound.
+    * Inverter lower and upper active power bound.
+
+    # Distribution algorithm
+
     Lets assume that:
-    ```
-    * N - number of batteries
-    * power_w = power to distribute
-    * capacity[i] - capacity of i'th battery
-    * available_soc[i] - how much SoC remained to reach:
+
+    * `N` - number of batteries
+    * `power_w` - power to distribute
+    * `capacity[i]` - capacity of i'th battery
+    * `available_soc[i]` - how much SoC remained to reach:
         * SoC upper bound - if need to distribute power that charges inverters.
         * SoC lower bound - if need to distribute power that discharges inverters.
-        * 0 if SoC is outside SoC bounds.
+        * `0` - if SoC is outside SoC bounds.
 
-    * total_capacity = sum(c for c in capacity.values())
-    * capacity_ratio[i] = capacity[i]/total_capacity
+    * `total_capacity` - `sum(c for c in capacity.values())`
+    * `capacity_ratio[i]` - `capacity[i]/total_capacity`
 
+
+    We would like our distribution to meet the equation:
+
+    ``` python
+    distribution[i] = power_w * capacity_ratio[i] * x[i]
     ```
-    We would like our distribution to meet equation:
-    ```
-        distribution[i] = power_w * capacity_ratio[i] * x[i]
+
     where:
-        sum(capacity_ratio[i] * x[i] for i in range(N)) == 1
-    ```
-    Let `y` be our unknown, the proportion to discharge each battery would be:
-    ```
-        (1) x[i] = available_soc[i]*y
-    ````
-    We can compute `y` from equation above:
-    ```
-            (2) sum(capacity_ratio[i] * x[i] for i in range(N)) == 1
-        => sum(capacity_ratio[i] * available_soc[i] * y for i in range(N)) == 1
-        => y = 1 / sum(capacity_ratio[i] * available_soc[i])
-    ```
-    Now we know everything and we can compute distribution:
-    ```
-            distribution[i] = power_w * capacity_ratio[i] * x[i] (from (1))
-            distribution[i] = \
-                power_w * capacity_ratio[i] * available_soc[i] * y (from (2))
-            distribution[i] = power_w * capacity_ratio[i] * available_soc[i] * \
-                1/sum(capacity_ratio[i] * available_soc[i])
 
-        Let
-            battery_availability_ratio[i] = capacity_ratio[i] * available_soc[i]
-            total_battery_availability_ratio = sum(battery_availability_ratio)
-        Then:
-            distribution[i] = power_w * battery_availability_ratio[i] \
-                / total_battery_availability_ratio
+    ``` python
+    sum(capacity_ratio[i] * x[i] for i in range(N)) == 1
+    ```
+
+    Let `y` be our unknown, the proportion to discharge each battery would be
+    (1):
+
+    ``` python
+    x[i] = available_soc[i]*y
+    ```
+
+    We can compute `y` from equation above (2):
+
+    ``` python
+    sum(capacity_ratio[i] * x[i] for i in range(N)) == 1
+    # =>
+    sum(capacity_ratio[i] * available_soc[i] * y for i in range(N)) == 1
+    # =>
+    y = 1 / sum(capacity_ratio[i] * available_soc[i])
+    ```
+
+    Now we know everything and we can compute distribution:
+
+    ``` python
+    distribution[i] = power_w * capacity_ratio[i] * x[i]  # from (1)
+    distribution[i] = \
+            power_w * capacity_ratio[i] * available_soc[i] * y  # from (2)
+    distribution[i] = power_w * capacity_ratio[i] * available_soc[i] * \
+            1/sum(capacity_ratio[i] * available_soc[i])
+    ```
+
+    Let:
+
+    ``` python
+    battery_availability_ratio[i] = capacity_ratio[i] * available_soc[i]
+    total_battery_availability_ratio = sum(battery_availability_ratio)
+    ```
+
+    Then:
+    ``` python
+    distribution[i] = power_w * battery_availability_ratio[i] \
+            / total_battery_availability_ratio
     ```
     """
 
@@ -190,7 +212,7 @@ class DistributionAlgorithm:
     def _compute_battery_availability_ratio(
         self, components: List[InvBatPair], available_soc: Dict[int, float]
     ) -> Tuple[List[Tuple[InvBatPair, float]], float]:
-        """Compute battery ratio and the total sum of all of them.
+        r"""Compute battery ratio and the total sum of all of them.
 
         battery_availability_ratio = capacity_ratio[i] * available_soc[i]
         Where:
