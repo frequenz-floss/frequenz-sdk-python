@@ -1,11 +1,7 @@
-"""Defines the components that can be used in a microgrid.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Defines the components that can be used in a microgrid."""
 
 from dataclasses import dataclass
 from enum import Enum

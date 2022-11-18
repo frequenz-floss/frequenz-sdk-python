@@ -1,12 +1,8 @@
-"""
-Utility functions to generate data for testing purposes.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2021 Frequenz Energy-as-a-Service GmbH
+"""Utility functions to generate data for testing purposes."""
 
-License
-MIT
-"""
 from typing import Any, Dict, Optional
 
 from frequenz.api.microgrid import microgrid_pb2 as microgrid_pb

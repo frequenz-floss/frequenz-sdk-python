@@ -1,11 +1,7 @@
-"""Benchmark for microgrid data.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Benchmark for microgrid data."""
 import time
 from typing import Any
 from unittest.mock import patch

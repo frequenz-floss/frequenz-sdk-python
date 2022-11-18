@@ -1,11 +1,7 @@
-"""Test for Config
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Test for Config"""
 import pathlib
 import re
 from typing import Any, Dict, List, Optional, Set

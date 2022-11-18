@@ -1,12 +1,8 @@
-"""
-Read and update config variables.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+"""Read and update config variables."""
 
-License
-MIT
-"""
 import logging
 from typing import Any, Dict, Optional, TypeVar
 

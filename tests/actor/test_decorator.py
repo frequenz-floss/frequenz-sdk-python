@@ -1,11 +1,7 @@
-"""Simple test for the BaseActor.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2021 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Simple test for the BaseActor."""
 from frequenz.channels import Broadcast, Receiver, Select, Sender
 
 from frequenz.sdk.actor import actor

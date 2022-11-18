@@ -1,14 +1,11 @@
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+
 """
 Actor for combining stream data from different components using TimeSeriesFormula.
 
 Including default standard formulas for client load, grid load, total pv production,
 ev charging rate, battery SoC, active power, max consume and supply rate.
-
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
 """
 import asyncio
 import logging

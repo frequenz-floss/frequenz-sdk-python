@@ -1,11 +1,7 @@
-"""Tests for the frequenz.sdk.data_handling.formula module.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Tests for the frequenz.sdk.data_handling.formula module."""
 from datetime import datetime, timedelta, timezone
 from typing import Dict
 

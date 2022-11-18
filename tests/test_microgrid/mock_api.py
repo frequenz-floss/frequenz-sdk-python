@@ -1,14 +1,11 @@
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+
 """Mock implementation of the microgrid gRPC API.
 
 This is intended to support the narrow set of test cases that have to
 check integration with the API.  Note that this should exclude almost
 all framework code, as API integration should be highly encapsulated.
-
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
 """
 
 

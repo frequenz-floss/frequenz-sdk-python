@@ -1,12 +1,8 @@
-"""
-Base test class for the `MicrogridData`.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2021 Frequenz Energy-as-a-Service GmbH
+"""Base test class for the `MicrogridData`."""
 
-License
-MIT
-"""
 from typing import Any, Dict, List, Optional, Set
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import AsyncMock, MagicMock

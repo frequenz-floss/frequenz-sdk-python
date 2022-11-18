@@ -1,12 +1,8 @@
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+
 # pylint: disable=too-many-lines
-"""Tests for distribution algorithm.
-
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Tests for distribution algorithm."""
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Dict, List, Optional

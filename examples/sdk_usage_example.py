@@ -1,14 +1,11 @@
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+
 """Frequenz Python SDK usage examples.
 
 This example creates two users.
 One user sends request with power to apply in PowerDistributor.
 Second user receives requests and set that power.
-
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
 """
 
 import asyncio

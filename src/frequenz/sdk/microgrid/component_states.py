@@ -1,11 +1,7 @@
-"""Defines states of components that can be used in a microgrid.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Defines states of components that can be used in a microgrid."""
 from __future__ import annotations
 
 from enum import Enum

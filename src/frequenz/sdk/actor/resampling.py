@@ -1,12 +1,8 @@
-"""
-ComponentMetricsResamplingActor used to subscribe for resampled component metrics.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+"""ComponentMetricsResamplingActor used to subscribe for resampled component metrics."""
 
-License
-MIT
-"""
 import asyncio
 import dataclasses
 import logging

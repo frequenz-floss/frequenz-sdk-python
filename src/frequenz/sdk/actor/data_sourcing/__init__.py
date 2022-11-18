@@ -1,12 +1,7 @@
-"""
-The DataSourcingActor.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2021 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""The DataSourcingActor."""
 
 from .data_sourcing import DataSourcingActor
 from .types import ComponentMetricId, ComponentMetricRequest

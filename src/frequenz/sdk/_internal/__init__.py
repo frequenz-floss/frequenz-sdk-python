@@ -1,12 +1,7 @@
-"""
-Utility types and functions for internal use.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2021 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Utility types and functions for internal use."""
 
 from .singleton_meta import SingletonMeta
 

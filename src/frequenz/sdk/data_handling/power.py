@@ -1,12 +1,7 @@
-"""
-Provides support for processing power measurements from different microgrid components.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Provides support for processing power measurements from different microgrid components."""
 
 from numbers import Real
 

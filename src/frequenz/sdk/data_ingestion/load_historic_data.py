@@ -1,3 +1,6 @@
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+
 """
 LoadHistoricData is a tool for loading historic parquet files.
 
@@ -5,12 +8,6 @@ This object can be called from within other `IOperation`s or outside of the
 pipeline.  Please be aware that the loading of parquet files is not
 asynchronous, running this will block other IOperation tasks unless done in a
 different thread.
-
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
 """
 
 import glob

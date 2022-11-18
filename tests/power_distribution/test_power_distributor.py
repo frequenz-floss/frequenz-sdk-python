@@ -1,11 +1,7 @@
-"""Tests power distributor
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Tests power distributor"""
 import asyncio
 import re
 from dataclasses import dataclass

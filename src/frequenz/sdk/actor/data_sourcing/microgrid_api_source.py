@@ -1,11 +1,7 @@
-"""The Microgrid API data source for the DataSourcingActor.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""The Microgrid API data source for the DataSourcingActor."""
 
 import asyncio
 import logging

@@ -1,11 +1,7 @@
-"""Implementations for retry strategies.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Implementations for retry strategies."""
 
 import random
 from abc import ABC, abstractmethod

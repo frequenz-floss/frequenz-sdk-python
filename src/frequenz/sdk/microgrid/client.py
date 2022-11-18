@@ -1,11 +1,7 @@
-"""Client for requests to the Microgrid API.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Client for requests to the Microgrid API."""
 
 import asyncio
 import logging

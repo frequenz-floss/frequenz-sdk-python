@@ -1,11 +1,7 @@
-"""All helpers used to distribute power.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""All helpers used to distribute power."""
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum

@@ -1,12 +1,7 @@
-"""
-Config interface.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Config interface."""
 
 from .config import Config
 from .config_manager import ConfigManager

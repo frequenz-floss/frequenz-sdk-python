@@ -1,11 +1,7 @@
-"""Check how long it takes to distribute power.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Check how long it takes to distribute power."""
 
 import asyncio
 import csv

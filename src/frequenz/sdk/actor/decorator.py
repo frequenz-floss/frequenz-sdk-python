@@ -1,15 +1,12 @@
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+
 """A decorator for creating simple composable actors.
 
 Supports multiple input channels and a single output channel.
 
 Note that if your use-case needs multiple output channels, you may instead
 consider using several actors.
-
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
 """
 
 import asyncio

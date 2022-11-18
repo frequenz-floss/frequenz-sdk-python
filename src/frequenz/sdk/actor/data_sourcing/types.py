@@ -1,11 +1,7 @@
-"""Common types for the Data Pipeline.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Common types for the Data Pipeline."""
 
 from dataclasses import dataclass
 from datetime import datetime

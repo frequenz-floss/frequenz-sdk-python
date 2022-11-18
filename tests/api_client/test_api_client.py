@@ -1,11 +1,7 @@
-"""Tests for the `ApiClient` class.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Tests for the `ApiClient` class."""
 
 from abc import abstractmethod
 from typing import Any

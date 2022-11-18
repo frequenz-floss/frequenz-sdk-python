@@ -1,11 +1,7 @@
-"""Setup for all the tests.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2021 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Setup for all the tests."""
 import pytest
 
 from frequenz.sdk.actor import decorator

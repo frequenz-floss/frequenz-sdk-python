@@ -1,12 +1,9 @@
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+
 """Tool to distribute power between batteries.
 
 Purpose of this tool is to keep SoC level of each component at the equal level.
-
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
 """
 import asyncio
 import logging

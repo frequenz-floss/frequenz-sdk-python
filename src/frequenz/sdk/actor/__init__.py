@@ -1,11 +1,7 @@
-"""A base class for creating simple composable actors.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""A base class for creating simple composable actors."""
 
 from .channel_registry import ChannelRegistry
 from .decorator import actor

@@ -1,11 +1,7 @@
-"""An abstract API client.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""An abstract API client."""
 
 from abc import ABC, abstractmethod
 from enum import Enum

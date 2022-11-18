@@ -1,13 +1,10 @@
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+
 """Microgrid monitoring and control system.
 
 This package provides a complete suite of data structures and functionality
 for monitoring and adjusting the state of a microgrid.
-
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
 """
 
 from . import microgrid_api

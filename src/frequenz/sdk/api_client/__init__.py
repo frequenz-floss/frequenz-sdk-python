@@ -1,12 +1,7 @@
-"""
-Common items to be shared across all API clients.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Common items to be shared across all API clients."""
 
 from .api_client import ApiClient, ApiProtocol
 

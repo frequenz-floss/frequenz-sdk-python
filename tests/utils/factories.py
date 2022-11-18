@@ -1,12 +1,8 @@
-"""
-Utility factory functions to mock data returned by components.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2021 Frequenz Energy-as-a-Service GmbH
+"""Utility factory functions to mock data returned by components."""
 
-License
-MIT
-"""
 import asyncio
 import time
 from typing import Any, Callable, Coroutine, Dict, Iterable, Optional

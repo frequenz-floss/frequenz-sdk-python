@@ -1,11 +1,7 @@
-"""Tests for the handle_historic_data package.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2021 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Tests for the handle_historic_data package."""
 
 from datetime import datetime, timedelta, timezone
 

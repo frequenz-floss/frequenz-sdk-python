@@ -1,11 +1,7 @@
-"""Tests for retry strategies.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Tests for retry strategies."""
 
 # pylint: disable=chained-comparison
 

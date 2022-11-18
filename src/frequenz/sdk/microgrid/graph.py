@@ -1,3 +1,6 @@
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+
 """Defines a graph representation of how microgrid components are connected.
 
 The component graph is an approximate representation of the microgrid circuit,
@@ -16,12 +19,6 @@ Examples of use-cases would be:
 It deliberately does not include all pieces of hardware placed in the microgrid,
 instead limiting itself to just those that are needed to monitor and control the
 flow of power.
-
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
 """
 
 import asyncio
