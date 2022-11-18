@@ -13,16 +13,12 @@ License
 MIT
 """
 
-from .resampler import (
-    ComponentMetricGroupResampler,
-    ComponentMetricResampler,
-    ResamplingFunction,
-)
+from .resampler import GroupResampler, Resampler, ResamplingFunction
 from .sample import Sample
 
 __all__ = [
-    "ComponentMetricGroupResampler",
-    "ComponentMetricResampler",
+    "GroupResampler",
+    "Resampler",
     "ResamplingFunction",
     "Sample",
 ]

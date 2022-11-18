@@ -42,8 +42,14 @@ Returns:
 """
 
 
-class ComponentMetricResampler:
-    """Resampler for a single metric of a specific component, e.g. 123_active_power."""
+class Resampler:
+    """Ingests samples and produces resampled data for one timeseries.
+
+    Samples are stored in an internal ring buffer. All collected samples that
+    are newer than `resampling_period_s * max_data_age_in_periods` seconds will
+    be passed to the provided
+    [ResamplingFunction][frequenz.sdk.timeseries.ResamplingFunction].
+    """
 
     def __init__(
         self,
@@ -74,7 +80,7 @@ class ComponentMetricResampler:
         """
         self._buffer.append(sample)
 
-    def remove_outdated_samples(self, threshold: datetime) -> None:
+    def _remove_outdated_samples(self, threshold: datetime) -> None:
         """Remove samples that are older than the provided time threshold.
 
         It is assumed that items in the buffer are in a sorted order (ascending order
@@ -116,14 +122,18 @@ class ComponentMetricResampler:
         threshold = timestamp - timedelta(
             seconds=self._max_data_age_in_periods * self._resampling_period_s
         )
-        self.remove_outdated_samples(threshold=threshold)
+        self._remove_outdated_samples(threshold=threshold)
         if len(self._buffer) == 0:
             return None
         return self._resampling_function(self._buffer, self._resampling_period_s)
 
 
-class ComponentMetricGroupResampler:
-    """Class that delegates resampling to individual component metric resamplers."""
+class GroupResampler:
+    """Ingests samples and produces resampled data for a group of timeseries.
+
+    Like the [Resampler][frequenz.sdk.timeseries.Resampler] but handles a group
+    of timeseries.
+    """
 
     def __init__(
         self,
@@ -147,7 +157,7 @@ class ComponentMetricGroupResampler:
         self._initial_resampling_function: ResamplingFunction = (
             initial_resampling_function
         )
-        self._resamplers: Dict[str, ComponentMetricResampler] = {}
+        self._resamplers: Dict[str, Resampler] = {}
 
     def add_time_series(self, time_series_id: str) -> None:
         """Create a new resampler for a specific time series.
@@ -161,7 +171,7 @@ class ComponentMetricGroupResampler:
         if time_series_id in self._resamplers:
             return
 
-        self._resamplers[time_series_id] = ComponentMetricResampler(
+        self._resamplers[time_series_id] = Resampler(
             resampling_period_s=self._resampling_period_s,
             max_data_age_in_periods=self._max_data_age_in_periods,
             resampling_function=self._initial_resampling_function,

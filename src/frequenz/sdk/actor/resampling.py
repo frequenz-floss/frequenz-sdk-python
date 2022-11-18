@@ -17,7 +17,7 @@ from frequenz.channels import MergeNamed, Receiver, Select, Sender, Timer
 
 from ..data_pipeline import ComponentMetricRequest
 from ..timeseries import Sample
-from ..timeseries.resampler import ComponentMetricGroupResampler, ResamplingFunction
+from ..timeseries.resampler import GroupResampler, ResamplingFunction
 from . import ChannelRegistry, actor
 
 logger = logging.Logger(__name__)
@@ -147,7 +147,7 @@ class ComponentMetricsResamplingActor:
         self._max_data_age_in_periods: float = max_data_age_in_periods
         self._resampling_function: ResamplingFunction = resampling_function
 
-        self._resampler = ComponentMetricGroupResampler(
+        self._resampler = GroupResampler(
             resampling_period_s=resampling_period_s,
             max_data_age_in_periods=max_data_age_in_periods,
             initial_resampling_function=resampling_function,

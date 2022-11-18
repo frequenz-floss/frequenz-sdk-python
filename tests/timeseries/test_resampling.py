@@ -13,11 +13,7 @@ from typing import Sequence
 
 import time_machine
 
-from frequenz.sdk.timeseries import (
-    ComponentMetricGroupResampler,
-    ComponentMetricResampler,
-    Sample,
-)
+from frequenz.sdk.timeseries import GroupResampler, Resampler, Sample
 
 
 # pylint: disable=unused-argument
@@ -44,7 +40,7 @@ def resampling_function_sum(
 @time_machine.travel(0, tick=False)
 def test_component_metric_resampler_remove_outdated_samples() -> None:
     """Test if outdated samples are being properly removed."""
-    resampler = ComponentMetricResampler(
+    resampler = Resampler(
         resampling_period_s=0.2,
         max_data_age_in_periods=1.0,
         resampling_function=resampling_function_sum,
@@ -56,23 +52,23 @@ def test_component_metric_resampler_remove_outdated_samples() -> None:
     resampler.add_sample(sample1)
     resampler.add_sample(sample2)
 
-    resampler.remove_outdated_samples(threshold=timestamp)
+    resampler._remove_outdated_samples(threshold=timestamp)
     assert list(resampler._buffer) == [
         sample1,
         sample2,
     ]  # pylint: disable=protected-access
 
-    resampler.remove_outdated_samples(threshold=timestamp + timedelta(seconds=0.5))
+    resampler._remove_outdated_samples(threshold=timestamp + timedelta(seconds=0.5))
     assert list(resampler._buffer) == [sample2]  # pylint: disable=protected-access
 
-    resampler.remove_outdated_samples(threshold=timestamp + timedelta(seconds=1.01))
+    resampler._remove_outdated_samples(threshold=timestamp + timedelta(seconds=1.01))
     assert len(resampler._buffer) == 0  # pylint: disable=protected-access
 
 
 @time_machine.travel(0, tick=False)
 def test_component_metric_resampler_resample() -> None:
     """Test if resampling function works as expected."""
-    resampler = ComponentMetricResampler(
+    resampler = Resampler(
         resampling_period_s=0.2,
         max_data_age_in_periods=5.0,
         resampling_function=resampling_function_sum,
@@ -103,7 +99,7 @@ def test_component_metric_resampler_resample() -> None:
 @time_machine.travel(0, tick=False)
 def test_component_metric_resampler_resample_with_outdated_samples() -> None:
     """Test that resampling function doesn't take outdated samples into account."""
-    resampler = ComponentMetricResampler(
+    resampler = Resampler(
         resampling_period_s=0.2,
         max_data_age_in_periods=5.0,
         resampling_function=resampling_function_sum,
@@ -131,7 +127,7 @@ def test_component_metric_resampler_resample_with_outdated_samples() -> None:
 @time_machine.travel(0, tick=False)
 def test_component_metric_group_resampler() -> None:
     """Test if resampling is properly delegated to component metric resamplers."""
-    resampler = ComponentMetricGroupResampler(
+    resampler = GroupResampler(
         resampling_period_s=0.2,
         max_data_age_in_periods=5.0,
         initial_resampling_function=resampling_function_sum,
