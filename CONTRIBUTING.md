@@ -60,6 +60,39 @@ Or you can just serve the documentation without building it using:
 mkdocs serve
 ```
 
+Your site will be updated **live** when you change your files (provided that
+you used `pip install -e .`, beware of a common pitfall of using `pip install`
+without `-e`, in that case the API reference won't change unless you do a new
+`pip install`).
+
+To build multi-version documentation, we use
+[mike](https://github.com/jimporter/mike). If you want to see how the
+multi-version sites looks like locally, you can use:
+
+```sh
+mike deploy my-version
+mike set-default my-version
+mike serve
+```
+
+`mike` works in mysterious ways. Some basic information:
+
+* `mike deploy` will do a `mike build` and write the results to your **local**
+  `gh-pages` branch. `my-version` is an arbitrary name for the local version
+  you want to preview.
+* `mike set-default` is needed so when you serve the documentation, it goes to
+  your newly produced documentation by default.
+* `mike serve` will serve the contents of your **local** `gh-pages` branch. Be
+  aware that, unlike `mkdocs serve`, changes to the sources won't be shown
+  live, as the `mike deploy` step is needed to refresh them.
+
+Be careful not to use `--push` with `mike deploy`, otherwise it will push your
+local `gh-pages` branch to the `origin` remote.
+
+That said, if you want to test the actual website in **your fork**, you can
+always use `mike deploy --push --remote your-fork-remote`, and then access the
+GitHub pages produced for your fork.
+
 ## Releasing
 
 These are the steps to create a new release:
