@@ -8,6 +8,7 @@ check integration with the API.  Note that this should exclude almost
 all framework code, as API integration should be highly encapsulated.
 """
 
+from __future__ import annotations
 
 # pylint: disable=invalid-name,no-name-in-module,unused-import
 from concurrent import futures
@@ -59,7 +60,7 @@ class MockMicrogridServicer(  # pylint: disable=too-many-public-methods
 
     def __init__(
         self,
-        components: Optional[List[Tuple[int, "ComponentCategory.V"]]] = None,
+        components: Optional[List[Tuple[int, ComponentCategory.V]]] = None,
         connections: Optional[List[Tuple[int, int]]] = None,
     ) -> None:
         """Create a MockMicrogridServicer instance."""
@@ -76,7 +77,7 @@ class MockMicrogridServicer(  # pylint: disable=too-many-public-methods
         self._latest_discharge: Optional[PowerLevelParam] = None
 
     def add_component(
-        self, component_id: int, component_category: "ComponentCategory.V"
+        self, component_id: int, component_category: ComponentCategory.V
     ) -> None:
         """Add a component to the mock service."""
         self._components.append(Component(id=component_id, category=component_category))
@@ -85,9 +86,7 @@ class MockMicrogridServicer(  # pylint: disable=too-many-public-methods
         """Add a connection to the mock service."""
         self._connections.append(Connection(start=start, end=end))
 
-    def set_components(
-        self, components: List[Tuple[int, "ComponentCategory.V"]]
-    ) -> None:
+    def set_components(self, components: List[Tuple[int, ComponentCategory.V]]) -> None:
         """Set components to mock service, dropping existing."""
         self._components.clear()
         self._components.extend(

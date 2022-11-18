@@ -3,6 +3,8 @@
 
 """Implementations for retry strategies."""
 
+from __future__ import annotations
+
 import random
 from abc import ABC, abstractmethod
 from copy import deepcopy
@@ -47,7 +49,7 @@ class RetryStrategy(ABC):
         """
         self._count = 0
 
-    def copy(self) -> "RetryStrategy":
+    def copy(self) -> RetryStrategy:
         """Create a new instance of `self`.
 
         Returns:

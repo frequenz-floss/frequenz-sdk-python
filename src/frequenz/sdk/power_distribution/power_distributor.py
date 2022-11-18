@@ -5,6 +5,9 @@
 
 Purpose of this tool is to keep SoC level of each component at the equal level.
 """
+
+from __future__ import annotations
+
 import asyncio
 import logging
 from asyncio.tasks import ALL_COMPLETED
@@ -153,7 +156,7 @@ class PowerDistributor:
         # important. It will execute both. And later request will override the previous
         # one.
         # That is why the queue of maxsize = total number of batteries should be enough.
-        self._request_queue: "asyncio.Queue[Tuple[Request, User]]" = asyncio.Queue(
+        self._request_queue: asyncio.Queue[Tuple[Request, User]] = asyncio.Queue(
             maxsize=len(self._bat_inv_map)
         )
 
@@ -315,7 +318,7 @@ class PowerDistributor:
 
     def _remove_duplicated_requests(
         self, request: Request, user: User
-    ) -> List["asyncio.Task[bool]"]:
+    ) -> List[asyncio.Task[bool]]:
         """Remove duplicated requests from the queue.
 
         Remove old requests in which set of batteries are the same as in new request.
@@ -332,7 +335,7 @@ class PowerDistributor:
         batteries = request.batteries
 
         good_requests: List[Tuple[Request, User]] = []
-        to_ignore: List["asyncio.Task[bool]"] = []
+        to_ignore: List[asyncio.Task[bool]] = []
 
         while not self._request_queue.empty():
             prev_request, prev_user = self._request_queue.get_nowait()
@@ -606,7 +609,7 @@ class PowerDistributor:
 
         return any_fail, failed_power
 
-    async def _cancel_tasks(self, tasks: Iterable["asyncio.Task[Any]"]) -> None:
+    async def _cancel_tasks(self, tasks: Iterable[asyncio.Task[Any]]) -> None:
         """Cancel given asyncio tasks and wait for them.
 
         Args:

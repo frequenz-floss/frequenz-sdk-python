@@ -7,6 +7,9 @@ Actor for combining stream data from different components using TimeSeriesFormul
 Including default standard formulas for client load, grid load, total pv production,
 ev charging rate, battery SoC, active power, max consume and supply rate.
 """
+
+from __future__ import annotations
+
 import asyncio
 import logging
 from datetime import datetime, timezone
@@ -93,7 +96,7 @@ class MicrogridData:  # pylint: disable=too-many-instance-attributes
         """Send formulas results with some period."""
         # Sleep first to collect initial data from all component
         await asyncio.sleep(self._wait_for_data_sec)
-        tasks: List["asyncio.Task[bool]"] = []
+        tasks: List[asyncio.Task[bool]] = []
         while True:
             start_time = datetime.now(timezone.utc)
             # For every formula that was updated at least once, send that formula.
@@ -175,7 +178,7 @@ class MicrogridData:  # pylint: disable=too-many-instance-attributes
 
     # pylint: disable=unused-argument
     async def _reinitialize(
-        self, config: Config, resend_formulas_task: "asyncio.Task[None]"
+        self, config: Config, resend_formulas_task: asyncio.Task[None]
     ) -> None:
         """Reinitialize MicrogridData with updated config.
 

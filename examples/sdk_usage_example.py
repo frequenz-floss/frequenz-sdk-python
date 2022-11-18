@@ -8,6 +8,8 @@ One user sends request with power to apply in PowerDistributor.
 Second user receives requests and set that power.
 """
 
+from __future__ import annotations
+
 import asyncio
 import logging
 from datetime import datetime, timezone
@@ -136,7 +138,7 @@ class DataCollectingActor:
             RuntimeError: If communication channel has been closed.
         """
         while True:
-            queue: "Queue[Optional[float]]" = Queue(maxsize=50)
+            queue: Queue[Optional[float]] = Queue(maxsize=50)
             for _ in range(5):
                 active_power = await self._active_power_data.receive()
                 if active_power is None:

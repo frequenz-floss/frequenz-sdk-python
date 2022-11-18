@@ -3,6 +3,8 @@
 
 """Provides support for processing power measurements from different microgrid components."""
 
+from __future__ import annotations
+
 from numbers import Real
 
 from frequenz.api.microgrid.common_pb2 import AC
@@ -36,7 +38,7 @@ class ComplexPower:
         self._complex_power = complex_power
 
     @classmethod
-    def from_protobuf(cls, ac_message: AC) -> "ComplexPower":
+    def from_protobuf(cls, ac_message: AC) -> ComplexPower:
         """Create a ComplexPower value from the AC type of the microgrid gRPC API.
 
         Args:
@@ -54,7 +56,7 @@ class ComplexPower:
         return cls(complex(active, reactive))
 
     @classmethod
-    def from_active_power(cls, active_power: float) -> "ComplexPower":
+    def from_active_power(cls, active_power: float) -> ComplexPower:
         """Create a ComplexPower value from a numerical active power value.
 
         Args:
@@ -68,7 +70,7 @@ class ComplexPower:
         return cls(complex(active_power, 0))
 
     @classmethod
-    def from_reactive_power(cls, reactive_power: float) -> "ComplexPower":
+    def from_reactive_power(cls, reactive_power: float) -> ComplexPower:
         """Create a ComplexPower value from a numerical reactive power value.
 
         Args:
@@ -161,7 +163,7 @@ class ComplexPower:
         """
         return max(-self.imag, 0)
 
-    def __neg__(self) -> "ComplexPower":
+    def __neg__(self) -> ComplexPower:
         """Generate the negative of this value.
 
         Returns:
@@ -169,7 +171,7 @@ class ComplexPower:
         """
         return ComplexPower(-self._complex_power)
 
-    def __add__(self, other: object) -> "ComplexPower":
+    def __add__(self, other: object) -> ComplexPower:
         """Add this complex power value to the provided `other`.
 
         Args:
@@ -183,7 +185,7 @@ class ComplexPower:
 
         return ComplexPower(self._complex_power + other._complex_power)
 
-    def __sub__(self, other: object) -> "ComplexPower":
+    def __sub__(self, other: object) -> ComplexPower:
         """Subtract the provided `other` from this complex power value.
 
         Args:
@@ -197,7 +199,7 @@ class ComplexPower:
 
         return ComplexPower(self._complex_power - other._complex_power)
 
-    def __mul__(self, other: object) -> "ComplexPower":
+    def __mul__(self, other: object) -> ComplexPower:
         """Multiply this complex power value by the provided scalar.
 
         Args:
@@ -213,7 +215,7 @@ class ComplexPower:
 
     __rmul__ = __mul__
 
-    def __truediv__(self, other: object) -> "ComplexPower":
+    def __truediv__(self, other: object) -> ComplexPower:
         """Divide this complex power value by the provided scalar.
 
         Args:
