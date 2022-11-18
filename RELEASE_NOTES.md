@@ -2,7 +2,12 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
+The project has a new home!
+
+https://frequenz-floss.github.io/frequenz-sdk-python/
+
+For now the documentation is pretty scarce but we will be improving it with
+time.
 
 ## Upgrading
 
