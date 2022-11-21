@@ -34,7 +34,7 @@ def is_internal(path_parts: Tuple[str, ...]) -> bool:
 
 # type ignore because mkdocs_gen_files uses a very weird module-level
 # __getattr__() which messes up the type system
-nav = mkdocs_gen_files.Nav()
+nav = mkdocs_gen_files.Nav()  # type: ignore
 
 for path in sorted(Path(SRC_PATH).rglob("*.py")):
     module_path = path.relative_to(SRC_PATH).with_suffix("")
