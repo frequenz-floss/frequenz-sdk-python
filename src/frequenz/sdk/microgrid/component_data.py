@@ -71,11 +71,13 @@ class MeterData(ComponentData):
             -ve current means supply into the grid.
         voltage_per_phase: the AC voltage in Volts (V) between the line and the neutral
             wire for phase/line 1,2 and 3 respectively.
+        frequency: the AC power frequency in Hertz (Hz).
     """
 
     active_power: float
     current_per_phase: Tuple[float, float, float]
     voltage_per_phase: Tuple[float, float, float]
+    frequency: float
 
     @classmethod
     def from_proto(cls, raw: microgrid_pb.ComponentData) -> MeterData:
@@ -101,6 +103,7 @@ class MeterData(ComponentData):
                 raw.meter.data.ac.phase_2.voltage.value,
                 raw.meter.data.ac.phase_3.voltage.value,
             ),
+            frequency=raw.meter.data.ac.frequency.value,
         )
         meter_data._set_raw(raw=raw)
         return meter_data
