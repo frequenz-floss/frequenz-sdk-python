@@ -13,9 +13,8 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from frequenz.channels import Receiver, Sender
 
-from frequenz.sdk.actor import ChannelRegistry
-from frequenz.sdk.data_pipeline import ComponentMetricId, ComponentMetricRequest
-from frequenz.sdk.microgrid import (
+from ...data_pipeline import ComponentMetricId, ComponentMetricRequest
+from ...microgrid import (
     BatteryData,
     ComponentCategory,
     EVChargerData,
@@ -23,7 +22,8 @@ from frequenz.sdk.microgrid import (
     MeterData,
     microgrid_api,
 )
-from frequenz.sdk.timeseries import Sample
+from ...timeseries import Sample
+from .. import ChannelRegistry
 
 _MeterDataMethods: Dict[ComponentMetricId, Callable[[MeterData], float]] = {
     ComponentMetricId.ACTIVE_POWER: lambda msg: msg.active_power,
