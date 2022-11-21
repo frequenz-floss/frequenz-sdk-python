@@ -87,9 +87,10 @@ def test_Formula() -> None:
     assert f7.symbols == set(["s1", "s2", "s3"])
 
     expected = pd.Series(index=df.index, data=[-2.0, -1.0, 0.0])
-    assert (
-        f7(**df.to_dict(orient="series")) == expected  # pylint: disable=not-a-mapping
-    ).all()
+    # We need to convert the keys as strings because they are some weird pandas
+    # type
+    symbols = {str(k): v for k, v in df.to_dict(orient="series").items()}
+    assert (f7(**symbols) == expected).all()
 
 
 def test_formula_with_broken_meter() -> None:

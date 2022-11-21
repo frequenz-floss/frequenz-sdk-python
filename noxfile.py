@@ -14,6 +14,7 @@ import nox
 FMT_DEPS = ["black", "isort"]
 DOCSTRING_DEPS = ["pydocstyle", "darglint"]
 PYTEST_DEPS = ["pytest", "pytest-cov", "pytest-mock", "pytest-asyncio", "time-machine"]
+MYPY_DEPS = ["mypy", "pandas-stubs", "grpc-stubs"]
 
 
 def _source_file_paths(session: nox.Session) -> List[str]:
@@ -64,7 +65,7 @@ def ci_checks_max(session: nox.Session) -> None:
         session: the nox session.
     """
     session.install(
-        ".[docs]", "mypy", "pylint", "nox", *PYTEST_DEPS, *FMT_DEPS, *DOCSTRING_DEPS
+        ".[docs]", "pylint", "nox", *PYTEST_DEPS, *FMT_DEPS, *DOCSTRING_DEPS, *MYPY_DEPS
     )
 
     formatting(session, False)
@@ -101,35 +102,38 @@ def mypy(session: nox.Session, install_deps: bool = True) -> None:
     if install_deps:
         # install the package itself as editable, so that it is possible to do
         # fast local tests with `nox -R -e mypy`.
-        session.install("-e", ".[docs]", "mypy", "nox", *PYTEST_DEPS)
+        session.install("-e", ".[docs]", "nox", *MYPY_DEPS, *PYTEST_DEPS)
 
-    mypy_cmd = [
-        "mypy",
-        "--ignore-missing-imports",
+    common_args = [
         "--install-types",
         "--namespace-packages",
         "--non-interactive",
         "--explicit-package-bases",
-        "--follow-imports=silent",
         "--strict",
     ]
 
     # If we have session arguments, we just use those...
     if session.posargs:
-        session.run(*mypy_cmd, *session.posargs)
+        session.run("mypy", *common_args, *session.posargs)
         return
 
-    # Runs on the installed package
-    session.run(*mypy_cmd, "-p", "frequenz.sdk")
-
-    # Runs on the rest of the source folders
-    # Since we use other packages in the frequenz namespace, we need to run the
-    # checks for frequenz.sdk from the installed package instead of the src
-    # directory.
-    mypy_paths = [
-        path for path in _source_file_paths(session) if not path.startswith("src")
+    check_paths = _source_file_paths(session)
+    pkg_paths = [
+        path
+        for path in check_paths
+        if not path.startswith("src") and not path.endswith(".py")
     ]
-    session.run(*mypy_cmd, *mypy_paths)
+    file_paths = [path for path in check_paths if path.endswith(".py")]
+
+    pkg_args = []
+    for pkg in pkg_paths:
+        if pkg == "src":
+            pkg = "frequenz.channels"
+        pkg_args.append("-p")
+        pkg_args.append(pkg)
+
+    session.run("mypy", *common_args, *pkg_args)
+    session.run("mypy", *common_args, *file_paths)
 
 
 @nox.session

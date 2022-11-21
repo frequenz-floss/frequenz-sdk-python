@@ -45,7 +45,7 @@ def mock_load_hd_read(
     for feature_generator in load_hd_settings.feature_generators:
         feature = feature_generator.feature
         assert isinstance(feature, str)
-        data.update({feature: np.full(len(timestamps), len(feature))})
+        data.update(feature=np.full(len(timestamps), len(feature)))  # type: ignore
 
     df_hist = pd.DataFrame(data)
     df_hist["timestamp"] = pd.to_datetime(df_hist.timestamp)
@@ -67,7 +67,7 @@ def test_load_compute_formula(mocker: MockerFixture) -> None:
             "ac_connection.total_power_active.power_supply.now",
             "ac_connection.total_power_active.power_consumption.now",
         ],
-        get_active_power,
+        get_active_power,  # type: ignore
         "power",
     )
     data_sampling_rate = 1.0
