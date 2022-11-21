@@ -13,8 +13,11 @@ import time_machine
 from frequenz.channels import Broadcast
 
 from frequenz.sdk.actor import ChannelRegistry
-from frequenz.sdk.actor.resampling import ComponentMetricsResamplingActor
-from frequenz.sdk.data_pipeline import ComponentMetricId, ComponentMetricRequest
+from frequenz.sdk.actor.resampling import (
+    ComponentMetricId,
+    ComponentMetricRequest,
+    ComponentMetricsResamplingActor,
+)
 from frequenz.sdk.timeseries import Sample
 
 

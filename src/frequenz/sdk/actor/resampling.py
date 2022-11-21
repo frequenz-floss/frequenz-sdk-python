@@ -15,11 +15,17 @@ from typing import Dict, Sequence
 
 from frequenz.channels import MergeNamed, Receiver, Select, Sender, Timer
 
-from ..data_pipeline import ComponentMetricRequest
 from ..timeseries import GroupResampler, ResamplingFunction, Sample
-from . import ChannelRegistry, actor
+from . import ChannelRegistry, actor, data_sourcing
 
 logger = logging.Logger(__name__)
+
+
+# Re-export the types from the data_sourcing actor as we use the same requests,
+# we are only forwarding them for now.
+ComponentMetricId = data_sourcing.ComponentMetricId
+
+ComponentMetricRequest = data_sourcing.ComponentMetricRequest
 
 
 # pylint: disable=unused-argument

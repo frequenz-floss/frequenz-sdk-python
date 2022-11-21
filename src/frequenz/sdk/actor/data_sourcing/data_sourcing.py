@@ -9,9 +9,9 @@ MIT
 
 from frequenz.channels import Receiver
 
-from ...data_pipeline import ComponentMetricRequest
 from .. import ChannelRegistry, actor
 from .microgrid_api_source import MicrogridApiSource
+from .types import ComponentMetricRequest
 
 
 @actor

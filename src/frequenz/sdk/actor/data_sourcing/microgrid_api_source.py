@@ -13,7 +13,6 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from frequenz.channels import Receiver, Sender
 
-from ...data_pipeline import ComponentMetricId, ComponentMetricRequest
 from ...microgrid import (
     BatteryData,
     ComponentCategory,
@@ -24,6 +23,7 @@ from ...microgrid import (
 )
 from ...timeseries import Sample
 from .. import ChannelRegistry
+from .types import ComponentMetricId, ComponentMetricRequest
 
 _MeterDataMethods: Dict[ComponentMetricId, Callable[[MeterData], float]] = {
     ComponentMetricId.ACTIVE_POWER: lambda msg: msg.active_power,

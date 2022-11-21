@@ -9,7 +9,10 @@ MIT
 """
 
 from .data_sourcing import DataSourcingActor
+from .types import ComponentMetricId, ComponentMetricRequest
 
 __all__ = [
     "DataSourcingActor",
+    "ComponentMetricId",
+    "ComponentMetricRequest",
 ]
