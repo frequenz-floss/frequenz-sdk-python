@@ -8,6 +8,8 @@ Tests for the microgrid mock api.
 # pylint: disable=missing-function-docstring,use-implicit-booleaness-not-comparison
 # pylint: disable=invalid-name,no-name-in-module,no-member
 
+from unittest.mock import Mock
+
 import grpc
 from frequenz.api.microgrid.microgrid_pb2 import (
     Component,
@@ -18,7 +20,6 @@ from frequenz.api.microgrid.microgrid_pb2 import (
 )
 from frequenz.api.microgrid.microgrid_pb2_grpc import MicrogridStub
 from google.protobuf.empty_pb2 import Empty
-from unittest.mock import Mock
 
 from . import mock_api
 
@@ -223,7 +224,7 @@ async def test_MockGrpcServer() -> None:
     server1 = mock_api.MockGrpcServer(servicer1, port=57809)
     await server1.start()
 
-    client = MicrogridStub(grpc.aio.insecure_channel("[::]:57809"))  # type: ignore
+    client = MicrogridStub(grpc.aio.insecure_channel("[::]:57809"))
 
     components1 = await client.ListComponents(Empty())  # type: ignore
     assert list(components1.components) == [
