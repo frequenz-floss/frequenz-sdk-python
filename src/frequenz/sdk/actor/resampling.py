@@ -15,12 +15,17 @@ from typing import Dict, Sequence
 
 from frequenz.channels import MergeNamed, Receiver, Select, Sender, Timer
 
-from ...actor import ChannelRegistry, actor
-from ...data_pipeline import ComponentMetricRequest, Sample
-from .component_metric_group_resampler import ComponentMetricGroupResampler
-from .component_metric_resampler import ResamplingFunction
+from ..timeseries import GroupResampler, ResamplingFunction, Sample
+from . import ChannelRegistry, actor, data_sourcing
 
 logger = logging.Logger(__name__)
+
+
+# Re-export the types from the data_sourcing actor as we use the same requests,
+# we are only forwarding them for now.
+ComponentMetricId = data_sourcing.ComponentMetricId
+
+ComponentMetricRequest = data_sourcing.ComponentMetricRequest
 
 
 # pylint: disable=unused-argument
@@ -147,7 +152,7 @@ class ComponentMetricsResamplingActor:
         self._max_data_age_in_periods: float = max_data_age_in_periods
         self._resampling_function: ResamplingFunction = resampling_function
 
-        self._resampler = ComponentMetricGroupResampler(
+        self._resampler = GroupResampler(
             resampling_period_s=resampling_period_s,
             max_data_age_in_periods=max_data_age_in_periods,
             initial_resampling_function=resampling_function,
@@ -209,10 +214,12 @@ class ComponentMetricsResamplingActor:
                 component_data_receiver=MergeNamed(**self._input_receivers),
             )
             while await select.ready():
-                if _ := select.resampling_timer:
+                if msg := select.resampling_timer:
+                    assert msg.inner is not None, "The timer should never be 'closed'"
+                    timestamp = msg.inner
                     awaitables = [
                         self._output_senders[channel_name].send(sample)
-                        for channel_name, sample in self._resampler.resample()
+                        for channel_name, sample in self._resampler.resample(timestamp)
                     ]
                     await asyncio.gather(*awaitables)
                 if msg := select.component_data_receiver:

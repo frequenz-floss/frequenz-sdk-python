@@ -7,7 +7,7 @@ License
 MIT
 """
 
-import datetime as dt
+from datetime import datetime, timedelta, timezone
 
 import numpy as np
 import pandas as pd
@@ -36,8 +36,8 @@ def test_handle_historic_data_import() -> None:
 def mock_load_hd_read(
     self: LoadHistoricData,  # pylint: disable=unused-argument
     load_hd_settings: LoadHistoricDataSettings,
-    start_time: dt.datetime,
-    end_time: dt.datetime,
+    start_time: datetime,
+    end_time: datetime,
 ) -> pd.DataFrame:
     """Mock historic data loading function."""
     timestamps = pd.date_range(
@@ -95,9 +95,9 @@ def test_load_compute_formula(mocker: MockerFixture) -> None:
     hd_handler_settings = HandleHistDataSettings(
         hd_loaders, hd_formulas, symbol_mappings
     )
-    end_time = dt.datetime.now()
+    end_time = datetime.now(timezone.utc)
     mocker.patch.object(LoadHistoricData, "read", mock_load_hd_read)
     hd_handler = HandleHistData(messstellen_id, hd_handler_settings)
-    df_hdh = hd_handler.compute(end_time - dt.timedelta(days=2), end_time)
+    df_hdh = hd_handler.compute(end_time - timedelta(days=2), end_time)
     assert "client_load" in df_hdh.columns
     assert (df_hdh["client_load"] == 5).all()

@@ -9,13 +9,11 @@ MIT
 """
 from __future__ import annotations
 
-import datetime
 import enum
 import logging
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from typing import Collection, Dict, Generic, Optional, Set, TypeVar
-
-import pytz
 
 from .formula import Formula
 
@@ -104,13 +102,13 @@ class TimeSeriesEntry(Generic[Value]):
         UNKNOWN = "unknown"
         ERROR = "error"
 
-    timestamp: datetime.datetime
+    timestamp: datetime
     value: Optional[Value] = None
     status: Status = Status.VALID
     broken_component_ids: Set[int] = field(default_factory=set)
 
     @staticmethod
-    def create_error(timestamp: datetime.datetime) -> TimeSeriesEntry[Value]:
+    def create_error(timestamp: datetime) -> TimeSeriesEntry[Value]:
         """Create a `TimeSeriesEntry` that contains an error.
 
         This can happen when the value would be NaN, e.g.
@@ -128,7 +126,7 @@ class TimeSeriesEntry(Generic[Value]):
 
     @staticmethod
     def create_unknown(
-        timestamp: datetime.datetime, broken_component_ids: Optional[Set[int]] = None
+        timestamp: datetime, broken_component_ids: Optional[Set[int]] = None
     ) -> TimeSeriesEntry[Value]:
         """Create a `TimeSeriesEntry` that contains an unknown value.
 
@@ -174,11 +172,11 @@ class LatestEntryCache(Generic[Key, Value]):
 
     def __init__(self) -> None:
         """Initialize the class."""
-        self._latest_timestamp = pytz.utc.localize(datetime.datetime.min)
+        self._latest_timestamp = datetime.min.replace(tzinfo=timezone.utc)
         self._entries: Dict[Key, TimeSeriesEntry[Value]] = {}
 
     @property
-    def latest_timestamp(self) -> datetime.datetime:
+    def latest_timestamp(self) -> datetime:
         """Get the most recently observed timestamp across all keys in the cache.
 
         Returns:
@@ -209,7 +207,7 @@ class LatestEntryCache(Generic[Key, Value]):
     def get(
         self,
         key: Key,
-        timedelta_tolerance: datetime.timedelta = datetime.timedelta.max,
+        timedelta_tolerance: timedelta = timedelta.max,
         default: Optional[TimeSeriesEntry[Value]] = None,
     ) -> CacheEntryLookupResult[Value]:
         """Get the cached entry for the specified key, if any.
@@ -232,7 +230,7 @@ class LatestEntryCache(Generic[Key, Value]):
                 retrieved from the cache has a timestamp greater than the latest saved
                 timestamp across all cache keys.
         """
-        if timedelta_tolerance < datetime.timedelta(0):
+        if timedelta_tolerance < timedelta(0):
             raise ValueError(
                 f"timedelta_tolerance cannot be less than 0, but "
                 f"{timedelta_tolerance} was provided"
@@ -320,7 +318,7 @@ class LatestEntryCache(Generic[Key, Value]):
         slightly more efficient.
         """
         self.clear()
-        self._latest_timestamp = pytz.utc.localize(datetime.datetime.min)
+        self._latest_timestamp = datetime.min.replace(tzinfo=timezone.utc)
 
     def reset_latest_timestamp(self) -> bool:
         """Reset the `latest_timestamp` property to the lowest possible value.
@@ -342,7 +340,7 @@ class LatestEntryCache(Generic[Key, Value]):
 
         self._latest_timestamp = max(
             map(lambda x: x.timestamp, self._entries.values()),
-            default=pytz.utc.localize(datetime.datetime.min),
+            default=datetime.min.replace(tzinfo=timezone.utc),
         )
 
         if self._latest_timestamp > previous:
@@ -423,7 +421,7 @@ class TimeSeriesFormula(Formula, Generic[Value]):
         cache: LatestEntryCache[str, Value],
         formula_name: str = "",
         symbol_to_symbol_mapping: Optional[Dict[str, SymbolMapping]] = None,
-        timedelta_tolerance: datetime.timedelta = datetime.timedelta.max,
+        timedelta_tolerance: timedelta = timedelta.max,
         default_entry: Optional[TimeSeriesEntry[Value]] = None,
     ) -> Optional[TimeSeriesEntry[Value]]:
         """Evaluate the formula using time-series values from the provided cache.
@@ -463,7 +461,7 @@ class TimeSeriesFormula(Formula, Generic[Value]):
                 `timedelta_tolerance`
         """
         kwargs: Dict[str, Optional[Value]] = {}
-        timestamp = pytz.utc.localize(datetime.datetime.min)
+        timestamp = datetime.min.replace(tzinfo=timezone.utc)
 
         symbol_to_symbol_mapping = symbol_to_symbol_mapping or {}
         formula_broken_component_ids: Set[int] = set()

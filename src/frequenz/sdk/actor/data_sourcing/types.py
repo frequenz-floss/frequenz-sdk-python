@@ -73,16 +73,3 @@ class ComponentMetricRequest:
             A string denoting a channel name.
         """
         return f"{self.component_id}::{self.metric_id.name}::{self.start_time}::{self.namespace}"
-
-
-@dataclass(frozen=True)
-class Sample:
-    """A measurement taken at a particular point in time.
-
-    The `value` could be `None` if a component is malfunctioning or data is
-    lacking for another reason, but a sample still needs to be sent to have a
-    coherent view on a group of component metrics for a particular timestamp.
-    """
-
-    timestamp: datetime
-    value: Optional[float] = None

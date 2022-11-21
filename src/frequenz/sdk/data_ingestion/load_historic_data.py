@@ -13,17 +13,16 @@ License
 MIT
 """
 
-import datetime as dt
 import glob
 import itertools
 import logging
 import os
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any, Callable, List, Optional
 
 import pandas as pd
 import pyarrow.parquet as pq
-import pytz
 from tqdm import tqdm
 
 logger = logging.Logger(__name__)
@@ -151,8 +150,8 @@ def gen_date_dirs(data_dir: str, dates: pd.DatetimeIndex) -> List[str]:
 
 def crop_df_list_by_time(
     df_list: List[pd.DataFrame],
-    start_time: dt.datetime,
-    end_time: dt.datetime,
+    start_time: datetime,
+    end_time: datetime,
 ) -> pd.DataFrame:
     """Concat and crop read data by the specified start and end time.
 
@@ -169,7 +168,7 @@ def crop_df_list_by_time(
             specified start and end times.
     """
     df0 = pd.concat(df_list).reset_index(drop=True)
-    df0["ts"] = pd.to_datetime(df0["ts"]).dt.tz_localize(pytz.UTC)
+    df0["ts"] = pd.to_datetime(df0["ts"]).tz_localize(timezone.utc)
     df0 = df0.loc[((df0["ts"] >= start_time) & (df0["ts"] <= end_time))].reset_index(
         drop=True
     )
@@ -256,15 +255,15 @@ class LoadHistoricData:
                 for file in filenames
             ],
             format=self.file_time_format,
-        ).tz_localize(pytz.UTC)
+        ).tz_localize(timezone.utc)
         return timestamps
 
     def gen_datafile_list(
         self,
         data_dir: str,
         dates: pd.DatetimeIndex,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
+        start_time: datetime,
+        end_time: datetime,
     ) -> List[str]:
         """Generate the list of historic parquet files to read.
 
@@ -352,8 +351,8 @@ class LoadHistoricData:
     def read(
         self,
         load_hd_settings: LoadHistoricDataSettings,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
+        start_time: datetime,
+        end_time: datetime,
     ) -> pd.DataFrame:
         """Read historical data.
 
@@ -373,9 +372,9 @@ class LoadHistoricData:
             "component_id=" + str(load_hd_settings.component_info.component_id),
         )
         if start_time.tzinfo is None:
-            start_time = start_time.replace(tzinfo=pytz.UTC)
+            start_time = start_time.replace(tzinfo=timezone.utc)
         if end_time.tzinfo is None:
-            end_time = end_time.replace(tzinfo=pytz.UTC)
+            end_time = end_time.replace(tzinfo=timezone.utc)
         logger.info(
             "reading historic data from component id=%s within the time interval: %s to %s",
             load_hd_settings.component_info.component_id,
