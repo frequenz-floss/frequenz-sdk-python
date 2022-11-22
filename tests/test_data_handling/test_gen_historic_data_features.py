@@ -1,11 +1,7 @@
-"""Tests for the frequenz.sdk.data_handling.gen_historic_data_features module.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Tests for the frequenz.sdk.data_handling.gen_historic_data_features module."""
 
 import pandas as pd
 

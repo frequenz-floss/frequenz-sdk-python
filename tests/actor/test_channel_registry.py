@@ -1,11 +1,7 @@
-"""Tests for the ChannelRegistry.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2021 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Tests for the ChannelRegistry."""
 
 from frequenz.sdk.actor import ChannelRegistry
 

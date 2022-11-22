@@ -1,11 +1,7 @@
-"""Microgrid Api Wrapper.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Microgrid Api Wrapper."""
 
 from abc import ABC, abstractmethod
 from typing import Optional

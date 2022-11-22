@@ -1,9 +1,4 @@
-"""
-Utilities for testing purposes.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2021 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Utilities for testing purposes."""

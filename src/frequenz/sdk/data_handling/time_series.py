@@ -1,12 +1,7 @@
-"""
-Helper classes for tracking values from time-series data streams.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Helper classes for tracking values from time-series data streams."""
 from __future__ import annotations
 
 import enum

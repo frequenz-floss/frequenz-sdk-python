@@ -3,7 +3,6 @@ requires = [
     "setuptools >= 65.3.0, < 66",
     "setuptools_scm[toml] >= 7.0.5, < 8",
     "wheel"
-
 ]
 build-backend = "setuptools.build_meta"
 
@@ -46,6 +45,16 @@ dynamic = [ "version" ]
 [[project.authors]]
 name ="Frequenz Energy-as-a-Service GmbH"
 email = "floss@frequenz.com"
+
+[project.optional-dependencies]
+docs = [
+    "mike >= 1.1.2, < 2",
+    "mkdocs-gen-files >= 0.4.0, < 0.5.0",
+    "mkdocs-literate-nav >= 0.4.0, < 0.5.0",
+    "mkdocs-material >= 8.5.7, < 9",
+    "mkdocs-section-index >= 0.3.4, < 0.4.0",
+    "mkdocstrings[python] >= 0.19.0, < 0.20.0",
+]
 
 [project.urls]
 Changelog = "https://github.com/frequenz-floss/frequenz-sdk-python/releases"
@@ -90,3 +99,11 @@ src_paths = ["src", "examples", "tests"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 required_plugins = [ "pytest-asyncio", "pytest-mock" ]
+
+[[tools.mypy.overrides]]
+[[tool.mypy.overrides]]
+module = [
+    "grpc.aio",
+    "grpc.aio.*"
+]
+ignore_missing_imports = true

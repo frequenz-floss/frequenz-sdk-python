@@ -1,12 +1,8 @@
-"""
-Tools for data ingestion.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+"""Tools for data ingestion."""
 
-License
-MIT
-"""
 from .microgrid_data import MicrogridData
 
 __all__ = [

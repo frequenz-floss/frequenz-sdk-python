@@ -1,12 +1,8 @@
-"""
-Definition of component infos.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+"""Definition of component infos."""
 
-License
-MIT
-"""
 import logging
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple

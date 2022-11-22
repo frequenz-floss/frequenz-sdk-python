@@ -1,11 +1,7 @@
-"""Component data types for data coming from a microgrid.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Component data types for data coming from a microgrid."""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

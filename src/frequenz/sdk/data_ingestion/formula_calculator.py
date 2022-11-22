@@ -1,12 +1,8 @@
-"""
-Class for evaluating formulas.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+"""Class for evaluating formulas."""
 
-License
-MIT
-"""
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone

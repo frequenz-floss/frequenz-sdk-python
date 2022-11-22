@@ -1,3 +1,6 @@
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+
 """
 Test for the `MicrogridData` when config manager fires an update about Config change
 

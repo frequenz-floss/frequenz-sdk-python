@@ -1,11 +1,8 @@
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+
 """
 Tests for the microgrid component data.
-
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
 """
 
 from datetime import datetime, timezone

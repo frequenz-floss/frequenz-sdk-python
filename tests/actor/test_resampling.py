@@ -1,11 +1,7 @@
-"""Frequenz Python SDK resampling example.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Frequenz Python SDK resampling example."""
 import dataclasses
 from datetime import datetime, timedelta, timezone
 

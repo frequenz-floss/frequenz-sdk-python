@@ -1,15 +1,14 @@
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+
 """Frequenz Python SDK usage examples.
 
 This example creates two users.
 One user sends request with power to apply in PowerDistributor.
 Second user receives requests and set that power.
-
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
 """
+
+from __future__ import annotations
 
 import asyncio
 import logging
@@ -139,7 +138,7 @@ class DataCollectingActor:
             RuntimeError: If communication channel has been closed.
         """
         while True:
-            queue: "Queue[Optional[float]]" = Queue(maxsize=50)
+            queue: Queue[Optional[float]] = Queue(maxsize=50)
             for _ in range(5):
                 active_power = await self._active_power_data.receive()
                 if active_power is None:

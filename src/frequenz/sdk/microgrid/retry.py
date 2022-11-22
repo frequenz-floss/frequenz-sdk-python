@@ -1,11 +1,9 @@
-"""Implementations for retry strategies.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+"""Implementations for retry strategies."""
 
-License
-MIT
-"""
+from __future__ import annotations
 
 import random
 from abc import ABC, abstractmethod
@@ -51,7 +49,7 @@ class RetryStrategy(ABC):
         """
         self._count = 0
 
-    def copy(self) -> "RetryStrategy":
+    def copy(self) -> RetryStrategy:
         """Create a new instance of `self`.
 
         Returns:

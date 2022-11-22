@@ -1,12 +1,7 @@
-"""
-Timeseries resampler.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Timeseries resampler."""
 
 import logging
 from collections import deque

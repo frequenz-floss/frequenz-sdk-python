@@ -1,11 +1,7 @@
-"""Test for ConfigManager
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Test for ConfigManager"""
 import pathlib
 
 import pytest

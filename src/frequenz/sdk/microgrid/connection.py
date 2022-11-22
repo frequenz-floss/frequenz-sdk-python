@@ -1,11 +1,7 @@
-"""Defines the connections between microgrid components.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Defines the connections between microgrid components."""
 
 from typing import NamedTuple
 

@@ -1,12 +1,9 @@
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+
 """Module for handling loaded historic data from different components.
 
 Object for computing aggregate quantities from multiple components as data are loaded.
-
-Copyright
-Copyright © 2021 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
 """
 
 import datetime as dt

@@ -140,3 +140,7 @@ cython_debug/
 
 # PyCharm
 .idea
+
+# Automatically generated documentation
+docs/reference/
+site/

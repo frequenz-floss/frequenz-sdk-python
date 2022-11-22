@@ -1,11 +1,8 @@
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+
 """
 Tests for the `MicrogridData` actor
-
-Copyright
-Copyright © 2021 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
 """
 from typing import Any, Dict, List, Set
 

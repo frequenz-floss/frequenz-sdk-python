@@ -1,12 +1,8 @@
-"""
-Base test class for the `MicrogridData`.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2021 Frequenz Energy-as-a-Service GmbH
+"""Base test class for the `MicrogridData`."""
 
-License
-MIT
-"""
 from typing import Any, Dict, List, Optional, Set
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import AsyncMock, MagicMock
@@ -216,26 +212,28 @@ class BaseMicrogridDataTest(IsolatedAsyncioTestCase):
 
         Example:
 
-        battery_data_params = dict(
-            soc=Metric(now=2.0),
-            capacity=Metric(now=1.0),
-            dc_connection=DC(
-                power_consumption=Metric(
-                    now=0.0,
-                    system_bounds=Bounds(
-                        lower=0.0, upper=55.0
+            ``` python
+            battery_data_params = dict(
+                soc=Metric(now=2.0),
+                capacity=Metric(now=1.0),
+                dc_connection=DC(
+                    power_consumption=Metric(
+                        now=0.0,
+                        system_bounds=Bounds(
+                            lower=0.0, upper=55.0
+                        ),
+                    ),
+                    power_supply=Metric(
+                        now=0.0,
+                        system_bounds=Bounds(lower=0.0, upper=10.0),
                     ),
                 ),
-                power_supply=Metric(
-                    now=0.0,
-                    system_bounds=Bounds(lower=0.0, upper=10.0),
-                ),
-            ),
-        )
+            )
 
-        _get_value('dc_connection.power_consumption.system_bounds.upper') translates to
+            _get_value('dc_connection.power_consumption.system_bounds.upper') translates to
 
-        params.get('dc_connection').power_consumption.system_bounds.upper -> 55.0
+            params.get('dc_connection').power_consumption.system_bounds.upper -> 55.0
+            ```
 
         Args:
             fields: list of fields used to perform the value lookup

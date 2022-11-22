@@ -1,11 +1,9 @@
-"""Defines the components that can be used in a microgrid.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+"""Defines the components that can be used in a microgrid."""
 
-License
-MIT
-"""
+from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
@@ -32,7 +30,7 @@ class ComponentCategory(Enum):
 
 
 def _component_category_from_protobuf(
-    component_category: "microgrid_pb.ComponentCategory.ValueType",
+    component_category: microgrid_pb.ComponentCategory.ValueType,
 ) -> ComponentCategory:
     """Convert a protobuf ComponentCategory message to ComponentCategory enum.
 

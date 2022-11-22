@@ -1,12 +1,7 @@
-"""
-Auxiliary functions for generating features when loading historic data.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Auxiliary functions for generating features when loading historic data."""
 
 import datetime as dt
 

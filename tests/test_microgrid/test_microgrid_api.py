@@ -1,11 +1,7 @@
-"""Tests of MicrogridApi
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Tests of MicrogridApi"""
 import asyncio
 from asyncio.tasks import ALL_COMPLETED
 from typing import List

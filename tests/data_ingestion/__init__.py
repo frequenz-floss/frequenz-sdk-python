@@ -1,9 +1,4 @@
-"""
-Tests for the data ingestion module.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Tests for the data ingestion module."""

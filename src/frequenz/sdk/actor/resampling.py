@@ -1,12 +1,8 @@
-"""
-ComponentMetricsResamplingActor used to subscribe for resampled component metrics.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+"""ComponentMetricsResamplingActor used to subscribe for resampled component metrics."""
 
-License
-MIT
-"""
 import asyncio
 import dataclasses
 import logging
@@ -33,15 +29,13 @@ def average(samples: Sequence[Sample], resampling_period_s: float) -> float:
     """Calculate average of the provided values.
 
     Args:
-        samples: sequences of samples to apply the average to
-        resampling_period_s: value describing how often resampling should be performed,
-            in seconds
+        samples: sequences of samples to apply the average to. It must be
+            non-empty.
+        resampling_period_s: value describing how often resampling should be
+            performed, in seconds
 
     Returns:
         average of all the sample values
-
-    Raises:
-        AssertionError if there are no provided samples
     """
     assert len(samples) > 0, "Average cannot be given an empty list of samples"
     values = list(sample.value for sample in samples if sample.value is not None)
@@ -77,73 +71,73 @@ class ComponentMetricsResamplingActor:
                 a resampling period to produce a single output sample
 
         Example:
-        ```python
-        async def run() -> None:
-            await microgrid_api.initialize(HOST, PORT)
+            ```python
+            async def run() -> None:
+                await microgrid_api.initialize(HOST, PORT)
 
-            channel_registry = ChannelRegistry(name="Microgrid Channel Registry")
+                channel_registry = ChannelRegistry(name="Microgrid Channel Registry")
 
-            data_source_request_channel = Broadcast[ComponentMetricRequest](
-                "Data Source Request Channel"
-            )
-            data_source_request_sender = data_source_request_channel.get_sender()
-            data_source_request_receiver = data_source_request_channel.get_receiver()
-
-            resampling_actor_request_channel = Broadcast[ComponentMetricRequest](
-                "Resampling Actor Request Channel"
-            )
-            resampling_actor_request_sender = resampling_actor_request_channel.get_sender()
-            resampling_actor_request_receiver = resampling_actor_request_channel.get_receiver()
-
-            _data_sourcing_actor = DataSourcingActor(
-                request_receiver=data_source_request_receiver, registry=channel_registry
-            )
-
-            _resampling_actor = ComponentMetricsResamplingActor(
-                channel_registry=channel_registry,
-                subscription_sender=data_source_request_sender,
-                subscription_receiver=resampling_actor_request_receiver,
-                resampling_period_s=1.0,
-            )
-
-            components = await microgrid_api.get().microgrid_api_client.components()
-            battery_ids = [
-                comp.component_id
-                for comp in components
-                if comp.category == ComponentCategory.BATTERY
-            ]
-
-            subscription_requests = [
-                ComponentMetricRequest(
-                    namespace="Resampling",
-                    component_id=component_id,
-                    metric_id=ComponentMetricId.SOC,
-                    start_time=None,
+                data_source_request_channel = Broadcast[ComponentMetricRequest](
+                    "Data Source Request Channel"
                 )
-                for component_id in battery_ids
-            ]
+                data_source_request_sender = data_source_request_channel.get_sender()
+                data_source_request_receiver = data_source_request_channel.get_receiver()
 
-            await asyncio.gather(
-                *[
-                    resampling_actor_request_sender.send(request)
-                    for request in subscription_requests
+                resampling_actor_request_channel = Broadcast[ComponentMetricRequest](
+                    "Resampling Actor Request Channel"
+                )
+                resampling_actor_request_sender = resampling_actor_request_channel.get_sender()
+                resampling_actor_request_receiver = resampling_actor_request_channel.get_receiver()
+
+                _data_sourcing_actor = DataSourcingActor(
+                    request_receiver=data_source_request_receiver, registry=channel_registry
+                )
+
+                _resampling_actor = ComponentMetricsResamplingActor(
+                    channel_registry=channel_registry,
+                    subscription_sender=data_source_request_sender,
+                    subscription_receiver=resampling_actor_request_receiver,
+                    resampling_period_s=1.0,
+                )
+
+                components = await microgrid_api.get().microgrid_api_client.components()
+                battery_ids = [
+                    comp.component_id
+                    for comp in components
+                    if comp.category == ComponentCategory.BATTERY
                 ]
-            )
 
-            sample_receiver = MergeNamed(
-                **{
-                    channel_name: channel_registry.get_receiver(channel_name)
-                    for channel_name in map(
-                        lambda req: req.get_channel_name(), subscription_requests
+                subscription_requests = [
+                    ComponentMetricRequest(
+                        namespace="Resampling",
+                        component_id=component_id,
+                        metric_id=ComponentMetricId.SOC,
+                        start_time=None,
                     )
-                }
-            )
+                    for component_id in battery_ids
+                ]
 
-            async for channel_name, msg in sample_receiver:
-                print(msg)
+                await asyncio.gather(
+                    *[
+                        resampling_actor_request_sender.send(request)
+                        for request in subscription_requests
+                    ]
+                )
 
-        asyncio.run(run())
-        ```
+                sample_receiver = MergeNamed(
+                    **{
+                        channel_name: channel_registry.get_receiver(channel_name)
+                        for channel_name in map(
+                            lambda req: req.get_channel_name(), subscription_requests
+                        )
+                    }
+                )
+
+                async for channel_name, msg in sample_receiver:
+                    print(msg)
+
+            asyncio.run(run())
+            ```
         """
         self._channel_registry = channel_registry
         self._subscription_sender = subscription_sender

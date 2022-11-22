@@ -1,11 +1,7 @@
-"""A class that would dynamically create, own and provide access to channels.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""A class that would dynamically create, own and provide access to channels."""
 
 from typing import Any, Dict
 

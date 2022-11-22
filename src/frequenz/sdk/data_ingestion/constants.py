@@ -1,12 +1,7 @@
-"""
-Functions for generating DataColletor with necessary fields from ComponentInfo.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Functions for generating DataColletor with necessary fields from ComponentInfo."""
 # PROTOBUF METRICS:
 
 METRIC_COMPONENT_ID = "id"

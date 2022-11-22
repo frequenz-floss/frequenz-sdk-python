@@ -1,12 +1,7 @@
-"""
-Definition of Singleton metaclass.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2021 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Definition of Singleton metaclass."""
 
 from threading import Lock
 from typing import Any, Dict

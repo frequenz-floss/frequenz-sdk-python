@@ -66,8 +66,118 @@ jobs:
           path: dist/
           if-no-files-found: error
 
-  create-github-release:
+  generate-docs-pr:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Fetch sources
+        uses: actions/checkout@v3
+
+      - name: Setup Git user and e-mail
+        uses: frequenz-floss/setup-git-user@v1
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install -U pip
+          python -m pip install .[docs]
+
+      - name: Generate the documentation
+        env:
+          MIKE_VERSION: pr-${{ github.event.number }}
+        run: |
+          mike deploy $MIKE_VERSION
+          mike set-default $MIKE_VERSION
+
+      - name: Upload site
+        uses: actions/upload-artifact@v3
+        with:
+          name: frequenz-channels-python-site
+          path: site/
+          if-no-files-found: error
+
+  publish-docs:
     needs: ["test", "build-dist"]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: write
+    steps:
+      - name: Calculate and check version
+        id: mike-metadata
+        env:
+          REF: ${{ github.ref }}
+          REF_NAME: ${{ github.ref_name }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          aliases=
+          version=
+          if test "$REF_NAME" = "$DEFAULT_BRANCH"
+          then
+            version=next
+          # A tag that starts with vX.Y or X.Y
+          elif echo "$REF" | grep -q '^refs/tags' && echo "$REF_NAME" | grep -Pq '^v?\d+\.\d+\.'
+          then
+            if echo "$REF_NAME" | grep -Pq -- "-" # pre-release
+            then
+              echo "::notice title=Documentation was not published::" \
+                "The tag '$REF_NAME' looks like a pre-release."
+              exit 0
+            fi
+            version=$(echo "$REF_NAME" | sed -r 's/^(v?[0-9]+\.[0-9]+)\..*$/\1/') # vX.Y
+            major=$(echo "$REF_NAME" | sed -r 's/^(v?[0-9]+)\..*$/\1/') # vX
+            default_major=$(echo "$DEFAULT_BRANCH" | sed -r 's/^(v?[0-9]+)\..*$/\1/') # vX
+            aliases=$major
+            if test "$major" = "$default_major"
+            then
+              aliases="$aliases latest"
+            fi
+          else
+            echo "::warning title=Documentation was not published::" \
+              "Don't know how to handle '$REF' to make 'mike' version."
+            exit 0
+          fi
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "aliases=$aliases" >> $GITHUB_OUTPUT
+
+      - name: Fetch sources
+        if: steps.mike-metadata.outputs.version
+        uses: actions/checkout@v3
+
+      - name: Setup Git user and e-mail
+        if: steps.mike-metadata.outputs.version
+        uses: frequenz-floss/setup-git-user@v1
+
+      - name: Set up Python
+        if: steps.mike-metadata.outputs.version
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
+
+      - name: Install build dependencies
+        if: steps.mike-metadata.outputs.version
+        run: |
+          python -m pip install -U pip
+          python -m pip install .[docs]
+
+      - name: Fetch the gh-pages branch
+        if: steps.mike-metadata.outputs.version
+        run: git fetch origin gh-pages --depth=1
+
+      - name: Publish site
+        if: steps.mike-metadata.outputs.version
+        env:
+          VERSION: ${{ steps.mike-metadata.outputs.version }}
+          ALIASES: ${{ steps.mike-metadata.outputs.aliases }}
+        run: |
+          mike deploy --push --update-aliases "$VERSION" $ALIASES
+
+  create-github-release:
+    needs: ["publish-docs"]
     # Create a release only on tags creation
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     permissions:

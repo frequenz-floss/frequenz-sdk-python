@@ -1,12 +1,7 @@
-"""
-Helper class for creating custom algebraic formulas from strings or SymPy expressions.
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-Copyright
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
-"""
+"""Helper class for creating custom algebraic formulas from strings or SymPy expressions."""
 
 from typing import Any, Collection, Union
 

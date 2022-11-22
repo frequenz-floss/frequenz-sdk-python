@@ -1,11 +1,8 @@
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+
 """
 Tests for the `TimeSeriesResampler`
-
-Copyright
-Copyright © 2021 Frequenz Energy-as-a-Service GmbH
-
-License
-MIT
 """
 
 from datetime import datetime, timedelta, timezone
