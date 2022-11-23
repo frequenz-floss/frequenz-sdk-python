@@ -6,7 +6,7 @@
 from abc import abstractmethod
 from typing import Any
 
-from frequenz.sdk.api_client import ApiClient, ApiProtocol
+from frequenz.sdk._api_client import ApiClient, ApiProtocol
 
 
 class FakeApiClient(ApiClient):
