@@ -24,7 +24,7 @@ from typing import (  # pylint: disable=unused-import
 )
 
 import grpc
-from frequenz.channels import BidirectionalHandle, Peekable, Receiver
+from frequenz.channels import Bidirectional, Peekable, Receiver
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
 from ..actor import actor
@@ -114,7 +114,7 @@ class PowerDistributor:
         self,
         microgrid_api: MicrogridApiClient,
         component_graph: ComponentGraph,
-        users_channels: Dict[str, BidirectionalHandle[Result, Request]],
+        users_channels: Dict[str, Bidirectional.Handle[Result, Request]],
         wait_for_data_sec: float = 2,
     ) -> None:
         """Create class instance.
@@ -161,7 +161,7 @@ class PowerDistributor:
         )
 
         self._users_channels: Dict[
-            str, BidirectionalHandle[Result, Request]
+            str, Bidirectional.Handle[Result, Request]
         ] = users_channels
         self._create_users_tasks()
         self._started = asyncio.Event()

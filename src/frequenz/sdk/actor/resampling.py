@@ -9,7 +9,8 @@ import logging
 import math
 from typing import Dict, Sequence
 
-from frequenz.channels import MergeNamed, Receiver, Select, Sender, Timer
+from frequenz.channels import Receiver, Sender
+from frequenz.channels.util import MergeNamed, Select, Timer
 
 from ..timeseries import GroupResampler, ResamplingFunction, Sample
 from . import ChannelRegistry, actor, data_sourcing
@@ -80,14 +81,14 @@ class ComponentMetricsResamplingActor:
                 data_source_request_channel = Broadcast[ComponentMetricRequest](
                     "Data Source Request Channel"
                 )
-                data_source_request_sender = data_source_request_channel.get_sender()
-                data_source_request_receiver = data_source_request_channel.get_receiver()
+                data_source_request_sender = data_source_request_channel.new_sender()
+                data_source_request_receiver = data_source_request_channel.new_receiver()
 
                 resampling_actor_request_channel = Broadcast[ComponentMetricRequest](
                     "Resampling Actor Request Channel"
                 )
-                resampling_actor_request_sender = resampling_actor_request_channel.get_sender()
-                resampling_actor_request_receiver = resampling_actor_request_channel.get_receiver()
+                resampling_actor_request_sender = resampling_actor_request_channel.new_sender()
+                resampling_actor_request_receiver = resampling_actor_request_channel.new_receiver()
 
                 _data_sourcing_actor = DataSourcingActor(
                     request_receiver=data_source_request_receiver, registry=channel_registry
@@ -126,7 +127,7 @@ class ComponentMetricsResamplingActor:
 
                 sample_receiver = MergeNamed(
                     **{
-                        channel_name: channel_registry.get_receiver(channel_name)
+                        channel_name: channel_registry.new_receiver(channel_name)
                         for channel_name in map(
                             lambda req: req.get_channel_name(), subscription_requests
                         )
@@ -168,14 +169,14 @@ class ComponentMetricsResamplingActor:
         data_source_channel_name = data_source_request.get_channel_name()
         if channel_name not in self._input_receivers:
             await self._subscription_sender.send(data_source_request)
-            receiver: Receiver[Sample] = self._channel_registry.get_receiver(
+            receiver: Receiver[Sample] = self._channel_registry.new_receiver(
                 data_source_channel_name
             )
             self._input_receivers[data_source_channel_name] = receiver
             self._resampler.add_time_series(time_series_id=data_source_channel_name)
 
         if channel_name not in self._output_senders:
-            sender: Sender[Sample] = self._channel_registry.get_sender(channel_name)
+            sender: Sender[Sample] = self._channel_registry.new_sender(channel_name)
             # This means that the `sender` will be sending samples to the channel with
             # name `channel_name` based on samples collected from the channel named
             # `data_source_channel_name`

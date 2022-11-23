@@ -27,14 +27,14 @@ async def test_component_metrics_resampling_actor() -> None:
 
     channel_registry = ChannelRegistry(name="test")
     data_source_req_chan = Broadcast[ComponentMetricRequest]("data-source-req")
-    data_source_req_recv = data_source_req_chan.get_receiver()
+    data_source_req_recv = data_source_req_chan.new_receiver()
     resampling_req_chan = Broadcast[ComponentMetricRequest]("resample-req")
-    resampling_req_sender = resampling_req_chan.get_sender()
+    resampling_req_sender = resampling_req_chan.new_sender()
 
     resampling_actor = ComponentMetricsResamplingActor(
         channel_registry=channel_registry,
-        subscription_sender=data_source_req_chan.get_sender(),
-        subscription_receiver=resampling_req_chan.get_receiver(),
+        subscription_sender=data_source_req_chan.new_sender(),
+        subscription_receiver=resampling_req_chan.new_receiver(),
         resampling_period_s=0.2,
         max_data_age_in_periods=2,
     )
@@ -51,8 +51,8 @@ async def test_component_metrics_resampling_actor() -> None:
     assert data_source_req is not None
     assert data_source_req == dataclasses.replace(subs_req, namespace="Source")
 
-    timeseries_receiver = channel_registry.get_receiver(subs_req.get_channel_name())
-    timeseries_sender = channel_registry.get_sender(data_source_req.get_channel_name())
+    timeseries_receiver = channel_registry.new_receiver(subs_req.get_channel_name())
+    timeseries_sender = channel_registry.new_sender(data_source_req.get_channel_name())
 
     new_sample = await timeseries_receiver.receive()  # At ~0.2s (timer)
     assert new_sample is not None

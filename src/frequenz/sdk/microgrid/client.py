@@ -365,7 +365,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
             self._component_data_task(
                 component_id,
                 transform,
-                chan.get_sender(),
+                chan.new_sender(),
             ),
             name=task_name,
         )
@@ -429,7 +429,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
         return self._get_component_data_channel(
             component_id,
             MeterData.from_proto,
-        ).get_receiver()
+        ).new_receiver()
 
     async def battery_data(
         self,
@@ -457,7 +457,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
         return self._get_component_data_channel(
             component_id,
             BatteryData.from_proto,
-        ).get_receiver()
+        ).new_receiver()
 
     async def inverter_data(
         self,
@@ -485,7 +485,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
         return self._get_component_data_channel(
             component_id,
             InverterData.from_proto,
-        ).get_receiver()
+        ).new_receiver()
 
     async def ev_charger_data(
         self,
@@ -513,7 +513,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
         return self._get_component_data_channel(
             component_id,
             EVChargerData.from_proto,
-        ).get_receiver()
+        ).new_receiver()
 
     async def set_power(self, component_id: int, power_w: int) -> Empty:
         """Send request to the Microgrid to set power for component.

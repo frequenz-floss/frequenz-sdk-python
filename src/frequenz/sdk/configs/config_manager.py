@@ -8,8 +8,8 @@ import os
 from typing import Any, Dict, Optional, Set
 
 import toml
-from frequenz.channels import FileWatcher, Sender
-from frequenz.channels.utils.file_watcher import EventType
+from frequenz.channels import Sender
+from frequenz.channels.util import FileWatcher
 
 from ..actor import actor
 from .config import Config
@@ -31,7 +31,7 @@ class ConfigManager:
         self,
         conf_file: str,
         output: Sender[Config],
-        event_types: Optional[Set[EventType]] = None,
+        event_types: Optional[Set[FileWatcher.EventType]] = None,
     ) -> None:
         """Read config variables from the file.
 

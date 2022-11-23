@@ -11,7 +11,8 @@ from frequenz.api.microgrid.battery_pb2 import Data as PbBatteryData
 from frequenz.api.microgrid.battery_pb2 import Properties
 from frequenz.api.microgrid.common_pb2 import AC, DC, Bounds, Metric, MetricAggregation
 from frequenz.api.microgrid.inverter_pb2 import Data as PbInverterData
-from frequenz.channels import Broadcast, Select, Timer
+from frequenz.channels import Broadcast
+from frequenz.channels.util import Select, Timer
 
 import frequenz.sdk.microgrid.graph as gr
 from frequenz.sdk.data_handling.time_series import TimeSeriesEntry
@@ -120,7 +121,7 @@ class BaseMicrogridDataTest(IsolatedAsyncioTestCase):
         select = Select(
             timer=Timer(1.1),
             **{
-                metric: channel.get_receiver()
+                metric: channel.new_receiver()
                 for metric, channel in zip(metrics, channels)
             },
         )

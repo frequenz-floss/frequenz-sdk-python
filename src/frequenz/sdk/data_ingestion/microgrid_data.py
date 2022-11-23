@@ -15,7 +15,8 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set
 
-from frequenz.channels import Broadcast, Merge, Receiver, Select, Sender
+from frequenz.channels import Broadcast, Receiver, Sender
+from frequenz.channels.util import Merge, Select
 
 from ..actor.decorator import actor
 from ..configs import Config
@@ -79,7 +80,7 @@ class MicrogridData:  # pylint: disable=too-many-instance-attributes
         else:
             self._config_update_receiver = Broadcast[Config](
                 "microgrid_data_config_update_channel"
-            ).get_receiver()
+            ).new_receiver()
 
         self._formula_update_interval_sec: float = formula_update_interval_sec
         self._wait_for_data_sec = wait_for_data_sec

@@ -16,13 +16,7 @@ from datetime import datetime, timezone
 from queue import Queue
 from typing import Any, List, Optional, Set
 
-from frequenz.channels import (
-    Bidirectional,
-    BidirectionalHandle,
-    Broadcast,
-    Receiver,
-    Sender,
-)
+from frequenz.channels import Bidirectional, Broadcast, Receiver, Sender
 
 from frequenz.sdk.actor import actor
 from frequenz.sdk.data_handling import TimeSeriesEntry
@@ -48,7 +42,7 @@ class DecisionMakingActor:
     def __init__(  # pylint: disable=too-many-arguments
         self,
         power_channel: Receiver[List[float]],
-        power_distributor_handle: BidirectionalHandle[Request, Result],
+        power_distributor_handle: Bidirectional.Handle[Request, Result],
         batteries: Set[int],
     ) -> None:
         """Create actor instance.
@@ -177,7 +171,7 @@ async def run() -> None:
         # microgrid_client=microgrid_api.microgrid_api,  # in v0.8.0
         component_graph=api.component_graph,
         outputs={
-            key: channel.get_sender()
+            key: channel.new_sender()
             for key, channel in microgrid_data_channels.items()
         },
         formula_calculator=formula_calculator,
@@ -212,7 +206,7 @@ async def run() -> None:
     )
 
     service_actor = DecisionMakingActor(
-        power_channel=request_channel.get_receiver(),
+        power_channel=request_channel.new_receiver(),
         power_distributor_handle=power_distributor_channels[
             sending_actor_id
         ].client_handle,
@@ -220,10 +214,10 @@ async def run() -> None:
     )
 
     client_actor = DataCollectingActor(
-        request_channel=request_channel.get_sender(),
+        request_channel=request_channel.new_sender(),
         active_power_data=microgrid_data_channels[
             "batteries_active_power"
-        ].get_receiver(name="DecisionMakingActor"),
+        ].new_receiver(name="DecisionMakingActor"),
     )
 
     # pylint: disable=no-member

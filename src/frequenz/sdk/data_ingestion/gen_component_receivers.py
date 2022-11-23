@@ -5,7 +5,8 @@
 
 from typing import Any, Dict, List
 
-from frequenz.channels import Merge, Receiver
+from frequenz.channels import Receiver
+from frequenz.channels.util import Merge
 
 from ..microgrid import client
 from ..microgrid.component import ComponentCategory

@@ -103,7 +103,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
             Receiver[Union[BatteryData, InverterData]]: Receiver from the given
                 channels.
         """
-        return channels[component_id].get_receiver("component" + str(component_id))
+        return channels[component_id].new_receiver("component" + str(component_id))
 
     def mock_api(
         self,
@@ -200,7 +200,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
         mock_api = self.mock_api(components, bat_channels, inv_channels)
 
         for key_id, chan in bat_channels.items():
-            sender = chan.get_sender()
+            sender = chan.new_sender()
             bat = create_battery_msg(
                 key_id,
                 capacity=Metric(98000),
@@ -210,7 +210,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
             await sender.send(BatteryData.from_proto(bat))
 
         for key_id, inv_chan in inv_channels.items():
-            inv_sender = inv_chan.get_sender()
+            inv_sender = inv_chan.new_sender()
             inv = create_inverter_msg(
                 key_id,
                 power=Bound(-500, 500),
@@ -256,7 +256,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
         mock_api = self.mock_api(components, bat_channels, inv_channels)
 
         for key_id, chan in bat_channels.items():
-            sender = chan.get_sender()
+            sender = chan.new_sender()
             bat = create_battery_msg(
                 key_id,
                 capacity=Metric(98000),
@@ -266,7 +266,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
             await sender.send(BatteryData.from_proto(bat))
 
         for key_id, inv_chan in inv_channels.items():
-            inv_sender = inv_chan.get_sender()
+            inv_sender = inv_chan.new_sender()
             inv = create_inverter_msg(
                 key_id,
                 power=Bound(-500, 500),
@@ -329,7 +329,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
         mock_api = self.mock_api(components, bat_channels, inv_channels)
 
         for key_id, chan in bat_channels.items():
-            sender = chan.get_sender()
+            sender = chan.new_sender()
             bat = create_battery_msg(
                 key_id,
                 capacity=Metric(98000),
@@ -339,7 +339,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
             await sender.send(BatteryData.from_proto(bat))
 
         for key_id, inv_chan in inv_channels.items():
-            inv_sender = inv_chan.get_sender()
+            inv_sender = inv_chan.new_sender()
             inv = create_inverter_msg(
                 key_id,
                 power=Bound(-500, 500),
@@ -385,7 +385,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
         mock_api = self.mock_api(components, bat_channels, inv_channels)
 
         for key_id, chan in bat_channels.items():
-            sender = chan.get_sender()
+            sender = chan.new_sender()
             bat = create_battery_msg(
                 key_id,
                 capacity=Metric(98000),
@@ -395,7 +395,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
             await sender.send(BatteryData.from_proto(bat))
 
         for key_id, inv_chan in inv_channels.items():
-            inv_sender = inv_chan.get_sender()
+            inv_sender = inv_chan.new_sender()
             inv = create_inverter_msg(
                 key_id,
                 power=Bound(-500, 500),
@@ -472,7 +472,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
         mock_api = self.mock_api(components, bat_channels, inv_channels)
 
         for key_id, chan in bat_channels.items():
-            sender = chan.get_sender()
+            sender = chan.new_sender()
             bat = create_battery_msg(
                 key_id,
                 capacity=Metric(98000),
@@ -482,7 +482,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
             await sender.send(BatteryData.from_proto(bat))
 
         for key_id, inv_chan in inv_channels.items():
-            inv_sender = inv_chan.get_sender()
+            inv_sender = inv_chan.new_sender()
             inv = create_inverter_msg(
                 key_id,
                 power=Bound(-500, 500),
@@ -532,7 +532,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
         mock_api = self.mock_api(components, bat_channels, inv_channels)
 
         for key_id, chan in bat_channels.items():
-            sender = chan.get_sender()
+            sender = chan.new_sender()
             bat = create_battery_msg(
                 key_id,
                 capacity=Metric(98000),
@@ -542,7 +542,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
             await sender.send(BatteryData.from_proto(bat))
 
         for key_id, inv_chan in inv_channels.items():
-            inv_sender = inv_chan.get_sender()
+            inv_sender = inv_chan.new_sender()
             inv = create_inverter_msg(
                 key_id,
                 power=Bound(-500, 500),
@@ -593,7 +593,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
         mock_api = self.mock_api(components, bat_channels, inv_channels)
 
         for key_id, chan in bat_channels.items():
-            sender = chan.get_sender()
+            sender = chan.new_sender()
             if key_id == 106:
                 # this battery should has outdated data
                 bat = create_battery_msg(
@@ -613,7 +613,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
             await sender.send(BatteryData.from_proto(bat))
 
         for key_id, inv_chan in inv_channels.items():
-            inv_sender = inv_chan.get_sender()
+            inv_sender = inv_chan.new_sender()
             inv = create_inverter_msg(
                 key_id,
                 power=Bound(-500, 500),
@@ -660,7 +660,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
         mock_api = self.mock_api(components, bat_channels, inv_channels)
 
         for key_id, chan in bat_channels.items():
-            sender = chan.get_sender()
+            sender = chan.new_sender()
             if key_id == 106:
                 # this battery should has outdated data
                 bat = create_battery_msg(
@@ -680,7 +680,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
             await sender.send(BatteryData.from_proto(bat))
 
         for key_id, inv_chan in inv_channels.items():
-            inv_sender = inv_chan.get_sender()
+            inv_sender = inv_chan.new_sender()
             if key_id == 205:
                 inv = create_inverter_msg(
                     key_id,

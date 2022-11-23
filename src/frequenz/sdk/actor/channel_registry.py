@@ -24,7 +24,7 @@ class ChannelRegistry:
         self._name = name
         self._channels: Dict[str, Broadcast[Any]] = {}
 
-    def get_sender(self, key: str) -> Sender[Any]:
+    def new_sender(self, key: str) -> Sender[Any]:
         """Get a sender to a dynamically created channel with the given key.
 
         Args:
@@ -35,9 +35,9 @@ class ChannelRegistry:
         """
         if key not in self._channels:
             self._channels[key] = Broadcast(f"{self._name}-{key}")
-        return self._channels[key].get_sender()
+        return self._channels[key].new_sender()
 
-    def get_receiver(self, key: str) -> Receiver[Any]:
+    def new_receiver(self, key: str) -> Receiver[Any]:
         """Get a receiver to a dynamically created channel with the given key.
 
         Args:
@@ -48,4 +48,4 @@ class ChannelRegistry:
         """
         if key not in self._channels:
             self._channels[key] = Broadcast(f"{self._name}-{key}")
-        return self._channels[key].get_receiver()
+        return self._channels[key].new_receiver()

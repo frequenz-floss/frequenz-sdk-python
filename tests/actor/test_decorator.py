@@ -2,7 +2,8 @@
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
 """Simple test for the BaseActor."""
-from frequenz.channels import Broadcast, Receiver, Select, Sender
+from frequenz.channels import Broadcast, Receiver, Sender
+from frequenz.channels.util import Select
 
 from frequenz.sdk.actor import actor
 
@@ -79,19 +80,19 @@ async def test_basic_actor() -> None:
 
     _echo_actor = EchoActor(
         "EchoActor",
-        input_chan_1.get_receiver(),
-        input_chan_2.get_receiver(),
-        echo_chan.get_sender(),
+        input_chan_1.new_receiver(),
+        input_chan_2.new_receiver(),
+        echo_chan.new_sender(),
     )
 
-    echo_rx = echo_chan.get_receiver()
+    echo_rx = echo_chan.new_receiver()
 
-    await input_chan_1.get_sender().send(True)
+    await input_chan_1.new_sender().send(True)
 
     msg = await echo_rx.receive()
     assert msg is True
 
-    await input_chan_2.get_sender().send(False)
+    await input_chan_2.new_sender().send(False)
 
     msg = await echo_rx.receive()
     assert msg is False
@@ -104,9 +105,9 @@ async def test_actor_does_not_restart() -> None:
 
     _faulty_actor = FaultyActor(
         "FaultyActor",
-        channel.get_receiver(),
+        channel.new_receiver(),
     )
 
-    await channel.get_sender().send(1)
+    await channel.new_sender().send(1)
     # pylint: disable=no-member
     await _faulty_actor.join()  # type: ignore

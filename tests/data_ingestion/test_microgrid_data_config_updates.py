@@ -107,7 +107,7 @@ class TestMicrogridDataConfigUpdates(BaseMicrogridDataTest):
             self._write_to_file(config_file.name, self.conf_content)
 
             _config_manager = ConfigManager(
-                conf_file=config_file.name, output=config_update_channel.get_sender()
+                conf_file=config_file.name, output=config_update_channel.new_sender()
             )
             formula_calculator = FormulaCalculator(self.component_graph)
 
@@ -115,11 +115,11 @@ class TestMicrogridDataConfigUpdates(BaseMicrogridDataTest):
                 microgrid_client=self.microgrid_client,
                 component_graph=self.component_graph,
                 outputs={
-                    metric: channel.get_sender()
+                    metric: channel.new_sender()
                     for metric, channel in zip(self.metrics, channels)
                 },
                 formula_calculator=formula_calculator,
-                config_update_receiver=config_update_channel.get_receiver(),
+                config_update_receiver=config_update_channel.new_receiver(),
                 wait_for_data_sec=0.4,
             )
             microgrid_actor._reinitialize = AsyncMock()  # type: ignore

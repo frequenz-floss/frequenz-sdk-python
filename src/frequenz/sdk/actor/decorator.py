@@ -106,13 +106,13 @@ def actor(cls: Type[Any]) -> Type[Any]:
 
     echo_actor = EchoActor(
         "EchoActor",
-        recv1=input_chan_1.get_receiver(),
-        recv2=input_chan_2.get_receiver(),
-        output=echo_chan.get_sender(),
+        recv1=input_chan_1.new_receiver(),
+        recv2=input_chan_2.new_receiver(),
+        output=echo_chan.new_sender(),
     )
-    echo_rx = echo_chan.get_receiver()
+    echo_rx = echo_chan.new_receiver()
 
-    await input_chan_2.get_sender().send(True)
+    await input_chan_2.new_sender().send(True)
     msg = await echo_rx.receive()
     ```
 
@@ -157,18 +157,18 @@ def actor(cls: Type[Any]) -> Type[Any]:
     a2_chan: Broadcast[bool] = Broadcast["A2 stream"]
     a1 = Actor1(
         name="ActorOne",
-        recv=input_chan.get_receiver(),
-        output=a1_chan.get_sender(),
+        recv=input_chan.new_receiver(),
+        output=a1_chan.new_sender(),
     )
     a2 = Actor2(
         name="ActorTwo",
-        recv=a1_chan.get_receiver(),
-        output=a2_chan.get_sender(),
+        recv=a1_chan.new_receiver(),
+        output=a2_chan.new_sender(),
     )
 
-    a2_rx = a2_chan.get_receiver()
+    a2_rx = a2_chan.new_receiver()
 
-    await input_chan.get_sender().send(True)
+    await input_chan.new_sender().send(True)
     msg = await a2_rx.receive()
     ```
 

@@ -275,7 +275,7 @@ class MicrogridApiSource:
             (
                 self._get_data_extraction_method(category, metric),
                 [
-                    self._registry.get_sender(request.get_channel_name())
+                    self._registry.new_sender(request.get_channel_name())
                     for request in reqlist
                 ],
             )

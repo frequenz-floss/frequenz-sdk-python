@@ -104,8 +104,8 @@ def battery_data_factory(
         component_id: int,  # pylint: disable=unused-argument
     ) -> Receiver[BatteryData]:
         channel = Broadcast[BatteryData](f"raw-component-data-{component_id}")
-        asyncio.create_task(send_data(component_id, channel.get_sender()))
-        return channel.get_receiver()
+        asyncio.create_task(send_data(component_id, channel.new_sender()))
+        return channel.new_receiver()
 
     return wrapped
 
@@ -146,8 +146,8 @@ def inverter_data_factory(
         component_id: int,  # pylint: disable=unused-argument
     ) -> Receiver[InverterData]:
         channel = Broadcast[InverterData](f"raw-component-data-{component_id}")
-        asyncio.create_task(send_data(component_id, channel.get_sender()))
-        return channel.get_receiver()
+        asyncio.create_task(send_data(component_id, channel.new_sender()))
+        return channel.new_receiver()
 
     return wrapped
 
@@ -190,8 +190,8 @@ def meter_data_factory(
         component_id: int,  # pylint: disable=unused-argument
     ) -> Receiver[MeterData]:
         channel = Broadcast[MeterData](f"raw-component-data-{component_id}")
-        asyncio.create_task(send_data(component_id, channel.get_sender()))
-        return channel.get_receiver()
+        asyncio.create_task(send_data(component_id, channel.new_sender()))
+        return channel.new_receiver()
 
     return wrapped
 
@@ -234,7 +234,7 @@ def ev_charger_data_factory(
         component_id: int,  # pylint: disable=unused-argument
     ) -> Receiver[EVChargerData]:
         channel = Broadcast[EVChargerData](f"raw-component-data-{component_id}")
-        asyncio.create_task(send_data(component_id, channel.get_sender()))
-        return channel.get_receiver()
+        asyncio.create_task(send_data(component_id, channel.new_sender()))
+        return channel.new_receiver()
 
     return wrapped

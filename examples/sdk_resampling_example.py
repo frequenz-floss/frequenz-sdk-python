@@ -5,7 +5,8 @@
 
 import asyncio
 
-from frequenz.channels import Broadcast, MergeNamed
+from frequenz.channels import Broadcast
+from frequenz.channels.util import MergeNamed
 
 from frequenz.sdk.actor import ChannelRegistry
 from frequenz.sdk.actor.data_sourcing import DataSourcingActor
@@ -30,14 +31,14 @@ async def run() -> None:
     data_source_request_channel = Broadcast[ComponentMetricRequest](
         "Data Source Request Channel"
     )
-    data_source_request_sender = data_source_request_channel.get_sender()
-    data_source_request_receiver = data_source_request_channel.get_receiver()
+    data_source_request_sender = data_source_request_channel.new_sender()
+    data_source_request_receiver = data_source_request_channel.new_receiver()
 
     resampling_actor_request_channel = Broadcast[ComponentMetricRequest](
         "Resampling Actor Request Channel"
     )
-    resampling_actor_request_sender = resampling_actor_request_channel.get_sender()
-    resampling_actor_request_receiver = resampling_actor_request_channel.get_receiver()
+    resampling_actor_request_sender = resampling_actor_request_channel.new_sender()
+    resampling_actor_request_receiver = resampling_actor_request_channel.new_receiver()
 
     # Instantiate a data sourcing actor
     _data_sourcing_actor = DataSourcingActor(
@@ -81,7 +82,7 @@ async def run() -> None:
     # Store sample receivers for each subscription
     sample_receiver = MergeNamed(
         **{
-            channel_name: channel_registry.get_receiver(channel_name)
+            channel_name: channel_registry.new_receiver(channel_name)
             for channel_name in map(
                 lambda req: req.get_channel_name(), subscription_requests
             )
