@@ -19,6 +19,14 @@ time.
 
 * `ComponentCategory.LOAD` has been added
 
+* The
+  [`frequenz-channels`](https://github.com/frequenz-floss/frequenz-channels-python/)
+  was upgraded to
+  [v0.11.0](https://github.com/frequenz-floss/frequenz-channels-python/releases/tag/v0.11.0)
+  which includes a bunch of [breaking
+  changes](https://github.com/frequenz-floss/frequenz-channels-python/blob/v0.11.0/RELEASE_NOTES.md#upgrading-breaking-changes)
+  you should be aware of.
+
 ## New Features
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->

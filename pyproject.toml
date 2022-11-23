@@ -26,7 +26,7 @@ classifiers = [
 requires-python = ">= 3.8, < 4"
 dependencies = [
     "frequenz-api-microgrid >= 0.11.0, < 0.12.0",
-    "frequenz-channels @ git+https://github.com/frequenz-floss/frequenz-channels-python@v0.x.x",
+    "frequenz-channels >= 0.11.0, < 0.12.0",
     "google-api-python-client >= 2.15, < 3",
     "grpcio >= 1.47, < 2",
     "grpcio-tools >= 1.47, < 2",
