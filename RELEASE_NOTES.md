@@ -23,6 +23,10 @@ time.
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->
 
+* `MeterData` objects now expose the AC `frequency` measured by the meter.
+* `BatteryData` objects now expose the temperature of the hottest block in the
+  battery as `temperature_max`
+
 ## Bug Fixes
 
 <!-- Here goes notable bug fixes that are worth a special mention or explanation -->

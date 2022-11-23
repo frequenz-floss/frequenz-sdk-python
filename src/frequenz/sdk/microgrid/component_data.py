@@ -71,11 +71,13 @@ class MeterData(ComponentData):
             -ve current means supply into the grid.
         voltage_per_phase: the AC voltage in Volts (V) between the line and the neutral
             wire for phase/line 1,2 and 3 respectively.
+        frequency: the AC power frequency in Hertz (Hz).
     """
 
     active_power: float
     current_per_phase: Tuple[float, float, float]
     voltage_per_phase: Tuple[float, float, float]
+    frequency: float
 
     @classmethod
     def from_proto(cls, raw: microgrid_pb.ComponentData) -> MeterData:
@@ -101,6 +103,7 @@ class MeterData(ComponentData):
                 raw.meter.data.ac.phase_2.voltage.value,
                 raw.meter.data.ac.phase_3.voltage.value,
             ),
+            frequency=raw.meter.data.ac.frequency.value,
         )
         meter_data._set_raw(raw=raw)
         return meter_data
@@ -123,6 +126,8 @@ class BatteryData(ComponentData):
         power_upper_bound: the maximum charge power, in Watts, represented in the
             passive sign convention. This will be a positive number, or zero if no
             charging is possible.
+        temperature_max: the maximum temperature of all the blocks in a battery, in
+            Celcius (°C).
     """
 
     soc: float
@@ -131,6 +136,7 @@ class BatteryData(ComponentData):
     capacity: float
     power_lower_bound: float
     power_upper_bound: float
+    temperature_max: float
 
     @classmethod
     def from_proto(cls, raw: microgrid_pb.ComponentData) -> BatteryData:
@@ -151,6 +157,7 @@ class BatteryData(ComponentData):
             capacity=raw.battery.properties.capacity,
             power_lower_bound=raw.battery.data.dc.power.system_bounds.lower,
             power_upper_bound=raw.battery.data.dc.power.system_bounds.upper,
+            temperature_max=raw.battery.data.temperature.max,
         )
         battery_data._set_raw(raw=raw)
         return battery_data
