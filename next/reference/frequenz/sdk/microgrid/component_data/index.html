@@ -1843,16 +1843,26 @@ charging is possible.</p>
             </p>
           </td>
         </tr>
+        <tr>
+          <td><code>temperature_max</code></td>
+          <td class="doc-attribute-details">
+            <p>the maximum temperature of all the blocks in a battery, in
+Celcius (°C).</p>
+            <p>
+                <span class="doc-attribute-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+                </span>
+            </p>
+          </td>
+        </tr>
     </tbody>
   </table>
 
 
         <details class="quote">
           <summary>Source code in <code>frequenz/sdk/microgrid/component_data.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">109</span>
-<span class="normal">110</span>
-<span class="normal">111</span>
-<span class="normal">112</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">112</span>
 <span class="normal">113</span>
 <span class="normal">114</span>
 <span class="normal">115</span>
@@ -1896,7 +1906,14 @@ charging is possible.</p>
 <span class="normal">153</span>
 <span class="normal">154</span>
 <span class="normal">155</span>
-<span class="normal">156</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">BatteryData</span><span class="p">(</span><span class="n">ComponentData</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A wrapper class for holding battery data.</span>
 
@@ -1913,6 +1930,8 @@ charging is possible.</p>
 <span class="sd">        power_upper_bound: the maximum charge power, in Watts, represented in the</span>
 <span class="sd">            passive sign convention. This will be a positive number, or zero if no</span>
 <span class="sd">            charging is possible.</span>
+<span class="sd">        temperature_max: the maximum temperature of all the blocks in a battery, in</span>
+<span class="sd">            Celcius (°C).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">soc</span><span class="p">:</span> <span class="nb">float</span>
@@ -1921,6 +1940,7 @@ charging is possible.</p>
     <span class="n">capacity</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">power_lower_bound</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">power_upper_bound</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">temperature_max</span><span class="p">:</span> <span class="nb">float</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BatteryData</span><span class="p">:</span>
@@ -1941,6 +1961,7 @@ charging is possible.</p>
             <span class="n">capacity</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">battery</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">capacity</span><span class="p">,</span>
             <span class="n">power_lower_bound</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">battery</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">power</span><span class="o">.</span><span class="n">system_bounds</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
             <span class="n">power_upper_bound</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">battery</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">power</span><span class="o">.</span><span class="n">system_bounds</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
+            <span class="n">temperature_max</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">battery</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">max</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">battery_data</span><span class="o">.</span><span class="n">_set_raw</span><span class="p">(</span><span class="n">raw</span><span class="o">=</span><span class="n">raw</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">battery_data</span>
@@ -2023,13 +2044,7 @@ charging is possible.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/microgrid/component_data.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">135</span>
-<span class="normal">136</span>
-<span class="normal">137</span>
-<span class="normal">138</span>
-<span class="normal">139</span>
-<span class="normal">140</span>
-<span class="normal">141</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">141</span>
 <span class="normal">142</span>
 <span class="normal">143</span>
 <span class="normal">144</span>
@@ -2044,7 +2059,14 @@ charging is possible.</p>
 <span class="normal">153</span>
 <span class="normal">154</span>
 <span class="normal">155</span>
-<span class="normal">156</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BatteryData</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create BatteryData from a protobuf message.</span>
 
@@ -2063,6 +2085,7 @@ charging is possible.</p>
         <span class="n">capacity</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">battery</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">capacity</span><span class="p">,</span>
         <span class="n">power_lower_bound</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">battery</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">power</span><span class="o">.</span><span class="n">system_bounds</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
         <span class="n">power_upper_bound</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">battery</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">power</span><span class="o">.</span><span class="n">system_bounds</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
+        <span class="n">temperature_max</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">battery</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">max</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">battery_data</span><span class="o">.</span><span class="n">_set_raw</span><span class="p">(</span><span class="n">raw</span><span class="o">=</span><span class="n">raw</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">battery_data</span>
@@ -2252,8 +2275,8 @@ charging is possible.</p>
 <code class="highlight language-python"><span class="n">from_proto</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component_data.ComponentData.from_proto" class="headerlink" title="Permanent link">¤</a></h6>
@@ -2404,14 +2427,7 @@ wire for phase/line 1,2 and 3 respectively.</p>
 
         <details class="quote">
           <summary>Source code in <code>frequenz/sdk/microgrid/component_data.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">201</span>
-<span class="normal">202</span>
-<span class="normal">203</span>
-<span class="normal">204</span>
-<span class="normal">205</span>
-<span class="normal">206</span>
-<span class="normal">207</span>
-<span class="normal">208</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">208</span>
 <span class="normal">209</span>
 <span class="normal">210</span>
 <span class="normal">211</span>
@@ -2454,7 +2470,14 @@ wire for phase/line 1,2 and 3 respectively.</p>
 <span class="normal">248</span>
 <span class="normal">249</span>
 <span class="normal">250</span>
-<span class="normal">251</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">EVChargerData</span><span class="p">(</span><span class="n">ComponentData</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A wrapper class for holding ev_charger data.</span>
 
@@ -2584,14 +2607,7 @@ wire for phase/line 1,2 and 3 respectively.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/microgrid/component_data.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">224</span>
-<span class="normal">225</span>
-<span class="normal">226</span>
-<span class="normal">227</span>
-<span class="normal">228</span>
-<span class="normal">229</span>
-<span class="normal">230</span>
-<span class="normal">231</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">231</span>
 <span class="normal">232</span>
 <span class="normal">233</span>
 <span class="normal">234</span>
@@ -2611,7 +2627,14 @@ wire for phase/line 1,2 and 3 respectively.</p>
 <span class="normal">248</span>
 <span class="normal">249</span>
 <span class="normal">250</span>
-<span class="normal">251</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EVChargerData</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create EVChargerData from a protobuf message.</span>
 
@@ -2732,14 +2755,7 @@ charging is possible.</p>
 
         <details class="quote">
           <summary>Source code in <code>frequenz/sdk/microgrid/component_data.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">159</span>
-<span class="normal">160</span>
-<span class="normal">161</span>
-<span class="normal">162</span>
-<span class="normal">163</span>
-<span class="normal">164</span>
-<span class="normal">165</span>
-<span class="normal">166</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">166</span>
 <span class="normal">167</span>
 <span class="normal">168</span>
 <span class="normal">169</span>
@@ -2771,7 +2787,14 @@ charging is possible.</p>
 <span class="normal">195</span>
 <span class="normal">196</span>
 <span class="normal">197</span>
-<span class="normal">198</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">InverterData</span><span class="p">(</span><span class="n">ComponentData</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A wrapper class for holding inverter data.</span>
 
@@ -2890,14 +2913,7 @@ charging is possible.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/microgrid/component_data.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">180</span>
-<span class="normal">181</span>
-<span class="normal">182</span>
-<span class="normal">183</span>
-<span class="normal">184</span>
-<span class="normal">185</span>
-<span class="normal">186</span>
-<span class="normal">187</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">187</span>
 <span class="normal">188</span>
 <span class="normal">189</span>
 <span class="normal">190</span>
@@ -2908,7 +2924,14 @@ charging is possible.</p>
 <span class="normal">195</span>
 <span class="normal">196</span>
 <span class="normal">197</span>
-<span class="normal">198</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InverterData</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create InverterData from a protobuf message.</span>
 
@@ -3014,6 +3037,18 @@ wire for phase/line 1,2 and 3 respectively.</p>
             </p>
           </td>
         </tr>
+        <tr>
+          <td><code>frequency</code></td>
+          <td class="doc-attribute-details">
+            <p>the AC power frequency in Hertz (Hz).</p>
+            <p>
+                <span class="doc-attribute-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+                </span>
+            </p>
+          </td>
+        </tr>
     </tbody>
   </table>
 
@@ -3067,7 +3102,10 @@ wire for phase/line 1,2 and 3 respectively.</p>
 <span class="normal">103</span>
 <span class="normal">104</span>
 <span class="normal">105</span>
-<span class="normal">106</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">MeterData</span><span class="p">(</span><span class="n">ComponentData</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A wrapper class for holding meter data.</span>
 
@@ -3082,11 +3120,13 @@ wire for phase/line 1,2 and 3 respectively.</p>
 <span class="sd">            -ve current means supply into the grid.</span>
 <span class="sd">        voltage_per_phase: the AC voltage in Volts (V) between the line and the neutral</span>
 <span class="sd">            wire for phase/line 1,2 and 3 respectively.</span>
+<span class="sd">        frequency: the AC power frequency in Hertz (Hz).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">active_power</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">current_per_phase</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
     <span class="n">voltage_per_phase</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+    <span class="n">frequency</span><span class="p">:</span> <span class="nb">float</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeterData</span><span class="p">:</span>
@@ -3112,6 +3152,7 @@ wire for phase/line 1,2 and 3 respectively.</p>
                 <span class="n">raw</span><span class="o">.</span><span class="n">meter</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">phase_2</span><span class="o">.</span><span class="n">voltage</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
                 <span class="n">raw</span><span class="o">.</span><span class="n">meter</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">phase_3</span><span class="o">.</span><span class="n">voltage</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
             <span class="p">),</span>
+            <span class="n">frequency</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">meter</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">frequency</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">meter_data</span><span class="o">.</span><span class="n">_set_raw</span><span class="p">(</span><span class="n">raw</span><span class="o">=</span><span class="n">raw</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">meter_data</span>
@@ -3194,9 +3235,7 @@ wire for phase/line 1,2 and 3 respectively.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/microgrid/component_data.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 80</span>
-<span class="normal"> 81</span>
-<span class="normal"> 82</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 82</span>
 <span class="normal"> 83</span>
 <span class="normal"> 84</span>
 <span class="normal"> 85</span>
@@ -3220,7 +3259,10 @@ wire for phase/line 1,2 and 3 respectively.</p>
 <span class="normal">103</span>
 <span class="normal">104</span>
 <span class="normal">105</span>
-<span class="normal">106</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeterData</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create MeterData from a protobuf message.</span>
 
@@ -3244,6 +3286,7 @@ wire for phase/line 1,2 and 3 respectively.</p>
             <span class="n">raw</span><span class="o">.</span><span class="n">meter</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">phase_2</span><span class="o">.</span><span class="n">voltage</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
             <span class="n">raw</span><span class="o">.</span><span class="n">meter</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">phase_3</span><span class="o">.</span><span class="n">voltage</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
         <span class="p">),</span>
+        <span class="n">frequency</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">meter</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">frequency</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">meter_data</span><span class="o">.</span><span class="n">_set_raw</span><span class="p">(</span><span class="n">raw</span><span class="o">=</span><span class="n">raw</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">meter_data</span>
