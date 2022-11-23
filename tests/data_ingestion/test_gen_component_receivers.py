@@ -7,7 +7,8 @@ Tests for the `MicrogridData` actor
 from typing import Any, Dict
 from unittest.mock import AsyncMock, MagicMock
 
-from frequenz.channels import Receiver, Select, Timer
+from frequenz.channels import Receiver
+from frequenz.channels.util import Select, Timer
 
 from frequenz.sdk.data_ingestion.component_info import ComponentInfo
 from frequenz.sdk.data_ingestion.gen_component_receivers import gen_component_receivers

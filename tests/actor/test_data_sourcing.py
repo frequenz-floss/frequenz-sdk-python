@@ -55,15 +55,15 @@ class TestDataSourcingActor:
         await microgrid_api.initialize("[::1]", 57899)
 
         req_chan = Broadcast[ComponentMetricRequest]("data_sourcing_requests")
-        req_sender = req_chan.get_sender()
+        req_sender = req_chan.new_sender()
 
         registry = ChannelRegistry(name="test-registry")
 
-        DataSourcingActor(req_chan.get_receiver(), registry)
+        DataSourcingActor(req_chan.new_receiver(), registry)
         active_power_request = ComponentMetricRequest(
             "test-namespace", 4, ComponentMetricId.ACTIVE_POWER, None
         )
-        active_power_recv = registry.get_receiver(
+        active_power_recv = registry.new_receiver(
             active_power_request.get_channel_name()
         )
         await req_sender.send(active_power_request)
@@ -71,13 +71,13 @@ class TestDataSourcingActor:
         soc_request = ComponentMetricRequest(
             "test-namespace", 9, ComponentMetricId.SOC, None
         )
-        soc_recv = registry.get_receiver(soc_request.get_channel_name())
+        soc_recv = registry.new_receiver(soc_request.get_channel_name())
         await req_sender.send(soc_request)
 
         soc2_request = ComponentMetricRequest(
             "test-namespace", 9, ComponentMetricId.SOC, None
         )
-        soc2_recv = registry.get_receiver(soc2_request.get_channel_name())
+        soc2_recv = registry.new_receiver(soc2_request.get_channel_name())
         await req_sender.send(soc2_request)
 
         for _ in range(3):

@@ -10,11 +10,11 @@ async def test_channel_registry() -> None:
     """Tests for ChannelRegistry, with string as key type."""
     reg = ChannelRegistry(name="test-registry")
 
-    sender20 = reg.get_sender("20-hello")
-    receiver20 = reg.get_receiver("20-hello")
+    sender20 = reg.new_sender("20-hello")
+    receiver20 = reg.new_receiver("20-hello")
 
-    sender21 = reg.get_sender("21-hello")
-    receiver21 = reg.get_receiver("21-hello")
+    sender21 = reg.new_sender("21-hello")
+    receiver21 = reg.new_receiver("21-hello")
 
     await sender20.send(30)
     await sender21.send(31)

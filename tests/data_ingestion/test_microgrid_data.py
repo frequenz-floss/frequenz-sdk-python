@@ -157,7 +157,7 @@ class TestMicrogridData(BaseMicrogridDataTest):
             self.microgrid_client,
             self.component_graph,
             {
-                metric: channel.get_sender()
+                metric: channel.new_sender()
                 for metric, channel in zip(self.metrics, channels)
             },
             formula_calculator,

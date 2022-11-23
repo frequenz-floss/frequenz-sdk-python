@@ -17,7 +17,8 @@ from frequenz.api.microgrid.inverter_pb2 import Data as PbInverterData
 from frequenz.api.microgrid.inverter_pb2 import Inverter
 from frequenz.api.microgrid.meter_pb2 import Data as PbMeterData
 from frequenz.api.microgrid.meter_pb2 import Meter
-from frequenz.channels import Broadcast, MergeNamed, Receiver, Select, Sender
+from frequenz.channels import Broadcast, Receiver, Sender
+from frequenz.channels.util import MergeNamed, Select
 from google.protobuf.timestamp_pb2 import Timestamp  # pylint:disable=no-name-in-module
 
 import frequenz.sdk.microgrid.graph as gr
@@ -237,15 +238,15 @@ class MockClient(MicrogridGrpcClient):
                 data.
         """
         if component_id in self._component_streams:
-            return self._component_streams[component_id].get_receiver()
+            return self._component_streams[component_id].new_receiver()
         chan: Broadcast[MeterData] = Broadcast(f"{component_id=}")
         component_category, meter_connection = self.categories_from_id(component_id)
         if component_category == ComponentCategory.METER:
             if meter_connection is None:
-                asyncio.create_task(market_data_sender(component_id, chan.get_sender()))
+                asyncio.create_task(market_data_sender(component_id, chan.new_sender()))
             if meter_connection == ComponentCategory.PV_ARRAY:
-                asyncio.create_task(pv_data_sender(component_id, chan.get_sender()))
-        return chan.get_receiver()
+                asyncio.create_task(pv_data_sender(component_id, chan.new_sender()))
+        return chan.new_receiver()
 
     async def battery_data(
         self,
@@ -261,10 +262,10 @@ class MockClient(MicrogridGrpcClient):
                 battery data.
         """
         if component_id in self._component_streams:
-            return self._component_streams[component_id].get_receiver()
+            return self._component_streams[component_id].new_receiver()
         chan: Broadcast[BatteryData] = Broadcast(f"{component_id=}")
-        asyncio.create_task(battery_data_sender(component_id, chan.get_sender()))
-        return chan.get_receiver()
+        asyncio.create_task(battery_data_sender(component_id, chan.new_sender()))
+        return chan.new_receiver()
 
     async def inverter_data(
         self,
@@ -280,10 +281,10 @@ class MockClient(MicrogridGrpcClient):
                 inverter data.
         """
         if component_id in self._component_streams:
-            return self._component_streams[component_id].get_receiver()
+            return self._component_streams[component_id].new_receiver()
         chan: Broadcast[InverterData] = Broadcast(f"{component_id=}")
-        asyncio.create_task(inverter_data_sender(component_id, chan.get_sender()))
-        return chan.get_receiver()
+        asyncio.create_task(inverter_data_sender(component_id, chan.new_sender()))
+        return chan.new_receiver()
 
 
 # pylint: disable=too-many-locals
@@ -339,20 +340,20 @@ async def benchmark_multiple_batteries(n_bat: int = 10, n_msg: int = 100) -> Non
         microgrid_client,
         component_graph,
         {
-            "client_load": client_load_chan.get_sender(),
-            "grid_load": grid_load_chan.get_sender(),
-            "pv_prod": pv_prod_chan.get_sender(),
-            "ev_chargers_consumption": ev_chargers_consumption_chan.get_sender(),
-            "batteries_remaining_energy": batteries_remaining_energy_chan.get_sender(),
-            "batteries_active_power": batteries_active_power_chan.get_sender(),
-            "batteries_active_power_bounds": batteries_active_power_bounds_chan.get_sender(),
+            "client_load": client_load_chan.new_sender(),
+            "grid_load": grid_load_chan.new_sender(),
+            "pv_prod": pv_prod_chan.new_sender(),
+            "ev_chargers_consumption": ev_chargers_consumption_chan.new_sender(),
+            "batteries_remaining_energy": batteries_remaining_energy_chan.new_sender(),
+            "batteries_active_power": batteries_active_power_chan.new_sender(),
+            "batteries_active_power_bounds": batteries_active_power_bounds_chan.new_sender(),
         },
         formula_calculator,
     )
     select = Select(
-        batteries_remaining_energy=batteries_remaining_energy_chan.get_receiver(),
-        batteries_active_power=batteries_active_power_chan.get_receiver(),
-        batteries_active_power_bounds=batteries_active_power_bounds_chan.get_receiver(),
+        batteries_remaining_energy=batteries_remaining_energy_chan.new_receiver(),
+        batteries_active_power=batteries_active_power_chan.new_receiver(),
+        batteries_active_power_bounds=batteries_active_power_bounds_chan.new_receiver(),
     )
     start = time.time()
     while await select.ready():
@@ -431,21 +432,21 @@ async def benchmark_multiple_meters(n_meter: int = 5, n_msg: int = 100) -> None:
         microgrid_client,
         component_graph,
         {
-            "client_load": client_load_chan.get_sender(),
-            "grid_load": grid_load_chan.get_sender(),
-            "pv_prod": pv_prod_chan.get_sender(),
-            "ev_chargers_consumption": ev_chargers_consumption_chan.get_sender(),
-            "batteries_remaining_energy": batteries_remaining_energy_chan.get_sender(),
-            "batteries_active_power": batteries_active_power_chan.get_sender(),
-            "batteries_active_power_bounds": batteries_active_power_bounds_chan.get_sender(),
+            "client_load": client_load_chan.new_sender(),
+            "grid_load": grid_load_chan.new_sender(),
+            "pv_prod": pv_prod_chan.new_sender(),
+            "ev_chargers_consumption": ev_chargers_consumption_chan.new_sender(),
+            "batteries_remaining_energy": batteries_remaining_energy_chan.new_sender(),
+            "batteries_active_power": batteries_active_power_chan.new_sender(),
+            "batteries_active_power_bounds": batteries_active_power_bounds_chan.new_sender(),
         },
         formula_calculator,
     )
     n_client_load_msg = 0
     n_pv_prod_msg = 0
     select = Select(
-        client_load=client_load_chan.get_receiver(),
-        pv_prod=pv_prod_chan.get_receiver(),
+        client_load=client_load_chan.new_receiver(),
+        pv_prod=pv_prod_chan.new_receiver(),
     )
     start = time.time()
     while await select.ready():
@@ -529,19 +530,19 @@ async def benchmark_multiple_formulas(n_formula: int = 100, n_msg: int = 100) ->
         for index in range(n_formula)
     }
     senders: Dict[str, Sender[TimeSeriesEntry[Any]]] = {
-        "client_load": client_load_chan.get_sender(),
-        "grid_load": grid_load_chan.get_sender(),
-        "pv_prod": pv_prod_chan.get_sender(),
-        "ev_chargers_consumption": ev_chargers_consumption_chan.get_sender(),
-        "batteries_remaining_energy": batteries_remaining_energy_chan.get_sender(),
-        "batteries_active_power": batteries_active_power_chan.get_sender(),
-        "batteries_active_power_bounds": batteries_active_power_bounds_chan.get_sender(),
+        "client_load": client_load_chan.new_sender(),
+        "grid_load": grid_load_chan.new_sender(),
+        "pv_prod": pv_prod_chan.new_sender(),
+        "ev_chargers_consumption": ev_chargers_consumption_chan.new_sender(),
+        "batteries_remaining_energy": batteries_remaining_energy_chan.new_sender(),
+        "batteries_active_power": batteries_active_power_chan.new_sender(),
+        "batteries_active_power_bounds": batteries_active_power_bounds_chan.new_sender(),
     }
     for index in range(n_formula):
         locals()["f" + str(index) + "_chan"] = Broadcast[TimeSeriesEntry[Any]](
             "f" + str(index)
         )
-        senders["f" + str(index)] = locals()["f" + str(index) + "_chan"].get_sender()
+        senders["f" + str(index)] = locals()["f" + str(index) + "_chan"].new_sender()
     formula_calculator = FormulaCalculator(
         component_graph, additional_formulas=microgrid_formulas
     )
@@ -550,7 +551,7 @@ async def benchmark_multiple_formulas(n_formula: int = 100, n_msg: int = 100) ->
     )
     recv = {}
     for index in range(n_formula):
-        recv["f" + str(index)] = locals()["f" + str(index) + "_chan"].get_receiver()
+        recv["f" + str(index)] = locals()["f" + str(index) + "_chan"].new_receiver()
 
     recv_merged = MergeNamed(**recv)
     n_formula_msg = {"f" + str(fi): 0 for fi in range(n_formula)}

@@ -133,7 +133,7 @@ class TestMicrogridDataWithZeroDivision(BaseMicrogridDataTest):
             microgrid_client=self.microgrid_client,
             component_graph=self.component_graph,
             outputs={
-                metric: channel.get_sender()
+                metric: channel.new_sender()
                 for metric, channel in zip(metrics, channels)
             },
             formula_calculator=formula_calculator,

@@ -81,10 +81,10 @@ class TestActorConfigManager:
             "Config Channel", resend_latest=True
         )
         _config_manager = ConfigManager(
-            conf_file=str(config_file), output=config_channel.get_sender()
+            conf_file=str(config_file), output=config_channel.new_sender()
         )
 
-        config_receiver = config_channel.get_receiver()
+        config_receiver = config_channel.new_receiver()
 
         config = await config_receiver.receive()
         assert config is not None

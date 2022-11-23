@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from typing import Any, Coroutine, Dict, List, Set  # pylint: disable=unused-import
 
 import grpc.aio as grpcaio
-from frequenz.channels import Bidirectional, BidirectionalHandle
+from frequenz.channels import Bidirectional
 
 from frequenz.sdk.microgrid.client import MicrogridApiClient, MicrogridGrpcClient
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
@@ -27,7 +27,7 @@ class User:
     """User definition."""
 
     user_id: str
-    channel: BidirectionalHandle[Request, Result]
+    channel: Bidirectional.Handle[Request, Result]
 
 
 async def run_user(user: User, batteries: Set[int], request_num: int) -> List[Result]:

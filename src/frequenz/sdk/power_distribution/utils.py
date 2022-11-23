@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Dict, NamedTuple, Optional, Set
 
-from frequenz.channels import BidirectionalHandle
+from frequenz.channels import Bidirectional
 
 from ..microgrid.component_data import BatteryData, InverterData
 
@@ -72,7 +72,7 @@ class User:
     # User id
     user_id: str
     # Channel for the communication
-    channel: BidirectionalHandle[Result, Request]
+    channel: Bidirectional.Handle[Result, Request]
 
 
 class BrokenComponents:
