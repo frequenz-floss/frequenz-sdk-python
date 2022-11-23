@@ -5,9 +5,9 @@
 
 from frequenz.channels import Receiver
 
-from .. import ChannelRegistry, actor
-from .microgrid_api_source import MicrogridApiSource
-from .types import ComponentMetricRequest
+from .._channel_registry import ChannelRegistry
+from .._decorator import actor
+from .microgrid_api_source import ComponentMetricRequest, MicrogridApiSource
 
 
 @actor

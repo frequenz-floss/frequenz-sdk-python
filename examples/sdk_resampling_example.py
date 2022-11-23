@@ -8,20 +8,19 @@ import asyncio
 from frequenz.channels import Broadcast
 from frequenz.channels.util import MergeNamed
 
-from frequenz.sdk.actor import ChannelRegistry
-from frequenz.sdk.actor.data_sourcing import DataSourcingActor
-from frequenz.sdk.actor.resampling import (
-    ComponentMetricId,
+from frequenz.sdk.actor import (
+    ChannelRegistry,
     ComponentMetricRequest,
     ComponentMetricsResamplingActor,
+    DataSourcingActor,
 )
-from frequenz.sdk.microgrid import ComponentCategory, microgrid_api
+from frequenz.sdk.microgrid import ComponentCategory, ComponentMetricId, microgrid_api
 
 HOST = "microgrid.sandbox.api.frequenz.io"
 PORT = 61060
 
 
-async def run() -> None:
+async def run() -> None:  # pylint: disable=too-many-locals
     """Run main functions that initializes and creates everything."""
     await microgrid_api.initialize(HOST, PORT)
 

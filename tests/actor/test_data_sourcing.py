@@ -8,13 +8,12 @@ Tests for the DataSourcingActor.
 from frequenz.api.microgrid import microgrid_pb2
 from frequenz.channels import Broadcast
 
-from frequenz.sdk.actor import ChannelRegistry
-from frequenz.sdk.actor.data_sourcing import (
-    ComponentMetricId,
+from frequenz.sdk.actor import (
+    ChannelRegistry,
     ComponentMetricRequest,
     DataSourcingActor,
 )
-from frequenz.sdk.microgrid import microgrid_api
+from frequenz.sdk.microgrid import ComponentMetricId, microgrid_api
 from tests.test_microgrid import mock_api
 
 

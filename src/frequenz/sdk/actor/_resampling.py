@@ -13,16 +13,11 @@ from frequenz.channels import Receiver, Sender
 from frequenz.channels.util import MergeNamed, Select, Timer
 
 from ..timeseries import GroupResampler, ResamplingFunction, Sample
-from . import ChannelRegistry, actor, data_sourcing
+from ._channel_registry import ChannelRegistry
+from ._data_sourcing import ComponentMetricRequest
+from ._decorator import actor
 
 logger = logging.Logger(__name__)
-
-
-# Re-export the types from the data_sourcing actor as we use the same requests,
-# we are only forwarding them for now.
-ComponentMetricId = data_sourcing.ComponentMetricId
-
-ComponentMetricRequest = data_sourcing.ComponentMetricRequest
 
 
 # pylint: disable=unused-argument
@@ -157,7 +152,7 @@ class ComponentMetricsResamplingActor:
         self._output_senders: Dict[str, Sender[Sample]] = {}
         self._resampling_timer = Timer(interval=self._resampling_period_s)
 
-    async def subscribe(self, request: ComponentMetricRequest) -> None:
+    async def _subscribe(self, request: ComponentMetricRequest) -> None:
         """Subscribe for data for a specific time series.
 
         Args:
@@ -182,7 +177,7 @@ class ComponentMetricsResamplingActor:
             # `data_source_channel_name`
             self._output_senders[data_source_channel_name] = sender
 
-    def is_sample_valid(self, sample: Sample) -> bool:
+    def _is_sample_valid(self, sample: Sample) -> bool:
         """Check if the provided sample is valid.
 
         Args:
@@ -224,7 +219,7 @@ class ComponentMetricsResamplingActor:
                         # which may need to be handled properly here, e.g. unsubscribe
                         continue
                     channel_name, sample = msg.inner
-                    if self.is_sample_valid(sample=sample):
+                    if self._is_sample_valid(sample=sample):
                         self._resampler.add_sample(
                             time_series_id=channel_name,
                             sample=sample,
@@ -234,7 +229,7 @@ class ComponentMetricsResamplingActor:
                         raise ConnectionError(
                             "Subscription channel connection has been closed!"
                         )
-                    await self.subscribe(request=msg.inner)
+                    await self._subscribe(request=msg.inner)
                     # Breaking out from the loop is required to regenerate
                     # component_data_receivers to be able to fulfil this
                     # subscription (later can be optimized by checking if

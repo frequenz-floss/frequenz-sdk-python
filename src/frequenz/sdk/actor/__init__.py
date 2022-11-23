@@ -3,7 +3,15 @@
 
 """A base class for creating simple composable actors."""
 
-from .channel_registry import ChannelRegistry
-from .decorator import actor
+from ._channel_registry import ChannelRegistry
+from ._data_sourcing import ComponentMetricRequest, DataSourcingActor
+from ._decorator import actor
+from ._resampling import ComponentMetricsResamplingActor
 
-__all__ = ["actor", "ChannelRegistry"]
+__all__ = [
+    "ChannelRegistry",
+    "ComponentMetricRequest",
+    "ComponentMetricsResamplingActor",
+    "DataSourcingActor",
+    "actor",
+]

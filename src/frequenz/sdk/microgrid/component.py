@@ -73,3 +73,28 @@ class Component:
         return (
             self.component_id > 0 and any(t == self.category for t in ComponentCategory)
         ) or (self.component_id == 0 and self.category == ComponentCategory.GRID)
+
+
+class ComponentMetricId(Enum):
+    """An enum representing the various metrics available in the microgrid."""
+
+    ACTIVE_POWER = "active_power"
+
+    CURRENT_PHASE_1 = "current_phase_1"
+    CURRENT_PHASE_2 = "current_phase_2"
+    CURRENT_PHASE_3 = "current_phase_3"
+
+    VOLTAGE_PHASE_1 = "voltage_phase_1"
+    VOLTAGE_PHASE_2 = "voltage_phase_2"
+    VOLTAGE_PHASE_3 = "voltage_phase_3"
+
+    SOC = "soc"
+    SOC_LOWER_BOUND = "soc_lower_bound"
+    SOC_UPPER_BOUND = "soc_upper_bound"
+    CAPACITY = "capacity"
+
+    POWER_LOWER_BOUND = "power_lower_bound"
+    POWER_UPPER_BOUND = "power_upper_bound"
+
+    ACTIVE_POWER_LOWER_BOUND = "active_power_lower_bound"
+    ACTIVE_POWER_UPPER_BOUND = "active_power_upper_bound"
