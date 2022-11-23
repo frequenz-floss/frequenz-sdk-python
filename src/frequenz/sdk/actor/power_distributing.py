@@ -1,9 +1,14 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""Tool to distribute power between batteries.
+"""Actor to distribute power between batteries.
 
-Purpose of this tool is to keep SoC level of each component at the equal level.
+When charge/discharge method is called the power should be distributed so that
+the SoC in batteries stays at the same level. That way of distribution
+prevents using only one battery, increasing temperature, and maximize the total
+amount power to charge/discharge.
+
+Purpose of this actor is to keep SoC level of each component at the equal level.
 """
 
 from __future__ import annotations
@@ -11,7 +16,9 @@ from __future__ import annotations
 import asyncio
 import logging
 from asyncio.tasks import ALL_COMPLETED
+from dataclasses import dataclass
 from datetime import datetime, timezone
+from enum import Enum
 from typing import (  # pylint: disable=unused-import
     Any,
     Dict,
@@ -27,19 +34,127 @@ import grpc
 from frequenz.channels import Bidirectional, Peekable, Receiver
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
-from ..actor import actor
+from ..actor._decorator import actor
 from ..microgrid.client import MicrogridApiClient
 from ..microgrid.component import Component, ComponentCategory
 from ..microgrid.component_data import BatteryData, InverterData
 from ..microgrid.graph import ComponentGraph
-from .distribution_algorithm import DistributionAlgorithm
-from .utils import BrokenComponents, InvBatPair, Request, Result, User
+from ..power import DistributionAlgorithm, InvBatPair
 
 _logger = logging.getLogger(__name__)
 
 
+@dataclass
+class _User:
+    """User definitions."""
+
+    user_id: str
+    """The unique identifier for a user of the power distributing actor."""
+
+    # Channel for the communication
+    channel: Bidirectional.Handle[Result, Request]
+    """The bidirectional channel to communicate with the user."""
+
+
+class _BrokenComponents:
+    """Store components marked as broken."""
+
+    def __init__(self, timeout_sec: float) -> None:
+        """Create object instance.
+
+        Args:
+            timeout_sec: How long the component should be marked as broken.
+        """
+        self._broken: Dict[int, datetime] = {}
+        self._timeout_sec = timeout_sec
+
+    def mark_as_broken(self, component_id: int) -> None:
+        """Mark component as broken.
+
+        After marking component as broken it would be considered as broken for
+        self._timeout_sec.
+
+        Args:
+            component_id: component id
+        """
+        self._broken[component_id] = datetime.now(timezone.utc)
+
+    def update_retry(self, timeout_sec: float) -> None:
+        """Change how long the component should be marked as broken.
+
+        Args:
+            timeout_sec: New retry time after sec.
+        """
+        self._timeout_sec = timeout_sec
+
+    def is_broken(self, component_id: int) -> bool:
+        """Check if component is marked as broken.
+
+        Args:
+            component_id: component id
+
+        Returns:
+            True if component is broken, False otherwise.
+        """
+        if component_id in self._broken:
+            last_broken = self._broken[component_id]
+            if (
+                datetime.now(timezone.utc) - last_broken
+            ).total_seconds() < self._timeout_sec:
+                return True
+
+            del self._broken[component_id]
+        return False
+
+
+@dataclass
+class Request:
+    """Request from the user."""
+
+    # How much power to set
+    power: int
+    # In which batteries the power should be set
+    batteries: Set[int]
+    # Timeout for the server to respond on the request.
+    request_timeout_sec: float = 5.0
+    # If True and requested power value is out of bound, then
+    # PowerDistributor will decrease the power to match the bounds and
+    # distribute only decreased power.
+    # If False and the requested power is out of bound, then
+    # PowerDistributor will not process this request and send result with status
+    # Result.Status.OUT_OF_BOUND.
+    adjust_power: bool = True
+
+
+@dataclass
+class Result:
+    """Result on distribution request."""
+
+    class Status(Enum):
+        """Status of the result."""
+
+        FAILED = 0  # If any request for any battery didn't succeed for any reason.
+        SUCCESS = 1  # If all requests for all batteries succeed.
+        IGNORED = 2  # If request was dispossessed by newer request with the same set
+        # of batteries.
+        ERROR = 3  # If any error happened. In this case error_message describes error.
+        OUT_OF_BOUND = 4  # When Request.adjust_power=False and the requested power was
+        # out of the bounds for specified batteries.
+
+    status: Status  # Status of the request.
+
+    failed_power: float  # How much power failed.
+
+    above_upper_bound: float  # How much power was not used because it was beyond the
+    # limits.
+
+    error_message: Optional[
+        str
+    ] = None  # error_message filled only when status is ERROR
+
+
 @actor
-class PowerDistributor:
+class PowerDistributingActor:
     # pylint: disable=too-many-instance-attributes
     """Tool to distribute power between batteries in microgrid.
 
@@ -142,7 +257,7 @@ class PowerDistributor:
         self.distribution_algorithm = DistributionAlgorithm(
             self.power_distributor_exponent
         )
-        self._broken_components = BrokenComponents(self.broken_component_timeout_sec)
+        self._broken_components = _BrokenComponents(self.broken_component_timeout_sec)
 
         self._bat_inv_map, self._inv_bat_map = self._get_components_pairs(
             component_graph
@@ -156,7 +271,7 @@ class PowerDistributor:
         # important. It will execute both. And later request will override the previous
         # one.
         # That is why the queue of maxsize = total number of batteries should be enough.
-        self._request_queue: asyncio.Queue[Tuple[Request, User]] = asyncio.Queue(
+        self._request_queue: asyncio.Queue[Tuple[Request, _User]] = asyncio.Queue(
             maxsize=len(self._bat_inv_map)
         )
 
@@ -169,7 +284,7 @@ class PowerDistributor:
     def _create_users_tasks(self) -> None:
         """For each user create a task to wait for request."""
         for user, handler in self._users_channels.items():
-            asyncio.create_task(self._wait_for_request(User(user, handler)))
+            asyncio.create_task(self._wait_for_request(_User(user, handler)))
 
     def get_upper_bound(self, batteries: Set[int]) -> float:
         """Get total upper bound of power to be set for given batteries.
@@ -317,7 +432,7 @@ class PowerDistributor:
         return None
 
     def _remove_duplicated_requests(
-        self, request: Request, user: User
+        self, request: Request, user: _User
     ) -> List[asyncio.Task[bool]]:
         """Remove duplicated requests from the queue.
 
@@ -334,7 +449,7 @@ class PowerDistributor:
         """
         batteries = request.batteries
 
-        good_requests: List[Tuple[Request, User]] = []
+        good_requests: List[Tuple[Request, _User]] = []
         to_ignore: List[asyncio.Task[bool]] = []
 
         while not self._request_queue.empty():
@@ -367,7 +482,7 @@ class PowerDistributor:
             self._request_queue.put_nowait(good_request)
         return to_ignore
 
-    async def _wait_for_request(self, user: User) -> None:
+    async def _wait_for_request(self, user: _User) -> None:
         """Wait for the request from user.
 
         Check if request is correct. If request is not correct send ERROR response

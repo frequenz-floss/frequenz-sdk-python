@@ -3,6 +3,7 @@
 
 """A base class for creating simple composable actors."""
 
+from . import power_distributing
 from ._channel_registry import ChannelRegistry
 from ._config_managing import ConfigManagingActor
 from ._data_sourcing import ComponentMetricRequest, DataSourcingActor
@@ -16,4 +17,5 @@ __all__ = [
     "ConfigManagingActor",
     "DataSourcingActor",
     "actor",
+    "power_distributing",
 ]

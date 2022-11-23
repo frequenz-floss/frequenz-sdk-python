@@ -14,15 +14,18 @@ from unittest.mock import AsyncMock, MagicMock
 from frequenz.channels import Bidirectional, Broadcast, Receiver, Sender
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
+from frequenz.sdk.actor.power_distributing import (
+    PowerDistributingActor,
+    Request,
+    Result,
+)
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
 from frequenz.sdk.microgrid.component_data import BatteryData, InverterData
 from frequenz.sdk.microgrid.connection import Connection
 from frequenz.sdk.microgrid.graph import _MicrogridComponentGraph
-from frequenz.sdk.power_distribution.power_distributor import PowerDistributor
-from frequenz.sdk.power_distribution.utils import Request, Result
 
 from ..conftest import SAFETY_TIMEOUT
-from .test_distribution_algorithm import (
+from ..power.test_distribution_algorithm import (
     Bound,
     Metric,
     create_battery_msg,
@@ -41,7 +44,7 @@ class User:
     receiver: Receiver[Result]
 
 
-class TestPowerDistributor(IsolatedAsyncioTestCase):
+class TestPowerDistributingActor(IsolatedAsyncioTestCase):
     # pylint: disable=protected-access
     """Test tool to distribute power"""
 
@@ -180,7 +183,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
         mock_api = self.mock_api(components, bat_channels, inv_channels)
 
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
-        distributor = PowerDistributor(
+        distributor = PowerDistributingActor(
             mock_api, component_graph, {"user1": channel.service_handle}
         )
 
@@ -219,7 +222,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
 
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
         with mock.patch("asyncio.sleep", new_callable=AsyncMock):
-            distributor = PowerDistributor(
+            distributor = PowerDistributingActor(
                 mock_api, component_graph, {"user1": channel.service_handle}
             )
 
@@ -281,7 +284,9 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
         }
 
         with mock.patch("asyncio.sleep", new_callable=AsyncMock):
-            distributor = PowerDistributor(mock_api, component_graph, service_channels)
+            distributor = PowerDistributingActor(
+                mock_api, component_graph, service_channels
+            )
 
             user1_handle = channel1.client_handle
             task1 = user1_handle.send(
@@ -351,7 +356,9 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
             "user1": channel1.service_handle,
         }
         with mock.patch("asyncio.sleep", new_callable=AsyncMock):
-            distributor = PowerDistributor(mock_api, component_graph, service_channels)
+            distributor = PowerDistributingActor(
+                mock_api, component_graph, service_channels
+            )
 
             user1_handle = channel1.client_handle
             await user1_handle.send(
@@ -412,7 +419,9 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
         }
 
         with mock.patch("asyncio.sleep", new_callable=AsyncMock):
-            distributor = PowerDistributor(mock_api, component_graph, service_channels)
+            distributor = PowerDistributingActor(
+                mock_api, component_graph, service_channels
+            )
 
             user1_handle = channel1.client_handle
             task1 = user1_handle.send(
@@ -495,7 +504,9 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
         }
 
         with mock.patch("asyncio.sleep", new_callable=AsyncMock):
-            distributor = PowerDistributor(mock_api, component_graph, service_channels)
+            distributor = PowerDistributingActor(
+                mock_api, component_graph, service_channels
+            )
 
             user1_handle = channel1.client_handle
             await user1_handle.send(
@@ -555,7 +566,9 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
         }
 
         with mock.patch("asyncio.sleep", new_callable=AsyncMock):
-            distributor = PowerDistributor(mock_api, component_graph, service_channels)
+            distributor = PowerDistributingActor(
+                mock_api, component_graph, service_channels
+            )
 
             user1_handle = channel1.client_handle
             await user1_handle.send(
@@ -623,7 +636,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
 
         with mock.patch("asyncio.sleep", new_callable=AsyncMock):
-            distributor = PowerDistributor(
+            distributor = PowerDistributingActor(
                 mock_api, component_graph, {"user1": channel.service_handle}
             )
 
@@ -697,7 +710,7 @@ class TestPowerDistributor(IsolatedAsyncioTestCase):
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
 
         with mock.patch("asyncio.sleep", new_callable=AsyncMock):
-            distributor = PowerDistributor(
+            distributor = PowerDistributingActor(
                 mock_api, component_graph, {"user1": channel.service_handle}
             )
 

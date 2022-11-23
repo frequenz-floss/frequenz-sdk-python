@@ -4,7 +4,7 @@
 """Frequenz Python SDK usage examples.
 
 This example creates two users.
-One user sends request with power to apply in PowerDistributor.
+One user sends request with power to apply in PowerDistributingActor.
 Second user receives requests and set that power.
 """
 
@@ -22,13 +22,17 @@ from frequenz.sdk._data_handling import TimeSeriesEntry
 from frequenz.sdk._data_ingestion import MicrogridData
 from frequenz.sdk._data_ingestion.formula_calculator import FormulaCalculator
 from frequenz.sdk.actor import actor
+from frequenz.sdk.actor.power_distributing import (
+    PowerDistributingActor,
+    Request,
+    Result,
+)
 from frequenz.sdk.microgrid import (
     Component,
     ComponentCategory,
     MicrogridApi,
     microgrid_api,
 )
-from frequenz.sdk.power_distribution import PowerDistributor, Request, Result
 
 _logger = logging.getLogger(__name__)
 HOST = "microgrid.sandbox.api.frequenz.io"  # it should be the host name.
@@ -92,11 +96,11 @@ class DecisionMakingActor:
                 )
             except asyncio.exceptions.TimeoutError:
                 _logger.error(
-                    "Got timeout error when waiting for response from PowerDistributor"
+                    "Got timeout error when waiting for response from PowerDistributingActor"
                 )
                 continue
             if result is None:
-                raise RuntimeError("PowerDistributor channel has been closed.")
+                raise RuntimeError("PowerDistributingActor channel has been closed.")
             if result.status != Result.Status.SUCCESS:
                 _logger.error(
                     "Could not set %d power. Result: %s", power_to_set, str(result)
@@ -181,11 +185,11 @@ async def run() -> None:
     # Bidirectional channel is used for one sender - one receiver communication
     power_distributor_channels = {
         sending_actor_id: Bidirectional[Request, Result](
-            client_id=sending_actor_id, service_id="PowerDistributor"
+            client_id=sending_actor_id, service_id="PowerDistributingActor"
         )
     }
 
-    power_distributor = PowerDistributor(
+    power_distributor = PowerDistributingActor(
         microgrid_api=api.microgrid_api_client,
         # microgrid_api=microgrid_api.microgrid_api, in v0.8.0
         component_graph=api.component_graph,

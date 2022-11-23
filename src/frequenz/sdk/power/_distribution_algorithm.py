@@ -1,30 +1,41 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""Power distribution algorithm."""
+"""Power distribution algorithm to distribute power between batteries."""
 
 import logging
 from dataclasses import dataclass
 from math import ceil, floor
-from typing import Dict, List, Tuple
+from typing import Dict, List, NamedTuple, Tuple
 
-from .utils import InvBatPair
+from ..microgrid.component_data import BatteryData, InverterData
 
 _logger = logging.getLogger(__name__)
 
 
+class InvBatPair(NamedTuple):
+    """InvBatPair with inverter and adjacent battery data."""
+
+    battery: BatteryData
+    """The battery data."""
+
+    inverter: InverterData
+    """The inverter data."""
+
+
 @dataclass
 class DistributionResult:
-    """Distribution result.
-
-    Args:
-        distribution: power to be set for each inverter. Key is inverter id,
-            value is power that should be set for that inverter.
-        remaining_power: Power which could not be distributed, because of bounds.
-    """
+    """Distribution result."""
 
     distribution: Dict[int, int]
+    """The power to be set for each inverter.
+
+    The key is inverter ID, and the value is the power that should be set for
+    that inverter.
+    """
+
     remaining_power: int
+    """The power which could not be distributed because of bounds."""
 
 
 class DistributionAlgorithm:
