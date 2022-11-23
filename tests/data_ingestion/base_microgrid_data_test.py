@@ -15,8 +15,8 @@ from frequenz.channels import Broadcast
 from frequenz.channels.util import Select, Timer
 
 import frequenz.sdk.microgrid.graph as gr
-from frequenz.sdk.data_handling.time_series import TimeSeriesEntry
-from frequenz.sdk.data_ingestion.constants import (
+from frequenz.sdk._data_handling.time_series import TimeSeriesEntry
+from frequenz.sdk._data_ingestion.constants import (
     METRIC_BATTERIES_ACTIVE_POWER,
     METRIC_BATTERIES_ACTIVE_POWER_BOUNDS,
     METRIC_BATTERIES_CAPACITY,

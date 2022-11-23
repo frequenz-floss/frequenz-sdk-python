@@ -18,9 +18,9 @@ from typing import Any, Dict, List, Optional, Set
 from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.channels.util import Merge, Select
 
+from .._data_handling.time_series import TimeSeriesEntry
 from ..actor import actor
 from ..config import Config
-from ..data_handling.time_series import TimeSeriesEntry
 from ..microgrid.client import MicrogridApiClient
 from ..microgrid.graph import ComponentGraph
 from .component_info import infer_microgrid_config

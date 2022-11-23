@@ -14,11 +14,11 @@ from unittest.mock import AsyncMock
 from frequenz.api.microgrid.common_pb2 import AC, Metric
 from frequenz.channels import Broadcast
 
+from frequenz.sdk._data_handling.time_series import TimeSeriesEntry
+from frequenz.sdk._data_ingestion.formula_calculator import FormulaCalculator
+from frequenz.sdk._data_ingestion.microgrid_data import MicrogridData
 from frequenz.sdk.actor import ConfigManagingActor
 from frequenz.sdk.config import Config
-from frequenz.sdk.data_handling.time_series import TimeSeriesEntry
-from frequenz.sdk.data_ingestion.formula_calculator import FormulaCalculator
-from frequenz.sdk.data_ingestion.microgrid_data import MicrogridData
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
 from frequenz.sdk.microgrid.connection import Connection
 from tests.data_ingestion.base_microgrid_data_test import BaseMicrogridDataTest

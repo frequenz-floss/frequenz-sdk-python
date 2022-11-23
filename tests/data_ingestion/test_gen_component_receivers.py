@@ -10,8 +10,8 @@ from unittest.mock import AsyncMock, MagicMock
 from frequenz.channels import Receiver
 from frequenz.channels.util import Select, Timer
 
-from frequenz.sdk.data_ingestion.component_info import ComponentInfo
-from frequenz.sdk.data_ingestion.gen_component_receivers import gen_component_receivers
+from frequenz.sdk._data_ingestion.component_info import ComponentInfo
+from frequenz.sdk._data_ingestion.gen_component_receivers import gen_component_receivers
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
 
 from ..utils.factories import (

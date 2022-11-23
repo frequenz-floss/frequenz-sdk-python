@@ -18,10 +18,10 @@ from typing import Any, List, Optional, Set
 
 from frequenz.channels import Bidirectional, Broadcast, Receiver, Sender
 
+from frequenz.sdk._data_handling import TimeSeriesEntry
+from frequenz.sdk._data_ingestion import MicrogridData
+from frequenz.sdk._data_ingestion.formula_calculator import FormulaCalculator
 from frequenz.sdk.actor import actor
-from frequenz.sdk.data_handling import TimeSeriesEntry
-from frequenz.sdk.data_ingestion import MicrogridData
-from frequenz.sdk.data_ingestion.formula_calculator import FormulaCalculator
 from frequenz.sdk.microgrid import (
     Component,
     ComponentCategory,

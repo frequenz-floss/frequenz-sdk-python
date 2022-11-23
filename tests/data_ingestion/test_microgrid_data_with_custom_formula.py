@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Set
 from frequenz.api.microgrid.common_pb2 import AC, Metric
 from frequenz.channels import Broadcast
 
-from frequenz.sdk.data_handling.time_series import (
+from frequenz.sdk._data_handling.time_series import (
     InverterField,
     MeterField,
     SymbolComponentCategory,
@@ -17,8 +17,8 @@ from frequenz.sdk.data_handling.time_series import (
     TimeSeriesEntry,
     TimeSeriesFormula,
 )
-from frequenz.sdk.data_ingestion.formula_calculator import FormulaCalculator
-from frequenz.sdk.data_ingestion.microgrid_data import MicrogridData
+from frequenz.sdk._data_ingestion.formula_calculator import FormulaCalculator
+from frequenz.sdk._data_ingestion.microgrid_data import MicrogridData
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
 from frequenz.sdk.microgrid.connection import Connection
 

@@ -13,7 +13,7 @@ from typing import Any, Dict, List, NamedTuple
 import numpy as np
 import pandas as pd
 
-from ..data_ingestion.load_historic_data import (
+from .._data_ingestion.load_historic_data import (
     LoadHistoricData,
     LoadHistoricDataSettings,
 )

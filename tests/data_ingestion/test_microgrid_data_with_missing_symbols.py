@@ -9,8 +9,8 @@ from typing import Any, Dict, List, Set
 
 import pytest
 
-from frequenz.sdk.data_handling.time_series import TimeSeriesFormula
-from frequenz.sdk.data_ingestion.formula_calculator import FormulaCalculator
+from frequenz.sdk._data_handling.time_series import TimeSeriesFormula
+from frequenz.sdk._data_ingestion.formula_calculator import FormulaCalculator
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
 from frequenz.sdk.microgrid.connection import Connection
 

@@ -1,14 +1,14 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""Tests for the frequenz.sdk.data_handling.time_series module."""
+"""Tests for the frequenz.sdk._data_handling.time_series module."""
 
 from datetime import datetime, timedelta, timezone
 
-import frequenz.sdk.data_handling.time_series as ts
+import frequenz.sdk._data_handling.time_series as ts
 
 # pylint: disable=invalid-name,too-many-locals,too-many-statements,missing-function-docstring
-from frequenz.sdk.data_handling.power import ComplexPower
+from frequenz.sdk._data_handling.power import ComplexPower
 
 
 def test_LatestEntryCache() -> None:

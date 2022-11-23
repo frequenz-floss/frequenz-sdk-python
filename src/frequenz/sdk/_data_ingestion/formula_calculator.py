@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 import sympy
 
-from ..data_handling.time_series import (
+from .._data_handling.time_series import (
     BatteryField,
     EVChargerField,
     InverterField,
