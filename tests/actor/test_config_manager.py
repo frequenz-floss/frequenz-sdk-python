@@ -10,8 +10,8 @@ from frequenz.channels import Broadcast
 # pylint: disable = no-name-in-module
 from pydantic import BaseModel
 
-from frequenz.sdk.configs import Config
-from frequenz.sdk.configs.config_manager import ConfigManager
+from frequenz.sdk.actor import ConfigManagingActor
+from frequenz.sdk.config import Config
 
 
 class Item(BaseModel):
@@ -80,7 +80,7 @@ class TestActorConfigManager:
         config_channel: Broadcast[Config] = Broadcast(
             "Config Channel", resend_latest=True
         )
-        _config_manager = ConfigManager(
+        _config_manager = ConfigManagingActor(
             conf_file=str(config_file), output=config_channel.new_sender()
         )
 

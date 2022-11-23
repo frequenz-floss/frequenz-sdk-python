@@ -11,14 +11,14 @@ import toml
 from frequenz.channels import Sender
 from frequenz.channels.util import FileWatcher
 
-from ..actor import actor
-from .config import Config
+from ..actor._decorator import actor
+from ..config import Config
 
 logger = logging.getLogger(__name__)
 
 
 @actor
-class ConfigManager:
+class ConfigManagingActor:
     """
     Manages config variables.
 

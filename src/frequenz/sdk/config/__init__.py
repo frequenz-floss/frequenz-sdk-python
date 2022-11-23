@@ -3,11 +3,9 @@
 
 """Config interface."""
 
-from .config import Config
-from .config_manager import ConfigManager
+from ._config import Config
 
 # Explicitly declare the public API.
 __all__ = [
     "Config",
-    "ConfigManager",
 ]

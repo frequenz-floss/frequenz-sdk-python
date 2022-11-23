@@ -12,7 +12,7 @@ import pytest
 import toml
 from pydantic import BaseModel, StrictBool, StrictFloat, StrictInt
 
-from frequenz.sdk.configs.config import Config
+from frequenz.sdk.config import Config
 
 
 class Item(BaseModel):

@@ -6,8 +6,8 @@ Top level tests for the `frequenz.sdk` pacakge
 """
 
 import frequenz.sdk
-import frequenz.sdk.configs as config
-from frequenz.sdk.configs import ConfigManager
+from frequenz.sdk import config
+from frequenz.sdk.actor import ConfigManagingActor
 
 
 def test_sdk_import() -> None:
@@ -22,4 +22,4 @@ def test_sdk_import_config() -> None:
 
 def test_sdk_import_config_manager() -> None:
     """Checks that `import frequenz.sdk` works"""
-    assert ConfigManager is not None
+    assert ConfigManagingActor is not None

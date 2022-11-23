@@ -14,7 +14,8 @@ from unittest.mock import AsyncMock
 from frequenz.api.microgrid.common_pb2 import AC, Metric
 from frequenz.channels import Broadcast
 
-from frequenz.sdk.configs import Config, ConfigManager
+from frequenz.sdk.actor import ConfigManagingActor
+from frequenz.sdk.config import Config
 from frequenz.sdk.data_handling.time_series import TimeSeriesEntry
 from frequenz.sdk.data_ingestion.formula_calculator import FormulaCalculator
 from frequenz.sdk.data_ingestion.microgrid_data import MicrogridData
@@ -106,7 +107,7 @@ class TestMicrogridDataConfigUpdates(BaseMicrogridDataTest):
         with NamedTemporaryFile(delete=True, dir=".") as config_file:
             self._write_to_file(config_file.name, self.conf_content)
 
-            _config_manager = ConfigManager(
+            _config_manager = ConfigManagingActor(
                 conf_file=config_file.name, output=config_update_channel.new_sender()
             )
             formula_calculator = FormulaCalculator(self.component_graph)
