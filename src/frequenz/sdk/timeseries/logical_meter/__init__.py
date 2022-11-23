@@ -3,6 +3,6 @@
 
 """A logical meter for calculating high level metrics for a microgrid."""
 
-from .logical_meter import LogicalMeter
+from ._logical_meter import LogicalMeter
 
 __all__ = ["LogicalMeter"]
