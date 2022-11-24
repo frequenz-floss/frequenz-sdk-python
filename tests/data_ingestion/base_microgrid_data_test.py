@@ -14,7 +14,7 @@ from frequenz.api.microgrid.inverter_pb2 import Data as PbInverterData
 from frequenz.channels import Broadcast
 from frequenz.channels.util import Select, Timer
 
-import frequenz.sdk.microgrid.graph as gr
+import frequenz.sdk.microgrid._graph as gr
 from frequenz.sdk._data_handling.time_series import TimeSeriesEntry
 from frequenz.sdk._data_ingestion.constants import (
     METRIC_BATTERIES_ACTIVE_POWER,
@@ -26,8 +26,8 @@ from frequenz.sdk._data_ingestion.constants import (
     METRIC_GRID_LOAD,
     METRIC_PV_PROD,
 )
+from frequenz.sdk.microgrid.client import Connection
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
-from frequenz.sdk.microgrid.connection import Connection
 
 from ..utils.factories import (
     battery_data_factory,

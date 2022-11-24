@@ -9,9 +9,9 @@ from frequenz.channels import Receiver
 from frequenz.channels.util import Merge
 
 from ..microgrid import client
-from ..microgrid.component import ComponentCategory
-from ..microgrid.component_data import (
+from ..microgrid.component import (
     BatteryData,
+    ComponentCategory,
     EVChargerData,
     InverterData,
     MeterData,

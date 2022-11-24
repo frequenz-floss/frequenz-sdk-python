@@ -21,8 +21,8 @@ from frequenz.channels.util import Merge, Select
 from .._data_handling.time_series import TimeSeriesEntry
 from ..actor import actor
 from ..config import Config
+from ..microgrid import ComponentGraph
 from ..microgrid.client import MicrogridApiClient
-from ..microgrid.graph import ComponentGraph
 from .component_info import infer_microgrid_config
 from .formula_calculator import FormulaCalculator
 from .gen_component_receivers import gen_component_receivers

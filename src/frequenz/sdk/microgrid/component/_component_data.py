@@ -12,7 +12,7 @@ from typing import Optional, Tuple
 import frequenz.api.microgrid.microgrid_pb2 as microgrid_pb
 import pytz
 
-from .component_states import EVChargerCableState
+from ._component_states import EVChargerCableState
 
 
 @dataclass(frozen=True)

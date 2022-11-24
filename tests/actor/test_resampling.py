@@ -13,7 +13,7 @@ from frequenz.sdk.actor import (
     ComponentMetricRequest,
     ComponentMetricsResamplingActor,
 )
-from frequenz.sdk.microgrid import ComponentMetricId
+from frequenz.sdk.microgrid.component import ComponentMetricId
 from frequenz.sdk.timeseries import Sample
 
 

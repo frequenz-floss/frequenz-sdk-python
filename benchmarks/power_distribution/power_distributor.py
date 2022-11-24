@@ -18,9 +18,10 @@ from frequenz.sdk.actor.power_distributing import (
     Request,
     Result,
 )
+from frequenz.sdk.microgrid import ComponentGraph
+from frequenz.sdk.microgrid._graph import _MicrogridComponentGraph
 from frequenz.sdk.microgrid.client import MicrogridApiClient, MicrogridGrpcClient
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
-from frequenz.sdk.microgrid.graph import ComponentGraph, _MicrogridComponentGraph
 
 HOST = "157.90.243.180"
 PORT = 61060

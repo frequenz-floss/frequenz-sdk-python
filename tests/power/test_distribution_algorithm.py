@@ -19,7 +19,7 @@ from frequenz.api.microgrid.inverter_pb2 import Data as PbInverterData
 from frequenz.api.microgrid.inverter_pb2 import Inverter
 from google.protobuf.timestamp_pb2 import Timestamp  # pylint: disable=no-name-in-module
 
-from frequenz.sdk.microgrid.component_data import BatteryData, InverterData
+from frequenz.sdk.microgrid.component import BatteryData, InverterData
 from frequenz.sdk.power import DistributionAlgorithm, InvBatPair
 
 

@@ -14,15 +14,15 @@ from frequenz.api.microgrid import microgrid_pb2 as microgrid_pb
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
 from frequenz.sdk.microgrid import client
-from frequenz.sdk.microgrid.component import Component, ComponentCategory
-from frequenz.sdk.microgrid.component_data import (
+from frequenz.sdk.microgrid.client import Connection, LinearBackoff
+from frequenz.sdk.microgrid.component import (
     BatteryData,
+    Component,
+    ComponentCategory,
     EVChargerData,
     InverterData,
     MeterData,
 )
-from frequenz.sdk.microgrid.connection import Connection
-from frequenz.sdk.microgrid.retry import LinearBackoff
 
 from . import mock_api
 

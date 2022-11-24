@@ -22,7 +22,8 @@ from .._data_handling.time_series import (
     TimeSeriesEntry,
     TimeSeriesFormula,
 )
-from ..microgrid import ComponentCategory, ComponentGraph
+from ..microgrid import ComponentGraph
+from ..microgrid.component import ComponentCategory
 from .component_info import infer_microgrid_config
 from .constants import (
     METRIC_BATTERIES_ACTIVE_POWER,

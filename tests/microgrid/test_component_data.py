@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from frequenz.sdk.microgrid.component_data import ComponentData
+from frequenz.sdk.microgrid.component import ComponentData
 
 
 def test_component_data_abstract_class() -> None:

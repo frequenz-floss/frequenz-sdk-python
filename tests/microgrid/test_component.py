@@ -8,7 +8,7 @@ Tests for the microgrid component wrapper.
 import frequenz.api.microgrid.microgrid_pb2 as microgrid_pb
 import pytest
 
-import frequenz.sdk.microgrid.component as cp
+import frequenz.sdk.microgrid.component._component as cp
 
 
 # pylint: disable=protected-access

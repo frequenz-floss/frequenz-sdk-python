@@ -1,22 +1,28 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""Microgrid Api Wrapper."""
+"""Microgrid singleton abstraction.
+
+This module provides a singleton abstraction over the microgrid. The main
+purpose is to provide the connection the microgrid API client and the microgrid
+component graph.
+"""
 
 from abc import ABC, abstractmethod
 from typing import Optional
 
 import grpc.aio as grpcaio
 
-from .client import MicrogridApiClient, MicrogridGrpcClient
-from .graph import ComponentGraph, _MicrogridComponentGraph
+from ._graph import ComponentGraph, _MicrogridComponentGraph
+from .client import MicrogridApiClient
+from .client._client import MicrogridGrpcClient
 
 # Not public default host and port
 _DEFAULT_MICROGRID_HOST = "[::1]"
 _DEFAULT_MICROGRID_PORT = 443
 
 
-class MicrogridApi(ABC):
+class Microgrid(ABC):
     """Creates and stores core features."""
 
     def __init__(self, host: str, port: int) -> None:
@@ -50,7 +56,7 @@ class MicrogridApi(ABC):
 
     @property
     @abstractmethod
-    def microgrid_api_client(self) -> MicrogridApiClient:
+    def api_client(self) -> MicrogridApiClient:
         """Get MicrogridApiClient.
 
         Returns:
@@ -75,7 +81,7 @@ class MicrogridApi(ABC):
         """Initialize the object. This function should be called only once."""
 
 
-class _MicrogridApiInsecure(MicrogridApi):
+class _MicrogridInsecure(Microgrid):
     """Microgrid Api with insecure channel implementation."""
 
     def __init__(
@@ -96,7 +102,7 @@ class _MicrogridApiInsecure(MicrogridApi):
         self._graph = _MicrogridComponentGraph()
 
     @property
-    def microgrid_api_client(self) -> MicrogridApiClient:
+    def api_client(self) -> MicrogridApiClient:
         """Get MicrogridApiClient.
 
         Returns:
@@ -131,7 +137,7 @@ class _MicrogridApiInsecure(MicrogridApi):
         await self._graph.refresh_from_api(self._api)
 
 
-_MICROGRID_API: Optional[MicrogridApi] = None
+_MICROGRID: Optional[Microgrid] = None
 
 
 async def initialize(host: str, port: int) -> None:
@@ -146,23 +152,23 @@ async def initialize(host: str, port: int) -> None:
     """
     # From Doc: pylint just try to discourage this usage.
     # That doesn't mean you cannot use it.
-    global _MICROGRID_API  # pylint: disable=global-statement
+    global _MICROGRID  # pylint: disable=global-statement
 
-    if _MICROGRID_API is not None:
+    if _MICROGRID is not None:
         raise AssertionError("MicrogridApi was already initialized.")
 
-    microgrid_api = _MicrogridApiInsecure(host, port)
+    microgrid_api = _MicrogridInsecure(host, port)
     await microgrid_api._initialize()  # pylint: disable=protected-access
 
     # Check again that _MICROGRID_API is None in case somebody had the great idea of
     # calling initialize() twice and in parallel.
-    if _MICROGRID_API is not None:
+    if _MICROGRID is not None:
         raise AssertionError("MicrogridApi was already initialized.")
 
-    _MICROGRID_API = microgrid_api
+    _MICROGRID = microgrid_api
 
 
-def get() -> MicrogridApi:
+def get() -> Microgrid:
     """Get the MicrogridApi instance created by initialize().
 
     This function should be only called after initialize().
@@ -176,10 +182,10 @@ def get() -> MicrogridApi:
     Returns:
         MicrogridApi instance.
     """
-    if _MICROGRID_API is None:
+    if _MICROGRID is None:
         raise RuntimeError(
             "MicrogridApi is not initialized (or the initialization didn't "
             "finished yet). Call and/or await for initialize() to finish."
         )
 
-    return _MICROGRID_API
+    return _MICROGRID

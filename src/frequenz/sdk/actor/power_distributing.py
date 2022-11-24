@@ -35,10 +35,14 @@ from frequenz.channels import Bidirectional, Peekable, Receiver
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
 from ..actor._decorator import actor
+from ..microgrid import ComponentGraph
 from ..microgrid.client import MicrogridApiClient
-from ..microgrid.component import Component, ComponentCategory
-from ..microgrid.component_data import BatteryData, InverterData
-from ..microgrid.graph import ComponentGraph
+from ..microgrid.component import (
+    BatteryData,
+    Component,
+    ComponentCategory,
+    InverterData,
+)
 from ..power import DistributionAlgorithm, InvBatPair
 
 _logger = logging.getLogger(__name__)

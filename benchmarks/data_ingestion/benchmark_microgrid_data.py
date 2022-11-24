@@ -21,14 +21,18 @@ from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.channels.util import MergeNamed, Select
 from google.protobuf.timestamp_pb2 import Timestamp  # pylint:disable=no-name-in-module
 
-import frequenz.sdk.microgrid.graph as gr
+import frequenz.sdk.microgrid._graph as gr
 from frequenz.sdk._data_handling.time_series import TimeSeriesEntry, TimeSeriesFormula
 from frequenz.sdk._data_ingestion.formula_calculator import FormulaCalculator
 from frequenz.sdk._data_ingestion.microgrid_data import MicrogridData
-from frequenz.sdk.microgrid import BatteryData, InverterData, MeterData
-from frequenz.sdk.microgrid.client import MicrogridGrpcClient
-from frequenz.sdk.microgrid.component import Component, ComponentCategory
-from frequenz.sdk.microgrid.connection import Connection
+from frequenz.sdk.microgrid.client import Connection, MicrogridGrpcClient
+from frequenz.sdk.microgrid.component import (
+    BatteryData,
+    Component,
+    ComponentCategory,
+    InverterData,
+    MeterData,
+)
 
 
 def gen_market_data(component_id: int) -> MeterData:

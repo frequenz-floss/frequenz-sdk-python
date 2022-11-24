@@ -19,8 +19,8 @@ from frequenz.sdk._data_handling.time_series import (
 )
 from frequenz.sdk._data_ingestion.formula_calculator import FormulaCalculator
 from frequenz.sdk._data_ingestion.microgrid_data import MicrogridData
+from frequenz.sdk.microgrid.client import Connection
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
-from frequenz.sdk.microgrid.connection import Connection
 
 from .base_microgrid_data_test import BaseMicrogridDataTest
 

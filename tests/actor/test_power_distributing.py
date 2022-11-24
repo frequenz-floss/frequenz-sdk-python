@@ -19,10 +19,14 @@ from frequenz.sdk.actor.power_distributing import (
     Request,
     Result,
 )
-from frequenz.sdk.microgrid.component import Component, ComponentCategory
-from frequenz.sdk.microgrid.component_data import BatteryData, InverterData
-from frequenz.sdk.microgrid.connection import Connection
-from frequenz.sdk.microgrid.graph import _MicrogridComponentGraph
+from frequenz.sdk.microgrid._graph import _MicrogridComponentGraph
+from frequenz.sdk.microgrid.client import Connection
+from frequenz.sdk.microgrid.component import (
+    BatteryData,
+    Component,
+    ComponentCategory,
+    InverterData,
+)
 
 from ..conftest import SAFETY_TIMEOUT
 from ..power.test_distribution_algorithm import (

@@ -29,9 +29,8 @@ from typing import Callable, Iterable, List, Optional, Set
 
 import networkx as nx
 
-from .client import MicrogridApiClient
+from .client import Connection, MicrogridApiClient
 from .component import Component, ComponentCategory
-from .connection import Connection
 
 logger = logging.getLogger(__name__)
 

@@ -18,6 +18,7 @@ from typing import Any, List, Optional, Set
 
 from frequenz.channels import Bidirectional, Broadcast, Receiver, Sender
 
+from frequenz.sdk import microgrid
 from frequenz.sdk._data_handling import TimeSeriesEntry
 from frequenz.sdk._data_ingestion import MicrogridData
 from frequenz.sdk._data_ingestion.formula_calculator import FormulaCalculator
@@ -27,12 +28,7 @@ from frequenz.sdk.actor.power_distributing import (
     Request,
     Result,
 )
-from frequenz.sdk.microgrid import (
-    Component,
-    ComponentCategory,
-    MicrogridApi,
-    microgrid_api,
-)
+from frequenz.sdk.microgrid.component import Component, ComponentCategory
 
 _logger = logging.getLogger(__name__)
 HOST = "microgrid.sandbox.api.frequenz.io"  # it should be the host name.
@@ -157,10 +153,9 @@ async def run() -> None:
     logging.basicConfig(
         level=logging.DEBUG, format="%(asctime)s %(name)s %(levelname)s:%(message)s"
     )
-    await microgrid_api.initialize(HOST, PORT)
+    await microgrid.initialize(HOST, PORT)
 
     # await initialize(HOST, PORT) # in v0.8.0
-    api: MicrogridApi = microgrid_api.get()
 
     # Create MicrogridData
     microgrid_data_channels = {
@@ -169,11 +164,11 @@ async def run() -> None:
         ),
     }
 
-    formula_calculator = FormulaCalculator(api.component_graph)
+    formula_calculator = FormulaCalculator(microgrid.get().component_graph)
     microgrid_data = MicrogridData(
-        microgrid_client=api.microgrid_api_client,
+        microgrid_client=microgrid.get().api_client,
         # microgrid_client=microgrid_api.microgrid_api,  # in v0.8.0
-        component_graph=api.component_graph,
+        component_graph=microgrid.get().component_graph,
         outputs={
             key: channel.new_sender()
             for key, channel in microgrid_data_channels.items()
@@ -190,9 +185,9 @@ async def run() -> None:
     }
 
     power_distributor = PowerDistributingActor(
-        microgrid_api=api.microgrid_api_client,
+        microgrid_api=microgrid.get().api_client,
         # microgrid_api=microgrid_api.microgrid_api, in v0.8.0
-        component_graph=api.component_graph,
+        component_graph=microgrid.get().component_graph,
         users_channels={
             key: channel.service_handle
             for key, channel in power_distributor_channels.items()
@@ -204,7 +199,7 @@ async def run() -> None:
 
     # You should get components from ComponentGraph, not from the api.
     # It is faster and and non blocking approach.
-    batteries: Set[Component] = api.component_graph.components(
+    batteries: Set[Component] = microgrid.get().component_graph.components(
         # component_type=set(ComponentType.BATTERY) in v0.8.0
         component_category={ComponentCategory.BATTERY}
     )

@@ -7,8 +7,8 @@ import logging
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
+from ..microgrid import ComponentGraph
 from ..microgrid.component import ComponentCategory
-from ..microgrid.graph import ComponentGraph
 
 logger = logging.Logger(__name__)
 

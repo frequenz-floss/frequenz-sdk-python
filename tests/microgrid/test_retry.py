@@ -5,7 +5,7 @@
 
 # pylint: disable=chained-comparison
 
-from frequenz.sdk.microgrid.retry import (
+from frequenz.sdk.microgrid.client import (
     ExponentialBackoff,
     LinearBackoff,
     RetryStrategy,

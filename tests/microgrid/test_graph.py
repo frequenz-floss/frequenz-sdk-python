@@ -16,10 +16,9 @@ import frequenz.api.microgrid.microgrid_pb2 as microgrid_pb
 import grpc
 import pytest
 
-import frequenz.sdk.microgrid.graph as gr
-from frequenz.sdk.microgrid.client import MicrogridGrpcClient
+import frequenz.sdk.microgrid._graph as gr
+from frequenz.sdk.microgrid.client import Connection, MicrogridGrpcClient
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
-from frequenz.sdk.microgrid.connection import Connection
 
 from .mock_api import MockGrpcServer, MockMicrogridServicer
 

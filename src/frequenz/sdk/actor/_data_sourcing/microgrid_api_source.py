@@ -11,14 +11,14 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from frequenz.channels import Receiver, Sender
 
-from ...microgrid import (
+from ... import microgrid
+from ...microgrid.component import (
     BatteryData,
     ComponentCategory,
     ComponentMetricId,
     EVChargerData,
     InverterData,
     MeterData,
-    microgrid_api,
 )
 from ...timeseries import Sample
 from .._channel_registry import ChannelRegistry
@@ -138,7 +138,7 @@ class MicrogridApiSource:
         if comp_id in self._comp_categories_cache:
             return self._comp_categories_cache[comp_id]
 
-        api = microgrid_api.get().microgrid_api_client
+        api = microgrid.get().api_client
         for comp in await api.components():
             self._comp_categories_cache[comp.component_id] = comp.category
 
@@ -168,7 +168,7 @@ class MicrogridApiSource:
         if comp_id not in self.comp_data_receivers:
             self.comp_data_receivers[
                 comp_id
-            ] = await microgrid_api.get().microgrid_api_client.battery_data(comp_id)
+            ] = await microgrid.get().api_client.battery_data(comp_id)
 
     async def _check_ev_charger_request(
         self,
@@ -191,7 +191,7 @@ class MicrogridApiSource:
         if comp_id not in self.comp_data_receivers:
             self.comp_data_receivers[
                 comp_id
-            ] = await microgrid_api.get().microgrid_api_client.ev_charger_data(comp_id)
+            ] = await microgrid.get().api_client.ev_charger_data(comp_id)
 
     async def _check_inverter_request(
         self,
@@ -214,7 +214,7 @@ class MicrogridApiSource:
         if comp_id not in self.comp_data_receivers:
             self.comp_data_receivers[
                 comp_id
-            ] = await microgrid_api.get().microgrid_api_client.inverter_data(comp_id)
+            ] = await microgrid.get().api_client.inverter_data(comp_id)
 
     async def _check_meter_request(
         self,
@@ -237,7 +237,7 @@ class MicrogridApiSource:
         if comp_id not in self.comp_data_receivers:
             self.comp_data_receivers[
                 comp_id
-            ] = await microgrid_api.get().microgrid_api_client.meter_data(comp_id)
+            ] = await microgrid.get().api_client.meter_data(comp_id)
 
     async def _check_requested_component_and_metrics(
         self,

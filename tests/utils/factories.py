@@ -9,15 +9,14 @@ from typing import Any, Callable, Coroutine, Dict, Iterable, Optional
 
 from frequenz.channels import Broadcast, Receiver, Sender
 
-from frequenz.sdk.microgrid import (
+from frequenz.sdk.microgrid.client import Connection, MicrogridGrpcClient
+from frequenz.sdk.microgrid.component import (
     BatteryData,
     Component,
-    Connection,
     EVChargerData,
     InverterData,
     MeterData,
 )
-from frequenz.sdk.microgrid.client import MicrogridGrpcClient
 
 from .data_generation import (
     generate_battery_data,

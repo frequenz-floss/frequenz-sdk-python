@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from math import ceil, floor
 from typing import Dict, List, NamedTuple, Tuple
 
-from ..microgrid.component_data import BatteryData, InverterData
+from ..microgrid.component import BatteryData, InverterData
 
 _logger = logging.getLogger(__name__)
 

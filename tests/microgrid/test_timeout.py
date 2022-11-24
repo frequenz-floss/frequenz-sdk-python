@@ -35,13 +35,16 @@ GRPC_SERVER_DELAY: float = 0.3
 GRPC_SERVER_SHUTDOWN_DELAY: float = 1.0
 
 
-@patch("frequenz.sdk.microgrid.client.DEFAULT_GRPC_CALL_TIMEOUT", GRPC_CALL_TIMEOUT)
+@patch(
+    "frequenz.sdk.microgrid.client._client.DEFAULT_GRPC_CALL_TIMEOUT", GRPC_CALL_TIMEOUT
+)
 async def test_components_timeout(mocker: MockerFixture) -> None:
     """Test if the components() method properly raises AioRpcError"""
     servicer = MockMicrogridServicer()
 
-    # pylint: disable=unused-argument
-    def mock_list_components(request: ComponentFilter, context: Any) -> ComponentList:
+    def mock_list_components(
+        request: ComponentFilter, context: Any  # pylint: disable=unused-argument
+    ) -> ComponentList:
         time.sleep(GRPC_SERVER_DELAY)
         return ComponentList(components=[])
 
@@ -59,14 +62,15 @@ async def test_components_timeout(mocker: MockerFixture) -> None:
     await server.wait_for_termination(GRPC_SERVER_SHUTDOWN_DELAY)
 
 
-@patch("frequenz.sdk.microgrid.client.DEFAULT_GRPC_CALL_TIMEOUT", GRPC_CALL_TIMEOUT)
+@patch(
+    "frequenz.sdk.microgrid.client._client.DEFAULT_GRPC_CALL_TIMEOUT", GRPC_CALL_TIMEOUT
+)
 async def test_connections_timeout(mocker: MockerFixture) -> None:
     """Test if the connections() method properly raises AioRpcError"""
     servicer = MockMicrogridServicer()
 
-    # pylint: disable=unused-argument
     def mock_list_connections(
-        request: ConnectionFilter, context: Any
+        request: ConnectionFilter, context: Any  # pylint: disable=unused-argument
     ) -> ConnectionList:
         time.sleep(GRPC_SERVER_DELAY)
         return ConnectionList(connections=[])
@@ -85,13 +89,16 @@ async def test_connections_timeout(mocker: MockerFixture) -> None:
     await server.wait_for_termination(GRPC_SERVER_SHUTDOWN_DELAY)
 
 
-@patch("frequenz.sdk.microgrid.client.DEFAULT_GRPC_CALL_TIMEOUT", GRPC_CALL_TIMEOUT)
+@patch(
+    "frequenz.sdk.microgrid.client._client.DEFAULT_GRPC_CALL_TIMEOUT", GRPC_CALL_TIMEOUT
+)
 async def test_set_power_timeout(mocker: MockerFixture) -> None:
     """Test if the set_power() method properly raises AioRpcError"""
     servicer = MockMicrogridServicer()
 
-    # pylint: disable=unused-argument
-    def mock_set_power(request: PowerLevelParam, context: Any) -> Empty:
+    def mock_set_power(
+        request: PowerLevelParam, context: Any  # pylint: disable=unused-argument
+    ) -> Empty:
         time.sleep(GRPC_SERVER_DELAY)
         return Empty()
 
