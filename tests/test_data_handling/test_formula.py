@@ -1,7 +1,7 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""Tests for the frequenz.sdk.data_handling.formula module."""
+"""Tests for the frequenz.sdk._data_handling.formula module."""
 from datetime import datetime, timedelta, timezone
 from typing import Dict
 
@@ -9,8 +9,8 @@ import pandas as pd
 import pytest
 import sympy
 
-from frequenz.sdk.data_handling import TimeSeriesEntry, formula
-from frequenz.sdk.data_handling import time_series as ts
+from frequenz.sdk._data_handling import TimeSeriesEntry, formula
+from frequenz.sdk._data_handling import time_series as ts
 
 # pylint: disable=invalid-name
 

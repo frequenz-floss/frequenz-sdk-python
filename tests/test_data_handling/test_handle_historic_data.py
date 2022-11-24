@@ -9,9 +9,9 @@ import numpy as np
 import pandas as pd
 from pytest_mock import MockerFixture  # pylint: disable=import-error
 
-from frequenz.sdk.data_handling.formula import Formula
-from frequenz.sdk.data_handling.gen_historic_data_features import get_active_power
-from frequenz.sdk.data_ingestion.load_historic_data import (
+from frequenz.sdk._data_handling.formula import Formula
+from frequenz.sdk._data_handling.gen_historic_data_features import get_active_power
+from frequenz.sdk._data_ingestion.load_historic_data import (
     ComponentInfo,
     FeatureGenerator,
     LoadHistoricData,
@@ -22,7 +22,7 @@ from frequenz.sdk.data_ingestion.load_historic_data import (
 def test_handle_historic_data_import() -> None:
     """Check that HandleHistData can be imported successfully."""
 
-    from frequenz.sdk.data_handling.handle_historic_data import (  # pylint: disable=import-outside-toplevel
+    from frequenz.sdk._data_handling.handle_historic_data import (  # pylint: disable=import-outside-toplevel
         HandleHistData,
     )
 
@@ -55,7 +55,7 @@ def mock_load_hd_read(
 def test_load_compute_formula(mocker: MockerFixture) -> None:
     """Test load_compute_formula() function in HandleHistData() class."""
 
-    from frequenz.sdk.data_handling.handle_historic_data import (  # pylint: disable=import-outside-toplevel
+    from frequenz.sdk._data_handling.handle_historic_data import (  # pylint: disable=import-outside-toplevel
         HandleHistData,
         HandleHistDataSettings,
         SymbolMapping,

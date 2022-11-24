@@ -8,22 +8,22 @@ import asyncio
 from frequenz.channels import Broadcast
 from frequenz.channels.util import MergeNamed
 
-from frequenz.sdk.actor import ChannelRegistry
-from frequenz.sdk.actor.data_sourcing import DataSourcingActor
-from frequenz.sdk.actor.resampling import (
-    ComponentMetricId,
+from frequenz.sdk import microgrid
+from frequenz.sdk.actor import (
+    ChannelRegistry,
     ComponentMetricRequest,
     ComponentMetricsResamplingActor,
+    DataSourcingActor,
 )
-from frequenz.sdk.microgrid import ComponentCategory, microgrid_api
+from frequenz.sdk.microgrid.component import ComponentCategory, ComponentMetricId
 
 HOST = "microgrid.sandbox.api.frequenz.io"
 PORT = 61060
 
 
-async def run() -> None:
+async def run() -> None:  # pylint: disable=too-many-locals
     """Run main functions that initializes and creates everything."""
-    await microgrid_api.initialize(HOST, PORT)
+    await microgrid.initialize(HOST, PORT)
 
     channel_registry = ChannelRegistry(name="Microgrid Channel Registry")
 
@@ -53,7 +53,7 @@ async def run() -> None:
         resampling_period_s=1.0,
     )
 
-    components = await microgrid_api.get().microgrid_api_client.components()
+    components = await microgrid.get().api_client.components()
     battery_ids = [
         comp.component_id
         for comp in components

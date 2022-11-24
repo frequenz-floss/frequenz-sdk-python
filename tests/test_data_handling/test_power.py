@@ -1,12 +1,12 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""Tests for the frequenz.sdk.data_handling.power module."""
+"""Tests for the frequenz.sdk._data_handling.power module."""
 
 import pytest
 from frequenz.api.microgrid.common_pb2 import AC, Metric
 
-from frequenz.sdk.data_handling import power
+from frequenz.sdk._data_handling import power
 
 # pylint: disable=invalid-name,too-many-statements,missing-function-docstring
 # pylint: disable=too-many-locals,no-member

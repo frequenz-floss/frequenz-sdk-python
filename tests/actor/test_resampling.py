@@ -8,12 +8,12 @@ from datetime import datetime, timedelta, timezone
 import time_machine
 from frequenz.channels import Broadcast
 
-from frequenz.sdk.actor import ChannelRegistry
-from frequenz.sdk.actor.resampling import (
-    ComponentMetricId,
+from frequenz.sdk.actor import (
+    ChannelRegistry,
     ComponentMetricRequest,
     ComponentMetricsResamplingActor,
 )
+from frequenz.sdk.microgrid.component import ComponentMetricId
 from frequenz.sdk.timeseries import Sample
 
 

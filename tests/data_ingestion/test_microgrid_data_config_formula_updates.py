@@ -12,13 +12,14 @@ from typing import Any, Dict, List, Set
 
 from frequenz.channels import Broadcast
 
-from frequenz.sdk.configs import Config, ConfigManager
-from frequenz.sdk.data_handling.time_series import TimeSeriesEntry
-from frequenz.sdk.data_ingestion.constants import METRIC_BATTERIES_CAPACITY
-from frequenz.sdk.data_ingestion.formula_calculator import FormulaCalculator
-from frequenz.sdk.data_ingestion.microgrid_data import MicrogridData
+from frequenz.sdk._data_handling.time_series import TimeSeriesEntry
+from frequenz.sdk._data_ingestion.constants import METRIC_BATTERIES_CAPACITY
+from frequenz.sdk._data_ingestion.formula_calculator import FormulaCalculator
+from frequenz.sdk._data_ingestion.microgrid_data import MicrogridData
+from frequenz.sdk.actor import ConfigManagingActor
+from frequenz.sdk.config import Config
+from frequenz.sdk.microgrid.client import Connection
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
-from frequenz.sdk.microgrid.connection import Connection
 from tests.data_ingestion.base_microgrid_data_test import BaseMicrogridDataTest
 
 
@@ -136,7 +137,7 @@ class TestMicrogridDataConfigFormulaUpdates(BaseMicrogridDataTest):
         with NamedTemporaryFile(delete=True, dir=".") as config_file:
             self._write_to_file(config_file.name, config_file_initial_content)
 
-            _config_manager = ConfigManager(
+            _config_manager = ConfigManagingActor(
                 conf_file=config_file.name, output=config_update_channel.new_sender()
             )
             formula_calculator = FormulaCalculator(self.component_graph)

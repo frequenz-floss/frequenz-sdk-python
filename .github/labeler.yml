@@ -16,8 +16,9 @@
   - "src/frequenz/sdk/_internal/**"
 
 "part:data-pipeline":
-  - "src/frequenz/sdk/data_handling/**"
-  - "src/frequenz/sdk/data_ingestion/**"
+  - "src/frequenz/sdk/_data_handling/**"
+  - "src/frequenz/sdk/_data_ingestion/**"
+  - "src/frequenz/sdk/timeseries/**"
 
 "part:docs": 
   - "**/*.md"
@@ -28,7 +29,7 @@
   - "src/frequenz/sdk/microgrid/**"
 
 "part:power-distribution":
-  - "src/frequenz/sdk/power_distribution/**"
+  - "src/frequenz/sdk/power/**"
 
 "part:tests":
   - "tests/**"

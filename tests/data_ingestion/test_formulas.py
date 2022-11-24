@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from frequenz.sdk.data_handling.time_series import TimeSeriesFormula
+from frequenz.sdk._data_handling.time_series import TimeSeriesFormula
 
 
 @pytest.mark.parametrize(

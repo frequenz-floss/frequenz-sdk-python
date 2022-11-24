@@ -11,7 +11,7 @@ This module provides tools to operate on timeseries.
 """
 
 from ._resampler import GroupResampler, Resampler, ResamplingFunction
-from .sample import Sample
+from ._sample import Sample
 
 __all__ = [
     "GroupResampler",

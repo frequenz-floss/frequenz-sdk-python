@@ -1,11 +1,11 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""Tests for the frequenz.sdk.data_handling.gen_historic_data_features module."""
+"""Tests for the frequenz.sdk._data_handling.gen_historic_data_features module."""
 
 import pandas as pd
 
-import frequenz.sdk.data_handling.gen_historic_data_features as hd
+import frequenz.sdk._data_handling.gen_historic_data_features as hd
 
 
 def test_get_active_power() -> None:

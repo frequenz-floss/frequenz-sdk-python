@@ -7,24 +7,15 @@ This package provides a complete suite of data structures and functionality
 for monitoring and adjusting the state of a microgrid.
 """
 
-from . import microgrid_api
-from .client import MicrogridApiClient
-from .component import Component, ComponentCategory
-from .component_data import BatteryData, EVChargerData, InverterData, MeterData
-from .connection import Connection
-from .graph import ComponentGraph
-from .microgrid_api import MicrogridApi
+from . import client, component
+from ._graph import ComponentGraph
+from ._microgrid import Microgrid, get, initialize
 
 __all__ = [
-    "Component",
     "ComponentGraph",
-    "ComponentCategory",
-    "Connection",
-    "BatteryData",
-    "EVChargerData",
-    "InverterData",
-    "MeterData",
-    "microgrid_api",
-    "MicrogridApi",
-    "MicrogridApiClient",
+    "Microgrid",
+    "get",
+    "initialize",
+    "client",
+    "component",
 ]

@@ -13,10 +13,15 @@ from typing import Any, Coroutine, Dict, List, Set  # pylint: disable=unused-imp
 import grpc.aio as grpcaio
 from frequenz.channels import Bidirectional
 
+from frequenz.sdk.actor.power_distributing import (
+    PowerDistributingActor,
+    Request,
+    Result,
+)
+from frequenz.sdk.microgrid import ComponentGraph
+from frequenz.sdk.microgrid._graph import _MicrogridComponentGraph
 from frequenz.sdk.microgrid.client import MicrogridApiClient, MicrogridGrpcClient
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
-from frequenz.sdk.microgrid.graph import ComponentGraph, _MicrogridComponentGraph
-from frequenz.sdk.power_distribution import PowerDistributor, Request, Result
 
 HOST = "157.90.243.180"
 PORT = 61060
@@ -31,7 +36,7 @@ class User:
 
 
 async def run_user(user: User, batteries: Set[int], request_num: int) -> List[Result]:
-    """Send requests to the PowerDistributor and wait for the response.
+    """Send requests to the PowerDistributingActor and wait for the response.
 
     Args:
         user: user that should send request
@@ -42,7 +47,7 @@ async def run_user(user: User, batteries: Set[int], request_num: int) -> List[Re
         SystemError: If the channel was closed.
 
     Returns:
-        List of the results from the PowerDistributor.
+        List of the results from the PowerDistributingActor.
     """
     result: List[Result] = []
     for _ in range(request_num):
@@ -101,7 +106,7 @@ async def run_test(  # pylint: disable=too-many-locals
         users_num: Number of users to register
         requests_per_user: How many request user should send.
         batteries: Set of batteries for each request.
-        distributor: PowerDistributor instance.
+        distributor: PowerDistributingActor instance.
 
     Returns:
         Dictionary with statistics.
@@ -117,7 +122,7 @@ async def run_test(  # pylint: disable=too-many-locals
         user_id: channel.service_handle for user_id, channel in channels.items()
     }
 
-    distributor = PowerDistributor(api, graph, service_channels)
+    distributor = PowerDistributingActor(api, graph, service_channels)
 
     tasks: List[Coroutine[Any, Any, List[Result]]] = []
     for user_id, channel in channels.items():

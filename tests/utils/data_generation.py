@@ -18,7 +18,12 @@ from frequenz.api.microgrid.meter_pb2 import Data as PbMeterData
 from frequenz.api.microgrid.meter_pb2 import Meter
 from google.protobuf.timestamp_pb2 import Timestamp  # pylint: disable=no-name-in-module
 
-from frequenz.sdk.microgrid import BatteryData, EVChargerData, InverterData, MeterData
+from frequenz.sdk.microgrid.component import (
+    BatteryData,
+    EVChargerData,
+    InverterData,
+    MeterData,
+)
 
 
 def generate_battery_data(
