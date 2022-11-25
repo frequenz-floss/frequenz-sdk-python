@@ -20,7 +20,7 @@ from ...microgrid.component import (
     InverterData,
     MeterData,
 )
-from ...timeseries import Sample
+from ...timeseries._sample import Sample
 from .._channel_registry import ChannelRegistry
 
 
