@@ -10,7 +10,8 @@ from typing import Sequence
 
 import time_machine
 
-from frequenz.sdk.timeseries import GroupResampler, Resampler, Sample
+from frequenz.sdk.core import Sample
+from frequenz.sdk.timeseries import GroupResampler, Resampler
 
 
 # pylint: disable=unused-argument

@@ -13,8 +13,8 @@ from frequenz.sdk.actor import (
     ComponentMetricRequest,
     ComponentMetricsResamplingActor,
 )
+from frequenz.sdk.core import Sample
 from frequenz.sdk.microgrid.component import ComponentMetricId
-from frequenz.sdk.timeseries import Sample
 
 
 def _now(*, shift: float = 0.0) -> datetime:

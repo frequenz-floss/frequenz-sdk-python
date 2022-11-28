@@ -8,7 +8,7 @@ from collections import deque
 from datetime import datetime, timedelta, timezone
 from typing import Callable, Deque, Dict, Generator, Optional, Sequence, Tuple
 
-from ._sample import Sample
+from ..core import Sample
 
 logger = logging.Logger(__name__)
 

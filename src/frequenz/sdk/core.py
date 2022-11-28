@@ -1,7 +1,7 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""Common types for the Data Pipeline."""
+"""Core SDK types."""
 
 from dataclasses import dataclass
 from datetime import datetime

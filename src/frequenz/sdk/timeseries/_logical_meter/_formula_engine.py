@@ -11,7 +11,7 @@ from typing import Dict, List, Optional, Set
 
 from frequenz.channels import Receiver
 
-from .._sample import Sample
+from ...core import Sample
 from ._formula_steps import (
     Adder,
     Divider,

@@ -8,9 +8,13 @@ from typing import Dict, List, Tuple
 
 from frequenz.channels import Broadcast
 
-from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries.logical_meter._formula_engine import FormulaEngine
-from frequenz.sdk.timeseries.logical_meter._tokenizer import Token, Tokenizer, TokenType
+from frequenz.sdk.core import Sample
+from frequenz.sdk.timeseries._logical_meter._formula_engine import FormulaEngine
+from frequenz.sdk.timeseries._logical_meter._tokenizer import (
+    Token,
+    Tokenizer,
+    TokenType,
+)
 
 
 class TestTokenizer:

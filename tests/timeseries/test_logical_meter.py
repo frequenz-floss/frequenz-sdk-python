@@ -24,8 +24,8 @@ from frequenz.sdk.actor import (
     DataSourcingActor,
 )
 from frequenz.sdk.microgrid.component import ComponentMetricId
-from frequenz.sdk.timeseries.logical_meter import LogicalMeter
-from frequenz.sdk.timeseries.logical_meter._formula_builder import FormulaBuilder
+from frequenz.sdk.timeseries import LogicalMeter
+from frequenz.sdk.timeseries._logical_meter._formula_builder import FormulaBuilder
 from tests.microgrid import mock_api
 
 

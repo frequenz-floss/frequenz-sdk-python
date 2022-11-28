@@ -12,6 +12,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 from frequenz.channels import Receiver, Sender
 
 from ... import microgrid
+from ...core import Sample
 from ...microgrid.component import (
     BatteryData,
     ComponentCategory,
@@ -20,7 +21,6 @@ from ...microgrid.component import (
     InverterData,
     MeterData,
 )
-from ...timeseries._sample import Sample
 from .._channel_registry import ChannelRegistry
 
 
