@@ -195,7 +195,9 @@ async def run() -> None:
     )
 
     # Channel to communicate between actors.
-    request_channel = Broadcast[List[float]]("RequestChannel", resend_latest=True)
+    power_dist_req_chan = Broadcast[List[float]](
+        "power-distribing-req", resend_latest=True
+    )
 
     # You should get components from ComponentGraph, not from the api.
     # It is faster and and non blocking approach.
@@ -205,7 +207,7 @@ async def run() -> None:
     )
 
     service_actor = DecisionMakingActor(
-        power_channel=request_channel.new_receiver(),
+        power_channel=power_dist_req_chan.new_receiver(),
         power_distributor_handle=power_distributor_channels[
             sending_actor_id
         ].client_handle,
@@ -213,7 +215,7 @@ async def run() -> None:
     )
 
     client_actor = DataCollectingActor(
-        request_channel=request_channel.new_sender(),
+        request_channel=power_dist_req_chan.new_sender(),
         active_power_data=microgrid_data_channels[
             "batteries_active_power"
         ].new_receiver(name="DecisionMakingActor"),
