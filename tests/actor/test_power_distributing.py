@@ -13,11 +13,13 @@ from unittest.mock import AsyncMock, MagicMock
 
 from frequenz.channels import Bidirectional, Broadcast, Receiver, Sender
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
+from pytest_mock import MockerFixture
 
 from frequenz.sdk.actor.power_distributing import (
     PowerDistributingActor,
     Request,
     Result,
+    _BrokenComponents,
 )
 from frequenz.sdk.microgrid._graph import _MicrogridComponentGraph
 from frequenz.sdk.microgrid.client import Connection
@@ -738,3 +740,43 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         assert result.status == Result.Status.ERROR
         # User is interested in batteries only.
         assert result.error_message == "No data for the given batteries {106, 206}"
+
+
+class TestBrokenComponents:
+    """Test if BrokenComponents class is working as expected."""
+
+    def test_broken_components(self, mocker: MockerFixture) -> None:
+        """Check if components are blocked for 30 seconds.
+
+        Args:
+            mocker: pytest mocker
+        """
+        datetime_mock = mocker.patch("frequenz.sdk.actor.power_distributing.datetime")
+
+        expected_datetime = [
+            datetime.fromisoformat("2001-01-01T00:00:00+00:00"),
+            datetime.fromisoformat("2001-01-01T00:00:10+00:00"),
+            datetime.fromisoformat("2001-01-01T00:00:20+00:00"),
+        ]
+        expected_datetime.extend(
+            20 * [datetime.fromisoformat("2001-01-01T00:00:31+00:00")]
+        )
+
+        datetime_mock.now.side_effect = expected_datetime
+
+        # After 30 seconds components should be considered as working
+        broken = _BrokenComponents(30)
+
+        for component_id in range(3):
+            broken.mark_as_broken(component_id)
+
+        # Component 0 was marked as broken 30 seconds ago. Other components, not.
+        assert not broken.is_broken(0)
+        assert broken.is_broken(1)
+        assert broken.is_broken(2)
+        assert broken.get_working_subset({0, 1}) == {0}
+        assert broken.get_working_subset({0}) == {0}
+
+        # If all requested components are marked as broken,
+        # then we should mark them as working to not block user command.
+        assert broken.get_working_subset({1, 2}) == {1, 2}

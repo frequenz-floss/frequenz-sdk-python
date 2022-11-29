@@ -91,6 +91,34 @@ class _BrokenComponents:
         """
         self._timeout_sec = timeout_sec
 
+    def get_working_subset(self, components_ids: Set[int]) -> Set[int]:
+        """Get subset of batteries that are not marked as broken.
+
+        If all given batteries are broken, then mark them as working and return them.
+        This is temporary workaround to not block user command.
+
+        Args:
+            components_ids: set of component ids
+
+        Returns:
+            Subset of given components_ids with working components.
+        """
+        working = set(filter(lambda cid: not self.is_broken(cid), components_ids))
+
+        if len(working) == 0:
+            _logger.warning(
+                "All requested components: %s are marked as broken. "
+                "Marking them as working to not block command.",
+                str(components_ids),
+            )
+
+            for cid in components_ids:
+                self._broken.pop(cid, None)
+
+            working = components_ids
+
+        return working
+
     def is_broken(self, component_id: int) -> bool:
         """Check if component is marked as broken.
 
@@ -595,7 +623,8 @@ class PowerDistributingActor:
             Pairs of battery and adjacent inverter data.
         """
         pairs_data: List[InvBatPair] = []
-        for battery_id in batteries:
+
+        for battery_id in self._broken_components.get_working_subset(batteries):
             if battery_id not in self._battery_receivers:
                 raise KeyError(
                     f"No battery {battery_id}, "
@@ -603,10 +632,6 @@ class PowerDistributingActor:
                 )
 
             inverter_id: int = self._bat_inv_map[battery_id]
-            if self._broken_components.is_broken(
-                battery_id
-            ) or self._broken_components.is_broken(inverter_id):
-                continue
 
             battery_data: Optional[BatteryData] = self._battery_receivers[
                 battery_id
