@@ -10,8 +10,13 @@
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+- A logical meter implementation that can apply formulas on resampled component
+  data streams.
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+- The component graph expected inverters to always have successors, and so
+  wasn't able to support PV inverters, which don't have component successors.
+  This is resolved by temporarily removing the requirement for inverters to have
+  successors.  This will be partially reverted later by expecting just battery
+  inverters to have graph successors.
