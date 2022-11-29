@@ -25,18 +25,14 @@ async def run() -> None:  # pylint: disable=too-many-locals
     """Run main functions that initializes and creates everything."""
     await microgrid.initialize(HOST, PORT)
 
-    channel_registry = ChannelRegistry(name="Microgrid Channel Registry")
+    channel_registry = ChannelRegistry(name="data-registry")
 
     # Create a channels for sending/receiving subscription requests
-    data_source_request_channel = Broadcast[ComponentMetricRequest](
-        "Data Source Request Channel"
-    )
+    data_source_request_channel = Broadcast[ComponentMetricRequest]("data-source")
     data_source_request_sender = data_source_request_channel.new_sender()
     data_source_request_receiver = data_source_request_channel.new_receiver()
 
-    resampling_actor_request_channel = Broadcast[ComponentMetricRequest](
-        "Resampling Actor Request Channel"
-    )
+    resampling_actor_request_channel = Broadcast[ComponentMetricRequest]("resample")
     resampling_actor_request_sender = resampling_actor_request_channel.new_sender()
     resampling_actor_request_receiver = resampling_actor_request_channel.new_receiver()
 
@@ -63,7 +59,7 @@ async def run() -> None:  # pylint: disable=too-many-locals
     # Create subscription requests for each time series id
     subscription_requests = [
         ComponentMetricRequest(
-            namespace="Resampling",
+            namespace="resampling",
             component_id=component_id,
             metric_id=ComponentMetricId.SOC,
             start_time=None,
@@ -79,18 +75,18 @@ async def run() -> None:  # pylint: disable=too-many-locals
         ]
     )
 
-    # Store sample receivers for each subscription
-    sample_receiver = MergeNamed(
+    # Merge sample receivers for each subscription into one receiver
+    merged_receiver = MergeNamed(
         **{
-            channel_name: channel_registry.new_receiver(channel_name)
-            for channel_name in map(
-                lambda req: req.get_channel_name(), subscription_requests
+            req.get_channel_name(): channel_registry.new_receiver(
+                req.get_channel_name()
             )
+            for req in subscription_requests
         }
     )
 
-    async for channel_name, msg in sample_receiver:
-        print(msg)
+    async for channel_name, msg in merged_receiver:
+        print(f"{channel_name}: {msg}")
 
 
 asyncio.run(run())
