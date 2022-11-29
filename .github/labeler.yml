@@ -23,6 +23,7 @@
 "part:docs": 
   - "**/*.md"
   - "docs/**"
+  - "examples/**"
   - LICENSE
 
 "part:microgrid":
