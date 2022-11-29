@@ -485,18 +485,6 @@ class _MicrogridComponentGraph(ComponentGraph):
                 f"{missing_predecessors}"
             )
 
-        missing_successors = list(
-            filter(
-                lambda c: sum(1 for _ in self.successors(c.component_id)) == 0,
-                intermediary_components,
-            )
-        )
-        if len(missing_successors) > 0:
-            raise InvalidGraphError(
-                "Intermediary components without graph successors: "
-                f"{missing_successors}"
-            )
-
     def _validate_junctions(self) -> None:
         """Check that junctions are configured correctly in the graph.
 

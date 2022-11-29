@@ -1118,11 +1118,7 @@ class Test_MicrogridComponentGraph:
             ]
         )
         graph._graph.add_edges_from([(1, 3)])
-        with pytest.raises(
-            gr.InvalidGraphError,
-            match="Intermediary components without graph successors",
-        ):
-            graph._validate_intermediary_components()
+        graph._validate_intermediary_components()
 
         graph._graph.clear()
 
@@ -1134,11 +1130,7 @@ class Test_MicrogridComponentGraph:
             ]
         )
         graph._graph.add_edges_from([(1, 2), (2, 3)])
-        with pytest.raises(
-            gr.InvalidGraphError,
-            match="Intermediary components without graph successors",
-        ):
-            graph._validate_intermediary_components()
+        graph._validate_intermediary_components()
 
         # all intermediary nodes have at least one predecessor
         # and at least one successor
