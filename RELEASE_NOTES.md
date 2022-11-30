@@ -2,16 +2,17 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
-
-## Upgrading
-
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with --> 
+This release mainly introduces the `LogicalMeter`. There should be no breaking
+changes.
 
 ## New Features
 
 - A logical meter implementation that can apply formulas on resampled component
   data streams.
+
+- The `ComponentGraph` now supports *dangling* inverters, i.e. inverters
+  without a successor. This is mainly to support PVs inverters. In the future
+  *dangling* inverters will be forbidden again but only for batteries.
 
 ## Bug Fixes
 
