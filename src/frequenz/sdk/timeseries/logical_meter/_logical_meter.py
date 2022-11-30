@@ -60,7 +60,7 @@ class LogicalMeter:
             self._resampler_subscription_sender,
             metric_id,
         )
-        return await builder.from_string(formula)
+        return await builder.from_string(formula, False)
 
     async def _run_formula(
         self, formula: FormulaEngine, sender: Sender[Sample]
