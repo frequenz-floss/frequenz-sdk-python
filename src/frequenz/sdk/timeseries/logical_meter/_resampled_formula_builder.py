@@ -13,7 +13,7 @@ from ._formula_engine import FormulaEngine
 from ._tokenizer import Tokenizer, TokenType
 
 
-class FormulaBuilder:
+class ResampledFormulaBuilder:
     """Provides a way to build a FormulaEngine from resampled data streams."""
 
     def __init__(
@@ -23,7 +23,7 @@ class FormulaBuilder:
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         metric_id: ComponentMetricId,
     ) -> None:
-        """Create a `FormulaBuilder` instance.
+        """Create a `ResampledFormulaBuilder` instance.
 
         Args:
             namespace: The unique namespace to allow reuse of streams in the data
@@ -44,7 +44,7 @@ class FormulaBuilder:
         """Get a receiver with the resampled data for the given component id.
 
         This receiver would contain data for the `metric_id` specified when creating the
-        `FormulaBuilder` instance.
+        `ResampledFormulaBuilder` instance.
 
         Args:
             component_id: The component id for which to get a resampled data receiver.
