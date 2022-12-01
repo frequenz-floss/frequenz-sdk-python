@@ -58,16 +58,24 @@ class FormulaBuilder:
         await self._resampler_subscription_sender.send(request)
         return self._channel_registry.new_receiver(request.get_channel_name())
 
-    async def push_component_metric(self, component_id: int) -> None:
+    async def push_component_metric(
+        self, component_id: int, nones_are_zeros: bool
+    ) -> None:
         """Push a resampled component metric stream to the formula engine.
 
         Args:
             component_id: The component id for which to push a metric fetcher.
+            nones_are_zeros: Whether to treat None values from the stream as 0s.  If
+                False, the returned value will be a None.
         """
         receiver = await self._get_resampled_receiver(component_id)
-        self._formula.push_metric(f"#{component_id}", receiver)
+        self._formula.push_metric(f"#{component_id}", receiver, nones_are_zeros)
 
-    async def from_string(self, formula: str) -> FormulaEngine:
+    async def from_string(
+        self,
+        formula: str,
+        nones_are_zeros: bool,
+    ) -> FormulaEngine:
         """Construct a `FormulaEngine` from the given formula string.
 
         Formulas can have Component IDs that are preceeded by a pound symbol("#"), and
@@ -78,6 +86,8 @@ class FormulaBuilder:
 
         Args:
             formula: A string formula.
+            nones_are_zeros: Whether to treat None values from the stream as 0s.  If
+                False, the returned value will be a None.
 
         Returns:
             A FormulaEngine instance corresponding to the given formula.
@@ -89,7 +99,7 @@ class FormulaBuilder:
 
         for token in tokenizer:
             if token.type == TokenType.COMPONENT_METRIC:
-                await self.push_component_metric(int(token.value))
+                await self.push_component_metric(int(token.value), nones_are_zeros)
             elif token.type == TokenType.OPER:
                 self._formula.push_oper(token.value)
             else:

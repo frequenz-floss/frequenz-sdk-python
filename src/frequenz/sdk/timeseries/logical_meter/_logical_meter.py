@@ -52,7 +52,7 @@ class LogicalMeter:
         self._tasks: List[asyncio.Task[None]] = []
 
     async def _engine_from_formula_string(
-        self, formula: str, metric_id: ComponentMetricId
+        self, formula: str, metric_id: ComponentMetricId, nones_are_zeros: bool
     ) -> FormulaEngine:
         builder = FormulaBuilder(
             self._namespace,
@@ -60,7 +60,7 @@ class LogicalMeter:
             self._resampler_subscription_sender,
             metric_id,
         )
-        return await builder.from_string(formula)
+        return await builder.from_string(formula, nones_are_zeros)
 
     async def _run_formula(
         self, formula: FormulaEngine, sender: Sender[Sample]
@@ -78,6 +78,7 @@ class LogicalMeter:
         self,
         formula: str,
         component_metric_id: ComponentMetricId,
+        nones_are_zeros: bool = False,
     ) -> Receiver[Sample]:
         """Start execution of the given formula name.
 
@@ -85,6 +86,8 @@ class LogicalMeter:
             formula: formula to execute.
             component_metric_id: The metric ID to use when fetching receivers from the
                 resampling actor.
+            nones_are_zeros: Whether to treat None values from the stream as 0s.  If
+                False, the returned value will be a None.
 
         Returns:
             A Receiver that streams values with the formulas applied.
@@ -94,8 +97,7 @@ class LogicalMeter:
             return self._output_channels[channel_key].new_receiver()
 
         formula_engine = await self._engine_from_formula_string(
-            formula,
-            component_metric_id,
+            formula, component_metric_id, nones_are_zeros
         )
         out_chan = Broadcast[Sample](channel_key)
         self._output_channels[channel_key] = out_chan

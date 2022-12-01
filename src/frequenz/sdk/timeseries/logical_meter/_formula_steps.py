@@ -27,7 +27,7 @@ class FormulaStep(ABC):
         """
 
     @abstractmethod
-    def apply(self, eval_stack: List[float]) -> None:
+    def apply(self, eval_stack: List[Optional[float]]) -> None:
         """Apply a formula operation on the eval_stack.
 
         Args:
@@ -46,7 +46,7 @@ class Adder(FormulaStep):
         """
         return "+"
 
-    def apply(self, eval_stack: List[float]) -> None:
+    def apply(self, eval_stack: List[Optional[float]]) -> None:
         """Extract two values from the stack, add them, push the result back in.
 
         Args:
@@ -54,7 +54,11 @@ class Adder(FormulaStep):
         """
         val2 = eval_stack.pop()
         val1 = eval_stack.pop()
-        eval_stack.append(val1 + val2)
+        if val1 is None or val2 is None:
+            res = None
+        else:
+            res = val1 + val2
+        eval_stack.append(res)
 
 
 class Subtractor(FormulaStep):
@@ -68,7 +72,7 @@ class Subtractor(FormulaStep):
         """
         return "-"
 
-    def apply(self, eval_stack: List[float]) -> None:
+    def apply(self, eval_stack: List[Optional[float]]) -> None:
         """Extract two values from the stack, subtract them, push the result back in.
 
         Args:
@@ -76,7 +80,11 @@ class Subtractor(FormulaStep):
         """
         val2 = eval_stack.pop()
         val1 = eval_stack.pop()
-        eval_stack.append(val1 - val2)
+        if val1 is None or val2 is None:
+            res = None
+        else:
+            res = val1 - val2
+        eval_stack.append(res)
 
 
 class Multiplier(FormulaStep):
@@ -90,7 +98,7 @@ class Multiplier(FormulaStep):
         """
         return "*"
 
-    def apply(self, eval_stack: List[float]) -> None:
+    def apply(self, eval_stack: List[Optional[float]]) -> None:
         """Extract two values from the stack, multiply them, push the result back in.
 
         Args:
@@ -98,7 +106,11 @@ class Multiplier(FormulaStep):
         """
         val2 = eval_stack.pop()
         val1 = eval_stack.pop()
-        eval_stack.append(val1 * val2)
+        if val1 is None or val2 is None:
+            res = None
+        else:
+            res = val1 * val2
+        eval_stack.append(res)
 
 
 class Divider(FormulaStep):
@@ -112,7 +124,7 @@ class Divider(FormulaStep):
         """
         return "/"
 
-    def apply(self, eval_stack: List[float]) -> None:
+    def apply(self, eval_stack: List[Optional[float]]) -> None:
         """Extract two values from the stack, divide them, push the result back in.
 
         Args:
@@ -120,7 +132,11 @@ class Divider(FormulaStep):
         """
         val2 = eval_stack.pop()
         val1 = eval_stack.pop()
-        eval_stack.append(val1 / val2)
+        if val1 is None or val2 is None:
+            res = None
+        else:
+            res = val1 / val2
+        eval_stack.append(res)
 
 
 class OpenParen(FormulaStep):
@@ -137,23 +153,27 @@ class OpenParen(FormulaStep):
         """
         return "("
 
-    def apply(self, _: List[float]) -> None:
+    def apply(self, _: List[Optional[float]]) -> None:
         """No-op."""
 
 
 class MetricFetcher(FormulaStep):
     """A formula step for fetching a value from a metric Receiver."""
 
-    def __init__(self, name: str, stream: Receiver[Sample]) -> None:
+    def __init__(
+        self, name: str, stream: Receiver[Sample], nones_are_zeros: bool
+    ) -> None:
         """Create a `MetricFetcher` instance.
 
         Args:
             name: The name of the metric.
             stream: A channel receiver from which to fetch samples.
+            nones_are_zeros: Whether to treat None values from the stream as 0s.
         """
         self._name = name
         self._stream = stream
         self._next_value: Optional[Sample] = None
+        self._nones_are_zeros = nones_are_zeros
 
     async def fetch_next(self) -> Optional[Sample]:
         """Fetch the next value from the stream.
@@ -174,7 +194,7 @@ class MetricFetcher(FormulaStep):
         """
         return self._name
 
-    def apply(self, eval_stack: List[float]) -> None:
+    def apply(self, eval_stack: List[Optional[float]]) -> None:
         """Push the latest value from the stream into the evaluation stack.
 
         Args:
@@ -183,6 +203,9 @@ class MetricFetcher(FormulaStep):
         Raises:
             RuntimeError: No next value available to append.
         """
-        if self._next_value is None or self._next_value.value is None:
+        if self._next_value is None:
             raise RuntimeError("No next value available to append.")
-        eval_stack.append(self._next_value.value)
+        if self._next_value.value is None and self._nones_are_zeros:
+            eval_stack.append(0.0)
+        else:
+            eval_stack.append(self._next_value.value)

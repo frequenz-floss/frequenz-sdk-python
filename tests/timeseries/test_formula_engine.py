@@ -4,7 +4,7 @@
 """Tests for the FormulaEngine and the Tokenizer."""
 
 from datetime import datetime
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from frequenz.channels import Broadcast
 
@@ -56,7 +56,11 @@ class TestFormulaEngine:
         # pylint: enable=attribute-defined-outside-init
 
     async def run_test(
-        self, formula: str, postfix: str, io_pairs: List[Tuple[List[float], float]]
+        self,
+        formula: str,
+        postfix: str,
+        io_pairs: List[Tuple[List[Optional[float]], Optional[float]]],
+        nones_are_zeros: bool = False,
     ) -> None:
         channels: Dict[str, Broadcast[Sample]] = {}
         engine = FormulaEngine()
@@ -65,7 +69,9 @@ class TestFormulaEngine:
                 if token.value not in channels:
                     channels[token.value] = Broadcast(token.value)
                 engine.push_metric(
-                    f"#{token.value}", channels[token.value].new_receiver()
+                    f"#{token.value}",
+                    channels[token.value].new_receiver(),
+                    nones_are_zeros,
                 )
             elif token.type == TokenType.OPER:
                 engine.push_oper(token.value)
@@ -169,4 +175,60 @@ class TestFormulaEngine:
                 ([10.0, 12.0, 15.0, 2.0], 14.5),
                 ([15.0, 17.0, 20.0, 5.0], 28.0),
             ],
+        )
+
+    async def test_nones_are_zeros(self) -> None:
+        """Test that `None`s are treated as zeros when configured."""
+        await self.run_test(
+            "#2 - #4 + #5",
+            "[#2, #4, -, #5, +]",
+            [
+                ([10.0, 12.0, 15.0], 13.0),
+                ([None, 12.0, 15.0], 3.0),
+                ([10.0, None, 15.0], 25.0),
+                ([15.0, 17.0, 20.0], 18.0),
+                ([15.0, None, None], 15.0),
+            ],
+            True,
+        )
+
+        await self.run_test(
+            "#2 + #4 - (#5 * #6)",
+            "[#2, #4, #5, #6, *, -, +]",
+            [
+                ([10.0, 12.0, 15.0, 2.0], -8.0),
+                ([10.0, 12.0, 15.0, None], 22.0),
+                ([10.0, None, 15.0, 2.0], -20.0),
+                ([15.0, 17.0, 20.0, 5.0], -68.0),
+                ([15.0, 17.0, None, 5.0], 32.0),
+            ],
+            True,
+        )
+
+    async def test_nones_are_not_zeros(self) -> None:
+        """Test that calculated values are `None` on input `None`s."""
+        await self.run_test(
+            "#2 - #4 + #5",
+            "[#2, #4, -, #5, +]",
+            [
+                ([10.0, 12.0, 15.0], 13.0),
+                ([None, 12.0, 15.0], None),
+                ([10.0, None, 15.0], None),
+                ([15.0, 17.0, 20.0], 18.0),
+                ([15.0, None, None], None),
+            ],
+            False,
+        )
+
+        await self.run_test(
+            "#2 + #4 - (#5 * #6)",
+            "[#2, #4, #5, #6, *, -, +]",
+            [
+                ([10.0, 12.0, 15.0, 2.0], -8.0),
+                ([10.0, 12.0, 15.0, None], None),
+                ([10.0, None, 15.0, 2.0], None),
+                ([15.0, 17.0, 20.0, 5.0], -68.0),
+                ([15.0, 17.0, None, 5.0], None),
+            ],
+            False,
         )

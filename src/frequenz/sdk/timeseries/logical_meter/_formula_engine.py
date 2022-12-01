@@ -95,15 +95,22 @@ class FormulaEngine:
         elif oper == "(":
             self._build_stack.append(OpenParen())
 
-    def push_metric(self, name: str, data_stream: Receiver[Sample]) -> None:
+    def push_metric(
+        self,
+        name: str,
+        data_stream: Receiver[Sample],
+        nones_are_zeros: bool,
+    ) -> None:
         """Push a metric receiver into the engine.
 
         Args:
             name: A name for the metric.
             data_stream: A receiver to fetch this metric from.
+            nones_are_zeros: Whether to treat None values from the stream as 0s.  If
+                False, the returned value will be a None.
         """
         fetcher = self._metric_fetchers.setdefault(
-            name, MetricFetcher(name, data_stream)
+            name, MetricFetcher(name, data_stream, nones_are_zeros)
         )
         self._steps.append(fetcher)
 
@@ -171,7 +178,7 @@ class FormulaEngine:
             RuntimeError: if some samples didn't arrive, or if formula application
                 failed.
         """
-        eval_stack: List[float] = []
+        eval_stack: List[Optional[float]] = []
         ready_metrics, pending = await asyncio.wait(
             [
                 asyncio.create_task(fetcher.fetch_next(), name=name)
