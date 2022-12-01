@@ -9,7 +9,7 @@ from frequenz.channels import Receiver, Sender
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid.component import ComponentMetricId
 from .._sample import Sample
-from ._formula_engine import FormulaEngine
+from ._formula_engine import FormulaBuilder, FormulaEngine
 from ._tokenizer import Tokenizer, TokenType
 
 
@@ -37,7 +37,7 @@ class ResampledFormulaBuilder:
         self._channel_registry = channel_registry
         self._resampler_subscription_sender = resampler_subscription_sender
         self._namespace = namespace
-        self._formula = FormulaEngine()
+        self._formula = FormulaBuilder()
         self._metric_id = metric_id
 
     async def _get_resampled_receiver(self, component_id: int) -> Receiver[Sample]:
@@ -105,5 +105,4 @@ class ResampledFormulaBuilder:
             else:
                 raise ValueError(f"Unknown token type: {token}")
 
-        self._formula.finalize()
-        return self._formula
+        return self._formula.build()
