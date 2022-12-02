@@ -44,6 +44,7 @@ from ...microgrid.component import (
     InverterData,
 )
 from ...power import DistributionAlgorithm, InvBatPair
+from .request import Request
 
 _logger = logging.getLogger(__name__)
 
@@ -137,25 +138,6 @@ class _BrokenComponents:
 
             del self._broken[component_id]
         return False
-
-
-@dataclass
-class Request:
-    """Request from the user."""
-
-    # How much power to set
-    power: int
-    # In which batteries the power should be set
-    batteries: Set[int]
-    # Timeout for the server to respond on the request.
-    request_timeout_sec: float = 5.0
-    # If True and requested power value is out of bound, then
-    # PowerDistributor will decrease the power to match the bounds and
-    # distribute only decreased power.
-    # If False and the requested power is out of bound, then
-    # PowerDistributor will not process this request and send result with status
-    # Result.Status.OUT_OF_BOUND.
-    adjust_power: bool = True
 
 
 @dataclass

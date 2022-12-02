@@ -10,6 +10,7 @@ It also provides all the secondary features that should be used to communicate w
 PowerDistributingActor and send requests for charging or discharging power.
 """
 
-from .power_distributing import PowerDistributingActor, Request, Result
+from .power_distributing import PowerDistributingActor, Result
+from .request import Request
 
 __all__ = ["PowerDistributingActor", "Request", "Result"]
