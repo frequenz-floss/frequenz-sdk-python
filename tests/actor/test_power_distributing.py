@@ -19,8 +19,8 @@ from frequenz.sdk.actor.power_distributing import (
     PowerDistributingActor,
     Request,
     Result,
-    _BrokenComponents,
 )
+from frequenz.sdk.actor.power_distributing.power_distributing import _BrokenComponents
 from frequenz.sdk.microgrid._graph import _MicrogridComponentGraph
 from frequenz.sdk.microgrid.client import Connection
 from frequenz.sdk.microgrid.component import (
@@ -751,7 +751,9 @@ class TestBrokenComponents:
         Args:
             mocker: pytest mocker
         """
-        datetime_mock = mocker.patch("frequenz.sdk.actor.power_distributing.datetime")
+        datetime_mock = mocker.patch(
+            "frequenz.sdk.actor.power_distributing.power_distributing.datetime"
+        )
 
         expected_datetime = [
             datetime.fromisoformat("2001-01-01T00:00:00+00:00"),
