@@ -51,7 +51,6 @@ def test_component_metric_resampler_remove_outdated_samples() -> None:
 
     resampler._remove_outdated_samples(threshold=timestamp)
     assert list(resampler._buffer) == [
-        sample1,
         sample2,
     ]  # pylint: disable=protected-access
 
@@ -144,7 +143,7 @@ def test_component_metric_group_resampler() -> None:
     value22 = 999.0
 
     sample11 = Sample(now - timedelta(seconds=0.7), value=value11)
-    sample12 = Sample(now - timedelta(seconds=0.5), value=value12)
+    sample12 = Sample(now - timedelta(seconds=0.49), value=value12)
     sample21 = Sample(now - timedelta(seconds=5.05), value=value21)
     sample22 = Sample(now - timedelta(seconds=0.99), value=value22)
 

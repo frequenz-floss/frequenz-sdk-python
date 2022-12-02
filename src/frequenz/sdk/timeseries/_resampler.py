@@ -94,7 +94,7 @@ class Resampler:
         """
         while self._buffer:
             sample: Sample = self._buffer[0]
-            if sample.timestamp >= threshold:
+            if sample.timestamp > threshold:
                 return
 
             self._buffer.popleft()
