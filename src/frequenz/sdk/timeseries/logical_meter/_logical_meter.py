@@ -12,7 +12,7 @@ from frequenz.channels import Broadcast, Receiver, Sender
 
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid.component import ComponentMetricId
-from .._sample import Sample
+from .. import Sample
 from ._formula_engine import FormulaEngine
 from ._resampled_formula_builder import ResampledFormulaBuilder
 

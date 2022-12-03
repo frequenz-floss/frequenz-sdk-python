@@ -8,7 +8,7 @@ from typing import List, Optional
 
 from frequenz.channels import Receiver
 
-from .._sample import Sample
+from .. import Sample
 
 
 class FormulaStep(ABC):
