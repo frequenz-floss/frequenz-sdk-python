@@ -32,9 +32,9 @@ async def run() -> None:  # pylint: disable=too-many-locals
     data_source_request_sender = data_source_request_channel.new_sender()
     data_source_request_receiver = data_source_request_channel.new_receiver()
 
-    resampling_actor_request_channel = Broadcast[ComponentMetricRequest]("resample")
-    resampling_actor_request_sender = resampling_actor_request_channel.new_sender()
-    resampling_actor_request_receiver = resampling_actor_request_channel.new_receiver()
+    resampling_request_channel = Broadcast[ComponentMetricRequest]("resample")
+    resampling_request_sender = resampling_request_channel.new_sender()
+    resampling_request_receiver = resampling_request_channel.new_receiver()
 
     # Instantiate a data sourcing actor
     _data_sourcing_actor = DataSourcingActor(
@@ -44,8 +44,8 @@ async def run() -> None:  # pylint: disable=too-many-locals
     # Instantiate a resampling actor
     _resampling_actor = ComponentMetricsResamplingActor(
         channel_registry=channel_registry,
-        subscription_sender=data_source_request_sender,
-        subscription_receiver=resampling_actor_request_receiver,
+        data_sourcing_request_sender=data_source_request_sender,
+        resampling_request_receiver=resampling_request_receiver,
         resampling_period_s=1.0,
     )
 
@@ -69,10 +69,7 @@ async def run() -> None:  # pylint: disable=too-many-locals
 
     # Send the subscription requests
     await asyncio.gather(
-        *[
-            resampling_actor_request_sender.send(request)
-            for request in subscription_requests
-        ]
+        *[resampling_request_sender.send(request) for request in subscription_requests]
     )
 
     # Merge sample receivers for each subscription into one receiver

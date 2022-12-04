@@ -45,9 +45,10 @@ class ComponentMetricsResamplingActor:
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
+        *,
         channel_registry: ChannelRegistry,
-        subscription_sender: Sender[ComponentMetricRequest],
-        subscription_receiver: Receiver[ComponentMetricRequest],
+        data_sourcing_request_sender: Sender[ComponentMetricRequest],
+        resampling_request_receiver: Receiver[ComponentMetricRequest],
         resampling_period_s: float = 0.2,
         max_data_age_in_periods: float = 3.0,
         resampling_function: ResamplingFunction = average,
@@ -55,93 +56,32 @@ class ComponentMetricsResamplingActor:
         """Initialize the ComponentMetricsResamplingActor.
 
         Args:
-            channel_registry: global channel registry used for receiving component
-                data from DataSource and for sending resampled samples downstream
-            subscription_sender: channel for sending component metric requests to the
-                DataSourcing actor
-            subscription_receiver: channel for receiving component metric requests
-            resampling_period_s: value describing how often resampling should be
-                performed, in seconds
-            max_data_age_in_periods: max age that samples shouldn't exceed in order
-                to be used in the resampling function
-            resampling_function: function to be applied to a sequence of samples within
-                a resampling period to produce a single output sample
-
-        Example:
-            ```python
-            async def run() -> None:
-                await microgrid_api.initialize(HOST, PORT)
-
-                channel_registry = ChannelRegistry(name="Microgrid Channel Registry")
-
-                data_source_request_channel = Broadcast[ComponentMetricRequest](
-                    "Data Source Request Channel"
-                )
-                data_source_request_sender = data_source_request_channel.new_sender()
-                data_source_request_receiver = data_source_request_channel.new_receiver()
-
-                resampling_actor_request_channel = Broadcast[ComponentMetricRequest](
-                    "Resampling Actor Request Channel"
-                )
-                resampling_actor_request_sender = resampling_actor_request_channel.new_sender()
-                resampling_actor_request_receiver = resampling_actor_request_channel.new_receiver()
-
-                _data_sourcing_actor = DataSourcingActor(
-                    request_receiver=data_source_request_receiver, registry=channel_registry
-                )
-
-                _resampling_actor = ComponentMetricsResamplingActor(
-                    channel_registry=channel_registry,
-                    subscription_sender=data_source_request_sender,
-                    subscription_receiver=resampling_actor_request_receiver,
-                    resampling_period_s=1.0,
-                )
-
-                components = await microgrid_api.get().microgrid_api_client.components()
-                battery_ids = [
-                    comp.component_id
-                    for comp in components
-                    if comp.category == ComponentCategory.BATTERY
-                ]
-
-                subscription_requests = [
-                    ComponentMetricRequest(
-                        namespace="Resampling",
-                        component_id=component_id,
-                        metric_id=ComponentMetricId.SOC,
-                        start_time=None,
-                    )
-                    for component_id in battery_ids
-                ]
-
-                await asyncio.gather(
-                    *[
-                        resampling_actor_request_sender.send(request)
-                        for request in subscription_requests
-                    ]
-                )
-
-                sample_receiver = MergeNamed(
-                    **{
-                        channel_name: channel_registry.new_receiver(channel_name)
-                        for channel_name in map(
-                            lambda req: req.get_channel_name(), subscription_requests
-                        )
-                    }
-                )
-
-                async for channel_name, msg in sample_receiver:
-                    print(msg)
-
-            asyncio.run(run())
-            ```
+            channel_registry: The channel registry used to get senders and
+                receivers for data sourcing subscriptions.
+            data_sourcing_request_sender: The sender used to send requests to
+                the [`DataSourcingActor`][frequenz.sdk.actor.DataSourcingActor]
+                to subscribe to component metrics.
+            resampling_request_receiver: The receiver to use to receive new
+                resampmling subscription requests.
+            resampling_period_s: The time it passes between resampled data
+                should be calculated (in seconds).
+            max_data_age_in_periods: The maximum age a sample can have to be
+                considered *relevant* for resampling purposes, expressed in the
+                number of resampling periods. For exapmle is
+                `resampling_period_s` is 3 and `max_data_age_in_periods` is 2,
+                then data older than `3*2 = 6` secods will be discarded when
+                creating a new sample and never passed to the resampling
+                function.
+            resampling_function: The function to be applied to the sequence of
+                *relevant* samples at a given time. The result of the function
+                is what is sent as the resampled data.
         """
         self._channel_registry = channel_registry
-        self._subscription_sender = subscription_sender
-        self._subscription_receiver = subscription_receiver
         self._resampling_period_s = resampling_period_s
         self._max_data_age_in_periods: float = max_data_age_in_periods
         self._resampling_function: ResamplingFunction = resampling_function
+        self._data_sourcing_request_sender = data_sourcing_request_sender
+        self._resampling_request_receiver = resampling_request_receiver
         self._resampler = Resampler(
             resampling_period_s=resampling_period_s,
             max_data_age_in_periods=max_data_age_in_periods,
@@ -158,7 +98,7 @@ class ComponentMetricsResamplingActor:
             request, namespace=request.namespace + ":Source"
         )
         data_source_channel_name = data_source_request.get_channel_name()
-        await self._subscription_sender.send(data_source_request)
+        await self._data_sourcing_request_sender.send(data_source_request)
         receiver = self._channel_registry.new_receiver(data_source_channel_name)
 
         # This is a temporary hack until the Sender implementation uses
@@ -173,7 +113,7 @@ class ComponentMetricsResamplingActor:
 
     async def _process_resampling_requests(self) -> None:
         """Process resampling data requests."""
-        async for request in self._subscription_receiver:
+        async for request in self._resampling_request_receiver:
             await self._subscribe(request)
 
     async def run(self) -> None:

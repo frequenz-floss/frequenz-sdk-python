@@ -123,8 +123,8 @@ class TestLogicalMeter:
 
         ComponentMetricsResamplingActor(
             channel_registry=channel_registry,
-            subscription_sender=data_source_request_sender,
-            subscription_receiver=resampling_actor_request_receiver,
+            data_sourcing_request_sender=data_source_request_sender,
+            resampling_request_receiver=resampling_actor_request_receiver,
             resampling_period_s=0.1,
         )
 

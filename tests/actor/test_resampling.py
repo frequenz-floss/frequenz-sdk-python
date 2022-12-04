@@ -58,8 +58,8 @@ async def test_component_metrics_resampling_actor(  # pylint: disable=too-many-s
 
     resampling_actor = ComponentMetricsResamplingActor(
         channel_registry=channel_registry,
-        subscription_sender=data_source_req_chan.new_sender(),
-        subscription_receiver=resampling_req_chan.new_receiver(),
+        data_sourcing_request_sender=data_source_req_chan.new_sender(),
+        resampling_request_receiver=resampling_req_chan.new_receiver(),
         resampling_period_s=0.2,
         max_data_age_in_periods=2,
     )
