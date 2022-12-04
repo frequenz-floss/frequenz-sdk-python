@@ -3,6 +3,7 @@
 
 """Tests for the FormulaEngine and the Tokenizer."""
 
+import asyncio
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
@@ -62,6 +63,7 @@ class TestFormulaEngine:
         io_pairs: List[Tuple[List[Optional[float]], Optional[float]]],
         nones_are_zeros: bool = False,
     ) -> None:
+        """Run a formula test."""
         channels: Dict[str, Broadcast[Sample]] = {}
         builder = FormulaBuilder()
         for token in Tokenizer(formula):
@@ -77,17 +79,21 @@ class TestFormulaEngine:
                 builder.push_oper(token.value)
         engine = builder.build()
 
-        assert repr(engine._steps) == postfix
+        assert repr(engine._steps) == postfix  # pylint: disable=protected-access
 
         now = datetime.now()
         tests_passed = 0
         for io_pair in io_pairs:
-            input, output = io_pair
-            [
-                await chan.new_sender().send(Sample(now, value))
-                for chan, value in zip(channels.values(), input)
-            ]
-            assert (await engine.apply()).value == output
+            io_input, io_output = io_pair
+            assert all(
+                await asyncio.gather(
+                    *[
+                        chan.new_sender().send(Sample(now, value))
+                        for chan, value in zip(channels.values(), io_input)
+                    ]
+                )
+            )
+            assert (await engine.apply()).value == io_output
             tests_passed += 1
         assert tests_passed == len(io_pairs)
 
