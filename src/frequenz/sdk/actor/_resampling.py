@@ -1,7 +1,7 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""ComponentMetricsResamplingActor used to subscribe for resampled component metrics."""
+"""An actor to resample microgrid component metrics."""
 
 import asyncio
 import dataclasses
@@ -23,16 +23,15 @@ logger = logging.Logger(__name__)
 
 # pylint: disable=unused-argument
 def average(samples: Sequence[Sample], resampling_period_s: float) -> float:
-    """Calculate average of the provided values.
+    """Calculate average of all the provided values.
 
     Args:
-        samples: sequences of samples to apply the average to. It must be
-            non-empty.
-        resampling_period_s: value describing how often resampling should be
-            performed, in seconds
+        samples: The samples to apply the average to. It must be non-empty.
+        resampling_period_s: The time it passes between resampled data is
+            produced (in seconds).
 
     Returns:
-        average of all the sample values
+        The average of all `samples` values.
     """
     assert len(samples) > 0, "Average cannot be given an empty list of samples"
     values = list(sample.value for sample in samples if sample.value is not None)
@@ -41,7 +40,7 @@ def average(samples: Sequence[Sample], resampling_period_s: float) -> float:
 
 @actor
 class ComponentMetricsResamplingActor:
-    """ComponentMetricsResamplingActor used to ingest component data and resample it."""
+    """An actor to resample microgrid component metrics."""
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
@@ -53,7 +52,7 @@ class ComponentMetricsResamplingActor:
         max_data_age_in_periods: float = 3.0,
         resampling_function: ResamplingFunction = average,
     ) -> None:
-        """Initialize the ComponentMetricsResamplingActor.
+        """Initialize an instance.
 
         Args:
             channel_registry: The channel registry used to get senders and
@@ -89,10 +88,10 @@ class ComponentMetricsResamplingActor:
         )
 
     async def _subscribe(self, request: ComponentMetricRequest) -> None:
-        """Subscribe for data for a specific time series.
+        """Request data for a component metric.
 
         Args:
-            request: subscription request for a specific component metric
+            request: The request for component metric data.
         """
         data_source_request = dataclasses.replace(
             request, namespace=request.namespace + ":Source"
