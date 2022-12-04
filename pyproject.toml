@@ -100,7 +100,6 @@ src_paths = ["src", "examples", "tests"]
 asyncio_mode = "auto"
 required_plugins = [ "pytest-asyncio", "pytest-mock" ]
 
-[[tools.mypy.overrides]]
 [[tool.mypy.overrides]]
 module = [
     "grpc.aio",
