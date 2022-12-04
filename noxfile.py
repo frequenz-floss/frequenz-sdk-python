@@ -13,7 +13,14 @@ import nox
 
 FMT_DEPS = ["black", "isort"]
 DOCSTRING_DEPS = ["pydocstyle", "darglint"]
-PYTEST_DEPS = ["pytest", "pytest-cov", "pytest-mock", "pytest-asyncio", "time-machine"]
+PYTEST_DEPS = [
+    "pytest",
+    "pytest-cov",
+    "pytest-mock",
+    "pytest-asyncio",
+    "time-machine",
+    "async-solipsism",
+]
 MYPY_DEPS = ["mypy", "pandas-stubs", "grpc-stubs"]
 
 

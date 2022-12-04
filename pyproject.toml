@@ -106,3 +106,7 @@ module = [
     "grpc.aio.*"
 ]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "async_solipsism"
+ignore_missing_imports = true
