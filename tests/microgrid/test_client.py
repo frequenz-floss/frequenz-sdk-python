@@ -21,6 +21,7 @@ from frequenz.sdk.microgrid.component import (
     ComponentCategory,
     EVChargerData,
     InverterData,
+    InverterType,
     MeterData,
 )
 
@@ -97,7 +98,7 @@ class TestMicrogridGrpcClient:
             )
             assert set(await microgrid.components()) == {
                 Component(9, ComponentCategory.METER),
-                Component(99, ComponentCategory.INVERTER),
+                Component(99, ComponentCategory.INVERTER, InverterType.NONE),
                 Component(999, ComponentCategory.BATTERY),
             }
 
@@ -123,7 +124,7 @@ class TestMicrogridGrpcClient:
                 Component(101, ComponentCategory.GRID),
                 Component(103, ComponentCategory.JUNCTION),
                 Component(104, ComponentCategory.METER),
-                Component(105, ComponentCategory.INVERTER),
+                Component(105, ComponentCategory.INVERTER, InverterType.NONE),
                 Component(106, ComponentCategory.BATTERY),
                 Component(107, ComponentCategory.EV_CHARGER),
             }

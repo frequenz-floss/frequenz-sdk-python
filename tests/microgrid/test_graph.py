@@ -18,7 +18,7 @@ import pytest
 
 import frequenz.sdk.microgrid._graph as gr
 from frequenz.sdk.microgrid.client import Connection, MicrogridGrpcClient
-from frequenz.sdk.microgrid.component import Component, ComponentCategory
+from frequenz.sdk.microgrid.component import Component, ComponentCategory, InverterType
 
 from .mock_api import MockGrpcServer, MockMicrogridServicer
 
@@ -751,7 +751,7 @@ class Test_MicrogridComponentGraph:
         expected = {
             Component(707, ComponentCategory.GRID),
             Component(717, ComponentCategory.METER),
-            Component(727, ComponentCategory.INVERTER),
+            Component(727, ComponentCategory.INVERTER, InverterType.NONE),
             Component(737, ComponentCategory.BATTERY),
             Component(747, ComponentCategory.METER),
         }
@@ -1068,7 +1068,8 @@ class Test_MicrogridComponentGraph:
         with pytest.raises(
             gr.InvalidGraphError,
             match=r"Grid endpoint 1 has graph predecessors: \[Component"
-            r"\(component_id=99, category=<ComponentCategory.METER: 2>\)\]",
+            r"\(component_id=99, category=<ComponentCategory.METER: 2>, "
+            r"type=None\)\]",
         ) as _err_predecessors:
             graph._validate_grid_endpoint()
 
