@@ -42,6 +42,23 @@ Returns:
 """
 
 
+# pylint: disable=unused-argument
+def average(samples: Sequence[Sample], resampling_period_s: float) -> float:
+    """Calculate average of all the provided values.
+
+    Args:
+        samples: The samples to apply the average to. It must be non-empty.
+        resampling_period_s: The time it passes between resampled data is
+            produced (in seconds).
+
+    Returns:
+        The average of all `samples` values.
+    """
+    assert len(samples) > 0, "Average cannot be given an empty list of samples"
+    values = list(sample.value for sample in samples if sample.value is not None)
+    return sum(values) / len(values)
+
+
 class SourceStoppedError(RuntimeError):
     """A timeseries stopped producing samples."""
 
@@ -116,8 +133,8 @@ class Resampler:
     timeseries to produce `Sample`s at regular periodic intervals.
 
     This class uses
-    a [`ResamplingFunction`][frequenz.sdk.timeseries.ResamplingFunction] to
-    produce a new sample from samples received in the past. If there are no
+    a [`ResamplingFunction`][frequenz.sdk.timeseries.resampling.ResamplingFunction]
+    to produce a new sample from samples received in the past. If there are no
     samples coming to a resampled timeseries for a while, eventually the
     `Resampler` will produce `Sample`s with `None` as value, meaning there is
     no way to produce meaningful samples with the available data.
@@ -127,7 +144,7 @@ class Resampler:
         self,
         *,
         resampling_period_s: float,
-        resampling_function: ResamplingFunction,
+        resampling_function: ResamplingFunction = average,
         max_data_age_in_periods: float = 3.0,
     ) -> None:
         """Initialize an instance.

@@ -6,36 +6,24 @@
 import asyncio
 import dataclasses
 import logging
-from typing import Sequence, Set
+from typing import Set
 
 from frequenz.channels import Receiver, Sender
 
 from frequenz.sdk.util.asyncio import cancel_and_await
 
 from ..timeseries import Sample
-from ..timeseries.resampling import Resampler, ResamplingError, ResamplingFunction
+from ..timeseries.resampling import (
+    Resampler,
+    ResamplingError,
+    ResamplingFunction,
+    average,
+)
 from ._channel_registry import ChannelRegistry
 from ._data_sourcing import ComponentMetricRequest
 from ._decorator import actor
 
 logger = logging.Logger(__name__)
-
-
-# pylint: disable=unused-argument
-def average(samples: Sequence[Sample], resampling_period_s: float) -> float:
-    """Calculate average of all the provided values.
-
-    Args:
-        samples: The samples to apply the average to. It must be non-empty.
-        resampling_period_s: The time it passes between resampled data is
-            produced (in seconds).
-
-    Returns:
-        The average of all `samples` values.
-    """
-    assert len(samples) > 0, "Average cannot be given an empty list of samples"
-    values = list(sample.value for sample in samples if sample.value is not None)
-    return sum(values) / len(values)
 
 
 @actor
