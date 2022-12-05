@@ -15,13 +15,12 @@ SAFETY_TIMEOUT = 10.0
 def disable_actor_auto_restart():  # type: ignore
     """Disable auto-restart of actors while running tests.
 
-    Since this is auto-use, the yield part (and restore of the variable) is not
-    strictly needed, but we leave it as an example.
+    At some point we had a version that would set the limit back to the
+    original value but it doesn't work because some actors will keep running
+    even after the end of the session and fail after the original value was
+    reestablished, getting into an infinite loop again.
 
     Note: Test class must derive after unittest.IsolatedAsyncioTestCase.
     Otherwise this fixture won't run.
     """
-    original_restart_limit = _decorator.BaseActor.restart_limit
     _decorator.BaseActor.restart_limit = 0
-    yield
-    _decorator.BaseActor.restart_limit = original_restart_limit
