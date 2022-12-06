@@ -35,94 +35,23 @@ _operator_precedence = {
 class FormulaEngine:
     """A post-fix formula engine that operates on `Sample` receivers.
 
-    Operators and metrics need to be pushed into the engine in in-fix order, and they
-    get rearranged into post-fix in the engine.  This is done using the [Shunting yard
-    algorithm](https://en.wikipedia.org/wiki/Shunting_yard_algorithm).
-
-    Example:
-        To create an engine that adds the latest entries from two receivers, the
-        following calls need to be made:
-
-        ```python
-        engine = FormulaEngine()
-        engine.push_metric("metric_1", receiver_1)
-        engine.push_oper("+")
-        engine.push_metric("metric_2", receiver_2)
-        engine.finalize()
-        ```
-
-        and then every call to `engine.apply()` would fetch a value from each receiver,
-        add the values and return the result.
+    Use the `FormulaBuilder` to create `FormulaEngine` instances.
     """
 
     def __init__(
-        self,
+        self, steps: List[FormulaStep], metric_fetchers: Dict[str, MetricFetcher]
     ) -> None:
-        """Create a `FormulaEngine` instance."""
-        self._steps: List[FormulaStep] = []
-        self._build_stack: List[FormulaStep] = []
-        self._metric_fetchers: Dict[str, MetricFetcher] = {}
+        """Create a `FormulaEngine` instance.
+
+        Args:
+            steps: Steps for the engine to execute, in post-fix order.
+            metric_fetchers: Fetchers for each metric stream the formula depends on.
+        """
+        self._steps = steps
+        self._metric_fetchers = metric_fetchers
         self._first_run = True
 
-    def push_oper(self, oper: str) -> None:
-        """Push an operator into the engine.
-
-        Args:
-            oper: One of these strings - "+", "-", "*", "/", "(", ")"
-        """
-        if self._build_stack and oper != "(":
-            op_prec = _operator_precedence[oper]
-            while self._build_stack:
-                prev_step = self._build_stack[-1]
-                if op_prec <= _operator_precedence[repr(prev_step)]:
-                    break
-                if oper == ")" and repr(prev_step) == "(":
-                    self._build_stack.pop()
-                    break
-                if repr(prev_step) == "(":
-                    break
-                self._steps.append(prev_step)
-                self._build_stack.pop()
-
-        if oper == "+":
-            self._build_stack.append(Adder())
-        elif oper == "-":
-            self._build_stack.append(Subtractor())
-        elif oper == "*":
-            self._build_stack.append(Multiplier())
-        elif oper == "/":
-            self._build_stack.append(Divider())
-        elif oper == "(":
-            self._build_stack.append(OpenParen())
-
-    def push_metric(
-        self,
-        name: str,
-        data_stream: Receiver[Sample],
-        nones_are_zeros: bool,
-    ) -> None:
-        """Push a metric receiver into the engine.
-
-        Args:
-            name: A name for the metric.
-            data_stream: A receiver to fetch this metric from.
-            nones_are_zeros: Whether to treat None values from the stream as 0s.  If
-                False, the returned value will be a None.
-        """
-        fetcher = self._metric_fetchers.setdefault(
-            name, MetricFetcher(name, data_stream, nones_are_zeros)
-        )
-        self._steps.append(fetcher)
-
-    def finalize(self) -> None:
-        """Finalize the formula engine.
-
-        This function must be called before calls to `apply` can be made.
-        """
-        while self._build_stack:
-            self._steps.append(self._build_stack.pop())
-
-    async def synchronize_metric_timestamps(
+    async def _synchronize_metric_timestamps(
         self, metrics: Set[asyncio.Task[Optional[Sample]]]
     ) -> datetime:
         """Synchronize the metric streams.
@@ -191,7 +120,7 @@ class FormulaEngine:
             raise RuntimeError("Some resampled metrics didn't arrive")
 
         if self._first_run:
-            metric_ts = await self.synchronize_metric_timestamps(ready_metrics)
+            metric_ts = await self._synchronize_metric_timestamps(ready_metrics)
         else:
             res = next(iter(ready_metrics)).result()
             assert res is not None
@@ -206,3 +135,96 @@ class FormulaEngine:
             raise RuntimeError("Formula application failed.")
 
         return Sample(metric_ts, eval_stack[0])
+
+
+class FormulaBuilder:
+    """Builds a post-fix formula engine that operates on `Sample` receivers.
+
+    Operators and metrics need to be pushed in in-fix order, and they get rearranged
+    into post-fix order.  This is done using the [Shunting yard
+    algorithm](https://en.wikipedia.org/wiki/Shunting_yard_algorithm).
+
+    Example:
+        To create an engine that adds the latest entries from two receivers, the
+        following calls need to be made:
+
+        ```python
+        builder = FormulaBuilder()
+        builder.push_metric("metric_1", receiver_1)
+        builder.push_oper("+")
+        builder.push_metric("metric_2", receiver_2)
+        engine = builder.build()
+        ```
+
+        and then every call to `engine.apply()` would fetch a value from each receiver,
+        add the values and return the result.
+    """
+
+    def __init__(
+        self,
+    ) -> None:
+        """Create a `FormulaBuilder` instance."""
+        self._build_stack: List[FormulaStep] = []
+        self._steps: List[FormulaStep] = []
+        self._metric_fetchers: Dict[str, MetricFetcher] = {}
+
+    def push_oper(self, oper: str) -> None:
+        """Push an operator into the engine.
+
+        Args:
+            oper: One of these strings - "+", "-", "*", "/", "(", ")"
+        """
+        if self._build_stack and oper != "(":
+            op_prec = _operator_precedence[oper]
+            while self._build_stack:
+                prev_step = self._build_stack[-1]
+                if op_prec <= _operator_precedence[repr(prev_step)]:
+                    break
+                if oper == ")" and repr(prev_step) == "(":
+                    self._build_stack.pop()
+                    break
+                if repr(prev_step) == "(":
+                    break
+                self._steps.append(prev_step)
+                self._build_stack.pop()
+
+        if oper == "+":
+            self._build_stack.append(Adder())
+        elif oper == "-":
+            self._build_stack.append(Subtractor())
+        elif oper == "*":
+            self._build_stack.append(Multiplier())
+        elif oper == "/":
+            self._build_stack.append(Divider())
+        elif oper == "(":
+            self._build_stack.append(OpenParen())
+
+    def push_metric(
+        self,
+        name: str,
+        data_stream: Receiver[Sample],
+        nones_are_zeros: bool,
+    ) -> None:
+        """Push a metric receiver into the engine.
+
+        Args:
+            name: A name for the metric.
+            data_stream: A receiver to fetch this metric from.
+            nones_are_zeros: Whether to treat None values from the stream as 0s.  If
+                False, the returned value will be a None.
+        """
+        fetcher = self._metric_fetchers.setdefault(
+            name, MetricFetcher(name, data_stream, nones_are_zeros)
+        )
+        self._steps.append(fetcher)
+
+    def build(self) -> FormulaEngine:
+        """Finalize and build the formula engine.
+
+        Returns:
+            A `FormulaEngine` instance.
+        """
+        while self._build_stack:
+            self._steps.append(self._build_stack.pop())
+
+        return FormulaEngine(self._steps, self._metric_fetchers)

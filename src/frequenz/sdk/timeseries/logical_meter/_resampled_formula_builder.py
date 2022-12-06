@@ -9,11 +9,11 @@ from frequenz.channels import Receiver, Sender
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid.component import ComponentMetricId
 from .._sample import Sample
-from ._formula_engine import FormulaEngine
+from ._formula_engine import FormulaBuilder, FormulaEngine
 from ._tokenizer import Tokenizer, TokenType
 
 
-class FormulaBuilder:
+class ResampledFormulaBuilder:
     """Provides a way to build a FormulaEngine from resampled data streams."""
 
     def __init__(
@@ -23,7 +23,7 @@ class FormulaBuilder:
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         metric_id: ComponentMetricId,
     ) -> None:
-        """Create a `FormulaBuilder` instance.
+        """Create a `ResampledFormulaBuilder` instance.
 
         Args:
             namespace: The unique namespace to allow reuse of streams in the data
@@ -37,14 +37,14 @@ class FormulaBuilder:
         self._channel_registry = channel_registry
         self._resampler_subscription_sender = resampler_subscription_sender
         self._namespace = namespace
-        self._formula = FormulaEngine()
+        self._formula = FormulaBuilder()
         self._metric_id = metric_id
 
     async def _get_resampled_receiver(self, component_id: int) -> Receiver[Sample]:
         """Get a receiver with the resampled data for the given component id.
 
         This receiver would contain data for the `metric_id` specified when creating the
-        `FormulaBuilder` instance.
+        `ResampledFormulaBuilder` instance.
 
         Args:
             component_id: The component id for which to get a resampled data receiver.
@@ -105,5 +105,4 @@ class FormulaBuilder:
             else:
                 raise ValueError(f"Unknown token type: {token}")
 
-        self._formula.finalize()
-        return self._formula
+        return self._formula.build()

@@ -25,7 +25,9 @@ from frequenz.sdk.actor import (
 )
 from frequenz.sdk.microgrid.component import ComponentMetricId
 from frequenz.sdk.timeseries.logical_meter import LogicalMeter
-from frequenz.sdk.timeseries.logical_meter._formula_builder import FormulaBuilder
+from frequenz.sdk.timeseries.logical_meter._resampled_formula_builder import (
+    ResampledFormulaBuilder,
+)
 from tests.microgrid import mock_api
 
 
@@ -149,7 +151,7 @@ class TestLogicalMeter:
         # `_get_resampled_receiver` function implementation.
 
         # pylint: disable=protected-access
-        builder = FormulaBuilder(
+        builder = ResampledFormulaBuilder(
             logical_meter._namespace,
             channel_registry,
             request_sender,

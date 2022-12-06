@@ -9,7 +9,7 @@ from typing import Dict, List, Optional, Tuple
 from frequenz.channels import Broadcast
 
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries.logical_meter._formula_engine import FormulaEngine
+from frequenz.sdk.timeseries.logical_meter._formula_engine import FormulaBuilder
 from frequenz.sdk.timeseries.logical_meter._tokenizer import Token, Tokenizer, TokenType
 
 
@@ -63,19 +63,19 @@ class TestFormulaEngine:
         nones_are_zeros: bool = False,
     ) -> None:
         channels: Dict[str, Broadcast[Sample]] = {}
-        engine = FormulaEngine()
+        builder = FormulaBuilder()
         for token in Tokenizer(formula):
             if token.type == TokenType.COMPONENT_METRIC:
                 if token.value not in channels:
                     channels[token.value] = Broadcast(token.value)
-                engine.push_metric(
+                builder.push_metric(
                     f"#{token.value}",
                     channels[token.value].new_receiver(),
                     nones_are_zeros,
                 )
             elif token.type == TokenType.OPER:
-                engine.push_oper(token.value)
-        engine.finalize()
+                builder.push_oper(token.value)
+        engine = builder.build()
 
         assert repr(engine._steps) == postfix
 

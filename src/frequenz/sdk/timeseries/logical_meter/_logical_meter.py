@@ -12,8 +12,8 @@ from frequenz.channels import Broadcast, Receiver, Sender
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid.component import ComponentMetricId
 from .._sample import Sample
-from ._formula_builder import FormulaBuilder
 from ._formula_engine import FormulaEngine
+from ._resampled_formula_builder import ResampledFormulaBuilder
 
 
 class LogicalMeter:
@@ -54,7 +54,7 @@ class LogicalMeter:
     async def _engine_from_formula_string(
         self, formula: str, metric_id: ComponentMetricId, nones_are_zeros: bool
     ) -> FormulaEngine:
-        builder = FormulaBuilder(
+        builder = ResampledFormulaBuilder(
             self._namespace,
             self._channel_registry,
             self._resampler_subscription_sender,
