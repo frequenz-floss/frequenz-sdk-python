@@ -20,6 +20,7 @@ from frequenz.api.microgrid.battery_pb2 import Data as BatteryData
 from frequenz.api.microgrid.common_pb2 import AC, Metric, MetricAggregation
 from frequenz.api.microgrid.ev_charger_pb2 import EVCharger
 from frequenz.api.microgrid.inverter_pb2 import Inverter
+from frequenz.api.microgrid.inverter_pb2 import Type as InverterType
 from frequenz.api.microgrid.meter_pb2 import Data as MeterData
 from frequenz.api.microgrid.meter_pb2 import Meter
 from frequenz.api.microgrid.microgrid_pb2 import (
@@ -77,10 +78,22 @@ class MockMicrogridServicer(  # pylint: disable=too-many-public-methods
         self._latest_discharge: Optional[PowerLevelParam] = None
 
     def add_component(
-        self, component_id: int, component_category: ComponentCategory.V
+        self,
+        component_id: int,
+        component_category: ComponentCategory.V,
+        inverter_type: InverterType.V = InverterType.TYPE_UNSPECIFIED,
     ) -> None:
         """Add a component to the mock service."""
-        self._components.append(Component(id=component_id, category=component_category))
+        if component_category == ComponentCategory.COMPONENT_CATEGORY_INVERTER:
+            self._components.append(
+                Component(
+                    id=component_id, category=component_category, inverter=inverter_type
+                )
+            )
+        else:
+            self._components.append(
+                Component(id=component_id, category=component_category)
+            )
 
     def add_connection(self, start: int, end: int) -> None:
         """Add a connection to the mock service."""
