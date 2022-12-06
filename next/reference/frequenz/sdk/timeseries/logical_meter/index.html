@@ -1039,7 +1039,7 @@ components with ids 20 and 5.</p>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_engine_from_formula_string</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">formula</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">metric_id</span><span class="p">:</span> <span class="n">ComponentMetricId</span><span class="p">,</span> <span class="n">nones_are_zeros</span><span class="p">:</span> <span class="nb">bool</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaEngine</span><span class="p">:</span>
-        <span class="n">builder</span> <span class="o">=</span> <span class="n">FormulaBuilder</span><span class="p">(</span>
+        <span class="n">builder</span> <span class="o">=</span> <span class="n">ResampledFormulaBuilder</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_namespace</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_channel_registry</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_resampler_subscription_sender</span><span class="p">,</span>
