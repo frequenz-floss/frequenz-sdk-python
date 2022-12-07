@@ -17,6 +17,7 @@ from frequenz.channels import Broadcast
 from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._resampling import (
     Resampler,
+    ResamplerConfig,
     ResamplingError,
     ResamplingFunction,
     Sink,
@@ -90,9 +91,11 @@ async def test_resampling_with_one_window(
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
     resampler = Resampler(
-        resampling_period_s=resampling_period_s,
-        max_data_age_in_periods=1.0,
-        resampling_function=resampling_fun_mock,
+        ResamplerConfig(
+            resampling_period_s=resampling_period_s,
+            max_data_age_in_periods=1.0,
+            resampling_function=resampling_fun_mock,
+        )
     )
 
     source_recvr = source_chan.new_receiver()
@@ -180,9 +183,11 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
     resampler = Resampler(
-        resampling_period_s=resampling_period_s,
-        max_data_age_in_periods=1.5,
-        resampling_function=resampling_fun_mock,
+        ResamplerConfig(
+            resampling_period_s=resampling_period_s,
+            max_data_age_in_periods=1.5,
+            resampling_function=resampling_fun_mock,
+        )
     )
 
     source_recvr = source_chan.new_receiver()
@@ -311,9 +316,11 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
     resampler = Resampler(
-        resampling_period_s=resampling_period_s,
-        max_data_age_in_periods=2.0,
-        resampling_function=resampling_fun_mock,
+        ResamplerConfig(
+            resampling_period_s=resampling_period_s,
+            max_data_age_in_periods=2.0,
+            resampling_function=resampling_fun_mock,
+        )
     )
 
     source_recvr = source_chan.new_receiver()
@@ -442,9 +449,11 @@ async def test_receiving_stopped_resampling_error(
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
     resampler = Resampler(
-        resampling_period_s=resampling_period_s,
-        max_data_age_in_periods=2.0,
-        resampling_function=resampling_fun_mock,
+        ResamplerConfig(
+            resampling_period_s=resampling_period_s,
+            max_data_age_in_periods=2.0,
+            resampling_function=resampling_fun_mock,
+        )
     )
 
     source_recvr = source_chan.new_receiver()
@@ -499,9 +508,11 @@ async def test_receiving_resampling_error(fake_time: time_machine.Coordinates) -
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
     resampler = Resampler(
-        resampling_period_s=resampling_period_s,
-        max_data_age_in_periods=2.0,
-        resampling_function=resampling_fun_mock,
+        ResamplerConfig(
+            resampling_period_s=resampling_period_s,
+            max_data_age_in_periods=2.0,
+            resampling_function=resampling_fun_mock,
+        )
     )
 
     class TestException(Exception):

@@ -14,12 +14,7 @@ from frequenz.channels import Receiver, Sender
 from frequenz.sdk.util.asyncio import cancel_and_await
 
 from ..timeseries import Sample
-from ..timeseries._resampling import (
-    Resampler,
-    ResamplingError,
-    ResamplingFunction,
-    average,
-)
+from ..timeseries._resampling import Resampler, ResamplerConfig, ResamplingError
 from ._channel_registry import ChannelRegistry
 from ._data_sourcing import ComponentMetricRequest
 from ._decorator import actor
@@ -37,9 +32,7 @@ class ComponentMetricsResamplingActor:
         channel_registry: ChannelRegistry,
         data_sourcing_request_sender: Sender[ComponentMetricRequest],
         resampling_request_receiver: Receiver[ComponentMetricRequest],
-        resampling_period_s: float = 0.2,
-        max_data_age_in_periods: float = 3.0,
-        resampling_function: ResamplingFunction = average,
+        config: ResamplerConfig,
     ) -> None:
         """Initialize an instance.
 
@@ -51,34 +44,16 @@ class ComponentMetricsResamplingActor:
                 to subscribe to component metrics.
             resampling_request_receiver: The receiver to use to receive new
                 resampmling subscription requests.
-            resampling_period_s: The time it passes between resampled data
-                should be calculated (in seconds).
-            max_data_age_in_periods: The maximum age a sample can have to be
-                considered *relevant* for resampling purposes, expressed in the
-                number of resampling periods. For exapmle is
-                `resampling_period_s` is 3 and `max_data_age_in_periods` is 2,
-                then data older than `3*2 = 6` secods will be discarded when
-                creating a new sample and never passed to the resampling
-                function.
-            resampling_function: The function to be applied to the sequence of
-                *relevant* samples at a given time. The result of the function
-                is what is sent as the resampled data.
+            config: The configuration for the resampler.
         """
         self._channel_registry: ChannelRegistry = channel_registry
-        self._resampling_period_s: float = resampling_period_s
-        self._max_data_age_in_periods: float = max_data_age_in_periods
-        self._resampling_function: ResamplingFunction = resampling_function
         self._data_sourcing_request_sender: Sender[
             ComponentMetricRequest
         ] = data_sourcing_request_sender
         self._resampling_request_receiver: Receiver[
             ComponentMetricRequest
         ] = resampling_request_receiver
-        self._resampler: Resampler = Resampler(
-            resampling_period_s=resampling_period_s,
-            max_data_age_in_periods=max_data_age_in_periods,
-            resampling_function=resampling_function,
-        )
+        self._resampler: Resampler = Resampler(config)
         self._active_req_channels: set[str] = set()
 
     async def _subscribe(self, request: ComponentMetricRequest) -> None:

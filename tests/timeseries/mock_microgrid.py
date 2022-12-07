@@ -27,6 +27,7 @@ from frequenz.sdk.actor import (
     ComponentMetricRequest,
     ComponentMetricsResamplingActor,
     DataSourcingActor,
+    ResamplerConfig,
 )
 from tests.microgrid import mock_api
 
@@ -236,7 +237,7 @@ class MockMicrogrid:
             channel_registry=channel_registry,
             data_sourcing_request_sender=data_source_request_sender,
             resampling_request_receiver=resampling_actor_request_receiver,
-            resampling_period_s=0.1,
+            config=ResamplerConfig(resampling_period_s=0.1),
         )
 
         return (resampling_actor_request_sender, channel_registry)
