@@ -18,7 +18,6 @@ import logging
 from asyncio.tasks import ALL_COMPLETED
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from enum import Enum
 from math import ceil, floor
 from typing import (  # pylint: disable=unused-import
     Any,
@@ -46,6 +45,7 @@ from ...microgrid.component import (
 )
 from ...power import DistributionAlgorithm, InvBatPair
 from .request import Request
+from .result import Error, Ignored, OutOfBound, PartialFailure, Result, Success
 
 _logger = logging.getLogger(__name__)
 
@@ -141,33 +141,6 @@ class _BrokenComponents:
         return False
 
 
-@dataclass
-class Result:
-    """Result on distribution request."""
-
-    class Status(Enum):
-        """Status of the result."""
-
-        FAILED = 0  # If any request for any battery didn't succeed for any reason.
-        SUCCESS = 1  # If all requests for all batteries succeed.
-        IGNORED = 2  # If request was dispossessed by newer request with the same set
-        # of batteries.
-        ERROR = 3  # If any error happened. In this case error_message describes error.
-        OUT_OF_BOUND = 4  # When Request.adjust_power=False and the requested power was
-        # out of the bounds for specified batteries.
-
-    status: Status  # Status of the request.
-
-    failed_power: float  # How much power failed.
-
-    above_upper_bound: float  # How much power was not used because it was beyond the
-    # limits.
-
-    error_message: Optional[
-        str
-    ] = None  # error_message filled only when status is ERROR
-
-
 @actor
 class PowerDistributingActor:
     # pylint: disable=too-many-instance-attributes
@@ -197,10 +170,14 @@ class PowerDistributingActor:
 
         from frequenz.sdk.microgrid.graph import _MicrogridComponentGraph
         from frequenz.sdk.microgrid.component import ComponentCategory
-        from frequenz.sdk.power_distribution import (
+        from frequenz.sdk.actor.power_distribution import (
             PowerDistributor,
             Request,
             Result,
+            Success,
+            Error,
+            PartialFailure,
+            Ignored,
         )
 
 
@@ -228,15 +205,16 @@ class PowerDistributingActor:
         # It is recommended to use timeout when waiting for the response!
         result: Result = await asyncio.wait_for(client_handle.receive(), timeout=10)
 
-        if result.status == Result.Status.SUCCESS:
+        if isinstance(result, Success):
             print("Command succeed")
-        elif result.status == Result.Status.FAILED:
+        elif isinstance(result, PartialFailure):
             print(
-                f"Some batteries failed, total failed power: {result.failed_power}")
-        elif result.status == Result.Status.IGNORED:
-            print(f"Request was ignored, because of newer command")
-        elif result.status == Result.Status.ERROR:
-            print(f"Request failed with error: {request.error_message}")
+                f"Batteries {result.failed_batteries} failed, total failed power" \
+                    f"{result.failed_power}")
+        elif isinstance(result, Ignored):
+            print(f"Request was ignored, because of newer request")
+        elif isinstance(result, Error):
+            print(f"Request failed with error: {result.msg}")
         ```
     """
 
@@ -339,19 +317,6 @@ class PowerDistributingActor:
         )
         return ceil(bound)
 
-    def _within_bounds(self, request: Request) -> bool:
-        """Check whether the requested power is withing the bounds.
-
-        Args:
-            request: request
-
-        Returns:
-            True if power is between the bounds, False otherwise.
-        """
-        power = request.power
-        lower_bound = self._get_lower_bound(request.batteries)
-        return lower_bound <= power <= self._get_upper_bound(request.batteries)
-
     async def run(self) -> None:
         """Run actor main function.
 
@@ -374,33 +339,33 @@ class PowerDistributingActor:
                     request.batteries
                 )
             except KeyError as err:
-                await user.channel.send(
-                    Result(Result.Status.ERROR, request.power, 0, str(err))
-                )
+                await user.channel.send(Error(request, str(err)))
                 continue
+
             if len(pairs_data) == 0:
                 error_msg = f"No data for the given batteries {str(request.batteries)}"
-                await user.channel.send(
-                    Result(Result.Status.ERROR, request.power, 0, str(error_msg))
-                )
+                await user.channel.send(Error(request, str(error_msg)))
                 continue
+
             try:
                 distribution = self.distribution_algorithm.distribute_power(
                     request.power, pairs_data
                 )
             except ValueError as err:
                 error_msg = f"Couldn't distribute power, error: {str(err)}"
-                await user.channel.send(
-                    Result(Result.Status.ERROR, request.power, 0, error_msg)
-                )
+                await user.channel.send(Error(request, str(error_msg)))
                 continue
 
             distributed_power_value = request.power - distribution.remaining_power
+            battery_distribution = {
+                self._inv_bat_map[bat_id]: dist
+                for bat_id, dist in distribution.distribution.items()
+            }
             _logger.debug(
-                "%s: Distributing power %d between the inverters %s",
+                "%s: Distributing power %d between the batteries %s",
                 user.user_id,
                 distributed_power_value,
-                str(distribution.distribution),
+                str(battery_distribution),
             )
 
             tasks = {
@@ -417,14 +382,31 @@ class PowerDistributingActor:
             )
 
             await self._cancel_tasks(pending)
-            any_fail, failed_power = self._parse_result(
+            failed_power, failed_batteries = self._parse_result(
                 tasks, distribution.distribution, request.request_timeout_sec
             )
 
-            status = Result.Status.FAILED if any_fail else Result.Status.SUCCESS
-            await user.channel.send(
-                Result(status, failed_power, distribution.remaining_power)
-            )
+            if len(failed_batteries) > 0:
+                succeed_batteries = set(battery_distribution.keys()) - failed_batteries
+                await user.channel.send(
+                    PartialFailure(
+                        request=request,
+                        succeed_power=distributed_power_value,
+                        succeed_batteries=succeed_batteries,
+                        failed_power=failed_power,
+                        failed_batteries=failed_batteries,
+                        excess_power=distribution.remaining_power,
+                    )
+                )
+            else:
+                await user.channel.send(
+                    Success(
+                        request=request,
+                        succeed_power=distributed_power_value,
+                        used_batteries=set(battery_distribution.keys()),
+                        excess_power=distribution.remaining_power,
+                    )
+                )
 
     def _check_request(self, request: Request) -> Optional[Result]:
         """Check whether the given request if correct.
@@ -441,10 +423,17 @@ class PowerDistributingActor:
                     f"No battery {battery}, available batteries: "
                     f"{list(self._battery_receivers.keys())}"
                 )
-                return Result(Result.Status.ERROR, request.power, 0, error_message=msg)
+                return Error(request, msg)
 
-        if not request.adjust_power and not self._within_bounds(request):
-            return Result(Result.Status.OUT_OF_BOUND, request.power, 0)
+        if not request.adjust_power:
+            if request.power < 0:
+                bound = self._get_lower_bound(request.batteries)
+                if request.power < bound:
+                    return OutOfBound(request, bound)
+            else:
+                bound = self._get_upper_bound(request.batteries)
+                if request.power > bound:
+                    return OutOfBound(request, bound)
 
         return None
 
@@ -474,9 +463,7 @@ class PowerDistributingActor:
             # Generators seems to be the fastest
             if prev_request.batteries == batteries:
                 task = asyncio.create_task(
-                    prev_user.channel.send(
-                        Result(Result.Status.IGNORED, prev_request.power, 0)
-                    )
+                    prev_user.channel.send(Ignored(prev_request))
                 )
                 to_ignore.append(task)
             # Use generators as generators seems to be the fastest.
@@ -546,9 +533,7 @@ class PowerDistributingActor:
                     "Consider increasing size of the queue."
                 )
                 _logger.error(msg)
-                await user.channel.send(
-                    Result(Result.Status.ERROR, request.power, 0, msg)
-                )
+                await user.channel.send(Error(request, str(msg)))
             else:
                 self._request_queue.put_nowait((request, user))
                 await asyncio.gather(*tasks)
@@ -686,7 +671,7 @@ class PowerDistributingActor:
         tasks,  # type: Dict[int, asyncio.Task[Empty]]
         distribution: Dict[int, int],
         request_timeout_sec: float,
-    ) -> Tuple[bool, int]:
+    ) -> Tuple[int, Set[int]]:
         """Parse result of `set_power` requests.
 
         Check if any task failed and why. If any task didn't success, then corresponding
@@ -700,19 +685,19 @@ class PowerDistributingActor:
             request_timeout_sec: timeout which has been used for request.
 
         Returns:
-            Tuple where first element tells if any task didn't succeed, and the
-                second element is total amount of power that failed.
+            Tuple where first element is total failed power, and the second element
+            set of batteries that failed.
         """
-        any_fail: bool = False
         failed_power: int = 0
+        failed_batteries: Set[int] = set()
 
         for inverter_id, aws in tasks.items():
             battery_id = self._inv_bat_map[inverter_id]
             try:
                 aws.result()
             except grpc.aio.AioRpcError as err:
-                any_fail = True
                 failed_power += distribution[inverter_id]
+                failed_batteries.add(battery_id)
                 if err.code() == grpc.StatusCode.OUT_OF_RANGE:
                     _logger.debug(
                         "Set power for battery %d failed, error %s",
@@ -727,8 +712,8 @@ class PowerDistributingActor:
                     )
                     self._broken_components.mark_as_broken(battery_id)
             except asyncio.exceptions.CancelledError:
-                any_fail = True
                 failed_power += distribution[inverter_id]
+                failed_batteries.add(battery_id)
                 _logger.warning(
                     "Battery %d didn't respond in %f sec. Mark it as broken.",
                     battery_id,
@@ -736,7 +721,7 @@ class PowerDistributingActor:
                 )
                 self._broken_components.mark_as_broken(battery_id)
 
-        return any_fail, failed_power
+        return failed_power, failed_batteries
 
     async def _cancel_tasks(self, tasks: Iterable[asyncio.Task[Any]]) -> None:
         """Cancel given asyncio tasks and wait for them.

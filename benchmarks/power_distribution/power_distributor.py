@@ -14,9 +14,14 @@ import grpc.aio as grpcaio
 from frequenz.channels import Bidirectional
 
 from frequenz.sdk.actor.power_distributing import (
+    Error,
+    Ignored,
+    OutOfBound,
+    PartialFailure,
     PowerDistributingActor,
     Request,
     Result,
+    Success,
 )
 from frequenz.sdk.microgrid import ComponentGraph
 from frequenz.sdk.microgrid._graph import _MicrogridComponentGraph
@@ -75,21 +80,23 @@ def parse_result(result: List[List[Result]]) -> Dict[str, float]:
         Number of each result.
     """
     result_counts = {
-        Result.Status.ERROR: 0,
-        Result.Status.IGNORED: 0,
-        Result.Status.SUCCESS: 0,
-        Result.Status.FAILED: 0,
+        Error: 0,
+        Ignored: 0,
+        Success: 0,
+        PartialFailure: 0,
+        OutOfBound: 0,
     }
 
     for result_list in result:
         for item in result_list:
-            result_counts[item.status] += 1
+            result_counts[type(item)] += 1
 
     return {
-        "success_num": result_counts[Result.Status.SUCCESS],
-        "failed_num": result_counts[Result.Status.FAILED],
-        "ignore_num": result_counts[Result.Status.IGNORED],
-        "error_num": result_counts[Result.Status.ERROR],
+        "success_num": result_counts[Success],
+        "failed_num": result_counts[PartialFailure],
+        "ignore_num": result_counts[Ignored],
+        "error_num": result_counts[Error],
+        "out_of_bound": result_counts[OutOfBound],
     }
 
 

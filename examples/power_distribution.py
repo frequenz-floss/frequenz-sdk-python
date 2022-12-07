@@ -27,6 +27,7 @@ from frequenz.sdk.actor.power_distributing import (
     PowerDistributingActor,
     Request,
     Result,
+    Success,
 )
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
 
@@ -97,14 +98,12 @@ class DecisionMakingActor:
                 continue
             if result is None:
                 raise RuntimeError("PowerDistributingActor channel has been closed.")
-            if result.status != Result.Status.SUCCESS:
+            if not isinstance(result, Success):
                 _logger.error(
-                    "Could not set %d power. Result: %s", power_to_set, str(result)
+                    "Could not set %d power. Result: %s", power_to_set, type(result)
                 )
             else:
-                _logger.info(
-                    "Set power with %d succeed, result: %s", power_to_set, str(result)
-                )
+                _logger.info("Set power with %d succeed.", power_to_set)
 
 
 @actor
