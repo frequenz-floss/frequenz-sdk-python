@@ -6,8 +6,10 @@
 from __future__ import annotations
 
 import asyncio
+import itertools
 import logging
 import math
+from bisect import bisect
 from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -19,6 +21,15 @@ from ..util.asyncio import cancel_and_await
 from . import Sample
 
 _logger = logging.Logger(__name__)
+
+
+DEFAULT_BUFFER_LEN_INIT = 16
+"""Default initial buffer length.
+
+Buffers will be created initially with this length, but they could grow or
+shrink depending on the source characteristics, like sampling rate, to make
+sure all the requested past sampling periods can be stored.
+"""
 
 
 Source = AsyncIterator[Sample]
@@ -111,6 +122,14 @@ class ResamplerConfig:
     This function will be applied to the sequence of relevant samples at
     a given time. The result of the function is what is sent as the resampled
     value.
+    """
+
+    initial_buffer_len: int = DEFAULT_BUFFER_LEN_INIT
+    """The initial length of the resampling buffer.
+
+    The buffer could grow or shrink depending on the source characteristics,
+    like sampling rate, to make sure all the requested past sampling periods
+    can be stored.
     """
 
 
@@ -306,7 +325,7 @@ class _ResamplingHelper:
             config: The configuration for the resampler.
         """
         self._config = config
-        self._buffer: deque[Sample] = deque()
+        self._buffer: deque[Sample] = deque(maxlen=config.initial_buffer_len)
 
     def add_sample(self, sample: Sample) -> None:
         """Add a new sample to the internal buffer.
@@ -315,30 +334,6 @@ class _ResamplingHelper:
             sample: The sample to be added to the buffer.
         """
         self._buffer.append(sample)
-
-    def _remove_outdated_samples(self, threshold: datetime) -> None:
-        """Remove samples that are older than the provided time threshold.
-
-        It is assumed that items in the buffer are in a sorted order (ascending order
-        by timestamp).
-
-        The removal works by traversing the buffer starting from the oldest sample
-        (smallest timestamp) and comparing sample's timestamp with the threshold.
-        If the sample's threshold is smaller than `threshold`, it means that the
-        sample is outdated and it is removed from the buffer. This continues until
-        the first sample that is with timestamp greater or equal to `threshold` is
-        encountered, then buffer is considered up to date.
-
-        Args:
-            threshold: samples whose timestamp is older than the threshold are
-                considered outdated and should be remove from the buffer
-        """
-        while self._buffer:
-            sample: Sample = self._buffer[0]
-            if sample.timestamp > threshold:
-                return
-
-            self._buffer.popleft()
 
     def resample(self, timestamp: datetime) -> Sample:
         """Generate a new sample based on all the current *relevant* samples.
@@ -352,18 +347,23 @@ class _ResamplingHelper:
                 If there are no *relevant* samples, then the new sample will
                 have `None` as `value`.
         """
-        threshold = timestamp - timedelta(
-            seconds=self._config.max_data_age_in_periods
-            * self._config.resampling_period_s
+        conf = self._config
+        minimum_relevant_timestamp = timestamp - timedelta(
+            seconds=conf.resampling_period_s * conf.max_data_age_in_periods
         )
-        self._remove_outdated_samples(threshold=threshold)
-
+        # We need to pass a dummy Sample to bisect because it only support
+        # specifying a key extraction function in Python 3.10, so we need to
+        # compare samples at the moment.
+        cut_index = bisect(self._buffer, Sample(minimum_relevant_timestamp, None))
+        # pylint: disable=fixme
+        # FIXME: This is far from efficient, but we don't want to start new
+        # ring buffer implementation here that uses a list to overcome the
+        # deque limitation of not being able to get slices
+        relevant_samples = list(itertools.islice(self._buffer, cut_index, None))
         value = (
-            None
-            if not self._buffer
-            else self._config.resampling_function(
-                self._buffer, self._config.resampling_period_s
-            )
+            conf.resampling_function(relevant_samples, conf.resampling_period_s)
+            if relevant_samples
+            else None
         )
         return Sample(timestamp, value)
 

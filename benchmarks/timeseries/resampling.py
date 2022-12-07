@@ -25,6 +25,7 @@ def _benchmark_resampling_helper(resamples: int, samples: int) -> None:
             resampling_period_s=1.0,
             max_data_age_in_periods=3.0,
             resampling_function=nop,
+            initial_buffer_len=samples * 3,
         )
     )
     now = datetime.now(timezone.utc)
