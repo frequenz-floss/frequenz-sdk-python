@@ -16,6 +16,7 @@ from frequenz.sdk.actor import (
     ChannelRegistry,
     ComponentMetricRequest,
     ComponentMetricsResamplingActor,
+    ResamplerConfig,
 )
 from frequenz.sdk.microgrid.component import ComponentMetricId
 from frequenz.sdk.timeseries import Sample
@@ -123,8 +124,10 @@ async def test_single_request(
         channel_registry=channel_registry,
         data_sourcing_request_sender=data_source_req_chan.new_sender(),
         resampling_request_receiver=resampling_req_chan.new_receiver(),
-        resampling_period_s=0.2,
-        max_data_age_in_periods=2,
+        config=ResamplerConfig(
+            resampling_period_s=0.2,
+            max_data_age_in_periods=2,
+        ),
     )
 
     subs_req = ComponentMetricRequest(
@@ -167,8 +170,10 @@ async def test_duplicate_request(
         channel_registry=channel_registry,
         data_sourcing_request_sender=data_source_req_chan.new_sender(),
         resampling_request_receiver=resampling_req_chan.new_receiver(),
-        resampling_period_s=0.2,
-        max_data_age_in_periods=2,
+        config=ResamplerConfig(
+            resampling_period_s=0.2,
+            max_data_age_in_periods=2,
+        ),
     )
 
     subs_req = ComponentMetricRequest(

@@ -9,6 +9,7 @@ import asyncio
 import logging
 import math
 from collections import deque
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import AsyncIterator, Callable, Coroutine, Sequence
 
@@ -83,6 +84,34 @@ def average(samples: Sequence[Sample], resampling_period_s: float) -> float:
     assert len(samples) > 0, "Average cannot be given an empty list of samples"
     values = list(sample.value for sample in samples if sample.value is not None)
     return sum(values) / len(values)
+
+
+@dataclass(frozen=True)
+class ResamplerConfig:
+    """Resampler configuration."""
+
+    resampling_period_s: float
+    """The resapmling period in seconds.
+
+    This is the time it passes between resampled data should be calculated.
+    """
+
+    max_data_age_in_periods: float = 3.0
+    """The maximum age a sample can have to be considered *relevant* for resampling.
+
+    Expressed in number of resampling periods. For example if
+    `resampling_period_s` is 3 and `max_data_age_in_periods` is 2, then data
+    older than 3*2 = 6 secods will be discarded when creating a new sample and
+    never passed to the resampling function.
+    """
+
+    resampling_function: ResamplingFunction = average
+    """The resampling function.
+
+    This function will be applied to the sequence of relevant samples at
+    a given time. The result of the function is what is sent as the resampled
+    value.
+    """
 
 
 class SourceStoppedError(RuntimeError):
@@ -166,34 +195,24 @@ class Resampler:
     no way to produce meaningful samples with the available data.
     """
 
-    def __init__(
-        self,
-        *,
-        resampling_period_s: float,
-        resampling_function: ResamplingFunction = average,
-        max_data_age_in_periods: float = 3.0,
-    ) -> None:
+    def __init__(self, config: ResamplerConfig) -> None:
         """Initialize an instance.
 
         Args:
-            resampling_period_s: The time it passes between resampled data
-                should be calculated (in seconds).
-            max_data_age_in_periods: The maximum age a sample can have to be
-                considered *relevant* for resampling purposes, expressed in the
-                number of resampling periods. For exapmle is
-                `resampling_period_s` is 3 and `max_data_age_in_periods` is 2,
-                then data older than `3*2 = 6` secods will be discarded when
-                creating a new sample and never passed to the resampling
-                function.
-            resampling_function: The function to be applied to the sequence of
-                *relevant* samples at a given time. The result of the function
-                is what is sent as the resampled data.
+            config: The configuration for the resampler.
         """
-        self._resampling_period_s = resampling_period_s
-        self._max_data_age_in_periods: float = max_data_age_in_periods
-        self._resampling_function: ResamplingFunction = resampling_function
+        self._config = config
         self._resamplers: dict[Source, _StreamingHelper] = {}
-        self._timer: Timer = Timer(self._resampling_period_s)
+        self._timer: Timer = Timer(config.resampling_period_s)
+
+    @property
+    def config(self) -> ResamplerConfig:
+        """Get the resampler configuration.
+
+        Returns:
+            The resampler configuration.
+        """
+        return self._config
 
     async def stop(self) -> None:
         """Cancel all receiving tasks."""
@@ -214,15 +233,7 @@ class Resampler:
         if source in self._resamplers:
             return False
 
-        resampler = _StreamingHelper(
-            _ResamplingHelper(
-                resampling_period_s=self._resampling_period_s,
-                max_data_age_in_periods=self._max_data_age_in_periods,
-                resampling_function=self._resampling_function,
-            ),
-            source,
-            sink,
-        )
+        resampler = _StreamingHelper(_ResamplingHelper(self._config), source, sink)
         self._resamplers[source] = resampler
         return True
 
@@ -288,33 +299,14 @@ class _ResamplingHelper:
     when calling the `resample()` method. All older samples are discarded.
     """
 
-    def __init__(
-        self,
-        *,
-        resampling_period_s: float,
-        max_data_age_in_periods: float,
-        resampling_function: ResamplingFunction,
-    ) -> None:
+    def __init__(self, config: ResamplerConfig) -> None:
         """Initialize an instance.
 
         Args:
-            resampling_period_s: The time it passes between resampled data
-                should be calculated (in seconds).
-            max_data_age_in_periods: The maximum age a sample can have to be
-                considered *relevant* for resampling purposes, expressed in the
-                number of resampling periods. For exapmle is
-                `resampling_period_s` is 3 and `max_data_age_in_periods` is 2,
-                then data older than 3*2 = 6 secods will be discarded when
-                creating a new sample and never passed to the resampling
-                function.
-            resampling_function: The function to be applied to the sequence of
-                relevant samples at a given time. The result of the function is
-                what is sent as the resampled data.
+            config: The configuration for the resampler.
         """
-        self._resampling_period_s = resampling_period_s
-        self._max_data_age_in_periods: float = max_data_age_in_periods
+        self._config = config
         self._buffer: deque[Sample] = deque()
-        self._resampling_function: ResamplingFunction = resampling_function
 
     def add_sample(self, sample: Sample) -> None:
         """Add a new sample to the internal buffer.
@@ -361,14 +353,17 @@ class _ResamplingHelper:
                 have `None` as `value`.
         """
         threshold = timestamp - timedelta(
-            seconds=self._max_data_age_in_periods * self._resampling_period_s
+            seconds=self._config.max_data_age_in_periods
+            * self._config.resampling_period_s
         )
         self._remove_outdated_samples(threshold=threshold)
 
         value = (
             None
             if not self._buffer
-            else self._resampling_function(self._buffer, self._resampling_period_s)
+            else self._config.resampling_function(
+                self._buffer, self._config.resampling_period_s
+            )
         )
         return Sample(timestamp, value)
 

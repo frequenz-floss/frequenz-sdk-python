@@ -18,7 +18,7 @@ from frequenz.sdk.actor import (
 )
 from frequenz.sdk.microgrid.component import ComponentCategory, ComponentMetricId
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._resampling import Resampler, Sink, Source
+from frequenz.sdk.timeseries._resampling import Resampler, ResamplerConfig, Sink, Source
 
 HOST = "microgrid.sandbox.api.frequenz.io"
 PORT = 61060
@@ -65,7 +65,7 @@ async def run() -> None:  # pylint: disable=too-many-locals
         channel_registry=channel_registry,
         data_sourcing_request_sender=data_source_request_sender,
         resampling_request_receiver=resampling_request_receiver,
-        resampling_period_s=1,
+        config=ResamplerConfig(resampling_period_s=1),
     )
 
     components = await microgrid.get().api_client.components()
@@ -104,7 +104,7 @@ async def run() -> None:  # pylint: disable=too-many-locals
     # Create a channel to calculate an average for all the data
     average_chan = Broadcast[Sample]("average")
 
-    second_stage_resampler = Resampler(resampling_period_s=3.0)
+    second_stage_resampler = Resampler(ResamplerConfig(resampling_period_s=3.0))
     second_stage_resampler.add_timeseries(average_chan.new_receiver(), _print_sample)
 
     average_sender = average_chan.new_sender()
