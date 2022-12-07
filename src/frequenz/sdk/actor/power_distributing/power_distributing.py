@@ -19,6 +19,7 @@ from asyncio.tasks import ALL_COMPLETED
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
+from math import ceil, floor
 from typing import (  # pylint: disable=unused-import
     Any,
     Dict,
@@ -300,7 +301,7 @@ class PowerDistributingActor:
         for user, handler in self._users_channels.items():
             asyncio.create_task(self._wait_for_request(_User(user, handler)))
 
-    def get_upper_bound(self, batteries: Set[int]) -> float:
+    def _get_upper_bound(self, batteries: Set[int]) -> int:
         """Get total upper bound of power to be set for given batteries.
 
         Note, output of that function doesn't guarantee that this bound will be
@@ -313,12 +314,13 @@ class PowerDistributingActor:
             Upper bound for `set_power` operation.
         """
         pairs_data: List[InvBatPair] = self._get_components_data(batteries)
-        return sum(
+        bound = sum(
             min(battery.power_upper_bound, inverter.active_power_upper_bound)
             for battery, inverter in pairs_data
         )
+        return floor(bound)
 
-    def get_lower_bound(self, batteries: Set[int]) -> float:
+    def _get_lower_bound(self, batteries: Set[int]) -> int:
         """Get total lower bound of power to be set for given batteries.
 
         Note, output of that function doesn't guarantee that this bound will be
@@ -331,10 +333,11 @@ class PowerDistributingActor:
             Lower bound for `set_power` operation.
         """
         pairs_data: List[InvBatPair] = self._get_components_data(batteries)
-        return sum(
-            min(battery.power_lower_bound, inverter.active_power_lower_bound)
+        bound = sum(
+            max(battery.power_lower_bound, inverter.active_power_lower_bound)
             for battery, inverter in pairs_data
         )
+        return ceil(bound)
 
     def _within_bounds(self, request: Request) -> bool:
         """Check whether the requested power is withing the bounds.
@@ -346,8 +349,8 @@ class PowerDistributingActor:
             True if power is between the bounds, False otherwise.
         """
         power = request.power
-        lower_bound = self.get_lower_bound(request.batteries)
-        return lower_bound <= power <= self.get_upper_bound(request.batteries)
+        lower_bound = self._get_lower_bound(request.batteries)
+        return lower_bound <= power <= self._get_upper_bound(request.batteries)
 
     async def run(self) -> None:
         """Run actor main function.
@@ -360,7 +363,7 @@ class PowerDistributingActor:
         """
         await self._create_channels()
 
-        # Wait 2 seconds to get data from the channels created above.
+        # Wait few seconds to get data from the channels created above.
         await asyncio.sleep(self._wait_for_data_sec)
         self._started.set()
         while True:
