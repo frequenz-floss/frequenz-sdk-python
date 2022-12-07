@@ -4,6 +4,7 @@
 """A logical meter for calculating high level metrics for a microgrid."""
 
 import asyncio
+import logging
 import uuid
 from typing import Dict, List
 
@@ -14,6 +15,8 @@ from ...microgrid.component import ComponentMetricId
 from .._sample import Sample
 from ._formula_engine import FormulaEngine
 from ._resampled_formula_builder import ResampledFormulaBuilder
+
+logger = logging.Logger(__name__)
 
 
 class LogicalMeter:
@@ -71,8 +74,12 @@ class LogicalMeter:
             formula: The formula to run.
             sender: A sender for sending the formula results to.
         """
-        while msg := await formula.apply():
-            await sender.send(msg)
+        while True:
+            try:
+                msg = await formula.apply()
+                await sender.send(msg)
+            except Exception as err:  # pylint: disable=broad-except
+                logger.warning("Formula application failed: %s", err)
 
     async def start_formula(
         self,
