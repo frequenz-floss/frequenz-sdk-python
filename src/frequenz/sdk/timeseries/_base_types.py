@@ -3,12 +3,16 @@
 
 """Timeseries basic types."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 
 
-@dataclass(frozen=True)
+# Ordering by timestamp is a bit arbitrary, and it is not always what might be
+# wanted. We are using this order now because usually we need to do binary
+# searches on sequences of samples, and the Python `bisect` module doesn't
+# support providing a key until Python 3.10.
+@dataclass(frozen=True, order=True)
 class Sample:
     """A measurement taken at a particular point in time.
 
@@ -17,5 +21,8 @@ class Sample:
     coherent view on a group of component metrics for a particular timestamp.
     """
 
-    timestamp: datetime
-    value: Optional[float] = None
+    timestamp: datetime = field(compare=True)
+    """The time when this sample was generated."""
+
+    value: Optional[float] = field(compare=False, default=None)
+    """The value of this sample."""
