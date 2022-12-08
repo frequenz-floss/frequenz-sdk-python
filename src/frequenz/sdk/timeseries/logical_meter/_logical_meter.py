@@ -77,9 +77,13 @@ class LogicalMeter:
         while True:
             try:
                 msg = await formula.apply()
-                await sender.send(msg)
+            except asyncio.CancelledError:
+                logger.exception("LogicalMeter task cancelled")
+                break
             except Exception as err:  # pylint: disable=broad-except
                 logger.warning("Formula application failed: %s", err)
+            else:
+                await sender.send(msg)
 
     async def start_formula(
         self,
