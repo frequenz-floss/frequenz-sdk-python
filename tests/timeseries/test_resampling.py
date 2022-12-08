@@ -14,11 +14,13 @@ import pytest
 import time_machine
 from frequenz.channels import Broadcast
 
-from frequenz.sdk.timeseries import Sample, Sink, Source
-from frequenz.sdk.timeseries.resampling import (
+from frequenz.sdk.timeseries import Sample
+from frequenz.sdk.timeseries._resampling import (
     Resampler,
     ResamplingError,
     ResamplingFunction,
+    Sink,
+    Source,
     SourceStoppedError,
 )
 

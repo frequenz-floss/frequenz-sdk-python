@@ -14,7 +14,7 @@ from frequenz.channels import Receiver, Sender
 from frequenz.sdk.util.asyncio import cancel_and_await
 
 from ..timeseries import Sample
-from ..timeseries.resampling import (
+from ..timeseries._resampling import (
     Resampler,
     ResamplingError,
     ResamplingFunction,
