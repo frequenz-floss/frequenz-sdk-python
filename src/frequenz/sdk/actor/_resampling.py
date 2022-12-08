@@ -3,10 +3,11 @@
 
 """An actor to resample microgrid component metrics."""
 
+from __future__ import annotations
+
 import asyncio
 import dataclasses
 import logging
-from typing import Set
 
 from frequenz.channels import Receiver, Sender
 
@@ -117,7 +118,7 @@ class ComponentMetricsResamplingActor:
 
         # noqa: DAR401 error
         """
-        tasks_to_cancel: Set[asyncio.Task] = set()
+        tasks_to_cancel: set[asyncio.Task] = set()
         try:
             subscriptions_task = asyncio.create_task(
                 self._process_resampling_requests()

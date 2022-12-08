@@ -3,12 +3,14 @@
 
 """Timeseries resampler."""
 
+from __future__ import annotations
+
 import asyncio
 import logging
 import math
 from collections import deque
 from datetime import datetime, timedelta
-from typing import Callable, Deque, Dict, Sequence, Union, cast
+from typing import Callable, Sequence
 
 from frequenz.channels.util import Timer
 
@@ -90,7 +92,7 @@ class ResamplingError(RuntimeError):
     """
 
     def __init__(
-        self, exceptions: Dict[Source, Union[Exception, asyncio.CancelledError]]
+        self, exceptions: dict[Source, Exception | asyncio.CancelledError]
     ) -> None:
         """Create an instance.
 
@@ -166,7 +168,7 @@ class Resampler:
         self._resampling_period_s = resampling_period_s
         self._max_data_age_in_periods: float = max_data_age_in_periods
         self._resampling_function: ResamplingFunction = resampling_function
-        self._resamplers: Dict[Source, _StreamingHelper] = {}
+        self._resamplers: dict[Source, _StreamingHelper] = {}
         self._timer: Timer = Timer(self._resampling_period_s)
 
     async def stop(self) -> None:
@@ -240,19 +242,13 @@ class Resampler:
                 *[r.resample(timer_timestamp) for r in self._resamplers.values()],
                 return_exceptions=True,
             )
-            # We need to cast this because Python is not smart enough to figure
-            # out the key value can't be None (not even adding another
-            # condition checking for None in the dict expression).
-            exceptions = cast(
-                Dict[Source, Union[Exception, asyncio.CancelledError]],
-                {
-                    source: results[i]
-                    for i, source in enumerate(self._resamplers)
-                    # CancelledError inherits from BaseException, but we don't want
-                    # to catch *all* BaseExceptions here.
-                    if isinstance(results[i], (Exception, asyncio.CancelledError))
-                },
-            )
+            exceptions = {
+                source: results[i]
+                for i, source in enumerate(self._resamplers)
+                # CancelledError inherits from BaseException, but we don't want
+                # to catch *all* BaseExceptions here.
+                if isinstance(results[i], (Exception, asyncio.CancelledError))
+            }
             if exceptions:
                 raise ResamplingError(exceptions)
             if one_shot:
@@ -293,7 +289,7 @@ class _ResamplingHelper:
         """
         self._resampling_period_s = resampling_period_s
         self._max_data_age_in_periods: float = max_data_age_in_periods
-        self._buffer: Deque[Sample] = deque()
+        self._buffer: deque[Sample] = deque()
         self._resampling_function: ResamplingFunction = resampling_function
 
     def add_sample(self, sample: Sample) -> None:
