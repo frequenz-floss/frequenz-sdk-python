@@ -1005,7 +1005,11 @@ components with ids 20 and 5.</p>
 <span class="normal">113</span>
 <span class="normal">114</span>
 <span class="normal">115</span>
-<span class="normal">116</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">LogicalMeter</span><span class="p">:</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">LogicalMeter</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;A logical meter for calculating high level metrics in a microgrid.</span>
 
 <span class="sd">    LogicalMeter can be used to run formulas on resampled component metric streams.</span>
@@ -1063,9 +1067,13 @@ components with ids 20 and 5.</p>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="n">formula</span><span class="o">.</span><span class="n">apply</span><span class="p">()</span>
-                <span class="k">await</span> <span class="n">sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">CancelledError</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;LogicalMeter task cancelled&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-except</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Formula application failed: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">start_formula</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1311,11 +1319,7 @@ False, the returned value will be a None.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 84</span>
-<span class="normal"> 85</span>
-<span class="normal"> 86</span>
-<span class="normal"> 87</span>
-<span class="normal"> 88</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 88</span>
 <span class="normal"> 89</span>
 <span class="normal"> 90</span>
 <span class="normal"> 91</span>
@@ -1343,7 +1347,11 @@ False, the returned value will be a None.</p>
 <span class="normal">113</span>
 <span class="normal">114</span>
 <span class="normal">115</span>
-<span class="normal">116</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">start_formula</span><span class="p">(</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">start_formula</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">formula</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">component_metric_id</span><span class="p">:</span> <span class="n">ComponentMetricId</span><span class="p">,</span>
