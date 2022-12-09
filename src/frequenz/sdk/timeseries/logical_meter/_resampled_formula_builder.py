@@ -8,7 +8,7 @@ from frequenz.channels import Receiver, Sender
 
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid.component import ComponentMetricId
-from .._sample import Sample
+from .. import Sample
 from ._formula_engine import FormulaBuilder, FormulaEngine
 from ._tokenizer import Tokenizer, TokenType
 
