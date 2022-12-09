@@ -2,20 +2,12 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
+This release improves the performance of the `ComponentMetricsResamplingActor`, and fixes a bug in the `LogicalMeter` that was causing it to crash.
 
 ## Upgrading
 
 - `frequenz.sdk.timseries`:
-  - The resample classes in the `frequenz.sdk.timseries` were removed. Use the new `frequenz.sdk.timseries.resampling.Resampler` class instead.
-  - The `ResamplingFunction` was moved to the new module `frequenz.sdk.timseries.resampling`.
-
-- `frequenz.sdk.actor.ComponentMetricsResamplingActor`:
-  - The constructor now requires to pass all arguments as keywords.
-  - The following constructor arguments were renamed to make them more clear:
-    - `subscription_sender` -> `data_sourcing_request_sender`
-    - `subscription_receiver` -> `resampling_request_receiver`
-
+  - The resample classes (`GroupResampler`, `Resampler`, `ResamplingFunction`) where removed and the replacement classes are hidden for now, as they are going through a rewrite.
 
 ## New Features
 
@@ -31,4 +23,4 @@
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+- The Resampling actor sends None values out when there is no data from a component. The logical meter used to raise an exception if it saw a `None` value from any of its streams.  The logical meter is now able to handle `None` values by propagating the `None` values,  or treating them as `0`s.
