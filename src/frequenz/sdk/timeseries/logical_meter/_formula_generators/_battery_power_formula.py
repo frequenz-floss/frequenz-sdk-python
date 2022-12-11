@@ -6,7 +6,7 @@
 from .....sdk import microgrid
 from ....microgrid.component import ComponentCategory, ComponentMetricId, InverterType
 from .._formula_engine import FormulaEngine
-from ._formula_generator import FormulaGenerator
+from ._formula_generator import ComponentNotFound, FormulaGenerator
 
 
 class BatteryPowerFormula(FormulaGenerator):
@@ -27,8 +27,10 @@ class BatteryPowerFormula(FormulaGenerator):
             A formula engine that will calculate cumulative battery power values.
 
         Raises:
-            RuntimeError: if there are no batteries in the component graph, or if they
-                don't have an inverter as a predecessor.
+            ComponentNotFound: if there are no batteries in the component graph, or if
+                they don't have an inverter as a predecessor.
+            FormulaGenerationError: If a battery has a non-inverter predecessor
+                in the component graph.
         """
         builder = self._get_builder(ComponentMetricId.ACTIVE_POWER)
         component_graph = microgrid.get().component_graph
@@ -40,7 +42,7 @@ class BatteryPowerFormula(FormulaGenerator):
         )
 
         if not battery_inverters:
-            raise RuntimeError(
+            raise ComponentNotFound(
                 "Unable to find any battery inverters in the component graph."
             )
 

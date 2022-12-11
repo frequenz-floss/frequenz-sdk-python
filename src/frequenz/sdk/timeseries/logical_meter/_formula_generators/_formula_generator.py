@@ -13,6 +13,14 @@ from .._formula_engine import FormulaEngine
 from .._resampled_formula_builder import ResampledFormulaBuilder
 
 
+class FormulaGenerationError(Exception):
+    """An error encountered during formula generation from the component graph."""
+
+
+class ComponentNotFound(FormulaGenerationError):
+    """Indicates that a component required for generating a formula is not found."""
+
+
 class FormulaGenerator(ABC):
     """A class for generating formulas from the component graph."""
 

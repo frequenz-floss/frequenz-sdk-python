@@ -6,7 +6,7 @@
 from .....sdk import microgrid
 from ....microgrid.component import ComponentCategory, ComponentMetricId
 from .._formula_engine import FormulaEngine
-from ._formula_generator import FormulaGenerator
+from ._formula_generator import ComponentNotFound, FormulaGenerator
 
 
 class GridPowerFormula(FormulaGenerator):
@@ -21,7 +21,7 @@ class GridPowerFormula(FormulaGenerator):
             A formula engine that will calculate grid power values.
 
         Raises:
-            RuntimeError: when the component graph doesn't have a `GRID` component.
+            ComponentNotFound: when the component graph doesn't have a `GRID` component.
         """
         builder = self._get_builder(ComponentMetricId.ACTIVE_POWER)
         component_graph = microgrid.get().component_graph
@@ -35,7 +35,7 @@ class GridPowerFormula(FormulaGenerator):
         )
 
         if grid_component is None:
-            raise RuntimeError(
+            raise ComponentNotFound(
                 "Unable to find a GRID component from the component graph."
             )
 
