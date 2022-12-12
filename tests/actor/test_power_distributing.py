@@ -5,7 +5,6 @@
 import asyncio
 import re
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
 from functools import partial
 from typing import Dict, Set, Tuple, TypeVar, Union
 from unittest import IsolatedAsyncioTestCase, mock
@@ -13,10 +12,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 from frequenz.channels import Bidirectional, Broadcast, Receiver, Sender
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
-from pytest_mock import MockerFixture
 
 from frequenz.sdk.actor.power_distributing import PowerDistributingActor, Request
-from frequenz.sdk.actor.power_distributing.power_distributing import _BrokenComponents
+from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
 from frequenz.sdk.actor.power_distributing.result import (
     Error,
     Ignored,
@@ -232,12 +230,20 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
 
         request = Request(
-            power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
+            power=1200,
+            batteries={106, 206},
+            request_timeout_sec=SAFETY_TIMEOUT,
         )
 
         with mock.patch("asyncio.sleep", new_callable=AsyncMock):
             distributor = PowerDistributingActor(
                 mock_api, component_graph, {"user1": channel.service_handle}
+            )
+
+            # Mock that all requested batteries are working.
+            distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
+            distributor._battery_pool.get_working_batteries.return_value = (
+                request.batteries
             )
 
             client_handle = channel.client_handle
@@ -297,6 +303,10 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             distributor = PowerDistributingActor(
                 mock_api, component_graph, service_channels
             )
+
+            # Mock that all requested batteries are working.
+            distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
+            distributor._battery_pool.get_working_batteries.return_value = {106, 206}
 
             user1_handle = channel1.client_handle
             task1 = user1_handle.send(
@@ -365,6 +375,12 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
                 mock_api, component_graph, service_channels
             )
 
+            # Mock that all requested batteries are working.
+            distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
+            distributor._battery_pool.get_working_batteries.return_value = (
+                request.batteries
+            )
+
             user1_handle = channel1.client_handle
             await user1_handle.send(request)
 
@@ -420,6 +436,13 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             distributor = PowerDistributingActor(
                 mock_api, component_graph, service_channels
             )
+            # Mock that all requested batteries are working.
+            distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
+            distributor._battery_pool.get_working_batteries.side_effect = [
+                {106, 206},
+                {106, 306},
+                {106, 206},
+            ]
 
             user1_handle = channel1.client_handle
             task1 = user1_handle.send(
@@ -513,6 +536,11 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             distributor = PowerDistributingActor(
                 mock_api, component_graph, service_channels
             )
+            # Mock that all requested batteries are working.
+            distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
+            distributor._battery_pool.get_working_batteries.return_value = (
+                request.batteries
+            )
 
             user1_handle = channel1.client_handle
             await user1_handle.send(request)
@@ -574,6 +602,11 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         with mock.patch("asyncio.sleep", new_callable=AsyncMock):
             distributor = PowerDistributingActor(
                 mock_api, component_graph, service_channels
+            )
+            # Mock that all requested batteries are working.
+            distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
+            distributor._battery_pool.get_working_batteries.return_value = (
+                request.batteries
             )
 
             user1_handle = channel1.client_handle
@@ -637,6 +670,11 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             distributor = PowerDistributingActor(
                 mock_api, component_graph, service_channels
             )
+            # Mock that all requested batteries are working.
+            distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
+            distributor._battery_pool.get_working_batteries.return_value = (
+                request.batteries
+            )
 
             user1_handle = channel1.client_handle
             await user1_handle.send(request)
@@ -655,11 +693,11 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         assert result.excess_power == 0
         assert result.request == request
 
-    async def test_power_distributor_stale_battery_message(
+    async def test_not_all_batteries_are_working(
         self,
     ) -> None:
         # pylint: disable=too-many-locals
-        """Test if power distribution works with single user works."""
+        """Test if power distribution works if not all batteries are working."""
         components, connections = self.default_components_graph()
         component_graph = _MicrogridComponentGraph(components, connections)
         bat_channels = self.create_bat_channels(components)
@@ -668,22 +706,12 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
 
         for key_id, chan in bat_channels.items():
             sender = chan.new_sender()
-            if key_id == 106:
-                # this battery should has outdated data
-                bat = create_battery_msg(
-                    key_id,
-                    capacity=Metric(98000),
-                    soc=Metric(40, Bound(20, 80)),
-                    power=Bound(-1000, 1000),
-                    timestamp=datetime.now(timezone.utc) - timedelta(seconds=62),
-                )
-            else:
-                bat = create_battery_msg(
-                    key_id,
-                    capacity=Metric(98000),
-                    soc=Metric(40, Bound(20, 80)),
-                    power=Bound(-1000, 1000),
-                )
+            bat = create_battery_msg(
+                key_id,
+                capacity=Metric(98000),
+                soc=Metric(40, Bound(20, 80)),
+                power=Bound(-1000, 1000),
+            )
             await sender.send(BatteryData.from_proto(bat))
 
         for key_id, inv_chan in inv_channels.items():
@@ -703,6 +731,11 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             distributor = PowerDistributingActor(
                 mock_api, component_graph, {"user1": channel.service_handle}
             )
+            # Mock that all requested batteries are working.
+            distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
+            distributor._battery_pool.get_working_batteries.return_value = (
+                request.batteries - {106}
+            )
 
             client_handle = channel.client_handle
             await client_handle.send(request)
@@ -720,118 +753,3 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         assert result.excess_power == 700
         assert result.succeed_power == 500
         assert result.request == request
-
-    async def test_power_distributor_stale_all_components_message(
-        self,
-    ) -> None:
-        # pylint: disable=too-many-locals
-        """Test if power distribution works with single user works."""
-        components, connections = self.default_components_graph()
-        component_graph = _MicrogridComponentGraph(components, connections)
-        bat_channels = self.create_bat_channels(components)
-        inv_channels = self.create_inv_channels(components)
-        mock_api = self.mock_api(components, bat_channels, inv_channels)
-
-        for key_id, chan in bat_channels.items():
-            sender = chan.new_sender()
-            if key_id == 106:
-                # this battery should has outdated data
-                bat = create_battery_msg(
-                    key_id,
-                    capacity=Metric(98000),
-                    soc=Metric(40, Bound(20, 80)),
-                    power=Bound(-1000, 1000),
-                    timestamp=datetime.now(timezone.utc) - timedelta(seconds=62),
-                )
-            else:
-                bat = create_battery_msg(
-                    key_id,
-                    capacity=Metric(98000),
-                    soc=Metric(40, Bound(20, 80)),
-                    power=Bound(-1000, 1000),
-                )
-            await sender.send(BatteryData.from_proto(bat))
-
-        for key_id, inv_chan in inv_channels.items():
-            inv_sender = inv_chan.new_sender()
-            if key_id == 205:
-                inv = create_inverter_msg(
-                    key_id,
-                    power=Bound(-500, 500),
-                    timestamp=datetime.now(timezone.utc) - timedelta(seconds=62),
-                )
-            else:
-                inv = create_inverter_msg(
-                    key_id,
-                    power=Bound(-500, 500),
-                )
-            await inv_sender.send(InverterData.from_proto(inv))
-
-        channel = Bidirectional[Request, Result]("user1", "power_distributor")
-
-        with mock.patch("asyncio.sleep", new_callable=AsyncMock):
-            distributor = PowerDistributingActor(
-                mock_api, component_graph, {"user1": channel.service_handle}
-            )
-
-            client_handle = channel.client_handle
-            await client_handle.send(
-                Request(
-                    power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
-                )
-            )
-
-            done, pending = await asyncio.wait(
-                [client_handle.receive()], timeout=SAFETY_TIMEOUT
-            )
-            await distributor._stop()  # type: ignore # pylint: disable=no-member
-
-        assert len(pending) == 0
-        assert len(done) == 1
-
-        result = done.pop().result()
-        assert isinstance(result, Error)
-        err_msg = re.search(r"^No data for the given batteries", result.msg)
-        assert err_msg is not None
-
-
-class TestBrokenComponents:
-    """Test if BrokenComponents class is working as expected."""
-
-    def test_broken_components(self, mocker: MockerFixture) -> None:
-        """Check if components are blocked for 30 seconds.
-
-        Args:
-            mocker: pytest mocker
-        """
-        datetime_mock = mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.datetime"
-        )
-
-        expected_datetime = [
-            datetime.fromisoformat("2001-01-01T00:00:00+00:00"),
-            datetime.fromisoformat("2001-01-01T00:00:10+00:00"),
-            datetime.fromisoformat("2001-01-01T00:00:20+00:00"),
-        ]
-        expected_datetime.extend(
-            20 * [datetime.fromisoformat("2001-01-01T00:00:31+00:00")]
-        )
-
-        datetime_mock.now.side_effect = expected_datetime
-
-        # After 30 seconds components should be considered as working
-        broken = _BrokenComponents(30)
-
-        for component_id in range(3):
-            broken.mark_as_broken(component_id)
-
-        # Component 0 was marked as broken 30 seconds ago. Other components, not.
-        assert not broken.is_broken(0)
-        assert broken.is_broken(1)
-        assert broken.is_broken(2)
-        assert broken.get_working_subset({0, 1}) == {0}
-        assert broken.get_working_subset({0}) == {0}
-
-        # If all requested components are marked as broken,
-        # then we should mark them as working to not block user command.
-        assert broken.get_working_subset({1, 2}) == {1, 2}

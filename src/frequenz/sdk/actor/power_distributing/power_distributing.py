@@ -17,7 +17,6 @@ import asyncio
 import logging
 from asyncio.tasks import ALL_COMPLETED
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from math import ceil, floor
 from typing import (  # pylint: disable=unused-import
     Any,
@@ -27,7 +26,6 @@ from typing import (  # pylint: disable=unused-import
     Optional,
     Set,
     Tuple,
-    Union,
 )
 
 import grpc
@@ -44,6 +42,7 @@ from ...microgrid.component import (
     InverterData,
 )
 from ...power import DistributionAlgorithm, InvBatPair
+from ._battery_pool_status import BatteryPoolStatus
 from .request import Request
 from .result import Error, Ignored, OutOfBound, PartialFailure, Result, Success
 
@@ -60,85 +59,6 @@ class _User:
     # Channel for the communication
     channel: Bidirectional.Handle[Result, Request]
     """The bidirectional channel to communicate with the user."""
-
-
-class _BrokenComponents:
-    """Store components marked as broken."""
-
-    def __init__(self, timeout_sec: float) -> None:
-        """Create object instance.
-
-        Args:
-            timeout_sec: How long the component should be marked as broken.
-        """
-        self._broken: Dict[int, datetime] = {}
-        self._timeout_sec = timeout_sec
-
-    def mark_as_broken(self, component_id: int) -> None:
-        """Mark component as broken.
-
-        After marking component as broken it would be considered as broken for
-        self._timeout_sec.
-
-        Args:
-            component_id: component id
-        """
-        self._broken[component_id] = datetime.now(timezone.utc)
-
-    def update_retry(self, timeout_sec: float) -> None:
-        """Change how long the component should be marked as broken.
-
-        Args:
-            timeout_sec: New retry time after sec.
-        """
-        self._timeout_sec = timeout_sec
-
-    def get_working_subset(self, components_ids: Set[int]) -> Set[int]:
-        """Get subset of batteries that are not marked as broken.
-
-        If all given batteries are broken, then mark them as working and return them.
-        This is temporary workaround to not block user command.
-
-        Args:
-            components_ids: set of component ids
-
-        Returns:
-            Subset of given components_ids with working components.
-        """
-        working = set(filter(lambda cid: not self.is_broken(cid), components_ids))
-
-        if len(working) == 0:
-            _logger.warning(
-                "All requested components: %s are marked as broken. "
-                "Marking them as working to not block command.",
-                str(components_ids),
-            )
-
-            for cid in components_ids:
-                self._broken.pop(cid, None)
-
-            working = components_ids
-
-        return working
-
-    def is_broken(self, component_id: int) -> bool:
-        """Check if component is marked as broken.
-
-        Args:
-            component_id: component id
-
-        Returns:
-            True if component is broken, False otherwise.
-        """
-        if component_id in self._broken:
-            last_broken = self._broken[component_id]
-            if (
-                datetime.now(timezone.utc) - last_broken
-            ).total_seconds() < self._timeout_sec:
-                return True
-
-            del self._broken[component_id]
-        return False
 
 
 @actor
@@ -238,19 +158,21 @@ class PowerDistributingActor:
         self._api = microgrid_api
         self._wait_for_data_sec = wait_for_data_sec
 
-        # Max permitted time when the component should send any information.
-        # After that timeout the component will be treated as not existing.
-        # Formulas will put 0 in place of data from this components.
-        # This will happen until component starts sending data.
-        self.component_data_timeout_sec: float = 60.0
-        self.broken_component_timeout_sec: float = 30.0
+        # NOTE: power_distributor_exponent should be received from ConfigManager
         self.power_distributor_exponent: float = 1.0
-
-        # distributor_exponent and timeout_sec should be get from ConfigManager
         self.distribution_algorithm = DistributionAlgorithm(
             self.power_distributor_exponent
         )
-        self._broken_components = _BrokenComponents(self.broken_component_timeout_sec)
+
+        batteries = component_graph.components(
+            component_category={ComponentCategory.BATTERY}
+        )
+
+        self._battery_pool = BatteryPoolStatus(
+            battery_ids={battery.component_id for battery in batteries},
+            max_blocking_duration_sec=30.0,
+            max_data_age_sec=10.0,
+        )
 
         self._bat_inv_map, self._inv_bat_map = self._get_components_pairs(
             component_graph
@@ -327,6 +249,7 @@ class PowerDistributingActor:
         as broken for some time.
         """
         await self._create_channels()
+        await self._battery_pool.async_init()
 
         # Wait few seconds to get data from the channels created above.
         await asyncio.sleep(self._wait_for_data_sec)
@@ -388,25 +311,24 @@ class PowerDistributingActor:
 
             if len(failed_batteries) > 0:
                 succeed_batteries = set(battery_distribution.keys()) - failed_batteries
-                await user.channel.send(
-                    PartialFailure(
-                        request=request,
-                        succeed_power=distributed_power_value,
-                        succeed_batteries=succeed_batteries,
-                        failed_power=failed_power,
-                        failed_batteries=failed_batteries,
-                        excess_power=distribution.remaining_power,
-                    )
+                response = PartialFailure(
+                    request=request,
+                    succeed_power=distributed_power_value,
+                    succeed_batteries=succeed_batteries,
+                    failed_power=failed_power,
+                    failed_batteries=failed_batteries,
+                    excess_power=distribution.remaining_power,
                 )
             else:
-                await user.channel.send(
-                    Success(
-                        request=request,
-                        succeed_power=distributed_power_value,
-                        used_batteries=set(battery_distribution.keys()),
-                        excess_power=distribution.remaining_power,
-                    )
+                response = Success(
+                    request=request,
+                    succeed_power=distributed_power_value,
+                    used_batteries=set(battery_distribution.keys()),
+                    excess_power=distribution.remaining_power,
                 )
+
+            self._battery_pool.update_last_request_status(response)
+            await user.channel.send(response)
 
     def _check_request(self, request: Request) -> Optional[Result]:
         """Check whether the given request if correct.
@@ -580,7 +502,7 @@ class PowerDistributingActor:
 
         return bat_inv_map, inv_bat_map
 
-    def _get_components_data(self, batteries: Iterable[int]) -> List[InvBatPair]:
+    def _get_components_data(self, batteries: Set[int]) -> List[InvBatPair]:
         """Get data for the given batteries and adjacent inverters.
 
         Args:
@@ -594,7 +516,7 @@ class PowerDistributingActor:
         """
         pairs_data: List[InvBatPair] = []
 
-        for battery_id in self._broken_components.get_working_subset(batteries):
+        for battery_id in self._battery_pool.get_working_batteries(batteries):
             if battery_id not in self._battery_receivers:
                 raise KeyError(
                     f"No battery {battery_id}, "
@@ -607,52 +529,20 @@ class PowerDistributingActor:
                 battery_id
             ].peek()
 
-            if not self._is_component_data_valid(battery_id, battery_data):
+            if battery_data is None:
+                _logger.warning("None returned from battery receiver %d.", battery_id)
                 continue
 
             inverter_data: Optional[InverterData] = self._inverter_receivers[
                 inverter_id
             ].peek()
 
-            if not self._is_component_data_valid(inverter_id, inverter_data):
+            if inverter_data is None:
+                _logger.warning("None returned from inverter receiver %d.", inverter_id)
                 continue
 
-            # None case already checked but mypy don't see that.
-            if battery_data is not None and inverter_data is not None:
-                pairs_data.append(InvBatPair(battery_data, inverter_data))
+            pairs_data.append(InvBatPair(battery_data, inverter_data))
         return pairs_data
-
-    def _is_component_data_valid(
-        self, component_id: int, component_data: Union[None, BatteryData, InverterData]
-    ) -> bool:
-        """Check whether the component data from microgrid are correct.
-
-        Args:
-            component_id: component id
-            component_data: component data instance
-
-        Returns:
-            True if data are correct, false otherwise
-        """
-        if component_data is None:
-            _logger.warning(
-                "No data from component %d.",
-                component_id,
-            )
-            return False
-
-        now = datetime.now(timezone.utc)
-        time_delta = now - component_data.timestamp
-        if time_delta.total_seconds() > self.component_data_timeout_sec:
-            _logger.warning(
-                "Component %d data are stale. Last timestamp: %s, now: %s",
-                component_id,
-                str(component_data.timestamp),
-                str(now),
-            )
-            return False
-
-        return True
 
     async def _create_channels(self) -> None:
         """Create channels to get data of components in microgrid."""
@@ -710,7 +600,6 @@ class PowerDistributingActor:
                         battery_id,
                         str(err),
                     )
-                    self._broken_components.mark_as_broken(battery_id)
             except asyncio.exceptions.CancelledError:
                 failed_power += distribution[inverter_id]
                 failed_batteries.add(battery_id)
@@ -719,7 +608,6 @@ class PowerDistributingActor:
                     battery_id,
                     request_timeout_sec,
                 )
-                self._broken_components.mark_as_broken(battery_id)
 
         return failed_power, failed_batteries
 
