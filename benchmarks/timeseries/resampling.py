@@ -8,7 +8,10 @@ from timeit import timeit
 from typing import Sequence
 
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._resampling import ResamplerConfig, _ResamplingHelper
+from frequenz.sdk.timeseries._resampling._resampler import (
+    ResamplerConfig,
+    _ResamplingHelper,
+)
 
 
 def nop(  # pylint: disable=unused-argument

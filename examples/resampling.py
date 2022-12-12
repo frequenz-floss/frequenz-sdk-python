@@ -18,7 +18,8 @@ from frequenz.sdk.actor import (
 )
 from frequenz.sdk.microgrid.component import ComponentCategory, ComponentMetricId
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._resampling import Resampler, ResamplerConfig, Sink, Source
+from frequenz.sdk.timeseries._resampling import Resampler, ResamplerConfig
+from frequenz.sdk.timeseries._resampling._resampler import Sink, Source
 
 HOST = "microgrid.sandbox.api.frequenz.io"
 PORT = 61060

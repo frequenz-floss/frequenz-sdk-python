@@ -6,22 +6,17 @@
 from __future__ import annotations
 
 import asyncio
-import itertools
-import logging
 import math
 from bisect import bisect
-from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import AsyncIterator, Callable, Coroutine, Sequence
 
 from frequenz.channels.util import Timer
 
-from ..util.asyncio import cancel_and_await
-from . import Sample
-
-_logger = logging.Logger(__name__)
-
+from ...util.asyncio import cancel_and_await
+from .. import Sample
+from ._buffer import Buffer
 
 DEFAULT_BUFFER_LEN_INIT = 16
 """Default initial buffer length.
@@ -325,7 +320,7 @@ class _ResamplingHelper:
             config: The configuration for the resampler.
         """
         self._config = config
-        self._buffer: deque[Sample] = deque(maxlen=config.initial_buffer_len)
+        self._buffer: Buffer = Buffer(config.initial_buffer_len)
 
     def add_sample(self, sample: Sample) -> None:
         """Add a new sample to the internal buffer.
@@ -333,7 +328,7 @@ class _ResamplingHelper:
         Args:
             sample: The sample to be added to the buffer.
         """
-        self._buffer.append(sample)
+        self._buffer.push(sample)
 
     def resample(self, timestamp: datetime) -> Sample:
         """Generate a new sample based on all the current *relevant* samples.
@@ -356,10 +351,7 @@ class _ResamplingHelper:
         # compare samples at the moment.
         cut_index = bisect(self._buffer, Sample(minimum_relevant_timestamp, None))
         # pylint: disable=fixme
-        # FIXME: This is far from efficient, but we don't want to start new
-        # ring buffer implementation here that uses a list to overcome the
-        # deque limitation of not being able to get slices
-        relevant_samples = list(itertools.islice(self._buffer, cut_index, None))
+        relevant_samples = self._buffer[cut_index:]
         value = (
             conf.resampling_function(relevant_samples, conf.resampling_period_s)
             if relevant_samples
@@ -387,7 +379,7 @@ class _StreamingHelper:
         self._helper: _ResamplingHelper = helper
         self._source: Source = source
         self._sink: Sink = sink
-        self._receiving_task: asyncio.Task = asyncio.create_task(
+        self._receiving_task: asyncio.Task[None] = asyncio.create_task(
             self._receive_samples()
         )
 

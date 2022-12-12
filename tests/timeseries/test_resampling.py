@@ -20,10 +20,9 @@ from frequenz.sdk.timeseries._resampling import (
     ResamplerConfig,
     ResamplingError,
     ResamplingFunction,
-    Sink,
-    Source,
     SourceStoppedError,
 )
+from frequenz.sdk.timeseries._resampling._resampler import Sink, Source
 
 from ..utils import a_sequence
 
