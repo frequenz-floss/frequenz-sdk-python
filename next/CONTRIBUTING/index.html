@@ -868,7 +868,7 @@ test at the expense of a higher chance to end up with a dirty test environment.<
 <p>For a better development test cycle you can install the runtime and test
 dependencies and run <code>pytest</code> manually.</p>
 <div class="highlight"><pre><span></span><code>python -m pip install .
-python -m pip install pytest pytest-asyncio
+python -m pip install pytest pytest-asyncio pytest-mock time_machine async_solipsism
 
 <span class="c1"># And for example</span>
 pytest tests/test_sdk.py
