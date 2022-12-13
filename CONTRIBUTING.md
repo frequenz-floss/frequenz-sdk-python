@@ -35,7 +35,7 @@ dependencies and run `pytest` manually.
 
 ```sh
 python -m pip install .
-python -m pip install pytest pytest-asyncio
+python -m pip install pytest pytest-asyncio pytest-mock time_machine async_solipsism
 
 # And for example
 pytest tests/test_sdk.py
