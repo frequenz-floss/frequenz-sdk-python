@@ -10,11 +10,22 @@ from ._formula_generator import (
     FormulaGenerator,
 )
 from ._grid_power_formula import GridPowerFormula
+from ._pv_power_formula import PVPowerFormula
 
 __all__ = [
+    #
+    # Base class
+    #
+    "FormulaGenerator",
+    #
+    # Formula generators
+    #
     "GridPowerFormula",
     "BatteryPowerFormula",
+    "PVPowerFormula",
+    #
+    # Exceptions
+    #
     "ComponentNotFound",
-    "FormulaGenerator",
     "FormulaGenerationError",
 ]

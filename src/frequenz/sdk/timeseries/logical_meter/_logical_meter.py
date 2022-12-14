@@ -17,7 +17,12 @@ from ...microgrid import ComponentGraph
 from ...microgrid.component import ComponentMetricId
 from .. import Sample
 from ._formula_engine import FormulaEngine
-from ._formula_generators import BatteryPowerFormula, FormulaGenerator, GridPowerFormula
+from ._formula_generators import (
+    BatteryPowerFormula,
+    FormulaGenerator,
+    GridPowerFormula,
+    PVPowerFormula,
+)
 from ._resampled_formula_builder import ResampledFormulaBuilder
 
 logger = logging.Logger(__name__)
@@ -170,3 +175,15 @@ class LogicalMeter:
 
         """
         return await self._get_formula_stream("battery_power", BatteryPowerFormula)
+
+    async def pv_power(self) -> Receiver[Sample]:
+        """Fetch the PV power production in the microgrid.
+
+        If a formula engine to calculate PV power production is not
+        already running, it will be started.  Else, we'll just get a new
+        receiver to the already existing data stream.
+
+        Returns:
+            A *new* receiver that will stream PV power production values.
+        """
+        return await self._get_formula_stream("pv_power", PVPowerFormula)
