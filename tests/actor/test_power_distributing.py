@@ -15,11 +15,14 @@ from frequenz.channels import Bidirectional, Broadcast, Receiver, Sender
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 from pytest_mock import MockerFixture
 
-from frequenz.sdk.actor.power_distributing import (
-    PowerDistributingActor,
-    Request,
+from frequenz.sdk.actor.power_distributing import PowerDistributingActor, Request
+from frequenz.sdk.actor.power_distributing.power_distributing import _BrokenComponents
+from frequenz.sdk.actor.power_distributing.result import (
+    Error,
+    Ignored,
+    OutOfBound,
     Result,
-    _BrokenComponents,
+    Success,
 )
 from frequenz.sdk.microgrid._graph import _MicrogridComponentGraph
 from frequenz.sdk.microgrid.client import Connection
@@ -227,17 +230,18 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             await inv_sender.send(InverterData.from_proto(inv))
 
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
+
+        request = Request(
+            power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
+        )
+
         with mock.patch("asyncio.sleep", new_callable=AsyncMock):
             distributor = PowerDistributingActor(
                 mock_api, component_graph, {"user1": channel.service_handle}
             )
 
             client_handle = channel.client_handle
-            await client_handle.send(
-                Request(
-                    power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
-                )
-            )
+            await client_handle.send(request)
 
             done, pending = await asyncio.wait(
                 [client_handle.receive()], timeout=SAFETY_TIMEOUT
@@ -247,11 +251,11 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         assert len(pending) == 0
         assert len(done) == 1
 
-        result = done.pop().result()
-        assert result is not None
-        assert result.status == Result.Status.SUCCESS
-        assert result.failed_power == 0
-        assert result.above_upper_bound == 200
+        result: Result = done.pop().result()
+        assert isinstance(result, Success)
+        assert result.succeed_power == 1000
+        assert result.excess_power == 200
+        assert result.request == request
 
     async def test_power_distributor_two_users(
         self,
@@ -318,17 +322,8 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         assert len(pending) == 0
         assert len(done) == 2
 
-        success, ignored = 0, 0
-        for item in done:
-            result = item.result()
-            assert result is not None
-            if result.status == Result.Status.SUCCESS:
-                success += 1
-            elif result.status == Result.Status.IGNORED:
-                ignored += 1
-
-        assert success == 1
-        assert ignored == 1
+        assert any(map(lambda x: isinstance(x.result(), Success), done))
+        assert any(map(lambda x: isinstance(x.result(), Ignored), done))
 
     async def test_power_distributor_invalid_battery_id(self) -> None:
         # pylint: disable=too-many-locals
@@ -361,17 +356,17 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         service_channels = {
             "user1": channel1.service_handle,
         }
+
+        request = Request(
+            power=1200, batteries={106, 208}, request_timeout_sec=SAFETY_TIMEOUT
+        )
         with mock.patch("asyncio.sleep", new_callable=AsyncMock):
             distributor = PowerDistributingActor(
                 mock_api, component_graph, service_channels
             )
 
             user1_handle = channel1.client_handle
-            await user1_handle.send(
-                Request(
-                    power=1200, batteries={106, 208}, request_timeout_sec=SAFETY_TIMEOUT
-                )
-            )
+            await user1_handle.send(request)
 
             done, _ = await asyncio.wait(
                 [user1_handle.receive()], timeout=SAFETY_TIMEOUT
@@ -379,14 +374,11 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             await distributor._stop()  # type: ignore # pylint: disable=no-member
 
         assert len(done) == 1
-        result = done.pop().result()
-        assert result is not None
-        assert result.status == Result.Status.ERROR
-        assert result.error_message is not None
-        re.search(
-            r"^No battery 208, available batteries: [106, 206, 306]",
-            result.error_message,
-        )
+        result: Result = done.pop().result()
+        assert isinstance(result, Error)
+        assert result.request == request
+        err_msg = re.search(r"^No battery 208, available batteries:", result.msg)
+        assert err_msg is not None
 
     async def test_power_distributor_overlapping_batteries(self) -> None:
         # pylint: disable=too-many-locals
@@ -466,16 +458,18 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         success, ignored = 0, 0
         for item in done:
             result = item.result()
-            assert result is not None
-            if result.status == Result.Status.SUCCESS:
+            if isinstance(result, Success):
                 success += 1
-            elif result.status == Result.Status.IGNORED:
+            elif isinstance(result, Ignored):
                 ignored += 1
+            else:
+                assert 0, f"Unexpected type of result message {type(result)}"
 
+        # It is an assert we can't be sure will be executed first
         assert success >= 2
         assert ignored <= 1
 
-    async def test_power_distributor_one_user_adjust_power_out_of_bound(
+    async def test_power_distributor_one_user_adjust_power_consume(
         self,
     ) -> None:
         # pylint: disable=too-many-locals
@@ -509,20 +503,20 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             "user1": channel1.service_handle,
         }
 
+        request = Request(
+            power=1200,
+            batteries={106, 206},
+            request_timeout_sec=SAFETY_TIMEOUT,
+            adjust_power=False,
+        )
         with mock.patch("asyncio.sleep", new_callable=AsyncMock):
             distributor = PowerDistributingActor(
                 mock_api, component_graph, service_channels
             )
 
             user1_handle = channel1.client_handle
-            await user1_handle.send(
-                Request(
-                    power=1200,
-                    batteries={106, 206},
-                    request_timeout_sec=SAFETY_TIMEOUT,
-                    adjust_power=False,
-                )
-            )
+            await user1_handle.send(request)
+
             done, pending = await asyncio.wait(
                 [user1_handle.receive()], timeout=SAFETY_TIMEOUT
             )
@@ -532,10 +526,72 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         assert len(done) == 1
 
         result = done.pop().result()
+        assert isinstance(result, OutOfBound)
         assert result is not None
-        assert result.status == Result.Status.OUT_OF_BOUND
-        assert result.failed_power == 1200
-        assert result.above_upper_bound == 0
+        assert result.request == request
+        assert result.bound == 1000
+
+    async def test_power_distributor_one_user_adjust_power_supply(
+        self,
+    ) -> None:
+        # pylint: disable=too-many-locals
+        """Test if power distribution works with single user works."""
+        components, connections = self.default_components_graph()
+        component_graph = _MicrogridComponentGraph(components, connections)
+        bat_channels = self.create_bat_channels(components)
+        inv_channels = self.create_inv_channels(components)
+        mock_api = self.mock_api(components, bat_channels, inv_channels)
+
+        for key_id, chan in bat_channels.items():
+            sender = chan.new_sender()
+            bat = create_battery_msg(
+                key_id,
+                capacity=Metric(98000),
+                soc=Metric(40, Bound(20, 80)),
+                power=Bound(-1000, 1000),
+            )
+            await sender.send(BatteryData.from_proto(bat))
+
+        for key_id, inv_chan in inv_channels.items():
+            inv_sender = inv_chan.new_sender()
+            inv = create_inverter_msg(
+                key_id,
+                power=Bound(-500, 500),
+            )
+            await inv_sender.send(InverterData.from_proto(inv))
+
+        channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
+        service_channels = {
+            "user1": channel1.service_handle,
+        }
+
+        request = Request(
+            power=-1200,
+            batteries={106, 206},
+            request_timeout_sec=SAFETY_TIMEOUT,
+            adjust_power=False,
+        )
+        with mock.patch("asyncio.sleep", new_callable=AsyncMock):
+            distributor = PowerDistributingActor(
+                mock_api, component_graph, service_channels
+            )
+
+            user1_handle = channel1.client_handle
+            await user1_handle.send(request)
+
+            done, pending = await asyncio.wait(
+                [user1_handle.receive()], timeout=SAFETY_TIMEOUT
+            )
+            await distributor._stop()  # type: ignore # pylint: disable=no-member
+
+        assert len(pending) == 0
+        assert len(done) == 1
+
+        result = done.pop().result()
+        assert isinstance(result, OutOfBound)
+        assert result is not None
+        assert result.request == request
+        assert result.bound == -1000
 
     async def test_power_distributor_one_user_adjust_power_success(
         self,
@@ -571,20 +627,19 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             "user1": channel1.service_handle,
         }
 
+        request = Request(
+            power=1000,
+            batteries={106, 206},
+            request_timeout_sec=SAFETY_TIMEOUT,
+            adjust_power=False,
+        )
         with mock.patch("asyncio.sleep", new_callable=AsyncMock):
             distributor = PowerDistributingActor(
                 mock_api, component_graph, service_channels
             )
 
             user1_handle = channel1.client_handle
-            await user1_handle.send(
-                Request(
-                    power=1000,
-                    batteries={106, 206},
-                    request_timeout_sec=SAFETY_TIMEOUT,
-                    adjust_power=False,
-                )
-            )
+            await user1_handle.send(request)
 
             done, pending = await asyncio.wait(
                 [user1_handle.receive()], timeout=SAFETY_TIMEOUT
@@ -595,10 +650,10 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         assert len(done) == 1
 
         result = done.pop().result()
-        assert result is not None
-        assert result.status == Result.Status.SUCCESS
-        assert result.failed_power == 0
-        assert result.above_upper_bound == 0
+        assert isinstance(result, Success)
+        assert result.succeed_power == 1000
+        assert result.excess_power == 0
+        assert result.request == request
 
     async def test_power_distributor_stale_battery_message(
         self,
@@ -641,17 +696,16 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
 
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
 
+        request = Request(
+            power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
+        )
         with mock.patch("asyncio.sleep", new_callable=AsyncMock):
             distributor = PowerDistributingActor(
                 mock_api, component_graph, {"user1": channel.service_handle}
             )
 
             client_handle = channel.client_handle
-            await client_handle.send(
-                Request(
-                    power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
-                )
-            )
+            await client_handle.send(request)
 
             done, pending = await asyncio.wait(
                 [client_handle.receive()], timeout=SAFETY_TIMEOUT
@@ -662,10 +716,10 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         assert len(done) == 1
 
         result = done.pop().result()
-        assert result is not None
-        assert result.status == Result.Status.SUCCESS
-        assert result.failed_power == 0
-        assert result.above_upper_bound == 700
+        assert isinstance(result, Success)
+        assert result.excess_power == 700
+        assert result.succeed_power == 500
+        assert result.request == request
 
     async def test_power_distributor_stale_all_components_message(
         self,
@@ -736,10 +790,9 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         assert len(done) == 1
 
         result = done.pop().result()
-        assert result is not None
-        assert result.status == Result.Status.ERROR
-        # User is interested in batteries only.
-        assert result.error_message == "No data for the given batteries {106, 206}"
+        assert isinstance(result, Error)
+        err_msg = re.search(r"^No data for the given batteries", result.msg)
+        assert err_msg is not None
 
 
 class TestBrokenComponents:
@@ -751,7 +804,9 @@ class TestBrokenComponents:
         Args:
             mocker: pytest mocker
         """
-        datetime_mock = mocker.patch("frequenz.sdk.actor.power_distributing.datetime")
+        datetime_mock = mocker.patch(
+            "frequenz.sdk.actor.power_distributing.power_distributing.datetime"
+        )
 
         expected_datetime = [
             datetime.fromisoformat("2001-01-01T00:00:00+00:00"),
