@@ -124,3 +124,75 @@ class TestLogicalMeter:
 
         assert len(results) == 10
         assert results == meter_sums
+
+    async def test_battery_and_pv_power(  # pylint: disable=too-many-locals
+        self,
+        mocker: MockerFixture,
+    ) -> None:
+        """Test the battery power and pv power formulas."""
+        mockgrid = await MockMicrogrid.new(mocker)
+        mockgrid.add_batteries(3)
+        mockgrid.add_solar_inverters(2)
+        request_sender, channel_registry = await mockgrid.start()
+        logical_meter = LogicalMeter(
+            channel_registry,
+            request_sender,
+            microgrid.get().component_graph,
+        )
+
+        battery_power_recv = await logical_meter.battery_power()
+        pv_power_recv = await logical_meter.pv_power()
+
+        bat_inv_receivers = [
+            await self._get_resampled_stream(
+                logical_meter,
+                channel_registry,
+                request_sender,
+                meter_id,
+            )
+            for meter_id in mockgrid.battery_inverter_ids
+        ]
+
+        pv_inv_receivers = [
+            await self._get_resampled_stream(
+                logical_meter,
+                channel_registry,
+                request_sender,
+                meter_id,
+            )
+            for meter_id in mockgrid.pv_inverter_ids
+        ]
+
+        battery_results = []
+        pv_results = []
+        battery_inv_sums = []
+        pv_inv_sums = []
+        for _ in range(10):
+            bat_inv_sum = 0.0
+            pv_inv_sum = 0.0
+            for recv in bat_inv_receivers:
+                val = await recv.receive()
+                assert val is not None and val.value is not None and val.value > 0.0
+                bat_inv_sum += val.value
+            battery_inv_sums.append(bat_inv_sum)
+
+            for recv in pv_inv_receivers:
+                val = await recv.receive()
+                assert val is not None and val.value is not None and val.value > 0.0
+                pv_inv_sum += val.value
+            pv_inv_sums.append(pv_inv_sum)
+
+            val = await battery_power_recv.receive()
+            assert val is not None and val.value is not None
+            battery_results.append(val.value)
+
+            val = await pv_power_recv.receive()
+            assert val is not None and val.value is not None
+            pv_results.append(val.value)
+
+        await mockgrid.cleanup()
+
+        assert len(battery_results) == 10
+        assert battery_results == battery_inv_sums
+        assert len(pv_results) == 10
+        assert pv_results == pv_inv_sums
