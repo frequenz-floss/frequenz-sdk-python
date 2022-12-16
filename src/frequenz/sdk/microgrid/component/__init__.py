@@ -6,7 +6,7 @@
 This package provides classes to operate con microgrid components.
 """
 
-from ._component import Component, ComponentCategory, ComponentMetricId
+from ._component import Component, ComponentCategory, ComponentMetricId, InverterType
 from ._component_data import (
     BatteryData,
     ComponentData,
@@ -25,5 +25,6 @@ __all__ = [
     "EVChargerCableState",
     "EVChargerData",
     "InverterData",
+    "InverterType",
     "MeterData",
 ]

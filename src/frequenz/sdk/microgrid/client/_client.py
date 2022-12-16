@@ -23,7 +23,10 @@ from ..component import (
     InverterData,
     MeterData,
 )
-from ..component._component import _component_category_from_protobuf
+from ..component._component import (
+    _component_category_from_protobuf,
+    _component_type_from_protobuf,
+)
 from ._connection import Connection
 from ._retry import LinearBackoff, RetryStrategy
 
@@ -229,7 +232,11 @@ class MicrogridGrpcClient(MicrogridApiClient):
             component_list.components,
         )
         result: Iterable[Component] = map(
-            lambda c: Component(c.id, _component_category_from_protobuf(c.category)),
+            lambda c: Component(
+                c.id,
+                _component_category_from_protobuf(c.category),
+                _component_type_from_protobuf(c.category, c.inverter),
+            ),
             components_only,
         )
 

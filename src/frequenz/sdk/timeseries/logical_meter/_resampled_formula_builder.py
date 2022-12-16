@@ -13,7 +13,7 @@ from ._formula_engine import FormulaBuilder, FormulaEngine
 from ._tokenizer import Tokenizer, TokenType
 
 
-class ResampledFormulaBuilder:
+class ResampledFormulaBuilder(FormulaBuilder):
     """Provides a way to build a FormulaEngine from resampled data streams."""
 
     def __init__(
@@ -37,8 +37,8 @@ class ResampledFormulaBuilder:
         self._channel_registry = channel_registry
         self._resampler_subscription_sender = resampler_subscription_sender
         self._namespace = namespace
-        self._formula = FormulaBuilder()
         self._metric_id = metric_id
+        super().__init__()
 
     async def _get_resampled_receiver(self, component_id: int) -> Receiver[Sample]:
         """Get a receiver with the resampled data for the given component id.
@@ -59,7 +59,7 @@ class ResampledFormulaBuilder:
         return self._channel_registry.new_receiver(request.get_channel_name())
 
     async def push_component_metric(
-        self, component_id: int, nones_are_zeros: bool
+        self, component_id: int, *, nones_are_zeros: bool
     ) -> None:
         """Push a resampled component metric stream to the formula engine.
 
@@ -69,7 +69,7 @@ class ResampledFormulaBuilder:
                 False, the returned value will be a None.
         """
         receiver = await self._get_resampled_receiver(component_id)
-        self._formula.push_metric(f"#{component_id}", receiver, nones_are_zeros)
+        self.push_metric(f"#{component_id}", receiver, nones_are_zeros)
 
     async def from_string(
         self,
@@ -99,10 +99,12 @@ class ResampledFormulaBuilder:
 
         for token in tokenizer:
             if token.type == TokenType.COMPONENT_METRIC:
-                await self.push_component_metric(int(token.value), nones_are_zeros)
+                await self.push_component_metric(
+                    int(token.value), nones_are_zeros=nones_are_zeros
+                )
             elif token.type == TokenType.OPER:
-                self._formula.push_oper(token.value)
+                self.push_oper(token.value)
             else:
                 raise ValueError(f"Unknown token type: {token}")
 
-        return self._formula.build()
+        return self.build()

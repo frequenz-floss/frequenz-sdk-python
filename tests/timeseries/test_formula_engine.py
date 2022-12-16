@@ -39,23 +39,6 @@ class TestTokenizer:
 class TestFormulaEngine:
     """Tests for the FormulaEngine."""
 
-    def setup(self) -> None:
-        """Initialize the channels required for a test.
-
-        Because we can't create a __init__ or multiple instances of the Test class, we
-        use the `setup` method as a constructor, and call it once before each test.
-        """
-        # pylint: disable=attribute-defined-outside-init
-        self.comp_2 = Broadcast[Sample]("")
-        self.comp_2_sender = self.comp_2.new_sender()
-
-        self.comp_4 = Broadcast[Sample]("")
-        self.comp_4_sender = self.comp_4.new_sender()
-
-        self.comp_5 = Broadcast[Sample]("")
-        self.comp_5_sender = self.comp_5.new_sender()
-        # pylint: enable=attribute-defined-outside-init
-
     async def run_test(
         self,
         formula: str,

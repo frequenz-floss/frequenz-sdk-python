@@ -3,17 +3,26 @@
 
 """A logical meter for calculating high level metrics for a microgrid."""
 
+from __future__ import annotations
+
 import asyncio
 import logging
 import uuid
-from typing import Dict, List
+from typing import Dict, List, Type
 
 from frequenz.channels import Broadcast, Receiver, Sender
 
 from ...actor import ChannelRegistry, ComponentMetricRequest
+from ...microgrid import ComponentGraph
 from ...microgrid.component import ComponentMetricId
 from .. import Sample
 from ._formula_engine import FormulaEngine
+from ._formula_generators import (
+    BatteryPowerFormula,
+    FormulaGenerator,
+    GridPowerFormula,
+    PVPowerFormula,
+)
 from ._resampled_formula_builder import ResampledFormulaBuilder
 
 logger = logging.Logger(__name__)
@@ -35,6 +44,7 @@ class LogicalMeter:
         self,
         channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
+        component_graph: ComponentGraph,
     ) -> None:
         """Create a `LogicalMeter instance`.
 
@@ -43,6 +53,7 @@ class LogicalMeter:
                 actor.
             resampler_subscription_sender: A sender for sending metric requests to the
                 resampling actor.
+            component_graph: The component graph representing the microgrid.
         """
         self._channel_registry = channel_registry
         self._resampler_subscription_sender = resampler_subscription_sender
@@ -50,7 +61,7 @@ class LogicalMeter:
         # Use a randomly generated uuid to create a unique namespace name for the local
         # meter to use when communicating with the resampling actor.
         self._namespace = f"logical-meter-{uuid.uuid4()}"
-
+        self._component_graph = component_graph
         self._output_channels: Dict[str, Broadcast[Sample]] = {}
         self._tasks: List[asyncio.Task[None]] = []
 
@@ -118,3 +129,61 @@ class LogicalMeter:
             )
         )
         return out_chan.new_receiver()
+
+    async def _get_formula_stream(
+        self,
+        channel_key: str,
+        generator: Type[FormulaGenerator],
+    ) -> Receiver[Sample]:
+        if channel_key in self._output_channels:
+            return self._output_channels[channel_key].new_receiver()
+
+        formula_engine = await generator(
+            self._namespace, self._channel_registry, self._resampler_subscription_sender
+        ).generate()
+        out_chan = Broadcast[Sample](channel_key)
+        self._output_channels[channel_key] = out_chan
+        self._tasks.append(
+            asyncio.create_task(
+                self._run_formula(formula_engine, out_chan.new_sender())
+            )
+        )
+        return out_chan.new_receiver()
+
+    async def grid_power(self) -> Receiver[Sample]:
+        """Fetch the grid power for the microgrid.
+
+        If a formula engine to calculate grid power is not already running, it
+        will be started.  Else, we'll just get a new receiver to the already
+        existing data stream.
+
+        Returns:
+            A *new* receiver that will stream grid_power values.
+
+        """
+        return await self._get_formula_stream("grid_power", GridPowerFormula)
+
+    async def battery_power(self) -> Receiver[Sample]:
+        """Fetch the cumulative battery power in the microgrid.
+
+        If a formula engine to calculate cumulative battery power is not
+        already running, it will be started.  Else, we'll just get a new
+        receiver to the already existing data stream.
+
+        Returns:
+            A *new* receiver that will stream battery_power values.
+
+        """
+        return await self._get_formula_stream("battery_power", BatteryPowerFormula)
+
+    async def pv_power(self) -> Receiver[Sample]:
+        """Fetch the PV power production in the microgrid.
+
+        If a formula engine to calculate PV power production is not
+        already running, it will be started.  Else, we'll just get a new
+        receiver to the already existing data stream.
+
+        Returns:
+            A *new* receiver that will stream PV power production values.
+        """
+        return await self._get_formula_stream("pv_power", PVPowerFormula)
