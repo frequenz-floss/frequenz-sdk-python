@@ -248,3 +248,55 @@ class TestLogicalMeter:
             assert (await soc_recv.receive()).value == sum(bat_vals) / len(bat_vals)
 
         await mockgrid.cleanup()
+
+    async def test_formula_composition(  # pylint: disable=too-many-locals
+        self,
+        mocker: MockerFixture,
+    ) -> None:
+        """Test the battery power and pv power formulas."""
+        mockgrid = await MockMicrogrid.new(mocker, grid_side_meter=False)
+        mockgrid.add_batteries(3)
+        mockgrid.add_solar_inverters(2)
+        request_sender, channel_registry = await mockgrid.start()
+        logical_meter = LogicalMeter(
+            channel_registry,
+            request_sender,
+            microgrid.get().component_graph,
+        )
+
+        grid_power_recv = await logical_meter.grid_power()
+        battery_power_recv = await logical_meter.battery_power()
+        pv_power_recv = await logical_meter.pv_power()
+        main_meter_recv = await self._get_resampled_stream(
+            logical_meter,
+            channel_registry,
+            request_sender,
+            4,
+            ComponentMetricId.ACTIVE_POWER,
+        )
+
+        engine = (pv_power_recv.clone() + battery_power_recv.clone()).build("inv_power")
+        inv_calc_recv = engine.new_receiver()
+
+        count = 0
+        for _ in range(10):
+            grid_pow = await grid_power_recv.receive()
+            pv_pow = await pv_power_recv.receive()
+            bat_pow = await battery_power_recv.receive()
+            main_pow = await main_meter_recv.receive()
+            inv_calc_pow = await inv_calc_recv.receive()
+
+            assert grid_pow is not None and grid_pow.value is not None
+            assert inv_calc_pow is not None and inv_calc_pow.value is not None
+            assert bat_pow is not None and bat_pow.value is not None
+            assert pv_pow is not None and pv_pow.value is not None
+            assert main_pow is not None and main_pow.value is not None
+
+            assert inv_calc_pow.value == pv_pow.value + bat_pow.value
+            assert grid_pow.value == inv_calc_pow.value + main_pow.value
+            count += 1
+
+        await mockgrid.cleanup()
+        await engine._stop()  # pylint: disable=protected-access
+
+        assert count == 10

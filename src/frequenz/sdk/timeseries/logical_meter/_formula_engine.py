@@ -64,7 +64,7 @@ class FormulaEngine:
         self._steps = steps
         self._metric_fetchers = metric_fetchers
         self._first_run = True
-        self._channel = Broadcast[Sample](self._name)
+        self._channel = FormulaChannel(self._name, self)
         self._task = None
 
     async def _synchronize_metric_timestamps(
@@ -170,7 +170,9 @@ class FormulaEngine:
             else:
                 await sender.send(msg)
 
-    def new_receiver(self) -> Receiver[Sample]:
+    def new_receiver(
+        self, name: Optional[str] = None, max_size: int = 50
+    ) -> FormulaReceiver:
         """Create a new receiver that streams the output of the formula engine.
 
         Args:
@@ -183,7 +185,7 @@ class FormulaEngine:
         if self._task is None:
             self._task = asyncio.create_task(self._run())
 
-        return self._channel.new_receiver()
+        return self._channel.new_receiver(name, max_size)
 
 
 class FormulaBuilder:
@@ -585,3 +587,24 @@ class HigherOrderFormulaBuilder:
         self._engine = builder.build()
 
         return self._engine
+
+    def new_receiver(
+        self, name: Optional[str] = None, max_size: int = 50
+    ) -> FormulaReceiver:
+        """Get a new receiver from the corresponding engine.
+
+        Args:
+            name: optional name for the receiver.
+            max_size: size of the receiver's buffer.
+
+        Returns:
+            A FormulaReceiver that streams formula output `Sample`s.
+
+        Raises:
+            RuntimeError: If `build` hasn't been called yet.
+        """
+        if self._engine is None:
+            raise RuntimeError(
+                "Please call `build()` first, before calls to `new_receiver()`"
+            )
+        return self._engine.new_receiver(name, max_size)

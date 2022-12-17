@@ -10,13 +10,12 @@ import logging
 import uuid
 from typing import Dict, List, Type
 
-from frequenz.channels import Receiver, Sender
+from frequenz.channels import Sender
 
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid import ComponentGraph
 from ...microgrid.component import ComponentMetricId
-from .. import Sample
-from ._formula_engine import FormulaEngine
+from ._formula_engine import FormulaEngine, FormulaReceiver
 from ._formula_generators import (
     BatteryPowerFormula,
     BatterySoCFormula,
@@ -83,7 +82,7 @@ class LogicalMeter:
         formula: str,
         component_metric_id: ComponentMetricId,
         nones_are_zeros: bool = False,
-    ) -> Receiver[Sample]:
+    ) -> FormulaReceiver:
         """Start execution of the given formula name.
 
         Args:
@@ -94,7 +93,7 @@ class LogicalMeter:
                 False, the returned value will be a None.
 
         Returns:
-            A Receiver that streams values with the formulas applied.
+            A FormulaReceiver that streams values with the formulas applied.
         """
         channel_key = formula + component_metric_id.value
         if channel_key in self._engines:
@@ -111,7 +110,7 @@ class LogicalMeter:
         self,
         channel_key: str,
         generator: Type[FormulaGenerator],
-    ) -> Receiver[Sample]:
+    ) -> FormulaReceiver:
         if channel_key in self._engines:
             return self._engines[channel_key].new_receiver()
 
@@ -121,7 +120,7 @@ class LogicalMeter:
         self._engines[channel_key] = engine
         return engine.new_receiver()
 
-    async def grid_power(self) -> Receiver[Sample]:
+    async def grid_power(self) -> FormulaReceiver:
         """Fetch the grid power for the microgrid.
 
         If a formula engine to calculate grid power is not already running, it
@@ -134,7 +133,7 @@ class LogicalMeter:
         """
         return await self._get_formula_stream("grid_power", GridPowerFormula)
 
-    async def battery_power(self) -> Receiver[Sample]:
+    async def battery_power(self) -> FormulaReceiver:
         """Fetch the cumulative battery power in the microgrid.
 
         If a formula engine to calculate cumulative battery power is not
@@ -147,7 +146,7 @@ class LogicalMeter:
         """
         return await self._get_formula_stream("battery_power", BatteryPowerFormula)
 
-    async def pv_power(self) -> Receiver[Sample]:
+    async def pv_power(self) -> FormulaReceiver:
         """Fetch the PV power production in the microgrid.
 
         If a formula engine to calculate PV power production is not
@@ -159,7 +158,7 @@ class LogicalMeter:
         """
         return await self._get_formula_stream("pv_power", PVPowerFormula)
 
-    async def _soc(self) -> Receiver[Sample]:
+    async def _soc(self) -> FormulaReceiver:
         """Fetch the SoC of the active batteries in the microgrid.
 
         NOTE: This method is part of the logical meter only temporarily, and will get
