@@ -7,10 +7,14 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import weakref
+from collections import deque
 from datetime import datetime
 from typing import Dict, List, Optional, Set, Tuple
+from uuid import UUID, uuid4
 
 from frequenz.channels import Broadcast, Receiver
+from frequenz.channels._broadcast import Receiver as BroadcastReceiver
 
 from .. import Sample
 from ._formula_steps import (
@@ -23,6 +27,7 @@ from ._formula_steps import (
     OpenParen,
     Subtractor,
 )
+from ._tokenizer import TokenType
 
 logger = logging.Logger(__name__)
 
@@ -289,3 +294,294 @@ class FormulaBuilder:
             self._steps.append(self._build_stack.pop())
 
         return FormulaEngine(self._name, self._steps, self._metric_fetchers)
+
+
+class FormulaChannel(Broadcast[Sample]):
+    """A broadcast channel implementation for use with formulas."""
+
+    def __init__(
+        self, name: str, engine: FormulaEngine, resend_latest: bool = False
+    ) -> None:
+        """Create a `FormulaChannel` instance.
+
+        Args:
+            name: A name for the channel.
+            engine: A FormulaEngine instance that produces values for this channel.
+            resend_latest: Whether to resend latest channel values to newly created
+                receivers, like in `Broadcast` channels.
+        """
+        self._engine = engine
+        super().__init__(name, resend_latest)
+
+    @property
+    def engine(self) -> FormulaEngine:
+        """Return the formula engine attached to the channel.
+
+        Returns:
+            A FormulaEngine instance.
+        """
+        return self._engine
+
+    def new_receiver(
+        self, name: Optional[str] = None, maxsize: int = 50
+    ) -> FormulaReceiver:
+        """Create a new FormulaReceiver for the channel.
+
+        This implementation is similar to `Broadcast.new_receiver()`, except that it
+        creates and returns a `FormulaReceiver`.  The way the default name for the
+        receiver is constructed, is also slightly tweaked.
+
+        Args:
+            name: An optional name for the receiver.
+            maxsize: size of the receiver's buffer.
+
+        Returns:
+            A `FormulaReceiver` instance attached to the `FormulaChannel`.
+        """
+        uuid = uuid4()
+        if name is None:
+            name = self.name
+        recv = FormulaReceiver(uuid, name, maxsize, self)
+        self.receivers[uuid] = weakref.ReferenceType(recv)
+        if self._resend_latest and self._latest is not None:
+            recv.enqueue(self._latest)
+        return recv
+
+
+class FormulaReceiver(BroadcastReceiver[Sample]):
+    """A receiver to receive calculated `Sample`s from a Formula channel.
+
+    They function as regular channel receivers, but can be composed to form higher order
+    formulas.
+    """
+
+    def __init__(
+        self,
+        uuid: UUID,
+        name: str,
+        maxsize: int,
+        chan: FormulaChannel,
+    ) -> None:
+        """Create a `FormulaReceiver` instance.
+
+        Args:
+            uuid: uuid to uniquely identify the receiver.  Forwarded to
+                BroadcastReceiver's `__init__` function.
+            name: Name for the receiver.
+            maxsize: Buffer size for the receiver.
+            chan: The `FormulaChannel` instance that this receiver is attached to.
+        """
+        self._engine = chan.engine
+        super().__init__(uuid, name, maxsize, chan)
+
+    @property
+    def name(self) -> str:
+        """Name of the receiver.
+
+        Returns:
+            Name of the receiver.
+        """
+        return self._name
+
+    @property
+    def engine(self) -> FormulaEngine:
+        """Return the formula engine attached to the receiver.
+
+        Returns:
+            Formula Engine attached to the receiver.
+        """
+        return self._engine
+
+    def _deactivate(self) -> None:
+        self._active = False
+
+    def clone(self) -> FormulaReceiver:
+        """Create a new receiver from the formula engine.
+
+        Returns:
+            New `FormulaReceiver` streaming a copy of the formula engine output.
+        """
+        return self._engine.new_receiver()
+
+    def __add__(
+        self, other: FormulaReceiver | HigherOrderFormulaBuilder
+    ) -> HigherOrderFormulaBuilder:
+        """Return a formula builder that adds (data in) `other` to `self`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder(self) + other
+
+    def __sub__(
+        self, other: FormulaReceiver | HigherOrderFormulaBuilder
+    ) -> HigherOrderFormulaBuilder:
+        """Return a formula builder that subtracts (data in) `other` from `self`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder(self) - other
+
+    def __mul__(
+        self, other: FormulaReceiver | HigherOrderFormulaBuilder
+    ) -> HigherOrderFormulaBuilder:
+        """Return a formula builder that multiplies (data in) `self` with `other`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder(self) * other
+
+    def __truediv__(
+        self, other: FormulaReceiver | HigherOrderFormulaBuilder
+    ) -> HigherOrderFormulaBuilder:
+        """Return a formula builder that divides (data in) `self` by `other`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder(self) / other
+
+
+class HigherOrderFormulaBuilder:
+    """Provides a way to build formulas from the outputs of other formulas."""
+
+    def __init__(self, recv: FormulaReceiver) -> None:
+        """Create a `HigherOrderFormulaBuilder` instance.
+
+        Args:
+            recv: A first input stream to create a builder with, so that python
+                operators `+, -, *, /` can be used directly on newly created instances.
+        """
+        self._steps: deque[tuple[TokenType, FormulaReceiver | str]] = deque()
+        self._steps.append((TokenType.COMPONENT_METRIC, recv.clone()))
+        recv._deactivate()  # pylint: disable=protected-access
+        self._engine = None
+
+    def _push(
+        self, oper: str, other: FormulaReceiver | HigherOrderFormulaBuilder
+    ) -> HigherOrderFormulaBuilder:
+        self._steps.appendleft((TokenType.OPER, "("))
+        self._steps.append((TokenType.OPER, ")"))
+        self._steps.append((TokenType.OPER, oper))
+
+        # pylint: disable=protected-access
+        if isinstance(other, FormulaReceiver):
+            self._steps.append((TokenType.COMPONENT_METRIC, other.clone()))
+            other._deactivate()
+        elif isinstance(other, HigherOrderFormulaBuilder):
+            self._steps.append((TokenType.OPER, "("))
+            self._steps.extend(other._steps)
+            self._steps.append((TokenType.OPER, ")"))
+        # pylint: enable=protected-access
+        else:
+            raise RuntimeError(f"Can't build a formula from: {other}")
+
+        return self
+
+    def __add__(
+        self, other: FormulaReceiver | HigherOrderFormulaBuilder
+    ) -> HigherOrderFormulaBuilder:
+        """Return a formula builder that adds (data in) `other` to `self`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return self._push("+", other)
+
+    def __sub__(
+        self, other: FormulaReceiver | HigherOrderFormulaBuilder
+    ) -> HigherOrderFormulaBuilder:
+        """Return a formula builder that subtracts (data in) `other` from `self`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return self._push("-", other)
+
+    def __mul__(
+        self, other: FormulaReceiver | HigherOrderFormulaBuilder
+    ) -> HigherOrderFormulaBuilder:
+        """Return a formula builder that multiplies (data in) `self` with `other`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return self._push("*", other)
+
+    def __truediv__(
+        self, other: FormulaReceiver | HigherOrderFormulaBuilder
+    ) -> HigherOrderFormulaBuilder:
+        """Return a formula builder that divides (data in) `self` by `other`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return self._push("/", other)
+
+    def build(self, name: str, nones_are_zeros: bool = False) -> FormulaEngine:
+        """Create a formula engine from the builder.
+
+        Args:
+            name: A name for the formula being built.
+            nones_are_zeros: Whether `None`s in the input streams should be treated as
+                zeros.
+
+        Returns:
+            A `FormulaEngine` instance.
+        """
+        if self._engine is not None:
+            return self._engine
+
+        builder = FormulaBuilder(name)
+        for step in self._steps:
+            if step[0] == TokenType.COMPONENT_METRIC:
+                assert isinstance(step[1], FormulaReceiver)
+                builder.push_metric(step[1].name, step[1], nones_are_zeros)
+            elif step[0] == TokenType.OPER:
+                assert isinstance(step[1], str)
+                builder.push_oper(step[1])
+        self._engine = builder.build()
+
+        return self._engine
