@@ -62,7 +62,7 @@ class BatterySoCFormula(FormulaGenerator):
             FormulaGenerationError: If a battery has a non-inverter predecessor
                 in the component graph.
         """
-        builder = self._get_builder(ComponentMetricId.ACTIVE_POWER)
+        builder = self._get_builder("soc", ComponentMetricId.ACTIVE_POWER)
         component_graph = microgrid.get().component_graph
         inv_bat_pairs = {
             comp: component_graph.successors(comp.component_id)

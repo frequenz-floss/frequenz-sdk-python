@@ -32,7 +32,7 @@ class BatteryPowerFormula(FormulaGenerator):
             FormulaGenerationError: If a battery has a non-inverter predecessor
                 in the component graph.
         """
-        builder = self._get_builder(ComponentMetricId.ACTIVE_POWER)
+        builder = self._get_builder("battery-power", ComponentMetricId.ACTIVE_POWER)
         component_graph = microgrid.get().component_graph
         battery_inverters = list(
             comp

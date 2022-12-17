@@ -48,7 +48,7 @@ class TestFormulaEngine:
     ) -> None:
         """Run a formula test."""
         channels: Dict[str, Broadcast[Sample]] = {}
-        builder = FormulaBuilder()
+        builder = FormulaBuilder("test_formula")
         for token in Tokenizer(formula):
             if token.type == TokenType.COMPONENT_METRIC:
                 if token.value not in channels:
@@ -76,7 +76,8 @@ class TestFormulaEngine:
                     ]
                 )
             )
-            assert (await engine.apply()).value == io_output
+            next_val = await engine._apply()  # pylint: disable=protected-access
+            assert (next_val).value == io_output
             tests_passed += 1
         assert tests_passed == len(io_pairs)
 

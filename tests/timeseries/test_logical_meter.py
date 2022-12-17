@@ -38,6 +38,7 @@ class TestLogicalMeter:
         # pylint: disable=protected-access
         builder = ResampledFormulaBuilder(
             logical_meter._namespace,
+            "",
             channel_registry,
             request_sender,
             metric_id,
