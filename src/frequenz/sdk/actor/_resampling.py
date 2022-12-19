@@ -64,13 +64,17 @@ class ComponentMetricsResamplingActor:
                 *relevant* samples at a given time. The result of the function
                 is what is sent as the resampled data.
         """
-        self._channel_registry = channel_registry
-        self._resampling_period_s = resampling_period_s
+        self._channel_registry: ChannelRegistry = channel_registry
+        self._resampling_period_s: float = resampling_period_s
         self._max_data_age_in_periods: float = max_data_age_in_periods
         self._resampling_function: ResamplingFunction = resampling_function
-        self._data_sourcing_request_sender = data_sourcing_request_sender
-        self._resampling_request_receiver = resampling_request_receiver
-        self._resampler = Resampler(
+        self._data_sourcing_request_sender: Sender[
+            ComponentMetricRequest
+        ] = data_sourcing_request_sender
+        self._resampling_request_receiver: Receiver[
+            ComponentMetricRequest
+        ] = resampling_request_receiver
+        self._resampler: Resampler = Resampler(
             resampling_period_s=resampling_period_s,
             max_data_age_in_periods=max_data_age_in_periods,
             resampling_function=resampling_function,
