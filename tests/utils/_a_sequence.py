@@ -1,4 +1,4 @@
-# tests/timeseries/test_resampling.py:93: License: MIT
+# License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
 """Helper class to compare two sequences without caring about the underlying type."""
