@@ -79,6 +79,7 @@ class ComponentMetricsResamplingActor:
             max_data_age_in_periods=max_data_age_in_periods,
             resampling_function=resampling_function,
         )
+        self._active_req_channels: set[str] = set()
 
     async def _subscribe(self, request: ComponentMetricRequest) -> None:
         """Request data for a component metric.
@@ -86,6 +87,14 @@ class ComponentMetricsResamplingActor:
         Args:
             request: The request for component metric data.
         """
+        request_channel_name = request.get_channel_name()
+
+        # If we are already handling this request, there is nothing to do.
+        if request_channel_name in self._active_req_channels:
+            return
+
+        self._active_req_channels.add(request_channel_name)
+
         data_source_request = dataclasses.replace(
             request, namespace=request.namespace + ":Source"
         )
