@@ -108,5 +108,8 @@ module = [
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = "async_solipsism"
+module = [
+    "async_solipsism",
+    "async_solipsism.*",
+]
 ignore_missing_imports = true
