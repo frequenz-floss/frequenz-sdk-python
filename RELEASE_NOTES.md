@@ -2,20 +2,16 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
-
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with --> 
-
-- Add fine-grained Result types for the PowerDistributingActor.
-    Previously Result was one class with many fields. Now each result has its own class
-    that derives from Result parent class.
+- Add fine-grained Result types for the PowerDistributingActor. Previously Result was one class with many fields. Now each type of the result has its own class that derives from Result parent class.
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+- Add inverter type to the Component data. Inverter type tells what kind of inverter it is (Battery, Solar etc).
+- Add `FormulaGenerator` class for generating formulas from the component graph.
+- Add formulas for: `grid_power`, `battery_power`, `PV power`.
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+- Fix ComponentMetricResamplingActor, to not subscribe twice to the same source.
