@@ -130,7 +130,7 @@ class TestMicrogridGrpcClient:
             }
 
         finally:
-            await server.stop(grace=1.0)
+            assert await server.graceful_shutdown()
 
     async def test_connections(self) -> None:
         servicer = mock_api.MockMicrogridServicer()
@@ -284,7 +284,7 @@ class TestMicrogridGrpcClient:
             }
 
         finally:
-            await server.stop(grace=1.0)
+            assert await server.graceful_shutdown()
 
     async def test_bad_connections(self) -> None:
         """Validate that the client does not apply connection filters itself."""
@@ -355,7 +355,7 @@ class TestMicrogridGrpcClient:
             )
 
         finally:
-            await server.stop(grace=1.0)
+            assert await server.graceful_shutdown()
 
     async def test_meter_data(self) -> None:
         servicer = mock_api.MockMicrogridServicer()
@@ -383,7 +383,7 @@ class TestMicrogridGrpcClient:
             await asyncio.sleep(0.2)
 
         finally:
-            await server.stop(0.1)
+            assert await server.graceful_shutdown()
 
         latest = peekable.peek()
         assert isinstance(latest, MeterData)
@@ -415,7 +415,7 @@ class TestMicrogridGrpcClient:
             await asyncio.sleep(0.2)
 
         finally:
-            await server.stop(0.1)
+            assert await server.graceful_shutdown()
 
         latest = peekable.peek()
         assert isinstance(latest, BatteryData)
@@ -447,7 +447,7 @@ class TestMicrogridGrpcClient:
             await asyncio.sleep(0.2)
 
         finally:
-            await server.stop(0.1)
+            assert await server.graceful_shutdown()
 
         latest = peekable.peek()
         assert isinstance(latest, InverterData)
@@ -479,7 +479,7 @@ class TestMicrogridGrpcClient:
             await asyncio.sleep(0.2)
 
         finally:
-            await server.stop(0.1)
+            assert await server.graceful_shutdown()
 
         latest = peekable.peek()
         assert isinstance(latest, EVChargerData)
@@ -506,7 +506,7 @@ class TestMicrogridGrpcClient:
             assert servicer.latest_charge.power_w == 12
 
         finally:
-            await server.stop(0.1)
+            assert await server.graceful_shutdown()
 
     async def test_discharge(self) -> None:
         """Check if discharge is able to discharge component."""
@@ -528,7 +528,7 @@ class TestMicrogridGrpcClient:
             assert servicer.latest_discharge.component_id == 73
             assert servicer.latest_discharge.power_w == 15
         finally:
-            await server.stop(0.1)
+            assert await server.graceful_shutdown()
 
     async def test_set_bounds(self) -> None:
         servicer = mock_api.MockMicrogridServicer()
@@ -558,7 +558,7 @@ class TestMicrogridGrpcClient:
                 await asyncio.sleep(0.1)
 
         finally:
-            await server.stop(0.1)
+            assert await server.graceful_shutdown()
 
         assert len(expected_bounds) == len(servicer.get_bounds())
 

@@ -239,7 +239,7 @@ async def test_MockGrpcServer() -> None:
         Connection(start=2, end=3),
     ]
 
-    await server1.stop(1)
+    await server1.graceful_shutdown()
 
     servicer2 = mock_api.MockMicrogridServicer(
         components=[
@@ -285,4 +285,4 @@ async def test_MockGrpcServer() -> None:
         Connection(start=77, end=9999),
     ]
 
-    await server2.wait_for_termination(0.1)
+    await server2.graceful_shutdown()

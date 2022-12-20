@@ -10,6 +10,8 @@ all framework code, as API integration should be highly encapsulated.
 
 from __future__ import annotations
 
+import asyncio
+
 # pylint: disable=invalid-name,no-name-in-module,unused-import
 from concurrent import futures
 from typing import Iterable, Iterator, List, Optional, Tuple
@@ -268,10 +270,31 @@ class MockGrpcServer:
         """Start the server."""
         await self._server.start()
 
-    async def stop(self, grace: Optional[float]) -> None:
+    async def _stop(self, grace: Optional[float]) -> None:
         """Stop the server."""
         await self._server.stop(grace)
 
-    async def wait_for_termination(self, timeout: Optional[float] = None) -> None:
+    async def _wait_for_termination(self, timeout: Optional[float] = None) -> None:
         """Wait for termination."""
         await self._server.wait_for_termination(timeout)
+
+    async def graceful_shutdown(
+        self, stop_timeout: float = 0.1, terminate_timeout: float = 0.2
+    ) -> bool:
+        """Shutdown server gracefully.
+
+        Args:
+            stop_timeout: Argument for self.stop method
+            terminate_timeout: Argument for self.wait_for_termination method.
+
+        Returns:
+            True if server was stopped in given timeout. False otherwise.
+        """
+        await self._stop(stop_timeout)
+        try:
+            await asyncio.wait_for(
+                self._wait_for_termination(None), timeout=terminate_timeout
+            )
+        except TimeoutError:
+            return False
+        return True

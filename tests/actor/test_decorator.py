@@ -96,6 +96,8 @@ async def test_basic_actor() -> None:
 
     msg = await echo_rx.receive()
     assert msg is False
+    # pylint: disable=protected-access,no-member
+    await _echo_actor._stop()  # type: ignore[attr-defined]
 
 
 async def test_actor_does_not_restart() -> None:

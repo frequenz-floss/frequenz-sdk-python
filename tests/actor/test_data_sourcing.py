@@ -93,5 +93,5 @@ class TestDataSourcingActor:
             assert sample is not None
             assert 100.0 == sample.value
 
-        await server.stop(0.1)
+        assert await server.graceful_shutdown()
         _microgrid._MICROGRID = None  # pylint: disable=protected-access

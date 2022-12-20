@@ -30,10 +30,6 @@ GRPC_CALL_TIMEOUT: float = 0.1
 # error and needs to be greater than `GRPC_CALL_TIMEOUT`.
 GRPC_SERVER_DELAY: float = 0.3
 
-# How long a mocked Microgrid server should be running for a single test function,
-# before it gets shut down so that the tests can finish.
-GRPC_SERVER_SHUTDOWN_DELAY: float = 1.0
-
 
 @patch(
     "frequenz.sdk.microgrid.client._client.DEFAULT_GRPC_CALL_TIMEOUT", GRPC_CALL_TIMEOUT
@@ -59,7 +55,7 @@ async def test_components_timeout(mocker: MockerFixture) -> None:
     with pytest.raises(grpc.aio.AioRpcError) as err_ctx:
         _ = await client.components()
     assert err_ctx.value.code() == grpc.StatusCode.DEADLINE_EXCEEDED
-    await server.wait_for_termination(GRPC_SERVER_SHUTDOWN_DELAY)
+    assert await server.graceful_shutdown()
 
 
 @patch(
@@ -86,7 +82,7 @@ async def test_connections_timeout(mocker: MockerFixture) -> None:
     with pytest.raises(grpc.aio.AioRpcError) as err_ctx:
         _ = await client.connections()
     assert err_ctx.value.code() == grpc.StatusCode.DEADLINE_EXCEEDED
-    await server.wait_for_termination(GRPC_SERVER_SHUTDOWN_DELAY)
+    assert await server.graceful_shutdown()
 
 
 @patch(
@@ -117,4 +113,4 @@ async def test_set_power_timeout(mocker: MockerFixture) -> None:
             _ = await client.set_power(component_id=1, power_w=power_w)
         assert err_ctx.value.code() == grpc.StatusCode.DEADLINE_EXCEEDED
 
-    await server.stop(GRPC_SERVER_SHUTDOWN_DELAY)
+    assert await server.graceful_shutdown()

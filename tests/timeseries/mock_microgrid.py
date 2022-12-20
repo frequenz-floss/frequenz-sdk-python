@@ -243,5 +243,5 @@ class MockMicrogrid:
 
     async def cleanup(self) -> None:
         """Clean up after a test."""
-        await self._server.stop(0.1)
+        await self._server.graceful_shutdown()
         microgrid._microgrid._MICROGRID = None  # pylint: disable=protected-access

@@ -766,7 +766,7 @@ class Test_MicrogridComponentGraph:
         }
         graph.validate()
 
-        await server.stop(1)
+        assert await server.graceful_shutdown()
 
     def test_validate(self) -> None:
         # `validate` will fail if any of the following are the case:
