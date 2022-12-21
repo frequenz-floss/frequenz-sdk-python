@@ -355,10 +355,12 @@ class _ResamplingHelper:
         # specifying a key extraction function in Python 3.10, so we need to
         # compare samples at the moment.
         cut_index = bisect(self._buffer, Sample(minimum_relevant_timestamp, None))
-        # pylint: disable=fixme
-        # FIXME: This is far from efficient, but we don't want to start new
-        # ring buffer implementation here that uses a list to overcome the
-        # deque limitation of not being able to get slices
+        # Using itertools for slicing doesn't look very efficient, but
+        # experiements with a custom (ring) buffer that can slice showed that
+        # it is not that bad. See:
+        # https://github.com/frequenz-floss/frequenz-sdk-python/pull/130
+        # So if we need more performance beyond this point, we probably need to
+        # resort to some C (or similar) implementation.
         relevant_samples = list(itertools.islice(self._buffer, cut_index, None))
         value = (
             conf.resampling_function(relevant_samples, conf.resampling_period_s)
