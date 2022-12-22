@@ -16,6 +16,7 @@ from uuid import UUID, uuid4
 from frequenz.channels import Broadcast, Receiver
 from frequenz.channels._broadcast import Receiver as BroadcastReceiver
 
+from ...util.asyncio import cancel_and_await
 from .. import Sample
 from ._formula_steps import (
     Adder,
@@ -169,6 +170,12 @@ class FormulaEngine:
                 )
             else:
                 await sender.send(msg)
+
+    async def _stop(self) -> None:
+        """Stop a running formula engine."""
+        if self._task is None:
+            return
+        await cancel_and_await(self._task)
 
     def new_receiver(
         self, name: Optional[str] = None, max_size: int = 50
