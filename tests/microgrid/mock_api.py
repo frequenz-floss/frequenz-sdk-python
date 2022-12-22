@@ -262,7 +262,7 @@ class MockGrpcServer:
         self, servicer: MicrogridServicer, host: str = "[::]", port: int = 61060
     ) -> None:
         """Create a MockGrpcServicer instance."""
-        self._server = grpc.aio.server(futures.ThreadPoolExecutor(max_workers=10))
+        self._server = grpc.aio.server(futures.ThreadPoolExecutor(max_workers=20))
         add_MicrogridServicer_to_server(servicer, self._server)
         self._server.add_insecure_port(f"{host}:{port}")
 
