@@ -151,10 +151,9 @@ class MockMicrogrid:
                 # for inverters with component_id > 100, send only half the messages.
                 if request.id % 10 == cls.inverter_id_suffix:
                     if request.id < 100 or value <= 5:
-                        yield next_msg(value=value + request.id)
+                        yield next_msg(value=value + int(request.id / 10))
                 else:
-                    yield next_msg(value=value + request.id)
-
+                    yield next_msg(value=value + int(request.id / 10))
                 time.sleep(0.1)
 
         mocker.patch.object(servicer, "GetComponentData", get_component_data)
