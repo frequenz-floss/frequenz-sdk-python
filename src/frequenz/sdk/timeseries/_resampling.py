@@ -71,7 +71,7 @@ Args:
 """
 
 
-ResamplingFunction = Callable[[Sequence[Sample], float], float]
+ResamplingFunction = Callable[[Sequence[Sample], "ResamplerConfig"], float]
 """Resampling function type.
 
 A resampling function produces a new sample based on a list of pre-existing
@@ -86,9 +86,9 @@ new sample that is going to be produced will always be bigger than the biggest
 timestamp in the input data).
 
 Args:
-    input_samples (Sequence[Sample]): the sequence of pre-existing samples.
-    resampling_period_s (float): the period in seconds (i.e. how ofter a new sample is
-        produced.
+    input_samples (Sequence[Sample]): The sequence of pre-existing samples.
+    resampler_config (ResamplerConfig): The configuration of the resampling
+        calling this function.
 
 Returns:
     new_sample (float): The value of new sample produced after the resampling.
@@ -96,13 +96,13 @@ Returns:
 
 
 # pylint: disable=unused-argument
-def average(samples: Sequence[Sample], resampling_period_s: float) -> float:
+def average(samples: Sequence[Sample], resampler_config: ResamplerConfig) -> float:
     """Calculate average of all the provided values.
 
     Args:
         samples: The samples to apply the average to. It must be non-empty.
-        resampling_period_s: The time it passes between resampled data is
-            produced (in seconds).
+        resampler_config: The configuration of the resampler calling this
+            function.
 
     Returns:
         The average of all `samples` values.
