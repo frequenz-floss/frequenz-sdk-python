@@ -13,7 +13,7 @@ from bisect import bisect
 from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import AsyncIterator, Callable, Coroutine, Sequence
+from typing import AsyncIterator, Callable, Coroutine, Optional, Sequence
 
 from frequenz.channels.util import Timer
 
@@ -27,7 +27,7 @@ DEFAULT_BUFFER_LEN_INIT = 16
 """Default initial buffer length.
 
 Buffers will be created initially with this length, but they could grow or
-shrink depending on the source characteristics, like sampling rate, to make
+shrink depending on the source properties, like sampling rate, to make
 sure all the requested past sampling periods can be stored.
 """
 
@@ -71,7 +71,9 @@ Args:
 """
 
 
-ResamplingFunction = Callable[[Sequence[Sample], "ResamplerConfig"], float]
+ResamplingFunction = Callable[
+    [Sequence[Sample], "ResamplerConfig", "SourceProperties"], float
+]
 """Resampling function type.
 
 A resampling function produces a new sample based on a list of pre-existing
@@ -89,6 +91,8 @@ Args:
     input_samples (Sequence[Sample]): The sequence of pre-existing samples.
     resampler_config (ResamplerConfig): The configuration of the resampling
         calling this function.
+    source_properties (SourceProperties): The properties of the source being
+        resampled.
 
 Returns:
     new_sample (float): The value of new sample produced after the resampling.
@@ -96,13 +100,18 @@ Returns:
 
 
 # pylint: disable=unused-argument
-def average(samples: Sequence[Sample], resampler_config: ResamplerConfig) -> float:
+def average(
+    samples: Sequence[Sample],
+    resampler_config: ResamplerConfig,
+    source_properties: SourceProperties,
+) -> float:
     """Calculate average of all the provided values.
 
     Args:
         samples: The samples to apply the average to. It must be non-empty.
         resampler_config: The configuration of the resampler calling this
             function.
+        source_properties: The properties of the source being resampled.
 
     Returns:
         The average of all `samples` values.
@@ -120,15 +129,30 @@ class ResamplerConfig:
     """The resampling period in seconds.
 
     This is the time it passes between resampled data should be calculated.
+
+    It must be a positive number.
     """
 
     max_data_age_in_periods: float = 3.0
     """The maximum age a sample can have to be considered *relevant* for resampling.
 
-    Expressed in number of resampling periods. For example if
-    `resampling_period_s` is 3 and `max_data_age_in_periods` is 2, then data
-    older than 3*2 = 6 secods will be discarded when creating a new sample and
-    never passed to the resampling function.
+    Expressed in number of periods, where period is the `resampling_period_s`
+    if we are downsampling (resampling period bigger than the input period) or
+    the input sampling period if we are upsampling (input period bigger than
+    the resampling period).
+
+    It must be bigger than 1.0.
+
+    Example:
+        If `resampling_period_s` is 3, the input sampling period is
+        1 and `max_data_age_in_periods` is 2, then data older than 3*2
+        = 6 secods will be discarded when creating a new sample and never
+        passed to the resampling function.
+
+        If `resampling_period_s` is 3, the input sampling period is
+        5 and `max_data_age_in_periods` is 2, then data older than 5*2
+        = 10 secods will be discarded when creating a new sample and never
+        passed to the resampling function.
     """
 
     resampling_function: ResamplingFunction = average
@@ -142,9 +166,11 @@ class ResamplerConfig:
     initial_buffer_len: int = DEFAULT_BUFFER_LEN_INIT
     """The initial length of the resampling buffer.
 
-    The buffer could grow or shrink depending on the source characteristics,
+    The buffer could grow or shrink depending on the source properties,
     like sampling rate, to make sure all the requested past sampling periods
     can be stored.
+
+    It must be at least 1 and at most `max_buffer_len`.
     """
 
     warn_buffer_len: int = DEFAULT_BUFFER_LEN_WARN
@@ -152,6 +178,8 @@ class ResamplerConfig:
 
     If a buffer grows bigger than this value, it will emit a warning in the
     logs, so buffers don't grow too big inadvertly.
+
+    It must be at least 1 and at most `max_buffer_len`.
     """
 
     max_buffer_len: int = DEFAULT_BUFFER_LEN_MAX
@@ -161,29 +189,43 @@ class ResamplerConfig:
     needed to keep all the requested past sampling periods. An error will be
     emitted in the logs if the buffer length needs to be truncated to this
     value.
+
+    It must be at bigger than `warn_buffer_len`.
     """
 
     def __post_init__(self) -> None:
-        """Check config values are valid.
+        """Check that config values are valid.
 
         Raises:
-            ValueError: if the initial buffer length is too small (less than 2)
-                or too big (more than `max_buffer_len`).
+            ValueError: If any value is out of range.
         """
-        if self.initial_buffer_len < 2:
+        if self.resampling_period_s < 0.0:
             raise ValueError(
-                f"initial_buffer_len must be at least 2, got {self.initial_buffer_len}"
+                f"resampling_period_s ({self.resampling_period_s}) must be positive"
+            )
+        if self.max_data_age_in_periods < 1.0:
+            raise ValueError(
+                f"max_data_age_in_periods ({self.max_data_age_in_periods}) should be at least 1.0"
+            )
+        if self.warn_buffer_len < 1:
+            raise ValueError(
+                f"warn_buffer_len ({self.warn_buffer_len}) should be at least 1"
+            )
+        if self.max_buffer_len <= self.warn_buffer_len:
+            raise ValueError(
+                f"max_buffer_len ({self.max_buffer_len}) should "
+                f"be bigger than warn_buffer_len ({self.warn_buffer_len})"
+            )
+
+        if self.initial_buffer_len < 1:
+            raise ValueError(
+                f"initial_buffer_len ({self.initial_buffer_len}) should at least 1"
             )
         if self.initial_buffer_len > self.max_buffer_len:
             raise ValueError(
-                f"initial_buffer_len be smaller than {self.max_buffer_len}, "
-                "got {self.initial_buffer_len}"
-            )
-        if self.initial_buffer_len > self.warn_buffer_len:
-            _logger.warning(
-                "initial_buffer_len (%s) is bigger than %s",
-                self.initial_buffer_len,
-                self.warn_buffer_len,
+                f"initial_buffer_len ({self.initial_buffer_len}) is bigger "
+                f"than max_buffer_len ({self.max_buffer_len}), use a smaller "
+                "initial_buffer_len or a bigger max_buffer_len"
             )
         if self.initial_buffer_len > self.warn_buffer_len:
             _logger.warning(
@@ -259,6 +301,29 @@ class ResamplingError(RuntimeError):
         return f"{self.__class__.__name__}({self.exceptions=})"
 
 
+@dataclass
+class SourceProperties:
+    """Properties of a resampling source."""
+
+    sampling_start: Optional[datetime] = None
+    """The time when resampling started for this source.
+
+    `None` means it didn't started yet.
+    """
+
+    received_samples: int = 0
+    """Total samples received by this source so far."""
+
+    sampling_period_s: Optional[float] = None
+    """The sampling period of this source (in seconds).
+
+    This is we receive (on average) one sample for this source every
+    `sampling_period_s` seconds.
+
+    `None` means it is unknown.
+    """
+
+
 class Resampler:
     """A timeseries resampler.
 
@@ -293,14 +358,26 @@ class Resampler:
         """
         return self._config
 
+    def get_source_properties(self, source: Source) -> SourceProperties:
+        """Get the properties of a timeseries source.
+
+        Args:
+            source: The source from which to get the properties.
+
+        Returns:
+            The timeseries source properties.
+        """
+        return self._resamplers[source].source_properties
+
     async def stop(self) -> None:
         """Cancel all receiving tasks."""
         await asyncio.gather(*[helper.stop() for helper in self._resamplers.values()])
 
-    def add_timeseries(self, source: Source, sink: Sink) -> bool:
+    def add_timeseries(self, name: str, source: Source, sink: Sink) -> bool:
         """Start resampling a new timeseries.
 
         Args:
+            name: The name of the timeseries (for logging purposes).
             source: The source of the timeseries to resample.
             sink: The sink to use to send the resampled data.
 
@@ -312,7 +389,9 @@ class Resampler:
         if source in self._resamplers:
             return False
 
-        resampler = _StreamingHelper(_ResamplingHelper(self._config), source, sink)
+        resampler = _StreamingHelper(
+            _ResamplingHelper(name, self._config), source, sink
+        )
         self._resamplers[source] = resampler
         return True
 
@@ -373,19 +452,32 @@ class _ResamplingHelper:
     """Keeps track of *relevant* samples to pass them to the resampling function.
 
     Samples are stored in an internal ring buffer. All collected samples that
-    are newer than `resampling_period_s * max_data_age_in_periods` seconds are
-    considered *relevant* and are passed to the provided `resampling_function`
-    when calling the `resample()` method. All older samples are discarded.
+    are newer than `max(resampling_period_s, input_period_s)
+    * max_data_age_in_periods` seconds are considered *relevant* and are passed
+    to the provided `resampling_function` when calling the `resample()` method.
+    All older samples are discarded.
     """
 
-    def __init__(self, config: ResamplerConfig) -> None:
+    def __init__(self, name: str, config: ResamplerConfig) -> None:
         """Initialize an instance.
 
         Args:
-            config: The configuration for the resampler.
+            name: The name of this resampler helper (for logging purposes).
+            config: The configuration for this resampler helper.
         """
+        self._name = name
         self._config = config
         self._buffer: deque[Sample] = deque(maxlen=config.initial_buffer_len)
+        self._source_properties: SourceProperties = SourceProperties()
+
+    @property
+    def source_properties(self) -> SourceProperties:
+        """Return the properties of the source.
+
+        Returns:
+            The properties of the source.
+        """
+        return self._source_properties
 
     def add_sample(self, sample: Sample) -> None:
         """Add a new sample to the internal buffer.
@@ -394,6 +486,50 @@ class _ResamplingHelper:
             sample: The sample to be added to the buffer.
         """
         self._buffer.append(sample)
+        if self._source_properties.sampling_start is None:
+            self._source_properties.sampling_start = sample.timestamp
+        self._source_properties.received_samples += 1
+
+    def _update_source_sample_period(self, now: datetime) -> bool:
+        """Update the source sample period.
+
+        Args:
+            now: The datetime in which this update happens.
+
+        Returns:
+            Whether the source sample period was changed (was really updated).
+        """
+        assert (
+            self._buffer.maxlen is not None and self._buffer.maxlen > 0
+        ), "We need a maxlen of at least 1 to update the sample period"
+
+        config = self._config
+        props = self._source_properties
+
+        # We only update it if we didn't before and we have enough data
+        if (
+            props.sampling_period_s is not None
+            or props.sampling_start is None
+            or props.received_samples
+            < config.resampling_period_s * config.max_data_age_in_periods
+            or len(self._buffer) < self._buffer.maxlen
+            # There might be a race between the first sample being received and
+            # this function being called
+            or now <= props.sampling_start
+        ):
+            return False
+
+        samples_time_delta = now - props.sampling_start
+        props.sampling_period_s = (
+            samples_time_delta.total_seconds()
+        ) / props.received_samples
+
+        _logger.info(
+            "New input sampling period calculated for %r: %ss",
+            self._name,
+            props.sampling_period_s,
+        )
+        return True
 
     def resample(self, timestamp: datetime) -> Sample:
         """Generate a new sample based on all the current *relevant* samples.
@@ -407,10 +543,22 @@ class _ResamplingHelper:
                 If there are no *relevant* samples, then the new sample will
                 have `None` as `value`.
         """
+        self._update_source_sample_period(timestamp)
+
         conf = self._config
-        minimum_relevant_timestamp = timestamp - timedelta(
-            seconds=conf.resampling_period_s * conf.max_data_age_in_periods
+        props = self._source_properties
+
+        # To see which samples are relevant we need to consider if we are down
+        # or upsampling.
+        period = (
+            max(conf.resampling_period_s, props.sampling_period_s)
+            if props.sampling_period_s is not None
+            else conf.resampling_period_s
         )
+        minimum_relevant_timestamp = timestamp - timedelta(
+            seconds=period * conf.max_data_age_in_periods
+        )
+
         # We need to pass a dummy Sample to bisect because it only support
         # specifying a key extraction function in Python 3.10, so we need to
         # compare samples at the moment.
@@ -423,7 +571,7 @@ class _ResamplingHelper:
         # resort to some C (or similar) implementation.
         relevant_samples = list(itertools.islice(self._buffer, cut_index, None))
         value = (
-            conf.resampling_function(relevant_samples, conf.resampling_period_s)
+            conf.resampling_function(relevant_samples, conf, props)
             if relevant_samples
             else None
         )
@@ -452,6 +600,15 @@ class _StreamingHelper:
         self._receiving_task: asyncio.Task = asyncio.create_task(
             self._receive_samples()
         )
+
+    @property
+    def source_properties(self) -> SourceProperties:
+        """Get the source properties.
+
+        Returns:
+            The source properties.
+        """
+        return self._helper.source_properties
 
     async def stop(self) -> None:
         """Cancel the receiving task."""

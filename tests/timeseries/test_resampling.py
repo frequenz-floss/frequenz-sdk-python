@@ -24,6 +24,7 @@ from frequenz.sdk.timeseries._resampling import (
     ResamplingFunction,
     Sink,
     Source,
+    SourceProperties,
     SourceStoppedError,
 )
 
@@ -80,7 +81,7 @@ async def _assert_no_more_samples(  # pylint: disable=too-many-arguments
         resampling_fun_mock.reset_mock()
 
 
-@pytest.mark.parametrize("init_len", list(range(2, DEFAULT_BUFFER_LEN_WARN + 1, 16)))
+@pytest.mark.parametrize("init_len", list(range(1, DEFAULT_BUFFER_LEN_WARN + 1, 16)))
 async def test_resampler_config_len_ok(
     init_len: int,
     caplog: pytest.LogCaptureFixture,
@@ -125,7 +126,7 @@ async def test_resampler_config_len_warn(
 
 @pytest.mark.parametrize(
     "init_len",
-    list(range(-2, 2)) + [DEFAULT_BUFFER_LEN_MAX + 1, DEFAULT_BUFFER_LEN_MAX + 2],
+    list(range(-2, 1)) + [DEFAULT_BUFFER_LEN_MAX + 1, DEFAULT_BUFFER_LEN_MAX + 2],
 )
 async def test_resampler_config_len_error(init_len: int) -> None:
     """Test checks on the resampling buffer."""
@@ -148,20 +149,21 @@ async def test_resampling_with_one_window(
     resampling_fun_mock = MagicMock(
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
-    resampler = Resampler(
-        ResamplerConfig(
-            resampling_period_s=resampling_period_s,
-            max_data_age_in_periods=1.0,
-            resampling_function=resampling_fun_mock,
-        )
+    config = ResamplerConfig(
+        resampling_period_s=resampling_period_s,
+        max_data_age_in_periods=1.0,
+        resampling_function=resampling_fun_mock,
+        initial_buffer_len=4,
     )
+    resampler = Resampler(config)
 
     source_recvr = source_chan.new_receiver()
     source_sendr = source_chan.new_sender()
 
     sink_mock = AsyncMock(spec=Sink, return_value=True)
 
-    resampler.add_timeseries(source_recvr, sink_mock)
+    resampler.add_timeseries("test", source_recvr, sink_mock)
+    source_props = resampler.get_source_properties(source_recvr)
 
     # Test timeline
     #
@@ -186,7 +188,10 @@ async def test_resampling_with_one_window(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample1s), resampling_period_s
+        a_sequence(sample1s), config, source_props
+    )
+    assert source_props == SourceProperties(
+        sampling_start=timestamp, received_samples=2, sampling_period_s=None
     )
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
@@ -209,7 +214,12 @@ async def test_resampling_with_one_window(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample2_5s, sample3s, sample4s), resampling_period_s
+        a_sequence(sample2_5s, sample3s, sample4s), config, source_props
+    )
+    # By now we have a full buffer (5 samples and a buffer of length 4), which
+    # we received in 4 seconds, so we have an input period of 0.8s.
+    assert source_props == SourceProperties(
+        sampling_start=timestamp, received_samples=5, sampling_period_s=0.8
     )
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
@@ -222,6 +232,9 @@ async def test_resampling_with_one_window(
         fake_time,
         resampling_period_s,
         current_iteration=3,
+    )
+    assert source_props == SourceProperties(
+        sampling_start=timestamp, received_samples=5, sampling_period_s=0.8
     )
 
 
@@ -240,20 +253,21 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     resampling_fun_mock = MagicMock(
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
-    resampler = Resampler(
-        ResamplerConfig(
-            resampling_period_s=resampling_period_s,
-            max_data_age_in_periods=1.5,
-            resampling_function=resampling_fun_mock,
-        )
+    config = ResamplerConfig(
+        resampling_period_s=resampling_period_s,
+        max_data_age_in_periods=1.5,
+        resampling_function=resampling_fun_mock,
+        initial_buffer_len=7,
     )
+    resampler = Resampler(config)
 
     source_recvr = source_chan.new_receiver()
     source_sendr = source_chan.new_sender()
 
     sink_mock = AsyncMock(spec=Sink, return_value=True)
 
-    resampler.add_timeseries(source_recvr, sink_mock)
+    resampler.add_timeseries("test", source_recvr, sink_mock)
+    source_props = resampler.get_source_properties(source_recvr)
 
     # Test timeline
     #
@@ -278,7 +292,10 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample0s, sample1s), resampling_period_s
+        a_sequence(sample0s, sample1s), config, source_props
+    )
+    assert source_props == SourceProperties(
+        sampling_start=timestamp, received_samples=2, sampling_period_s=None
     )
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
@@ -302,7 +319,10 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     )
     # It should include samples in the interval (1, 4] seconds
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample2_5s, sample3s, sample4s), resampling_period_s
+        a_sequence(sample2_5s, sample3s, sample4s), config, source_props
+    )
+    assert source_props == SourceProperties(
+        sampling_start=timestamp, received_samples=5, sampling_period_s=None
     )
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
@@ -324,7 +344,12 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     )
     # It should include samples in the interval (3, 6] seconds
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample4s, sample5s, sample6s), resampling_period_s
+        a_sequence(sample4s, sample5s, sample6s), config, source_props
+    )
+    # By now we have a full buffer (7 samples and a buffer of length 6), which
+    # we received in 4 seconds, so we have an input period of 6/7s.
+    assert source_props == SourceProperties(
+        sampling_start=timestamp, received_samples=7, sampling_period_s=6 / 7
     )
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
@@ -342,7 +367,9 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     )
     # It should include samples in the interval (5, 8] seconds
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample6s), resampling_period_s
+        a_sequence(sample6s),
+        config,
+        source_props,
     )
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
@@ -355,6 +382,9 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
         fake_time,
         resampling_period_s,
         current_iteration=5,
+    )
+    assert source_props == SourceProperties(
+        sampling_start=timestamp, received_samples=7, sampling_period_s=6 / 7
     )
 
 
@@ -373,20 +403,21 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     resampling_fun_mock = MagicMock(
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
-    resampler = Resampler(
-        ResamplerConfig(
-            resampling_period_s=resampling_period_s,
-            max_data_age_in_periods=2.0,
-            resampling_function=resampling_fun_mock,
-        )
+    config = ResamplerConfig(
+        resampling_period_s=resampling_period_s,
+        max_data_age_in_periods=2.0,
+        resampling_function=resampling_fun_mock,
+        initial_buffer_len=16,
     )
+    resampler = Resampler(config)
 
     source_recvr = source_chan.new_receiver()
     source_sendr = source_chan.new_sender()
 
     sink_mock = AsyncMock(spec=Sink, return_value=True)
 
-    resampler.add_timeseries(source_recvr, sink_mock)
+    resampler.add_timeseries("test", source_recvr, sink_mock)
+    source_props = resampler.get_source_properties(source_recvr)
 
     # Test timeline
     #
@@ -411,7 +442,10 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample0s, sample1s), resampling_period_s
+        a_sequence(sample0s, sample1s), config, source_props
+    )
+    assert source_props == SourceProperties(
+        sampling_start=timestamp, received_samples=2, sampling_period_s=None
     )
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
@@ -435,8 +469,10 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     )
     # It should include samples in the interval (0, 4] seconds
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample1s, sample2_5s, sample3s, sample4s),
-        resampling_period_s,
+        a_sequence(sample1s, sample2_5s, sample3s, sample4s), config, source_props
+    )
+    assert source_props == SourceProperties(
+        sampling_start=timestamp, received_samples=5, sampling_period_s=None
     )
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
@@ -459,7 +495,11 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     # It should include samples in the interval (2, 6] seconds
     resampling_fun_mock.assert_called_once_with(
         a_sequence(sample2_5s, sample3s, sample4s, sample5s, sample6s),
-        resampling_period_s,
+        config,
+        source_props,
+    )
+    assert source_props == SourceProperties(
+        sampling_start=timestamp, received_samples=7, sampling_period_s=None
     )
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
@@ -477,8 +517,10 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     )
     # It should include samples in the interval (4, 8] seconds
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample5s, sample6s),
-        resampling_period_s,
+        a_sequence(sample5s, sample6s), config, source_props
+    )
+    assert source_props == SourceProperties(
+        sampling_start=timestamp, received_samples=7, sampling_period_s=None
     )
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
@@ -491,6 +533,9 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
         fake_time,
         resampling_period_s,
         current_iteration=5,
+    )
+    assert source_props == SourceProperties(
+        sampling_start=timestamp, received_samples=7, sampling_period_s=None
     )
 
 
@@ -506,20 +551,20 @@ async def test_receiving_stopped_resampling_error(
     resampling_fun_mock = MagicMock(
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
-    resampler = Resampler(
-        ResamplerConfig(
-            resampling_period_s=resampling_period_s,
-            max_data_age_in_periods=2.0,
-            resampling_function=resampling_fun_mock,
-        )
+    config = ResamplerConfig(
+        resampling_period_s=resampling_period_s,
+        max_data_age_in_periods=2.0,
+        resampling_function=resampling_fun_mock,
     )
+    resampler = Resampler(config)
 
     source_recvr = source_chan.new_receiver()
     source_sendr = source_chan.new_sender()
 
     sink_mock = AsyncMock(spec=Sink, return_value=True)
 
-    resampler.add_timeseries(source_recvr, sink_mock)
+    resampler.add_timeseries("test", source_recvr, sink_mock)
+    source_props = resampler.get_source_properties(source_recvr)
 
     # Send a sample and run a resample tick, advancing the fake time by one period
     sample0s = Sample(timestamp, value=5.0)
@@ -534,7 +579,7 @@ async def test_receiving_stopped_resampling_error(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample0s), resampling_period_s
+        a_sequence(sample0s), config, source_props
     )
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
@@ -585,7 +630,7 @@ async def test_receiving_resampling_error(fake_time: time_machine.Coordinates) -
     fake_source = make_fake_source()
     sink_mock = AsyncMock(spec=Sink, return_value=True)
 
-    resampler.add_timeseries(fake_source, sink_mock)
+    resampler.add_timeseries("test", fake_source, sink_mock)
 
     # Try to resample
     fake_time.shift(resampling_period_s)

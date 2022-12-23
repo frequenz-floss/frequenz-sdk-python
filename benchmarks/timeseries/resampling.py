@@ -8,11 +8,17 @@ from timeit import timeit
 from typing import Sequence
 
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._resampling import ResamplerConfig, _ResamplingHelper
+from frequenz.sdk.timeseries._resampling import (
+    ResamplerConfig,
+    SourceProperties,
+    _ResamplingHelper,
+)
 
 
 def nop(  # pylint: disable=unused-argument
-    samples: Sequence[Sample], resampler_config: ResamplerConfig
+    samples: Sequence[Sample],
+    resampler_config: ResamplerConfig,
+    source_properties: SourceProperties,
 ) -> float:
     """Return 0.0."""
     return 0.0
@@ -21,14 +27,15 @@ def nop(  # pylint: disable=unused-argument
 def _benchmark_resampling_helper(resamples: int, samples: int) -> None:
     """Benchmark the resampling helper."""
     helper = _ResamplingHelper(
+        "benchmark",
         ResamplerConfig(
             resampling_period_s=1.0,
             max_data_age_in_periods=3.0,
             resampling_function=nop,
             initial_buffer_len=samples * 3,
-            max_buffer_len=samples * 3,
-            warn_buffer_len=samples * 3,
-        )
+            warn_buffer_len=samples * 3 + 2,
+            max_buffer_len=samples * 3 + 3,
+        ),
     )
     now = datetime.now(timezone.utc)
 
