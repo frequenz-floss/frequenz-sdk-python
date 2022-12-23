@@ -1069,6 +1069,60 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.ResamplerConfig" class="md-nav__link">
+    ResamplerConfig
+  </a>
+  
+    <nav class="md-nav" aria-label="ResamplerConfig">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.ResamplerConfig-attributes" class="md-nav__link">
+    Attributes
+  </a>
+  
+    <nav class="md-nav" aria-label="Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.initial_buffer_len" class="md-nav__link">
+    initial_buffer_len
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.max_data_age_in_periods" class="md-nav__link">
+    max_data_age_in_periods
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.resampling_function" class="md-nav__link">
+    resampling_function
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.resampling_period_s" class="md-nav__link">
+    resampling_period_s
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1801,7 +1855,12 @@ identify the right channel from the ChannelRegistry.</p>
 
         <details class="quote">
           <summary>Source code in <code>frequenz/sdk/actor/_resampling.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 30</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 25</span>
+<span class="normal"> 26</span>
+<span class="normal"> 27</span>
+<span class="normal"> 28</span>
+<span class="normal"> 29</span>
+<span class="normal"> 30</span>
 <span class="normal"> 31</span>
 <span class="normal"> 32</span>
 <span class="normal"> 33</span>
@@ -1928,32 +1987,7 @@ identify the right channel from the ChannelRegistry.</p>
 <span class="normal">154</span>
 <span class="normal">155</span>
 <span class="normal">156</span>
-<span class="normal">157</span>
-<span class="normal">158</span>
-<span class="normal">159</span>
-<span class="normal">160</span>
-<span class="normal">161</span>
-<span class="normal">162</span>
-<span class="normal">163</span>
-<span class="normal">164</span>
-<span class="normal">165</span>
-<span class="normal">166</span>
-<span class="normal">167</span>
-<span class="normal">168</span>
-<span class="normal">169</span>
-<span class="normal">170</span>
-<span class="normal">171</span>
-<span class="normal">172</span>
-<span class="normal">173</span>
-<span class="normal">174</span>
-<span class="normal">175</span>
-<span class="normal">176</span>
-<span class="normal">177</span>
-<span class="normal">178</span>
-<span class="normal">179</span>
-<span class="normal">180</span>
-<span class="normal">181</span>
-<span class="normal">182</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
+<span class="normal">157</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
 <span class="k">class</span> <span class="nc">ComponentMetricsResamplingActor</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;An actor to resample microgrid component metrics.&quot;&quot;&quot;</span>
 
@@ -1963,9 +1997,7 @@ identify the right channel from the ChannelRegistry.</p>
         <span class="n">channel_registry</span><span class="p">:</span> <span class="n">ChannelRegistry</span><span class="p">,</span>
         <span class="n">data_sourcing_request_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span><span class="n">ComponentMetricRequest</span><span class="p">],</span>
         <span class="n">resampling_request_receiver</span><span class="p">:</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">ComponentMetricRequest</span><span class="p">],</span>
-        <span class="n">resampling_period_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
-        <span class="n">max_data_age_in_periods</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span>
-        <span class="n">resampling_function</span><span class="p">:</span> <span class="n">ResamplingFunction</span> <span class="o">=</span> <span class="n">average</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">ResamplerConfig</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Initialize an instance.</span>
 
@@ -1977,34 +2009,16 @@ identify the right channel from the ChannelRegistry.</p>
 <span class="sd">                to subscribe to component metrics.</span>
 <span class="sd">            resampling_request_receiver: The receiver to use to receive new</span>
 <span class="sd">                resampmling subscription requests.</span>
-<span class="sd">            resampling_period_s: The time it passes between resampled data</span>
-<span class="sd">                should be calculated (in seconds).</span>
-<span class="sd">            max_data_age_in_periods: The maximum age a sample can have to be</span>
-<span class="sd">                considered *relevant* for resampling purposes, expressed in the</span>
-<span class="sd">                number of resampling periods. For exapmle is</span>
-<span class="sd">                `resampling_period_s` is 3 and `max_data_age_in_periods` is 2,</span>
-<span class="sd">                then data older than `3*2 = 6` secods will be discarded when</span>
-<span class="sd">                creating a new sample and never passed to the resampling</span>
-<span class="sd">                function.</span>
-<span class="sd">            resampling_function: The function to be applied to the sequence of</span>
-<span class="sd">                *relevant* samples at a given time. The result of the function</span>
-<span class="sd">                is what is sent as the resampled data.</span>
+<span class="sd">            config: The configuration for the resampler.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_channel_registry</span><span class="p">:</span> <span class="n">ChannelRegistry</span> <span class="o">=</span> <span class="n">channel_registry</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_resampling_period_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">resampling_period_s</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_max_data_age_in_periods</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">max_data_age_in_periods</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_resampling_function</span><span class="p">:</span> <span class="n">ResamplingFunction</span> <span class="o">=</span> <span class="n">resampling_function</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_data_sourcing_request_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span>
             <span class="n">ComponentMetricRequest</span>
         <span class="p">]</span> <span class="o">=</span> <span class="n">data_sourcing_request_sender</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_resampling_request_receiver</span><span class="p">:</span> <span class="n">Receiver</span><span class="p">[</span>
             <span class="n">ComponentMetricRequest</span>
         <span class="p">]</span> <span class="o">=</span> <span class="n">resampling_request_receiver</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_resampler</span><span class="p">:</span> <span class="n">Resampler</span> <span class="o">=</span> <span class="n">Resampler</span><span class="p">(</span>
-            <span class="n">resampling_period_s</span><span class="o">=</span><span class="n">resampling_period_s</span><span class="p">,</span>
-            <span class="n">max_data_age_in_periods</span><span class="o">=</span><span class="n">max_data_age_in_periods</span><span class="p">,</span>
-            <span class="n">resampling_function</span><span class="o">=</span><span class="n">resampling_function</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_resampler</span><span class="p">:</span> <span class="n">Resampler</span> <span class="o">=</span> <span class="n">Resampler</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_active_req_channels</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_subscribe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">ComponentMetricRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -2126,7 +2140,7 @@ identify the right channel from the ChannelRegistry.</p>
 
 
 <h6 id="frequenz.sdk.actor._resampling.ComponentMetricsResamplingActor.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">channel_registry</span><span class="p">,</span> <span class="n">data_sourcing_request_sender</span><span class="p">,</span> <span class="n">resampling_request_receiver</span><span class="p">,</span> <span class="n">resampling_period_s</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">max_data_age_in_periods</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">resampling_function</span><span class="o">=</span><span class="n">average</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">channel_registry</span><span class="p">,</span> <span class="n">data_sourcing_request_sender</span><span class="p">,</span> <span class="n">resampling_request_receiver</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span></code>
 
 <a href="#frequenz.sdk.actor._resampling.ComponentMetricsResamplingActor.__init__" class="headerlink" title="Permanent link">¤</a></h6>
 
@@ -2184,58 +2198,13 @@ resampmling subscription requests.</p>
           </td>
         </tr>
         <tr>
-          <td><code>resampling_period_s</code></td>
+          <td><code>config</code></td>
           <td class="doc-param-details">
-            <p>The time it passes between resampled data
-should be calculated (in seconds).</p>
+            <p>The configuration for the resampler.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>0.2</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>max_data_age_in_periods</code></td>
-          <td class="doc-param-details">
-            <p>The maximum age a sample can have to be
-considered <em>relevant</em> for resampling purposes, expressed in the
-number of resampling periods. For exapmle is
-<code>resampling_period_s</code> is 3 and <code>max_data_age_in_periods</code> is 2,
-then data older than <code>3*2 = 6</code> secods will be discarded when
-creating a new sample and never passed to the resampling
-function.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>3.0</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>resampling_function</code></td>
-          <td class="doc-param-details">
-            <p>The function to be applied to the sequence of
-<em>relevant</em> samples at a given time. The result of the function
-is what is sent as the resampled data.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><span title="frequenz.sdk.timeseries._resampling.ResamplingFunction">ResamplingFunction</span></code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>average</code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._resampling.ResamplerConfig" href="#frequenz.sdk.actor.ResamplerConfig">ResamplerConfig</a></code>
                 </span>
             </p>
           </td>
@@ -2245,7 +2214,12 @@ is what is sent as the resampled data.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/actor/_resampling.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">34</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
 <span class="normal">35</span>
 <span class="normal">36</span>
 <span class="normal">37</span>
@@ -2268,40 +2242,13 @@ is what is sent as the resampled data.</p>
 <span class="normal">54</span>
 <span class="normal">55</span>
 <span class="normal">56</span>
-<span class="normal">57</span>
-<span class="normal">58</span>
-<span class="normal">59</span>
-<span class="normal">60</span>
-<span class="normal">61</span>
-<span class="normal">62</span>
-<span class="normal">63</span>
-<span class="normal">64</span>
-<span class="normal">65</span>
-<span class="normal">66</span>
-<span class="normal">67</span>
-<span class="normal">68</span>
-<span class="normal">69</span>
-<span class="normal">70</span>
-<span class="normal">71</span>
-<span class="normal">72</span>
-<span class="normal">73</span>
-<span class="normal">74</span>
-<span class="normal">75</span>
-<span class="normal">76</span>
-<span class="normal">77</span>
-<span class="normal">78</span>
-<span class="normal">79</span>
-<span class="normal">80</span>
-<span class="normal">81</span>
-<span class="normal">82</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>  <span class="c1"># pylint: disable=too-many-arguments</span>
+<span class="normal">57</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>  <span class="c1"># pylint: disable=too-many-arguments</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">channel_registry</span><span class="p">:</span> <span class="n">ChannelRegistry</span><span class="p">,</span>
     <span class="n">data_sourcing_request_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span><span class="n">ComponentMetricRequest</span><span class="p">],</span>
     <span class="n">resampling_request_receiver</span><span class="p">:</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">ComponentMetricRequest</span><span class="p">],</span>
-    <span class="n">resampling_period_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
-    <span class="n">max_data_age_in_periods</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span>
-    <span class="n">resampling_function</span><span class="p">:</span> <span class="n">ResamplingFunction</span> <span class="o">=</span> <span class="n">average</span><span class="p">,</span>
+    <span class="n">config</span><span class="p">:</span> <span class="n">ResamplerConfig</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Initialize an instance.</span>
 
@@ -2313,34 +2260,16 @@ is what is sent as the resampled data.</p>
 <span class="sd">            to subscribe to component metrics.</span>
 <span class="sd">        resampling_request_receiver: The receiver to use to receive new</span>
 <span class="sd">            resampmling subscription requests.</span>
-<span class="sd">        resampling_period_s: The time it passes between resampled data</span>
-<span class="sd">            should be calculated (in seconds).</span>
-<span class="sd">        max_data_age_in_periods: The maximum age a sample can have to be</span>
-<span class="sd">            considered *relevant* for resampling purposes, expressed in the</span>
-<span class="sd">            number of resampling periods. For exapmle is</span>
-<span class="sd">            `resampling_period_s` is 3 and `max_data_age_in_periods` is 2,</span>
-<span class="sd">            then data older than `3*2 = 6` secods will be discarded when</span>
-<span class="sd">            creating a new sample and never passed to the resampling</span>
-<span class="sd">            function.</span>
-<span class="sd">        resampling_function: The function to be applied to the sequence of</span>
-<span class="sd">            *relevant* samples at a given time. The result of the function</span>
-<span class="sd">            is what is sent as the resampled data.</span>
+<span class="sd">        config: The configuration for the resampler.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_channel_registry</span><span class="p">:</span> <span class="n">ChannelRegistry</span> <span class="o">=</span> <span class="n">channel_registry</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_resampling_period_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">resampling_period_s</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_max_data_age_in_periods</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">max_data_age_in_periods</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_resampling_function</span><span class="p">:</span> <span class="n">ResamplingFunction</span> <span class="o">=</span> <span class="n">resampling_function</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_data_sourcing_request_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span>
         <span class="n">ComponentMetricRequest</span>
     <span class="p">]</span> <span class="o">=</span> <span class="n">data_sourcing_request_sender</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_resampling_request_receiver</span><span class="p">:</span> <span class="n">Receiver</span><span class="p">[</span>
         <span class="n">ComponentMetricRequest</span>
     <span class="p">]</span> <span class="o">=</span> <span class="n">resampling_request_receiver</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_resampler</span><span class="p">:</span> <span class="n">Resampler</span> <span class="o">=</span> <span class="n">Resampler</span><span class="p">(</span>
-        <span class="n">resampling_period_s</span><span class="o">=</span><span class="n">resampling_period_s</span><span class="p">,</span>
-        <span class="n">max_data_age_in_periods</span><span class="o">=</span><span class="n">max_data_age_in_periods</span><span class="p">,</span>
-        <span class="n">resampling_function</span><span class="o">=</span><span class="n">resampling_function</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_resampler</span><span class="p">:</span> <span class="n">Resampler</span> <span class="o">=</span> <span class="n">Resampler</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_active_req_channels</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
       </details>
@@ -2395,7 +2324,32 @@ handling requests.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/actor/_resampling.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">120</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
 <span class="normal">121</span>
 <span class="normal">122</span>
 <span class="normal">123</span>
@@ -2432,32 +2386,7 @@ handling requests.</p>
 <span class="normal">154</span>
 <span class="normal">155</span>
 <span class="normal">156</span>
-<span class="normal">157</span>
-<span class="normal">158</span>
-<span class="normal">159</span>
-<span class="normal">160</span>
-<span class="normal">161</span>
-<span class="normal">162</span>
-<span class="normal">163</span>
-<span class="normal">164</span>
-<span class="normal">165</span>
-<span class="normal">166</span>
-<span class="normal">167</span>
-<span class="normal">168</span>
-<span class="normal">169</span>
-<span class="normal">170</span>
-<span class="normal">171</span>
-<span class="normal">172</span>
-<span class="normal">173</span>
-<span class="normal">174</span>
-<span class="normal">175</span>
-<span class="normal">176</span>
-<span class="normal">177</span>
-<span class="normal">178</span>
-<span class="normal">179</span>
-<span class="normal">180</span>
-<span class="normal">181</span>
-<span class="normal">182</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">157</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Resample known component metrics and process resampling requests.</span>
 
 <span class="sd">    If there is a resampling error while resampling some component metric,</span>
@@ -3126,6 +3055,214 @@ instance.</p>
   </div>
 
 </div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="frequenz.sdk.actor.ResamplerConfig" class="doc doc-heading">
+        <code>frequenz.sdk.actor.ResamplerConfig</code>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#frequenz.sdk.actor.ResamplerConfig" class="headerlink" title="Permanent link">¤</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>Resampler configuration.</p>
+
+
+        <details class="quote">
+          <summary>Source code in <code>frequenz/sdk/timeseries/_resampling.py</code></summary>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ResamplerConfig</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Resampler configuration.&quot;&quot;&quot;</span>
+
+    <span class="n">resampling_period_s</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="sd">&quot;&quot;&quot;The resapmling period in seconds.</span>
+
+<span class="sd">    This is the time it passes between resampled data should be calculated.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">max_data_age_in_periods</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span>
+    <span class="sd">&quot;&quot;&quot;The maximum age a sample can have to be considered *relevant* for resampling.</span>
+
+<span class="sd">    Expressed in number of resampling periods. For example if</span>
+<span class="sd">    `resampling_period_s` is 3 and `max_data_age_in_periods` is 2, then data</span>
+<span class="sd">    older than 3*2 = 6 secods will be discarded when creating a new sample and</span>
+<span class="sd">    never passed to the resampling function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">resampling_function</span><span class="p">:</span> <span class="n">ResamplingFunction</span> <span class="o">=</span> <span class="n">average</span>
+    <span class="sd">&quot;&quot;&quot;The resampling function.</span>
+
+<span class="sd">    This function will be applied to the sequence of relevant samples at</span>
+<span class="sd">    a given time. The result of the function is what is sent as the resampled</span>
+<span class="sd">    value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">initial_buffer_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BUFFER_LEN_INIT</span>
+    <span class="sd">&quot;&quot;&quot;The initial length of the resampling buffer.</span>
+
+<span class="sd">    The buffer could grow or shrink depending on the source characteristics,</span>
+<span class="sd">    like sampling rate, to make sure all the requested past sampling periods</span>
+<span class="sd">    can be stored.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</code></pre></div></td></tr></table></div>
+        </details>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+<h5 id="frequenz.sdk.actor.ResamplerConfig-attributes">Attributes<a href="#frequenz.sdk.actor.ResamplerConfig-attributes" class="headerlink" title="Permanent link">¤</a></h5>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.timeseries._resampling.ResamplerConfig.initial_buffer_len" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">initial_buffer_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BUFFER_LEN_INIT</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.initial_buffer_len" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The initial length of the resampling buffer.</p>
+<p>The buffer could grow or shrink depending on the source characteristics,
+like sampling rate, to make sure all the requested past sampling periods
+can be stored.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.timeseries._resampling.ResamplerConfig.max_data_age_in_periods" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">max_data_age_in_periods</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.max_data_age_in_periods" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The maximum age a sample can have to be considered <em>relevant</em> for resampling.</p>
+<p>Expressed in number of resampling periods. For example if
+<code>resampling_period_s</code> is 3 and <code>max_data_age_in_periods</code> is 2, then data
+older than 3*2 = 6 secods will be discarded when creating a new sample and
+never passed to the resampling function.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.timeseries._resampling.ResamplerConfig.resampling_function" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">resampling_function</span><span class="p">:</span> <span class="n">ResamplingFunction</span> <span class="o">=</span> <span class="n">average</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.resampling_function" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The resampling function.</p>
+<p>This function will be applied to the sequence of relevant samples at
+a given time. The result of the function is what is sent as the resampled
+value.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.timeseries._resampling.ResamplerConfig.resampling_period_s" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">resampling_period_s</span><span class="p">:</span> <span class="nb">float</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.resampling_period_s" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The resapmling period in seconds.</p>
+<p>This is the time it passes between resampled data should be calculated.</p>
+  </div>
+
+</div>
+
+
 
 
 

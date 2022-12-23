@@ -819,6 +819,39 @@
     Sample
   </a>
   
+    <nav class="md-nav" aria-label="Sample">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries.Sample-attributes" class="md-nav__link">
+    Attributes
+  </a>
+  
+    <nav class="md-nav" aria-label="Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries._base_types.Sample.timestamp" class="md-nav__link">
+    timestamp
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries._base_types.Sample.value" class="md-nav__link">
+    value
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -906,17 +939,20 @@ coherent view on a group of component metrics for a particular timestamp.</p>
 
         <details class="quote">
           <summary>Source code in <code>frequenz/sdk/timeseries/_base_types.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">11</span>
-<span class="normal">12</span>
-<span class="normal">13</span>
-<span class="normal">14</span>
-<span class="normal">15</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">15</span>
 <span class="normal">16</span>
 <span class="normal">17</span>
 <span class="normal">18</span>
 <span class="normal">19</span>
 <span class="normal">20</span>
-<span class="normal">21</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Sample</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;A measurement taken at a particular point in time.</span>
 
@@ -925,8 +961,11 @@ coherent view on a group of component metrics for a particular timestamp.</p>
 <span class="sd">    coherent view on a group of component metrics for a particular timestamp.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span>
-    <span class="n">value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">compare</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;The time when this sample was generated.&quot;&quot;&quot;</span>
+
+    <span class="n">value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;The value of this sample.&quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
         </details>
 
@@ -938,7 +977,49 @@ coherent view on a group of component metrics for a particular timestamp.</p>
 
 
 
+<h5 id="frequenz.sdk.timeseries.Sample-attributes">Attributes<a href="#frequenz.sdk.timeseries.Sample-attributes" class="headerlink" title="Permanent link">¤</a></h5>
 
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.timeseries._base_types.Sample.timestamp" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">compare</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries._base_types.Sample.timestamp" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The time when this sample was generated.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.timeseries._base_types.Sample.value" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries._base_types.Sample.value" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The value of this sample.</p>
+  </div>
+
+</div>
 
 
 
