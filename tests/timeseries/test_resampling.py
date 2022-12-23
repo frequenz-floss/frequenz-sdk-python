@@ -5,6 +5,7 @@
 Tests for the `TimeSeriesResampler`
 """
 
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import AsyncIterator, Iterator
 from unittest.mock import AsyncMock, MagicMock
@@ -26,6 +27,7 @@ from frequenz.sdk.timeseries._resampling import (
     Source,
     SourceProperties,
     SourceStoppedError,
+    _ResamplingHelper,
 )
 
 from ..utils import a_sequence
@@ -137,6 +139,35 @@ async def test_resampler_config_len_error(init_len: int) -> None:
         )
 
 
+async def test_helper_buffer_too_big(
+    fake_time: time_machine.Coordinates,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test checks on the resampling buffer."""
+    config = ResamplerConfig(
+        resampling_period_s=DEFAULT_BUFFER_LEN_MAX + 1,
+        max_data_age_in_periods=1,
+    )
+    helper = _ResamplingHelper("test", config)
+
+    for i in range(DEFAULT_BUFFER_LEN_MAX + 1):
+        sample = Sample(datetime.now(timezone.utc), i)
+        helper.add_sample(sample)
+        fake_time.shift(1)
+
+    _ = helper.resample(datetime.now(timezone.utc))
+    assert caplog.record_tuples == [
+        (
+            "frequenz.sdk.timeseries._resampling",
+            logging.ERROR,
+            f"The new buffer length ({DEFAULT_BUFFER_LEN_MAX + 1}) "
+            f"for timeseries test is too big, using {DEFAULT_BUFFER_LEN_MAX} instead",
+        )
+    ]
+    # pylint: disable=protected-access
+    assert helper._buffer.maxlen == DEFAULT_BUFFER_LEN_MAX
+
+
 async def test_resampling_with_one_window(
     fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample]
 ) -> None:
@@ -193,6 +224,7 @@ async def test_resampling_with_one_window(
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=2, sampling_period_s=None
     )
+    assert _get_buffer_len(resampler, source_recvr) == config.initial_buffer_len
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -221,6 +253,9 @@ async def test_resampling_with_one_window(
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=5, sampling_period_s=0.8
     )
+    # The buffer should be able to hold 2 seconds of data, and data is coming
+    # every 0.8 seconds, so we should be able to store 3 samples.
+    assert _get_buffer_len(resampler, source_recvr) == 3
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -236,6 +271,7 @@ async def test_resampling_with_one_window(
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=5, sampling_period_s=0.8
     )
+    assert _get_buffer_len(resampler, source_recvr) == 3
 
 
 # Even when a lot could be refactored to use smaller functions, I'm allowing
@@ -297,6 +333,7 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=2, sampling_period_s=None
     )
+    assert _get_buffer_len(resampler, source_recvr) == config.initial_buffer_len
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -324,6 +361,7 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=5, sampling_period_s=None
     )
+    assert _get_buffer_len(resampler, source_recvr) == config.initial_buffer_len
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -351,6 +389,10 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=7, sampling_period_s=6 / 7
     )
+    # The buffer should be able to hold 2 * 1.5 (3) seconds of data, and data
+    # is coming every 6/7 seconds (~0.857s), so we should be able to store
+    # 4 samples.
+    assert _get_buffer_len(resampler, source_recvr) == 4
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -386,6 +428,7 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=7, sampling_period_s=6 / 7
     )
+    assert _get_buffer_len(resampler, source_recvr) == 4
 
 
 # Even when a lot could be refactored to use smaller functions, I'm allowing
@@ -447,6 +490,7 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=2, sampling_period_s=None
     )
+    assert _get_buffer_len(resampler, source_recvr) == config.initial_buffer_len
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -474,6 +518,7 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=5, sampling_period_s=None
     )
+    assert _get_buffer_len(resampler, source_recvr) == config.initial_buffer_len
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -501,6 +546,7 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=7, sampling_period_s=None
     )
+    assert _get_buffer_len(resampler, source_recvr) == config.initial_buffer_len
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -522,6 +568,7 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=7, sampling_period_s=None
     )
+    assert _get_buffer_len(resampler, source_recvr) == config.initial_buffer_len
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -537,6 +584,7 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=7, sampling_period_s=None
     )
+    assert _get_buffer_len(resampler, source_recvr) == config.initial_buffer_len
 
 
 async def test_receiving_stopped_resampling_error(
@@ -643,3 +691,10 @@ async def test_receiving_resampling_error(fake_time: time_machine.Coordinates) -
     assert fake_source in exceptions
     timeseries_error = exceptions[fake_source]
     assert isinstance(timeseries_error, TestException)
+
+
+def _get_buffer_len(resampler: Resampler, source_recvr: Source) -> int:
+    # pylint: disable=protected-access
+    blen = resampler._resamplers[source_recvr]._helper._buffer.maxlen
+    assert blen is not None
+    return blen

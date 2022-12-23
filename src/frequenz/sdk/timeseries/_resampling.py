@@ -531,6 +531,65 @@ class _ResamplingHelper:
         )
         return True
 
+    def _update_buffer_len(self) -> bool:
+        """Update the length of the buffer based on the source properties.
+
+        Returns:
+            Whether the buffer length was changed (was really updated).
+        """
+        input_sampling_period_s = self._source_properties.sampling_period_s
+
+        # To make type checking happy
+        assert input_sampling_period_s is not None
+        assert self._buffer.maxlen is not None
+
+        config = self._config
+
+        # If we are upsampling, one sample could be enough for back-filling, but
+        # we store max_data_age_in_periods for input periods, so resampling
+        # functions can do more complex inter/extrapolation if they need to.
+        if input_sampling_period_s > config.resampling_period_s:
+            new_buffer_len = input_sampling_period_s * config.max_data_age_in_periods
+        # If we are upsampling, we want a buffer that can hold
+        # max_data_age_in_periods * resampling_period_s seconds of data, and we
+        # one sample every input_sampling_period_s.
+        else:
+            new_buffer_len = (
+                config.resampling_period_s
+                / input_sampling_period_s
+                * config.max_data_age_in_periods
+            )
+
+        new_buffer_len = max(1, math.ceil(new_buffer_len))
+        if new_buffer_len > config.max_buffer_len:
+            _logger.error(
+                "The new buffer length (%s) for timeseries %s is too big, using %s instead",
+                new_buffer_len,
+                self._name,
+                config.max_buffer_len,
+            )
+            new_buffer_len = config.max_buffer_len
+        elif new_buffer_len > config.warn_buffer_len:
+            _logger.warning(
+                "The new buffer length (%s) for timeseries %s bigger than %s",
+                new_buffer_len,
+                self._name,
+                config.warn_buffer_len,
+            )
+
+        if new_buffer_len == self._buffer.maxlen:
+            return False
+
+        _logger.info(
+            "New buffer length calculated for %r: %s",
+            self._name,
+            new_buffer_len,
+        )
+
+        self._buffer = deque(self._buffer, maxlen=new_buffer_len)
+
+        return True
+
     def resample(self, timestamp: datetime) -> Sample:
         """Generate a new sample based on all the current *relevant* samples.
 
@@ -543,7 +602,8 @@ class _ResamplingHelper:
                 If there are no *relevant* samples, then the new sample will
                 have `None` as `value`.
         """
-        self._update_source_sample_period(timestamp)
+        if self._update_source_sample_period(timestamp):
+            self._update_buffer_len()
 
         conf = self._config
         props = self._source_properties
