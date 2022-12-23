@@ -16,6 +16,8 @@ from frequenz.channels import Broadcast
 
 from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._resampling import (
+    DEFAULT_BUFFER_LEN_MAX,
+    DEFAULT_BUFFER_LEN_WARN,
     Resampler,
     ResamplerConfig,
     ResamplingError,
@@ -76,6 +78,62 @@ async def _assert_no_more_samples(  # pylint: disable=too-many-arguments
         resampling_fun_mock.assert_not_called()
         sink_mock.reset_mock()
         resampling_fun_mock.reset_mock()
+
+
+@pytest.mark.parametrize("init_len", list(range(2, DEFAULT_BUFFER_LEN_WARN + 1, 16)))
+async def test_resampler_config_len_ok(
+    init_len: int,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test checks on the resampling buffer."""
+    config = ResamplerConfig(
+        resampling_period_s=1.0,
+        initial_buffer_len=init_len,
+    )
+    assert config.initial_buffer_len == init_len
+    assert caplog.records == []
+
+
+@pytest.mark.parametrize(
+    "init_len",
+    range(DEFAULT_BUFFER_LEN_WARN + 1, DEFAULT_BUFFER_LEN_MAX + 1, 64),
+)
+async def test_resampler_config_len_warn(
+    init_len: int, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test checks on the resampling buffer."""
+    config = ResamplerConfig(
+        resampling_period_s=1.0,
+        initial_buffer_len=init_len,
+    )
+    assert config.initial_buffer_len == init_len
+    for record in caplog.records:
+        assert record.levelname == "WARNING"
+        assert caplog.text.startswith("")
+        assert (
+            caplog.text
+            == f"initial_buffer_len ({init_len}) is bigger than {DEFAULT_BUFFER_LEN_WARN}"
+    assert caplog.record_tuples == [
+        (
+            "frequenz.sdk.timeseries._resampling",
+            logging.WARNING,
+            f"initial_buffer_len ({init_len}) is bigger than "
+            f"warn_buffer_len ({DEFAULT_BUFFER_LEN_WARN})",
+        )
+    ]
+
+
+@pytest.mark.parametrize(
+    "init_len",
+    list(range(-2, 2)) + [DEFAULT_BUFFER_LEN_MAX + 1, DEFAULT_BUFFER_LEN_MAX + 2],
+)
+async def test_resampler_config_len_error(init_len: int) -> None:
+    """Test checks on the resampling buffer."""
+    with pytest.raises(ValueError):
+        _ = ResamplerConfig(
+            resampling_period_s=1.0,
+            initial_buffer_len=init_len,
+        )
 
 
 async def test_resampling_with_one_window(

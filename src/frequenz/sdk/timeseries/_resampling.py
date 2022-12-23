@@ -32,6 +32,21 @@ sure all the requested past sampling periods can be stored.
 """
 
 
+DEFAULT_BUFFER_LEN_MAX = 1024
+"""Default maximum allowed buffer length.
+
+If a buffer length would get bigger than this, it will be truncated to this
+length.
+"""
+
+
+DEFAULT_BUFFER_LEN_WARN = 128
+"""Default minimum buffer length that will produce a warning.
+
+If a buffer length would get bigger than this, a warning will be logged.
+"""
+
+
 Source = AsyncIterator[Sample]
 """A source for a timeseries.
 
@@ -131,6 +146,51 @@ class ResamplerConfig:
     like sampling rate, to make sure all the requested past sampling periods
     can be stored.
     """
+
+    warn_buffer_len: int = DEFAULT_BUFFER_LEN_WARN
+    """The minimum length of the resampling buffer that will emit a warning.
+
+    If a buffer grows bigger than this value, it will emit a warning in the
+    logs, so buffers don't grow too big inadvertly.
+    """
+
+    max_buffer_len: int = DEFAULT_BUFFER_LEN_MAX
+    """The maximum length of the resampling buffer.
+
+    Buffers won't be allowed to grow beyond this point even if it would be
+    needed to keep all the requested past sampling periods. An error will be
+    emitted in the logs if the buffer length needs to be truncated to this
+    value.
+    """
+
+    def __post_init__(self) -> None:
+        """Check config values are valid.
+
+        Raises:
+            ValueError: if the initial buffer length is too small (less than 2)
+                or too big (more than `max_buffer_len`).
+        """
+        if self.initial_buffer_len < 2:
+            raise ValueError(
+                f"initial_buffer_len must be at least 2, got {self.initial_buffer_len}"
+            )
+        if self.initial_buffer_len > self.max_buffer_len:
+            raise ValueError(
+                f"initial_buffer_len be smaller than {self.max_buffer_len}, "
+                "got {self.initial_buffer_len}"
+            )
+        if self.initial_buffer_len > self.warn_buffer_len:
+            _logger.warning(
+                "initial_buffer_len (%s) is bigger than %s",
+                self.initial_buffer_len,
+                self.warn_buffer_len,
+            )
+        if self.initial_buffer_len > self.warn_buffer_len:
+            _logger.warning(
+                "initial_buffer_len (%s) is bigger than warn_buffer_len (%s)",
+                self.initial_buffer_len,
+                self.warn_buffer_len,
+            )
 
 
 class SourceStoppedError(RuntimeError):
