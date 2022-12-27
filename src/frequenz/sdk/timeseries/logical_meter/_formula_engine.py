@@ -7,13 +7,14 @@ from __future__ import annotations
 
 import asyncio
 from datetime import datetime
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Tuple
 
 from frequenz.channels import Receiver
 
 from .. import Sample
 from ._formula_steps import (
     Adder,
+    Averager,
     Divider,
     FormulaStep,
     MetricFetcher,
@@ -217,6 +218,20 @@ class FormulaBuilder:
             name, MetricFetcher(name, data_stream, nones_are_zeros)
         )
         self._steps.append(fetcher)
+
+    def push_average(self, metrics: List[Tuple[str, Receiver[Sample], bool]]) -> None:
+        """Push an average calculator into the engine.
+
+        Args:
+            metrics: list of arguments to pass to each `MetricFetcher`.
+        """
+        fetchers: List[MetricFetcher] = []
+        for metric in metrics:
+            fetcher = self._metric_fetchers.setdefault(
+                metric[0], MetricFetcher(*metric)
+            )
+            fetchers.append(fetcher)
+        self._steps.append(Averager(fetchers))
 
     def build(self) -> FormulaEngine:
         """Finalize and build the formula engine.
