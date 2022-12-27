@@ -204,3 +204,46 @@ class TestLogicalMeter:
         assert battery_results == battery_inv_sums
         assert len(pv_results) == 10
         assert pv_results == pv_inv_sums
+
+    async def test_soc(self, mocker: MockerFixture) -> None:
+        """Test the soc calculation."""
+        mockgrid = await MockMicrogrid.new(mocker)
+        mockgrid.add_solar_inverters(2)
+        mockgrid._id_increment = 8  # pylint: disable=protected-access
+        mockgrid.add_batteries(3)
+        request_sender, channel_registry = await mockgrid.start()
+        logical_meter = LogicalMeter(
+            channel_registry,
+            request_sender,
+            microgrid.get().component_graph,
+        )
+
+        soc_recv = await logical_meter._soc()  # pylint: disable=protected-access
+
+        bat_receivers = [
+            await self._get_resampled_stream(
+                logical_meter,
+                channel_registry,
+                request_sender,
+                bat_id,
+                ComponentMetricId.SOC,
+            )
+            for bat_id in mockgrid.battery_ids
+        ]
+
+        for ctr in range(10):
+            bat_vals = []
+            for recv in bat_receivers:
+                val = await recv.receive()
+                assert val is not None and val.value is not None
+                bat_vals.append(val.value)
+
+            assert len(bat_vals) == 3
+            # After 7 values, the inverter with component_id > 100 stops sending
+            # data. And the values from the last battery goes out of the calculation.
+            # So we drop it from out control value as well.
+            if ctr >= 7:
+                bat_vals = bat_vals[:2]
+            assert (await soc_recv.receive()).value == sum(bat_vals) / len(bat_vals)
+
+        await mockgrid.cleanup()

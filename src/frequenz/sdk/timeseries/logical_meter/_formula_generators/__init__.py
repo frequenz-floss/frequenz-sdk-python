@@ -4,6 +4,7 @@
 """Generators for formulas from component graphs."""
 
 from ._battery_power_formula import BatteryPowerFormula
+from ._battery_soc_formula import BatterySoCFormula
 from ._formula_generator import (
     ComponentNotFound,
     FormulaGenerationError,
@@ -22,6 +23,7 @@ __all__ = [
     #
     "GridPowerFormula",
     "BatteryPowerFormula",
+    "BatterySoCFormula",
     "PVPowerFormula",
     #
     # Exceptions
