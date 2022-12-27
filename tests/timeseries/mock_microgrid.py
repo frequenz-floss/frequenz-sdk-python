@@ -9,7 +9,9 @@ import time
 from typing import Iterator, Tuple
 
 from frequenz.api.microgrid import microgrid_pb2
-from frequenz.api.microgrid.common_pb2 import AC, Metric
+from frequenz.api.microgrid.battery_pb2 import Battery
+from frequenz.api.microgrid.battery_pb2 import Data as BatteryData
+from frequenz.api.microgrid.common_pb2 import AC, Metric, MetricAggregation
 from frequenz.api.microgrid.inverter_pb2 import Data as InverterData
 from frequenz.api.microgrid.inverter_pb2 import Inverter
 from frequenz.api.microgrid.inverter_pb2 import Type as InverterType
@@ -120,6 +122,15 @@ class MockMicrogrid:
                     ),
                 )
 
+            def battery_msg(value: float) -> ComponentData:
+                timestamp = Timestamp()
+                timestamp.GetCurrentTime()
+                return ComponentData(
+                    id=request.id,
+                    ts=timestamp,
+                    battery=Battery(data=BatteryData(soc=MetricAggregation(avg=value))),
+                )
+
             if request.id % 10 == cls.inverter_id_suffix:
                 next_msg = inverter_msg
             elif (
@@ -127,6 +138,8 @@ class MockMicrogrid:
                 or request.id == cls.main_meter_id
             ):
                 next_msg = meter_msg
+            elif request.id % 10 == cls.battery_id_suffix:
+                next_msg = battery_msg
             else:
                 raise RuntimeError(
                     f"Component id {request.id} unsupported by MockMicrogrid"
