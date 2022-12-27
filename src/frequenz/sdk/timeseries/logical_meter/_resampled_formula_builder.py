@@ -40,21 +40,19 @@ class ResampledFormulaBuilder(FormulaBuilder):
         self._metric_id = metric_id
         super().__init__()
 
-    async def _get_resampled_receiver(self, component_id: int) -> Receiver[Sample]:
+    async def _get_resampled_receiver(
+        self, component_id: int, metric_id: ComponentMetricId
+    ) -> Receiver[Sample]:
         """Get a receiver with the resampled data for the given component id.
-
-        This receiver would contain data for the `metric_id` specified when creating the
-        `ResampledFormulaBuilder` instance.
 
         Args:
             component_id: The component id for which to get a resampled data receiver.
+            metric_id: A metric ID to fetch for all components in this formula.
 
         Returns:
             A receiver to stream resampled data for the given component id.
         """
-        request = ComponentMetricRequest(
-            self._namespace, component_id, self._metric_id, None
-        )
+        request = ComponentMetricRequest(self._namespace, component_id, metric_id, None)
         await self._resampler_subscription_sender.send(request)
         return self._channel_registry.new_receiver(request.get_channel_name())
 
@@ -68,7 +66,7 @@ class ResampledFormulaBuilder(FormulaBuilder):
             nones_are_zeros: Whether to treat None values from the stream as 0s.  If
                 False, the returned value will be a None.
         """
-        receiver = await self._get_resampled_receiver(component_id)
+        receiver = await self._get_resampled_receiver(component_id, self._metric_id)
         self.push_metric(f"#{component_id}", receiver, nones_are_zeros)
 
     async def from_string(

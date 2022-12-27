@@ -23,12 +23,13 @@ from .mock_microgrid import MockMicrogrid
 class TestLogicalMeter:
     """Tests for the logical meter."""
 
-    async def _get_resampled_stream(
+    async def _get_resampled_stream(  # pylint: disable=too-many-arguments
         self,
         logical_meter: LogicalMeter,
         channel_registry: ChannelRegistry,
         request_sender: Sender[ComponentMetricRequest],
         comp_id: int,
+        metric_id: ComponentMetricId,
     ) -> Receiver[Sample]:
         """Return the resampled data stream for the given component."""
         # Create a `FormulaBuilder` instance, just in order to reuse its
@@ -39,9 +40,12 @@ class TestLogicalMeter:
             logical_meter._namespace,
             channel_registry,
             request_sender,
-            ComponentMetricId.ACTIVE_POWER,
+            metric_id,
         )
-        return await builder._get_resampled_receiver(comp_id)
+        return await builder._get_resampled_receiver(
+            comp_id,
+            metric_id,
+        )
         # pylint: enable=protected-access
 
     async def test_grid_power_1(self, mocker: MockerFixture) -> None:
@@ -63,6 +67,7 @@ class TestLogicalMeter:
             channel_registry,
             request_sender,
             mockgrid.main_meter_id,
+            ComponentMetricId.ACTIVE_POWER,
         )
 
         results = []
@@ -102,6 +107,7 @@ class TestLogicalMeter:
                 channel_registry,
                 request_sender,
                 meter_id,
+                ComponentMetricId.ACTIVE_POWER,
             )
             for meter_id in mockgrid.meter_ids
         ]
@@ -149,6 +155,7 @@ class TestLogicalMeter:
                 channel_registry,
                 request_sender,
                 meter_id,
+                ComponentMetricId.ACTIVE_POWER,
             )
             for meter_id in mockgrid.battery_inverter_ids
         ]
@@ -159,6 +166,7 @@ class TestLogicalMeter:
                 channel_registry,
                 request_sender,
                 meter_id,
+                ComponentMetricId.ACTIVE_POWER,
             )
             for meter_id in mockgrid.pv_inverter_ids
         ]
