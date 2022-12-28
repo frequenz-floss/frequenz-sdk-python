@@ -19,22 +19,21 @@ from ._component_states import EVChargerCableState
 
 @dataclass(frozen=True)
 class ComponentData(ABC):
-    """A private base class for strongly typed component data classes.
-
-    Attributes:
-        component_id: the ID identifying this component in the microgrid
-        timestamp: the timestamp of when the data was measured.
-        raw: raw component data as decoded from the wire
-    """
+    """A private base class for strongly typed component data classes."""
 
     component_id: int
+    """The ID identifying this component in the microgrid."""
+
     timestamp: datetime
+    """The timestamp of when the data was measured."""
+
     # The `raw` attribute is excluded from the constructor as it can only be provided
     # when instantiating `ComponentData` using the `from_proto` method, which reads
     # data from a protobuf message. The whole protobuf message is stored as the `raw`
     # attribute. When `ComponentData` is not instantiated from a protobuf message,
     # i.e. using the constructor, `raw` will be set to `None`.
     raw: Optional[microgrid_pb.ComponentData] = field(default=None, init=False)
+    """Raw component data as decoded from the wire."""
 
     def _set_raw(self, raw: microgrid_pb.ComponentData) -> None:
         """Store raw protobuf message.
@@ -60,26 +59,27 @@ class ComponentData(ABC):
 
 @dataclass(frozen=True)
 class MeterData(ComponentData):
-    """A wrapper class for holding meter data.
-
-    Attributes:
-        active_power: the 3-phase active power, in Watts, represented in the passive
-            sign convention.
-            +ve current means consumption, away from the grid.
-            -ve current means supply into the grid.
-        current_per_phase: AC current in Amperes (A) for phase/line 1,2 and 3
-            respectively.
-            +ve current means consumption, away from the grid.
-            -ve current means supply into the grid.
-        voltage_per_phase: the AC voltage in Volts (V) between the line and the neutral
-            wire for phase/line 1,2 and 3 respectively.
-        frequency: the AC power frequency in Hertz (Hz).
-    """
+    """A wrapper class for holding meter data."""
 
     active_power: float
+    """The 3-phase active power, in Watts, represented in the passive sign convention.
+            +ve current means consumption, away from the grid.
+            -ve current means supply into the grid.
+    """
+
     current_per_phase: Tuple[float, float, float]
+    """AC current in Amperes (A) for phase/line 1,2 and 3 respectively.
+            +ve current means consumption, away from the grid.
+            -ve current means supply into the grid.
+    """
+
     voltage_per_phase: Tuple[float, float, float]
+    """The ac voltage in volts (v) between the line and the neutral wire for phase/line
+        1,2 and 3 respectively.
+    """
+
     frequency: float
+    """The AC power frequency in Hertz (Hz)."""
 
     @classmethod
     def from_proto(cls, raw: microgrid_pb.ComponentData) -> MeterData:
@@ -113,38 +113,46 @@ class MeterData(ComponentData):
 
 @dataclass(frozen=True)
 class BatteryData(ComponentData):
-    """A wrapper class for holding battery data.
-
-    Attributes:
-        soc: battery's overall SoC in percent (%).
-        soc_lower_bound: the SoC below which discharge commands will be blocked by the
-            system, in percent (%).
-        soc_upper_bound: the SoC above which charge commands will be blocked by the
-            system, in percent (%).
-        capacity: the capacity of the battery in Wh (Watt-hour)
-        power_lower_bound: the maximum discharge power, in Watts, represented in the
-            passive sign convention. This will be a negative number, or zero if no
-            discharging is possible.
-        power_upper_bound: the maximum charge power, in Watts, represented in the
-            passive sign convention. This will be a positive number, or zero if no
-            charging is possible.
-        temperature_max: the maximum temperature of all the blocks in a battery, in
-            Celcius (°C).
-        _relay_state: state of the battery relay.
-        _component_state: state of the battery.
-        _errors: list of errors in protobuf struct.
-    """
+    """A wrapper class for holding battery data."""
 
     soc: float
+    """Battery's overall SoC in percent (%)."""
+
     soc_lower_bound: float
+    """The SoC below which discharge commands will be blocked by the system,
+        in percent (%).
+    """
+
     soc_upper_bound: float
+    """The SoC above which charge commands will be blocked by the system,
+        in percent (%).
+    """
+
     capacity: float
+    """The capacity of the battery in Wh (Watt-hour)."""
+
     power_lower_bound: float
+    """The maximum discharge power, in watts, represented in the passive sign
+        convention. this will be a negative number, or zero if no discharging is
+        possible.
+    """
+
     power_upper_bound: float
+    """The maximum charge power, in Watts, represented in the passive sign convention.
+        This will be a positive number, or zero if no charging is possible.
+    """
+
     temperature_max: float
+    """The maximum temperature of all the blocks in a battery, in Celcius (°C)."""
+
     _relay_state: battery_pb.RelayState.ValueType
+    """State of the battery relay."""
+
     _component_state: battery_pb.ComponentState.ValueType
+    """State of the battery."""
+
     _errors: List[battery_pb.Error]
+    """List of errors in protobuf struct."""
 
     @classmethod
     def from_proto(cls, raw: microgrid_pb.ComponentData) -> BatteryData:
@@ -176,28 +184,30 @@ class BatteryData(ComponentData):
 
 @dataclass(frozen=True)
 class InverterData(ComponentData):
-    """A wrapper class for holding inverter data.
-
-    Attributes:
-        active_power: the 3-phase active power, in Watts, represented in the passive
-            sign convention.
-            +ve current means consumption, away from the grid.
-            -ve current means supply into the grid.
-        active_power_lower_bound: the maximum discharge power, in Watts, represented in
-            the passive sign convention. This will be a negative number, or zero if no
-            discharging is possible.
-        active_power_upper_bound: the maximum charge power, in Watts, represented in
-            the passive sign convention. This will be a positive number, or zero if no
-            charging is possible.
-        _component_state: state of the inverter.
-        _errors: list of errors from the component.
-    """
+    """A wrapper class for holding inverter data."""
 
     active_power: float
+    """The 3-phase active power, in Watts, represented in the passive sign convention.
+            +ve current means consumption, away from the grid.
+            -ve current means supply into the grid.
+    """
+
     active_power_lower_bound: float
+    """The maximum discharge power, in Watts, represented in the passive sign
+        convention. This will be a negative number, or zero if no discharging is
+        possible.
+    """
+
     active_power_upper_bound: float
+    """The maximum charge power, in Watts, represented in the passive sign convention.
+        This will be a positive number, or zero if no charging is possible.
+    """
+
     _component_state: inverter_pb.ComponentState.ValueType
+    """State of the inverter."""
+
     _errors: List[inverter_pb.Error]
+    """List of errors from the component."""
 
     @classmethod
     def from_proto(cls, raw: microgrid_pb.ComponentData) -> InverterData:
@@ -225,26 +235,27 @@ class InverterData(ComponentData):
 
 @dataclass(frozen=True)
 class EVChargerData(ComponentData):
-    """A wrapper class for holding ev_charger data.
-
-    Attributes:
-        active_power_consumption: the 3-phase active power, in Watts, represented in
-            the passive sign convention.
-            +ve current means consumption, away from the grid.
-            -ve current means supply into the grid.
-        current_per_phase: AC current in Amperes (A) for phase/line 1,2 and 3
-            respectively.
-            +ve current means consumption, away from the grid.
-            -ve current means supply into the grid.
-        voltage_per_phase: the AC voltage in Volts (V) between the line and the neutral
-            wire for phase/line 1,2 and 3 respectively.
-        cable_state: the state of the ev charger's cable
-    """
+    """A wrapper class for holding ev_charger data."""
 
     active_power: float
+    """The 3-phase active power, in Watts, represented in the passive sign convention.
+        +ve current means consumption, away from the grid.
+        -ve current means supply into the grid.
+    """
+
     current_per_phase: Tuple[float, float, float]
+    """AC current in Amperes (A) for phase/line 1,2 and 3 respectively.
+        +ve current means consumption, away from the grid.
+        -ve current means supply into the grid.
+    """
+
     voltage_per_phase: Tuple[float, float, float]
+    """The AC voltage in Volts (V) between the line and the neutral
+        wire for phase/line 1,2 and 3 respectively.
+    """
+
     cable_state: EVChargerCableState
+    """The state of the ev charger's cable."""
 
     @classmethod
     def from_proto(cls, raw: microgrid_pb.ComponentData) -> EVChargerData:
