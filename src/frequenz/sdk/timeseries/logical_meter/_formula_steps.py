@@ -3,12 +3,15 @@
 
 """Steps for building formula engines with."""
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
 from frequenz.channels import Receiver
 
 from .. import Sample
+from ._exceptions import FormulaEngineError
 
 
 class FormulaStep(ABC):
@@ -157,6 +160,54 @@ class OpenParen(FormulaStep):
         """No-op."""
 
 
+class Averager(FormulaStep):
+    """A formula step for calculating average."""
+
+    def __init__(self, fetchers: List[MetricFetcher]) -> None:
+        """Create an `Averager` instance.
+
+        Args:
+            fetchers: MetricFetchers for the metrics that need to be averaged.
+        """
+        self._fetchers = fetchers
+
+    def __repr__(self) -> str:
+        """Return a string representation of the step.
+
+        Returns:
+            A string representation of the step.
+        """
+        return f"avg({', '.join(repr(f) for f in self._fetchers)})"
+
+    def apply(self, eval_stack: List[Optional[float]]) -> None:
+        """Calculate average of given metrics, push the average to the eval_stack.
+
+        Args:
+            eval_stack: An evaluation stack, to append the calculated average to.
+
+        Raises:
+            FormulaEngineError: when metric fetchers are unable to fetch values.
+        """
+        value_count = 0
+        total = 0.0
+        for fetcher in self._fetchers:
+            next_val = fetcher.value
+            if next_val is None:
+                raise FormulaEngineError(
+                    "Unable to fetch a value from the resampling actor."
+                )
+            if next_val.value is None:
+                continue
+            value_count += 1
+            total += next_val.value
+        if value_count == 0:
+            avg = 0.0
+        else:
+            avg = total / value_count
+
+        eval_stack.append(avg)
+
+
 class MetricFetcher(FormulaStep):
     """A formula step for fetching a value from a metric Receiver."""
 
@@ -184,6 +235,15 @@ class MetricFetcher(FormulaStep):
             The fetched Sample.
         """
         self._next_value = await self._stream.receive()
+        return self._next_value
+
+    @property
+    def value(self) -> Optional[Sample]:
+        """Get the next value in the stream.
+
+        Returns:
+            Next value in the stream.
+        """
         return self._next_value
 
     def __repr__(self) -> str:

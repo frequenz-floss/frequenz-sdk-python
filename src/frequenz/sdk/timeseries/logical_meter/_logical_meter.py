@@ -19,6 +19,7 @@ from .. import Sample
 from ._formula_engine import FormulaEngine
 from ._formula_generators import (
     BatteryPowerFormula,
+    BatterySoCFormula,
     FormulaGenerator,
     GridPowerFormula,
     PVPowerFormula,
@@ -187,3 +188,14 @@ class LogicalMeter:
             A *new* receiver that will stream PV power production values.
         """
         return await self._get_formula_stream("pv_power", PVPowerFormula)
+
+    async def _soc(self) -> Receiver[Sample]:
+        """Fetch the SoC of the active batteries in the microgrid.
+
+        NOTE: This method is part of the logical meter only temporarily, and will get
+        moved to the `BatteryPool` within the next few releases.
+
+        Returns:
+            A *new* receiver that will stream average SoC of active batteries.
+        """
+        return await self._get_formula_stream("soc", BatterySoCFormula)

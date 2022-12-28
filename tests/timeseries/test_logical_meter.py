@@ -23,12 +23,13 @@ from .mock_microgrid import MockMicrogrid
 class TestLogicalMeter:
     """Tests for the logical meter."""
 
-    async def _get_resampled_stream(
+    async def _get_resampled_stream(  # pylint: disable=too-many-arguments
         self,
         logical_meter: LogicalMeter,
         channel_registry: ChannelRegistry,
         request_sender: Sender[ComponentMetricRequest],
         comp_id: int,
+        metric_id: ComponentMetricId,
     ) -> Receiver[Sample]:
         """Return the resampled data stream for the given component."""
         # Create a `FormulaBuilder` instance, just in order to reuse its
@@ -39,9 +40,12 @@ class TestLogicalMeter:
             logical_meter._namespace,
             channel_registry,
             request_sender,
-            ComponentMetricId.ACTIVE_POWER,
+            metric_id,
         )
-        return await builder._get_resampled_receiver(comp_id)
+        return await builder._get_resampled_receiver(
+            comp_id,
+            metric_id,
+        )
         # pylint: enable=protected-access
 
     async def test_grid_power_1(self, mocker: MockerFixture) -> None:
@@ -63,6 +67,7 @@ class TestLogicalMeter:
             channel_registry,
             request_sender,
             mockgrid.main_meter_id,
+            ComponentMetricId.ACTIVE_POWER,
         )
 
         results = []
@@ -102,6 +107,7 @@ class TestLogicalMeter:
                 channel_registry,
                 request_sender,
                 meter_id,
+                ComponentMetricId.ACTIVE_POWER,
             )
             for meter_id in mockgrid.meter_ids
         ]
@@ -149,6 +155,7 @@ class TestLogicalMeter:
                 channel_registry,
                 request_sender,
                 meter_id,
+                ComponentMetricId.ACTIVE_POWER,
             )
             for meter_id in mockgrid.battery_inverter_ids
         ]
@@ -159,6 +166,7 @@ class TestLogicalMeter:
                 channel_registry,
                 request_sender,
                 meter_id,
+                ComponentMetricId.ACTIVE_POWER,
             )
             for meter_id in mockgrid.pv_inverter_ids
         ]
@@ -196,3 +204,46 @@ class TestLogicalMeter:
         assert battery_results == battery_inv_sums
         assert len(pv_results) == 10
         assert pv_results == pv_inv_sums
+
+    async def test_soc(self, mocker: MockerFixture) -> None:
+        """Test the soc calculation."""
+        mockgrid = await MockMicrogrid.new(mocker)
+        mockgrid.add_solar_inverters(2)
+        mockgrid._id_increment = 8  # pylint: disable=protected-access
+        mockgrid.add_batteries(3)
+        request_sender, channel_registry = await mockgrid.start()
+        logical_meter = LogicalMeter(
+            channel_registry,
+            request_sender,
+            microgrid.get().component_graph,
+        )
+
+        soc_recv = await logical_meter._soc()  # pylint: disable=protected-access
+
+        bat_receivers = [
+            await self._get_resampled_stream(
+                logical_meter,
+                channel_registry,
+                request_sender,
+                bat_id,
+                ComponentMetricId.SOC,
+            )
+            for bat_id in mockgrid.battery_ids
+        ]
+
+        for ctr in range(10):
+            bat_vals = []
+            for recv in bat_receivers:
+                val = await recv.receive()
+                assert val is not None and val.value is not None
+                bat_vals.append(val.value)
+
+            assert len(bat_vals) == 3
+            # After 7 values, the inverter with component_id > 100 stops sending
+            # data. And the values from the last battery goes out of the calculation.
+            # So we drop it from out control value as well.
+            if ctr >= 7:
+                bat_vals = bat_vals[:2]
+            assert (await soc_recv.receive()).value == sum(bat_vals) / len(bat_vals)
+
+        await mockgrid.cleanup()
