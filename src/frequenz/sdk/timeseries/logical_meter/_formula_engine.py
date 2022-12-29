@@ -179,7 +179,7 @@ class FormulaBuilder:
             op_prec = _operator_precedence[oper]
             while self._build_stack:
                 prev_step = self._build_stack[-1]
-                if op_prec <= _operator_precedence[repr(prev_step)]:
+                if op_prec < _operator_precedence[repr(prev_step)]:
                     break
                 if oper == ")" and repr(prev_step) == "(":
                     self._build_stack.pop()
