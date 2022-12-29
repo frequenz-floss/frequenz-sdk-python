@@ -10,7 +10,8 @@
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+- Ability to compose formula outputs into higher-order formulas:
+  https://github.com/frequenz-floss/frequenz-sdk-python/pull/133
 
 ## Bug Fixes
 
