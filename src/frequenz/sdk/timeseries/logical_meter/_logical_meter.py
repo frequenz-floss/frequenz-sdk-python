@@ -31,13 +31,61 @@ logger = logging.Logger(__name__)
 class LogicalMeter:
     """A logical meter for calculating high level metrics in a microgrid.
 
-    LogicalMeter can be used to run formulas on resampled component metric streams.
+    LogicalMeter provides methods for fetching power values from different points in the
+    microgrid.  These methods return `FormulaReceiver` objects, which can be used like
+    normal `Receiver`s, but can also be composed to form higher-order formula streams.
 
-    Formulas can have Component IDs that are preceeded by a pound symbol("#"), and these
-    operators: +, -, *, /, (, ).
+    Example:
+        ``` python
+        channel_registry = ChannelRegistry(name="data-registry")
 
-    For example, the input string: "#20 + #5" is a formula for adding metrics from two
-    components with ids 20 and 5.
+        # Create a channels for sending/receiving subscription requests
+        data_source_request_channel = Broadcast[ComponentMetricRequest]("data-source")
+        data_source_request_sender = data_source_request_channel.new_sender()
+        data_source_request_receiver = data_source_request_channel.new_receiver()
+
+        resampling_request_channel = Broadcast[ComponentMetricRequest]("resample")
+        resampling_request_sender = resampling_request_channel.new_sender()
+        resampling_request_receiver = resampling_request_channel.new_receiver()
+
+        # Instantiate a data sourcing actor
+        _data_sourcing_actor = DataSourcingActor(
+            request_receiver=data_source_request_receiver, registry=channel_registry
+        )
+
+        # Instantiate a resampling actor
+        _resampling_actor = ComponentMetricsResamplingActor(
+            channel_registry=channel_registry,
+            data_sourcing_request_sender=data_source_request_sender,
+            resampling_request_receiver=resampling_request_receiver,
+            config=ResamplerConfig(resampling_period_s=1),
+        )
+
+        # Create a logical meter instance
+        logical_meter = LogicalMeter(
+            channel_registry,
+            resampling_request_sender,
+            microgrid.get().component_graph,
+        )
+
+        # Get a receiver for a builtin formula
+        grid_power_recv = logical_meter.grid_power()
+        for grid_power_sample in grid_power_recv:
+            print(grid_power_sample)
+
+        # or compose formula receivers to create a new formula
+        net_power_recv = (
+            (
+                logical_meter.grid_power()
+                - logical_meter.battery_power()
+                - logical_meter.pv_power()
+            )
+            .build("net_power")
+            .new_receiver()
+        )
+        for net_power_sample in net_power_recv:
+            print(net_power_sample)
+        ```
     """
 
     def __init__(
@@ -83,7 +131,13 @@ class LogicalMeter:
         component_metric_id: ComponentMetricId,
         nones_are_zeros: bool = False,
     ) -> FormulaReceiver:
-        """Start execution of the given formula name.
+        """Start execution of the given formula.
+
+        Formulas can have Component IDs that are preceeded by a pound symbol("#"), and
+        these operators: +, -, *, /, (, ).
+
+        For example, the input string: "#20 + #5" is a formula for adding metrics from
+        two components with ids 20 and 5.
 
         Args:
             formula: formula to execute.
