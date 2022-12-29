@@ -44,7 +44,7 @@ _GenericComponentData = TypeVar(
     EVChargerData,
 )
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class MicrogridApiClient(ABC):

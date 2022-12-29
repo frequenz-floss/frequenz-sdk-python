@@ -22,7 +22,7 @@ import pandas as pd
 import pyarrow.parquet as pq
 from tqdm import tqdm
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 # directory path to all component data of a particular site
 HISTDATA_DIR = "/data"

@@ -15,7 +15,7 @@ from .formula import Formula
 Key = TypeVar("Key")
 Value = TypeVar("Value")
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 SYMBOL_SEGMENT_SEPARATOR = "_"
 

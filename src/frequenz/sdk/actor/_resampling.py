@@ -19,7 +19,7 @@ from ._channel_registry import ChannelRegistry
 from ._data_sourcing import ComponentMetricRequest
 from ._decorator import actor
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @actor

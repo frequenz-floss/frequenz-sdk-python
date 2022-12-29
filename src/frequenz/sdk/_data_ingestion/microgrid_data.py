@@ -27,7 +27,7 @@ from .component_info import infer_microgrid_config
 from .formula_calculator import FormulaCalculator
 from .gen_component_receivers import gen_component_receivers
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 CONFIG_FILE_FORMULA_PREFIX = "formula_"
 

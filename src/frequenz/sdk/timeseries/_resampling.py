@@ -20,7 +20,7 @@ from frequenz.channels.util import Timer
 from ..util.asyncio import cancel_and_await
 from . import Sample
 
-_logger = logging.Logger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 DEFAULT_BUFFER_LEN_INIT = 16

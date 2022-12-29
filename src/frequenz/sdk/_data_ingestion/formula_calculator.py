@@ -36,7 +36,7 @@ from .constants import (
     METRIC_PV_PROD,
 )
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
