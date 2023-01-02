@@ -161,16 +161,11 @@ class PowerDistributingActor:
             self.power_distributor_exponent
         )
 
-        graph = microgrid.get().component_graph
-        batteries = graph.components(component_category={ComponentCategory.BATTERY})
+        self._battery_pool: BatteryPoolStatus
 
-        self._battery_pool = BatteryPoolStatus(
-            battery_ids={battery.component_id for battery in batteries},
-            max_blocking_duration_sec=30.0,
-            max_data_age_sec=10.0,
+        self._bat_inv_map, self._inv_bat_map = self._get_components_pairs(
+            microgrid.get().component_graph
         )
-
-        self._bat_inv_map, self._inv_bat_map = self._get_components_pairs(graph)
         self._battery_receivers: Dict[int, Peekable[BatteryData]] = {}
         self._inverter_receivers: Dict[int, Peekable[InverterData]] = {}
 
@@ -251,11 +246,17 @@ class PowerDistributingActor:
         as broken for some time.
         """
         await self._create_channels()
-        await self._battery_pool.async_init()
+
         api = microgrid.get().api_client
+        self._battery_pool = await BatteryPoolStatus.async_new(
+            battery_ids=set(self._bat_inv_map.keys()),
+            max_blocking_duration_sec=30.0,
+            max_data_age_sec=10.0,
+        )
 
         # Wait few seconds to get data from the channels created above.
         await asyncio.sleep(self._wait_for_data_sec)
+
         self._started.set()
         while True:
             request, user = await self._request_queue.get()

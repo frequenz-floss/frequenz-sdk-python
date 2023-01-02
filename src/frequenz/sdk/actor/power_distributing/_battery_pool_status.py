@@ -2,30 +2,39 @@
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 """Class that stores pool of batteries and manage them."""
 
+from __future__ import annotations
+
 import asyncio
 import logging
-from typing import Set
+from typing import Dict, Set
 
+from ..._internal.asyncio import AsyncConstructible
 from ...microgrid._battery import BatteryStatus, StatusTracker
 from .result import PartialFailure, Result, Success
 
 _logger = logging.getLogger(__name__)
 
 
-class BatteryPoolStatus:
-    """Holds pool of batteries and returns data from them."""
+class BatteryPoolStatus(AsyncConstructible):
+    """Return status of batteries in the pool.
 
-    def __init__(
-        self,
+    To create an instance of this class you should use `async_new` class method.
+    Standard constructor (__init__) is not supported and using it will raise
+    `NotSyncConstructible` error.
+    """
+
+    # This is instance attribute.
+    # Don't assign default value, because then it becomes class attribute.
+    _batteries: Dict[int, StatusTracker]
+
+    @classmethod
+    async def async_new(
+        cls,
         battery_ids: Set[int],
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
-    ) -> None:
-        """Create partially initialized object instance.
-
-        Note:
-            Please call `async_init` method to fully initialize BatteryPoolStatus. Otherwise
-            it is not possible to use BatteryPoolStatus.
+    ) -> BatteryPoolStatus:
+        """Create BatteryPoolStatus instance.
 
         Args:
             battery_ids: set of batteries ids that should be stored in pool.
@@ -35,20 +44,21 @@ class BatteryPoolStatus:
                 data.
             max_blocking_duration_sec: This value tell what should be the maximum
                 timeout used for blocking failing component.
+
+        Returns:
+            New instance of this class.
         """
+        self: BatteryPoolStatus = BatteryPoolStatus.__new__(cls)
         self._batteries = {
             id: StatusTracker(id, max_data_age_sec, max_blocking_duration_sec)
             for id in battery_ids
         }
-        self._init_method_called: bool = False
 
-    async def async_init(self) -> None:
-        """Init battery pool."""
         await asyncio.gather(
             *[bat.async_init() for bat in self._batteries.values()],
             return_exceptions=True,
         )
-        self._init_method_called = True
+        return self
 
     def get_working_batteries(self, battery_ids: Set[int]) -> Set[int]:
         """Get subset of battery_ids with working batteries.
@@ -64,11 +74,6 @@ class BatteryPoolStatus:
         Returns:
             Subset of given batteries with working batteries.
         """
-        if not self._init_method_called:
-            raise RuntimeError(
-                "`async_init` method not called or not awaited. Run it before first use"
-            )
-
         working: Set[int] = set()
         uncertain: Set[int] = set()
         for bat_id in battery_ids:
@@ -101,11 +106,6 @@ class BatteryPoolStatus:
             RuntimeError: If `async_init` method was not called at the beginning to
                 initialize object.
         """
-        if not self._init_method_called:
-            raise RuntimeError(
-                "`async_init` method not called or not awaited. Run it before first use"
-            )
-
         if isinstance(result, Success):
             for bat_id in result.used_batteries:
                 self._batteries[bat_id].unblock()

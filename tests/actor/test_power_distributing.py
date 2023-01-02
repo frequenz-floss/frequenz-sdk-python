@@ -138,12 +138,14 @@ class TestPowerDistributingActor:
             request_timeout_sec=SAFETY_TIMEOUT,
         )
 
+        attrs = {"get_working_batteries.return_value": request.batteries}
+        battery_pool_mock = MagicMock(spec=BatteryPoolStatus, **attrs)
+        BatteryPoolStatus.async_new = AsyncMock(  # type: ignore
+            return_value=battery_pool_mock
+        )
+
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
         distributor = PowerDistributingActor({"user1": channel.service_handle})
-
-        # Mock that all requested batteries are working.
-        distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
-        distributor._battery_pool.get_working_batteries.return_value = request.batteries
 
         client_handle = channel.client_handle
         await client_handle.send(request)
@@ -175,13 +177,15 @@ class TestPowerDistributingActor:
             "user2": channel2.service_handle,
         }
 
+        attrs = {"get_working_batteries.return_value": {106, 206}}
+        battery_pool_mock = MagicMock(spec=BatteryPoolStatus, **attrs)
+        BatteryPoolStatus.async_new = AsyncMock(  # type: ignore
+            return_value=battery_pool_mock
+        )
+
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
         distributor = PowerDistributingActor(service_channels)
-
-        # Mock that all requested batteries are working.
-        distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
-        distributor._battery_pool.get_working_batteries.return_value = {106, 206}
 
         user1_handle = channel1.client_handle
         task1 = user1_handle.send(
@@ -230,13 +234,14 @@ class TestPowerDistributingActor:
             power=1200, batteries={106, 208}, request_timeout_sec=SAFETY_TIMEOUT
         )
 
+        attrs = {"get_working_batteries.return_value": request.batteries}
+        battery_pool_mock = MagicMock(spec=BatteryPoolStatus, **attrs)
+        BatteryPoolStatus.async_new = AsyncMock(  # type: ignore
+            return_value=battery_pool_mock
+        )
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
         distributor = PowerDistributingActor(service_channels)
-
-        # Mock that all requested batteries are working.
-        distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
-        distributor._battery_pool.get_working_batteries.return_value = request.batteries
 
         user1_handle = channel1.client_handle
         await user1_handle.send(request)
@@ -271,16 +276,15 @@ class TestPowerDistributingActor:
         }
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        attrs = {
+            "get_working_batteries.side_effect": [{106, 206}, {106, 306}, {106, 206}]
+        }
+        battery_pool_mock = MagicMock(spec=BatteryPoolStatus, **attrs)
+        BatteryPoolStatus.async_new = AsyncMock(  # type: ignore
+            return_value=battery_pool_mock
+        )
 
         distributor = PowerDistributingActor(service_channels)
-
-        # Mock that all requested batteries are working.
-        distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
-        distributor._battery_pool.get_working_batteries.side_effect = [
-            {106, 206},
-            {106, 306},
-            {106, 206},
-        ]
 
         user1_handle = channel1.client_handle
         task1 = user1_handle.send(
@@ -349,13 +353,15 @@ class TestPowerDistributingActor:
             adjust_power=False,
         )
 
+        attrs = {"get_working_batteries.return_value": request.batteries}
+        battery_pool_mock = MagicMock(spec=BatteryPoolStatus, **attrs)
+        BatteryPoolStatus.async_new = AsyncMock(  # type: ignore
+            return_value=battery_pool_mock
+        )
+
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
         distributor = PowerDistributingActor(service_channels)
-
-        # Mock that all requested batteries are working.
-        distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
-        distributor._battery_pool.get_working_batteries.return_value = request.batteries
 
         user1_handle = channel1.client_handle
         await user1_handle.send(request)
@@ -394,13 +400,15 @@ class TestPowerDistributingActor:
             adjust_power=False,
         )
 
+        attrs = {"get_working_batteries.return_value": request.batteries}
+        battery_pool_mock = MagicMock(spec=BatteryPoolStatus, **attrs)
+        BatteryPoolStatus.async_new = AsyncMock(  # type: ignore
+            return_value=battery_pool_mock
+        )
+
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
         distributor = PowerDistributingActor(service_channels)
-
-        # Mock that all requested batteries are working.
-        distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
-        distributor._battery_pool.get_working_batteries.return_value = request.batteries
 
         user1_handle = channel1.client_handle
         await user1_handle.send(request)
@@ -439,13 +447,15 @@ class TestPowerDistributingActor:
             adjust_power=False,
         )
 
+        attrs = {"get_working_batteries.return_value": request.batteries}
+        battery_pool_mock = MagicMock(spec=BatteryPoolStatus, **attrs)
+        BatteryPoolStatus.async_new = AsyncMock(  # type: ignore
+            return_value=battery_pool_mock
+        )
+
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
         distributor = PowerDistributingActor(service_channels)
-
-        # Mock that all requested batteries are working.
-        distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
-        distributor._battery_pool.get_working_batteries.return_value = request.batteries
 
         user1_handle = channel1.client_handle
         await user1_handle.send(request)
@@ -476,15 +486,15 @@ class TestPowerDistributingActor:
             power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
         )
 
+        attrs = {"get_working_batteries.return_value": request.batteries - {106}}
+        battery_pool_mock = MagicMock(spec=BatteryPoolStatus, **attrs)
+        BatteryPoolStatus.async_new = AsyncMock(  # type: ignore
+            return_value=battery_pool_mock
+        )
+
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
         distributor = PowerDistributingActor({"user1": channel.service_handle})
-
-        # Mock that all requested batteries are working.
-        distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
-        distributor._battery_pool.get_working_batteries.return_value = (
-            request.batteries - {106}
-        )
 
         client_handle = channel.client_handle
         await client_handle.send(request)
