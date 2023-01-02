@@ -2,6 +2,8 @@
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 """Class to return battery status."""
 
+from __future__ import annotations
+
 import asyncio
 import logging
 from dataclasses import dataclass
@@ -15,7 +17,7 @@ from frequenz.api.microgrid.common_pb2 import ErrorLevel
 from frequenz.api.microgrid.inverter_pb2 import ComponentState as InverterComponentState
 from frequenz.channels import Peekable
 
-from .. import ComponentGraph
+from ..._internal.asyncio import AsyncConstructible
 from .. import get as get_microgrid
 from ..component import BatteryData, ComponentCategory, ComponentData, InverterData
 
@@ -46,9 +48,15 @@ class _ComponentReceiver(Generic[T]):
     receiver: Peekable[T]
 
 
-class StatusTracker:
-    """Class for tracking if battery is working."""
+class StatusTracker(AsyncConstructible):
+    """Class for tracking if battery is working.
 
+    To create an instance of this class you should use `async_new` class method.
+    Standard constructor (__init__) is not supported and using it will raise
+    `NotSyncConstructible` error.
+    """
+
+    # Class attributes
     _battery_valid_relay: Set[BatteryRelayState.ValueType] = {
         BatteryRelayState.RELAY_STATE_CLOSED
     }
@@ -64,9 +72,21 @@ class StatusTracker:
         InverterComponentState.COMPONENT_STATE_STANDBY,
     }
 
-    def __init__(
-        self, battery_id: int, max_data_age_sec: float, max_blocking_duration_sec: float
-    ) -> None:
+    # Instance attributes
+    _battery_id: int
+    _max_data_age: float
+    _last_status: BatteryStatus
+    _min_blocking_duration_sec: float
+    _max_blocking_duration_sec: float
+    _blocked_until: Optional[datetime]
+    _last_blocking_duration_sec: float
+    _battery_receiver: _ComponentReceiver[BatteryData]
+    _inverter_receiver: _ComponentReceiver[InverterData]
+
+    @classmethod
+    async def async_new(
+        cls, battery_id: int, max_data_age_sec: float, max_blocking_duration_sec: float
+    ) -> StatusTracker:
         """Create class instance.
 
         Args:
@@ -77,17 +97,44 @@ class StatusTracker:
                 data.
             max_blocking_duration_sec: This value tell what should be the maximum
                 timeout used for blocking failing component.
+
+        Returns:
+            New instance of this class.
+
+        Raises:
+            RuntimeError: If battery has no adjacent inverter.
         """
-        self._battery_id: int = battery_id
-        self._max_data_age: float = max_data_age_sec
+        self: StatusTracker = StatusTracker.__new__(cls)
+        self._battery_id = battery_id
+        self._max_data_age = max_data_age_sec
 
-        self._init_method_called: bool = False
-        self._last_status: BatteryStatus = BatteryStatus.WORKING
+        self._last_status = BatteryStatus.WORKING
 
-        self._min_blocking_duration_sec: float = 1.0
-        self._max_blocking_duration_sec: float = max_blocking_duration_sec
-        self._blocked_until: Optional[datetime] = None
-        self._last_blocking_duration_sec: float = self._min_blocking_duration_sec
+        self._min_blocking_duration_sec = 1.0
+        self._max_blocking_duration_sec = max_blocking_duration_sec
+        self._blocked_until = None
+        self._last_blocking_duration_sec = self._min_blocking_duration_sec
+
+        inverter_id = self._find_adjacent_inverter_id()
+        if inverter_id is None:
+            raise RuntimeError(
+                f"Can't find inverter adjacent to battery: {self._battery_id}"
+            )
+
+        api_client = get_microgrid().api_client
+
+        bat_recv = await api_client.battery_data(self._battery_id)
+        self._battery_receiver = _ComponentReceiver(
+            self._battery_id, bat_recv.into_peekable()
+        )
+
+        inv_recv = await api_client.inverter_data(inverter_id)
+        self._inverter_receiver = _ComponentReceiver(
+            inverter_id, inv_recv.into_peekable()
+        )
+
+        await asyncio.sleep(_START_DELAY_SEC)
+        return self
 
     @property
     def battery_id(self) -> int:
@@ -97,41 +144,6 @@ class StatusTracker:
             Battery id
         """
         return self._battery_id
-
-    async def async_init(self) -> None:
-        """Async part of constructor.
-
-        This should be called in order to subscribe for necessary data.
-
-        Raises:
-            RuntimeError: If given battery as no adjacent inverter.
-        """
-        component_graph = get_microgrid().component_graph
-        inverter_id = self._find_adjacent_inverter_id(component_graph)
-        if inverter_id is None:
-            raise RuntimeError(
-                f"Can't find inverter adjacent to battery: {self._battery_id}"
-            )
-
-        api_client = get_microgrid().api_client
-
-        bat_recv = await api_client.battery_data(self._battery_id)
-        # Defining battery_receiver and inverter receiver needs await.
-        # Because of that it is impossible to define it in constructor.
-        # Setting it to None first would require to check None condition in
-        # every call.
-        # pylint: disable=attribute-defined-outside-init
-        self._battery_receiver = _ComponentReceiver(
-            self._battery_id, bat_recv.into_peekable()
-        )
-        inv_recv = await api_client.inverter_data(inverter_id)
-        # pylint: disable=attribute-defined-outside-init
-        self._inverter_receiver = _ComponentReceiver(
-            inverter_id, inv_recv.into_peekable()
-        )
-
-        await asyncio.sleep(_START_DELAY_SEC)
-        self._init_method_called = True
 
     def get_status(self) -> BatteryStatus:
         """Return status of the battery.
@@ -145,11 +157,6 @@ class StatusTracker:
         Returns:
             Battery status
         """
-        if not self._init_method_called:
-            raise RuntimeError(
-                "`async_init` method not called or not awaited. Run it before first use"
-            )
-
         bat_msg = self._battery_receiver.receiver.peek()
         inv_msg = self._inverter_receiver.receiver.peek()
         if bat_msg is None or inv_msg is None:
@@ -353,15 +360,13 @@ class StatusTracker:
 
         return not is_outdated
 
-    def _find_adjacent_inverter_id(self, graph: ComponentGraph) -> Optional[int]:
+    def _find_adjacent_inverter_id(self) -> Optional[int]:
         """Find inverter adjacent to this battery.
-
-        Args:
-            graph: Component graph
 
         Returns:
             Id of the inverter. If battery hasn't adjacent inverter, then return None.
         """
+        graph = get_microgrid().component_graph
         return next(
             (
                 comp.component_id

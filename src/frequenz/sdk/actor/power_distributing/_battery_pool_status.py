@@ -45,19 +45,22 @@ class BatteryPoolStatus(AsyncConstructible):
             max_blocking_duration_sec: This value tell what should be the maximum
                 timeout used for blocking failing component.
 
+        Raises:
+            RuntimeError: If any battery has no adjacent inverter.
+
         Returns:
             New instance of this class.
         """
         self: BatteryPoolStatus = BatteryPoolStatus.__new__(cls)
-        self._batteries = {
-            id: StatusTracker(id, max_data_age_sec, max_blocking_duration_sec)
-            for id in battery_ids
-        }
 
-        await asyncio.gather(
-            *[bat.async_init() for bat in self._batteries.values()],
-            return_exceptions=True,
-        )
+        tasks = [
+            StatusTracker.async_new(id, max_data_age_sec, max_blocking_duration_sec)
+            for id in battery_ids
+        ]
+
+        trackers = await asyncio.gather(*tasks)
+        self._batteries = {tracker.battery_id: tracker for tracker in trackers}
+
         return self
 
     def get_working_batteries(self, battery_ids: Set[int]) -> Set[int]:
