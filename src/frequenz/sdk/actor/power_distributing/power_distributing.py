@@ -164,15 +164,9 @@ class PowerDistributingActor:
             self.power_distributor_exponent
         )
 
-        batteries = component_graph.components(
-            component_category={ComponentCategory.BATTERY}
-        )
-
-        self._battery_pool = BatteryPoolStatus(
-            battery_ids={battery.component_id for battery in batteries},
-            max_blocking_duration_sec=30.0,
-            max_data_age_sec=10.0,
-        )
+        # This will be temporary initialized in the `run` method.
+        # PowerDistributingActor won't use BatteryPoolStatus soon.
+        self._battery_pool: BatteryPoolStatus
 
         self._bat_inv_map, self._inv_bat_map = self._get_components_pairs(
             component_graph
@@ -249,8 +243,12 @@ class PowerDistributingActor:
         as broken for some time.
         """
         await self._create_channels()
-        await self._battery_pool.async_init()
 
+        self._battery_pool = await BatteryPoolStatus.async_new(
+            battery_ids=set(self._bat_inv_map.keys()),
+            max_blocking_duration_sec=30.0,
+            max_data_age_sec=10.0,
+        )
         # Wait few seconds to get data from the channels created above.
         await asyncio.sleep(self._wait_for_data_sec)
         self._started.set()
