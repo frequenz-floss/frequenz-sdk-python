@@ -1064,16 +1064,67 @@
 
   
       <p>A logical meter for calculating high level metrics in a microgrid.</p>
-<p>LogicalMeter can be used to run formulas on resampled component metric streams.</p>
-<p>Formulas can have Component IDs that are preceeded by a pound symbol("#"), and these
-operators: +, -, *, /, (, ).</p>
-<p>For example, the input string: "#20 + #5" is a formula for adding metrics from two
-components with ids 20 and 5.</p>
+<p>LogicalMeter provides methods for fetching power values from different points in the
+microgrid.  These methods return <code>FormulaReceiver</code> objects, which can be used like
+normal <code>Receiver</code>s, but can also be composed to form higher-order formula streams.</p>
 
+<details class="example">
+  <summary>Example</summary>
+  <div class="highlight"><pre><span></span><code><span class="n">channel_registry</span> <span class="o">=</span> <span class="n">ChannelRegistry</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;data-registry&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create a channels for sending/receiving subscription requests</span>
+<span class="n">data_source_request_channel</span> <span class="o">=</span> <span class="n">Broadcast</span><span class="p">[</span><span class="n">ComponentMetricRequest</span><span class="p">](</span><span class="s2">&quot;data-source&quot;</span><span class="p">)</span>
+<span class="n">data_source_request_sender</span> <span class="o">=</span> <span class="n">data_source_request_channel</span><span class="o">.</span><span class="n">new_sender</span><span class="p">()</span>
+<span class="n">data_source_request_receiver</span> <span class="o">=</span> <span class="n">data_source_request_channel</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
+
+<span class="n">resampling_request_channel</span> <span class="o">=</span> <span class="n">Broadcast</span><span class="p">[</span><span class="n">ComponentMetricRequest</span><span class="p">](</span><span class="s2">&quot;resample&quot;</span><span class="p">)</span>
+<span class="n">resampling_request_sender</span> <span class="o">=</span> <span class="n">resampling_request_channel</span><span class="o">.</span><span class="n">new_sender</span><span class="p">()</span>
+<span class="n">resampling_request_receiver</span> <span class="o">=</span> <span class="n">resampling_request_channel</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
+
+<span class="c1"># Instantiate a data sourcing actor</span>
+<span class="n">_data_sourcing_actor</span> <span class="o">=</span> <span class="n">DataSourcingActor</span><span class="p">(</span>
+    <span class="n">request_receiver</span><span class="o">=</span><span class="n">data_source_request_receiver</span><span class="p">,</span> <span class="n">registry</span><span class="o">=</span><span class="n">channel_registry</span>
+<span class="p">)</span>
+
+<span class="c1"># Instantiate a resampling actor</span>
+<span class="n">_resampling_actor</span> <span class="o">=</span> <span class="n">ComponentMetricsResamplingActor</span><span class="p">(</span>
+    <span class="n">channel_registry</span><span class="o">=</span><span class="n">channel_registry</span><span class="p">,</span>
+    <span class="n">data_sourcing_request_sender</span><span class="o">=</span><span class="n">data_source_request_sender</span><span class="p">,</span>
+    <span class="n">resampling_request_receiver</span><span class="o">=</span><span class="n">resampling_request_receiver</span><span class="p">,</span>
+    <span class="n">config</span><span class="o">=</span><span class="n">ResamplerConfig</span><span class="p">(</span><span class="n">resampling_period_s</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># Create a logical meter instance</span>
+<span class="n">logical_meter</span> <span class="o">=</span> <span class="n">LogicalMeter</span><span class="p">(</span>
+    <span class="n">channel_registry</span><span class="p">,</span>
+    <span class="n">resampling_request_sender</span><span class="p">,</span>
+    <span class="n">microgrid</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">component_graph</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Get a receiver for a builtin formula</span>
+<span class="n">grid_power_recv</span> <span class="o">=</span> <span class="n">logical_meter</span><span class="o">.</span><span class="n">grid_power</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">grid_power_sample</span> <span class="ow">in</span> <span class="n">grid_power_recv</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">grid_power_sample</span><span class="p">)</span>
+
+<span class="c1"># or compose formula receivers to create a new formula</span>
+<span class="n">net_power_recv</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">(</span>
+        <span class="n">logical_meter</span><span class="o">.</span><span class="n">grid_power</span><span class="p">()</span>
+        <span class="o">-</span> <span class="n">logical_meter</span><span class="o">.</span><span class="n">battery_power</span><span class="p">()</span>
+        <span class="o">-</span> <span class="n">logical_meter</span><span class="o">.</span><span class="n">pv_power</span><span class="p">()</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="s2">&quot;net_power&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
+<span class="p">)</span>
+<span class="k">for</span> <span class="n">net_power_sample</span> <span class="ow">in</span> <span class="n">net_power_recv</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">net_power_sample</span><span class="p">)</span>
+</code></pre></div>
+</details>
 
         <details class="quote">
           <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 32</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 31</span>
+<span class="normal"> 32</span>
 <span class="normal"> 33</span>
 <span class="normal"> 34</span>
 <span class="normal"> 35</span>
@@ -1242,16 +1293,87 @@ components with ids 20 and 5.</p>
 <span class="normal">198</span>
 <span class="normal">199</span>
 <span class="normal">200</span>
-<span class="normal">201</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">LogicalMeter</span><span class="p">:</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">LogicalMeter</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A logical meter for calculating high level metrics in a microgrid.</span>
 
-<span class="sd">    LogicalMeter can be used to run formulas on resampled component metric streams.</span>
+<span class="sd">    LogicalMeter provides methods for fetching power values from different points in the</span>
+<span class="sd">    microgrid.  These methods return `FormulaReceiver` objects, which can be used like</span>
+<span class="sd">    normal `Receiver`s, but can also be composed to form higher-order formula streams.</span>
 
-<span class="sd">    Formulas can have Component IDs that are preceeded by a pound symbol(&quot;#&quot;), and these</span>
-<span class="sd">    operators: +, -, *, /, (, ).</span>
+<span class="sd">    Example:</span>
+<span class="sd">        ``` python</span>
+<span class="sd">        channel_registry = ChannelRegistry(name=&quot;data-registry&quot;)</span>
 
-<span class="sd">    For example, the input string: &quot;#20 + #5&quot; is a formula for adding metrics from two</span>
-<span class="sd">    components with ids 20 and 5.</span>
+<span class="sd">        # Create a channels for sending/receiving subscription requests</span>
+<span class="sd">        data_source_request_channel = Broadcast[ComponentMetricRequest](&quot;data-source&quot;)</span>
+<span class="sd">        data_source_request_sender = data_source_request_channel.new_sender()</span>
+<span class="sd">        data_source_request_receiver = data_source_request_channel.new_receiver()</span>
+
+<span class="sd">        resampling_request_channel = Broadcast[ComponentMetricRequest](&quot;resample&quot;)</span>
+<span class="sd">        resampling_request_sender = resampling_request_channel.new_sender()</span>
+<span class="sd">        resampling_request_receiver = resampling_request_channel.new_receiver()</span>
+
+<span class="sd">        # Instantiate a data sourcing actor</span>
+<span class="sd">        _data_sourcing_actor = DataSourcingActor(</span>
+<span class="sd">            request_receiver=data_source_request_receiver, registry=channel_registry</span>
+<span class="sd">        )</span>
+
+<span class="sd">        # Instantiate a resampling actor</span>
+<span class="sd">        _resampling_actor = ComponentMetricsResamplingActor(</span>
+<span class="sd">            channel_registry=channel_registry,</span>
+<span class="sd">            data_sourcing_request_sender=data_source_request_sender,</span>
+<span class="sd">            resampling_request_receiver=resampling_request_receiver,</span>
+<span class="sd">            config=ResamplerConfig(resampling_period_s=1),</span>
+<span class="sd">        )</span>
+
+<span class="sd">        # Create a logical meter instance</span>
+<span class="sd">        logical_meter = LogicalMeter(</span>
+<span class="sd">            channel_registry,</span>
+<span class="sd">            resampling_request_sender,</span>
+<span class="sd">            microgrid.get().component_graph,</span>
+<span class="sd">        )</span>
+
+<span class="sd">        # Get a receiver for a builtin formula</span>
+<span class="sd">        grid_power_recv = logical_meter.grid_power()</span>
+<span class="sd">        for grid_power_sample in grid_power_recv:</span>
+<span class="sd">            print(grid_power_sample)</span>
+
+<span class="sd">        # or compose formula receivers to create a new formula</span>
+<span class="sd">        net_power_recv = (</span>
+<span class="sd">            (</span>
+<span class="sd">                logical_meter.grid_power()</span>
+<span class="sd">                - logical_meter.battery_power()</span>
+<span class="sd">                - logical_meter.pv_power()</span>
+<span class="sd">            )</span>
+<span class="sd">            .build(&quot;net_power&quot;)</span>
+<span class="sd">            .new_receiver()</span>
+<span class="sd">        )</span>
+<span class="sd">        for net_power_sample in net_power_recv:</span>
+<span class="sd">            print(net_power_sample)</span>
+<span class="sd">        ```</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -1276,7 +1398,7 @@ components with ids 20 and 5.</p>
         <span class="c1"># meter to use when communicating with the resampling actor.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_namespace</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;logical-meter-</span><span class="si">{</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_component_graph</span> <span class="o">=</span> <span class="n">component_graph</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_output_channels</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Broadcast</span><span class="p">[</span><span class="n">Sample</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_engines</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FormulaEngine</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tasks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_engine_from_formula_string</span><span class="p">(</span>
@@ -1284,39 +1406,26 @@ components with ids 20 and 5.</p>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaEngine</span><span class="p">:</span>
         <span class="n">builder</span> <span class="o">=</span> <span class="n">ResampledFormulaBuilder</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_namespace</span><span class="p">,</span>
+            <span class="n">formula</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_channel_registry</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_resampler_subscription_sender</span><span class="p">,</span>
             <span class="n">metric_id</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">builder</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">nones_are_zeros</span><span class="p">)</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">_run_formula</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">formula</span><span class="p">:</span> <span class="n">FormulaEngine</span><span class="p">,</span> <span class="n">sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span><span class="n">Sample</span><span class="p">]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the formula repeatedly and send the results to a channel.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            formula: The formula to run.</span>
-<span class="sd">            sender: A sender for sending the formula results to.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="n">formula</span><span class="o">.</span><span class="n">apply</span><span class="p">()</span>
-            <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">CancelledError</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;LogicalMeter task cancelled&quot;</span><span class="p">)</span>
-                <span class="k">break</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-except</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Formula application failed: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">await</span> <span class="n">sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-
     <span class="k">async</span> <span class="k">def</span> <span class="nf">start_formula</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">formula</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">component_metric_id</span><span class="p">:</span> <span class="n">ComponentMetricId</span><span class="p">,</span>
         <span class="n">nones_are_zeros</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Sample</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Start execution of the given formula name.</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Start execution of the given formula.</span>
+
+<span class="sd">        Formulas can have Component IDs that are preceeded by a pound symbol(&quot;#&quot;), and</span>
+<span class="sd">        these operators: +, -, *, /, (, ).</span>
+
+<span class="sd">        For example, the input string: &quot;#20 + #5&quot; is a formula for adding metrics from</span>
+<span class="sd">        two components with ids 20 and 5.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            formula: formula to execute.</span>
@@ -1326,45 +1435,34 @@ components with ids 20 and 5.</p>
 <span class="sd">                False, the returned value will be a None.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            A Receiver that streams values with the formulas applied.</span>
+<span class="sd">            A FormulaReceiver that streams values with the formulas applied.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">channel_key</span> <span class="o">=</span> <span class="n">formula</span> <span class="o">+</span> <span class="n">component_metric_id</span><span class="o">.</span><span class="n">value</span>
-        <span class="k">if</span> <span class="n">channel_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_channels</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_channels</span><span class="p">[</span><span class="n">channel_key</span><span class="p">]</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">channel_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_engines</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_engines</span><span class="p">[</span><span class="n">channel_key</span><span class="p">]</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
 
         <span class="n">formula_engine</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_engine_from_formula_string</span><span class="p">(</span>
             <span class="n">formula</span><span class="p">,</span> <span class="n">component_metric_id</span><span class="p">,</span> <span class="n">nones_are_zeros</span>
         <span class="p">)</span>
-        <span class="n">out_chan</span> <span class="o">=</span> <span class="n">Broadcast</span><span class="p">[</span><span class="n">Sample</span><span class="p">](</span><span class="n">channel_key</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_output_channels</span><span class="p">[</span><span class="n">channel_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">out_chan</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_run_formula</span><span class="p">(</span><span class="n">formula_engine</span><span class="p">,</span> <span class="n">out_chan</span><span class="o">.</span><span class="n">new_sender</span><span class="p">())</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="n">out_chan</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_engines</span><span class="p">[</span><span class="n">channel_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">formula_engine</span>
+
+        <span class="k">return</span> <span class="n">formula_engine</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_get_formula_stream</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">channel_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">generator</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">FormulaGenerator</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Sample</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="n">channel_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_channels</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_channels</span><span class="p">[</span><span class="n">channel_key</span><span class="p">]</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">channel_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_engines</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_engines</span><span class="p">[</span><span class="n">channel_key</span><span class="p">]</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
 
-        <span class="n">formula_engine</span> <span class="o">=</span> <span class="k">await</span> <span class="n">generator</span><span class="p">(</span>
+        <span class="n">engine</span> <span class="o">=</span> <span class="k">await</span> <span class="n">generator</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_namespace</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel_registry</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resampler_subscription_sender</span>
         <span class="p">)</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
-        <span class="n">out_chan</span> <span class="o">=</span> <span class="n">Broadcast</span><span class="p">[</span><span class="n">Sample</span><span class="p">](</span><span class="n">channel_key</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_output_channels</span><span class="p">[</span><span class="n">channel_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">out_chan</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_run_formula</span><span class="p">(</span><span class="n">formula_engine</span><span class="p">,</span> <span class="n">out_chan</span><span class="o">.</span><span class="n">new_sender</span><span class="p">())</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="n">out_chan</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_engines</span><span class="p">[</span><span class="n">channel_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">engine</span>
+        <span class="k">return</span> <span class="n">engine</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">grid_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Sample</span><span class="p">]:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">grid_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch the grid power for the microgrid.</span>
 
 <span class="sd">        If a formula engine to calculate grid power is not already running, it</span>
@@ -1377,7 +1475,7 @@ components with ids 20 and 5.</p>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_formula_stream</span><span class="p">(</span><span class="s2">&quot;grid_power&quot;</span><span class="p">,</span> <span class="n">GridPowerFormula</span><span class="p">)</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">battery_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Sample</span><span class="p">]:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">battery_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch the cumulative battery power in the microgrid.</span>
 
 <span class="sd">        If a formula engine to calculate cumulative battery power is not</span>
@@ -1390,7 +1488,7 @@ components with ids 20 and 5.</p>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_formula_stream</span><span class="p">(</span><span class="s2">&quot;battery_power&quot;</span><span class="p">,</span> <span class="n">BatteryPowerFormula</span><span class="p">)</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">pv_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Sample</span><span class="p">]:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">pv_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch the PV power production in the microgrid.</span>
 
 <span class="sd">        If a formula engine to calculate PV power production is not</span>
@@ -1402,7 +1500,7 @@ components with ids 20 and 5.</p>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_formula_stream</span><span class="p">(</span><span class="s2">&quot;pv_power&quot;</span><span class="p">,</span> <span class="n">PVPowerFormula</span><span class="p">)</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">_soc</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Sample</span><span class="p">]:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_soc</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch the SoC of the active batteries in the microgrid.</span>
 
 <span class="sd">        NOTE: This method is part of the logical meter only temporarily, and will get</span>
@@ -1492,30 +1590,30 @@ resampling actor.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">44</span>
-<span class="normal">45</span>
-<span class="normal">46</span>
-<span class="normal">47</span>
-<span class="normal">48</span>
-<span class="normal">49</span>
-<span class="normal">50</span>
-<span class="normal">51</span>
-<span class="normal">52</span>
-<span class="normal">53</span>
-<span class="normal">54</span>
-<span class="normal">55</span>
-<span class="normal">56</span>
-<span class="normal">57</span>
-<span class="normal">58</span>
-<span class="normal">59</span>
-<span class="normal">60</span>
-<span class="normal">61</span>
-<span class="normal">62</span>
-<span class="normal">63</span>
-<span class="normal">64</span>
-<span class="normal">65</span>
-<span class="normal">66</span>
-<span class="normal">67</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">channel_registry</span><span class="p">:</span> <span class="n">ChannelRegistry</span><span class="p">,</span>
     <span class="n">resampler_subscription_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span><span class="n">ComponentMetricRequest</span><span class="p">],</span>
@@ -1537,7 +1635,7 @@ resampling actor.</p>
     <span class="c1"># meter to use when communicating with the resampling actor.</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_namespace</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;logical-meter-</span><span class="si">{</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_component_graph</span> <span class="o">=</span> <span class="n">component_graph</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_output_channels</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Broadcast</span><span class="p">[</span><span class="n">Sample</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_engines</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FormulaEngine</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_tasks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
 </code></pre></div></td></tr></table></div>
       </details>
@@ -1577,7 +1675,7 @@ receiver to the already existing data stream.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><span title="frequenz.channels.Receiver">Receiver</span>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample" href="../#frequenz.sdk.timeseries.Sample">Sample</a>]</code>
+                  <code><span title="frequenz.sdk.timeseries.logical_meter._formula_engine.FormulaReceiver">FormulaReceiver</span></code>
               </span>
           </td>
           <td class="doc-returns-details">
@@ -1589,18 +1687,18 @@ receiver to the already existing data stream.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">167</span>
-<span class="normal">168</span>
-<span class="normal">169</span>
-<span class="normal">170</span>
-<span class="normal">171</span>
-<span class="normal">172</span>
-<span class="normal">173</span>
-<span class="normal">174</span>
-<span class="normal">175</span>
-<span class="normal">176</span>
-<span class="normal">177</span>
-<span class="normal">178</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">battery_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Sample</span><span class="p">]:</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">battery_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch the cumulative battery power in the microgrid.</span>
 
 <span class="sd">    If a formula engine to calculate cumulative battery power is not</span>
@@ -1650,7 +1748,7 @@ existing data stream.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><span title="frequenz.channels.Receiver">Receiver</span>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample" href="../#frequenz.sdk.timeseries.Sample">Sample</a>]</code>
+                  <code><span title="frequenz.sdk.timeseries.logical_meter._formula_engine.FormulaReceiver">FormulaReceiver</span></code>
               </span>
           </td>
           <td class="doc-returns-details">
@@ -1662,18 +1760,18 @@ existing data stream.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">154</span>
-<span class="normal">155</span>
-<span class="normal">156</span>
-<span class="normal">157</span>
-<span class="normal">158</span>
-<span class="normal">159</span>
-<span class="normal">160</span>
-<span class="normal">161</span>
-<span class="normal">162</span>
-<span class="normal">163</span>
-<span class="normal">164</span>
-<span class="normal">165</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">grid_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Sample</span><span class="p">]:</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">grid_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch the grid power for the microgrid.</span>
 
 <span class="sd">    If a formula engine to calculate grid power is not already running, it</span>
@@ -1723,7 +1821,7 @@ receiver to the already existing data stream.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><span title="frequenz.channels.Receiver">Receiver</span>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample" href="../#frequenz.sdk.timeseries.Sample">Sample</a>]</code>
+                  <code><span title="frequenz.sdk.timeseries.logical_meter._formula_engine.FormulaReceiver">FormulaReceiver</span></code>
               </span>
           </td>
           <td class="doc-returns-details">
@@ -1735,17 +1833,17 @@ receiver to the already existing data stream.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">180</span>
-<span class="normal">181</span>
-<span class="normal">182</span>
-<span class="normal">183</span>
-<span class="normal">184</span>
-<span class="normal">185</span>
-<span class="normal">186</span>
-<span class="normal">187</span>
-<span class="normal">188</span>
-<span class="normal">189</span>
-<span class="normal">190</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">pv_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Sample</span><span class="p">]:</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">pv_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch the PV power production in the microgrid.</span>
 
 <span class="sd">    If a formula engine to calculate PV power production is not</span>
@@ -1778,7 +1876,11 @@ receiver to the already existing data stream.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Start execution of the given formula name.</p>
+      <p>Start execution of the given formula.</p>
+<p>Formulas can have Component IDs that are preceeded by a pound symbol("#"), and
+these operators: +, -, *, /, (, ).</p>
+<p>For example, the input string: "#20 + #5" is a formula for adding metrics from
+two components with ids 20 and 5.</p>
 
   <table>
     <thead>
@@ -1844,11 +1946,11 @@ False, the returned value will be a None.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><span title="frequenz.channels.Receiver">Receiver</span>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample" href="../#frequenz.sdk.timeseries.Sample">Sample</a>]</code>
+                  <code><span title="frequenz.sdk.timeseries.logical_meter._formula_engine.FormulaReceiver">FormulaReceiver</span></code>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A Receiver that streams values with the formulas applied.</p>
+            <p>A FormulaReceiver that streams values with the formulas applied.</p>
           </td>
         </tr>
     </tbody>
@@ -1856,45 +1958,52 @@ False, the returned value will be a None.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">100</span>
-<span class="normal">101</span>
-<span class="normal">102</span>
-<span class="normal">103</span>
-<span class="normal">104</span>
-<span class="normal">105</span>
-<span class="normal">106</span>
-<span class="normal">107</span>
-<span class="normal">108</span>
-<span class="normal">109</span>
-<span class="normal">110</span>
-<span class="normal">111</span>
-<span class="normal">112</span>
-<span class="normal">113</span>
-<span class="normal">114</span>
-<span class="normal">115</span>
-<span class="normal">116</span>
-<span class="normal">117</span>
-<span class="normal">118</span>
-<span class="normal">119</span>
-<span class="normal">120</span>
-<span class="normal">121</span>
-<span class="normal">122</span>
-<span class="normal">123</span>
-<span class="normal">124</span>
-<span class="normal">125</span>
-<span class="normal">126</span>
-<span class="normal">127</span>
-<span class="normal">128</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">128</span>
 <span class="normal">129</span>
 <span class="normal">130</span>
 <span class="normal">131</span>
-<span class="normal">132</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">start_formula</span><span class="p">(</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">start_formula</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">formula</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">component_metric_id</span><span class="p">:</span> <span class="n">ComponentMetricId</span><span class="p">,</span>
     <span class="n">nones_are_zeros</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Sample</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Start execution of the given formula name.</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Start execution of the given formula.</span>
+
+<span class="sd">    Formulas can have Component IDs that are preceeded by a pound symbol(&quot;#&quot;), and</span>
+<span class="sd">    these operators: +, -, *, /, (, ).</span>
+
+<span class="sd">    For example, the input string: &quot;#20 + #5&quot; is a formula for adding metrics from</span>
+<span class="sd">    two components with ids 20 and 5.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        formula: formula to execute.</span>
@@ -1904,23 +2013,18 @@ False, the returned value will be a None.</p>
 <span class="sd">            False, the returned value will be a None.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        A Receiver that streams values with the formulas applied.</span>
+<span class="sd">        A FormulaReceiver that streams values with the formulas applied.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">channel_key</span> <span class="o">=</span> <span class="n">formula</span> <span class="o">+</span> <span class="n">component_metric_id</span><span class="o">.</span><span class="n">value</span>
-    <span class="k">if</span> <span class="n">channel_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_channels</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_channels</span><span class="p">[</span><span class="n">channel_key</span><span class="p">]</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">channel_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_engines</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_engines</span><span class="p">[</span><span class="n">channel_key</span><span class="p">]</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
 
     <span class="n">formula_engine</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_engine_from_formula_string</span><span class="p">(</span>
         <span class="n">formula</span><span class="p">,</span> <span class="n">component_metric_id</span><span class="p">,</span> <span class="n">nones_are_zeros</span>
     <span class="p">)</span>
-    <span class="n">out_chan</span> <span class="o">=</span> <span class="n">Broadcast</span><span class="p">[</span><span class="n">Sample</span><span class="p">](</span><span class="n">channel_key</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_output_channels</span><span class="p">[</span><span class="n">channel_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">out_chan</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-        <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_run_formula</span><span class="p">(</span><span class="n">formula_engine</span><span class="p">,</span> <span class="n">out_chan</span><span class="o">.</span><span class="n">new_sender</span><span class="p">())</span>
-        <span class="p">)</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="n">out_chan</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_engines</span><span class="p">[</span><span class="n">channel_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">formula_engine</span>
+
+    <span class="k">return</span> <span class="n">formula_engine</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
