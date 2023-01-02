@@ -1677,7 +1677,7 @@ printed.</li>
 <span class="normal">623</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
 <span class="k">class</span> <span class="nc">PowerDistributingActor</span><span class="p">:</span>
     <span class="c1"># pylint: disable=too-many-instance-attributes</span>
-    <span class="sd">&quot;&quot;&quot;Tool to distribute power between batteries in microgrid.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tool to distribute power between batteries in microgrid.</span>
 
 <span class="sd">    The purpose of this tool is to keep equal SoC level in the batteries.</span>
 <span class="sd">    PowerDistributor can have many users. Each user should first register in order</span>
@@ -1758,7 +1758,7 @@ printed.</li>
         <span class="n">users_channels</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Bidirectional</span><span class="o">.</span><span class="n">Handle</span><span class="p">[</span><span class="n">Result</span><span class="p">,</span> <span class="n">Request</span><span class="p">]],</span>
         <span class="n">wait_for_data_sec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create class instance.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create class instance.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            microgrid_api: api for sending the requests.</span>
@@ -1810,12 +1810,12 @@ printed.</li>
         <span class="bp">self</span><span class="o">.</span><span class="n">_started</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_create_users_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;For each user create a task to wait for request.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;For each user create a task to wait for request.&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">user</span><span class="p">,</span> <span class="n">handler</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_users_channels</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_request</span><span class="p">(</span><span class="n">_User</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">handler</span><span class="p">)))</span>
 
     <span class="k">def</span> <span class="nf">_get_upper_bound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batteries</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Get total upper bound of power to be set for given batteries.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get total upper bound of power to be set for given batteries.</span>
 
 <span class="sd">        Note, output of that function doesn&#39;t guarantee that this bound will be</span>
 <span class="sd">        the same when the request is processed.</span>
@@ -1834,7 +1834,7 @@ printed.</li>
         <span class="k">return</span> <span class="n">floor</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_lower_bound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batteries</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Get total lower bound of power to be set for given batteries.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get total lower bound of power to be set for given batteries.</span>
 
 <span class="sd">        Note, output of that function doesn&#39;t guarantee that this bound will be</span>
 <span class="sd">        the same when the request is processed.</span>
@@ -1853,7 +1853,7 @@ printed.</li>
         <span class="k">return</span> <span class="n">ceil</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Run actor main function.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run actor main function.</span>
 
 <span class="sd">        It waits for new requests in task_queue and process it, and send</span>
 <span class="sd">        `set_power` request with distributed power.</span>
@@ -1944,7 +1944,7 @@ printed.</li>
             <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_check_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Check whether the given request if correct.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check whether the given request if correct.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            request: request to check</span>
@@ -1975,7 +1975,7 @@ printed.</li>
     <span class="k">def</span> <span class="nf">_remove_duplicated_requests</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">_User</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;Remove duplicated requests from the queue.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove duplicated requests from the queue.</span>
 
 <span class="sd">        Remove old requests in which set of batteries are the same as in new request.</span>
 <span class="sd">        If batteries in new request overlap with batteries in old request but are not</span>
@@ -2022,7 +2022,7 @@ printed.</li>
         <span class="k">return</span> <span class="n">to_ignore</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_wait_for_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">_User</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Wait for the request from user.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Wait for the request from user.</span>
 
 <span class="sd">        Check if request is correct. If request is not correct send ERROR response</span>
 <span class="sd">        to the user. If request is correct, then add it to the main queue to be</span>
@@ -2076,7 +2076,7 @@ printed.</li>
     <span class="k">def</span> <span class="nf">_get_components_pairs</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">component_graph</span><span class="p">:</span> <span class="n">ComponentGraph</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;Create maps between battery and adjacent inverter.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create maps between battery and adjacent inverter.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            component_graph: component graph</span>
@@ -2116,7 +2116,7 @@ printed.</li>
         <span class="k">return</span> <span class="n">bat_inv_map</span><span class="p">,</span> <span class="n">inv_bat_map</span>
 
     <span class="k">def</span> <span class="nf">_get_components_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batteries</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">InvBatPair</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Get data for the given batteries and adjacent inverters.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get data for the given batteries and adjacent inverters.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            batteries: Batteries that needs data.</span>
@@ -2158,7 +2158,7 @@ printed.</li>
         <span class="k">return</span> <span class="n">pairs_data</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_create_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create channels to get data of components in microgrid.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create channels to get data of components in microgrid.&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">battery_id</span><span class="p">,</span> <span class="n">inverter_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bat_inv_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">bat_recv</span><span class="p">:</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">BatteryData</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api</span><span class="o">.</span><span class="n">battery_data</span><span class="p">(</span><span class="n">battery_id</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_battery_receivers</span><span class="p">[</span><span class="n">battery_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">bat_recv</span><span class="o">.</span><span class="n">into_peekable</span><span class="p">()</span>
@@ -2175,7 +2175,7 @@ printed.</li>
         <span class="n">distribution</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
         <span class="n">request_timeout_sec</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;Parse result of `set_power` requests.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse result of `set_power` requests.</span>
 
 <span class="sd">        Check if any task failed and why. If any task didn&#39;t success, then corresponding</span>
 <span class="sd">        battery is marked as broken.</span>
@@ -2225,7 +2225,7 @@ printed.</li>
         <span class="k">return</span> <span class="n">failed_power</span><span class="p">,</span> <span class="n">failed_batteries</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_cancel_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tasks</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Cancel given asyncio tasks and wait for them.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Cancel given asyncio tasks and wait for them.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            tasks: tasks to cancel.</span>
@@ -2393,7 +2393,7 @@ request. It is a time needed to collect first components data.</p>
     <span class="n">users_channels</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Bidirectional</span><span class="o">.</span><span class="n">Handle</span><span class="p">[</span><span class="n">Result</span><span class="p">,</span> <span class="n">Request</span><span class="p">]],</span>
     <span class="n">wait_for_data_sec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create class instance.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create class instance.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        microgrid_api: api for sending the requests.</span>
@@ -2564,7 +2564,7 @@ as broken for some time.</p>
 <span class="normal">329</span>
 <span class="normal">330</span>
 <span class="normal">331</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Run actor main function.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run actor main function.</span>
 
 <span class="sd">    It waits for new requests in task_queue and process it, and send</span>
 <span class="sd">    `set_power` request with distributed power.</span>

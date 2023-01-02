@@ -1306,10 +1306,10 @@
 <span class="normal">95</span>
 <span class="normal">96</span>
 <span class="normal">97</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">Error</span><span class="p">(</span><span class="n">Result</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Error occurred and power was not set.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Error occurred and power was not set.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create class instance.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create class instance.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            request: The user&#39;s request to which this message responds.</span>
@@ -1392,7 +1392,7 @@
 <span class="normal">95</span>
 <span class="normal">96</span>
 <span class="normal">97</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create class instance.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create class instance.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        request: The user&#39;s request to which this message responds.</span>
@@ -1443,7 +1443,7 @@ was received.</p>
 <span class="normal">122</span>
 <span class="normal">123</span>
 <span class="normal">124</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">Ignored</span><span class="p">(</span><span class="n">Result</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Send if request was ignored.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Send if request was ignored.</span>
 
 <span class="sd">    Request was ignored because new request for the same subset of batteries</span>
 <span class="sd">    was received.</span>
@@ -1494,13 +1494,13 @@ was received.</p>
 <span class="normal">114</span>
 <span class="normal">115</span>
 <span class="normal">116</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">OutOfBound</span><span class="p">(</span><span class="n">Result</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Send if power was not set because requested power was not within bounds.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Send if power was not set because requested power was not within bounds.</span>
 
 <span class="sd">    This message is send only if Request.adjust_power = False.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">bound</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create class instance.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create class instance.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            request: The user&#39;s request to which this message responds.</span>
@@ -1589,7 +1589,7 @@ Otherwise it is upper bound.</p>
 <span class="normal">114</span>
 <span class="normal">115</span>
 <span class="normal">116</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">bound</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create class instance.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create class instance.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        request: The user&#39;s request to which this message responds.</span>
@@ -1668,7 +1668,7 @@ Otherwise it is upper bound.</p>
 <span class="normal">81</span>
 <span class="normal">82</span>
 <span class="normal">83</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">PartialFailure</span><span class="p">(</span><span class="n">Result</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Send if any battery failed and didn&#39;t perform the request.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Send if any battery failed and didn&#39;t perform the request.&quot;&quot;&quot;</span>
 
     <span class="c1"># It is very simple class with only data so it should be ok to disable pylint.</span>
     <span class="c1"># All these results should be dataclass but in python &lt; 3.10 it is risky</span>
@@ -1682,7 +1682,7 @@ Otherwise it is upper bound.</p>
         <span class="n">failed_batteries</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
         <span class="n">excess_power</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create class instance.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create class instance.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            request: The user&#39;s request to which this message responds.</span>
@@ -1854,7 +1854,7 @@ because it was outside available power bounds.</p>
     <span class="n">failed_batteries</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
     <span class="n">excess_power</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create class instance.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create class instance.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        request: The user&#39;s request to which this message responds.</span>
@@ -1918,10 +1918,10 @@ because it was outside available power bounds.</p>
 <span class="normal">19</span>
 <span class="normal">20</span>
 <span class="normal">21</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">Result</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Base class for the power distributor result.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for the power distributor result.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create class instance.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create class instance.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            request: The user&#39;s request to which this message responds.</span>
@@ -1988,7 +1988,7 @@ because it was outside available power bounds.</p>
 <span class="normal">19</span>
 <span class="normal">20</span>
 <span class="normal">21</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create class instance.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create class instance.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        request: The user&#39;s request to which this message responds.</span>
@@ -2053,7 +2053,7 @@ because it was outside available power bounds.</p>
 <span class="normal">45</span>
 <span class="normal">46</span>
 <span class="normal">47</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">Success</span><span class="p">(</span><span class="n">Result</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Send if setting power for all batteries succeed.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Send if setting power for all batteries succeed.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -2062,7 +2062,7 @@ because it was outside available power bounds.</p>
         <span class="n">used_batteries</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
         <span class="n">excess_power</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create class instance.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create class instance.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            request: The user&#39;s request to which this message responds.</span>
@@ -2195,7 +2195,7 @@ because it was outside available power bounds.</p>
     <span class="n">used_batteries</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
     <span class="n">excess_power</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create class instance.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create class instance.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        request: The user&#39;s request to which this message responds.</span>

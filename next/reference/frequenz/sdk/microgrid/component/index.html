@@ -1951,50 +1951,50 @@
 <span class="normal">181</span>
 <span class="normal">182</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">BatteryData</span><span class="p">(</span><span class="n">ComponentData</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A wrapper class for holding battery data.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A wrapper class for holding battery data.&quot;&quot;&quot;</span>
 
     <span class="n">soc</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="sd">&quot;&quot;&quot;Battery&#39;s overall SoC in percent (%).&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Battery&#39;s overall SoC in percent (%).&quot;&quot;&quot;</span>
 
     <span class="n">soc_lower_bound</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="sd">&quot;&quot;&quot;The SoC below which discharge commands will be blocked by the system,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The SoC below which discharge commands will be blocked by the system,</span>
 <span class="sd">        in percent (%).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">soc_upper_bound</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="sd">&quot;&quot;&quot;The SoC above which charge commands will be blocked by the system,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The SoC above which charge commands will be blocked by the system,</span>
 <span class="sd">        in percent (%).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">capacity</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="sd">&quot;&quot;&quot;The capacity of the battery in Wh (Watt-hour).&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The capacity of the battery in Wh (Watt-hour).&quot;&quot;&quot;</span>
 
     <span class="n">power_lower_bound</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="sd">&quot;&quot;&quot;The maximum discharge power, in watts, represented in the passive sign</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The maximum discharge power, in watts, represented in the passive sign</span>
 <span class="sd">        convention. this will be a negative number, or zero if no discharging is</span>
 <span class="sd">        possible.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">power_upper_bound</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="sd">&quot;&quot;&quot;The maximum charge power, in Watts, represented in the passive sign convention.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The maximum charge power, in Watts, represented in the passive sign convention.</span>
 <span class="sd">        This will be a positive number, or zero if no charging is possible.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">temperature_max</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="sd">&quot;&quot;&quot;The maximum temperature of all the blocks in a battery, in Celcius (°C).&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The maximum temperature of all the blocks in a battery, in Celcius (°C).&quot;&quot;&quot;</span>
 
     <span class="n">_relay_state</span><span class="p">:</span> <span class="n">battery_pb</span><span class="o">.</span><span class="n">RelayState</span><span class="o">.</span><span class="n">ValueType</span>
-    <span class="sd">&quot;&quot;&quot;State of the battery relay.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;State of the battery relay.&quot;&quot;&quot;</span>
 
     <span class="n">_component_state</span><span class="p">:</span> <span class="n">battery_pb</span><span class="o">.</span><span class="n">ComponentState</span><span class="o">.</span><span class="n">ValueType</span>
-    <span class="sd">&quot;&quot;&quot;State of the battery.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;State of the battery.&quot;&quot;&quot;</span>
 
     <span class="n">_errors</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">battery_pb</span><span class="o">.</span><span class="n">Error</span><span class="p">]</span>
-    <span class="sd">&quot;&quot;&quot;List of errors in protobuf struct.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;List of errors in protobuf struct.&quot;&quot;&quot;</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BatteryData</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create BatteryData from a protobuf message.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create BatteryData from a protobuf message.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            raw: raw component data as decoded from the wire.</span>
@@ -2276,7 +2276,7 @@ in percent (%).</p>
 <span class="normal">181</span>
 <span class="normal">182</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BatteryData</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create BatteryData from a protobuf message.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create BatteryData from a protobuf message.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        raw: raw component data as decoded from the wire.</span>
@@ -2356,14 +2356,14 @@ in percent (%).</p>
 <span class="normal">117</span>
 <span class="normal">118</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Component</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Metadata for a single microgrid component.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Metadata for a single microgrid component.&quot;&quot;&quot;</span>
 
     <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">category</span><span class="p">:</span> <span class="n">ComponentCategory</span>
     <span class="nb">type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ComponentType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">is_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Check if this instance contains valid data.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if this instance contains valid data.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            `True` if `id &gt; 0` and `type` is a valid `ComponentCategory`, or if `id</span>
@@ -2435,7 +2435,7 @@ in percent (%).</p>
 <span class="normal">116</span>
 <span class="normal">117</span>
 <span class="normal">118</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">is_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Check if this instance contains valid data.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if this instance contains valid data.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        `True` if `id &gt; 0` and `type` is a valid `ComponentCategory`, or if `id</span>
@@ -2495,7 +2495,7 @@ in percent (%).</p>
 <span class="normal">69</span>
 <span class="normal">70</span>
 <span class="normal">71</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ComponentCategory</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Possible types of microgrid component.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Possible types of microgrid component.&quot;&quot;&quot;</span>
 
     <span class="n">NONE</span> <span class="o">=</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_UNSPECIFIED</span>
     <span class="n">GRID</span> <span class="o">=</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_GRID</span>
@@ -2597,13 +2597,13 @@ in percent (%).</p>
 <span class="normal">56</span>
 <span class="normal">57</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">ComponentData</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A private base class for strongly typed component data classes.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A private base class for strongly typed component data classes.&quot;&quot;&quot;</span>
 
     <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="sd">&quot;&quot;&quot;The ID identifying this component in the microgrid.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The ID identifying this component in the microgrid.&quot;&quot;&quot;</span>
 
     <span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span>
-    <span class="sd">&quot;&quot;&quot;The timestamp of when the data was measured.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The timestamp of when the data was measured.&quot;&quot;&quot;</span>
 
     <span class="c1"># The `raw` attribute is excluded from the constructor as it can only be provided</span>
     <span class="c1"># when instantiating `ComponentData` using the `from_proto` method, which reads</span>
@@ -2611,10 +2611,10 @@ in percent (%).</p>
     <span class="c1"># attribute. When `ComponentData` is not instantiated from a protobuf message,</span>
     <span class="c1"># i.e. using the constructor, `raw` will be set to `None`.</span>
     <span class="n">raw</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="sd">&quot;&quot;&quot;Raw component data as decoded from the wire.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raw component data as decoded from the wire.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">_set_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Store raw protobuf message.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Store raw protobuf message.</span>
 
 <span class="sd">        It is preferred to keep the dataclasses immutable (frozen) and make the `raw`</span>
 <span class="sd">            attribute read-only, which is why the approach of writing to `__dict__`</span>
@@ -2628,7 +2628,7 @@ in percent (%).</p>
     <span class="nd">@classmethod</span>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComponentData</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create ComponentData from a protobuf message.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create ComponentData from a protobuf message.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            raw: raw component data as decoded from the wire.</span>
@@ -2765,7 +2765,7 @@ in percent (%).</p>
 <span class="normal">57</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="nd">@abstractmethod</span>
 <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComponentData</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create ComponentData from a protobuf message.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create ComponentData from a protobuf message.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        raw: raw component data as decoded from the wire.</span>
@@ -2828,7 +2828,7 @@ in percent (%).</p>
 <span class="normal">141</span>
 <span class="normal">142</span>
 <span class="normal">143</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ComponentMetricId</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;An enum representing the various metrics available in the microgrid.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An enum representing the various metrics available in the microgrid.&quot;&quot;&quot;</span>
 
     <span class="n">ACTIVE_POWER</span> <span class="o">=</span> <span class="s2">&quot;active_power&quot;</span>
 
@@ -2924,7 +2924,7 @@ in percent (%).</p>
 <span class="normal">39</span>
 <span class="normal">40</span>
 <span class="normal">41</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">EVChargerCableState</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Cable states of an EV Charger.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Cable states of an EV Charger.&quot;&quot;&quot;</span>
 
     <span class="n">UNSPECIFIED</span> <span class="o">=</span> <span class="n">ev_charger_pb</span><span class="o">.</span><span class="n">CableState</span><span class="o">.</span><span class="n">CABLE_STATE_UNSPECIFIED</span>
     <span class="n">UNPLUGGED</span> <span class="o">=</span> <span class="n">ev_charger_pb</span><span class="o">.</span><span class="n">CableState</span><span class="o">.</span><span class="n">CABLE_STATE_UNPLUGGED</span>
@@ -2941,7 +2941,7 @@ in percent (%).</p>
     <span class="k">def</span> <span class="nf">from_pb</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span> <span class="n">evc_state</span><span class="p">:</span> <span class="n">ev_charger_pb</span><span class="o">.</span><span class="n">CableState</span><span class="o">.</span><span class="n">ValueType</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EVChargerCableState</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Convert a protobuf CableState value to EVChargerCableState enum.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a protobuf CableState value to EVChargerCableState enum.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            evc_state: protobuf cable state to convert.</span>
@@ -3051,7 +3051,7 @@ in percent (%).</p>
 <span class="k">def</span> <span class="nf">from_pb</span><span class="p">(</span>
     <span class="bp">cls</span><span class="p">,</span> <span class="n">evc_state</span><span class="p">:</span> <span class="n">ev_charger_pb</span><span class="o">.</span><span class="n">CableState</span><span class="o">.</span><span class="n">ValueType</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EVChargerCableState</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Convert a protobuf CableState value to EVChargerCableState enum.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a protobuf CableState value to EVChargerCableState enum.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        evc_state: protobuf cable state to convert.</span>
@@ -3155,31 +3155,31 @@ in percent (%).</p>
 <span class="normal">286</span>
 <span class="normal">287</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">EVChargerData</span><span class="p">(</span><span class="n">ComponentData</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A wrapper class for holding ev_charger data.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A wrapper class for holding ev_charger data.&quot;&quot;&quot;</span>
 
     <span class="n">active_power</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="sd">&quot;&quot;&quot;The 3-phase active power, in Watts, represented in the passive sign convention.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The 3-phase active power, in Watts, represented in the passive sign convention.</span>
 <span class="sd">        +ve current means consumption, away from the grid.</span>
 <span class="sd">        -ve current means supply into the grid.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">current_per_phase</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
-    <span class="sd">&quot;&quot;&quot;AC current in Amperes (A) for phase/line 1,2 and 3 respectively.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;AC current in Amperes (A) for phase/line 1,2 and 3 respectively.</span>
 <span class="sd">        +ve current means consumption, away from the grid.</span>
 <span class="sd">        -ve current means supply into the grid.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">voltage_per_phase</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
-    <span class="sd">&quot;&quot;&quot;The AC voltage in Volts (V) between the line and the neutral</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The AC voltage in Volts (V) between the line and the neutral</span>
 <span class="sd">        wire for phase/line 1,2 and 3 respectively.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">cable_state</span><span class="p">:</span> <span class="n">EVChargerCableState</span>
-    <span class="sd">&quot;&quot;&quot;The state of the ev charger&#39;s cable.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The state of the ev charger&#39;s cable.&quot;&quot;&quot;</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EVChargerData</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create EVChargerData from a protobuf message.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create EVChargerData from a protobuf message.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            raw: raw component data as decoded from the wire.</span>
@@ -3402,7 +3402,7 @@ wire for phase/line 1,2 and 3 respectively.</p>
 <span class="normal">286</span>
 <span class="normal">287</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EVChargerData</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create EVChargerData from a protobuf message.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create EVChargerData from a protobuf message.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        raw: raw component data as decoded from the wire.</span>
@@ -3517,34 +3517,34 @@ wire for phase/line 1,2 and 3 respectively.</p>
 <span class="normal">232</span>
 <span class="normal">233</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">InverterData</span><span class="p">(</span><span class="n">ComponentData</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A wrapper class for holding inverter data.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A wrapper class for holding inverter data.&quot;&quot;&quot;</span>
 
     <span class="n">active_power</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="sd">&quot;&quot;&quot;The 3-phase active power, in Watts, represented in the passive sign convention.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The 3-phase active power, in Watts, represented in the passive sign convention.</span>
 <span class="sd">            +ve current means consumption, away from the grid.</span>
 <span class="sd">            -ve current means supply into the grid.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">active_power_lower_bound</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="sd">&quot;&quot;&quot;The maximum discharge power, in Watts, represented in the passive sign</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The maximum discharge power, in Watts, represented in the passive sign</span>
 <span class="sd">        convention. This will be a negative number, or zero if no discharging is</span>
 <span class="sd">        possible.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">active_power_upper_bound</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="sd">&quot;&quot;&quot;The maximum charge power, in Watts, represented in the passive sign convention.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The maximum charge power, in Watts, represented in the passive sign convention.</span>
 <span class="sd">        This will be a positive number, or zero if no charging is possible.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_component_state</span><span class="p">:</span> <span class="n">inverter_pb</span><span class="o">.</span><span class="n">ComponentState</span><span class="o">.</span><span class="n">ValueType</span>
-    <span class="sd">&quot;&quot;&quot;State of the inverter.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;State of the inverter.&quot;&quot;&quot;</span>
 
     <span class="n">_errors</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">inverter_pb</span><span class="o">.</span><span class="n">Error</span><span class="p">]</span>
-    <span class="sd">&quot;&quot;&quot;List of errors from the component.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;List of errors from the component.&quot;&quot;&quot;</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InverterData</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create InverterData from a protobuf message.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create InverterData from a protobuf message.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            raw: raw component data as decoded from the wire.</span>
@@ -3734,7 +3734,7 @@ This will be a positive number, or zero if no charging is possible.</p>
 <span class="normal">232</span>
 <span class="normal">233</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InverterData</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create InverterData from a protobuf message.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create InverterData from a protobuf message.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        raw: raw component data as decoded from the wire.</span>
@@ -3796,7 +3796,7 @@ This will be a positive number, or zero if no charging is possible.</p>
 <span class="normal">24</span>
 <span class="normal">25</span>
 <span class="normal">26</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">InverterType</span><span class="p">(</span><span class="n">ComponentType</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Enum representing inverter types.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Enum representing inverter types.&quot;&quot;&quot;</span>
 
     <span class="n">NONE</span> <span class="o">=</span> <span class="n">inverter_pb</span><span class="o">.</span><span class="n">Type</span><span class="o">.</span><span class="n">TYPE_UNSPECIFIED</span>
     <span class="n">BATTERY</span> <span class="o">=</span> <span class="n">inverter_pb</span><span class="o">.</span><span class="n">Type</span><span class="o">.</span><span class="n">TYPE_BATTERY</span>
@@ -3903,31 +3903,31 @@ This will be a positive number, or zero if no charging is possible.</p>
 <span class="normal">110</span>
 <span class="normal">111</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">MeterData</span><span class="p">(</span><span class="n">ComponentData</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A wrapper class for holding meter data.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A wrapper class for holding meter data.&quot;&quot;&quot;</span>
 
     <span class="n">active_power</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="sd">&quot;&quot;&quot;The 3-phase active power, in Watts, represented in the passive sign convention.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The 3-phase active power, in Watts, represented in the passive sign convention.</span>
 <span class="sd">            +ve current means consumption, away from the grid.</span>
 <span class="sd">            -ve current means supply into the grid.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">current_per_phase</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
-    <span class="sd">&quot;&quot;&quot;AC current in Amperes (A) for phase/line 1,2 and 3 respectively.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;AC current in Amperes (A) for phase/line 1,2 and 3 respectively.</span>
 <span class="sd">            +ve current means consumption, away from the grid.</span>
 <span class="sd">            -ve current means supply into the grid.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">voltage_per_phase</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
-    <span class="sd">&quot;&quot;&quot;The ac voltage in volts (v) between the line and the neutral wire for phase/line</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The ac voltage in volts (v) between the line and the neutral wire for phase/line</span>
 <span class="sd">        1,2 and 3 respectively.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">frequency</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="sd">&quot;&quot;&quot;The AC power frequency in Hertz (Hz).&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The AC power frequency in Hertz (Hz).&quot;&quot;&quot;</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeterData</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create MeterData from a protobuf message.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create MeterData from a protobuf message.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            raw: raw component data as decoded from the wire.</span>
@@ -4150,7 +4150,7 @@ This will be a positive number, or zero if no charging is possible.</p>
 <span class="normal">110</span>
 <span class="normal">111</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeterData</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create MeterData from a protobuf message.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create MeterData from a protobuf message.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        raw: raw component data as decoded from the wire.</span>

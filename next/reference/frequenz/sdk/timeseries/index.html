@@ -954,7 +954,7 @@ coherent view on a group of component metrics for a particular timestamp.</p>
 <span class="normal">27</span>
 <span class="normal">28</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Sample</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;A measurement taken at a particular point in time.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A measurement taken at a particular point in time.</span>
 
 <span class="sd">    The `value` could be `None` if a component is malfunctioning or data is</span>
 <span class="sd">    lacking for another reason, but a sample still needs to be sent to have a</span>
@@ -962,10 +962,10 @@ coherent view on a group of component metrics for a particular timestamp.</p>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">compare</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="sd">&quot;&quot;&quot;The time when this sample was generated.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The time when this sample was generated.&quot;&quot;&quot;</span>
 
     <span class="n">value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-    <span class="sd">&quot;&quot;&quot;The value of this sample.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The value of this sample.&quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
         </details>
 

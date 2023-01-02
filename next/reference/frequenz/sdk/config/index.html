@@ -1229,7 +1229,7 @@ If new file is read, then previous configs will be forgotten.</p>
 <span class="normal">159</span>
 <span class="normal">160</span>
 <span class="normal">161</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Stores config variables.</span>
 
 <span class="sd">    Config variables are read from a file.</span>
@@ -1238,7 +1238,7 @@ If new file is read, then previous configs will be forgotten.</p>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf_vars</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
-        <span class="sd">&quot;&quot;&quot;Instantiate the config store and read config variables from the file.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Instantiate the config store and read config variables from the file.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            conf_vars: Dict containing configuration variables</span>
@@ -1246,7 +1246,7 @@ If new file is read, then previous configs will be forgotten.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">_conf_store</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">conf_vars</span>
 
     <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Get the value for the specified key.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the value for the specified key.</span>
 
 <span class="sd">        If the key is not in the configs, then return default.</span>
 
@@ -1263,7 +1263,7 @@ If new file is read, then previous configs will be forgotten.</p>
     <span class="k">def</span> <span class="nf">get_dict</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">key_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">expected_values_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">T</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Get a dictionary based on config key prefixes.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a dictionary based on config key prefixes.</span>
 
 <span class="sd">        For example, if key_prefix is &quot;my_dict&quot;, then the following config store:</span>
 <span class="sd">            {</span>
@@ -1297,7 +1297,7 @@ If new file is read, then previous configs will be forgotten.</p>
         <span class="k">return</span> <span class="n">result</span>
 
     <span class="k">def</span> <span class="nf">get_as</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">expected_type</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Get and convert the value to specified type.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get and convert the value to specified type.</span>
 
 <span class="sd">        Check if type of the value is as expected.  If type is correct, then</span>
 <span class="sd">        return converted value.  Otherwise Raise ValueError.</span>
@@ -1344,7 +1344,7 @@ If new file is read, then previous configs will be forgotten.</p>
         <span class="k">return</span> <span class="n">parsed_value</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Get the value for the specified key.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the value for the specified key.</span>
 
 <span class="sd">        If the key is not in the configs, then raise KeyError.</span>
 
@@ -1365,7 +1365,7 @@ If new file is read, then previous configs will be forgotten.</p>
         <span class="k">return</span> <span class="n">value</span>
 
     <span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return whether the specified key is in the storage.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return whether the specified key is in the storage.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            key: Config variable name.</span>
@@ -1459,7 +1459,7 @@ If new file is read, then previous configs will be forgotten.</p>
 <span class="normal">159</span>
 <span class="normal">160</span>
 <span class="normal">161</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Return whether the specified key is in the storage.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return whether the specified key is in the storage.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        key: Config variable name.</span>
@@ -1577,7 +1577,7 @@ file or a primitive type it is a simple value.</p>
 <span class="normal">148</span>
 <span class="normal">149</span>
 <span class="normal">150</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Get the value for the specified key.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the value for the specified key.</span>
 
 <span class="sd">    If the key is not in the configs, then raise KeyError.</span>
 
@@ -1648,7 +1648,7 @@ file or a primitive type it is a simple value.</p>
 <span class="normal">29</span>
 <span class="normal">30</span>
 <span class="normal">31</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf_vars</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
-    <span class="sd">&quot;&quot;&quot;Instantiate the config store and read config variables from the file.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Instantiate the config store and read config variables from the file.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        conf_vars: Dict containing configuration variables</span>
@@ -1752,7 +1752,7 @@ None.</p>
 <span class="normal">44</span>
 <span class="normal">45</span>
 <span class="normal">46</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Get the value for the specified key.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the value for the specified key.</span>
 
 <span class="sd">    If the key is not in the configs, then return default.</span>
 
@@ -1939,7 +1939,7 @@ return converted value.  Otherwise Raise ValueError.</p>
 <span class="normal">127</span>
 <span class="normal">128</span>
 <span class="normal">129</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_as</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">expected_type</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Get and convert the value to specified type.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get and convert the value to specified type.</span>
 
 <span class="sd">    Check if type of the value is as expected.  If type is correct, then</span>
 <span class="sd">    return converted value.  Otherwise Raise ValueError.</span>
@@ -2115,7 +2115,7 @@ this type.</p>
 <span class="normal">82</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_dict</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span> <span class="n">key_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">expected_values_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">T</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;Get a dictionary based on config key prefixes.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a dictionary based on config key prefixes.</span>
 
 <span class="sd">    For example, if key_prefix is &quot;my_dict&quot;, then the following config store:</span>
 <span class="sd">        {</span>

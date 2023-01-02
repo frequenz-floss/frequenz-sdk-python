@@ -1779,7 +1779,7 @@ Distribution is calculated based on data below:</p>
 <span class="normal">515</span>
 <span class="normal">516</span>
 <span class="normal">517</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">DistributionAlgorithm</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Distribute power between many components.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Distribute power between many components.</span>
 
 <span class="sd">    The purpose of this tool is to keep equal SoC level in the batteries.</span>
 <span class="sd">    It takes total power that should be to be set for some subset of battery-inverter</span>
@@ -1862,7 +1862,7 @@ Distribution is calculated based on data below:</p>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">distributor_exponent</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create distribution algorithm instance.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create distribution algorithm instance.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            distributor_exponent: How fast the batteries should strive to the</span>
@@ -1986,7 +1986,7 @@ Distribution is calculated based on data below:</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">_distributor_exponent</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">distributor_exponent</span>
 
     <span class="k">def</span> <span class="nf">_total_capacity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">InvBatPair</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Sum capacity between all batteries in the components list.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sum capacity between all batteries in the components list.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            components: list of the components</span>
@@ -2008,7 +2008,7 @@ Distribution is calculated based on data below:</p>
     <span class="k">def</span> <span class="nf">_compute_battery_availability_ratio</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">InvBatPair</span><span class="p">],</span> <span class="n">available_soc</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">InvBatPair</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="nb">float</span><span class="p">]:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute battery ratio and the total sum of all of them.</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute battery ratio and the total sum of all of them.</span>
 
 <span class="sd">        battery_availability_ratio = capacity_ratio[i] * available_soc[i]</span>
 <span class="sd">        Where:</span>
@@ -2054,7 +2054,7 @@ Distribution is calculated based on data below:</p>
         <span class="n">upper_bounds</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DistributionResult</span><span class="p">:</span>
         <span class="c1"># pylint: disable=too-many-locals</span>
-        <span class="sd">&quot;&quot;&quot;Distribute power between given components.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Distribute power between given components.</span>
 
 <span class="sd">        After this method power should be distributed between batteries</span>
 <span class="sd">        in a way that equalize SoC between batteries.</span>
@@ -2123,7 +2123,7 @@ Distribution is calculated based on data below:</p>
         <span class="n">upper_bounds</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
         <span class="n">remaining_power</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DistributionResult</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Add remaining power greedily to the given distribution.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add remaining power greedily to the given distribution.</span>
 
 <span class="sd">        Distribution for each inverter will not exceed its upper bound.</span>
 
@@ -2155,7 +2155,7 @@ Distribution is calculated based on data below:</p>
     <span class="k">def</span> <span class="nf">distribute_power</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">power</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">InvBatPair</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DistributionResult</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Distribute given power between given components.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Distribute given power between given components.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            power: Power to distribute</span>
@@ -2172,7 +2172,7 @@ Distribution is calculated based on data below:</p>
     <span class="k">def</span> <span class="nf">_distribute_consume_power</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">power_w</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">InvBatPair</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DistributionResult</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Distribute power between the given components.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Distribute power between the given components.</span>
 
 <span class="sd">        Distribute power in a way that the SoC level between given components will:</span>
 <span class="sd">            * stay on the same level, equal in all given components</span>
@@ -2213,7 +2213,7 @@ Distribution is calculated based on data below:</p>
     <span class="k">def</span> <span class="nf">_distribute_supply_power</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">power_w</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">InvBatPair</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DistributionResult</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Distribute power between the given components.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Distribute power between the given components.</span>
 
 <span class="sd">        Distribute power in a way that the SoC level between given components will:</span>
 <span class="sd">            * stay on the same level, equal in all given components</span>
@@ -2564,7 +2564,7 @@ except SoC are equal. SoC bounds for each battery is <code>lower = 20</code>,
 <span class="normal">244</span>
 <span class="normal">245</span>
 <span class="normal">246</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">distributor_exponent</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create distribution algorithm instance.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create distribution algorithm instance.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        distributor_exponent: How fast the batteries should strive to the</span>
@@ -2783,7 +2783,7 @@ for battery and adjacent inverter.</p>
 <span class="normal">430</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">distribute_power</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span> <span class="n">power</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">InvBatPair</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DistributionResult</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Distribute given power between given components.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Distribute given power between given components.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        power: Power to distribute</span>
@@ -2847,17 +2847,17 @@ for battery and adjacent inverter.</p>
 <span class="normal">37</span>
 <span class="normal">38</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">DistributionResult</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Distribution result.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Distribution result.&quot;&quot;&quot;</span>
 
     <span class="n">distribution</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
-    <span class="sd">&quot;&quot;&quot;The power to be set for each inverter.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The power to be set for each inverter.</span>
 
 <span class="sd">    The key is inverter ID, and the value is the power that should be set for</span>
 <span class="sd">    that inverter.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">remaining_power</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="sd">&quot;&quot;&quot;The power which could not be distributed because of bounds.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The power which could not be distributed because of bounds.&quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
         </details>
 
@@ -2954,13 +2954,13 @@ that inverter.</p>
 <span class="normal">21</span>
 <span class="normal">22</span>
 <span class="normal">23</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">InvBatPair</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;InvBatPair with inverter and adjacent battery data.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;InvBatPair with inverter and adjacent battery data.&quot;&quot;&quot;</span>
 
     <span class="n">battery</span><span class="p">:</span> <span class="n">BatteryData</span>
-    <span class="sd">&quot;&quot;&quot;The battery data.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The battery data.&quot;&quot;&quot;</span>
 
     <span class="n">inverter</span><span class="p">:</span> <span class="n">InverterData</span>
-    <span class="sd">&quot;&quot;&quot;The inverter data.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The inverter data.&quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
         </details>
 
