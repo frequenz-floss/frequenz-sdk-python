@@ -14,4 +14,6 @@
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+- Formulas with repeated operators like `#1 - #2 - #3` were getting
+  calculated incorrectly as `#1 - (#2 - #3)`.  This has been fixed in
+  https://github.com/frequenz-floss/frequenz-sdk-python/pull/141
