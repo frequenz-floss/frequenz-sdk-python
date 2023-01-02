@@ -10,13 +10,12 @@ import logging
 import uuid
 from typing import Dict, List, Type
 
-from frequenz.channels import Broadcast, Receiver, Sender
+from frequenz.channels import Sender
 
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid import ComponentGraph
 from ...microgrid.component import ComponentMetricId
-from .. import Sample
-from ._formula_engine import FormulaEngine
+from ._formula_engine import FormulaEngine, FormulaReceiver
 from ._formula_generators import (
     BatteryPowerFormula,
     BatterySoCFormula,
@@ -32,13 +31,61 @@ logger = logging.Logger(__name__)
 class LogicalMeter:
     """A logical meter for calculating high level metrics in a microgrid.
 
-    LogicalMeter can be used to run formulas on resampled component metric streams.
+    LogicalMeter provides methods for fetching power values from different points in the
+    microgrid.  These methods return `FormulaReceiver` objects, which can be used like
+    normal `Receiver`s, but can also be composed to form higher-order formula streams.
 
-    Formulas can have Component IDs that are preceeded by a pound symbol("#"), and these
-    operators: +, -, *, /, (, ).
+    Example:
+        ``` python
+        channel_registry = ChannelRegistry(name="data-registry")
 
-    For example, the input string: "#20 + #5" is a formula for adding metrics from two
-    components with ids 20 and 5.
+        # Create a channels for sending/receiving subscription requests
+        data_source_request_channel = Broadcast[ComponentMetricRequest]("data-source")
+        data_source_request_sender = data_source_request_channel.new_sender()
+        data_source_request_receiver = data_source_request_channel.new_receiver()
+
+        resampling_request_channel = Broadcast[ComponentMetricRequest]("resample")
+        resampling_request_sender = resampling_request_channel.new_sender()
+        resampling_request_receiver = resampling_request_channel.new_receiver()
+
+        # Instantiate a data sourcing actor
+        _data_sourcing_actor = DataSourcingActor(
+            request_receiver=data_source_request_receiver, registry=channel_registry
+        )
+
+        # Instantiate a resampling actor
+        _resampling_actor = ComponentMetricsResamplingActor(
+            channel_registry=channel_registry,
+            data_sourcing_request_sender=data_source_request_sender,
+            resampling_request_receiver=resampling_request_receiver,
+            config=ResamplerConfig(resampling_period_s=1),
+        )
+
+        # Create a logical meter instance
+        logical_meter = LogicalMeter(
+            channel_registry,
+            resampling_request_sender,
+            microgrid.get().component_graph,
+        )
+
+        # Get a receiver for a builtin formula
+        grid_power_recv = logical_meter.grid_power()
+        for grid_power_sample in grid_power_recv:
+            print(grid_power_sample)
+
+        # or compose formula receivers to create a new formula
+        net_power_recv = (
+            (
+                logical_meter.grid_power()
+                - logical_meter.battery_power()
+                - logical_meter.pv_power()
+            )
+            .build("net_power")
+            .new_receiver()
+        )
+        for net_power_sample in net_power_recv:
+            print(net_power_sample)
+        ```
     """
 
     def __init__(
@@ -63,7 +110,7 @@ class LogicalMeter:
         # meter to use when communicating with the resampling actor.
         self._namespace = f"logical-meter-{uuid.uuid4()}"
         self._component_graph = component_graph
-        self._output_channels: Dict[str, Broadcast[Sample]] = {}
+        self._engines: Dict[str, FormulaEngine] = {}
         self._tasks: List[asyncio.Task[None]] = []
 
     async def _engine_from_formula_string(
@@ -71,39 +118,26 @@ class LogicalMeter:
     ) -> FormulaEngine:
         builder = ResampledFormulaBuilder(
             self._namespace,
+            formula,
             self._channel_registry,
             self._resampler_subscription_sender,
             metric_id,
         )
         return await builder.from_string(formula, nones_are_zeros)
 
-    async def _run_formula(
-        self, formula: FormulaEngine, sender: Sender[Sample]
-    ) -> None:
-        """Run the formula repeatedly and send the results to a channel.
-
-        Args:
-            formula: The formula to run.
-            sender: A sender for sending the formula results to.
-        """
-        while True:
-            try:
-                msg = await formula.apply()
-            except asyncio.CancelledError:
-                logger.exception("LogicalMeter task cancelled")
-                break
-            except Exception as err:  # pylint: disable=broad-except
-                logger.warning("Formula application failed: %s", err)
-            else:
-                await sender.send(msg)
-
     async def start_formula(
         self,
         formula: str,
         component_metric_id: ComponentMetricId,
         nones_are_zeros: bool = False,
-    ) -> Receiver[Sample]:
-        """Start execution of the given formula name.
+    ) -> FormulaReceiver:
+        """Start execution of the given formula.
+
+        Formulas can have Component IDs that are preceeded by a pound symbol("#"), and
+        these operators: +, -, *, /, (, ).
+
+        For example, the input string: "#20 + #5" is a formula for adding metrics from
+        two components with ids 20 and 5.
 
         Args:
             formula: formula to execute.
@@ -113,45 +147,34 @@ class LogicalMeter:
                 False, the returned value will be a None.
 
         Returns:
-            A Receiver that streams values with the formulas applied.
+            A FormulaReceiver that streams values with the formulas applied.
         """
         channel_key = formula + component_metric_id.value
-        if channel_key in self._output_channels:
-            return self._output_channels[channel_key].new_receiver()
+        if channel_key in self._engines:
+            return self._engines[channel_key].new_receiver()
 
         formula_engine = await self._engine_from_formula_string(
             formula, component_metric_id, nones_are_zeros
         )
-        out_chan = Broadcast[Sample](channel_key)
-        self._output_channels[channel_key] = out_chan
-        self._tasks.append(
-            asyncio.create_task(
-                self._run_formula(formula_engine, out_chan.new_sender())
-            )
-        )
-        return out_chan.new_receiver()
+        self._engines[channel_key] = formula_engine
+
+        return formula_engine.new_receiver()
 
     async def _get_formula_stream(
         self,
         channel_key: str,
         generator: Type[FormulaGenerator],
-    ) -> Receiver[Sample]:
-        if channel_key in self._output_channels:
-            return self._output_channels[channel_key].new_receiver()
+    ) -> FormulaReceiver:
+        if channel_key in self._engines:
+            return self._engines[channel_key].new_receiver()
 
-        formula_engine = await generator(
+        engine = await generator(
             self._namespace, self._channel_registry, self._resampler_subscription_sender
         ).generate()
-        out_chan = Broadcast[Sample](channel_key)
-        self._output_channels[channel_key] = out_chan
-        self._tasks.append(
-            asyncio.create_task(
-                self._run_formula(formula_engine, out_chan.new_sender())
-            )
-        )
-        return out_chan.new_receiver()
+        self._engines[channel_key] = engine
+        return engine.new_receiver()
 
-    async def grid_power(self) -> Receiver[Sample]:
+    async def grid_power(self) -> FormulaReceiver:
         """Fetch the grid power for the microgrid.
 
         If a formula engine to calculate grid power is not already running, it
@@ -164,7 +187,7 @@ class LogicalMeter:
         """
         return await self._get_formula_stream("grid_power", GridPowerFormula)
 
-    async def battery_power(self) -> Receiver[Sample]:
+    async def battery_power(self) -> FormulaReceiver:
         """Fetch the cumulative battery power in the microgrid.
 
         If a formula engine to calculate cumulative battery power is not
@@ -177,7 +200,7 @@ class LogicalMeter:
         """
         return await self._get_formula_stream("battery_power", BatteryPowerFormula)
 
-    async def pv_power(self) -> Receiver[Sample]:
+    async def pv_power(self) -> FormulaReceiver:
         """Fetch the PV power production in the microgrid.
 
         If a formula engine to calculate PV power production is not
@@ -189,7 +212,7 @@ class LogicalMeter:
         """
         return await self._get_formula_stream("pv_power", PVPowerFormula)
 
-    async def _soc(self) -> Receiver[Sample]:
+    async def _soc(self) -> FormulaReceiver:
         """Fetch the SoC of the active batteries in the microgrid.
 
         NOTE: This method is part of the logical meter only temporarily, and will get

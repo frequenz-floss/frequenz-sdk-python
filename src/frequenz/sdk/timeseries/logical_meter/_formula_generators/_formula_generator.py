@@ -44,10 +44,11 @@ class FormulaGenerator(ABC):
         self._namespace = namespace
 
     def _get_builder(
-        self, component_metric_id: ComponentMetricId
+        self, name: str, component_metric_id: ComponentMetricId
     ) -> ResampledFormulaBuilder:
         builder = ResampledFormulaBuilder(
             self._namespace,
+            name,
             self._channel_registry,
             self._resampler_subscription_sender,
             component_metric_id,

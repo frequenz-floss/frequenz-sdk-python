@@ -21,7 +21,7 @@ class PVPowerFormula(FormulaGenerator):
         Raises:
             ComponentNotFound: if there are no PV inverters in the component graph.
         """
-        builder = self._get_builder(ComponentMetricId.ACTIVE_POWER)
+        builder = self._get_builder("pv-power", ComponentMetricId.ACTIVE_POWER)
 
         component_graph = microgrid.get().component_graph
         pv_inverters = list(

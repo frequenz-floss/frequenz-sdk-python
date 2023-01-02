@@ -23,7 +23,7 @@ class GridPowerFormula(FormulaGenerator):
         Raises:
             ComponentNotFound: when the component graph doesn't have a `GRID` component.
         """
-        builder = self._get_builder(ComponentMetricId.ACTIVE_POWER)
+        builder = self._get_builder("grid-power", ComponentMetricId.ACTIVE_POWER)
         component_graph = microgrid.get().component_graph
         grid_component = next(
             (

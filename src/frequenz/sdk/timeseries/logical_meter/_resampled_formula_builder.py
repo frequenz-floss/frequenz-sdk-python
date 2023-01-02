@@ -16,9 +16,10 @@ from ._tokenizer import Tokenizer, TokenType
 class ResampledFormulaBuilder(FormulaBuilder):
     """Provides a way to build a FormulaEngine from resampled data streams."""
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         namespace: str,
+        formula_name: str,
         channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         metric_id: ComponentMetricId,
@@ -28,6 +29,7 @@ class ResampledFormulaBuilder(FormulaBuilder):
         Args:
             namespace: The unique namespace to allow reuse of streams in the data
                 pipeline.
+            formula_name: A name for the formula.
             channel_registry: The channel registry instance shared with the resampling
                 and the data sourcing actors.
             resampler_subscription_sender: A sender to send metric requests to the
@@ -38,7 +40,7 @@ class ResampledFormulaBuilder(FormulaBuilder):
         self._resampler_subscription_sender = resampler_subscription_sender
         self._namespace = namespace
         self._metric_id = metric_id
-        super().__init__()
+        super().__init__(formula_name)
 
     async def _get_resampled_receiver(
         self, component_id: int, metric_id: ComponentMetricId

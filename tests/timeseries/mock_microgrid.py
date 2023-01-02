@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import time
+import typing
 from typing import Iterator, Tuple
 
 from frequenz.api.microgrid import microgrid_pb2
@@ -66,6 +67,8 @@ class MockMicrogrid:
         self.pv_inverter_ids: list[int] = []
         self.battery_ids: list[int] = []
         self.meter_ids: list[int] = [4]
+
+        self._actors: list[typing.Any] = []
 
     async def start(self) -> Tuple[Sender[ComponentMetricRequest], ChannelRegistry]:
         """Start the MockServer, and the data source and resampling actors.
@@ -148,10 +151,9 @@ class MockMicrogrid:
                 # for inverters with component_id > 100, send only half the messages.
                 if request.id % 10 == cls.inverter_id_suffix:
                     if request.id < 100 or value <= 5:
-                        yield next_msg(value=value + request.id)
+                        yield next_msg(value=value + int(request.id / 10))
                 else:
-                    yield next_msg(value=value + request.id)
-
+                    yield next_msg(value=value + int(request.id / 10))
                 time.sleep(0.1)
 
         mocker.patch.object(servicer, "GetComponentData", get_component_data)
@@ -248,20 +250,26 @@ class MockMicrogrid:
             resampling_actor_request_channel.new_receiver()
         )
 
-        DataSourcingActor(
-            request_receiver=data_source_request_receiver, registry=channel_registry
+        self._actors.append(
+            DataSourcingActor(
+                request_receiver=data_source_request_receiver, registry=channel_registry
+            )
         )
 
-        ComponentMetricsResamplingActor(
-            channel_registry=channel_registry,
-            data_sourcing_request_sender=data_source_request_sender,
-            resampling_request_receiver=resampling_actor_request_receiver,
-            config=ResamplerConfig(resampling_period_s=0.1),
+        self._actors.append(
+            ComponentMetricsResamplingActor(
+                channel_registry=channel_registry,
+                data_sourcing_request_sender=data_source_request_sender,
+                resampling_request_receiver=resampling_actor_request_receiver,
+                config=ResamplerConfig(resampling_period_s=0.1),
+            )
         )
 
         return (resampling_actor_request_sender, channel_registry)
 
     async def cleanup(self) -> None:
         """Clean up after a test."""
+        for actor in self._actors:
+            await actor._stop()  # pylint: disable=protected-access
         await self._server.graceful_shutdown()
         microgrid._microgrid._MICROGRID = None  # pylint: disable=protected-access
