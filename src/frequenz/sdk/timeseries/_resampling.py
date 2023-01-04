@@ -102,7 +102,7 @@ class ResamplerConfig:
     """Resampler configuration."""
 
     resampling_period_s: float
-    """The resapmling period in seconds.
+    """The resampling period in seconds.
 
     This is the time it passes between resampled data should be calculated.
     """

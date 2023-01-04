@@ -80,7 +80,9 @@ class MockMicrogrid:
         """
         await self._server.start()
         await asyncio.sleep(0.1)
-        return await self._init_client_and_actors()
+        ret = await self._init_client_and_actors()
+        await asyncio.sleep(0.1)
+        return ret
 
     @classmethod
     async def new(
