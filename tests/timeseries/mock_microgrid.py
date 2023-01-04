@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import time
 import typing
 from typing import Iterator, Tuple
@@ -78,6 +79,7 @@ class MockMicrogrid:
                 channel registry.
         """
         await self._server.start()
+        await asyncio.sleep(0.1)
         return await self._init_client_and_actors()
 
     @classmethod
