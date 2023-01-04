@@ -10,6 +10,7 @@ import logging
 import weakref
 from collections import deque
 from datetime import datetime
+from math import isinf, isnan
 from typing import Dict, List, Optional, Set, Tuple
 from uuid import UUID, uuid4
 
@@ -154,7 +155,11 @@ class FormulaEngine:
         if len(eval_stack) != 1:
             raise RuntimeError(f"Formula application failed: {self._name}")
 
-        return Sample(metric_ts, eval_stack[0])
+        res = eval_stack.pop()
+        if isnan(res) or isinf(res):
+            res = None
+
+        return Sample(metric_ts, res)
 
     async def _run(self) -> None:
         sender = self._channel.new_sender()
