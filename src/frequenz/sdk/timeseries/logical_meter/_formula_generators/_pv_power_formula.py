@@ -3,10 +3,14 @@
 
 """Formula generator for PV Power, from the component graph."""
 
+import logging
+
 from .....sdk import microgrid
 from ....microgrid.component import ComponentCategory, ComponentMetricId, InverterType
 from .._formula_engine import FormulaEngine
-from ._formula_generator import ComponentNotFound, FormulaGenerator
+from ._formula_generator import NON_EXISTING_COMPONENT_ID, FormulaGenerator
+
+logger = logging.getLogger(__name__)
 
 
 class PVPowerFormula(FormulaGenerator):
@@ -32,9 +36,18 @@ class PVPowerFormula(FormulaGenerator):
         )
 
         if not pv_inverters:
-            raise ComponentNotFound(
-                "Unable to find any PV inverters in the component graph."
+            logging.warning(
+                "Unable to find any PV inverters in the component graph. "
+                "Subscribing to the resampling actor with a non-existing "
+                "component id, so that `0` values are sent from the formula."
             )
+            # If there are no PV inverters, we have to send 0 values as the same
+            # frequency as the other streams.  So we subscribe with a non-existing
+            # component id, just to get a `None` message at the resampling interval.
+            await builder.push_component_metric(
+                NON_EXISTING_COMPONENT_ID, nones_are_zeros=True
+            )
+            return builder.build()
 
         for idx, comp in enumerate(pv_inverters):
             if idx > 0:

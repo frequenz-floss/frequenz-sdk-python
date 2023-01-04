@@ -3,6 +3,7 @@
 
 """Base class for formula generators that use the component graphs."""
 
+import sys
 from abc import ABC, abstractmethod
 
 from frequenz.channels import Sender
@@ -19,6 +20,9 @@ class FormulaGenerationError(Exception):
 
 class ComponentNotFound(FormulaGenerationError):
     """Indicates that a component required for generating a formula is not found."""
+
+
+NON_EXISTING_COMPONENT_ID = sys.maxsize
 
 
 class FormulaGenerator(ABC):
