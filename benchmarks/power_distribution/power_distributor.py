@@ -10,9 +10,9 @@ import timeit
 from dataclasses import dataclass
 from typing import Any, Coroutine, Dict, List, Set  # pylint: disable=unused-import
 
-import grpc.aio as grpcaio
 from frequenz.channels import Bidirectional
 
+from frequenz.sdk import microgrid
 from frequenz.sdk.actor.power_distributing import (
     Error,
     Ignored,
@@ -23,12 +23,9 @@ from frequenz.sdk.actor.power_distributing import (
     Result,
     Success,
 )
-from frequenz.sdk.microgrid import ComponentGraph
-from frequenz.sdk.microgrid._graph import _MicrogridComponentGraph
-from frequenz.sdk.microgrid.client import MicrogridApiClient, MicrogridGrpcClient
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
 
-HOST = "157.90.243.180"
+HOST = "microgrid.sandbox.api.frequenz.io"
 PORT = 61060
 
 
@@ -104,8 +101,6 @@ async def run_test(  # pylint: disable=too-many-locals
     users_num: int,
     requests_per_user: int,
     batteries: Set[int],
-    api: MicrogridApiClient,
-    graph: ComponentGraph,
 ) -> Dict[str, Any]:
     """Run test.
 
@@ -113,7 +108,6 @@ async def run_test(  # pylint: disable=too-many-locals
         users_num: Number of users to register
         requests_per_user: How many request user should send.
         batteries: Set of batteries for each request.
-        distributor: PowerDistributingActor instance.
 
     Returns:
         Dictionary with statistics.
@@ -129,7 +123,7 @@ async def run_test(  # pylint: disable=too-many-locals
         user_id: channel.service_handle for user_id, channel in channels.items()
     }
 
-    distributor = PowerDistributingActor(api, graph, service_channels)
+    distributor = PowerDistributingActor(service_channels)
 
     tasks: List[Coroutine[Any, Any, List[Result]]] = []
     for user_id, channel in channels.items():
@@ -152,25 +146,22 @@ async def run_test(  # pylint: disable=too-many-locals
 async def run() -> None:
     """Create microgrid api and run tests."""
     # pylint: disable=protected-access
-    grpc_channel = grpcaio.insecure_channel(f"{HOST}:{PORT}")
-    api = MicrogridGrpcClient(grpc_channel, target=f"{HOST}:{PORT}")
 
-    graph = _MicrogridComponentGraph()
-    await graph.refresh_from_api(api)
+    await microgrid.initialize(HOST, PORT)
 
-    all_batteries: Set[Component] = graph.components(
+    all_batteries: Set[Component] = microgrid.get().component_graph.components(
         component_category={ComponentCategory.BATTERY}
     )
     batteries_ids = {c.component_id for c in all_batteries}
     # Take some time to get data from components
     await asyncio.sleep(4)
     with open("/dev/stdout", "w", encoding="utf-8") as csvfile:
-        fields = await run_test(0, 0, batteries_ids, api, graph)
+        fields = await run_test(0, 0, batteries_ids)
         out = csv.DictWriter(csvfile, fields.keys())
         out.writeheader()
-        out.writerow(await run_test(1, 1, batteries_ids, api, graph))
-        out.writerow(await run_test(1, 10, batteries_ids, api, graph))
-        out.writerow(await run_test(10, 10, batteries_ids, api, graph))
+        out.writerow(await run_test(1, 1, batteries_ids))
+        out.writerow(await run_test(1, 10, batteries_ids))
+        out.writerow(await run_test(10, 10, batteries_ids))
 
 
 async def main() -> None:

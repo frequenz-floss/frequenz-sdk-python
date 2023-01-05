@@ -21,9 +21,11 @@
 - Add a formula generator for SoC in the LogicalMeter
   https://github.com/frequenz-floss/frequenz-sdk-python/pull/137
 
-
 ## Bug Fixes
 
 - Formulas with repeated operators like `#1 - #2 - #3` were getting
   calculated incorrectly as `#1 - (#2 - #3)`.  This has been fixed in
   https://github.com/frequenz-floss/frequenz-sdk-python/pull/141
+
+- Remove `microgrid_api` and `component_graph` arguments from PowerDistributingActor constructor
+  https://github.com/frequenz-floss/frequenz-sdk-python/pull/156
