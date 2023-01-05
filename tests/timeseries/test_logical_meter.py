@@ -253,7 +253,7 @@ class TestLogicalMeter:
         self,
         mocker: MockerFixture,
     ) -> None:
-        """Test the battery power and pv power formulas."""
+        """Test the composition of formulas."""
         mockgrid = await MockMicrogrid.new(mocker, grid_side_meter=False)
         mockgrid.add_batteries(3)
         mockgrid.add_solar_inverters(2)
@@ -294,6 +294,68 @@ class TestLogicalMeter:
 
             assert inv_calc_pow.value == pv_pow.value + bat_pow.value
             assert grid_pow.value == inv_calc_pow.value + main_pow.value
+            count += 1
+
+        await mockgrid.cleanup()
+        await engine._stop()  # pylint: disable=protected-access
+
+        assert count == 10
+
+    async def test_formula_composition_missing_pv(self, mocker: MockerFixture) -> None:
+        """Test the composition of formulas with missing PV power data."""
+        mockgrid = await MockMicrogrid.new(mocker, grid_side_meter=False)
+        mockgrid.add_batteries(3)
+        request_sender, channel_registry = await mockgrid.start()
+        logical_meter = LogicalMeter(
+            channel_registry,
+            request_sender,
+            microgrid.get().component_graph,
+        )
+
+        battery_power_recv = await logical_meter.battery_power()
+        pv_power_recv = await logical_meter.pv_power()
+        engine = (pv_power_recv.clone() + battery_power_recv.clone()).build("inv_power")
+        inv_calc_recv = engine.new_receiver()
+
+        count = 0
+        for _ in range(10):
+            bat_pow = await battery_power_recv.receive()
+            pv_pow = await pv_power_recv.receive()
+            inv_pow = await inv_calc_recv.receive()
+
+            assert inv_pow == bat_pow
+            assert pv_pow.timestamp == inv_pow.timestamp and pv_pow.value == 0.0
+            count += 1
+
+        await mockgrid.cleanup()
+        await engine._stop()  # pylint: disable=protected-access
+
+        assert count == 10
+
+    async def test_formula_composition_missing_bat(self, mocker: MockerFixture) -> None:
+        """Test the composition of formulas with missing battery power data."""
+        mockgrid = await MockMicrogrid.new(mocker, grid_side_meter=False)
+        mockgrid.add_solar_inverters(2)
+        request_sender, channel_registry = await mockgrid.start()
+        logical_meter = LogicalMeter(
+            channel_registry,
+            request_sender,
+            microgrid.get().component_graph,
+        )
+
+        battery_power_recv = await logical_meter.battery_power()
+        pv_power_recv = await logical_meter.pv_power()
+        engine = (pv_power_recv.clone() + battery_power_recv.clone()).build("inv_power")
+        inv_calc_recv = engine.new_receiver()
+
+        count = 0
+        for _ in range(10):
+            bat_pow = await battery_power_recv.receive()
+            pv_pow = await pv_power_recv.receive()
+            inv_pow = await inv_calc_recv.receive()
+
+            assert inv_pow == pv_pow
+            assert bat_pow.timestamp == inv_pow.timestamp and bat_pow.value == 0.0
             count += 1
 
         await mockgrid.cleanup()
