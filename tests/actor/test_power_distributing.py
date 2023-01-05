@@ -266,7 +266,8 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             await client_handle.send(request)
 
             done, pending = await asyncio.wait(
-                [client_handle.receive()], timeout=SAFETY_TIMEOUT
+                [asyncio.create_task(client_handle.receive())],
+                timeout=SAFETY_TIMEOUT,
             )
             await distributor._stop()  # type: ignore # pylint: disable=no-member
 
@@ -337,7 +338,11 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             await asyncio.gather(*[task1, task2])
 
             done, pending = await asyncio.wait(
-                [user1_handle.receive(), user2_handle.receive()], timeout=SAFETY_TIMEOUT
+                [
+                    asyncio.create_task(user1_handle.receive()),
+                    asyncio.create_task(user2_handle.receive()),
+                ],
+                timeout=SAFETY_TIMEOUT,
             )
             await distributor._stop()  # type: ignore # pylint: disable=no-member
 
@@ -394,7 +399,8 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             await user1_handle.send(request)
 
             done, _ = await asyncio.wait(
-                [user1_handle.receive()], timeout=SAFETY_TIMEOUT
+                [asyncio.create_task(user1_handle.receive())],
+                timeout=SAFETY_TIMEOUT,
             )
             await distributor._stop()  # type: ignore # pylint: disable=no-member
 
@@ -476,9 +482,9 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
 
             done, _ = await asyncio.wait(
                 [
-                    user1_handle.receive(),
-                    user2_handle.receive(),
-                    user3_handle.receive(),
+                    asyncio.create_task(user1_handle.receive()),
+                    asyncio.create_task(user2_handle.receive()),
+                    asyncio.create_task(user3_handle.receive()),
                 ],
                 timeout=SAFETY_TIMEOUT,
             )
@@ -552,7 +558,8 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             await user1_handle.send(request)
 
             done, pending = await asyncio.wait(
-                [user1_handle.receive()], timeout=SAFETY_TIMEOUT
+                [asyncio.create_task(user1_handle.receive())],
+                timeout=SAFETY_TIMEOUT,
             )
             await distributor._stop()  # type: ignore # pylint: disable=no-member
 
@@ -618,7 +625,8 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             await user1_handle.send(request)
 
             done, pending = await asyncio.wait(
-                [user1_handle.receive()], timeout=SAFETY_TIMEOUT
+                [asyncio.create_task(user1_handle.receive())],
+                timeout=SAFETY_TIMEOUT,
             )
             await distributor._stop()  # type: ignore # pylint: disable=no-member
 
@@ -684,7 +692,8 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             await user1_handle.send(request)
 
             done, pending = await asyncio.wait(
-                [user1_handle.receive()], timeout=SAFETY_TIMEOUT
+                [asyncio.create_task(user1_handle.receive())],
+                timeout=SAFETY_TIMEOUT,
             )
             await distributor._stop()  # type: ignore # pylint: disable=no-member
 
@@ -743,7 +752,8 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             await client_handle.send(request)
 
             done, pending = await asyncio.wait(
-                [client_handle.receive()], timeout=SAFETY_TIMEOUT
+                [asyncio.create_task(client_handle.receive())],
+                timeout=SAFETY_TIMEOUT,
             )
             await distributor._stop()  # type: ignore # pylint: disable=no-member
 
