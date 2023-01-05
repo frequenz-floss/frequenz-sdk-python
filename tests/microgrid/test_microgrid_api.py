@@ -115,8 +115,8 @@ class TestMicrogridApi:
                 _microgrid.get()
 
             tasks = [
-                _microgrid.initialize("127.0.0.1", 10001),
-                _microgrid.initialize("127.0.0.1", 10001),
+                asyncio.create_task(_microgrid.initialize("127.0.0.1", 10001)),
+                asyncio.create_task(_microgrid.initialize("127.0.0.1", 10001)),
             ]
             initialize_task = asyncio.wait(tasks, return_when=ALL_COMPLETED)
 
