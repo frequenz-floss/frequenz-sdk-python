@@ -184,9 +184,6 @@ async def run() -> None:
     }
 
     power_distributor = PowerDistributingActor(
-        microgrid_api=microgrid.get().api_client,
-        # microgrid_api=microgrid_api.microgrid_api, in v0.8.0
-        component_graph=microgrid.get().component_graph,
         users_channels={
             key: channel.service_handle
             for key, channel in power_distributor_channels.items()

@@ -284,7 +284,7 @@ class Resampler:
                 period.
 
         Raises:
-            ResamplingError: If some timseries source or sink encounters any
+            ResamplingError: If some timeseries source or sink encounters any
                 errors while receiving or sending samples. In this case the
                 timer still runs and the timeseries will keep receiving data.
                 The user should remove (and re-add if desired) the faulty

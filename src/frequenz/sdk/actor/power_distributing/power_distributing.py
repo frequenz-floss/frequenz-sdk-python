@@ -32,6 +32,7 @@ import grpc
 from frequenz.channels import Bidirectional, Peekable, Receiver
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
+from ... import microgrid
 from ...actor._decorator import actor
 from ...microgrid import ComponentGraph
 from ...microgrid.client import MicrogridApiClient
@@ -41,7 +42,7 @@ from ...microgrid.component import (
     ComponentCategory,
     InverterData,
 )
-from ...power import DistributionAlgorithm, InvBatPair
+from ...power import DistributionAlgorithm, DistributionResult, InvBatPair
 from ._battery_pool_status import BatteryPoolStatus
 from .request import Request
 from .result import Error, Ignored, OutOfBound, PartialFailure, Result, Success
@@ -140,22 +141,17 @@ class PowerDistributingActor:
 
     def __init__(
         self,
-        microgrid_api: MicrogridApiClient,
-        component_graph: ComponentGraph,
         users_channels: Dict[str, Bidirectional.Handle[Result, Request]],
         wait_for_data_sec: float = 2,
     ) -> None:
         """Create class instance.
 
         Args:
-            microgrid_api: api for sending the requests.
-            component_graph: component graph of the given microgrid api.
             users_channels: BidirectionalHandle for each user. Key should be
                 user id and value should be BidirectionalHandle.
             wait_for_data_sec: How long actor should wait before processing first
                 request. It is a time needed to collect first components data.
         """
-        self._api = microgrid_api
         self._wait_for_data_sec = wait_for_data_sec
 
         # NOTE: power_distributor_exponent should be received from ConfigManager
@@ -164,9 +160,8 @@ class PowerDistributingActor:
             self.power_distributor_exponent
         )
 
-        batteries = component_graph.components(
-            component_category={ComponentCategory.BATTERY}
-        )
+        graph = microgrid.get().component_graph
+        batteries = graph.components(component_category={ComponentCategory.BATTERY})
 
         self._battery_pool = BatteryPoolStatus(
             battery_ids={battery.component_id for battery in batteries},
@@ -174,9 +169,7 @@ class PowerDistributingActor:
             max_data_age_sec=10.0,
         )
 
-        self._bat_inv_map, self._inv_bat_map = self._get_components_pairs(
-            component_graph
-        )
+        self._bat_inv_map, self._inv_bat_map = self._get_components_pairs(graph)
         self._battery_receivers: Dict[int, Peekable[BatteryData]] = {}
         self._inverter_receivers: Dict[int, Peekable[InverterData]] = {}
 
@@ -250,6 +243,7 @@ class PowerDistributingActor:
         """
         await self._create_channels()
         await self._battery_pool.async_init()
+        api = microgrid.get().api_client
 
         # Wait few seconds to get data from the channels created above.
         await asyncio.sleep(self._wait_for_data_sec)
@@ -291,20 +285,10 @@ class PowerDistributingActor:
                 str(battery_distribution),
             )
 
-            tasks = {
-                inverter_id: asyncio.create_task(
-                    self._api.set_power(inverter_id, power)
-                )
-                for inverter_id, power in distribution.distribution.items()
-            }
-
-            _, pending = await asyncio.wait(
-                tasks.values(),
-                timeout=request.request_timeout_sec,
-                return_when=ALL_COMPLETED,
+            tasks = await self._set_distributed_power(
+                api, distribution, request.request_timeout_sec
             )
 
-            await self._cancel_tasks(pending)
             failed_power, failed_batteries = self._parse_result(
                 tasks, distribution.distribution, request.request_timeout_sec
             )
@@ -329,6 +313,36 @@ class PowerDistributingActor:
 
             self._battery_pool.update_last_request_status(response)
             await user.channel.send(response)
+
+    async def _set_distributed_power(
+        self,
+        api: MicrogridApiClient,
+        distribution: DistributionResult,
+        timeout_sec: float,
+    ) -> Dict[int, asyncio.Task[Empty]]:
+        """Send distributed power to the inverters.
+
+        Args:
+            api: Microgrid api client
+            distribution: Distribution result
+            timeout_sec: How long wait for the response
+
+        Returns:
+            Dict with finished or cancelled task for each inverter.
+        """
+        tasks = {
+            inverter_id: asyncio.create_task(api.set_power(inverter_id, power))
+            for inverter_id, power in distribution.distribution.items()
+        }
+
+        _, pending = await asyncio.wait(
+            tasks.values(),
+            timeout=timeout_sec,
+            return_when=ALL_COMPLETED,
+        )
+
+        await self._cancel_tasks(pending)
+        return tasks
 
     def _check_request(self, request: Request) -> Optional[Result]:
         """Check whether the given request if correct.
@@ -546,13 +560,12 @@ class PowerDistributingActor:
 
     async def _create_channels(self) -> None:
         """Create channels to get data of components in microgrid."""
+        api = microgrid.get().api_client
         for battery_id, inverter_id in self._bat_inv_map.items():
-            bat_recv: Receiver[BatteryData] = await self._api.battery_data(battery_id)
+            bat_recv: Receiver[BatteryData] = await api.battery_data(battery_id)
             self._battery_receivers[battery_id] = bat_recv.into_peekable()
 
-            inv_recv: Receiver[InverterData] = await self._api.inverter_data(
-                inverter_id
-            )
+            inv_recv: Receiver[InverterData] = await api.inverter_data(inverter_id)
             self._inverter_receivers[inverter_id] = inv_recv.into_peekable()
 
     def _parse_result(
