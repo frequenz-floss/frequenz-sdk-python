@@ -13,6 +13,7 @@ jobs:
           - "3.8"
           - "3.9"
           - "3.10"
+          - "3.11"
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -49,7 +50,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Install build dependencies
         run: |
