@@ -1,13 +1,13 @@
 # CI must ensure these dependency versions are supported
 frequenz-api-microgrid==0.11.0
 frequenz-channels==0.11.0
-google-api-python-client==2.15
-grpcio==1.47
-grpcio-tools==1.47
+google-api-python-client==2.71
+grpcio==1.51.1
+grpcio-tools==1.51.1
 networkx==2.8
-pandas==1.3.5
-protobuf==3.20.2
-pyarrow==6.0.0
+pandas==1.5.2
+protobuf==4.21.12
+pyarrow==10.0.1
 pydantic==1.9.0
 sympy==1.10.1
 toml==0.10
