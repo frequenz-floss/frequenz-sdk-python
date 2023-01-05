@@ -2,6 +2,8 @@
 
 ## Summary
 
+The Frequenz SDK now supports Python 3.11.
+
 ## Upgrading
 
 ## New Features
