@@ -79,7 +79,7 @@ class MockMicrogrid:
                 channel registry.
         """
         await self._server.start()
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.2)
         ret = await self._init_client_and_actors()
         await asyncio.sleep(0.1)
         return ret
