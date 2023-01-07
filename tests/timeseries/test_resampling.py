@@ -5,6 +5,8 @@
 Tests for the `TimeSeriesResampler`
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import AsyncIterator, Iterator
@@ -94,7 +96,8 @@ async def test_resampler_config_len_ok(
         initial_buffer_len=init_len,
     )
     assert config.initial_buffer_len == init_len
-    assert caplog.records == []
+    # Ignore errors produced by wrongly finalized gRPC server in unrelated tests
+    assert _filter_logs(caplog.record_tuples, logger_name="") == []
 
 
 @pytest.mark.parametrize(
@@ -110,13 +113,11 @@ async def test_resampler_config_len_warn(
         initial_buffer_len=init_len,
     )
     assert config.initial_buffer_len == init_len
-    for record in caplog.records:
-        assert record.levelname == "WARNING"
-        assert caplog.text.startswith("")
-        assert (
-            caplog.text
-            == f"initial_buffer_len ({init_len}) is bigger than {DEFAULT_BUFFER_LEN_WARN}"
-    assert caplog.record_tuples == [
+    # Ignore errors produced by wrongly finalized gRPC server in unrelated tests
+    assert _filter_logs(
+        caplog.record_tuples,
+        logger_name="frequenz.sdk.timeseries._resampling",
+    ) == [
         (
             "frequenz.sdk.timeseries._resampling",
             logging.WARNING,
@@ -156,7 +157,11 @@ async def test_helper_buffer_too_big(
         fake_time.shift(1)
 
     _ = helper.resample(datetime.now(timezone.utc))
-    assert caplog.record_tuples == [
+    # Ignore errors produced by wrongly finalized gRPC server in unrelated tests
+    assert _filter_logs(
+        caplog.record_tuples,
+        logger_name="frequenz.sdk.timeseries._resampling",
+    ) == [
         (
             "frequenz.sdk.timeseries._resampling",
             logging.ERROR,
@@ -698,3 +703,9 @@ def _get_buffer_len(resampler: Resampler, source_recvr: Source) -> int:
     blen = resampler._resamplers[source_recvr]._helper._buffer.maxlen
     assert blen is not None
     return blen
+
+
+def _filter_logs(
+    record_tuples: list[tuple[str, int, str]], *, logger_name: str
+) -> list[tuple[str, int, str]]:
+    return [t for t in record_tuples if t[0] == logger_name]
