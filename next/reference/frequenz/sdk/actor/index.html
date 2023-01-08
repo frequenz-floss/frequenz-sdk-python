@@ -1093,6 +1093,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.max_buffer_len" class="md-nav__link">
+    max_buffer_len
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.max_data_age_in_periods" class="md-nav__link">
     max_data_age_in_periods
   </a>
@@ -1109,6 +1116,33 @@
           <li class="md-nav__item">
   <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.resampling_period_s" class="md-nav__link">
     resampling_period_s
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.warn_buffer_len" class="md-nav__link">
+    warn_buffer_len
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.ResamplerConfig-functions" class="md-nav__link">
+    Functions
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.__post_init__" class="md-nav__link">
+    __post_init__()
   </a>
   
 </li>
@@ -2050,7 +2084,7 @@ identify the right channel from the ChannelRegistry.</p>
             <span class="k">if</span> <span class="ow">not</span> <span class="k">await</span> <span class="n">sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">sample</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error while sending with sender </span><span class="si">{</span><span class="n">sender</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">sender</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_resampler</span><span class="o">.</span><span class="n">add_timeseries</span><span class="p">(</span><span class="n">receiver</span><span class="p">,</span> <span class="n">sink_adapter</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_resampler</span><span class="o">.</span><span class="n">add_timeseries</span><span class="p">(</span><span class="n">request_channel_name</span><span class="p">,</span> <span class="n">receiver</span><span class="p">,</span> <span class="n">sink_adapter</span><span class="p">)</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_process_resampling_requests</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Process resampling data requests.&quot;&quot;&quot;</span>
@@ -3087,31 +3121,7 @@ instance.</p>
 
         <details class="quote">
           <summary>Source code in <code>frequenz/sdk/timeseries/_resampling.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">100</span>
-<span class="normal">101</span>
-<span class="normal">102</span>
-<span class="normal">103</span>
-<span class="normal">104</span>
-<span class="normal">105</span>
-<span class="normal">106</span>
-<span class="normal">107</span>
-<span class="normal">108</span>
-<span class="normal">109</span>
-<span class="normal">110</span>
-<span class="normal">111</span>
-<span class="normal">112</span>
-<span class="normal">113</span>
-<span class="normal">114</span>
-<span class="normal">115</span>
-<span class="normal">116</span>
-<span class="normal">117</span>
-<span class="normal">118</span>
-<span class="normal">119</span>
-<span class="normal">120</span>
-<span class="normal">121</span>
-<span class="normal">122</span>
-<span class="normal">123</span>
-<span class="normal">124</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">124</span>
 <span class="normal">125</span>
 <span class="normal">126</span>
 <span class="normal">127</span>
@@ -3120,7 +3130,109 @@ instance.</p>
 <span class="normal">130</span>
 <span class="normal">131</span>
 <span class="normal">132</span>
-<span class="normal">133</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">ResamplerConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Resampler configuration.&quot;&quot;&quot;</span>
 
@@ -3128,15 +3240,30 @@ instance.</p>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The resampling period in seconds.</span>
 
 <span class="sd">    This is the time it passes between resampled data should be calculated.</span>
+
+<span class="sd">    It must be a positive number.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">max_data_age_in_periods</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The maximum age a sample can have to be considered *relevant* for resampling.</span>
 
-<span class="sd">    Expressed in number of resampling periods. For example if</span>
-<span class="sd">    `resampling_period_s` is 3 and `max_data_age_in_periods` is 2, then data</span>
-<span class="sd">    older than 3*2 = 6 secods will be discarded when creating a new sample and</span>
-<span class="sd">    never passed to the resampling function.</span>
+<span class="sd">    Expressed in number of periods, where period is the `resampling_period_s`</span>
+<span class="sd">    if we are downsampling (resampling period bigger than the input period) or</span>
+<span class="sd">    the input sampling period if we are upsampling (input period bigger than</span>
+<span class="sd">    the resampling period).</span>
+
+<span class="sd">    It must be bigger than 1.0.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        If `resampling_period_s` is 3, the input sampling period is</span>
+<span class="sd">        1 and `max_data_age_in_periods` is 2, then data older than 3*2</span>
+<span class="sd">        = 6 secods will be discarded when creating a new sample and never</span>
+<span class="sd">        passed to the resampling function.</span>
+
+<span class="sd">        If `resampling_period_s` is 3, the input sampling period is</span>
+<span class="sd">        5 and `max_data_age_in_periods` is 2, then data older than 5*2</span>
+<span class="sd">        = 10 secods will be discarded when creating a new sample and never</span>
+<span class="sd">        passed to the resampling function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">resampling_function</span><span class="p">:</span> <span class="n">ResamplingFunction</span> <span class="o">=</span> <span class="n">average</span>
@@ -3150,10 +3277,73 @@ instance.</p>
     <span class="n">initial_buffer_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BUFFER_LEN_INIT</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The initial length of the resampling buffer.</span>
 
-<span class="sd">    The buffer could grow or shrink depending on the source characteristics,</span>
+<span class="sd">    The buffer could grow or shrink depending on the source properties,</span>
 <span class="sd">    like sampling rate, to make sure all the requested past sampling periods</span>
 <span class="sd">    can be stored.</span>
+
+<span class="sd">    It must be at least 1 and at most `max_buffer_len`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">warn_buffer_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BUFFER_LEN_WARN</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The minimum length of the resampling buffer that will emit a warning.</span>
+
+<span class="sd">    If a buffer grows bigger than this value, it will emit a warning in the</span>
+<span class="sd">    logs, so buffers don&#39;t grow too big inadvertly.</span>
+
+<span class="sd">    It must be at least 1 and at most `max_buffer_len`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">max_buffer_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BUFFER_LEN_MAX</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The maximum length of the resampling buffer.</span>
+
+<span class="sd">    Buffers won&#39;t be allowed to grow beyond this point even if it would be</span>
+<span class="sd">    needed to keep all the requested past sampling periods. An error will be</span>
+<span class="sd">    emitted in the logs if the buffer length needs to be truncated to this</span>
+<span class="sd">    value.</span>
+
+<span class="sd">    It must be at bigger than `warn_buffer_len`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check that config values are valid.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If any value is out of range.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">resampling_period_s</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;resampling_period_s (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">resampling_period_s</span><span class="si">}</span><span class="s2">) must be positive&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_data_age_in_periods</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;max_data_age_in_periods (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_data_age_in_periods</span><span class="si">}</span><span class="s2">) should be at least 1.0&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;warn_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="si">}</span><span class="s2">) should be at least 1&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;max_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span><span class="si">}</span><span class="s2">) should &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;be bigger than warn_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;initial_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span><span class="si">}</span><span class="s2">) should at least 1&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;initial_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span><span class="si">}</span><span class="s2">) is bigger &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;than max_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span><span class="si">}</span><span class="s2">), use a smaller &quot;</span>
+                <span class="s2">&quot;initial_buffer_len or a bigger max_buffer_len&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="p">:</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;initial_buffer_len (</span><span class="si">%s</span><span class="s2">) is bigger than warn_buffer_len (</span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="p">,</span>
+            <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
         </details>
 
@@ -3184,9 +3374,36 @@ instance.</p>
   <div class="doc doc-contents ">
   
       <p>The initial length of the resampling buffer.</p>
-<p>The buffer could grow or shrink depending on the source characteristics,
+<p>The buffer could grow or shrink depending on the source properties,
 like sampling rate, to make sure all the requested past sampling periods
 can be stored.</p>
+<p>It must be at least 1 and at most <code>max_buffer_len</code>.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.timeseries._resampling.ResamplerConfig.max_buffer_len" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">max_buffer_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BUFFER_LEN_MAX</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.max_buffer_len" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The maximum length of the resampling buffer.</p>
+<p>Buffers won't be allowed to grow beyond this point even if it would be
+needed to keep all the requested past sampling periods. An error will be
+emitted in the logs if the buffer length needs to be truncated to this
+value.</p>
+<p>It must be at bigger than <code>warn_buffer_len</code>.</p>
   </div>
 
 </div>
@@ -3208,11 +3425,23 @@ can be stored.</p>
   <div class="doc doc-contents ">
   
       <p>The maximum age a sample can have to be considered <em>relevant</em> for resampling.</p>
-<p>Expressed in number of resampling periods. For example if
-<code>resampling_period_s</code> is 3 and <code>max_data_age_in_periods</code> is 2, then data
-older than 3*2 = 6 secods will be discarded when creating a new sample and
-never passed to the resampling function.</p>
-  </div>
+<p>Expressed in number of periods, where period is the <code>resampling_period_s</code>
+if we are downsampling (resampling period bigger than the input period) or
+the input sampling period if we are upsampling (input period bigger than
+the resampling period).</p>
+<p>It must be bigger than 1.0.</p>
+
+<details class="example">
+  <summary>Example</summary>
+  <p>If <code>resampling_period_s</code> is 3, the input sampling period is
+1 and <code>max_data_age_in_periods</code> is 2, then data older than 3*2
+= 6 secods will be discarded when creating a new sample and never
+passed to the resampling function.</p>
+<p>If <code>resampling_period_s</code> is 3, the input sampling period is
+5 and <code>max_data_age_in_periods</code> is 2, then data older than 5*2
+= 10 secods will be discarded when creating a new sample and never
+passed to the resampling function.</p>
+</details>  </div>
 
 </div>
 
@@ -3258,11 +3487,158 @@ value.</p>
   
       <p>The resampling period in seconds.</p>
 <p>This is the time it passes between resampled data should be calculated.</p>
+<p>It must be a positive number.</p>
   </div>
 
 </div>
 
+<div class="doc doc-object doc-attribute">
 
+
+
+<h6 id="frequenz.sdk.timeseries._resampling.ResamplerConfig.warn_buffer_len" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">warn_buffer_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BUFFER_LEN_WARN</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.warn_buffer_len" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The minimum length of the resampling buffer that will emit a warning.</p>
+<p>If a buffer grows bigger than this value, it will emit a warning in the
+logs, so buffers don't grow too big inadvertly.</p>
+<p>It must be at least 1 and at most <code>max_buffer_len</code>.</p>
+  </div>
+
+</div>
+
+<h5 id="frequenz.sdk.actor.ResamplerConfig-functions">Functions<a href="#frequenz.sdk.actor.ResamplerConfig-functions" class="headerlink" title="Permanent link">¤</a></h5>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h6 id="frequenz.sdk.timeseries._resampling.ResamplerConfig.__post_init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">__post_init__</span><span class="p">()</span></code>
+
+<a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.__post_init__" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Check that config values are valid.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#ValueError">ValueError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If any value is out of range.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+      <details class="quote">
+        <summary>Source code in <code>frequenz/sdk/timeseries/_resampling.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check that config values are valid.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If any value is out of range.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">resampling_period_s</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;resampling_period_s (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">resampling_period_s</span><span class="si">}</span><span class="s2">) must be positive&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_data_age_in_periods</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;max_data_age_in_periods (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_data_age_in_periods</span><span class="si">}</span><span class="s2">) should be at least 1.0&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;warn_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="si">}</span><span class="s2">) should be at least 1&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;max_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span><span class="si">}</span><span class="s2">) should &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;be bigger than warn_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;initial_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span><span class="si">}</span><span class="s2">) should at least 1&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;initial_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span><span class="si">}</span><span class="s2">) is bigger &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;than max_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span><span class="si">}</span><span class="s2">), use a smaller &quot;</span>
+            <span class="s2">&quot;initial_buffer_len or a bigger max_buffer_len&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="p">:</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;initial_buffer_len (</span><span class="si">%s</span><span class="s2">) is bigger than warn_buffer_len (</span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="p">,</span>
+        <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div>
 
 
 
