@@ -105,7 +105,9 @@ async def run() -> None:  # pylint: disable=too-many-locals
     average_chan = Broadcast[Sample]("average")
 
     second_stage_resampler = Resampler(ResamplerConfig(resampling_period_s=3.0))
-    second_stage_resampler.add_timeseries(average_chan.new_receiver(), _print_sample)
+    second_stage_resampler.add_timeseries(
+        "avg", average_chan.new_receiver(), _print_sample
+    )
 
     average_sender = average_chan.new_sender()
     # Needed until channels Senders raises exceptions on errors

@@ -19,7 +19,7 @@ from ._channel_registry import ChannelRegistry
 from ._data_sourcing import ComponentMetricRequest
 from ._decorator import actor
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @actor
@@ -85,7 +85,7 @@ class ComponentMetricsResamplingActor:
             if not await sender.send(sample):
                 raise Exception(f"Error while sending with sender {sender}", sender)
 
-        self._resampler.add_timeseries(receiver, sink_adapter)
+        self._resampler.add_timeseries(request_channel_name, receiver, sink_adapter)
 
     async def _process_resampling_requests(self) -> None:
         """Process resampling data requests."""

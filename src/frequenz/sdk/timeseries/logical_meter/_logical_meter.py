@@ -25,7 +25,7 @@ from ._formula_generators import (
 )
 from ._resampled_formula_builder import ResampledFormulaBuilder
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class LogicalMeter:

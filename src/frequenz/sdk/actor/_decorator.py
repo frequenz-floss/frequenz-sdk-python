@@ -14,7 +14,7 @@ import inspect
 import logging
 from typing import Any, Generic, Optional, Type, TypeVar
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 OT = TypeVar("OT")
 

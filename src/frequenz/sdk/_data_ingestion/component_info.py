@@ -10,7 +10,7 @@ from typing import Dict, List, Optional, Tuple
 from ..microgrid import ComponentGraph
 from ..microgrid.component import ComponentCategory
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @dataclass
