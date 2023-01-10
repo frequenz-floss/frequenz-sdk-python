@@ -541,3 +541,67 @@ class TestFormulaChannel:
             ],
             False,
         )
+
+
+class TestFormulaAverager:
+    """Tests for the formula step for calculating average."""
+
+    async def run_test(
+        self,
+        components: List[str],
+        io_pairs: List[Tuple[List[Optional[float]], Optional[float]]],
+    ) -> None:
+        """Run a formula test."""
+        channels: Dict[str, Broadcast[Sample]] = {}
+        streams: List[Tuple[str, Receiver[Sample], bool]] = []
+        builder = FormulaBuilder("test_averager")
+        for comp_id in components:
+            if comp_id not in channels:
+                channels[comp_id] = Broadcast(comp_id)
+                streams.append((f"{comp_id}", channels[comp_id].new_receiver(), False))
+
+        builder.push_average(streams)
+        engine = builder.build()
+
+        now = datetime.now()
+        tests_passed = 0
+        for io_pair in io_pairs:
+            io_input, io_output = io_pair
+            assert all(
+                await asyncio.gather(
+                    *[
+                        chan.new_sender().send(Sample(now, value))
+                        for chan, value in zip(channels.values(), io_input)
+                    ]
+                )
+            )
+            next_val = await engine._apply()  # pylint: disable=protected-access
+            assert (next_val).value == io_output
+            tests_passed += 1
+        await engine._stop()  # pylint: disable=protected-access
+        assert tests_passed == len(io_pairs)
+
+    async def test_simple(self) -> None:
+        """Test simple formulas."""
+        await self.run_test(
+            ["#2", "#4", "#5"],
+            [
+                ([10.0, 12.0, 14.0], 12.0),
+                ([15.0, 17.0, 19.0], 17.0),
+                ([11.1, 11.1, 11.1], 11.1),
+            ],
+        )
+
+    async def test_nones_are_skipped(self) -> None:
+        """Test that `None`s are skipped for computing the average."""
+        await self.run_test(
+            ["#2", "#4", "#5"],
+            [
+                ([11.0, 13.0, 15.0], 13.0),
+                ([None, 13.0, 19.0], 16.0),
+                ([12.2, None, 22.2], 17.2),
+                ([16.5, 19.5, None], 18.0),
+                ([None, 13.0, None], 13.0),
+                ([None, None, None], 0.0),
+            ],
+        )

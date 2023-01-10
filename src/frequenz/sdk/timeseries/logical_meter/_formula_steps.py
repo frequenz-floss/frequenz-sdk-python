@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from math import isinf, isnan
 from typing import List, Optional
 
 from frequenz.channels import Receiver
@@ -57,10 +58,7 @@ class Adder(FormulaStep):
         """
         val2 = eval_stack.pop()
         val1 = eval_stack.pop()
-        if val1 is None or val2 is None:
-            res = None
-        else:
-            res = val1 + val2
+        res = val1 + val2
         eval_stack.append(res)
 
 
@@ -83,10 +81,7 @@ class Subtractor(FormulaStep):
         """
         val2 = eval_stack.pop()
         val1 = eval_stack.pop()
-        if val1 is None or val2 is None:
-            res = None
-        else:
-            res = val1 - val2
+        res = val1 - val2
         eval_stack.append(res)
 
 
@@ -109,10 +104,7 @@ class Multiplier(FormulaStep):
         """
         val2 = eval_stack.pop()
         val1 = eval_stack.pop()
-        if val1 is None or val2 is None:
-            res = None
-        else:
-            res = val1 * val2
+        res = val1 * val2
         eval_stack.append(res)
 
 
@@ -135,10 +127,7 @@ class Divider(FormulaStep):
         """
         val2 = eval_stack.pop()
         val1 = eval_stack.pop()
-        if val1 is None or val2 is None:
-            res = None
-        else:
-            res = val1 / val2
+        res = val1 / val2
         eval_stack.append(res)
 
 
@@ -265,7 +254,12 @@ class MetricFetcher(FormulaStep):
         """
         if self._next_value is None:
             raise RuntimeError("No next value available to append.")
-        if self._next_value.value is None and self._nones_are_zeros:
-            eval_stack.append(0.0)
+
+        next_value = self._next_value.value
+        if next_value is None or isnan(next_value) or isinf(next_value):
+            if self._nones_are_zeros:
+                eval_stack.append(0.0)
+            else:
+                eval_stack.append(float("NaN"))
         else:
             eval_stack.append(self._next_value.value)
