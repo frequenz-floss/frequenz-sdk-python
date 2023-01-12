@@ -7,16 +7,16 @@ from __future__ import annotations
 
 from copy import deepcopy
 from datetime import datetime, timedelta
-from typing import Any, Generic, Sequence, TypeVar, Union
+from typing import Generic, Sequence, TypeVar
 
 import numpy as np
 
 T = TypeVar("T")
 
-Container = Union[list, np.ndarray]
+Container = TypeVar("Container", list, np.ndarray)
 
 
-class OrderedRingBuffer(Generic[T]):
+class OrderedRingBuffer(Generic[T, Container]):
     """Time aware ringbuffer that keeps its entries sorted by time."""
 
     def __init__(
@@ -49,14 +49,39 @@ class OrderedRingBuffer(Generic[T]):
         self._missing_windows = []
         self._datetime_newest = datetime.min
         self._datetime_oldest = datetime.max
+        self._time_range = timedelta(
+            seconds=(len(self._buffer) - 1) * self._resampling_period_s
+        )
+
+    def normalize_timestamp(self, timestamp: datetime) -> datetime:
+        """Normalize the given timestamp to fall exactly on the resampling period.
+
+        Args:
+            timestamp: The timestamp to normalize.
+
+        Returns:
+            The normalized timestamp.
+        """
+        normalized_timestamp = self._time_index_alignment + timedelta(
+            seconds=round(
+                (timestamp - self._time_index_alignment).total_seconds()
+                / self._resampling_period_s
+            )
+            * self._resampling_period_s
+        )
+        return normalized_timestamp
 
     @property
     def missing_windows(self) -> list:
         """Get the list of missing windows.
 
         The list of missing of windows consists of dicts with the members
-        "start" and "end" which are describing the time ranges of gaps, or in
+        "start" and "end" which are describing the time ranges of gaps or in
         other words, where we received data with `missing = True`.
+
+        "end" is excluding, meaning when "start" is 14:00 and "end" is 14:10
+        with a resolution of 300 (5 minutes) we are missing the values for 14:00
+        and 14:05.
 
         Returns:
             list of missing windows.
@@ -76,8 +101,8 @@ class OrderedRingBuffer(Generic[T]):
         """Update the buffer with a new value for the given timestamp.
 
         Args:
-            timestamp: Timestamp of the new value
-            value: value to add
+            timestamp: Timestamp of the new value.
+            value: value to add.
             missing: if true, the given timestamp will be recorded as missing.
                 The value will still be written.
 
@@ -96,54 +121,131 @@ class OrderedRingBuffer(Generic[T]):
         if timestamp < self._datetime_oldest and self._datetime_oldest != datetime.max:
             return False
 
+        print(f"Normalizing {timestamp} to {self.normalize_timestamp(timestamp)}")
+
+        # adjust timestamp to be exactly on the sample period time point
+        timestamp = self.normalize_timestamp(timestamp)
+
         # Update timestamps
         prev_newest = self._datetime_newest
         self._datetime_newest = max(self._datetime_newest, timestamp)
-        self._datetime_oldest = self._datetime_newest - timedelta(
-            seconds=(len(self._buffer) - 1) * self._resampling_period_s
-        )
-
-        assert self.datetime_to_index(self._datetime_newest) != self.datetime_to_index(
-            self._datetime_oldest
-        )
+        self._datetime_oldest = self._datetime_newest - self._time_range
 
         # Update data
-        insert_index = self.datetime_to_index(timestamp)
-        self._buffer[insert_index] = value
+        self._buffer[self.datetime_to_index(timestamp)] = value
 
-        prev_newest_index = self.datetime_to_index(
-            prev_newest, allow_outside_range=True
-        )
-
-        # Update missing windows
-        if insert_index - prev_newest_index >= self.maxlen:
-            self._missing_windows.append(
-                {"start": self._datetime_oldest, "end": self._datetime_newest}
-            )
-        elif prev_newest_index + 1 < insert_index:
-            self._missing_windows.append(
-                {"start": prev_newest, "end": self._datetime_newest}
-            )
-
-        # Update list of missing windows
-        #
-        # We always append to the last pending window.
-        # A window is pending when end is None
-        if missing:
-            # Create new if no pending window
-            if len(self._missing_windows) == 0 or "end" in self._missing_windows[-1]:
-                self._missing_windows.append({"start": timestamp, "end": None})
-        elif len(self._missing_windows) > 0:
-            # Finalize a pending window
-            if "end" not in self._missing_windows[-1]:
-                self._missing_windows[-1]["end"] = timestamp
-
-        # Delete out-of-date windows
-        if len(self._missing_windows) > 0 and "end" in self._missing_windows[0]:
-            if self._missing_windows[0]["end"] <= self._datetime_oldest:
-                self._missing_windows = self._missing_windows[1:]
+        self._update_missing_windows(timestamp, prev_newest, missing)
 
         return True
+
+    def _update_missing_windows_add_gap(
+        self, timestamp: datetime, newest: datetime
+    ) -> None:
+        # Does one of the following:
+        # * Merge existing windows
+        # * enlarge existing window
+        # * create new window
+
+        one_step = timedelta(seconds=self._resampling_period_s)
+
+        def adjacent(window: tuple[int, dict]) -> bool:
+            return timestamp in (window[1]["start"] - one_step,
+                                 window[1]['end'])
+
+        adjacent_windows = list(filter(adjacent, enumerate(self._missing_windows)))
+        sorted(adjacent_windows, key=lambda x: x[1]["start"].timestamp())
+
+        # Can't have more than two adjacent windows
+        assert len(adjacent_windows) <= 2
+
+        # Adjacent to 2 windows means we merge them
+        if len(adjacent_windows) == 2:
+            assert (
+                adjacent_windows[0][1]["end"] + one_step
+                == adjacent_windows[1][1]["start"]
+            )
+            adjacent_windows[0][1]["end"] = adjacent_windows[1][1]["end"]
+            del self._missing_windows[adjacent_windows[1][0]]
+        # Otherwise enlarge the window
+        elif len(adjacent_windows) == 1:
+            if adjacent_windows[0][1]["start"] == timestamp + one_step:
+                adjacent_windows[0][1]["start"] = timestamp
+            elif adjacent_windows[0][1]["end"] == timestamp:
+                adjacent_windows[0][1]["end"] = timestamp + one_step
+        # No adjacent windows, add new entry
+        else:
+            # Create new if no pending window
+            if (
+                len(self._missing_windows) == 0
+                or self._missing_windows[-1]["end"] is not None
+            ):
+                self._missing_windows.append(
+                    {"start": timestamp, "end": timestamp + one_step}
+                )
+
+    def _update_missing_windows_remove_gap(
+        self, timestamp: datetime, newest: datetime
+    ) -> None:
+        # Replace all missing windows with one if we went far into then future
+        if self._datetime_newest - newest >= self._time_range:
+            self._missing_windows = [
+                {"start": self._datetime_oldest, "end": self._datetime_newest}
+            ]
+            return
+
+        missing_window_index, missing_window = next(
+            filter(
+                lambda window: self._in_window(window[1], timestamp),
+                enumerate(self._missing_windows),
+            ),
+            (0, None),
+        )
+
+        if missing_window is None:
+            return
+
+        one_step = timedelta(seconds=self._resampling_period_s)
+
+        if missing_window["start"] == timestamp:
+            # Is the whole window consisting only of the timestamp?
+            if missing_window["end"] == timestamp + one_step:
+                del self._missing_windows[missing_window_index]
+            # Otherwise, make the window smaller
+            else:
+                missing_window["start"] = timestamp + one_step
+        # Is the timestamp at the end? Shrinken by one then
+        elif (
+            missing_window["end"] is not None
+            and missing_window["end"] - one_step == timestamp
+        ):
+            missing_window["end"] = timestamp
+        # Otherwise it must be in the middle and we need to create a new
+        # missing window
+        else:
+            new_window = deepcopy(missing_window)
+            missing_window["end"] = timestamp
+            new_window["start"] = timestamp + one_step
+            assert not self.is_missing(timestamp)
+            self._missing_windows.append(new_window)
+
+    def _update_missing_windows(
+        self, timestamp: datetime, newest: datetime, missing: bool
+    ) -> None:
+        currently_missing = self.is_missing(timestamp)
+
+        # New missing entry that is not already in a window?
+        if missing:
+            if not currently_missing:
+                self._update_missing_windows_add_gap(timestamp, newest)
+        elif len(self._missing_windows) > 0:
+            if currently_missing:
+                self._update_missing_windows_remove_gap(timestamp, newest)
+
+        # Delete out-to-date windows
+        if len(self._missing_windows) > 0:
+            self._missing_windows[:] = filter(
+                lambda x: x["start"] >= self._datetime_oldest, self._missing_windows
+            )
 
     def datetime_to_index(
         self, timestamp: datetime, allow_outside_range: bool = False
@@ -161,6 +263,9 @@ class OrderedRingBuffer(Generic[T]):
         Returns:
             index where the value for the given timestamp can be found.
         """
+
+        timestamp = self.normalize_timestamp(timestamp)
+
         if not allow_outside_range and (
             self._datetime_newest + timedelta(seconds=1 * self._resampling_period_s)
             < timestamp
@@ -172,7 +277,7 @@ class OrderedRingBuffer(Generic[T]):
             )
 
         return self._wrap(
-            int(
+            round(
                 abs((self._time_index_alignment - timestamp).total_seconds())
                 / self._resampling_period_s
             )
@@ -220,19 +325,37 @@ class OrderedRingBuffer(Generic[T]):
             return window
 
         def in_window(window):
-            window_end = window["end"] if "end" in window else self._datetime_newest
-            if window["start"] <= start < window_end:
-                return True
-            if window["start"] <= end < window_end:
-                return True
-
-            return False
+            return self._in_window(window, start) or self._in_window(window, end)
 
         # Return a copy if there are none-values in the data
-        if any(map(in_window, self._missing_windows)) or force_copy:
+        if force_copy or any(map(in_window, self._missing_windows)):
             return deepcopy(self._buffer[start_index:end_index])
 
         return self._buffer[start_index:end_index]
+
+    def is_missing(self, timestamp: datetime) -> bool:
+        """Check if the given timestamp falls within a missing window.
+
+        Args:
+            timestamp: The timestamp to check for missing data.
+
+        Returns:
+            bool: True if the given timestamp falls within a missing window, False otherwise.
+        """
+        return any(
+            map(
+                lambda window: self._in_window(window, timestamp), self._missing_windows
+            )
+        )
+
+    def _in_window(self, window: dict, timestamp: datetime):
+        window_end = (
+            window["end"] if window["end"] is not None else self._datetime_newest
+        )
+        if window["start"] <= timestamp < window_end:
+            return True
+
+        return False
 
     def _wrap(self, index: int) -> int:
         """Normalize the given index to fit in the buffer by wrapping it around.

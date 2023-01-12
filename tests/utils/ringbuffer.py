@@ -8,14 +8,12 @@ from __future__ import annotations
 import random
 from datetime import datetime
 from itertools import cycle, islice
-from typing import TypeVar
+from typing import Any
 
 import numpy as np
 import pytest
 
 from frequenz.sdk.util.ringbuffer import OrderedRingBuffer
-
-T = TypeVar("T")
 
 RESOLUTION_IN_SECONDS = 300
 
@@ -23,14 +21,14 @@ RESOLUTION_IN_SECONDS = 300
 @pytest.mark.parametrize(
     "buffer",
     [
-        OrderedRingBuffer[int]([0] * 24 * RESOLUTION_IN_SECONDS, RESOLUTION_IN_SECONDS),
-        OrderedRingBuffer[float](
+        OrderedRingBuffer([0] * 24 * RESOLUTION_IN_SECONDS, RESOLUTION_IN_SECONDS),
+        OrderedRingBuffer(
             np.empty(shape=(24 * RESOLUTION_IN_SECONDS,), dtype=np.float64),
             RESOLUTION_IN_SECONDS,
         ),
     ],
 )
-def test_timestamp_ringbuffer(buffer: OrderedRingBuffer[float | int]) -> None:
+def test_timestamp_ringbuffer(buffer: OrderedRingBuffer[Any, Any]) -> None:
     """Test ordered ring buffer."""
     size = buffer.maxlen
 
@@ -56,11 +54,11 @@ def test_timestamp_ringbuffer(buffer: OrderedRingBuffer[float | int]) -> None:
 @pytest.mark.parametrize(
     "buffer",
     [
-        (OrderedRingBuffer[float]([0] * 24, 1)),
-        (OrderedRingBuffer[float](np.empty(shape=(24,), dtype=np.float64), 1)),
+        (OrderedRingBuffer([0] * 24, 1)),
+        (OrderedRingBuffer(np.empty(shape=(24,), dtype=np.float64), 1)),
     ],
 )
-def test_timestamp_ringbuffer_overwrite(buffer: OrderedRingBuffer[float | int]) -> None:
+def test_timestamp_ringbuffer_overwrite(buffer: OrderedRingBuffer[Any, Any]) -> None:
     """Test overwrite behavior and correctness."""
     size = buffer.maxlen
 
@@ -91,12 +89,12 @@ def test_timestamp_ringbuffer_overwrite(buffer: OrderedRingBuffer[float | int]) 
 @pytest.mark.parametrize(
     "buffer",
     [
-        (OrderedRingBuffer[float]([0] * 24, 1)),
-        (OrderedRingBuffer[float](np.empty(shape=(24,), dtype=np.float64), 1)),
+        (OrderedRingBuffer([0] * 24, 1)),
+        (OrderedRingBuffer(np.empty(shape=(24,), dtype=np.float64), 1)),
     ],
 )
 def test_timestamp_ringbuffer_missing_windows(
-    buffer: OrderedRingBuffer[float | int],
+    buffer: OrderedRingBuffer[Any, Any],
 ) -> None:
     """Test force_copy command for window()."""
     size = buffer.maxlen

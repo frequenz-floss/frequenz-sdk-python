@@ -6,7 +6,7 @@
 import random
 import timeit
 from datetime import datetime, timedelta
-from typing import TypeVar
+from typing import TypeVar, Any
 
 import numpy as np
 
@@ -19,7 +19,7 @@ MINUTES_IN_29_DAYS = 29 * MINUTES_IN_A_DAY
 T = TypeVar("T")
 
 
-def fill_buffer(days: int, buffer: OrderedRingBuffer[T], element_type: type) -> None:
+def fill_buffer(days: int, buffer: OrderedRingBuffer[T, Any], element_type: type) -> None:
     """Fill the given buffer up to the given amount of days, one sample per minute."""
     random.seed(0)
     basetime = datetime(2022, 1, 1)
@@ -33,7 +33,7 @@ def fill_buffer(days: int, buffer: OrderedRingBuffer[T], element_type: type) -> 
             )
 
 
-def test_days(days: int, buffer: OrderedRingBuffer[int]) -> None:
+def test_days(days: int, buffer: OrderedRingBuffer[int, Any]) -> None:
     """Fills a buffer completely up and then gets the data for each of the 29 days."""
     print(".", end="", flush=True)
 
@@ -48,7 +48,7 @@ def test_days(days: int, buffer: OrderedRingBuffer[int]) -> None:
         )
 
 
-def test_slices(days: int, buffer: OrderedRingBuffer[T]) -> None:
+def test_slices(days: int, buffer: OrderedRingBuffer[T, Any]) -> None:
     """Benchmark slicing.
 
     Takes a buffer, fills it up and then excessively gets
