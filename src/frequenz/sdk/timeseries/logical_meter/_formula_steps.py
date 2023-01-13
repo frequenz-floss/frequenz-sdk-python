@@ -31,7 +31,7 @@ class FormulaStep(ABC):
         """
 
     @abstractmethod
-    def apply(self, eval_stack: List[Optional[float]]) -> None:
+    def apply(self, eval_stack: List[float]) -> None:
         """Apply a formula operation on the eval_stack.
 
         Args:
@@ -50,7 +50,7 @@ class Adder(FormulaStep):
         """
         return "+"
 
-    def apply(self, eval_stack: List[Optional[float]]) -> None:
+    def apply(self, eval_stack: List[float]) -> None:
         """Extract two values from the stack, add them, push the result back in.
 
         Args:
@@ -73,7 +73,7 @@ class Subtractor(FormulaStep):
         """
         return "-"
 
-    def apply(self, eval_stack: List[Optional[float]]) -> None:
+    def apply(self, eval_stack: List[float]) -> None:
         """Extract two values from the stack, subtract them, push the result back in.
 
         Args:
@@ -96,7 +96,7 @@ class Multiplier(FormulaStep):
         """
         return "*"
 
-    def apply(self, eval_stack: List[Optional[float]]) -> None:
+    def apply(self, eval_stack: List[float]) -> None:
         """Extract two values from the stack, multiply them, push the result back in.
 
         Args:
@@ -119,7 +119,7 @@ class Divider(FormulaStep):
         """
         return "/"
 
-    def apply(self, eval_stack: List[Optional[float]]) -> None:
+    def apply(self, eval_stack: List[float]) -> None:
         """Extract two values from the stack, divide them, push the result back in.
 
         Args:
@@ -168,7 +168,7 @@ class Averager(FormulaStep):
         """
         return f"avg({', '.join(repr(f) for f in self._fetchers)})"
 
-    def apply(self, eval_stack: List[Optional[float]]) -> None:
+    def apply(self, eval_stack: List[float]) -> None:
         """Calculate average of given metrics, push the average to the eval_stack.
 
         Args:
@@ -243,7 +243,7 @@ class MetricFetcher(FormulaStep):
         """
         return self._name
 
-    def apply(self, eval_stack: List[Optional[float]]) -> None:
+    def apply(self, eval_stack: List[float]) -> None:
         """Push the latest value from the stream into the evaluation stack.
 
         Args:
@@ -262,4 +262,4 @@ class MetricFetcher(FormulaStep):
             else:
                 eval_stack.append(float("NaN"))
         else:
-            eval_stack.append(self._next_value.value)
+            eval_stack.append(next_value)

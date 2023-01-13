@@ -126,7 +126,7 @@ class FormulaEngine:
             RuntimeError: if some samples didn't arrive, or if formula application
                 failed.
         """
-        eval_stack: List[Optional[float]] = []
+        eval_stack: List[float] = []
         ready_metrics, pending = await asyncio.wait(
             [
                 asyncio.create_task(fetcher.fetch_next(), name=name)
