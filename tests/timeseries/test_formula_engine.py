@@ -67,7 +67,10 @@ class TestFormulaEngine:
                 builder.push_oper(token.value)
         engine = builder.build()
 
-        assert repr(engine._steps) == postfix  # pylint: disable=protected-access
+        assert (
+            repr(engine._evaluator._steps)  # pylint: disable=protected-access
+            == postfix
+        )
 
         now = datetime.now()
         tests_passed = 0
@@ -81,7 +84,9 @@ class TestFormulaEngine:
                     ]
                 )
             )
-            next_val = await engine._apply()  # pylint: disable=protected-access
+            next_val = (
+                await engine._evaluator.apply()  # pylint: disable=protected-access
+            )
             assert (next_val).value == io_output
             tests_passed += 1
         await engine._stop()  # pylint: disable=protected-access
@@ -575,7 +580,9 @@ class TestFormulaAverager:
                     ]
                 )
             )
-            next_val = await engine._apply()  # pylint: disable=protected-access
+            next_val = (
+                await engine._evaluator.apply()  # pylint: disable=protected-access
+            )
             assert (next_val).value == io_output
             tests_passed += 1
         await engine._stop()  # pylint: disable=protected-access

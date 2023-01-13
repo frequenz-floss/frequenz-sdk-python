@@ -44,11 +44,8 @@ _operator_precedence = {
 }
 
 
-class FormulaEngine:
-    """A post-fix formula engine that operates on `Sample` receivers.
-
-    Use the `FormulaBuilder` to create `FormulaEngine` instances.
-    """
+class FormulaEvaluator:
+    """A post-fix formula evaluator that operates on `Sample` receivers."""
 
     def __init__(
         self,
@@ -67,8 +64,6 @@ class FormulaEngine:
         self._steps = steps
         self._metric_fetchers = metric_fetchers
         self._first_run = True
-        self._channel = FormulaChannel(self._name, self)
-        self._task = None
 
     async def _synchronize_metric_timestamps(
         self, metrics: Set[asyncio.Task[Optional[Sample]]]
@@ -117,7 +112,7 @@ class FormulaEngine:
         self._first_run = False
         return latest_ts
 
-    async def _apply(self) -> Sample:
+    async def apply(self) -> Sample:
         """Fetch the latest metrics, apply the formula once and return the result.
 
         Returns:
@@ -162,11 +157,37 @@ class FormulaEngine:
 
         return Sample(metric_ts, res)
 
+
+class FormulaEngine:
+    """
+    The FormulaEngine evaluates formulas and streams the results.
+
+    Use the `FormulaBuilder` to create `FormulaEngine` instances.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        steps: List[FormulaStep],
+        metric_fetchers: Dict[str, MetricFetcher],
+    ) -> None:
+        """Create a `FormulaEngine` instance.
+
+        Args:
+            name: A name for the formula.
+            steps: Steps for the engine to execute, in post-fix order.
+            metric_fetchers: Fetchers for each metric stream the formula depends on.
+        """
+        self._name = name
+        self._channel = FormulaChannel(self._name, self)
+        self._task = None
+        self._evaluator = FormulaEvaluator(name, steps, metric_fetchers)
+
     async def _run(self) -> None:
         sender = self._channel.new_sender()
         while True:
             try:
-                msg = await self._apply()
+                msg = await self._evaluator.apply()
             except asyncio.CancelledError:
                 logger.exception("FormulaEngine task cancelled: %s", self._name)
                 break
