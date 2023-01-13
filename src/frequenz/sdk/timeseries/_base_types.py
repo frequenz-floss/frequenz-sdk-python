@@ -26,3 +26,25 @@ class Sample:
 
     value: Optional[float] = field(compare=False, default=None)
     """The value of this sample."""
+
+
+@dataclass(frozen=True)
+class Sample3Phase:
+    """A 3-phase measurement made at a particular point in time.
+
+    Each of the `value` fields could be `None` if a component is malfunctioning
+    or data is lacking for another reason, but a sample still needs to be sent
+    to have a coherent view on a group of component metrics for a particular
+    timestamp.
+    """
+
+    timestamp: datetime
+    """The time when this sample was generated."""
+    value_p1: Optional[float]
+    """The value of the 1st phase in this sample."""
+
+    value_p2: Optional[float]
+    """The value of the 2nd phase in this sample."""
+
+    value_p3: Optional[float]
+    """The value of the 3rd phase in this sample."""
