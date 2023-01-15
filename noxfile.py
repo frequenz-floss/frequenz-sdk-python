@@ -10,6 +10,36 @@ https://nox.thea.codes/en/stable/
 from typing import List
 
 import nox
+import toml
+
+
+def min_dependencies() -> List[str]:
+    """Extract the minimum dependencies from pyproject.toml.
+
+    Raises:
+        Exception: If minimun dependencies are not properly
+            set in pyproject.toml.
+
+    Returns:
+        the minimun dependencies defined in pyproject.toml.
+
+    """
+    with open("pyproject.toml", "r", encoding="utf-8") as toml_file:
+        data = toml.load(toml_file)
+
+    dependencies = data.get("project", {}).get("dependencies", {})
+    if not dependencies:
+        raise Exception(f"No dependencies found in file: {toml_file.name}")
+
+    min_deps: List[str] = []
+    for dep in dependencies:
+        min_dep = dep.split(",")[0]
+        if any(op in min_dep for op in (">=", "==")):
+            min_deps.append(min_dep.replace(">=", "=="))
+        else:
+            raise Exception(f"Minimum requirement is not set: {dep}")
+    return min_deps
+
 
 FMT_DEPS = ["black", "isort"]
 DOCSTRING_DEPS = ["pydocstyle", "darglint"]
@@ -22,6 +52,7 @@ PYTEST_DEPS = [
     "async-solipsism",
 ]
 MYPY_DEPS = ["mypy", "pandas-stubs", "grpc-stubs"]
+MIN_DEPS = min_dependencies()
 
 
 def _source_file_paths(session: nox.Session) -> List[str]:
@@ -220,7 +251,7 @@ def pytest_min(session: nox.Session, install_deps: bool = True) -> None:
     if install_deps:
         # install the package itself as editable, so that it is possible to do
         # fast local tests with `nox -R -e pytest_min`.
-        session.install("-e", ".", *PYTEST_DEPS, "-r", "minimum-requirements-ci.txt")
+        session.install("-e", ".", *PYTEST_DEPS, *MIN_DEPS)
 
     _pytest_impl(session, "min")
 
