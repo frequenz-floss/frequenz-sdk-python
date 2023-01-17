@@ -5,12 +5,13 @@
 
 import sys
 from abc import ABC, abstractmethod
+from typing import Generic
 
 from frequenz.channels import Sender
 
 from ....actor import ChannelRegistry, ComponentMetricRequest
 from ....microgrid.component import ComponentMetricId
-from .._formula_engine import FormulaEngine
+from .._formula_engine import _GenericEngine
 from .._resampled_formula_builder import ResampledFormulaBuilder
 
 
@@ -25,7 +26,7 @@ class ComponentNotFound(FormulaGenerationError):
 NON_EXISTING_COMPONENT_ID = sys.maxsize
 
 
-class FormulaGenerator(ABC):
+class FormulaGenerator(ABC, Generic[_GenericEngine]):
     """A class for generating formulas from the component graph."""
 
     def __init__(
@@ -60,5 +61,5 @@ class FormulaGenerator(ABC):
         return builder
 
     @abstractmethod
-    async def generate(self) -> FormulaEngine:
+    async def generate(self) -> _GenericEngine:
         """Generate a formula engine, based on the component graph."""
