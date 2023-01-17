@@ -19,7 +19,7 @@ from frequenz.channels import Broadcast, Receiver
 from frequenz.channels._broadcast import Receiver as BroadcastReceiver
 
 from ..._internal.asyncio import cancel_and_await
-from .. import Sample
+from .. import Sample, Sample3Phase
 from ._formula_steps import (
     Adder,
     Averager,
@@ -222,6 +222,72 @@ class FormulaEngine:
         return self._channel.new_receiver(name, max_size)
 
 
+class FormulaEngine3Phase:
+    """
+    The FormulaEngine evaluates formulas and streams the results.
+
+    Use the `FormulaBuilder` to create `FormulaEngine` instances.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        phase_streams: Tuple[FormulaReceiver, FormulaReceiver, FormulaReceiver],
+    ) -> None:
+        """Create a `FormulaEngine` instance.
+
+        Args:
+            name: A name for the formula.
+            phase_streams: output streams of formula engines running per-phase formulas.
+        """
+        self._name = name
+        self._channel = FormulaChannel3Phase(self._name, self)
+        self._task = None
+        self._streams = phase_streams
+
+    async def _run(self) -> None:
+        sender = self._channel.new_sender()
+        while True:
+            try:
+                phase_1 = await self._streams[0].receive()
+                phase_2 = await self._streams[1].receive()
+                phase_3 = await self._streams[2].receive()
+                msg = Sample3Phase(
+                    phase_1.timestamp,
+                    phase_1.value,
+                    phase_2.value,
+                    phase_3.value,
+                )
+            except asyncio.CancelledError:
+                logger.exception("FormulaEngine task cancelled: %s", self._name)
+                break
+            else:
+                await sender.send(msg)
+
+    async def _stop(self) -> None:
+        """Stop a running formula engine."""
+        if self._task is None:
+            return
+        await cancel_and_await(self._task)
+
+    def new_receiver(
+        self, name: Optional[str] = None, max_size: int = 50
+    ) -> FormulaReceiver3Phase:
+        """Create a new receiver that streams the output of the formula engine.
+
+        Args:
+            name: An optional name for the receiver.
+            max_size: The size of the receiver's buffer.
+
+        Returns:
+            A receiver that streams output `Sample`s from the formula engine.
+        """
+        if self._task is None:
+            self._task = asyncio.create_task(self._run())
+
+        return self._channel.new_receiver(name, max_size)
+
+
 class FormulaBuilder:
     """Builds a post-fix formula engine that operates on `Sample` receivers.
 
@@ -332,11 +398,19 @@ class FormulaBuilder:
         return FormulaEngine(self._name, self._steps, self._metric_fetchers)
 
 
-_GenericSample = TypeVar("_GenericSample")
-_GenericEngine = TypeVar("_GenericEngine")
-_GenericFormulaChannel = TypeVar("_GenericFormulaChannel")
-_GenericFormulaReceiver = TypeVar("_GenericFormulaReceiver")
-_GenericHOFormulaBuilder = TypeVar("_GenericHOFormulaBuilder")
+_GenericSample = TypeVar("_GenericSample", Sample, Sample3Phase)
+_GenericEngine = TypeVar("_GenericEngine", FormulaEngine, FormulaEngine3Phase)
+_GenericFormulaChannel = TypeVar(
+    "_GenericFormulaChannel", "FormulaChannel", "FormulaChannel3Phase"
+)
+_GenericFormulaReceiver = TypeVar(
+    "_GenericFormulaReceiver", "FormulaReceiver", "FormulaReceiver3Phase"
+)
+_GenericHOFormulaBuilder = TypeVar(
+    "_GenericHOFormulaBuilder",
+    "HigherOrderFormulaBuilder",
+    "HigherOrderFormulaBuilder3Phase",
+)
 
 
 class _BaseFormulaChannel(
@@ -346,7 +420,7 @@ class _BaseFormulaChannel(
 ):
     """A broadcast channel implementation for use with formulas."""
 
-    ReceiverType: Type[FormulaReceiver]
+    ReceiverType: Type[FormulaReceiver | FormulaReceiver3Phase]
 
     def __init__(
         self, name: str, engine: _GenericEngine, resend_latest: bool = False
@@ -408,7 +482,7 @@ class _BaseFormulaReceiver(
     formulas.
     """
 
-    BuilderType: Type[HigherOrderFormulaBuilder]
+    BuilderType: Type[HigherOrderFormulaBuilder | HigherOrderFormulaBuilder3Phase]
 
     def __init__(
         self,
@@ -676,13 +750,69 @@ class HigherOrderFormulaBuilder(
         return self._engine
 
 
+class HigherOrderFormulaBuilder3Phase(
+    _BaseHOFormulaBuilder["FormulaReceiver3Phase", Sample3Phase, FormulaEngine3Phase]
+):
+    """A specialization of the _BaseHOFormulaBuilder for `FormulaReceiver3Phase`."""
+
+    def build(self, name: str, nones_are_zeros: bool = False) -> FormulaEngine3Phase:
+        """Build a `FormulaEngine3Phase` instance from the builder.
+
+        Args:
+            name: A name for the newly generated formula.
+            nones_are_zeros: whether `None` values in any of the input streams should be
+                treated as zeros.
+
+        Returns:
+            A `FormulaEngine3Phase` instance.
+        """
+        builders = [FormulaBuilder(name), FormulaBuilder(name), FormulaBuilder(name)]
+        for step in self._steps:
+            if step[0] == TokenType.COMPONENT_METRIC:
+                assert isinstance(step[1], FormulaReceiver3Phase)
+                for phase in range(3):
+                    builders[phase].push_metric(
+                        f"{step[1].name}-{phase+1}",
+                        step[1]  # pylint: disable=protected-access
+                        .engine._streams[phase]
+                        .clone(),
+                        nones_are_zeros,
+                    )
+                step[1]._deactivate()  # pylint: disable=protected-access
+            elif step[0] == TokenType.OPER:
+                assert isinstance(step[1], str)
+                for phase in range(3):
+                    builders[phase].push_oper(step[1])
+        self._engine = FormulaEngine3Phase(
+            name,
+            (
+                builders[0].build().new_receiver(),
+                builders[1].build().new_receiver(),
+                builders[2].build().new_receiver(),
+            ),
+        )
+        return self._engine
+
+
 class FormulaReceiver(_BaseFormulaReceiver[Sample, FormulaEngine]):
     """A specialization of the _BaseFormulaChannel for `Sample` objects."""
 
     BuilderType = HigherOrderFormulaBuilder
 
 
+class FormulaReceiver3Phase(_BaseFormulaReceiver[Sample3Phase, FormulaEngine3Phase]):
+    """A specialization of the _BaseFormulaChannel for `Sample3Phase` objects."""
+
+    BuilderType = HigherOrderFormulaBuilder3Phase
+
+
 class FormulaChannel(_BaseFormulaChannel[Sample, FormulaEngine]):
     """A specialization of the _BaseFormulaChannel for `Sample` objects."""
 
     ReceiverType = FormulaReceiver
+
+
+class FormulaChannel3Phase(_BaseFormulaChannel[Sample3Phase, FormulaEngine3Phase]):
+    """A specialization of the _BaseFormulaChannel for `Sample3Phase` objects."""
+
+    ReceiverType = FormulaReceiver3Phase
