@@ -74,23 +74,22 @@ line-length = 88
 target-version = ['py38']
 include = '\.pyi?$'
 
-[tool.pylint]
-    [tool.pylint.'SIMILARITIES']
-    ignore-comments=['yes']
-    ignore-docstrings=['yes']
-    ignore-imports=['no']
-    min-similarity-lines=40
+[tool.pylint.similarities]
+ignore-comments=['yes']
+ignore-docstrings=['yes']
+ignore-imports=['no']
+min-similarity-lines=40
 
-    [tool.pylint.messages_control]
-    disable = [
-        "too-few-public-methods",
-        # disabled because it conflicts with isort
-        "wrong-import-order",
-        "ungrouped-imports"
-    ]
+[tool.pylint.messages_control]
+disable = [
+    "too-few-public-methods",
+    # disabled because it conflicts with isort
+    "wrong-import-order",
+    "ungrouped-imports"
+]
 
-    [tool.pylint.'DESIGN']
-    max-attributes=12
+[tool.pylint.design]
+max-attributes=12
 
 [tool.isort]
 profile = "black"
