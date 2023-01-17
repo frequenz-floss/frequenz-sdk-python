@@ -362,3 +362,43 @@ class TestLogicalMeter:
         await engine._stop()  # pylint: disable=protected-access
 
         assert count == 10
+
+    async def test_3_phase_formulas(self, mocker: MockerFixture) -> None:
+        """Test 3 phase formulas current formulas and their composition."""
+        mockgrid = await MockMicrogrid.new(mocker, grid_side_meter=False)
+        mockgrid.add_batteries(3)
+        mockgrid.add_ev_chargers(1)
+        request_sender, channel_registry = await mockgrid.start()
+        logical_meter = LogicalMeter(
+            channel_registry,
+            request_sender,
+            microgrid.get().component_graph,
+        )
+        grid_current_recv = await logical_meter.grid_current()
+        ev_current_recv = await logical_meter.ev_charger_current()
+
+        engine = (grid_current_recv.clone() - ev_current_recv.clone()).build(
+            "net_current"
+        )
+        net_current_recv = engine.new_receiver()
+        for _ in range(10):
+            grid_amps = await grid_current_recv.receive()
+            ev_amps = await ev_current_recv.receive()
+            net_amps = await net_current_recv.receive()
+
+            assert grid_amps.value_p1 is not None and grid_amps.value_p1 > 0.0
+            assert grid_amps.value_p2 is not None and grid_amps.value_p2 > 0.0
+            assert grid_amps.value_p3 is not None and grid_amps.value_p3 > 0.0
+            assert ev_amps.value_p1 is not None and ev_amps.value_p1 > 0.0
+            assert ev_amps.value_p2 is not None and ev_amps.value_p2 > 0.0
+            assert ev_amps.value_p3 is not None and ev_amps.value_p3 > 0.0
+            assert net_amps.value_p1 is not None and net_amps.value_p1 > 0.0
+            assert net_amps.value_p2 is not None and net_amps.value_p2 > 0.0
+            assert net_amps.value_p3 is not None and net_amps.value_p3 > 0.0
+
+            assert net_amps.value_p1 == grid_amps.value_p1 - ev_amps.value_p1
+            assert net_amps.value_p2 == grid_amps.value_p2 - ev_amps.value_p2
+            assert net_amps.value_p3 == grid_amps.value_p3 - ev_amps.value_p3
+
+        await mockgrid.cleanup()
+        await engine._stop()  # pylint: disable=protected-access

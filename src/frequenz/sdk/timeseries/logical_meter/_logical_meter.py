@@ -15,11 +15,20 @@ from frequenz.channels import Sender
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid import ComponentGraph
 from ...microgrid.component import ComponentMetricId
-from ._formula_engine import FormulaEngine, FormulaReceiver
+from ._formula_engine import (
+    FormulaEngine,
+    FormulaEngine3Phase,
+    FormulaReceiver,
+    FormulaReceiver3Phase,
+    _GenericEngine,
+    _GenericFormulaReceiver,
+)
 from ._formula_generators import (
     BatteryPowerFormula,
     BatterySoCFormula,
+    EVChargerCurrentFormula,
     FormulaGenerator,
+    GridCurrentFormula,
     GridPowerFormula,
     PVPowerFormula,
 )
@@ -110,7 +119,7 @@ class LogicalMeter:
         # meter to use when communicating with the resampling actor.
         self._namespace = f"logical-meter-{uuid.uuid4()}"
         self._component_graph = component_graph
-        self._engines: Dict[str, FormulaEngine] = {}
+        self._engines: Dict[str, FormulaEngine | FormulaEngine3Phase] = {}
         self._tasks: List[asyncio.Task[None]] = []
 
     async def _engine_from_formula_string(
@@ -163,8 +172,8 @@ class LogicalMeter:
     async def _get_formula_stream(
         self,
         channel_key: str,
-        generator: Type[FormulaGenerator],
-    ) -> FormulaReceiver:
+        generator: Type[FormulaGenerator[_GenericEngine]],
+    ) -> _GenericFormulaReceiver:
         if channel_key in self._engines:
             return self._engines[channel_key].new_receiver()
 
@@ -186,6 +195,34 @@ class LogicalMeter:
 
         """
         return await self._get_formula_stream("grid_power", GridPowerFormula)
+
+    async def grid_current(self) -> FormulaReceiver3Phase:
+        """Fetch the grid power for the microgrid.
+
+        If a formula engine to calculate grid current is not already running, it
+        will be started.  Else, we'll just get a new receiver to the already
+        existing data stream.
+
+        Returns:
+            A *new* receiver that will stream grid_current values.
+
+        """
+        return await self._get_formula_stream("grid_current", GridCurrentFormula)
+
+    async def ev_charger_current(self) -> FormulaReceiver3Phase:
+        """Fetch the cumulative ev charger current for the microgrid.
+
+        If a formula engine to calculate ev charger current is not already
+        running, it will be started.  Else, we'll just get a new receiver to the
+        already existing data stream.
+
+        Returns:
+            A *new* receiver that will stream ev_charger_current values.
+
+        """
+        return await self._get_formula_stream(
+            "ev_charger_current", EVChargerCurrentFormula
+        )
 
     async def battery_power(self) -> FormulaReceiver:
         """Fetch the cumulative battery power in the microgrid.
