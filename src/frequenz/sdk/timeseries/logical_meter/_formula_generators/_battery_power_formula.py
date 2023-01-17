@@ -46,7 +46,7 @@ class BatteryPowerFormula(FormulaGenerator):
         )
 
         if not battery_inverters:
-            logging.warning(
+            logger.warning(
                 "Unable to find any battery inverters in the component graph. "
                 "Subscribing to the resampling actor with a non-existing "
                 "component id, so that `0` values are sent from the formula."
