@@ -17,7 +17,7 @@ from uuid import UUID, uuid4
 from frequenz.channels import Broadcast, Receiver
 from frequenz.channels._broadcast import Receiver as BroadcastReceiver
 
-from ...util.asyncio import cancel_and_await
+from ..._internal.asyncio import cancel_and_await
 from .. import Sample
 from ._formula_steps import (
     Adder,
