@@ -1,10 +1,53 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""Project's noxfile.
+"""Automation for code quality checks and unit tests for the Frequenz SDK.
 
-For more information please see nox documentation:
-https://nox.thea.codes/en/stable/
+This file specified all the checks that can be run from command line invocations
+of `nox`.
+
+The following checks are performed:
+
+1. `formatting` :: checks that the code is formatted with `black` and the imports
+   are sorted with `isort`.
+2. `mypy`       :: type checks all source files with `mypy --strict`.
+3. `pylint`     :: lints all source files with `pylint`.
+4. `docstrings` :: checks that all public functions have docstrings with
+   1. a one-line imperative description at the top, followed by additional
+      description, using `pydocstyle`.
+   2. function parameters, return values, and raised exceptions are documented
+      following the google style guide for these items:
+      https://google.github.io/styleguide/pyguide.html#doc-function-args, using
+      `darglint`.
+5. `pytest_min` :: run all unittests using `pytest`, with the oldest supported
+   versions of all dependencies installed.
+6. `pytest_max` :: run all unittests using `pytest`, with the latest supported
+   versions of all dependencies installed.
+
+Usage:
+
+1. Run all checks in a *new* venv.
+
+        nox
+
+2. Run all checks in an *exising* venv.  This would be much faster if venv for
+   all tests exist already.  If they don't exist, new venvs will be created.
+
+        nox -R
+
+3. Run a subset of available checks:
+
+        nox -e mypy pylint    # create new venvs for specified checks.
+        nox -R -e mypy pylint # reuse venvs for specified checks if available.
+
+4. The `pytest_min` and `pytest_max` checks run `pytest` on all available tests,
+   including test coverage generation.  But this can be slow for fast local
+   test-devlop cycles, and so `pytest` can also be invoked with optional custom
+   arguments, in which case, only the specified arguments are passed to
+   `pytest`.  This can be done as follows:
+
+        nox -R -e pytest_min [-- <args for pytest>]
+        nox -R -e pytest_min -- -s -x tests/timeseries/test_logical_meter.py
 """
 
 from typing import List
