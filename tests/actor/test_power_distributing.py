@@ -94,7 +94,7 @@ class TestPowerDistributingActor:
 
             assert distributor._bat_inv_map == {106: 105, 206: 205, 306: 305}
             assert distributor._inv_bat_map == {105: 106, 205: 206, 305: 306}
-            await distributor._stop()  # type: ignore # pylint: disable=no-member
+            await distributor._stop_actor()
 
     async def init_mock_microgrid(self) -> MockMicrogridClient:
         """Create mock microgrid and send initial data from the components.
@@ -158,7 +158,7 @@ class TestPowerDistributingActor:
             [asyncio.create_task(client_handle.receive())],
             timeout=SAFETY_TIMEOUT,
         )
-        await distributor._stop()  # type: ignore # pylint: disable=no-member
+        await distributor._stop_actor()
 
         assert len(pending) == 0
         assert len(done) == 1
@@ -215,7 +215,7 @@ class TestPowerDistributingActor:
             ],
             timeout=SAFETY_TIMEOUT,
         )
-        await distributor._stop()  # type: ignore # pylint: disable=no-member
+        await distributor._stop_actor()
 
         assert len(pending) == 0
         assert len(done) == 2
@@ -257,7 +257,7 @@ class TestPowerDistributingActor:
             [asyncio.create_task(user1_handle.receive())],
             timeout=SAFETY_TIMEOUT,
         )
-        await distributor._stop()  # type: ignore # pylint: disable=no-member
+        await distributor._stop_actor()
 
         assert len(done) == 1
         result: Result = done.pop().result()
@@ -328,7 +328,7 @@ class TestPowerDistributingActor:
             ],
             timeout=SAFETY_TIMEOUT,
         )
-        await distributor._stop()  # type: ignore # pylint: disable=no-member
+        await distributor._stop_actor()
 
         assert len(done) == 3
         success, ignored = 0, 0
@@ -382,7 +382,7 @@ class TestPowerDistributingActor:
             [asyncio.create_task(user1_handle.receive())],
             timeout=SAFETY_TIMEOUT,
         )
-        await distributor._stop()  # type: ignore # pylint: disable=no-member
+        await distributor._stop_actor()
 
         assert len(pending) == 0
         assert len(done) == 1
@@ -430,7 +430,7 @@ class TestPowerDistributingActor:
             [asyncio.create_task(user1_handle.receive())],
             timeout=SAFETY_TIMEOUT,
         )
-        await distributor._stop()  # type: ignore # pylint: disable=no-member
+        await distributor._stop_actor()
 
         assert len(pending) == 0
         assert len(done) == 1
@@ -478,7 +478,7 @@ class TestPowerDistributingActor:
             [asyncio.create_task(user1_handle.receive())],
             timeout=SAFETY_TIMEOUT,
         )
-        await distributor._stop()  # type: ignore # pylint: disable=no-member
+        await distributor._stop_actor()
 
         assert len(pending) == 0
         assert len(done) == 1
@@ -520,7 +520,7 @@ class TestPowerDistributingActor:
             [asyncio.create_task(client_handle.receive())],
             timeout=SAFETY_TIMEOUT,
         )
-        await distributor._stop()  # type: ignore # pylint: disable=no-member
+        await distributor._stop_actor()
 
         assert len(pending) == 0
         assert len(done) == 1
