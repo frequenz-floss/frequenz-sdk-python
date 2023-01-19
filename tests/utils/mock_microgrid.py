@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 from frequenz.channels import Broadcast, Receiver
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
+from pytest_mock import MockerFixture
 
 from frequenz.sdk.microgrid import Microgrid
 from frequenz.sdk.microgrid._graph import ComponentGraph, _MicrogridComponentGraph
@@ -55,6 +56,17 @@ class MockMicrogridClient:
             id: channel.new_sender() for id, channel in inv_channels.items()
         }
 
+    async def initialize(self, mocker: MockerFixture) -> None:
+        """Mock `microgrid.get` call to return this mock_microgrid.
+
+        Args:
+            mocker: mocker from the current test
+        """
+        # Mock _MICROGRID, so `get` method return this mocked microgrid.
+        mocker.patch(
+            "frequenz.sdk.microgrid._microgrid._MICROGRID", self.mock_microgrid
+        )
+
     @property
     def mock_microgrid(self) -> Microgrid:
         """Return mock microgrid.
@@ -92,8 +104,10 @@ class MockMicrogridClient:
         cid = data.component_id
         if isinstance(data, BatteryData):
             return await self._battery_data_senders[cid].send(data)
+        if isinstance(data, InverterData):
+            return await self._inverter_data_senders[cid].send(data)
 
-        return await self._inverter_data_senders[cid].send(data)
+        raise RuntimeError(f"{type(data)} is not supported in MockMicrogridClient.")
 
     def _create_battery_channels(self) -> Dict[int, Broadcast[BatteryData]]:
         """Create channels for the batteries.

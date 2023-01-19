@@ -6,7 +6,6 @@ import asyncio
 import re
 from dataclasses import dataclass
 from typing import Set, Tuple, TypeVar
-from unittest import mock
 from unittest.mock import AsyncMock, MagicMock
 
 from frequenz.channels import Bidirectional, Receiver, Sender
@@ -81,22 +80,20 @@ class TestPowerDistributingActor:
         }
         return components, connections
 
-    async def test_constructor(self) -> None:
+    async def test_constructor(self, mocker: MockerFixture) -> None:
         """Test if gets all necessary data."""
         components, connections = self.component_graph()
         mock_microgrid = MockMicrogridClient(components, connections)
+        await mock_microgrid.initialize(mocker)
 
-        with mock.patch(
-            "frequenz.sdk.microgrid.get", return_value=mock_microgrid.mock_microgrid
-        ):
-            channel = Bidirectional[Request, Result]("user1", "power_distributor")
-            distributor = PowerDistributingActor({"user1": channel.service_handle})
+        channel = Bidirectional[Request, Result]("user1", "power_distributor")
+        distributor = PowerDistributingActor({"user1": channel.service_handle})
 
-            assert distributor._bat_inv_map == {106: 105, 206: 205, 306: 305}
-            assert distributor._inv_bat_map == {105: 106, 205: 206, 305: 306}
-            await distributor._stop_actor()
+        assert distributor._bat_inv_map == {106: 105, 206: 205, 306: 305}
+        assert distributor._inv_bat_map == {105: 106, 205: 206, 305: 306}
+        await distributor._stop_actor()
 
-    async def init_mock_microgrid(self) -> MockMicrogridClient:
+    async def init_mock_microgrid(self, mocker: MockerFixture) -> MockMicrogridClient:
         """Create mock microgrid and send initial data from the components.
 
         Returns:
@@ -104,8 +101,9 @@ class TestPowerDistributingActor:
         """
         components, connections = self.component_graph()
         microgrid = MockMicrogridClient(components, connections)
-        graph = microgrid.component_graph
+        await microgrid.initialize(mocker)
 
+        graph = microgrid.component_graph
         for battery in graph.components(component_category={ComponentCategory.BATTERY}):
             assert await microgrid.send(
                 battery_msg(
@@ -130,7 +128,7 @@ class TestPowerDistributingActor:
     async def test_power_distributor_one_user(self, mocker: MockerFixture) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution works with single user works."""
-        microgrid = await self.init_mock_microgrid()
+        await self.init_mock_microgrid(mocker)
 
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
 
@@ -141,10 +139,6 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        mocker.patch(
-            "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
-        )
-
         distributor = PowerDistributingActor({"user1": channel.service_handle})
 
         # Mock that all requested batteries are working.
@@ -172,7 +166,7 @@ class TestPowerDistributingActor:
     async def test_power_distributor_two_users(self, mocker: MockerFixture) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution works with two users."""
-        microgrid = await self.init_mock_microgrid()
+        await self.init_mock_microgrid(mocker)
 
         channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
         channel2 = Bidirectional[Request, Result]("user2", "power_distributor")
@@ -182,9 +176,6 @@ class TestPowerDistributingActor:
         }
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        mocker.patch(
-            "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
-        )
 
         distributor = PowerDistributingActor(service_channels)
 
@@ -228,7 +219,7 @@ class TestPowerDistributingActor:
     ) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution raises error if any battery id is invalid."""
-        microgrid = await self.init_mock_microgrid()
+        await self.init_mock_microgrid(mocker)
 
         channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
         service_channels = {
@@ -240,9 +231,6 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        mocker.patch(
-            "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
-        )
 
         distributor = PowerDistributingActor(service_channels)
 
@@ -271,7 +259,7 @@ class TestPowerDistributingActor:
     ) -> None:
         # pylint: disable=too-many-locals
         """Test if requests with overlapping set of batteries are processed."""
-        microgrid = await self.init_mock_microgrid()
+        await self.init_mock_microgrid(mocker)
 
         channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
         channel2 = Bidirectional[Request, Result]("user2", "power_distributor")
@@ -283,9 +271,6 @@ class TestPowerDistributingActor:
         }
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        mocker.patch(
-            "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
-        )
 
         distributor = PowerDistributingActor(service_channels)
 
@@ -350,7 +335,7 @@ class TestPowerDistributingActor:
     ) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution works with single user works."""
-        microgrid = await self.init_mock_microgrid()
+        await self.init_mock_microgrid(mocker)
 
         channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
         service_channels = {
@@ -365,9 +350,6 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        mocker.patch(
-            "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
-        )
 
         distributor = PowerDistributingActor(service_channels)
 
@@ -398,7 +380,7 @@ class TestPowerDistributingActor:
     ) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution works with single user works."""
-        microgrid = await self.init_mock_microgrid()
+        await self.init_mock_microgrid(mocker)
 
         channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
         service_channels = {
@@ -413,9 +395,6 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        mocker.patch(
-            "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
-        )
 
         distributor = PowerDistributingActor(service_channels)
 
@@ -446,7 +425,7 @@ class TestPowerDistributingActor:
     ) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution works with single user works."""
-        microgrid = await self.init_mock_microgrid()
+        await self.init_mock_microgrid(mocker)
 
         channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
         service_channels = {
@@ -461,9 +440,6 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        mocker.patch(
-            "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
-        )
 
         distributor = PowerDistributingActor(service_channels)
 
@@ -492,7 +468,7 @@ class TestPowerDistributingActor:
     async def test_not_all_batteries_are_working(self, mocker: MockerFixture) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution works if not all batteries are working."""
-        microgrid = await self.init_mock_microgrid()
+        await self.init_mock_microgrid(mocker)
 
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
 
@@ -501,9 +477,6 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        mocker.patch(
-            "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
-        )
 
         distributor = PowerDistributingActor({"user1": channel.service_handle})
 
