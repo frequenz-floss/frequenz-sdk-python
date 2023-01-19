@@ -1,17 +1,15 @@
 # License: MIT
-# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+# Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
 """Tests power distributor"""
 import asyncio
 import re
 from dataclasses import dataclass
-from functools import partial
-from typing import Dict, Set, Tuple, TypeVar, Union
+from typing import Set, Tuple, TypeVar
 from unittest import IsolatedAsyncioTestCase, mock
 from unittest.mock import AsyncMock, MagicMock
 
-from frequenz.channels import Bidirectional, Broadcast, Receiver, Sender
-from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
+from frequenz.channels import Bidirectional, Receiver, Sender
 
 from frequenz.sdk.actor.power_distributing import PowerDistributingActor, Request
 from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
@@ -22,23 +20,12 @@ from frequenz.sdk.actor.power_distributing.result import (
     Result,
     Success,
 )
-from frequenz.sdk.microgrid import Microgrid
-from frequenz.sdk.microgrid._graph import _MicrogridComponentGraph
 from frequenz.sdk.microgrid.client import Connection
-from frequenz.sdk.microgrid.component import (
-    BatteryData,
-    Component,
-    ComponentCategory,
-    InverterData,
-)
+from frequenz.sdk.microgrid.component import Component, ComponentCategory
 
 from ..conftest import SAFETY_TIMEOUT
-from ..power.test_distribution_algorithm import (
-    Bound,
-    Metric,
-    create_battery_msg,
-    create_inverter_msg,
-)
+from ..power.test_distribution_algorithm import Bound, Metric, battery_msg, inverter_msg
+from ..utils.mock_microgrid import MockMicrogridClient
 
 T = TypeVar("T")  # Declare type variable
 
@@ -56,104 +43,14 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
     # pylint: disable=protected-access
     """Test tool to distribute power"""
 
-    def create_bat_channels(
-        self, components: Set[Component]
-    ) -> Dict[int, Broadcast[BatteryData]]:
-        """Create channels for the given components.
-
-        Args:
-            components: set of components.
-
-        Returns:
-            Dictionary where the key is battery id and the value is channel for this
-                battery.
-        """
-        bat_components = [
-            c for c in components if c.category == ComponentCategory.BATTERY
-        ]
-        bat_channels: Dict[int, Broadcast[BatteryData]] = {
-            c.component_id: Broadcast[BatteryData]("bat" + str(c.component_id))
-            for c in bat_components
-        }
-        return bat_channels
-
-    def create_inv_channels(
-        self, components: Set[Component]
-    ) -> Dict[int, Broadcast[InverterData]]:
-        """Create channels for the given components.
-
-        Args:
-            components: set of components.
-
-        Returns:
-            Dictionary where the key is inverter id and the value is channel for this
-                inverter.
-        """
-
-        inv_components = [
-            c for c in components if c.category == ComponentCategory.INVERTER
-        ]
-        inv_channels: Dict[int, Broadcast[InverterData]] = {
-            c.component_id: Broadcast[InverterData]("bat" + str(c.component_id))
-            for c in inv_components
-        }
-        return inv_channels
-
-    def return_channel(
-        self,
-        component_id: int,
-        channels: Dict[int, Broadcast[Union[BatteryData, InverterData]]],
-    ) -> Receiver[Union[BatteryData, InverterData]]:
-        """Return receiver of the broadcast channel for given component_id.
-
-        Args:
-            component_id (int): component_id
-            channels (Dict[int, Broadcast[Union[BatteryData, InverterData]]]): Broadcast channels
-
-        Returns:
-            Receiver[Union[BatteryData, InverterData]]: Receiver from the given
-                channels.
-        """
-        return channels[component_id].new_receiver("component" + str(component_id))
-
-    def mock_api(
-        self,
-        components: Set[Component],
-        bat_channel: Dict[int, Broadcast[BatteryData]],
-        inv_channel: Dict[int, Broadcast[InverterData]],
-    ) -> MagicMock:
-        """Create mock of MicrogridApiClient.
-
-        Args:
-            components: set of components.
-            bat_channel: battery channels to be returned from
-                MicrogridApiClient.battery_data.
-            inv_channel: inverter channels to be returned from
-                MicrogridApiClient.inverter_data.
-
-        Returns:
-            Magic mock instance of MicrogridApiClient.
-        """
-        api = MagicMock()
-        api.components = AsyncMock(return_value=components)
-        api.battery_data = AsyncMock(
-            side_effect=partial(self.return_channel, channels=bat_channel)
-        )
-
-        api.inverter_data = AsyncMock(
-            side_effect=partial(self.return_channel, channels=inv_channel)
-        )
-        api.set_power = AsyncMock(return_value=Empty)
-        return api
-
-    def default_components_graph(self) -> Tuple[Set[Component], Set[Connection]]:
-        """Create components graph and connections between them.
+    def component_graph(self) -> Tuple[Set[Component], Set[Connection]]:
+        """Create graph components
 
         Returns:
             Tuple where first element is set of components and second element is
                 set of connections.
         """
-        components: Set[Component] = {
+        components = {
             Component(1, ComponentCategory.GRID),
             Component(2, ComponentCategory.METER),
             Component(3, ComponentCategory.JUNCTION),
@@ -167,6 +64,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             Component(305, ComponentCategory.INVERTER),
             Component(306, ComponentCategory.BATTERY),
         }
+
         connections = {
             Connection(1, 2),
             Connection(2, 3),
@@ -182,35 +80,14 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         }
         return components, connections
 
-    def create_mock_microgrid(
-        self,
-    ) -> Tuple[
-        Microgrid, Dict[int, Broadcast[BatteryData]], Dict[int, Broadcast[InverterData]]
-    ]:
-        """Create mock microgrid.
-
-        Returns:
-            Tuple with:
-                * mock microgrid instance
-                * channels for all batteries in microgrid
-                * channels for all inverters in microgrid
-        """
-        components, connections = self.default_components_graph()
-        graph = _MicrogridComponentGraph(components, connections)
-        bat_channels = self.create_bat_channels(components)
-        inv_channels = self.create_inv_channels(components)
-        mock_api = self.mock_api(components, bat_channels, inv_channels)
-
-        kwargs = {"api_client": mock_api, "component_graph": graph}
-        mock_microgrid = MagicMock(spec=Microgrid, **kwargs)
-
-        return mock_microgrid, bat_channels, inv_channels
-
     async def test_constructor(self) -> None:
         """Test if gets all necessary data."""
-        mock_microgrid, _, _ = self.create_mock_microgrid()
+        components, connections = self.component_graph()
+        mock_microgrid = MockMicrogridClient(components, connections)
 
-        with mock.patch("frequenz.sdk.microgrid.get", return_value=mock_microgrid):
+        with mock.patch(
+            "frequenz.sdk.microgrid.get", return_value=mock_microgrid.mock_microgrid
+        ):
             channel = Bidirectional[Request, Result]("user1", "power_distributor")
             distributor = PowerDistributingActor({"user1": channel.service_handle})
 
@@ -218,30 +95,43 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             assert distributor._inv_bat_map == {105: 106, 205: 206, 305: 306}
             await distributor._stop()  # type: ignore # pylint: disable=no-member
 
+    async def init_mock_microgrid(self) -> MockMicrogridClient:
+        """Create mock microgrid and send initial data from the components.
+
+        Returns:
+            Mock microgrid instance.
+        """
+        components, connections = self.component_graph()
+        microgrid = MockMicrogridClient(components, connections)
+        graph = microgrid.component_graph
+
+        for battery in graph.components(component_category={ComponentCategory.BATTERY}):
+            assert await microgrid.send(
+                battery_msg(
+                    battery.component_id,
+                    capacity=Metric(98000),
+                    soc=Metric(40, Bound(20, 80)),
+                    power=Bound(-1000, 1000),
+                )
+            )
+
+        inverters = graph.components(component_category={ComponentCategory.INVERTER})
+        for inverter in inverters:
+            assert await microgrid.send(
+                inverter_msg(
+                    inverter.component_id,
+                    power=Bound(-500, 500),
+                )
+            )
+
+        return microgrid
+
     async def test_power_distributor_one_user(
         self,
     ) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution works with single user works."""
-        mock_microgrid, bat_channels, inv_channels = self.create_mock_microgrid()
-
-        for key_id, chan in bat_channels.items():
-            sender = chan.new_sender()
-            bat = create_battery_msg(
-                key_id,
-                capacity=Metric(98000),
-                soc=Metric(40, Bound(20, 80)),
-                power=Bound(-1000, 1000),
-            )
-            await sender.send(BatteryData.from_proto(bat))
-
-        for key_id, inv_chan in inv_channels.items():
-            inv_sender = inv_chan.new_sender()
-            inv = create_inverter_msg(
-                key_id,
-                power=Bound(-500, 500),
-            )
-            await inv_sender.send(InverterData.from_proto(inv))
+        microgrid = await self.init_mock_microgrid()
 
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
 
@@ -252,7 +142,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         )
 
         with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
-            "frequenz.sdk.microgrid.get", return_value=mock_microgrid
+            "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
         ):
             distributor = PowerDistributingActor({"user1": channel.service_handle})
 
@@ -285,25 +175,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
     ) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution works with two users."""
-        mock_microgrid, bat_channels, inv_channels = self.create_mock_microgrid()
-
-        for key_id, chan in bat_channels.items():
-            sender = chan.new_sender()
-            bat = create_battery_msg(
-                key_id,
-                capacity=Metric(98000),
-                soc=Metric(40, Bound(20, 80)),
-                power=Bound(-1000, 1000),
-            )
-            await sender.send(BatteryData.from_proto(bat))
-
-        for key_id, inv_chan in inv_channels.items():
-            inv_sender = inv_chan.new_sender()
-            inv = create_inverter_msg(
-                key_id,
-                power=Bound(-500, 500),
-            )
-            await inv_sender.send(InverterData.from_proto(inv))
+        microgrid = await self.init_mock_microgrid()
 
         channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
         channel2 = Bidirectional[Request, Result]("user2", "power_distributor")
@@ -313,7 +185,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         }
 
         with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
-            "frequenz.sdk.microgrid.get", return_value=mock_microgrid
+            "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
         ):
             distributor = PowerDistributingActor(service_channels)
 
@@ -355,25 +227,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
     async def test_power_distributor_invalid_battery_id(self) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution raises error if any battery id is invalid."""
-        mock_microgrid, bat_channels, inv_channels = self.create_mock_microgrid()
-
-        for key_id, chan in bat_channels.items():
-            sender = chan.new_sender()
-            bat = create_battery_msg(
-                key_id,
-                capacity=Metric(98000),
-                soc=Metric(40, Bound(20, 80)),
-                power=Bound(-1000, 1000),
-            )
-            await sender.send(BatteryData.from_proto(bat))
-
-        for key_id, inv_chan in inv_channels.items():
-            inv_sender = inv_chan.new_sender()
-            inv = create_inverter_msg(
-                key_id,
-                power=Bound(-500, 500),
-            )
-            await inv_sender.send(InverterData.from_proto(inv))
+        microgrid = await self.init_mock_microgrid()
 
         channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
         service_channels = {
@@ -384,7 +238,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             power=1200, batteries={106, 208}, request_timeout_sec=SAFETY_TIMEOUT
         )
         with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
-            "frequenz.sdk.microgrid.get", return_value=mock_microgrid
+            "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
         ):
 
             distributor = PowerDistributingActor(service_channels)
@@ -414,25 +268,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
     async def test_power_distributor_overlapping_batteries(self) -> None:
         # pylint: disable=too-many-locals
         """Test if requests with overlapping set of batteries are processed."""
-        mock_microgrid, bat_channels, inv_channels = self.create_mock_microgrid()
-
-        for key_id, chan in bat_channels.items():
-            sender = chan.new_sender()
-            bat = create_battery_msg(
-                key_id,
-                capacity=Metric(98000),
-                soc=Metric(40, Bound(20, 80)),
-                power=Bound(-1000, 1000),
-            )
-            await sender.send(BatteryData.from_proto(bat))
-
-        for key_id, inv_chan in inv_channels.items():
-            inv_sender = inv_chan.new_sender()
-            inv = create_inverter_msg(
-                key_id,
-                power=Bound(-500, 500),
-            )
-            await inv_sender.send(InverterData.from_proto(inv))
+        microgrid = await self.init_mock_microgrid()
 
         channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
         channel2 = Bidirectional[Request, Result]("user2", "power_distributor")
@@ -444,7 +280,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         }
 
         with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
-            "frequenz.sdk.microgrid.get", return_value=mock_microgrid
+            "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
         ):
 
             distributor = PowerDistributingActor(service_channels)
@@ -510,25 +346,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
     ) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution works with single user works."""
-        mock_microgrid, bat_channels, inv_channels = self.create_mock_microgrid()
-
-        for key_id, chan in bat_channels.items():
-            sender = chan.new_sender()
-            bat = create_battery_msg(
-                key_id,
-                capacity=Metric(98000),
-                soc=Metric(40, Bound(20, 80)),
-                power=Bound(-1000, 1000),
-            )
-            await sender.send(BatteryData.from_proto(bat))
-
-        for key_id, inv_chan in inv_channels.items():
-            inv_sender = inv_chan.new_sender()
-            inv = create_inverter_msg(
-                key_id,
-                power=Bound(-500, 500),
-            )
-            await inv_sender.send(InverterData.from_proto(inv))
+        microgrid = await self.init_mock_microgrid()
 
         channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
         service_channels = {
@@ -543,7 +361,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         )
 
         with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
-            "frequenz.sdk.microgrid.get", return_value=mock_microgrid
+            "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
         ):
 
             distributor = PowerDistributingActor(service_channels)
@@ -577,25 +395,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
     ) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution works with single user works."""
-        mock_microgrid, bat_channels, inv_channels = self.create_mock_microgrid()
-
-        for key_id, chan in bat_channels.items():
-            sender = chan.new_sender()
-            bat = create_battery_msg(
-                key_id,
-                capacity=Metric(98000),
-                soc=Metric(40, Bound(20, 80)),
-                power=Bound(-1000, 1000),
-            )
-            await sender.send(BatteryData.from_proto(bat))
-
-        for key_id, inv_chan in inv_channels.items():
-            inv_sender = inv_chan.new_sender()
-            inv = create_inverter_msg(
-                key_id,
-                power=Bound(-500, 500),
-            )
-            await inv_sender.send(InverterData.from_proto(inv))
+        microgrid = await self.init_mock_microgrid()
 
         channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
         service_channels = {
@@ -610,7 +410,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         )
 
         with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
-            "frequenz.sdk.microgrid.get", return_value=mock_microgrid
+            "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
         ):
 
             distributor = PowerDistributingActor(service_channels)
@@ -644,25 +444,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
     ) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution works with single user works."""
-        mock_microgrid, bat_channels, inv_channels = self.create_mock_microgrid()
-
-        for key_id, chan in bat_channels.items():
-            sender = chan.new_sender()
-            bat = create_battery_msg(
-                key_id,
-                capacity=Metric(98000),
-                soc=Metric(40, Bound(20, 80)),
-                power=Bound(-1000, 1000),
-            )
-            await sender.send(BatteryData.from_proto(bat))
-
-        for key_id, inv_chan in inv_channels.items():
-            inv_sender = inv_chan.new_sender()
-            inv = create_inverter_msg(
-                key_id,
-                power=Bound(-500, 500),
-            )
-            await inv_sender.send(InverterData.from_proto(inv))
+        microgrid = await self.init_mock_microgrid()
 
         channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
         service_channels = {
@@ -677,7 +459,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         )
 
         with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
-            "frequenz.sdk.microgrid.get", return_value=mock_microgrid
+            "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
         ):
 
             distributor = PowerDistributingActor(service_channels)
@@ -711,25 +493,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
     ) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution works if not all batteries are working."""
-        mock_microgrid, bat_channels, inv_channels = self.create_mock_microgrid()
-
-        for key_id, chan in bat_channels.items():
-            sender = chan.new_sender()
-            bat = create_battery_msg(
-                key_id,
-                capacity=Metric(98000),
-                soc=Metric(40, Bound(20, 80)),
-                power=Bound(-1000, 1000),
-            )
-            await sender.send(BatteryData.from_proto(bat))
-
-        for key_id, inv_chan in inv_channels.items():
-            inv_sender = inv_chan.new_sender()
-            inv = create_inverter_msg(
-                key_id,
-                power=Bound(-500, 500),
-            )
-            await inv_sender.send(InverterData.from_proto(inv))
+        microgrid = await self.init_mock_microgrid()
 
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
 
@@ -737,7 +501,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
         )
         with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
-            "frequenz.sdk.microgrid.get", return_value=mock_microgrid
+            "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
         ):
 
             distributor = PowerDistributingActor({"user1": channel.service_handle})
