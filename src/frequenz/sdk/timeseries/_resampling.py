@@ -17,7 +17,7 @@ from typing import AsyncIterator, Callable, Coroutine, Optional, Sequence
 
 from frequenz.channels.util import Timer
 
-from ..util.asyncio import cancel_and_await
+from .._internal.asyncio import cancel_and_await
 from . import Sample
 
 _logger = logging.getLogger(__name__)
