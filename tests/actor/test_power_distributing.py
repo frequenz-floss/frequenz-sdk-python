@@ -6,10 +6,11 @@ import asyncio
 import re
 from dataclasses import dataclass
 from typing import Set, Tuple, TypeVar
-from unittest import IsolatedAsyncioTestCase, mock
+from unittest import mock
 from unittest.mock import AsyncMock, MagicMock
 
 from frequenz.channels import Bidirectional, Receiver, Sender
+from pytest_mock import MockerFixture
 
 from frequenz.sdk.actor.power_distributing import PowerDistributingActor, Request
 from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
@@ -39,7 +40,7 @@ class User:
     receiver: Receiver[Result]
 
 
-class TestPowerDistributingActor(IsolatedAsyncioTestCase):
+class TestPowerDistributingActor:
     # pylint: disable=protected-access
     """Test tool to distribute power"""
 
@@ -126,9 +127,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
 
         return microgrid
 
-    async def test_power_distributor_one_user(
-        self,
-    ) -> None:
+    async def test_power_distributor_one_user(self, mocker: MockerFixture) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution works with single user works."""
         microgrid = await self.init_mock_microgrid()
@@ -141,25 +140,25 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             request_timeout_sec=SAFETY_TIMEOUT,
         )
 
-        with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
+        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        mocker.patch(
             "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
-        ):
-            distributor = PowerDistributingActor({"user1": channel.service_handle})
+        )
 
-            # Mock that all requested batteries are working.
-            distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
-            distributor._battery_pool.get_working_batteries.return_value = (
-                request.batteries
-            )
+        distributor = PowerDistributingActor({"user1": channel.service_handle})
 
-            client_handle = channel.client_handle
-            await client_handle.send(request)
+        # Mock that all requested batteries are working.
+        distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
+        distributor._battery_pool.get_working_batteries.return_value = request.batteries
 
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(client_handle.receive())],
-                timeout=SAFETY_TIMEOUT,
-            )
-            await distributor._stop()  # type: ignore # pylint: disable=no-member
+        client_handle = channel.client_handle
+        await client_handle.send(request)
+
+        done, pending = await asyncio.wait(
+            [asyncio.create_task(client_handle.receive())],
+            timeout=SAFETY_TIMEOUT,
+        )
+        await distributor._stop()  # type: ignore # pylint: disable=no-member
 
         assert len(pending) == 0
         assert len(done) == 1
@@ -170,9 +169,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         assert result.excess_power == 200
         assert result.request == request
 
-    async def test_power_distributor_two_users(
-        self,
-    ) -> None:
+    async def test_power_distributor_two_users(self, mocker: MockerFixture) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution works with two users."""
         microgrid = await self.init_mock_microgrid()
@@ -184,39 +181,41 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             "user2": channel2.service_handle,
         }
 
-        with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
+        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        mocker.patch(
             "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
-        ):
-            distributor = PowerDistributingActor(service_channels)
+        )
 
-            # Mock that all requested batteries are working.
-            distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
-            distributor._battery_pool.get_working_batteries.return_value = {106, 206}
+        distributor = PowerDistributingActor(service_channels)
 
-            user1_handle = channel1.client_handle
-            task1 = user1_handle.send(
-                Request(
-                    power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
-                )
+        # Mock that all requested batteries are working.
+        distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
+        distributor._battery_pool.get_working_batteries.return_value = {106, 206}
+
+        user1_handle = channel1.client_handle
+        task1 = user1_handle.send(
+            Request(
+                power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
             )
+        )
 
-            user2_handle = channel2.client_handle
-            task2 = user2_handle.send(
-                Request(
-                    power=1300, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
-                )
+        user2_handle = channel2.client_handle
+        task2 = user2_handle.send(
+            Request(
+                power=1300, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
             )
+        )
 
-            await asyncio.gather(*[task1, task2])
+        await asyncio.gather(*[task1, task2])
 
-            done, pending = await asyncio.wait(
-                [
-                    asyncio.create_task(user1_handle.receive()),
-                    asyncio.create_task(user2_handle.receive()),
-                ],
-                timeout=SAFETY_TIMEOUT,
-            )
-            await distributor._stop()  # type: ignore # pylint: disable=no-member
+        done, pending = await asyncio.wait(
+            [
+                asyncio.create_task(user1_handle.receive()),
+                asyncio.create_task(user2_handle.receive()),
+            ],
+            timeout=SAFETY_TIMEOUT,
+        )
+        await distributor._stop()  # type: ignore # pylint: disable=no-member
 
         assert len(pending) == 0
         assert len(done) == 2
@@ -224,7 +223,9 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         assert any(map(lambda x: isinstance(x.result(), Success), done))
         assert any(map(lambda x: isinstance(x.result(), Ignored), done))
 
-    async def test_power_distributor_invalid_battery_id(self) -> None:
+    async def test_power_distributor_invalid_battery_id(
+        self, mocker: MockerFixture
+    ) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution raises error if any battery id is invalid."""
         microgrid = await self.init_mock_microgrid()
@@ -237,26 +238,26 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         request = Request(
             power=1200, batteries={106, 208}, request_timeout_sec=SAFETY_TIMEOUT
         )
-        with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
+
+        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        mocker.patch(
             "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
-        ):
+        )
 
-            distributor = PowerDistributingActor(service_channels)
+        distributor = PowerDistributingActor(service_channels)
 
-            # Mock that all requested batteries are working.
-            distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
-            distributor._battery_pool.get_working_batteries.return_value = (
-                request.batteries
-            )
+        # Mock that all requested batteries are working.
+        distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
+        distributor._battery_pool.get_working_batteries.return_value = request.batteries
 
-            user1_handle = channel1.client_handle
-            await user1_handle.send(request)
+        user1_handle = channel1.client_handle
+        await user1_handle.send(request)
 
-            done, _ = await asyncio.wait(
-                [asyncio.create_task(user1_handle.receive())],
-                timeout=SAFETY_TIMEOUT,
-            )
-            await distributor._stop()  # type: ignore # pylint: disable=no-member
+        done, _ = await asyncio.wait(
+            [asyncio.create_task(user1_handle.receive())],
+            timeout=SAFETY_TIMEOUT,
+        )
+        await distributor._stop()  # type: ignore # pylint: disable=no-member
 
         assert len(done) == 1
         result: Result = done.pop().result()
@@ -265,7 +266,9 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         err_msg = re.search(r"^No battery 208, available batteries:", result.msg)
         assert err_msg is not None
 
-    async def test_power_distributor_overlapping_batteries(self) -> None:
+    async def test_power_distributor_overlapping_batteries(
+        self, mocker: MockerFixture
+    ) -> None:
         # pylint: disable=too-many-locals
         """Test if requests with overlapping set of batteries are processed."""
         microgrid = await self.init_mock_microgrid()
@@ -279,52 +282,53 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             "user3": channel3.service_handle,
         }
 
-        with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
+        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        mocker.patch(
             "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
-        ):
+        )
 
-            distributor = PowerDistributingActor(service_channels)
+        distributor = PowerDistributingActor(service_channels)
 
-            # Mock that all requested batteries are working.
-            distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
-            distributor._battery_pool.get_working_batteries.side_effect = [
-                {106, 206},
-                {106, 306},
-                {106, 206},
-            ]
+        # Mock that all requested batteries are working.
+        distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
+        distributor._battery_pool.get_working_batteries.side_effect = [
+            {106, 206},
+            {106, 306},
+            {106, 206},
+        ]
 
-            user1_handle = channel1.client_handle
-            task1 = user1_handle.send(
-                Request(
-                    power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
-                )
+        user1_handle = channel1.client_handle
+        task1 = user1_handle.send(
+            Request(
+                power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
             )
+        )
 
-            user2_handle = channel2.client_handle
-            task2 = user2_handle.send(
-                Request(
-                    power=1200, batteries={106, 306}, request_timeout_sec=SAFETY_TIMEOUT
-                )
+        user2_handle = channel2.client_handle
+        task2 = user2_handle.send(
+            Request(
+                power=1200, batteries={106, 306}, request_timeout_sec=SAFETY_TIMEOUT
             )
+        )
 
-            user3_handle = channel3.client_handle
-            task3 = user3_handle.send(
-                Request(
-                    power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
-                )
+        user3_handle = channel3.client_handle
+        task3 = user3_handle.send(
+            Request(
+                power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
             )
+        )
 
-            await asyncio.gather(*[task1, task2, task3])
+        await asyncio.gather(*[task1, task2, task3])
 
-            done, _ = await asyncio.wait(
-                [
-                    asyncio.create_task(user1_handle.receive()),
-                    asyncio.create_task(user2_handle.receive()),
-                    asyncio.create_task(user3_handle.receive()),
-                ],
-                timeout=SAFETY_TIMEOUT,
-            )
-            await distributor._stop()  # type: ignore # pylint: disable=no-member
+        done, _ = await asyncio.wait(
+            [
+                asyncio.create_task(user1_handle.receive()),
+                asyncio.create_task(user2_handle.receive()),
+                asyncio.create_task(user3_handle.receive()),
+            ],
+            timeout=SAFETY_TIMEOUT,
+        )
+        await distributor._stop()  # type: ignore # pylint: disable=no-member
 
         assert len(done) == 3
         success, ignored = 0, 0
@@ -342,7 +346,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         assert ignored <= 1
 
     async def test_power_distributor_one_user_adjust_power_consume(
-        self,
+        self, mocker: MockerFixture
     ) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution works with single user works."""
@@ -360,26 +364,25 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             adjust_power=False,
         )
 
-        with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
+        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        mocker.patch(
             "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
-        ):
+        )
 
-            distributor = PowerDistributingActor(service_channels)
+        distributor = PowerDistributingActor(service_channels)
 
-            # Mock that all requested batteries are working.
-            distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
-            distributor._battery_pool.get_working_batteries.return_value = (
-                request.batteries
-            )
+        # Mock that all requested batteries are working.
+        distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
+        distributor._battery_pool.get_working_batteries.return_value = request.batteries
 
-            user1_handle = channel1.client_handle
-            await user1_handle.send(request)
+        user1_handle = channel1.client_handle
+        await user1_handle.send(request)
 
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(user1_handle.receive())],
-                timeout=SAFETY_TIMEOUT,
-            )
-            await distributor._stop()  # type: ignore # pylint: disable=no-member
+        done, pending = await asyncio.wait(
+            [asyncio.create_task(user1_handle.receive())],
+            timeout=SAFETY_TIMEOUT,
+        )
+        await distributor._stop()  # type: ignore # pylint: disable=no-member
 
         assert len(pending) == 0
         assert len(done) == 1
@@ -391,7 +394,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         assert result.bound == 1000
 
     async def test_power_distributor_one_user_adjust_power_supply(
-        self,
+        self, mocker: MockerFixture
     ) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution works with single user works."""
@@ -409,26 +412,25 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             adjust_power=False,
         )
 
-        with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
+        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        mocker.patch(
             "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
-        ):
+        )
 
-            distributor = PowerDistributingActor(service_channels)
+        distributor = PowerDistributingActor(service_channels)
 
-            # Mock that all requested batteries are working.
-            distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
-            distributor._battery_pool.get_working_batteries.return_value = (
-                request.batteries
-            )
+        # Mock that all requested batteries are working.
+        distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
+        distributor._battery_pool.get_working_batteries.return_value = request.batteries
 
-            user1_handle = channel1.client_handle
-            await user1_handle.send(request)
+        user1_handle = channel1.client_handle
+        await user1_handle.send(request)
 
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(user1_handle.receive())],
-                timeout=SAFETY_TIMEOUT,
-            )
-            await distributor._stop()  # type: ignore # pylint: disable=no-member
+        done, pending = await asyncio.wait(
+            [asyncio.create_task(user1_handle.receive())],
+            timeout=SAFETY_TIMEOUT,
+        )
+        await distributor._stop()  # type: ignore # pylint: disable=no-member
 
         assert len(pending) == 0
         assert len(done) == 1
@@ -440,7 +442,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         assert result.bound == -1000
 
     async def test_power_distributor_one_user_adjust_power_success(
-        self,
+        self, mocker: MockerFixture
     ) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution works with single user works."""
@@ -458,26 +460,25 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
             adjust_power=False,
         )
 
-        with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
+        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        mocker.patch(
             "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
-        ):
+        )
 
-            distributor = PowerDistributingActor(service_channels)
+        distributor = PowerDistributingActor(service_channels)
 
-            # Mock that all requested batteries are working.
-            distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
-            distributor._battery_pool.get_working_batteries.return_value = (
-                request.batteries
-            )
+        # Mock that all requested batteries are working.
+        distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
+        distributor._battery_pool.get_working_batteries.return_value = request.batteries
 
-            user1_handle = channel1.client_handle
-            await user1_handle.send(request)
+        user1_handle = channel1.client_handle
+        await user1_handle.send(request)
 
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(user1_handle.receive())],
-                timeout=SAFETY_TIMEOUT,
-            )
-            await distributor._stop()  # type: ignore # pylint: disable=no-member
+        done, pending = await asyncio.wait(
+            [asyncio.create_task(user1_handle.receive())],
+            timeout=SAFETY_TIMEOUT,
+        )
+        await distributor._stop()  # type: ignore # pylint: disable=no-member
 
         assert len(pending) == 0
         assert len(done) == 1
@@ -488,9 +489,7 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         assert result.excess_power == 0
         assert result.request == request
 
-    async def test_not_all_batteries_are_working(
-        self,
-    ) -> None:
+    async def test_not_all_batteries_are_working(self, mocker: MockerFixture) -> None:
         # pylint: disable=too-many-locals
         """Test if power distribution works if not all batteries are working."""
         microgrid = await self.init_mock_microgrid()
@@ -500,26 +499,28 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         request = Request(
             power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
         )
-        with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
+
+        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        mocker.patch(
             "frequenz.sdk.microgrid.get", return_value=microgrid.mock_microgrid
-        ):
+        )
 
-            distributor = PowerDistributingActor({"user1": channel.service_handle})
+        distributor = PowerDistributingActor({"user1": channel.service_handle})
 
-            # Mock that all requested batteries are working.
-            distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
-            distributor._battery_pool.get_working_batteries.return_value = (
-                request.batteries - {106}
-            )
+        # Mock that all requested batteries are working.
+        distributor._battery_pool = MagicMock(spec=BatteryPoolStatus)
+        distributor._battery_pool.get_working_batteries.return_value = (
+            request.batteries - {106}
+        )
 
-            client_handle = channel.client_handle
-            await client_handle.send(request)
+        client_handle = channel.client_handle
+        await client_handle.send(request)
 
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(client_handle.receive())],
-                timeout=SAFETY_TIMEOUT,
-            )
-            await distributor._stop()  # type: ignore # pylint: disable=no-member
+        done, pending = await asyncio.wait(
+            [asyncio.create_task(client_handle.receive())],
+            timeout=SAFETY_TIMEOUT,
+        )
+        await distributor._stop()  # type: ignore # pylint: disable=no-member
 
         assert len(pending) == 0
         assert len(done) == 1
