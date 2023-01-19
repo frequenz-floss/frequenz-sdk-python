@@ -62,13 +62,13 @@ class Metric:
         return PbMetric(value=self.now, system_bounds=self.bound.to_protobuf())
 
 
-def create_battery_msg(  # pylint: disable=too-many-arguments
+def battery_msg(  # pylint: disable=too-many-arguments
     component_id: int,
     capacity: Metric,
     soc: Metric,
     power: Bound,
     timestamp: datetime = datetime.now(timezone.utc),
-) -> microgrid_pb.ComponentData:
+) -> BatteryData:
     """Create protobuf battery components with given arguments.
 
     Args:
@@ -86,7 +86,7 @@ def create_battery_msg(  # pylint: disable=too-many-arguments
     pb_timestamp.FromDatetime(timestamp)
     capacitypb = capacity.to_protobuf()
     socpb = soc.to_protobuf()
-    return microgrid_pb.ComponentData(
+    pb_data = microgrid_pb.ComponentData(
         id=component_id,
         ts=pb_timestamp,
         battery=Battery(
@@ -101,13 +101,14 @@ def create_battery_msg(  # pylint: disable=too-many-arguments
             ),
         ),
     )
+    return BatteryData.from_proto(pb_data)
 
 
-def create_inverter_msg(
+def inverter_msg(
     component_id: int,
     power: Bound,
     timestamp: datetime = datetime.now(timezone.utc),
-) -> microgrid_pb.ComponentData:
+) -> InverterData:
     """Create protobuf inverter components with given arguments.
 
     Args:
@@ -121,7 +122,7 @@ def create_inverter_msg(
     """
     pb_timestamp = Timestamp()
     pb_timestamp.FromDatetime(timestamp)
-    return microgrid_pb.ComponentData(
+    pb_data = microgrid_pb.ComponentData(
         id=component_id,
         ts=pb_timestamp,
         inverter=Inverter(
@@ -130,6 +131,8 @@ def create_inverter_msg(
             )
         ),
     )
+
+    return InverterData.from_proto(pb_data)
 
 
 class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
@@ -322,17 +325,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
         components: List[InvBatPair] = []
         for i in range(0, num):
-            battery = BatteryData.from_proto(
-                create_battery_msg(
-                    2 * i,
-                    capacity[i],
-                    soc[i],
-                    power[2 * i],
-                )
-            )
-            inverter = InverterData.from_proto(
-                create_inverter_msg(2 * i + 1, power[2 * i + 1])
-            )
+            battery = battery_msg(2 * i, capacity[i], soc[i], power[2 * i])
+            inverter = inverter_msg(2 * i + 1, power[2 * i + 1])
             components.append(InvBatPair(battery, inverter))
         return components
 

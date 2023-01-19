@@ -33,6 +33,7 @@ from frequenz.channels import Bidirectional, Peekable, Receiver
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
 from ... import microgrid
+from ..._internal.asyncio import cancel_and_await
 from ...actor._decorator import actor
 from ...microgrid import ComponentGraph
 from ...microgrid.client import MicrogridApiClient
@@ -186,13 +187,21 @@ class PowerDistributingActor:
         self._users_channels: Dict[
             str, Bidirectional.Handle[Result, Request]
         ] = users_channels
-        self._create_users_tasks()
+        self._users_tasks = self._create_users_tasks()
         self._started = asyncio.Event()
 
-    def _create_users_tasks(self) -> None:
-        """For each user create a task to wait for request."""
+    def _create_users_tasks(self) -> List[asyncio.Task[Empty]]:
+        """For each user create a task to wait for request.
+
+        Returns:
+            List with users tasks.
+        """
+        tasks = []
         for user, handler in self._users_channels.items():
-            asyncio.create_task(self._wait_for_request(_User(user, handler)))
+            tasks.append(
+                asyncio.create_task(self._wait_for_request(_User(user, handler)))
+            )
+        return tasks
 
     def _get_upper_bound(self, batteries: Set[int]) -> int:
         """Get total upper bound of power to be set for given batteries.
@@ -634,3 +643,8 @@ class PowerDistributingActor:
             aws.cancel()
 
         await asyncio.gather(*tasks, return_exceptions=True)
+
+    async def _stop_actor(self) -> None:
+        """Stop all running async tasks."""
+        await asyncio.gather(*[cancel_and_await(t) for t in self._users_tasks])
+        await self._stop()  # type: ignore # pylint: disable=no-member
