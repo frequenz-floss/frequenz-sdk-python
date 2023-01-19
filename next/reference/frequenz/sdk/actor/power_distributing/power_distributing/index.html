@@ -1062,8 +1062,7 @@ printed.</li>
 
         <details class="quote">
           <summary>Source code in <code>frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 65</span>
-<span class="normal"> 66</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 66</span>
 <span class="normal"> 67</span>
 <span class="normal"> 68</span>
 <span class="normal"> 69</span>
@@ -1633,7 +1632,21 @@ printed.</li>
 <span class="normal">633</span>
 <span class="normal">634</span>
 <span class="normal">635</span>
-<span class="normal">636</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
+<span class="normal">636</span>
+<span class="normal">637</span>
+<span class="normal">638</span>
+<span class="normal">639</span>
+<span class="normal">640</span>
+<span class="normal">641</span>
+<span class="normal">642</span>
+<span class="normal">643</span>
+<span class="normal">644</span>
+<span class="normal">645</span>
+<span class="normal">646</span>
+<span class="normal">647</span>
+<span class="normal">648</span>
+<span class="normal">649</span>
+<span class="normal">650</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
 <span class="k">class</span> <span class="nc">PowerDistributingActor</span><span class="p">:</span>
     <span class="c1"># pylint: disable=too-many-instance-attributes</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Tool to distribute power between batteries in microgrid.</span>
@@ -1757,13 +1770,21 @@ printed.</li>
         <span class="bp">self</span><span class="o">.</span><span class="n">_users_channels</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span>
             <span class="nb">str</span><span class="p">,</span> <span class="n">Bidirectional</span><span class="o">.</span><span class="n">Handle</span><span class="p">[</span><span class="n">Result</span><span class="p">,</span> <span class="n">Request</span><span class="p">]</span>
         <span class="p">]</span> <span class="o">=</span> <span class="n">users_channels</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_create_users_tasks</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_users_tasks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_users_tasks</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_started</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">_create_users_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;For each user create a task to wait for request.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_create_users_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="n">Empty</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;For each user create a task to wait for request.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List with users tasks.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tasks</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">user</span><span class="p">,</span> <span class="n">handler</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_users_channels</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_request</span><span class="p">(</span><span class="n">_User</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">handler</span><span class="p">)))</span>
+            <span class="n">tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_request</span><span class="p">(</span><span class="n">_User</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">handler</span><span class="p">)))</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">tasks</span>
 
     <span class="k">def</span> <span class="nf">_get_upper_bound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batteries</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get total upper bound of power to be set for given batteries.</span>
@@ -2205,6 +2226,11 @@ printed.</li>
             <span class="n">aws</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
 
         <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">tasks</span><span class="p">,</span> <span class="n">return_exceptions</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_stop_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop all running async tasks.&quot;&quot;&quot;</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">cancel_and_await</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_users_tasks</span><span class="p">])</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stop</span><span class="p">()</span>  <span class="c1"># type: ignore # pylint: disable=no-member</span>
 </code></pre></div></td></tr></table></div>
         </details>
 
@@ -2277,8 +2303,7 @@ request. It is a time needed to collect first components data.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">142</span>
-<span class="normal">143</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">143</span>
 <span class="normal">144</span>
 <span class="normal">145</span>
 <span class="normal">146</span>
@@ -2325,7 +2350,8 @@ request. It is a time needed to collect first components data.</p>
 <span class="normal">187</span>
 <span class="normal">188</span>
 <span class="normal">189</span>
-<span class="normal">190</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<span class="normal">190</span>
+<span class="normal">191</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">users_channels</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Bidirectional</span><span class="o">.</span><span class="n">Handle</span><span class="p">[</span><span class="n">Result</span><span class="p">,</span> <span class="n">Request</span><span class="p">]],</span>
     <span class="n">wait_for_data_sec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
@@ -2372,7 +2398,7 @@ request. It is a time needed to collect first components data.</p>
     <span class="bp">self</span><span class="o">.</span><span class="n">_users_channels</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span>
         <span class="nb">str</span><span class="p">,</span> <span class="n">Bidirectional</span><span class="o">.</span><span class="n">Handle</span><span class="p">[</span><span class="n">Result</span><span class="p">,</span> <span class="n">Request</span><span class="p">]</span>
     <span class="p">]</span> <span class="o">=</span> <span class="n">users_channels</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_create_users_tasks</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_users_tasks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_users_tasks</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_started</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
       </details>
@@ -2405,16 +2431,7 @@ as broken for some time.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">235</span>
-<span class="normal">236</span>
-<span class="normal">237</span>
-<span class="normal">238</span>
-<span class="normal">239</span>
-<span class="normal">240</span>
-<span class="normal">241</span>
-<span class="normal">242</span>
-<span class="normal">243</span>
-<span class="normal">244</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">244</span>
 <span class="normal">245</span>
 <span class="normal">246</span>
 <span class="normal">247</span>
@@ -2485,7 +2502,16 @@ as broken for some time.</p>
 <span class="normal">312</span>
 <span class="normal">313</span>
 <span class="normal">314</span>
-<span class="normal">315</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span>
+<span class="normal">318</span>
+<span class="normal">319</span>
+<span class="normal">320</span>
+<span class="normal">321</span>
+<span class="normal">322</span>
+<span class="normal">323</span>
+<span class="normal">324</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run actor main function.</span>
 
 <span class="sd">    It waits for new requests in task_queue and process it, and send</span>
