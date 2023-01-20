@@ -48,7 +48,7 @@ class _ComponentReceiver(Generic[T]):
     receiver: Peekable[T]
 
 
-class StatusTracker(AsyncConstructible):
+class BatteryStatusTracker(AsyncConstructible):
     """Class for tracking if battery is working.
 
     To create an instance of this class you should use `async_new` class method.
@@ -86,7 +86,7 @@ class StatusTracker(AsyncConstructible):
     @classmethod
     async def async_new(
         cls, battery_id: int, max_data_age_sec: float, max_blocking_duration_sec: float
-    ) -> StatusTracker:
+    ) -> BatteryStatusTracker:
         """Create class instance.
 
         Args:
@@ -104,7 +104,7 @@ class StatusTracker(AsyncConstructible):
         Raises:
             RuntimeError: If battery has no adjacent inverter.
         """
-        self: StatusTracker = StatusTracker.__new__(cls)
+        self: BatteryStatusTracker = BatteryStatusTracker.__new__(cls)
         self._battery_id = battery_id
         self._max_data_age = max_data_age_sec
 
@@ -294,7 +294,7 @@ class StatusTracker(AsyncConstructible):
         # Component state is not exposed to the user.
         # pylint: disable=protected-access
         state = msg._component_state
-        if state not in StatusTracker._inverter_valid_state:
+        if state not in BatteryStatusTracker._inverter_valid_state:
             if self._last_status == BatteryStatus.WORKING:
                 _logger.warning(
                     "Inverter %d has invalid state: %s",
@@ -316,7 +316,7 @@ class StatusTracker(AsyncConstructible):
         # Component state is not exposed to the user.
         # pylint: disable=protected-access
         state = msg._component_state
-        if state not in StatusTracker._battery_valid_state:
+        if state not in BatteryStatusTracker._battery_valid_state:
             if self._last_status == BatteryStatus.WORKING:
                 _logger.warning(
                     "Battery %d has invalid state: %s",
@@ -328,7 +328,7 @@ class StatusTracker(AsyncConstructible):
         # Component state is not exposed to the user.
         # pylint: disable=protected-access
         relay_state = msg._relay_state
-        if relay_state not in StatusTracker._battery_valid_relay:
+        if relay_state not in BatteryStatusTracker._battery_valid_relay:
             if self._last_status == BatteryStatus.WORKING:
                 _logger.warning(
                     "Battery %d has invalid relay state: %s",

@@ -9,7 +9,7 @@ import logging
 from typing import Dict, Set
 
 from ..._internal.asyncio import AsyncConstructible
-from ...microgrid._battery import BatteryStatus, StatusTracker
+from ...microgrid._battery import BatteryStatus, BatteryStatusTracker
 from .result import PartialFailure, Result, Success
 
 _logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class BatteriesStatus(AsyncConstructible):
 
     # This is instance attribute.
     # Don't assign default value, because then it becomes class attribute.
-    _batteries: Dict[int, StatusTracker]
+    _batteries: Dict[int, BatteryStatusTracker]
 
     @classmethod
     async def async_new(
@@ -54,7 +54,9 @@ class BatteriesStatus(AsyncConstructible):
         self: BatteriesStatus = BatteriesStatus.__new__(cls)
 
         tasks = [
-            StatusTracker.async_new(id, max_data_age_sec, max_blocking_duration_sec)
+            BatteryStatusTracker.async_new(
+                id, max_data_age_sec, max_blocking_duration_sec
+            )
             for id in battery_ids
         ]
 

@@ -6,9 +6,9 @@
 Stores features for the batteries.
 """
 
-from ._status import BatteryStatus, StatusTracker
+from ._status import BatteryStatus, BatteryStatusTracker
 
 __all__ = [
-    "StatusTracker",
+    "BatteryStatusTracker",
     "BatteryStatus",
 ]
