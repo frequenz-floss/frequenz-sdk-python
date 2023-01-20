@@ -21,7 +21,7 @@ python -m pip install -e .
 You can also use `nox` to run the tests and other checks:
 
 ```sh
-python -m pip install nox
+python -m pip install nox toml tomli
 nox
 ```
 

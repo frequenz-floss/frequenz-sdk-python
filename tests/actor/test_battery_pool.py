@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from typing import Callable, Iterable, List, Optional, Set
 
 import frequenz.api.microgrid.microgrid_pb2 as microgrid_pb
+import pytest
 import pytz
 import time_machine
 from frequenz.api.microgrid.battery_pb2 import Battery as PbBattery
@@ -25,6 +26,7 @@ from google.protobuf.timestamp_pb2 import Timestamp  # pylint: disable=no-name-i
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
+from frequenz.sdk._internal.asyncio import NotSyncConstructible
 from frequenz.sdk.actor.power_distributing import PartialFailure, Request, Success
 from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
 from frequenz.sdk.microgrid.component import BatteryData, InverterData
@@ -453,6 +455,11 @@ class TestBatteryPoolStatus:
             ),
         )
 
+    def test_create_sync_pool(self) -> None:
+        """Test if error is raised after calling default constructor."""
+        with pytest.raises(NotSyncConstructible):
+            BatteryPoolStatus()
+
     async def test_scenario_one_battery(self, mocker: MockerFixture) -> None:
         """Test scenario with one battery.
 
@@ -462,10 +469,9 @@ class TestBatteryPoolStatus:
         pairs = await self.my_setup(mocker=mocker, batteries_num=1)
 
         batteries = {pair.bat_id for pair in pairs}
-        battery_pool = BatteryPoolStatus(
+        battery_pool = await BatteryPoolStatus.async_new(
             batteries, max_data_age_sec=30, max_blocking_duration_sec=30
         )
-        await battery_pool.async_init()
 
         self.scenario_all_msg_correct(battery_pool, pairs)
         self.scenario_no_message(battery_pool, pairs)
@@ -484,10 +490,9 @@ class TestBatteryPoolStatus:
         """
         pairs = await self.my_setup(mocker=mocker, batteries_num=5)
         batteries = {pair.bat_id for pair in pairs}
-        battery_pool = BatteryPoolStatus(
+        battery_pool = await BatteryPoolStatus.async_new(
             batteries, max_data_age_sec=30, max_blocking_duration_sec=30
         )
-        await battery_pool.async_init()
 
         # Starting server takes long time, so it is better to start it once and
         # then run tests.
