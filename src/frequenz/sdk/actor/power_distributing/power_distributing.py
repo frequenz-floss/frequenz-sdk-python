@@ -161,8 +161,6 @@ class PowerDistributingActor:
             self.power_distributor_exponent
         )
 
-        self._battery_pool: BatteryPoolStatus
-
         self._bat_inv_map, self._inv_bat_map = self._get_components_pairs(
             microgrid.get().component_graph
         )
@@ -248,7 +246,7 @@ class PowerDistributingActor:
         await self._create_channels()
 
         api = microgrid.get().api_client
-        self._battery_pool = await BatteryPoolStatus.async_new(
+        battery_pool = await BatteryPoolStatus.async_new(
             battery_ids=set(self._bat_inv_map.keys()),
             max_blocking_duration_sec=30.0,
             max_data_age_sec=10.0,
@@ -263,7 +261,7 @@ class PowerDistributingActor:
 
             try:
                 pairs_data: List[InvBatPair] = self._get_components_data(
-                    request.batteries
+                    battery_pool.get_working_batteries(request.batteries)
                 )
             except KeyError as err:
                 await user.channel.send(Error(request, str(err)))
@@ -295,12 +293,8 @@ class PowerDistributingActor:
                 str(battery_distribution),
             )
 
-            tasks = await self._set_distributed_power(
+            failed_power, failed_batteries = await self._set_distributed_power(
                 api, distribution, request.request_timeout_sec
-            )
-
-            failed_power, failed_batteries = self._parse_result(
-                tasks, distribution.distribution, request.request_timeout_sec
             )
 
             if len(failed_batteries) > 0:
@@ -321,7 +315,7 @@ class PowerDistributingActor:
                     excess_power=distribution.remaining_power,
                 )
 
-            self._battery_pool.update_last_request_status(response)
+            battery_pool.update_last_request_status(response)
             await user.channel.send(response)
 
     async def _set_distributed_power(
@@ -329,7 +323,7 @@ class PowerDistributingActor:
         api: MicrogridApiClient,
         distribution: DistributionResult,
         timeout_sec: float,
-    ) -> Dict[int, asyncio.Task[Empty]]:
+    ) -> Tuple[int, Set[int]]:
         """Send distributed power to the inverters.
 
         Args:
@@ -338,7 +332,8 @@ class PowerDistributingActor:
             timeout_sec: How long wait for the response
 
         Returns:
-            Dict with finished or cancelled task for each inverter.
+            Tuple where first element is total failed power, and the second element
+            set of batteries that failed.
         """
         tasks = {
             inverter_id: asyncio.create_task(api.set_power(inverter_id, power))
@@ -352,7 +347,8 @@ class PowerDistributingActor:
         )
 
         await self._cancel_tasks(pending)
-        return tasks
+
+        return self._parse_result(tasks, distribution.distribution, timeout_sec)
 
     def _check_request(self, request: Request) -> Optional[Result]:
         """Check whether the given request if correct.
@@ -540,7 +536,7 @@ class PowerDistributingActor:
         """
         pairs_data: List[InvBatPair] = []
 
-        for battery_id in self._battery_pool.get_working_batteries(batteries):
+        for battery_id in batteries:
             if battery_id not in self._battery_receivers:
                 raise KeyError(
                     f"No battery {battery_id}, "
