@@ -44,7 +44,7 @@ from ...microgrid.component import (
     InverterData,
 )
 from ...power import DistributionAlgorithm, DistributionResult, InvBatPair
-from ._battery_pool_status import BatteryPoolStatus
+from ._battery_pool_status import BatteriesStatus
 from .request import Request
 from .result import Error, Ignored, OutOfBound, PartialFailure, Result, Success
 
@@ -246,7 +246,7 @@ class PowerDistributingActor:
         await self._create_channels()
 
         api = microgrid.get().api_client
-        battery_pool = await BatteryPoolStatus.async_new(
+        battery_pool = await BatteriesStatus.async_new(
             battery_ids=set(self._bat_inv_map.keys()),
             max_blocking_duration_sec=30.0,
             max_data_age_sec=10.0,

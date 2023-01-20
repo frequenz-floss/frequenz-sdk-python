@@ -15,7 +15,7 @@ from .result import PartialFailure, Result, Success
 _logger = logging.getLogger(__name__)
 
 
-class BatteryPoolStatus(AsyncConstructible):
+class BatteriesStatus(AsyncConstructible):
     """Return status of batteries in the pool.
 
     To create an instance of this class you should use `async_new` class method.
@@ -33,8 +33,8 @@ class BatteryPoolStatus(AsyncConstructible):
         battery_ids: Set[int],
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
-    ) -> BatteryPoolStatus:
-        """Create BatteryPoolStatus instance.
+    ) -> BatteriesStatus:
+        """Create BatteriesStatus instance.
 
         Args:
             battery_ids: set of batteries ids that should be stored in pool.
@@ -51,7 +51,7 @@ class BatteryPoolStatus(AsyncConstructible):
         Returns:
             New instance of this class.
         """
-        self: BatteryPoolStatus = BatteryPoolStatus.__new__(cls)
+        self: BatteriesStatus = BatteriesStatus.__new__(cls)
 
         tasks = [
             StatusTracker.async_new(id, max_data_age_sec, max_blocking_duration_sec)

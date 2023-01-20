@@ -12,7 +12,7 @@ from frequenz.channels import Bidirectional, Receiver, Sender
 from pytest_mock import MockerFixture
 
 from frequenz.sdk.actor.power_distributing import PowerDistributingActor, Request
-from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
+from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteriesStatus
 from frequenz.sdk.actor.power_distributing.result import (
     Error,
     Ignored,
@@ -139,8 +139,8 @@ class TestPowerDistributingActor:
         )
 
         attrs = {"get_working_batteries.return_value": request.batteries}
-        battery_pool_mock = MagicMock(spec=BatteryPoolStatus, **attrs)
-        BatteryPoolStatus.async_new = AsyncMock(  # type: ignore
+        battery_pool_mock = MagicMock(spec=BatteriesStatus, **attrs)
+        BatteriesStatus.async_new = AsyncMock(  # type: ignore
             return_value=battery_pool_mock
         )
 
@@ -178,8 +178,8 @@ class TestPowerDistributingActor:
         }
 
         attrs = {"get_working_batteries.return_value": {106, 206}}
-        battery_pool_mock = MagicMock(spec=BatteryPoolStatus, **attrs)
-        BatteryPoolStatus.async_new = AsyncMock(  # type: ignore
+        battery_pool_mock = MagicMock(spec=BatteriesStatus, **attrs)
+        BatteriesStatus.async_new = AsyncMock(  # type: ignore
             return_value=battery_pool_mock
         )
 
@@ -235,8 +235,8 @@ class TestPowerDistributingActor:
         )
 
         attrs = {"get_working_batteries.return_value": request.batteries}
-        battery_pool_mock = MagicMock(spec=BatteryPoolStatus, **attrs)
-        BatteryPoolStatus.async_new = AsyncMock(  # type: ignore
+        battery_pool_mock = MagicMock(spec=BatteriesStatus, **attrs)
+        BatteriesStatus.async_new = AsyncMock(  # type: ignore
             return_value=battery_pool_mock
         )
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
@@ -279,8 +279,8 @@ class TestPowerDistributingActor:
         attrs = {
             "get_working_batteries.side_effect": [{106, 206}, {106, 306}, {106, 206}]
         }
-        battery_pool_mock = MagicMock(spec=BatteryPoolStatus, **attrs)
-        BatteryPoolStatus.async_new = AsyncMock(  # type: ignore
+        battery_pool_mock = MagicMock(spec=BatteriesStatus, **attrs)
+        BatteriesStatus.async_new = AsyncMock(  # type: ignore
             return_value=battery_pool_mock
         )
 
@@ -354,8 +354,8 @@ class TestPowerDistributingActor:
         )
 
         attrs = {"get_working_batteries.return_value": request.batteries}
-        battery_pool_mock = MagicMock(spec=BatteryPoolStatus, **attrs)
-        BatteryPoolStatus.async_new = AsyncMock(  # type: ignore
+        battery_pool_mock = MagicMock(spec=BatteriesStatus, **attrs)
+        BatteriesStatus.async_new = AsyncMock(  # type: ignore
             return_value=battery_pool_mock
         )
 
@@ -401,8 +401,8 @@ class TestPowerDistributingActor:
         )
 
         attrs = {"get_working_batteries.return_value": request.batteries}
-        battery_pool_mock = MagicMock(spec=BatteryPoolStatus, **attrs)
-        BatteryPoolStatus.async_new = AsyncMock(  # type: ignore
+        battery_pool_mock = MagicMock(spec=BatteriesStatus, **attrs)
+        BatteriesStatus.async_new = AsyncMock(  # type: ignore
             return_value=battery_pool_mock
         )
 
@@ -448,8 +448,8 @@ class TestPowerDistributingActor:
         )
 
         attrs = {"get_working_batteries.return_value": request.batteries}
-        battery_pool_mock = MagicMock(spec=BatteryPoolStatus, **attrs)
-        BatteryPoolStatus.async_new = AsyncMock(  # type: ignore
+        battery_pool_mock = MagicMock(spec=BatteriesStatus, **attrs)
+        BatteriesStatus.async_new = AsyncMock(  # type: ignore
             return_value=battery_pool_mock
         )
 
@@ -487,8 +487,8 @@ class TestPowerDistributingActor:
         )
 
         attrs = {"get_working_batteries.return_value": request.batteries - {106}}
-        battery_pool_mock = MagicMock(spec=BatteryPoolStatus, **attrs)
-        BatteryPoolStatus.async_new = AsyncMock(  # type: ignore
+        battery_pool_mock = MagicMock(spec=BatteriesStatus, **attrs)
+        BatteriesStatus.async_new = AsyncMock(  # type: ignore
             return_value=battery_pool_mock
         )
 

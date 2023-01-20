@@ -1,6 +1,6 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-"""Tests for BatteryPoolStatus module."""
+"""Tests for BatteriesStatus module."""
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -28,7 +28,7 @@ from pytest_mock import MockerFixture
 from frequenz.sdk import microgrid
 from frequenz.sdk._internal.asyncio import NotSyncConstructible
 from frequenz.sdk.actor.power_distributing import PartialFailure, Request, Success
-from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
+from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteriesStatus
 from frequenz.sdk.microgrid.component import BatteryData, InverterData
 from tests.microgrid import mock_api
 
@@ -50,7 +50,7 @@ def battery_data(
 ) -> BatteryData:
     """Create BatteryData with given arguments.
 
-    By default function creates BatteryData correct for BatteryPoolStatus with specified
+    By default function creates BatteryData correct for BatteriesStatus with specified
         default arguments.
     If other arguments are given, then it creates BatteryData with that arguments.
 
@@ -100,7 +100,7 @@ def inverter_data(
 ) -> InverterData:
     """Create InverterData with given arguments.
 
-    By default function creates BatteryData correct for BatteryPoolStatus with specified
+    By default function creates BatteryData correct for BatteriesStatus with specified
         default arguments.
     If other arguments are given, then it creates BatteryData with that arguments.
 
@@ -138,8 +138,8 @@ def inverter_data(
 
 
 # pylint: disable=too-many-public-methods
-class TestBatteryPoolStatus:
-    """Test BatteryPoolStatus class."""
+class TestBatteriesStatus:
+    """Test BatteriesStatus class."""
 
     async def my_setup(
         self, mocker: MockerFixture, batteries_num: int
@@ -214,7 +214,7 @@ class TestBatteryPoolStatus:
 
     def set_battery_message(
         self,
-        battery_pool: BatteryPoolStatus,
+        battery_pool: BatteriesStatus,
         bat_inv_pairs: List[BatInvIdsPair],
         create_msg: Callable[[int], Optional[BatteryData]],
     ) -> None:
@@ -225,7 +225,7 @@ class TestBatteryPoolStatus:
             be set once again.
 
         Args:
-            battery_pool: BatteryPoolStatus instance
+            battery_pool: BatteriesStatus instance
             bat_inv_pairs: Pairs with ids of battery and adjacent inverter,
             create_msg: how to create BatteryData that should be returned
                 from the receiver
@@ -240,7 +240,7 @@ class TestBatteryPoolStatus:
 
     def set_inverter_message(
         self,
-        battery_pool: BatteryPoolStatus,
+        battery_pool: BatteriesStatus,
         bat_inv_pairs: List[BatInvIdsPair],
         create_msg: Callable[[int], Optional[InverterData]],
     ) -> None:
@@ -251,7 +251,7 @@ class TestBatteryPoolStatus:
             be set once again.
 
         Args:
-            battery_pool: BatteryPoolStatus instance
+            battery_pool: BatteriesStatus instance
             bat_inv_pairs: Pairs with ids of battery and adjacent inverter,
             create_msg: how to create BatteryData that should be returned
                 from the receiver
@@ -273,12 +273,12 @@ class TestBatteryPoolStatus:
         microgrid._microgrid._MICROGRID = None  # pylint: disable=protected-access
 
     def scenario_all_msg_correct(
-        self, battery_pool: BatteryPoolStatus, pairs: List[BatInvIdsPair]
+        self, battery_pool: BatteriesStatus, pairs: List[BatInvIdsPair]
     ) -> None:
         """Set all receivers to return correct ComponentData.
 
         Args:
-            battery_pool: BatteryPoolStatus instance
+            battery_pool: BatteriesStatus instance
             bat_inv_pairs: Pairs with ids of battery and adjacent inverter.
         """
 
@@ -288,12 +288,12 @@ class TestBatteryPoolStatus:
         assert battery_pool.get_working_batteries(batteries) == batteries
 
     def scenario_no_message(
-        self, battery_pool: BatteryPoolStatus, pairs: List[BatInvIdsPair]
+        self, battery_pool: BatteriesStatus, pairs: List[BatInvIdsPair]
     ) -> None:
         """Set all receivers to return None instead of ComponentData.
 
         Args:
-            battery_pool: BatteryPoolStatus instance
+            battery_pool: BatteriesStatus instance
             bat_inv_pairs: Pairs with ids of battery and adjacent inverter.
         """
         self.set_battery_message(battery_pool, pairs, lambda _: None)
@@ -302,7 +302,7 @@ class TestBatteryPoolStatus:
         assert battery_pool.get_working_batteries(batteries) == set()
 
     def set_battery_outdated(
-        self, battery_pool: BatteryPoolStatus, pairs: List[BatInvIdsPair]
+        self, battery_pool: BatteriesStatus, pairs: List[BatInvIdsPair]
     ) -> None:
         """Set outdated message for the given batteries.
 
@@ -320,7 +320,7 @@ class TestBatteryPoolStatus:
         )
 
     def set_inverter_outdated(
-        self, battery_pool: BatteryPoolStatus, pairs: List[BatInvIdsPair]
+        self, battery_pool: BatteriesStatus, pairs: List[BatInvIdsPair]
     ) -> None:
         """Set outdated message for the given inverters.
 
@@ -339,7 +339,7 @@ class TestBatteryPoolStatus:
 
     def set_battery_state(
         self,
-        battery_pool: BatteryPoolStatus,
+        battery_pool: BatteriesStatus,
         pairs: List[BatInvIdsPair],
         state: BatteryState.ValueType,
     ) -> None:
@@ -359,7 +359,7 @@ class TestBatteryPoolStatus:
 
     def set_inverter_state(
         self,
-        battery_pool: BatteryPoolStatus,
+        battery_pool: BatteriesStatus,
         pairs: List[BatInvIdsPair],
         state: InverterState.ValueType,
     ) -> None:
@@ -379,7 +379,7 @@ class TestBatteryPoolStatus:
 
     def set_battery_relay_state(
         self,
-        battery_pool: BatteryPoolStatus,
+        battery_pool: BatteriesStatus,
         pairs: List[BatInvIdsPair],
         state: BatteryRelayState.ValueType,
     ) -> None:
@@ -399,7 +399,7 @@ class TestBatteryPoolStatus:
 
     def set_inverter_error(
         self,
-        battery_pool: BatteryPoolStatus,
+        battery_pool: BatteriesStatus,
         pairs: List[BatInvIdsPair],
         errors: List[ErrorLevel.ValueType],
     ) -> None:
@@ -428,7 +428,7 @@ class TestBatteryPoolStatus:
 
     def set_battery_error(
         self,
-        battery_pool: BatteryPoolStatus,
+        battery_pool: BatteriesStatus,
         pairs: List[BatInvIdsPair],
         errors: List[ErrorLevel.ValueType],
     ) -> None:
@@ -458,7 +458,7 @@ class TestBatteryPoolStatus:
     def test_create_sync_pool(self) -> None:
         """Test if error is raised after calling default constructor."""
         with pytest.raises(NotSyncConstructible):
-            BatteryPoolStatus()
+            BatteriesStatus()
 
     async def test_scenario_one_battery(self, mocker: MockerFixture) -> None:
         """Test scenario with one battery.
@@ -469,7 +469,7 @@ class TestBatteryPoolStatus:
         pairs = await self.my_setup(mocker=mocker, batteries_num=1)
 
         batteries = {pair.bat_id for pair in pairs}
-        battery_pool = await BatteryPoolStatus.async_new(
+        battery_pool = await BatteriesStatus.async_new(
             batteries, max_data_age_sec=30, max_blocking_duration_sec=30
         )
 
@@ -490,7 +490,7 @@ class TestBatteryPoolStatus:
         """
         pairs = await self.my_setup(mocker=mocker, batteries_num=5)
         batteries = {pair.bat_id for pair in pairs}
-        battery_pool = await BatteryPoolStatus.async_new(
+        battery_pool = await BatteriesStatus.async_new(
             batteries, max_data_age_sec=30, max_blocking_duration_sec=30
         )
 
@@ -506,7 +506,7 @@ class TestBatteryPoolStatus:
         await self.cleanup()
 
     def scenario_batteries_become_broken(
-        self, battery_pool: BatteryPoolStatus, pairs: List[BatInvIdsPair]
+        self, battery_pool: BatteriesStatus, pairs: List[BatInvIdsPair]
     ) -> None:
         """Test what happens if all batteries are broken.
 
@@ -546,7 +546,7 @@ class TestBatteryPoolStatus:
         assert battery_pool.get_working_batteries(batteries) == expected
 
     def scenario_invalid_state(
-        self, battery_pool: BatteryPoolStatus, pairs: List[BatInvIdsPair]
+        self, battery_pool: BatteriesStatus, pairs: List[BatInvIdsPair]
     ) -> None:
         """Test all the scenarios where components have invalid state.
 
@@ -587,7 +587,7 @@ class TestBatteryPoolStatus:
         assert battery_pool.get_working_batteries(batteries) == expected
 
     def scenario_error(
-        self, battery_pool: BatteryPoolStatus, pairs: List[BatInvIdsPair]
+        self, battery_pool: BatteriesStatus, pairs: List[BatInvIdsPair]
     ) -> None:
         """Test all the scenarios where components have errors.
 
@@ -672,7 +672,7 @@ class TestBatteryPoolStatus:
         )
 
     def scenario_block_component(
-        self, battery_pool: BatteryPoolStatus, pairs: List[BatInvIdsPair]
+        self, battery_pool: BatteriesStatus, pairs: List[BatInvIdsPair]
     ) -> None:
         """Test all the scenarios where components are blocked.
 
@@ -736,7 +736,7 @@ class TestBatteryPoolStatus:
             assert battery_pool.get_working_batteries(batteries) == batteries
 
     def scenario_blocking_timeout_increases(
-        self, battery_pool: BatteryPoolStatus, pairs: List[BatInvIdsPair]
+        self, battery_pool: BatteriesStatus, pairs: List[BatInvIdsPair]
     ) -> None:
         """Test if blocking components timeout increases.
 
@@ -837,7 +837,7 @@ class TestBatteryPoolStatus:
             assert battery_pool.get_working_batteries(batteries) == batteries
 
     def scenario_state_changes_for_blocked_component(
-        self, battery_pool: BatteryPoolStatus, pairs: List[BatInvIdsPair]
+        self, battery_pool: BatteriesStatus, pairs: List[BatInvIdsPair]
     ) -> None:
         """Test if component is unblocked if component state changes to Success.
 
@@ -895,7 +895,7 @@ class TestBatteryPoolStatus:
             assert battery_pool.get_working_batteries(batteries) == batteries
 
     def scenario_unknown_batteries_are_used(
-        self, battery_pool: BatteryPoolStatus, pairs: List[BatInvIdsPair]
+        self, battery_pool: BatteriesStatus, pairs: List[BatInvIdsPair]
     ) -> None:
         """If there are no working batteries, then unknown batteries should be returned.
 
