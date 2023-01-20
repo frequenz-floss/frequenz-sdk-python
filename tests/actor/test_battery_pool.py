@@ -28,7 +28,7 @@ from pytest_mock import MockerFixture
 from frequenz.sdk import microgrid
 from frequenz.sdk._internal.asyncio import NotSyncConstructible
 from frequenz.sdk.actor.power_distributing import PartialFailure, Request, Success
-from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteriesStatus
+from frequenz.sdk.actor.power_distributing._batteries_status import BatteriesStatus
 from frequenz.sdk.microgrid.component import BatteryData, InverterData
 from tests.microgrid import mock_api
 

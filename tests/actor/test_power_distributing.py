@@ -12,7 +12,7 @@ from frequenz.channels import Bidirectional, Receiver, Sender
 from pytest_mock import MockerFixture
 
 from frequenz.sdk.actor.power_distributing import PowerDistributingActor, Request
-from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteriesStatus
+from frequenz.sdk.actor.power_distributing._batteries_status import BatteriesStatus
 from frequenz.sdk.actor.power_distributing.result import (
     Error,
     Ignored,
