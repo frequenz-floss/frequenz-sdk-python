@@ -33,17 +33,20 @@ T = TypeVar("T")
 class BatteryStatus(Enum):
     """Tells if battery is can be used."""
 
-    # Component it is not working.
     NOT_WORKING = 0
-    # Component should work, but it failed in last request. It is blocked for few
-    # seconds and it is not recommended to use it until it is necessary.
+    """Component is not working and should not be used"""
+
     UNCERTAIN = 1
-    # Component is working
+    """Component should work, but it failed in last request. It is blocked for few
+    seconds and it is not recommended to use it unless it is necessary.
+    """
+
     WORKING = 2
+    """Component is working"""
 
 
 @dataclass
-class _ComponentReceiver(Generic[T]):
+class _ComponentData(Generic[T]):
     component_id: int
     receiver: Peekable[T]
 
@@ -80,8 +83,8 @@ class BatteryStatusTracker(AsyncConstructible):
     _max_blocking_duration_sec: float
     _blocked_until: Optional[datetime]
     _last_blocking_duration_sec: float
-    _battery_receiver: _ComponentReceiver[BatteryData]
-    _inverter_receiver: _ComponentReceiver[InverterData]
+    _battery: _ComponentData[BatteryData]
+    _inverter: _ComponentData[InverterData]
 
     @classmethod
     async def async_new(
@@ -105,7 +108,6 @@ class BatteryStatusTracker(AsyncConstructible):
             RuntimeError: If battery has no adjacent inverter.
         """
         self: BatteryStatusTracker = BatteryStatusTracker.__new__(cls)
-        self._battery_id = battery_id
         self._max_data_age = max_data_age_sec
 
         self._last_status = BatteryStatus.WORKING
@@ -115,23 +117,17 @@ class BatteryStatusTracker(AsyncConstructible):
         self._blocked_until = None
         self._last_blocking_duration_sec = self._min_blocking_duration_sec
 
-        inverter_id = self._find_adjacent_inverter_id()
+        inverter_id = self._find_adjacent_inverter_id(battery_id)
         if inverter_id is None:
-            raise RuntimeError(
-                f"Can't find inverter adjacent to battery: {self._battery_id}"
-            )
+            raise RuntimeError(f"Can't find inverter adjacent to battery: {battery_id}")
 
         api_client = get_microgrid().api_client
 
-        bat_recv = await api_client.battery_data(self._battery_id)
-        self._battery_receiver = _ComponentReceiver(
-            self._battery_id, bat_recv.into_peekable()
-        )
+        bat_recv = await api_client.battery_data(battery_id)
+        self._battery = _ComponentData(battery_id, bat_recv.into_peekable())
 
         inv_recv = await api_client.inverter_data(inverter_id)
-        self._inverter_receiver = _ComponentReceiver(
-            inverter_id, inv_recv.into_peekable()
-        )
+        self._inverter = _ComponentData(inverter_id, inv_recv.into_peekable())
 
         await asyncio.sleep(_START_DELAY_SEC)
         return self
@@ -143,7 +139,7 @@ class BatteryStatusTracker(AsyncConstructible):
         Returns:
             Battery id
         """
-        return self._battery_id
+        return self._battery.component_id
 
     def get_status(self) -> BatteryStatus:
         """Return status of the battery.
@@ -157,14 +153,14 @@ class BatteryStatusTracker(AsyncConstructible):
         Returns:
             Battery status
         """
-        bat_msg = self._battery_receiver.receiver.peek()
-        inv_msg = self._inverter_receiver.receiver.peek()
+        bat_msg = self._battery.receiver.peek()
+        inv_msg = self._inverter.receiver.peek()
         if bat_msg is None or inv_msg is None:
             if self._last_status == BatteryStatus.WORKING:
                 if not bat_msg:
-                    component_id = self._battery_id
+                    component_id = self._battery.component_id
                 else:
-                    component_id = self._inverter_receiver.component_id
+                    component_id = self._inverter.component_id
 
                 _logger.warning(
                     "None returned from component %d receiver.", component_id
@@ -320,7 +316,7 @@ class BatteryStatusTracker(AsyncConstructible):
             if self._last_status == BatteryStatus.WORKING:
                 _logger.warning(
                     "Battery %d has invalid state: %s",
-                    self._battery_id,
+                    self._battery.component_id,
                     str(state),
                 )
             return False
@@ -332,7 +328,7 @@ class BatteryStatusTracker(AsyncConstructible):
             if self._last_status == BatteryStatus.WORKING:
                 _logger.warning(
                     "Battery %d has invalid relay state: %s",
-                    self._battery_id,
+                    self._battery.component_id,
                     str(relay_state),
                 )
             return False
@@ -360,8 +356,11 @@ class BatteryStatusTracker(AsyncConstructible):
 
         return not is_outdated
 
-    def _find_adjacent_inverter_id(self) -> Optional[int]:
+    def _find_adjacent_inverter_id(self, battery_id: int) -> Optional[int]:
         """Find inverter adjacent to this battery.
+
+        Args:
+            battery_id: battery id adjacent to the wanted inverter
 
         Returns:
             Id of the inverter. If battery hasn't adjacent inverter, then return None.
@@ -370,7 +369,7 @@ class BatteryStatusTracker(AsyncConstructible):
         return next(
             (
                 comp.component_id
-                for comp in graph.predecessors(self._battery_id)
+                for comp in graph.predecessors(battery_id)
                 if comp.category == ComponentCategory.INVERTER
             ),
             None,

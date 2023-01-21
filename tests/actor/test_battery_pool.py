@@ -235,7 +235,7 @@ class TestBatteriesStatus:
 
             # Use protected access to set expected output from the `peek`.
             # pylint: disable=protected-access
-            recv = battery_pool._batteries[bat_id]._battery_receiver.receiver
+            recv = battery_pool._batteries[bat_id]._battery.receiver
             recv.peek.return_value = create_msg(bat_id)  # type: ignore[attr-defined]
 
     def set_inverter_message(
@@ -262,7 +262,7 @@ class TestBatteriesStatus:
 
             # Use protected access to set expected output from the `peek`.
             # pylint: disable=protected-access
-            inv_receiver = battery_pool._batteries[bat_id]._inverter_receiver.receiver
+            inv_receiver = battery_pool._batteries[bat_id]._inverter.receiver
             inv_receiver.peek.return_value = create_msg(  # type: ignore[attr-defined]
                 inv_id
             )
