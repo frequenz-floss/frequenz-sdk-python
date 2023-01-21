@@ -51,6 +51,68 @@ class _ComponentData(Generic[T]):
     receiver: Peekable[T]
 
 
+@dataclass
+class _BlockingStatus:
+    min_duration_sec: float
+    max_duration_sec: float
+
+    def __post_init__(self):
+        self.last_blocking_duration_sec: float = self.min_duration_sec
+        self.blocked_until: Optional[datetime] = None
+
+    def block(self) -> float:
+        """Block battery.
+
+        Battery can be unblocked using `self.unblock()` method.
+
+        Returns:
+            For how long (in seconds) the battery is blocked.
+        """
+        now = datetime.now(tz=timezone.utc)
+
+        # If is not blocked
+        if self.blocked_until is None:
+            self.last_blocking_duration_sec = self.min_duration_sec
+            self.blocked_until = now + timedelta(
+                seconds=self.last_blocking_duration_sec
+            )
+            return self.last_blocking_duration_sec
+
+        # If still blocked, then do nothing
+        if self.blocked_until > now:
+            return 0.0
+
+        # If previous blocking time expired, then blocked it once again.
+        # Increase last blocking time, unless it reach the maximum.
+        self.last_blocking_duration_sec = min(
+            2 * self.last_blocking_duration_sec, self.max_duration_sec
+        )
+        self.blocked_until = now + timedelta(seconds=self.last_blocking_duration_sec)
+
+        return self.last_blocking_duration_sec
+
+    def unblock(self):
+        """Unblock battery.
+
+        This will reset duration of the next blocking timeout.
+
+        Battery can be blocked using `self.block()` method.
+        """
+        self.blocked_until = None
+
+    def is_blocked(self) -> bool:
+        """Return if battery is blocked.
+
+        Battery can be blocked if last request for that battery failed.
+
+        Returns:
+            True if battery is blocked, False otherwise.
+        """
+        if self.blocked_until is None:
+            return False
+        return self.blocked_until > datetime.now(tz=timezone.utc)
+
+
 class BatteryStatusTracker(AsyncConstructible):
     """Class for tracking if battery is working.
 
@@ -79,10 +141,7 @@ class BatteryStatusTracker(AsyncConstructible):
     _battery_id: int
     _max_data_age: float
     _last_status: BatteryStatus
-    _min_blocking_duration_sec: float
-    _max_blocking_duration_sec: float
-    _blocked_until: Optional[datetime]
-    _last_blocking_duration_sec: float
+    _blocking_status: _BlockingStatus
     _battery: _ComponentData[BatteryData]
     _inverter: _ComponentData[InverterData]
 
@@ -112,10 +171,7 @@ class BatteryStatusTracker(AsyncConstructible):
 
         self._last_status = BatteryStatus.WORKING
 
-        self._min_blocking_duration_sec = 1.0
-        self._max_blocking_duration_sec = max_blocking_duration_sec
-        self._blocked_until = None
-        self._last_blocking_duration_sec = self._min_blocking_duration_sec
+        self._blocking_status = _BlockingStatus(1.0, max_blocking_duration_sec)
 
         inverter_id = self._find_adjacent_inverter_id(battery_id)
         if inverter_id is None:
@@ -200,9 +256,7 @@ class BatteryStatusTracker(AsyncConstructible):
         Returns:
             True if battery is blocked, False otherwise.
         """
-        if self._blocked_until is None:
-            return False
-        return self._blocked_until > datetime.now(tz=timezone.utc)
+        return self._blocking_status.is_blocked()
 
     def unblock(self) -> None:
         """Unblock battery.
@@ -211,7 +265,7 @@ class BatteryStatusTracker(AsyncConstructible):
 
         Battery can be blocked using `self.block()` method.
         """
-        self._blocked_until = None
+        self._blocking_status.unblock()
 
     def block(self) -> float:
         """Block battery.
@@ -221,26 +275,7 @@ class BatteryStatusTracker(AsyncConstructible):
         Returns:
             For how long (in seconds) the battery is blocked.
         """
-        now = datetime.now(tz=timezone.utc)
-
-        if self._blocked_until is None:
-            self._last_blocking_duration_sec = self._min_blocking_duration_sec
-            self._blocked_until = now + timedelta(
-                seconds=self._last_blocking_duration_sec
-            )
-            return self._last_blocking_duration_sec
-
-        # If still blocked, then do nothing
-        if self._blocked_until > now:
-            return 0.0
-
-        # Increase blocking duration twice or until it reach the max.
-        self._last_blocking_duration_sec = min(
-            2 * self._last_blocking_duration_sec, self._max_blocking_duration_sec
-        )
-        self._blocked_until = now + timedelta(seconds=self._last_blocking_duration_sec)
-
-        return self._last_blocking_duration_sec
+        return self._blocking_status.block()
 
     @property
     def blocked_until(self) -> Optional[datetime]:
@@ -250,11 +285,7 @@ class BatteryStatusTracker(AsyncConstructible):
             Timestamp when the battery will be unblocked. Return None if battery is
                 not blocked.
         """
-        if self._blocked_until is None or self._blocked_until < datetime.now(
-            tz=timezone.utc
-        ):
-            return None
-        return self._blocked_until
+        return self._blocking_status.blocked_until
 
     def _no_critical_error(self, msg: Union[BatteryData, InverterData]) -> bool:
         """Check if battery or inverter message has any critical error.
