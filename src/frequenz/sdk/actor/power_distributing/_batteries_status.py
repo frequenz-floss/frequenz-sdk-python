@@ -10,7 +10,6 @@ from typing import Dict, Set
 
 from ..._internal.asyncio import AsyncConstructible
 from ...microgrid._battery import BatteryStatus, BatteryStatusTracker
-from .result import PartialFailure, Result, Success
 
 _logger = logging.getLogger(__name__)
 
@@ -72,8 +71,6 @@ class BatteriesStatus(AsyncConstructible):
             battery_ids: batteries ids
 
         Raises:
-            RuntimeError: If `async_init` method was not called at the beginning to
-                initialized object.
             KeyError: If any battery in the given batteries is not in the pool.
 
         Returns:
@@ -101,29 +98,23 @@ class BatteriesStatus(AsyncConstructible):
         )
         return uncertain
 
-    def update_last_request_status(self, result: Result):
+    def update_status(self, succeed_batteries: Set[int], failed_batteries: Set[int]):
         """Update batteries in pool based on the last result from the request.
 
         Args:
-            result: Summary of what batteries failed and succeed in last request.
-
-        Raises:
-            RuntimeError: If `async_init` method was not called at the beginning to
-                initialize object.
+            succeed_batteries: Batteries that succeed request
+            failed_batteries: Batteries that failed request.
         """
-        if isinstance(result, Success):
-            for bat_id in result.used_batteries:
-                self._batteries[bat_id].unblock()
+        for battery_id in succeed_batteries:
+            self._batteries[battery_id].unblock()
 
-        elif isinstance(result, PartialFailure):
-            for bat_id in result.failed_batteries:
-                duration = self._batteries[bat_id].block()
-                if duration > 0:
-                    _logger.warning(
-                        "Battery %d failed last response. Block it for %f sec",
-                        bat_id,
-                        duration,
-                    )
+        for battery_id in failed_batteries:
+            duration = self._batteries[battery_id].block()
+            if duration > 0:
+                _logger.warning(
+                    "Battery %d failed last response. Block it for %f sec",
+                    battery_id,
+                    duration,
+                )
 
-            for bat_id in result.succeed_batteries:
-                self._batteries[bat_id].unblock()
+            self._batteries[battery_id].block()

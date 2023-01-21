@@ -689,12 +689,8 @@ class TestBatteriesStatus:
 
             failed_batteries = {pairs[2].bat_id, pairs[4].bat_id}
             # Notify that batteries 4 and 6 failed in last request.
-            resp = self.fake_PartialFailure(
-                requested_batteries=batteries,
-                failed_batteries=failed_batteries,
-                succeed_batteries=batteries - failed_batteries,
-            )
-            battery_pool.update_last_request_status(resp)
+            succeed_batteries = batteries - failed_batteries
+            battery_pool.update_status(succeed_batteries, failed_batteries)
             expected = expected - failed_batteries
             working_batteries = battery_pool.get_working_batteries(batteries)
             assert working_batteries == expected
@@ -707,12 +703,8 @@ class TestBatteriesStatus:
             failed_batteries = {pairs[0].bat_id}
             # Notify that another battery failed in last request. Now we have three
             # batteries blocked.
-            resp = self.fake_PartialFailure(
-                requested_batteries=batteries,
-                failed_batteries=failed_batteries,
-                succeed_batteries=working_batteries - failed_batteries,
-            )
-            battery_pool.update_last_request_status(resp)
+            succeed_batteries = working_batteries - failed_batteries
+            battery_pool.update_status(succeed_batteries, failed_batteries)
             expected = expected - failed_batteries
             working_batteries = battery_pool.get_working_batteries(batteries)
             assert working_batteries == expected
@@ -729,10 +721,7 @@ class TestBatteriesStatus:
             working_batteries = battery_pool.get_working_batteries(batteries)
             assert working_batteries == expected
 
-            success_resp: Success = self.fake_Success(
-                requested_batteries=batteries, used_batteries=batteries
-            )
-            battery_pool.update_last_request_status(success_resp)
+            battery_pool.update_status(batteries, set())
             assert battery_pool.get_working_batteries(batteries) == batteries
 
     def scenario_blocking_timeout_increases(
@@ -757,13 +746,8 @@ class TestBatteriesStatus:
             for timeout in expected_blocking_timeout:
                 # Notify that batteries failed in last request.
                 failed_batteries = {pairs[idx].bat_id for idx in [2, 4, 0]}
-                resp = self.fake_PartialFailure(
-                    requested_batteries=batteries,
-                    failed_batteries=failed_batteries,
-                    succeed_batteries=expected - failed_batteries,
-                )
-
-                battery_pool.update_last_request_status(resp)
+                succeed_batteries = expected - failed_batteries
+                battery_pool.update_status(succeed_batteries, failed_batteries)
                 expected = expected - failed_batteries
                 assert battery_pool.get_working_batteries(batteries) == expected
 
@@ -784,12 +768,8 @@ class TestBatteriesStatus:
             # Now the next timeout should be 30 (Tested in loop above).
             # Notify that battery all batteries, except 4 succeed.
             failed_batteries = {pairs[4].bat_id}
-            resp = self.fake_PartialFailure(
-                requested_batteries=batteries,
-                failed_batteries=failed_batteries,
-                succeed_batteries=batteries - failed_batteries,
-            )
-            battery_pool.update_last_request_status(resp)
+            succeed_batteries = batteries - failed_batteries
+            battery_pool.update_status(succeed_batteries, failed_batteries)
             expected = batteries - failed_batteries
             assert battery_pool.get_working_batteries(batteries) == expected
 
@@ -804,12 +784,8 @@ class TestBatteriesStatus:
             # Battery 1 should has timeout 2 sec (it reset)
             # Battery 4 should not reset its timeout (30 sec since last fail response.)
             failed_batteries = {pairs[4].bat_id, pairs[1].bat_id}
-            resp = self.fake_PartialFailure(
-                requested_batteries=batteries,
-                failed_batteries=failed_batteries,
-                succeed_batteries=batteries - failed_batteries,
-            )
-            battery_pool.update_last_request_status(resp)
+            succeed_batteries = batteries - failed_batteries
+            battery_pool.update_status(succeed_batteries, failed_batteries)
             working_batteries = battery_pool.get_working_batteries(batteries)
             # Battery 4 should be blocked since last call
             expected = expected - {pairs[1].bat_id}
@@ -829,11 +805,7 @@ class TestBatteriesStatus:
             self.set_inverter_message(battery_pool, pairs, inverter_data)
             expected = expected | {pairs[4].bat_id}
             assert battery_pool.get_working_batteries(batteries) == expected
-
-            success_resp: Success = self.fake_Success(
-                requested_batteries=batteries, used_batteries=batteries
-            )
-            battery_pool.update_last_request_status(success_resp)
+            battery_pool.update_status(batteries, set())
             assert battery_pool.get_working_batteries(batteries) == batteries
 
     def scenario_state_changes_for_blocked_component(
@@ -851,14 +823,10 @@ class TestBatteriesStatus:
             batteries = {pair.bat_id for pair in pairs}
             expected = batteries
 
-            failed = {pairs[idx].bat_id for idx in range(3)}
             # Notify that batteries batteries: 0..2 failed in last request.
-            resp = self.fake_PartialFailure(
-                requested_batteries=batteries,
-                failed_batteries=failed,
-                succeed_batteries=batteries - failed,
-            )
-            battery_pool.update_last_request_status(resp)
+            failed = {pairs[idx].bat_id for idx in range(3)}
+            succeed_batteries = batteries - failed
+            battery_pool.update_status(succeed_batteries, failed)
             expected = batteries - failed
             assert battery_pool.get_working_batteries(batteries) == expected
 
@@ -888,10 +856,7 @@ class TestBatteriesStatus:
             expected = expected = expected | {pairs[3].bat_id}
             assert battery_pool.get_working_batteries(batteries) == expected
 
-            success_resp: Success = self.fake_Success(
-                requested_batteries=batteries, used_batteries=batteries
-            )
-            battery_pool.update_last_request_status(success_resp)
+            battery_pool.update_status(batteries, set())
             assert battery_pool.get_working_batteries(batteries) == batteries
 
     def scenario_unknown_batteries_are_used(
@@ -912,12 +877,8 @@ class TestBatteriesStatus:
 
             # Notify that battery 0 failed in last request.
             failed = {pairs[0].bat_id}
-            resp = self.fake_PartialFailure(
-                requested_batteries=batteries,
-                failed_batteries=failed,
-                succeed_batteries=batteries - failed,
-            )
-            battery_pool.update_last_request_status(resp)
+            succeed_batteries = batteries - failed
+            battery_pool.update_status(succeed_batteries, failed)
             expected = expected - failed
             assert battery_pool.get_working_batteries(batteries) == expected
 

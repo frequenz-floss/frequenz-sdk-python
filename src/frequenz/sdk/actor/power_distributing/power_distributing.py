@@ -308,14 +308,15 @@ class PowerDistributingActor:
                     excess_power=distribution.remaining_power,
                 )
             else:
+                succeed_batteries = set(battery_distribution.keys())
                 response = Success(
                     request=request,
                     succeed_power=distributed_power_value,
-                    used_batteries=set(battery_distribution.keys()),
+                    used_batteries=succeed_batteries,
                     excess_power=distribution.remaining_power,
                 )
 
-            battery_pool.update_last_request_status(response)
+            battery_pool.update_status(succeed_batteries, failed_batteries)
             await user.channel.send(response)
 
     async def _set_distributed_power(
