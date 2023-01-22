@@ -233,20 +233,29 @@ class BatteryStatusTracker(AsyncConstructible):
             and self._no_critical_error(inv_msg)
         )
 
-        if not is_msg_ok:
-            self._last_status = BatteryStatus.NOT_WORKING
-            return self._last_status
-
-        # Use battery as soon as its message is back correct.
-        if self._last_status == BatteryStatus.NOT_WORKING:
-            self.unblock()
-
-        if self.is_blocked():
-            self._last_status = BatteryStatus.UNCERTAIN
-        else:
-            self._last_status = BatteryStatus.WORKING
-
+        self._last_status = self._get_current_status(is_msg_ok)
         return self._last_status
+
+    def _get_current_status(self, is_msg_correct: bool) -> BatteryStatus:
+        """Get current battery status.
+
+        Args:
+            is_msg_correct: Whether messages from components are correct.
+
+        Returns:
+            Battery status.
+        """
+
+        if not is_msg_correct:
+            return BatteryStatus.NOT_WORKING
+        if self._last_status == BatteryStatus.NOT_WORKING:
+            # If message just become correct, then try to use it
+            self._blocking_status.unblock()
+            return BatteryStatus.WORKING
+        if self._blocking_status.is_blocked():
+            return BatteryStatus.UNCERTAIN
+
+        return BatteryStatus.WORKING
 
     def is_blocked(self) -> bool:
         """Return if battery is blocked.
