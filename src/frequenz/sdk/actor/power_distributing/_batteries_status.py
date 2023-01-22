@@ -6,33 +6,75 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from dataclasses import dataclass
 from typing import Dict, Set
 
-from ..._internal.asyncio import AsyncConstructible
-from ...microgrid._battery import BatteryStatus, BatteryStatusTracker
+from frequenz.channels import Broadcast, Receiver
+from frequenz.channels.util import MergeNamed
+
+from ..._internal.asyncio import cancel_and_await
+from ...microgrid._battery import BatteryStatus, BatteryStatusTracker, RequestResult
 
 _logger = logging.getLogger(__name__)
 
 
-class BatteriesStatus(AsyncConstructible):
-    """Return status of batteries in the pool.
+@dataclass
+class Status:
+    """Status of the batteries."""
 
-    To create an instance of this class you should use `async_new` class method.
-    Standard constructor (__init__) is not supported and using it will raise
-    `NotSyncConstructible` error.
+    working: Set[int]
+    """Set of working battery ids."""
+
+    uncertain: Set[int]
+    """Set of batteries that should be used only if there are no working batteries."""
+
+    def get_working_batteries(self, batteries: Set[int]) -> Set[int]:
+        """From the given set of batteries return working batteries.
+
+        Args:
+            batteries: Set of batteries
+
+        Returns:
+            Subset with working batteries.
+        """
+        working = self.working.intersection(batteries)
+        if len(working) > 0:
+            return working
+        return self.uncertain.intersection(batteries)
+
+
+@dataclass
+class _BatteryStatusChannelHelper:
+    """Helper class to create battery status channel.
+
+    Channel has only one receiver.
+    Receiver has size 1, because we need only latest status.
     """
 
-    # This is instance attribute.
-    # Don't assign default value, because then it becomes class attribute.
-    _batteries: Dict[int, BatteryStatusTracker]
+    battery_id: int
+    """Id of the battery for which we should create channel."""
 
-    @classmethod
-    async def async_new(
-        cls,
+    def __post_init__(self):
+        self.name: str = f"battery-{self.battery_id}-status"
+        channel = Broadcast[BatteryStatus](self.name)
+
+        receiver_name = f"{self.name}-receiver"
+        self.receiver = channel.new_receiver(name=receiver_name, maxsize=1)
+        self.sender = channel.new_sender()
+
+
+class BatteriesStatus:
+    """Track status of the batteries.
+
+    Send set of working and uncertain batteries, when the any battery change status.
+    """
+
+    def __init__(
+        self,
         battery_ids: Set[int],
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
-    ) -> BatteriesStatus:
+    ) -> None:
         """Create BatteriesStatus instance.
 
         Args:
@@ -46,75 +88,103 @@ class BatteriesStatus(AsyncConstructible):
 
         Raises:
             RuntimeError: If any battery has no adjacent inverter.
-
-        Returns:
-            New instance of this class.
         """
-        self: BatteriesStatus = BatteriesStatus.__new__(cls)
+        # At first no battery is working, we will get notification when they start
+        # working.
+        self._current_status = Status(working=set(), uncertain=set())
 
-        tasks = [
-            BatteryStatusTracker.async_new(
-                id, max_data_age_sec, max_blocking_duration_sec
+        # Channel for sending results of requests to the batteries
+        request_result_channel = Broadcast[RequestResult]("battery_request_status")
+        self._request_result_sender = request_result_channel.new_sender()
+
+        self._batteries: Dict[str, BatteryStatusTracker] = {}
+
+        # Receivers for individual battery statuses are needed to create a `MergeNamed`
+        # object.
+        receivers: Dict[str, Receiver[BatteryStatus]] = {}
+
+        for battery_id in battery_ids:
+            channel = _BatteryStatusChannelHelper(battery_id)
+            receivers[channel.name] = channel.receiver
+
+            self._batteries[channel.name] = BatteryStatusTracker(
+                battery_id=battery_id,
+                max_data_age_sec=max_data_age_sec,
+                max_blocking_duration_sec=max_blocking_duration_sec,
+                status_sender=channel.sender,
+                request_result_receiver=request_result_channel.new_receiver(
+                    f"battery_{battery_id}_request_status"
+                ),
             )
-            for id in battery_ids
-        ]
 
-        trackers = await asyncio.gather(*tasks)
-        self._batteries = {tracker.battery_id: tracker for tracker in trackers}
+        self._battery_status_channel = MergeNamed[BatteryStatus](
+            **receivers,
+        )
 
-        return self
+        self._task = asyncio.create_task(self._run())
 
-    def get_working_batteries(self, battery_ids: Set[int]) -> Set[int]:
-        """Get subset of battery_ids with working batteries.
+    async def stop(self) -> None:
+        """Stop tracking batteries status."""
+        await asyncio.gather(
+            *[
+                tracker.stop()  # pylint: disable=protected-access
+                for tracker in self._batteries.values()
+            ]
+        )
+        await cancel_and_await(self._task)
+
+    async def _run(self) -> None:
+        """Start tracking batteries status."""
+        while True:
+            try:
+                await self._update_status(self._battery_status_channel)
+            except Exception as err:  # pylint: disable=broad-except
+                _logger.error("BatteriesStatus failed with error: %s. Restarting.", err)
+
+    async def _update_status(self, status_channel: MergeNamed[BatteryStatus]) -> None:
+        """Wait for any battery to change status and update status.
 
         Args:
-            battery_ids: batteries ids
-
-        Raises:
-            KeyError: If any battery in the given batteries is not in the pool.
-
-        Returns:
-            Subset of given batteries with working batteries.
+            status_channel: Receivers packed in Select object.
         """
-        working: Set[int] = set()
-        uncertain: Set[int] = set()
-        for bat_id in battery_ids:
-            if bat_id not in battery_ids:
-                ids = str(self._batteries.keys())
-                raise KeyError(f"No battery {bat_id} in pool. All batteries: {ids}")
-            battery_status = self._batteries[bat_id].get_status()
-            if battery_status == BatteryStatus.WORKING:
-                working.add(bat_id)
-            elif battery_status == BatteryStatus.UNCERTAIN:
-                uncertain.add(bat_id)
+        async for channel_name, status in status_channel:
+            battery_id = self._batteries[channel_name].battery_id
+            if status == BatteryStatus.WORKING:
+                self._current_status.working.add(battery_id)
+                self._current_status.uncertain.discard(battery_id)
+            elif status == BatteryStatus.UNCERTAIN:
+                self._current_status.working.discard(battery_id)
+                self._current_status.uncertain.add(battery_id)
+            elif status == BatteryStatus.NOT_WORKING:
+                self._current_status.working.discard(battery_id)
+                self._current_status.uncertain.discard(battery_id)
 
-        if len(working) > 0:
-            return working
+            # In the future here we should send status to the subscribed actors
 
-        _logger.warning(
-            "There are no working batteries in %s. Falling back to using uncertain batteries %s.",
-            str(battery_ids),
-            str(uncertain),
-        )
-        return uncertain
+    async def update_status(
+        self, succeed_batteries: Set[int], failed_batteries: Set[int]
+    ) -> None:
+        """Notify which batteries succeed and failed in the request.
 
-    def update_status(self, succeed_batteries: Set[int], failed_batteries: Set[int]):
-        """Update batteries in pool based on the last result from the request.
+        Batteries that failed will be considered as broken and will be blocked for
+        some time.
+        Batteries that succeed will be unblocked.
 
         Args:
             succeed_batteries: Batteries that succeed request
-            failed_batteries: Batteries that failed request.
+            failed_batteries: Batteries that failed request
         """
-        for battery_id in succeed_batteries:
-            self._batteries[battery_id].unblock()
+        await self._request_result_sender.send(
+            RequestResult(succeed_batteries, failed_batteries)
+        )
 
-        for battery_id in failed_batteries:
-            duration = self._batteries[battery_id].block()
-            if duration > 0:
-                _logger.warning(
-                    "Battery %d failed last response. Block it for %f sec",
-                    battery_id,
-                    duration,
-                )
+    def get_working_batteries(self, batteries: Set[int]) -> Set[int]:
+        """From the given set of batteries get working.
 
-            self._batteries[battery_id].block()
+        Args:
+            batteries: Set of batteries
+
+        Returns:
+            Subset with working batteries.
+        """
+        return self._current_status.get_working_batteries(batteries)

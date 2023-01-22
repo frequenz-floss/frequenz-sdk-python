@@ -9,25 +9,20 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Generic, Optional, Set, TypeVar, Union
+from typing import Generic, Iterable, Optional, Set, TypeVar, Union
 
 from frequenz.api.microgrid.battery_pb2 import ComponentState as BatteryComponentState
 from frequenz.api.microgrid.battery_pb2 import RelayState as BatteryRelayState
 from frequenz.api.microgrid.common_pb2 import ErrorLevel
 from frequenz.api.microgrid.inverter_pb2 import ComponentState as InverterComponentState
-from frequenz.channels import Peekable
+from frequenz.channels import Receiver, Sender
+from frequenz.channels.util import Select
 
-from ..._internal.asyncio import AsyncConstructible
+from ..._internal.asyncio import cancel_and_await
 from .. import get as get_microgrid
 from ..component import BatteryData, ComponentCategory, ComponentData, InverterData
 
-# Time needed to get first component data.
-# Constant for now. In future should be configurable in UI.
-_START_DELAY_SEC = 2.0
-
 _logger = logging.getLogger(__name__)
-
-T = TypeVar("T")
 
 
 class BatteryStatus(Enum):
@@ -46,9 +41,24 @@ class BatteryStatus(Enum):
 
 
 @dataclass
+class RequestResult:
+    """Information what batteries succeed or failed the last request."""
+
+    succeed: Iterable[int]
+    """Set of the batteries that succeed."""
+
+    failed: Iterable[int]
+    """Set of the batteries that failed."""
+
+
+T = TypeVar("T")
+
+
+@dataclass
 class _ComponentData(Generic[T]):
     component_id: int
-    receiver: Peekable[T]
+    last_msg_timestamp: datetime = datetime.now(tz=timezone.utc)
+    last_msg_correct: bool = False
 
 
 @dataclass
@@ -113,12 +123,10 @@ class _BlockingStatus:
         return self.blocked_until > datetime.now(tz=timezone.utc)
 
 
-class BatteryStatusTracker(AsyncConstructible):
+class BatteryStatusTracker:
     """Class for tracking if battery is working.
 
-    To create an instance of this class you should use `async_new` class method.
-    Standard constructor (__init__) is not supported and using it will raise
-    `NotSyncConstructible` error.
+    Status updates are sent out only when there is a status change.
     """
 
     # Class attributes
@@ -137,18 +145,14 @@ class BatteryStatusTracker(AsyncConstructible):
         InverterComponentState.COMPONENT_STATE_STANDBY,
     }
 
-    # Instance attributes
-    _battery_id: int
-    _max_data_age: float
-    _last_status: BatteryStatus
-    _blocking_status: _BlockingStatus
-    _battery: _ComponentData[BatteryData]
-    _inverter: _ComponentData[InverterData]
-
-    @classmethod
-    async def async_new(
-        cls, battery_id: int, max_data_age_sec: float, max_blocking_duration_sec: float
-    ) -> BatteryStatusTracker:
+    def __init__(  # pylint: disable=too-many-arguments
+        self,
+        battery_id: int,
+        max_data_age_sec: float,
+        max_blocking_duration_sec: float,
+        status_sender: Sender[BatteryStatus],
+        request_result_receiver: Receiver[RequestResult],
+    ) -> None:
         """Create class instance.
 
         Args:
@@ -159,34 +163,32 @@ class BatteryStatusTracker(AsyncConstructible):
                 data.
             max_blocking_duration_sec: This value tell what should be the maximum
                 timeout used for blocking failing component.
-
-        Returns:
-            New instance of this class.
+            status_sender: Channel to send status updates.
+            request_result_receiver: Channel to receive results of the requests to the
+                components.
 
         Raises:
             RuntimeError: If battery has no adjacent inverter.
         """
-        self: BatteryStatusTracker = BatteryStatusTracker.__new__(cls)
         self._max_data_age = max_data_age_sec
-
-        self._last_status = BatteryStatus.WORKING
-
+        # First battery is considered as not working.
+        # Change status after first messages are received.
+        self._last_status = BatteryStatus.NOT_WORKING
         self._blocking_status = _BlockingStatus(1.0, max_blocking_duration_sec)
 
         inverter_id = self._find_adjacent_inverter_id(battery_id)
         if inverter_id is None:
             raise RuntimeError(f"Can't find inverter adjacent to battery: {battery_id}")
 
-        api_client = get_microgrid().api_client
+        self._battery = _ComponentData[BatteryData](battery_id)
+        self._inverter = _ComponentData[InverterData](inverter_id)
 
-        bat_recv = await api_client.battery_data(battery_id)
-        self._battery = _ComponentData(battery_id, bat_recv.into_peekable())
+        # Select needs receivers that can be get in async way only.
+        self._select = None
 
-        inv_recv = await api_client.inverter_data(inverter_id)
-        self._inverter = _ComponentData(inverter_id, inv_recv.into_peekable())
-
-        await asyncio.sleep(_START_DELAY_SEC)
-        return self
+        self._task = asyncio.create_task(
+            self._run(status_sender, request_result_receiver)
+        )
 
     @property
     def battery_id(self) -> int:
@@ -197,54 +199,120 @@ class BatteryStatusTracker(AsyncConstructible):
         """
         return self._battery.component_id
 
-    def get_status(self) -> BatteryStatus:
-        """Return status of the battery.
+    async def stop(self) -> None:
+        """Stop tracking battery status."""
+        await cancel_and_await(self._task)
 
-        The decision is made based on last message from battery and adjacent inverter
-        and result from last request.
+        if self._select is not None:
+            await self._select.stop()
 
-        Raises:
-            RuntimeError: If method `async_init` was not called or not awaited.
+    async def _run(
+        self,
+        status_sender: Sender[BatteryStatus],
+        request_result_receiver: Receiver[RequestResult],
+    ) -> None:
+        """Process data from the components and request_result_receiver.
 
-        Returns:
-            Battery status
-        """
-        bat_msg = self._battery.receiver.peek()
-        inv_msg = self._inverter.receiver.peek()
-        if bat_msg is None or inv_msg is None:
-            if self._last_status == BatteryStatus.WORKING:
-                if not bat_msg:
-                    component_id = self._battery.component_id
-                else:
-                    component_id = self._inverter.component_id
-
-                _logger.warning(
-                    "None returned from component %d receiver.", component_id
-                )
-            self._last_status = BatteryStatus.NOT_WORKING
-            return self._last_status
-
-        older_message = bat_msg if bat_msg.timestamp < inv_msg.timestamp else inv_msg
-        is_msg_ok = (
-            self._is_message_reliable(older_message)
-            and self._is_battery_state_correct(bat_msg)
-            and self._is_inverter_state_correct(inv_msg)
-            and self._no_critical_error(bat_msg)
-            and self._no_critical_error(inv_msg)
-        )
-
-        self._last_status = self._get_current_status(is_msg_ok)
-        return self._last_status
-
-    def _get_current_status(self, is_msg_correct: bool) -> BatteryStatus:
-        """Get current battery status.
+        New status is send only when it change.
 
         Args:
-            is_msg_correct: Whether messages from components are correct.
+            status_sender: Channel to send status updates.
+            request_result_receiver: Channel to receive results of the requests to the
+                components.
+        """
+        api_client = get_microgrid().api_client
+
+        battery_receiver = await api_client.battery_data(self._battery.component_id)
+        inverter_receiver = await api_client.inverter_data(self._inverter.component_id)
+
+        self._select = Select(
+            battery=battery_receiver,
+            inverter=inverter_receiver,
+            request_result=request_result_receiver,
+        )
+
+        while True:
+            try:
+                while await self._select.ready():
+                    new_status = self._update_status(self._select)
+
+                    if new_status is not None:
+                        await status_sender.send(new_status)
+
+            except Exception as err:  # pylint: disable=broad-except
+                _logger.exception("BatteryStatusTracker crashed with error: %s", err)
+
+    def _update_status(self, select: Select) -> Optional[BatteryStatus]:
+        if msg := select.battery:
+            self._battery.last_msg_correct = (
+                self._is_message_reliable(msg.inner)
+                and self._is_battery_state_correct(msg.inner)
+                and self._no_critical_error(msg.inner)
+            )
+            self._battery.last_msg_timestamp = msg.inner.timestamp
+
+        elif msg := select.inverter:
+            self._inverter.last_msg_correct = (
+                self._is_message_reliable(msg.inner)
+                and self._is_inverter_state_correct(msg.inner)
+                and self._no_critical_error(msg.inner)
+            )
+            self._inverter.last_msg_timestamp = msg.inner.timestamp
+
+        elif msg := select.request_result:
+            result: RequestResult = msg.inner
+            if self.battery_id in result.succeed:
+                self._blocking_status.unblock()
+
+            elif self.battery_id in result.failed:
+                # check if component stopped sending data
+                if self._battery.last_msg_correct and self._is_timestamp_outdated(
+                    self._battery.last_msg_timestamp
+                ):
+                    self._battery.last_msg_correct = False
+
+                if self._inverter.last_msg_correct and self._is_timestamp_outdated(
+                    self._inverter.last_msg_timestamp
+                ):
+                    self._inverter.last_msg_correct = False
+
+                component_correct = (
+                    self._battery.last_msg_correct and self._inverter.last_msg_correct
+                )
+                if component_correct:
+                    # if component is sending data, but request fails, then block it
+                    # for some time
+                    duration = self._blocking_status.block()
+                    if duration > 0:
+                        _logger.warning(
+                            "battery %d failed last response. block it for %f sec",
+                            self.battery_id,
+                            duration,
+                        )
+        else:
+            _logger.error("Unknown message returned from select")
+
+        current_status = self._get_current_status()
+        if self._last_status != current_status:
+            self._last_status = current_status
+            _logger.info(
+                "battery %d changed status %s",
+                self.battery_id,
+                str(self._last_status),
+            )
+            return current_status
+
+        return None
+
+    def _get_current_status(self) -> BatteryStatus:
+        """Get current battery status.
 
         Returns:
             Battery status.
         """
+        is_msg_correct = (
+            self._battery.last_msg_correct and self._inverter.last_msg_correct
+        )
 
         if not is_msg_correct:
             return BatteryStatus.NOT_WORKING
@@ -256,45 +324,6 @@ class BatteryStatusTracker(AsyncConstructible):
             return BatteryStatus.UNCERTAIN
 
         return BatteryStatus.WORKING
-
-    def is_blocked(self) -> bool:
-        """Return if battery is blocked.
-
-        Battery can be blocked if last request for that battery failed.
-
-        Returns:
-            True if battery is blocked, False otherwise.
-        """
-        return self._blocking_status.is_blocked()
-
-    def unblock(self) -> None:
-        """Unblock battery.
-
-        This will reset duration of the next blocking timeout.
-
-        Battery can be blocked using `self.block()` method.
-        """
-        self._blocking_status.unblock()
-
-    def block(self) -> float:
-        """Block battery.
-
-        Battery can be unblocked using `self.unblock()` method.
-
-        Returns:
-            For how long (in seconds) the battery is blocked.
-        """
-        return self._blocking_status.block()
-
-    @property
-    def blocked_until(self) -> Optional[datetime]:
-        """Return timestamp when the battery will be unblocked.
-
-        Returns:
-            Timestamp when the battery will be unblocked. Return None if battery is
-                not blocked.
-        """
-        return self._blocking_status.blocked_until
 
     def _no_critical_error(self, msg: Union[BatteryData, InverterData]) -> bool:
         """Check if battery or inverter message has any critical error.
@@ -335,7 +364,7 @@ class BatteryStatusTracker(AsyncConstructible):
                 _logger.warning(
                     "Inverter %d has invalid state: %s",
                     msg.component_id,
-                    str(state),
+                    InverterComponentState.Name(state),
                 )
             return False
         return True
@@ -356,8 +385,8 @@ class BatteryStatusTracker(AsyncConstructible):
             if self._last_status == BatteryStatus.WORKING:
                 _logger.warning(
                     "Battery %d has invalid state: %s",
-                    self._battery.component_id,
-                    str(state),
+                    self.battery_id,
+                    BatteryComponentState.Name(state),
                 )
             return False
 
@@ -368,11 +397,24 @@ class BatteryStatusTracker(AsyncConstructible):
             if self._last_status == BatteryStatus.WORKING:
                 _logger.warning(
                     "Battery %d has invalid relay state: %s",
-                    self._battery.component_id,
-                    str(relay_state),
+                    self.battery_id,
+                    BatteryRelayState.Name(relay_state),
                 )
             return False
         return True
+
+    def _is_timestamp_outdated(self, timestamp: datetime) -> bool:
+        """Return if timestamp is to old.
+
+        Args:
+            timestamp: timestamp
+
+        Returns:
+            _True if timestamp is to old, False otherwise
+        """
+        now = datetime.now(tz=timezone.utc)
+        diff = (now - timestamp).total_seconds()
+        return diff > self._max_data_age
 
     def _is_message_reliable(self, message: ComponentData) -> bool:
         """Check if message is too old to be considered as reliable.
@@ -383,9 +425,7 @@ class BatteryStatusTracker(AsyncConstructible):
         Returns:
             True if message is reliable, False otherwise.
         """
-        now = datetime.now(tz=timezone.utc)
-        diff = (now - message.timestamp).total_seconds()
-        is_outdated = diff > self._max_data_age
+        is_outdated = self._is_timestamp_outdated(message.timestamp)
 
         if is_outdated and self._last_status == BatteryStatus.WORKING:
             _logger.warning(
