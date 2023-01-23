@@ -18,6 +18,8 @@
   * `resampler_config` is the configuration of the resampler calling the resampling function.
   * `source_properties` is the properties of the source being resampled.
 
+* Update frequenz-channel-python dependency to the latest release v0.12.0
+
 ## New Features
 
 * The resampler and resampling actor can now take a few new options via the new `ResamplerConfig` object:
