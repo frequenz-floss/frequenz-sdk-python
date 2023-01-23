@@ -20,6 +20,8 @@
 
 * Update frequenz-channel-python dependency to the latest release v0.12.0
 
+* The MetricFetcher now propagates `NaN` to handle None values when None are not treated from the stream as 0s. Then any FormulaStep can compute the results without checking for None on each value involved. However the final result is written as None rather than NaN/INF in the FormulaEngine.
+
 ## New Features
 
 * The resampler and resampling actor can now take a few new options via the new `ResamplerConfig` object:
