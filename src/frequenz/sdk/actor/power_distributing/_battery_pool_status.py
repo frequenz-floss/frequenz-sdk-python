@@ -1,5 +1,5 @@
 # License: MIT
-# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+# Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 """Class that stores pool of batteries and manage them."""
 
 from __future__ import annotations

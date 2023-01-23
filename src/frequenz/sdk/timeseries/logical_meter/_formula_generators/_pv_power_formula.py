@@ -1,5 +1,5 @@
 # License: MIT
-# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+# Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
 """Formula generator for PV Power, from the component graph."""
 

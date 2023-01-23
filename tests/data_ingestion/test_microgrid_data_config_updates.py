@@ -1,10 +1,10 @@
 # License: MIT
-# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+# Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
 """
 Test for the `MicrogridData` when config manager fires an update about Config change
 
-Copyright © 2022 Frequenz Energy-as-a-Service GmbH.  All rights reserved.
+Copyright © 2023 Frequenz Energy-as-a-Service GmbH.  All rights reserved.
 """
 import asyncio
 from tempfile import NamedTemporaryFile
