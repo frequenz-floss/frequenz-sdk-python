@@ -406,9 +406,6 @@ class FormulaReceiver(BroadcastReceiver[Sample]):
         """
         return self._engine
 
-    def _deactivate(self) -> None:
-        self._active = False
-
     def clone(self) -> FormulaReceiver:
         """Create a new receiver from the formula engine.
 
