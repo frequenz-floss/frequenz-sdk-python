@@ -53,7 +53,10 @@ class GridPowerFormula(FormulaGenerator):
             #
             # This is not possible for Meters, so when they produce `None`
             # values, those values get propagated as the output.
-            if comp.category == ComponentCategory.INVERTER:
+            if comp.category in (
+                ComponentCategory.INVERTER,
+                ComponentCategory.EV_CHARGER,
+            ):
                 nones_are_zeros = True
             elif comp.category == ComponentCategory.METER:
                 nones_are_zeros = False

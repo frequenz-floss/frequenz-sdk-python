@@ -36,7 +36,7 @@ class PVPowerFormula(FormulaGenerator):
         )
 
         if not pv_inverters:
-            logging.warning(
+            logger.warning(
                 "Unable to find any PV inverters in the component graph. "
                 "Subscribing to the resampling actor with a non-existing "
                 "component id, so that `0` values are sent from the formula."
