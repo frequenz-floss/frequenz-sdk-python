@@ -42,3 +42,5 @@
 * Fixed logger creationg for some modules.
 
   Some modules didn't create the logger properly so there was no way to configure them using the standard logger configuration system. Because of this, it might have happened that some log messages were never showed, or some message that the user didn't want to get were emitted anyway.
+
+* When automatically generating formulas for calculating grid power, include measurements from EV chargers if any are directly connected to the grid.
