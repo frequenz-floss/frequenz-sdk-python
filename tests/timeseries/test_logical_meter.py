@@ -5,14 +5,19 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from frequenz.channels import Receiver, Sender
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.actor import ChannelRegistry, ComponentMetricRequest
 from frequenz.sdk.microgrid.component import ComponentMetricId
-from frequenz.sdk.timeseries import Sample
+from frequenz.sdk.timeseries import Sample, Sample3Phase
 from frequenz.sdk.timeseries.logical_meter import LogicalMeter
+from frequenz.sdk.timeseries.logical_meter._formula_engine import (
+    FormulaReceiver,
+    FormulaReceiver3Phase,
+)
 from frequenz.sdk.timeseries.logical_meter._resampled_formula_builder import (
     ResampledFormulaBuilder,
 )
@@ -49,6 +54,34 @@ class TestLogicalMeter:
         )
         # pylint: enable=protected-access
 
+    async def _synchronize_receivers(
+        self,
+        receivers: list[FormulaReceiver | FormulaReceiver3Phase | Receiver[Sample]],
+    ) -> None:
+        by_ts: dict[
+            datetime, List[FormulaReceiver | FormulaReceiver3Phase | Receiver[Sample]]
+        ] = {}
+        for recv in receivers:
+            while True:
+                sample = await recv.receive()
+                assert sample is not None
+                if isinstance(sample, Sample) and sample.value is None:
+                    continue
+                if isinstance(sample, Sample3Phase) and sample.value_p1 is None:
+                    continue
+                by_ts.setdefault(sample.timestamp, []).append(recv)
+                break
+        latest_ts = max(by_ts)
+
+        for sample_ts, recvs in by_ts.items():
+            if sample_ts == latest_ts:
+                continue
+            while sample_ts < latest_ts:
+                for recv in recvs:
+                    val = await recv.receive()
+                    assert val is not None
+                    sample_ts = val.timestamp
+
     async def test_grid_power_1(self, mocker: MockerFixture) -> None:
         """Test the grid power formula with a grid side meter."""
         mockgrid = await MockMicrogrid.new(mocker, grid_side_meter=True)
@@ -71,6 +104,7 @@ class TestLogicalMeter:
             ComponentMetricId.ACTIVE_POWER,
         )
 
+        await self._synchronize_receivers([grid_power_recv, main_meter_recv])
         results = []
         main_meter_data = []
         for _ in range(10):
@@ -112,6 +146,8 @@ class TestLogicalMeter:
             )
             for meter_id in mockgrid.meter_ids
         ]
+
+        await self._synchronize_receivers([grid_power_recv, *meter_receivers])
 
         results = []
         meter_sums = []
@@ -172,6 +208,10 @@ class TestLogicalMeter:
             for meter_id in mockgrid.pv_inverter_ids
         ]
 
+        await self._synchronize_receivers(
+            [battery_power_recv, pv_power_recv, *bat_inv_receivers, *pv_inv_receivers]
+        )
+
         battery_results = []
         pv_results = []
         battery_inv_sums = []
@@ -231,6 +271,8 @@ class TestLogicalMeter:
             )
             for bat_id in mockgrid.battery_ids
         ]
+
+        await self._synchronize_receivers([soc_recv, *bat_receivers])
 
         for ctr in range(10):
             bat_vals = []
@@ -381,6 +423,11 @@ class TestLogicalMeter:
             "net_current"
         )
         net_current_recv = engine.new_receiver()
+
+        await self._synchronize_receivers(
+            [grid_current_recv, ev_current_recv, net_current_recv]
+        )
+
         for _ in range(10):
             grid_amps = await grid_current_recv.receive()
             ev_amps = await ev_current_recv.receive()
