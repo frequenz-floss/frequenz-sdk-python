@@ -6,6 +6,8 @@
 from __future__ import annotations
 
 from datetime import datetime
+from math import isclose
+
 from frequenz.channels import Receiver, Sender
 from pytest_mock import MockerFixture
 
@@ -53,6 +55,13 @@ class TestLogicalMeter:
             metric_id,
         )
         # pylint: enable=protected-access
+
+    def _equal_float_lists(self, list1: list[float], list2: list[float]) -> bool:
+        return (
+            len(list1) > 0
+            and len(list1) == len(list2)
+            and all(isclose(v1, v2) for v1, v2 in zip(list1, list2))
+        )
 
     async def _synchronize_receivers(
         self,
@@ -116,8 +125,7 @@ class TestLogicalMeter:
             assert val is not None
             results.append(val.value)
         await mockgrid.cleanup()
-
-        assert results == main_meter_data
+        assert self._equal_float_lists(results, main_meter_data)
 
     async def test_grid_power_2(
         self,
@@ -166,7 +174,7 @@ class TestLogicalMeter:
         await mockgrid.cleanup()
 
         assert len(results) == 10
-        assert results == meter_sums
+        assert self._equal_float_lists(results, meter_sums)
 
     async def test_battery_and_pv_power(  # pylint: disable=too-many-locals
         self,
@@ -242,9 +250,9 @@ class TestLogicalMeter:
         await mockgrid.cleanup()
 
         assert len(battery_results) == 10
-        assert battery_results == battery_inv_sums
+        assert self._equal_float_lists(battery_results, battery_inv_sums)
         assert len(pv_results) == 10
-        assert pv_results == pv_inv_sums
+        assert self._equal_float_lists(pv_results, pv_inv_sums)
 
     async def test_soc(self, mocker: MockerFixture) -> None:
         """Test the soc calculation."""
@@ -287,7 +295,9 @@ class TestLogicalMeter:
             # So we drop it from out control value as well.
             if ctr >= 7:
                 bat_vals = bat_vals[:2]
-            assert (await soc_recv.receive()).value == sum(bat_vals) / len(bat_vals)
+            assert isclose(
+                (await soc_recv.receive()).value, sum(bat_vals) / len(bat_vals)
+            )
 
         await mockgrid.cleanup()
 
@@ -333,9 +343,8 @@ class TestLogicalMeter:
             assert bat_pow is not None and bat_pow.value is not None
             assert pv_pow is not None and pv_pow.value is not None
             assert main_pow is not None and main_pow.value is not None
-
-            assert inv_calc_pow.value == pv_pow.value + bat_pow.value
-            assert grid_pow.value == inv_calc_pow.value + main_pow.value
+            assert isclose(inv_calc_pow.value, pv_pow.value + bat_pow.value)
+            assert isclose(grid_pow.value, inv_calc_pow.value + main_pow.value)
             count += 1
 
         await mockgrid.cleanup()
