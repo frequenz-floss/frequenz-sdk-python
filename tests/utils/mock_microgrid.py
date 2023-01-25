@@ -42,13 +42,15 @@ class MockMicrogridClient:
         """
         self._component_graph = _MicrogridComponentGraph(components, connections)
 
+        self._components = components
+
         bat_channels = self._create_battery_channels()
         inv_channels = self._create_inverter_channels()
         meter_channels = self._create_meter_channels()
         ev_charger_channels = self._create_ev_charger_channels()
 
         mock_api = self._create_mock_api(
-            components, bat_channels, inv_channels, meter_channels, ev_charger_channels
+            bat_channels, inv_channels, meter_channels, ev_charger_channels
         )
         kwargs: Dict[str, Any] = {
             "api_client": mock_api,
@@ -199,7 +201,6 @@ class MockMicrogridClient:
 
     def _create_mock_api(
         self,
-        components: Set[Component],
         bat_channels: Dict[int, Broadcast[BatteryData]],
         inv_channels: Dict[int, Broadcast[InverterData]],
         meter_channels: Dict[int, Broadcast[MeterData]],
@@ -218,7 +219,7 @@ class MockMicrogridClient:
             Magic mock instance of MicrogridApiClient.
         """
         api = MagicMock()
-        api.components = AsyncMock(return_value=components)
+        api.components = AsyncMock(return_value=self._components)
         # NOTE that has to be partial, because battery_data has id argument and takes
         # channel based on the argument.
         api.battery_data = AsyncMock(
