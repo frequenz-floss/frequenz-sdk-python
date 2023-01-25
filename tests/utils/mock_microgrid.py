@@ -3,7 +3,7 @@
 
 """Mock microgrid definition."""
 from functools import partial
-from typing import Any, Dict, Set, Union
+from typing import Any, Dict, Set
 from unittest.mock import AsyncMock, MagicMock
 
 from frequenz.channels import Broadcast, Receiver
@@ -17,6 +17,7 @@ from frequenz.sdk.microgrid.component import (
     BatteryData,
     Component,
     ComponentCategory,
+    ComponentData,
     InverterData,
 )
 
@@ -89,7 +90,7 @@ class MockMicrogridClient:
         """
         return self._component_graph
 
-    async def send(self, data: Union[BatteryData, InverterData]) -> bool:
+    async def send(self, data: ComponentData) -> bool:
         """Send component data using channel.
 
         This simulates component sending data. Right now only battery and inverter
