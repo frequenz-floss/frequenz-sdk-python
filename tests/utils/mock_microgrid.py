@@ -57,7 +57,7 @@ class MockMicrogridClient:
             id: channel.new_sender() for id, channel in inv_channels.items()
         }
 
-    async def initialize(self, mocker: MockerFixture) -> None:
+    def initialize(self, mocker: MockerFixture) -> None:
         """Mock `microgrid.get` call to return this mock_microgrid.
 
         Args:

@@ -84,7 +84,7 @@ class TestPowerDistributingActor:
         """Test if gets all necessary data."""
         components, connections = self.component_graph()
         mock_microgrid = MockMicrogridClient(components, connections)
-        await mock_microgrid.initialize(mocker)
+        mock_microgrid.initialize(mocker)
 
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
         distributor = PowerDistributingActor({"user1": channel.service_handle})
@@ -101,7 +101,7 @@ class TestPowerDistributingActor:
         """
         components, connections = self.component_graph()
         microgrid = MockMicrogridClient(components, connections)
-        await microgrid.initialize(mocker)
+        microgrid.initialize(mocker)
 
         graph = microgrid.component_graph
         for battery in graph.components(component_category={ComponentCategory.BATTERY}):
