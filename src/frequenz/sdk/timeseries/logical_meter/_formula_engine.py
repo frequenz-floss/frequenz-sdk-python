@@ -91,19 +91,20 @@ class FormulaEvaluator:
             name = metric.get_name()
             if result is None:
                 raise RuntimeError(f"Stream closed for component: {name}")
-            metrics_by_ts[result.timestamp] = name
+            metrics_by_ts.setdefault(result.timestamp, []).append(name)
         latest_ts = max(metrics_by_ts)
 
         # fetch the metrics with non-latest timestamps again until we have the values
         # for the same ts for all metrics.
-        for metric_ts, name in metrics_by_ts.items():
+        for metric_ts, names in metrics_by_ts.items():
             if metric_ts == latest_ts:
                 continue
-            fetcher = self._metric_fetchers[name]
             while metric_ts < latest_ts:
-                next_val = await fetcher.fetch_next()
-                assert next_val is not None
-                metric_ts = next_val.timestamp
+                for name in names:
+                    fetcher = self._metric_fetchers[name]
+                    next_val = await fetcher.fetch_next()
+                    assert next_val is not None
+                    metric_ts = next_val.timestamp
             if metric_ts > latest_ts:
                 raise RuntimeError(
                     "Unable to synchronize resampled metric timestamps, "
