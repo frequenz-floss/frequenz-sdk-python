@@ -68,7 +68,7 @@ class TestLogicalMeter:
         receivers: list[FormulaReceiver | FormulaReceiver3Phase | Receiver[Sample]],
     ) -> None:
         by_ts: dict[
-            datetime, List[FormulaReceiver | FormulaReceiver3Phase | Receiver[Sample]]
+            datetime, list[FormulaReceiver | FormulaReceiver3Phase | Receiver[Sample]]
         ] = {}
         for recv in receivers:
             while True:
@@ -93,10 +93,10 @@ class TestLogicalMeter:
 
     async def test_grid_power_1(self, mocker: MockerFixture) -> None:
         """Test the grid power formula with a grid side meter."""
-        mockgrid = await MockMicrogrid.new(mocker, grid_side_meter=True)
+        mockgrid = MockMicrogrid(grid_side_meter=True)
         mockgrid.add_batteries(2)
         mockgrid.add_solar_inverters(1)
-        request_sender, channel_registry = await mockgrid.start()
+        request_sender, channel_registry = await mockgrid.start(mocker)
         logical_meter = LogicalMeter(
             channel_registry,
             request_sender,
@@ -122,7 +122,7 @@ class TestLogicalMeter:
             main_meter_data.append(val.value)
 
             val = await grid_power_recv.receive()
-            assert val is not None
+            assert val is not None and val.value is not None
             results.append(val.value)
         await mockgrid.cleanup()
         assert self._equal_float_lists(results, main_meter_data)
@@ -132,10 +132,10 @@ class TestLogicalMeter:
         mocker: MockerFixture,
     ) -> None:
         """Test the grid power formula without a grid side meter."""
-        mockgrid = await MockMicrogrid.new(mocker, grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(2)
         mockgrid.add_solar_inverters(1)
-        request_sender, channel_registry = await mockgrid.start()
+        request_sender, channel_registry = await mockgrid.start(mocker)
         logical_meter = LogicalMeter(
             channel_registry,
             request_sender,
@@ -181,10 +181,10 @@ class TestLogicalMeter:
         mocker: MockerFixture,
     ) -> None:
         """Test the battery power and pv power formulas."""
-        mockgrid = await MockMicrogrid.new(mocker)
+        mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(3)
         mockgrid.add_solar_inverters(2)
-        request_sender, channel_registry = await mockgrid.start()
+        request_sender, channel_registry = await mockgrid.start(mocker)
         logical_meter = LogicalMeter(
             channel_registry,
             request_sender,
@@ -256,11 +256,11 @@ class TestLogicalMeter:
 
     async def test_soc(self, mocker: MockerFixture) -> None:
         """Test the soc calculation."""
-        mockgrid = await MockMicrogrid.new(mocker)
+        mockgrid = MockMicrogrid(grid_side_meter=False, sample_rate_s=0.02)
         mockgrid.add_solar_inverters(2)
         mockgrid._id_increment = 8  # pylint: disable=protected-access
         mockgrid.add_batteries(3)
-        request_sender, channel_registry = await mockgrid.start()
+        request_sender, channel_registry = await mockgrid.start(mocker)
         logical_meter = LogicalMeter(
             channel_registry,
             request_sender,
@@ -290,14 +290,16 @@ class TestLogicalMeter:
                 bat_vals.append(val.value)
 
             assert len(bat_vals) == 3
-            # After 7 values, the inverter with component_id > 100 stops sending
+            # After 5 values, the inverter with component_id > 100 stops sending
             # data. And the values from the last battery goes out of the calculation.
             # So we drop it from out control value as well.
-            if ctr >= 7:
+            if ctr >= 5:
                 bat_vals = bat_vals[:2]
-            assert isclose(
-                (await soc_recv.receive()).value, sum(bat_vals) / len(bat_vals)
-            )
+
+            soc_sample = await soc_recv.receive()
+            assert soc_sample is not None and soc_sample.value is not None
+
+            assert isclose(soc_sample.value, sum(bat_vals) / len(bat_vals))
 
         await mockgrid.cleanup()
 
@@ -306,19 +308,16 @@ class TestLogicalMeter:
         mocker: MockerFixture,
     ) -> None:
         """Test the composition of formulas."""
-        mockgrid = await MockMicrogrid.new(mocker, grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_side_meter=False, sample_rate_s=0.05)
         mockgrid.add_batteries(3)
         mockgrid.add_solar_inverters(2)
-        request_sender, channel_registry = await mockgrid.start()
+        request_sender, channel_registry = await mockgrid.start(mocker)
         logical_meter = LogicalMeter(
             channel_registry,
             request_sender,
             microgrid.get().component_graph,
         )
 
-        grid_power_recv = await logical_meter.grid_power()
-        battery_power_recv = await logical_meter.battery_power()
-        pv_power_recv = await logical_meter.pv_power()
         main_meter_recv = await self._get_resampled_stream(
             logical_meter,
             channel_registry,
@@ -326,6 +325,9 @@ class TestLogicalMeter:
             4,
             ComponentMetricId.ACTIVE_POWER,
         )
+        grid_power_recv = await logical_meter.grid_power()
+        battery_power_recv = await logical_meter.battery_power()
+        pv_power_recv = await logical_meter.pv_power()
 
         engine = (pv_power_recv.clone() + battery_power_recv.clone()).build("inv_power")
         inv_calc_recv = engine.new_receiver()
@@ -354,9 +356,9 @@ class TestLogicalMeter:
 
     async def test_formula_composition_missing_pv(self, mocker: MockerFixture) -> None:
         """Test the composition of formulas with missing PV power data."""
-        mockgrid = await MockMicrogrid.new(mocker, grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(3)
-        request_sender, channel_registry = await mockgrid.start()
+        request_sender, channel_registry = await mockgrid.start(mocker)
         logical_meter = LogicalMeter(
             channel_registry,
             request_sender,
@@ -385,9 +387,9 @@ class TestLogicalMeter:
 
     async def test_formula_composition_missing_bat(self, mocker: MockerFixture) -> None:
         """Test the composition of formulas with missing battery power data."""
-        mockgrid = await MockMicrogrid.new(mocker, grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_solar_inverters(2)
-        request_sender, channel_registry = await mockgrid.start()
+        request_sender, channel_registry = await mockgrid.start(mocker)
         logical_meter = LogicalMeter(
             channel_registry,
             request_sender,
@@ -416,10 +418,10 @@ class TestLogicalMeter:
 
     async def test_3_phase_formulas(self, mocker: MockerFixture) -> None:
         """Test 3 phase formulas current formulas and their composition."""
-        mockgrid = await MockMicrogrid.new(mocker, grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(3)
         mockgrid.add_ev_chargers(1)
-        request_sender, channel_registry = await mockgrid.start()
+        request_sender, channel_registry = await mockgrid.start(mocker)
         logical_meter = LogicalMeter(
             channel_registry,
             request_sender,
