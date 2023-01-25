@@ -2,8 +2,6 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
-
 ## Upgrading
 
 * The resampler now takes a `name` argument for `add_timeseries()`. This is only used for logging purposes.
