@@ -14,6 +14,8 @@ from frequenz.api.microgrid import microgrid_pb2
 from frequenz.api.microgrid.battery_pb2 import Battery
 from frequenz.api.microgrid.battery_pb2 import Data as BatteryData
 from frequenz.api.microgrid.common_pb2 import AC, Metric, MetricAggregation
+from frequenz.api.microgrid.ev_charger_pb2 import Data as EVChargerData
+from frequenz.api.microgrid.ev_charger_pb2 import EVCharger
 from frequenz.api.microgrid.inverter_pb2 import Data as InverterData
 from frequenz.api.microgrid.inverter_pb2 import Inverter
 from frequenz.api.microgrid.inverter_pb2 import Type as InverterType
@@ -41,6 +43,7 @@ class MockMicrogrid:
 
     grid_id = 1
     main_meter_id = 4
+    evc_id_suffix = 6
     meter_id_suffix = 7
     inverter_id_suffix = 8
     battery_id_suffix = 9
@@ -67,6 +70,7 @@ class MockMicrogrid:
         self.battery_inverter_ids: list[int] = []
         self.pv_inverter_ids: list[int] = []
         self.battery_ids: list[int] = []
+        self.evc_ids: list[int] = []
         self.meter_ids: list[int] = [4]
 
         self._actors: list[typing.Any] = []
@@ -114,7 +118,14 @@ class MockMicrogrid:
                     id=request.id,
                     ts=timestamp,
                     meter=Meter(
-                        data=MeterData(ac=AC(power_active=Metric(value=value)))
+                        data=MeterData(
+                            ac=AC(
+                                power_active=Metric(value=value),
+                                phase_1=AC.ACPhase(current=Metric(value=value + 100.0)),
+                                phase_2=AC.ACPhase(current=Metric(value=value + 101.0)),
+                                phase_3=AC.ACPhase(current=Metric(value=value + 102.0)),
+                            )
+                        )
                     ),
                 )
 
@@ -138,6 +149,24 @@ class MockMicrogrid:
                     battery=Battery(data=BatteryData(soc=MetricAggregation(avg=value))),
                 )
 
+            def evc_msg(value: float) -> ComponentData:
+                timestamp = Timestamp()
+                timestamp.GetCurrentTime()
+                return ComponentData(
+                    id=request.id,
+                    ts=timestamp,
+                    ev_charger=EVCharger(
+                        data=EVChargerData(
+                            ac=AC(
+                                power_active=Metric(value=value),
+                                phase_1=AC.ACPhase(current=Metric(value=value + 10.0)),
+                                phase_2=AC.ACPhase(current=Metric(value=value + 11.0)),
+                                phase_3=AC.ACPhase(current=Metric(value=value + 12.0)),
+                            )
+                        )
+                    ),
+                )
+
             if request.id % 10 == cls.inverter_id_suffix:
                 next_msg = inverter_msg
             elif (
@@ -147,6 +176,8 @@ class MockMicrogrid:
                 next_msg = meter_msg
             elif request.id % 10 == cls.battery_id_suffix:
                 next_msg = battery_msg
+            elif request.id % 10 == cls.evc_id_suffix:
+                next_msg = evc_msg
             else:
                 raise RuntimeError(
                     f"Component id {request.id} unsupported by MockMicrogrid"
@@ -181,9 +212,9 @@ class MockMicrogrid:
             count: number of battery sets to add.
         """
         for _ in range(count):
-            meter_id = self._id_increment * 10 + 7
-            inv_id = self._id_increment * 10 + 8
-            bat_id = self._id_increment * 10 + 9
+            meter_id = self._id_increment * 10 + self.meter_id_suffix
+            inv_id = self._id_increment * 10 + self.inverter_id_suffix
+            bat_id = self._id_increment * 10 + self.battery_id_suffix
             self._id_increment += 1
 
             self.meter_ids.append(meter_id)
@@ -214,8 +245,8 @@ class MockMicrogrid:
             count: number of inverters to add to the microgrid.
         """
         for _ in range(count):
-            meter_id = self._id_increment * 10 + 7
-            inv_id = self._id_increment * 10 + 8
+            meter_id = self._id_increment * 10 + self.meter_id_suffix
+            inv_id = self._id_increment * 10 + self.inverter_id_suffix
             self._id_increment += 1
 
             self.meter_ids.append(meter_id)
@@ -232,6 +263,24 @@ class MockMicrogrid:
             )
             self._servicer.add_connection(self._connect_to, meter_id)
             self._servicer.add_connection(meter_id, inv_id)
+
+    def add_ev_chargers(self, count: int) -> None:
+        """Add EV Chargers to the microgrid.
+
+        Args:
+            count: Number of ev chargers to add to the microgrid.
+        """
+        for _ in range(count):
+            evc_id = self._id_increment * 10 + self.evc_id_suffix
+            self._id_increment += 1
+
+            self.evc_ids.append(evc_id)
+
+            self._servicer.add_component(
+                evc_id,
+                microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER,
+            )
+            self._servicer.add_connection(self._connect_to, evc_id)
 
     async def _init_client_and_actors(
         self,

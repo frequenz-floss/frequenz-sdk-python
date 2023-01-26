@@ -8,8 +8,6 @@ A timeseries is a stream (normally an async iterator) of
 [`Sample`][frequenz.sdk.timeseries.Sample]s.
 """
 
-from ._base_types import Sample
+from ._base_types import Sample, Sample3Phase
 
-__all__ = [
-    "Sample",
-]
+__all__ = ["Sample", "Sample3Phase"]
