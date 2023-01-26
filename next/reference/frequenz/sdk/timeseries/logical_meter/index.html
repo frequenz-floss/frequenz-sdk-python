@@ -747,6 +747,20 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.ev_charger_current" class="md-nav__link">
+    ev_charger_current()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.grid_current" class="md-nav__link">
+    grid_current()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.grid_power" class="md-nav__link">
     grid_power()
   </a>
@@ -904,6 +918,20 @@
           <li class="md-nav__item">
   <a href="#frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.battery_power" class="md-nav__link">
     battery_power()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.ev_charger_current" class="md-nav__link">
+    ev_charger_current()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.grid_current" class="md-nav__link">
+    grid_current()
   </a>
   
 </li>
@@ -1070,16 +1098,7 @@ normal <code>Receiver</code>s, but can also be composed to form higher-order for
 
         <details class="quote">
           <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 31</span>
-<span class="normal"> 32</span>
-<span class="normal"> 33</span>
-<span class="normal"> 34</span>
-<span class="normal"> 35</span>
-<span class="normal"> 36</span>
-<span class="normal"> 37</span>
-<span class="normal"> 38</span>
-<span class="normal"> 39</span>
-<span class="normal"> 40</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 40</span>
 <span class="normal"> 41</span>
 <span class="normal"> 42</span>
 <span class="normal"> 43</span>
@@ -1263,7 +1282,44 @@ normal <code>Receiver</code>s, but can also be composed to form higher-order for
 <span class="normal">221</span>
 <span class="normal">222</span>
 <span class="normal">223</span>
-<span class="normal">224</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">LogicalMeter</span><span class="p">:</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">LogicalMeter</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A logical meter for calculating high level metrics in a microgrid.</span>
 
 <span class="sd">    LogicalMeter provides methods for fetching power values from different points in the</span>
@@ -1345,7 +1401,7 @@ normal <code>Receiver</code>s, but can also be composed to form higher-order for
         <span class="c1"># meter to use when communicating with the resampling actor.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_namespace</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;logical-meter-</span><span class="si">{</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_component_graph</span> <span class="o">=</span> <span class="n">component_graph</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_engines</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FormulaEngine</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_engines</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FormulaEngine</span> <span class="o">|</span> <span class="n">FormulaEngine3Phase</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tasks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_engine_from_formula_string</span><span class="p">(</span>
@@ -1398,8 +1454,8 @@ normal <code>Receiver</code>s, but can also be composed to form higher-order for
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_get_formula_stream</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">channel_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">generator</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">FormulaGenerator</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver</span><span class="p">:</span>
+        <span class="n">generator</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">FormulaGenerator</span><span class="p">[</span><span class="n">_GenericEngine</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_GenericFormulaReceiver</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">channel_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_engines</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_engines</span><span class="p">[</span><span class="n">channel_key</span><span class="p">]</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
 
@@ -1421,6 +1477,34 @@ normal <code>Receiver</code>s, but can also be composed to form higher-order for
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_formula_stream</span><span class="p">(</span><span class="s2">&quot;grid_power&quot;</span><span class="p">,</span> <span class="n">GridPowerFormula</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">grid_current</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver3Phase</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch the grid power for the microgrid.</span>
+
+<span class="sd">        If a formula engine to calculate grid current is not already running, it</span>
+<span class="sd">        will be started.  Else, we&#39;ll just get a new receiver to the already</span>
+<span class="sd">        existing data stream.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A *new* receiver that will stream grid_current values.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_formula_stream</span><span class="p">(</span><span class="s2">&quot;grid_current&quot;</span><span class="p">,</span> <span class="n">GridCurrentFormula</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">ev_charger_current</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver3Phase</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch the cumulative ev charger current for the microgrid.</span>
+
+<span class="sd">        If a formula engine to calculate ev charger current is not already</span>
+<span class="sd">        running, it will be started.  Else, we&#39;ll just get a new receiver to the</span>
+<span class="sd">        already existing data stream.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A *new* receiver that will stream ev_charger_current values.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_formula_stream</span><span class="p">(</span>
+            <span class="s2">&quot;ev_charger_current&quot;</span><span class="p">,</span> <span class="n">EVChargerCurrentFormula</span>
+        <span class="p">)</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">battery_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch the cumulative battery power in the microgrid.</span>
@@ -1537,16 +1621,7 @@ resampling actor.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 91</span>
-<span class="normal"> 92</span>
-<span class="normal"> 93</span>
-<span class="normal"> 94</span>
-<span class="normal"> 95</span>
-<span class="normal"> 96</span>
-<span class="normal"> 97</span>
-<span class="normal"> 98</span>
-<span class="normal"> 99</span>
-<span class="normal">100</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">100</span>
 <span class="normal">101</span>
 <span class="normal">102</span>
 <span class="normal">103</span>
@@ -1560,7 +1635,16 @@ resampling actor.</p>
 <span class="normal">111</span>
 <span class="normal">112</span>
 <span class="normal">113</span>
-<span class="normal">114</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">channel_registry</span><span class="p">:</span> <span class="n">ChannelRegistry</span><span class="p">,</span>
     <span class="n">resampler_subscription_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span><span class="n">ComponentMetricRequest</span><span class="p">],</span>
@@ -1582,7 +1666,7 @@ resampling actor.</p>
     <span class="c1"># meter to use when communicating with the resampling actor.</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_namespace</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;logical-meter-</span><span class="si">{</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_component_graph</span> <span class="o">=</span> <span class="n">component_graph</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_engines</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FormulaEngine</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_engines</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FormulaEngine</span> <span class="o">|</span> <span class="n">FormulaEngine3Phase</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_tasks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
 </code></pre></div></td></tr></table></div>
       </details>
@@ -1634,18 +1718,18 @@ receiver to the already existing data stream.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">190</span>
-<span class="normal">191</span>
-<span class="normal">192</span>
-<span class="normal">193</span>
-<span class="normal">194</span>
-<span class="normal">195</span>
-<span class="normal">196</span>
-<span class="normal">197</span>
-<span class="normal">198</span>
-<span class="normal">199</span>
-<span class="normal">200</span>
-<span class="normal">201</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">battery_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver</span><span class="p">:</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">battery_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch the cumulative battery power in the microgrid.</span>
 
 <span class="sd">    If a formula engine to calculate cumulative battery power is not</span>
@@ -1657,6 +1741,156 @@ receiver to the already existing data stream.</p>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_formula_stream</span><span class="p">(</span><span class="s2">&quot;battery_power&quot;</span><span class="p">,</span> <span class="n">BatteryPowerFormula</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h6 id="frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.ev_charger_current" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">ev_charger_current</span><span class="p">()</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.ev_charger_current" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Fetch the cumulative ev charger current for the microgrid.</p>
+<p>If a formula engine to calculate ev charger current is not already
+running, it will be started.  Else, we'll just get a new receiver to the
+already existing data stream.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><span title="frequenz.sdk.timeseries.logical_meter._formula_engine.FormulaReceiver3Phase">FormulaReceiver3Phase</span></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>A <em>new</em> receiver that will stream ev_charger_current values.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+      <details class="quote">
+        <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">ev_charger_current</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver3Phase</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch the cumulative ev charger current for the microgrid.</span>
+
+<span class="sd">    If a formula engine to calculate ev charger current is not already</span>
+<span class="sd">    running, it will be started.  Else, we&#39;ll just get a new receiver to the</span>
+<span class="sd">    already existing data stream.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A *new* receiver that will stream ev_charger_current values.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_formula_stream</span><span class="p">(</span>
+        <span class="s2">&quot;ev_charger_current&quot;</span><span class="p">,</span> <span class="n">EVChargerCurrentFormula</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h6 id="frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.grid_current" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">grid_current</span><span class="p">()</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.grid_current" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Fetch the grid power for the microgrid.</p>
+<p>If a formula engine to calculate grid current is not already running, it
+will be started.  Else, we'll just get a new receiver to the already
+existing data stream.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><span title="frequenz.sdk.timeseries.logical_meter._formula_engine.FormulaReceiver3Phase">FormulaReceiver3Phase</span></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>A <em>new</em> receiver that will stream grid_current values.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+      <details class="quote">
+        <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">grid_current</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver3Phase</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch the grid power for the microgrid.</span>
+
+<span class="sd">    If a formula engine to calculate grid current is not already running, it</span>
+<span class="sd">    will be started.  Else, we&#39;ll just get a new receiver to the already</span>
+<span class="sd">    existing data stream.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A *new* receiver that will stream grid_current values.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_formula_stream</span><span class="p">(</span><span class="s2">&quot;grid_current&quot;</span><span class="p">,</span> <span class="n">GridCurrentFormula</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
@@ -1707,18 +1941,18 @@ existing data stream.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">177</span>
-<span class="normal">178</span>
-<span class="normal">179</span>
-<span class="normal">180</span>
-<span class="normal">181</span>
-<span class="normal">182</span>
-<span class="normal">183</span>
-<span class="normal">184</span>
-<span class="normal">185</span>
-<span class="normal">186</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">186</span>
 <span class="normal">187</span>
-<span class="normal">188</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">grid_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver</span><span class="p">:</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">grid_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch the grid power for the microgrid.</span>
 
 <span class="sd">    If a formula engine to calculate grid power is not already running, it</span>
@@ -1780,17 +2014,17 @@ receiver to the already existing data stream.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">203</span>
-<span class="normal">204</span>
-<span class="normal">205</span>
-<span class="normal">206</span>
-<span class="normal">207</span>
-<span class="normal">208</span>
-<span class="normal">209</span>
-<span class="normal">210</span>
-<span class="normal">211</span>
-<span class="normal">212</span>
-<span class="normal">213</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">pv_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver</span><span class="p">:</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">pv_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaReceiver</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch the PV power production in the microgrid.</span>
 
 <span class="sd">    If a formula engine to calculate PV power production is not</span>
@@ -1905,16 +2139,7 @@ False, the returned value will be a None.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">128</span>
-<span class="normal">129</span>
-<span class="normal">130</span>
-<span class="normal">131</span>
-<span class="normal">132</span>
-<span class="normal">133</span>
-<span class="normal">134</span>
-<span class="normal">135</span>
-<span class="normal">136</span>
-<span class="normal">137</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">137</span>
 <span class="normal">138</span>
 <span class="normal">139</span>
 <span class="normal">140</span>
@@ -1938,7 +2163,16 @@ False, the returned value will be a None.</p>
 <span class="normal">158</span>
 <span class="normal">159</span>
 <span class="normal">160</span>
-<span class="normal">161</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">start_formula</span><span class="p">(</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">start_formula</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">formula</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">component_metric_id</span><span class="p">:</span> <span class="n">ComponentMetricId</span><span class="p">,</span>

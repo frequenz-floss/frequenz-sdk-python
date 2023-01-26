@@ -801,6 +801,60 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries.Sample3Phase" class="md-nav__link">
+    Sample3Phase
+  </a>
+  
+    <nav class="md-nav" aria-label="Sample3Phase">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries.Sample3Phase-attributes" class="md-nav__link">
+    Attributes
+  </a>
+  
+    <nav class="md-nav" aria-label="Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries._base_types.Sample3Phase.timestamp" class="md-nav__link">
+    timestamp
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries._base_types.Sample3Phase.value_p1" class="md-nav__link">
+    value_p1
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries._base_types.Sample3Phase.value_p2" class="md-nav__link">
+    value_p2
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries._base_types.Sample3Phase.value_p3" class="md-nav__link">
+    value_p3
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -964,6 +1018,179 @@ coherent view on a group of component metrics for a particular timestamp.</p>
   <div class="doc doc-contents ">
   
       <p>The value of this sample.</p>
+  </div>
+
+</div>
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="frequenz.sdk.timeseries.Sample3Phase" class="doc doc-heading">
+        <code>frequenz.sdk.timeseries.Sample3Phase</code>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries.Sample3Phase" class="headerlink" title="Permanent link">¤</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>A 3-phase measurement made at a particular point in time.</p>
+<p>Each of the <code>value</code> fields could be <code>None</code> if a component is malfunctioning
+or data is lacking for another reason, but a sample still needs to be sent
+to have a coherent view on a group of component metrics for a particular
+timestamp.</p>
+
+
+        <details class="quote">
+          <summary>Source code in <code>frequenz/sdk/timeseries/_base_types.py</code></summary>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Sample3Phase</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A 3-phase measurement made at a particular point in time.</span>
+
+<span class="sd">    Each of the `value` fields could be `None` if a component is malfunctioning</span>
+<span class="sd">    or data is lacking for another reason, but a sample still needs to be sent</span>
+<span class="sd">    to have a coherent view on a group of component metrics for a particular</span>
+<span class="sd">    timestamp.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The time when this sample was generated.&quot;&quot;&quot;</span>
+    <span class="n">value_p1</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The value of the 1st phase in this sample.&quot;&quot;&quot;</span>
+
+    <span class="n">value_p2</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The value of the 2nd phase in this sample.&quot;&quot;&quot;</span>
+
+    <span class="n">value_p3</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The value of the 3rd phase in this sample.&quot;&quot;&quot;</span>
+</code></pre></div></td></tr></table></div>
+        </details>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+<h5 id="frequenz.sdk.timeseries.Sample3Phase-attributes">Attributes<a href="#frequenz.sdk.timeseries.Sample3Phase-attributes" class="headerlink" title="Permanent link">¤</a></h5>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.timeseries._base_types.Sample3Phase.timestamp" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries._base_types.Sample3Phase.timestamp" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The time when this sample was generated.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.timeseries._base_types.Sample3Phase.value_p1" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">value_p1</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries._base_types.Sample3Phase.value_p1" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The value of the 1st phase in this sample.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.timeseries._base_types.Sample3Phase.value_p2" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">value_p2</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries._base_types.Sample3Phase.value_p2" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The value of the 2nd phase in this sample.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.timeseries._base_types.Sample3Phase.value_p3" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">value_p3</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries._base_types.Sample3Phase.value_p3" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The value of the 3rd phase in this sample.</p>
   </div>
 
 </div>
