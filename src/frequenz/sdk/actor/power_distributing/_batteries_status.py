@@ -125,13 +125,15 @@ class BatteriesStatus:
 
     async def stop(self) -> None:
         """Stop tracking batteries status."""
+        await cancel_and_await(self._task)
+
         await asyncio.gather(
             *[
                 tracker.stop()  # pylint: disable=protected-access
                 for tracker in self._batteries.values()
-            ]
+            ],
         )
-        await cancel_and_await(self._task)
+        await self._battery_status_channel.stop()
 
     async def _run(self) -> None:
         """Start tracking batteries status."""
