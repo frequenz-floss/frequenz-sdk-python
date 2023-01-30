@@ -9,7 +9,7 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Generic, Iterable, Optional, Set, TypeVar, Union
+from typing import Iterable, Optional, Set, TypeVar, Union
 
 from frequenz.api.microgrid.battery_pb2 import ComponentState as BatteryComponentState
 from frequenz.api.microgrid.battery_pb2 import RelayState as BatteryRelayState
@@ -46,7 +46,7 @@ class BatteryStatus(Enum):
 
 
 @dataclass
-class RequestResult:
+class SetPowerResult:
     """Information what batteries succeed or failed the last request."""
 
     succeed: Iterable[int]
@@ -60,7 +60,7 @@ T = TypeVar("T")
 
 
 @dataclass
-class _ComponentData(Generic[T]):
+class _ComponentStreamStatus:
     component_id: int
     last_msg_timestamp: datetime = datetime.now(tz=timezone.utc)
     last_msg_correct: bool = False
@@ -156,7 +156,7 @@ class BatteryStatusTracker:
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
         status_sender: Sender[BatteryStatus],
-        request_result_receiver: Receiver[RequestResult],
+        request_result_receiver: Receiver[SetPowerResult],
     ) -> None:
         """Create class instance.
 
@@ -185,8 +185,8 @@ class BatteryStatusTracker:
         if inverter_id is None:
             raise RuntimeError(f"Can't find inverter adjacent to battery: {battery_id}")
 
-        self._battery = _ComponentData[BatteryData](battery_id)
-        self._inverter = _ComponentData[InverterData](inverter_id)
+        self._battery = _ComponentStreamStatus(battery_id)
+        self._inverter = _ComponentStreamStatus(inverter_id)
 
         # Select needs receivers that can be get in async way only.
         self._select = None
@@ -214,7 +214,7 @@ class BatteryStatusTracker:
     async def _run(
         self,
         status_sender: Sender[BatteryStatus],
-        request_result_receiver: Receiver[RequestResult],
+        request_result_receiver: Receiver[SetPowerResult],
     ) -> None:
         """Process data from the components and request_result_receiver.
 
@@ -265,7 +265,7 @@ class BatteryStatusTracker:
             self._inverter.last_msg_timestamp = msg.inner.timestamp
 
         elif msg := select.request_result:
-            result: RequestResult = msg.inner
+            result: SetPowerResult = msg.inner
             if self.battery_id in result.succeed:
                 self._blocking_status.unblock()
 

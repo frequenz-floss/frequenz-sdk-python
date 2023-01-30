@@ -30,7 +30,7 @@ from pytest_mock import MockerFixture
 from frequenz.sdk.actor.power_distributing._battery_status import (
     BatteryStatus,
     BatteryStatusTracker,
-    RequestResult,
+    SetPowerResult,
 )
 from frequenz.sdk.microgrid.client import Connection
 from frequenz.sdk.microgrid.component import (
@@ -194,14 +194,14 @@ class FakeSelect:
         self,
         battery: Optional[BatteryData] = None,
         inverter: Optional[InverterData] = None,
-        request_result: Optional[RequestResult] = None,
+        request_result: Optional[SetPowerResult] = None,
     ) -> None:
         """Create FakeSelect instance
 
         Args:
             battery: Expected battery message. Defaults to None.
             inverter: Expected inverter message. Defaults to None.
-            request_result: Expected RequestResult message. Defaults to None.
+            request_result: Expected SetPowerResult message. Defaults to None.
         """
         self.battery = None if battery is None else Message(battery)
         self.inverter = None if inverter is None else Message(inverter)
@@ -245,7 +245,7 @@ class TestBatteryStatus:
             mock_microgrid: mock_microgrid fixture
         """
         status_channel = Broadcast[BatteryStatus]("battery_status")
-        request_result_channel = Broadcast[RequestResult]("request_result")
+        request_result_channel = Broadcast[SetPowerResult]("request_result")
 
         tracker = BatteryStatusTracker(
             BATTERY_ID,
@@ -382,7 +382,7 @@ class TestBatteryStatus:
     async def test_sync_blocking_feature(
         self, mock_microgrid: MockMicrogridClient
     ) -> None:
-        """Test if status changes when RequestResult message is received.
+        """Test if status changes when SetPowerResult message is received.
 
         Tests uses FakeSelect to test status in sync way.
         Otherwise we would have lots of async calls and waiting.
@@ -392,7 +392,7 @@ class TestBatteryStatus:
         """
 
         status_channel = Broadcast[BatteryStatus]("battery_status")
-        request_result_channel = Broadcast[RequestResult]("request_result")
+        request_result_channel = Broadcast[SetPowerResult]("request_result")
 
         # increase max_data_age_sec for blocking tests.
         # Otherwise it will block blocking.
@@ -417,7 +417,9 @@ class TestBatteryStatus:
             assert tracker._update_status(select) is None  # type: ignore[arg-type]
 
             # message is not correct, component should not block.
-            select = FakeSelect(request_result=RequestResult(succeed={1}, failed={106}))
+            select = FakeSelect(
+                request_result=SetPowerResult(succeed={1}, failed={106})
+            )
             assert tracker._update_status(select) is None  # type: ignore[arg-type]
 
             select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
@@ -428,7 +430,7 @@ class TestBatteryStatus:
             for timeout in expected_blocking_timeout:
                 # message is not correct, component should not block.
                 select = FakeSelect(
-                    request_result=RequestResult(succeed={1}, failed={106})
+                    request_result=SetPowerResult(succeed={1}, failed={106})
                 )
                 status = tracker._update_status(select)  # type: ignore[arg-type]
                 assert status is BatteryStatus.UNCERTAIN
@@ -436,7 +438,7 @@ class TestBatteryStatus:
                 # Battery should be still blocked, nothing should happen
                 time.shift(timeout - 1)
                 select = FakeSelect(
-                    request_result=RequestResult(succeed={1}, failed={106})
+                    request_result=SetPowerResult(succeed={1}, failed={106})
                 )
                 assert tracker._update_status(select) is None  # type: ignore[arg-type]
 
@@ -449,7 +451,9 @@ class TestBatteryStatus:
                 assert status is BatteryStatus.WORKING
 
             # should block for 30 sec
-            select = FakeSelect(request_result=RequestResult(succeed={1}, failed={106}))
+            select = FakeSelect(
+                request_result=SetPowerResult(succeed={1}, failed={106})
+            )
             status = tracker._update_status(select)  # type: ignore[arg-type]
             assert status is BatteryStatus.UNCERTAIN
             time.shift(28)
@@ -469,14 +473,16 @@ class TestBatteryStatus:
             assert status is BatteryStatus.WORKING
 
             # should block for 30 sec
-            select = FakeSelect(request_result=RequestResult(succeed={1}, failed={106}))
+            select = FakeSelect(
+                request_result=SetPowerResult(succeed={1}, failed={106})
+            )
             status = tracker._update_status(select)  # type: ignore[arg-type]
             assert status is BatteryStatus.UNCERTAIN
             time.shift(28)
 
             # If battery succeed, then it should unblock.
             select = FakeSelect(
-                request_result=RequestResult(succeed={106}, failed={206})
+                request_result=SetPowerResult(succeed={106}, failed={206})
             )
             status = tracker._update_status(select)  # type: ignore[arg-type]
             assert status is BatteryStatus.WORKING
@@ -486,7 +492,7 @@ class TestBatteryStatus:
     async def test_sync_blocking_interrupted_with_with_max_data(
         self, mock_microgrid: MockMicrogridClient
     ) -> None:
-        """Test if status changes when RequestResult message is received.
+        """Test if status changes when SetPowerResult message is received.
 
         Tests uses FakeSelect to test status in sync way.
         Otherwise we would have lots of async calls and waiting.
@@ -496,7 +502,7 @@ class TestBatteryStatus:
         """
 
         status_channel = Broadcast[BatteryStatus]("battery_status")
-        request_result_channel = Broadcast[RequestResult]("request_result")
+        request_result_channel = Broadcast[SetPowerResult]("request_result")
 
         tracker = BatteryStatusTracker(
             BATTERY_ID,
@@ -514,7 +520,9 @@ class TestBatteryStatus:
             status = tracker._update_status(select)  # type: ignore[arg-type]
             assert status is BatteryStatus.WORKING
 
-            select = FakeSelect(request_result=RequestResult(succeed={1}, failed={106}))
+            select = FakeSelect(
+                request_result=SetPowerResult(succeed={1}, failed={106})
+            )
             status = tracker._update_status(select)  # type: ignore[arg-type]
             assert status is BatteryStatus.UNCERTAIN
 
@@ -522,13 +530,15 @@ class TestBatteryStatus:
             for timeout in expected_blocking_timeout:
                 # message is not correct, component should not block.
                 select = FakeSelect(
-                    request_result=RequestResult(succeed={1}, failed={106})
+                    request_result=SetPowerResult(succeed={1}, failed={106})
                 )
                 assert tracker._update_status(select) is None  # type: ignore[arg-type]
                 time.shift(timeout)
 
             # Battery message should be to old after 5 seconds.
-            select = FakeSelect(request_result=RequestResult(succeed={1}, failed={106}))
+            select = FakeSelect(
+                request_result=SetPowerResult(succeed={1}, failed={106})
+            )
             status = tracker._update_status(select)  # type: ignore[arg-type]
             assert status is BatteryStatus.NOT_WORKING
 
@@ -538,7 +548,7 @@ class TestBatteryStatus:
     async def test_sync_blocking_interrupted_with_invalid_message(
         self, mock_microgrid: MockMicrogridClient
     ) -> None:
-        """Test if status changes when RequestResult message is received.
+        """Test if status changes when SetPowerResult message is received.
 
         Tests uses FakeSelect to test status in sync way.
         Otherwise we would have lots of async calls and waiting.
@@ -548,7 +558,7 @@ class TestBatteryStatus:
         """
 
         status_channel = Broadcast[BatteryStatus]("battery_status")
-        request_result_channel = Broadcast[RequestResult]("request_result")
+        request_result_channel = Broadcast[SetPowerResult]("request_result")
 
         tracker = BatteryStatusTracker(
             BATTERY_ID,
@@ -564,7 +574,7 @@ class TestBatteryStatus:
         select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
         assert tracker._update_status(select) is BatteryStatus.WORKING  # type: ignore[arg-type]
 
-        select = FakeSelect(request_result=RequestResult(succeed={1}, failed={106}))
+        select = FakeSelect(request_result=SetPowerResult(succeed={1}, failed={106}))
         assert tracker._update_status(select) is BatteryStatus.UNCERTAIN  # type: ignore[arg-type]
 
         select = FakeSelect(
@@ -575,10 +585,10 @@ class TestBatteryStatus:
         )
         assert tracker._update_status(select) is BatteryStatus.NOT_WORKING  # type: ignore[arg-type]
 
-        select = FakeSelect(request_result=RequestResult(succeed={1}, failed={106}))
+        select = FakeSelect(request_result=SetPowerResult(succeed={1}, failed={106}))
         assert tracker._update_status(select) is None  # type: ignore[arg-type]
 
-        select = FakeSelect(request_result=RequestResult(succeed={106}, failed={}))
+        select = FakeSelect(request_result=SetPowerResult(succeed={106}, failed={}))
         assert tracker._update_status(select) is None  # type: ignore[arg-type]
 
         select = FakeSelect(inverter=inverter_data(component_id=INVERTER_ID))
@@ -597,7 +607,7 @@ class TestBatteryStatus:
         """
 
         status_channel = Broadcast[BatteryStatus]("battery_status")
-        request_result_channel = Broadcast[RequestResult]("request_result")
+        request_result_channel = Broadcast[SetPowerResult]("request_result")
 
         status_receiver = status_channel.new_receiver()
         request_result_sender = request_result_channel.new_sender()
@@ -618,7 +628,7 @@ class TestBatteryStatus:
             assert status is BatteryStatus.WORKING
 
             assert await request_result_sender.send(
-                RequestResult(succeed={}, failed={BATTERY_ID})
+                SetPowerResult(succeed={}, failed={BATTERY_ID})
             )
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
             assert status is BatteryStatus.UNCERTAIN
@@ -639,7 +649,7 @@ class TestBatteryStatus:
             assert status is BatteryStatus.NOT_WORKING
 
             assert await request_result_sender.send(
-                RequestResult(succeed={}, failed={BATTERY_ID})
+                SetPowerResult(succeed={}, failed={BATTERY_ID})
             )
             await asyncio.sleep(0.3)
             assert len(status_receiver) == 0

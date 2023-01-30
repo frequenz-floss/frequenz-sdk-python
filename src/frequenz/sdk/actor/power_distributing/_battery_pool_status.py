@@ -13,7 +13,7 @@ from frequenz.channels import Broadcast, Receiver
 from frequenz.channels.util import MergeNamed
 
 from ..._internal.asyncio import cancel_and_await
-from ._battery_status import BatteryStatus, BatteryStatusTracker, RequestResult
+from ._battery_status import BatteryStatus, BatteryStatusTracker, SetPowerResult
 
 _logger = logging.getLogger(__name__)
 
@@ -94,7 +94,7 @@ class BatteryPoolStatus:
         self._current_status = Status(working=set(), uncertain=set())
 
         # Channel for sending results of requests to the batteries
-        request_result_channel = Broadcast[RequestResult]("battery_request_status")
+        request_result_channel = Broadcast[SetPowerResult]("battery_request_status")
         self._request_result_sender = request_result_channel.new_sender()
 
         self._batteries: Dict[str, BatteryStatusTracker] = {}
@@ -179,7 +179,7 @@ class BatteryPoolStatus:
             failed_batteries: Batteries that failed request
         """
         await self._request_result_sender.send(
-            RequestResult(succeed_batteries, failed_batteries)
+            SetPowerResult(succeed_batteries, failed_batteries)
         )
 
     def get_working_batteries(self, batteries: Set[int]) -> Set[int]:
