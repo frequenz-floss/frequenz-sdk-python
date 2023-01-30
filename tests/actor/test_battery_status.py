@@ -28,9 +28,9 @@ from google.protobuf.timestamp_pb2 import Timestamp  # pylint: disable=no-name-i
 from pytest_mock import MockerFixture
 
 from frequenz.sdk.actor.power_distributing._battery_status import (
-    BatteryStatus,
     BatteryStatusTracker,
     SetPowerResult,
+    Status,
 )
 from frequenz.sdk.microgrid.client import Connection
 from frequenz.sdk.microgrid.component import (
@@ -244,7 +244,7 @@ class TestBatteryStatus:
         Args:
             mock_microgrid: mock_microgrid fixture
         """
-        status_channel = Broadcast[BatteryStatus]("battery_status")
+        status_channel = Broadcast[Status]("battery_status")
         request_result_channel = Broadcast[SetPowerResult]("request_result")
 
         tracker = BatteryStatusTracker(
@@ -256,13 +256,13 @@ class TestBatteryStatus:
         )
 
         assert tracker.battery_id == BATTERY_ID
-        assert tracker._last_status == BatteryStatus.NOT_WORKING
+        assert tracker._last_status == Status.NOT_WORKING
 
         select = FakeSelect(inverter=inverter_data(component_id=INVERTER_ID))
         assert tracker._update_status(select) is None  # type: ignore[arg-type]
 
         select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
-        assert tracker._update_status(select) is BatteryStatus.WORKING  # type: ignore[arg-type]
+        assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
 
         # --- Send correct message once again, status should not change ---
         select = FakeSelect(inverter=inverter_data(component_id=INVERTER_ID))
@@ -278,7 +278,7 @@ class TestBatteryStatus:
                 timestamp=datetime.now(tz=timezone.utc) - timedelta(seconds=31),
             )
         )
-        assert tracker._update_status(select) is BatteryStatus.NOT_WORKING  # type: ignore[arg-type]
+        assert tracker._update_status(select) is Status.NOT_WORKING  # type: ignore[arg-type]
 
         # --- BatteryRelayState is invalid. ---
         select = FakeSelect(
@@ -294,7 +294,7 @@ class TestBatteryStatus:
         assert tracker._update_status(select) is None  # type: ignore[arg-type]
 
         select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
-        assert tracker._update_status(select) is BatteryStatus.WORKING  # type: ignore[arg-type]
+        assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
 
         # --- Inverter started sending data, but battery relays state are still invalid ---
         select = FakeSelect(
@@ -303,7 +303,7 @@ class TestBatteryStatus:
                 component_state=InverterState.COMPONENT_STATE_SWITCHING_OFF,
             )
         )
-        assert tracker._update_status(select) is BatteryStatus.NOT_WORKING  # type: ignore[arg-type]
+        assert tracker._update_status(select) is Status.NOT_WORKING  # type: ignore[arg-type]
 
         inverter_critical_error = InverterError(
             code=InverterErrorCode.ERROR_CODE_UNSPECIFIED,
@@ -339,7 +339,7 @@ class TestBatteryStatus:
                 component_id=INVERTER_ID, errors=[inverter_warning_error]
             )
         )
-        assert tracker._update_status(select) is BatteryStatus.WORKING  # type: ignore[arg-type]
+        assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
 
         battery_critical_error = BatteryError(
             code=BatteryErrorCode.ERROR_CODE_UNSPECIFIED,
@@ -366,7 +366,7 @@ class TestBatteryStatus:
                 errors=[battery_warning_error, battery_critical_error],
             )
         )
-        assert tracker._update_status(select) is BatteryStatus.NOT_WORKING  # type: ignore[arg-type]
+        assert tracker._update_status(select) is Status.NOT_WORKING  # type: ignore[arg-type]
 
         select = FakeSelect(
             battery=battery_data(
@@ -391,7 +391,7 @@ class TestBatteryStatus:
             mock_microgrid: mock_microgrid fixture
         """
 
-        status_channel = Broadcast[BatteryStatus]("battery_status")
+        status_channel = Broadcast[Status]("battery_status")
         request_result_channel = Broadcast[SetPowerResult]("request_result")
 
         # increase max_data_age_sec for blocking tests.
@@ -423,7 +423,7 @@ class TestBatteryStatus:
             assert tracker._update_status(select) is None  # type: ignore[arg-type]
 
             select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
-            assert tracker._update_status(select) is BatteryStatus.WORKING  # type: ignore[arg-type]
+            assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
 
             expected_blocking_timeout = [1, 2, 4, 8, 16, 30, 30]
 
@@ -433,7 +433,7 @@ class TestBatteryStatus:
                     request_result=SetPowerResult(succeed={1}, failed={106})
                 )
                 status = tracker._update_status(select)  # type: ignore[arg-type]
-                assert status is BatteryStatus.UNCERTAIN
+                assert status is Status.UNCERTAIN
 
                 # Battery should be still blocked, nothing should happen
                 time.shift(timeout - 1)
@@ -448,14 +448,14 @@ class TestBatteryStatus:
                 time.shift(1)
                 select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
                 status = tracker._update_status(select)  # type: ignore[arg-type]
-                assert status is BatteryStatus.WORKING
+                assert status is Status.WORKING
 
             # should block for 30 sec
             select = FakeSelect(
                 request_result=SetPowerResult(succeed={1}, failed={106})
             )
             status = tracker._update_status(select)  # type: ignore[arg-type]
-            assert status is BatteryStatus.UNCERTAIN
+            assert status is Status.UNCERTAIN
             time.shift(28)
 
             select = FakeSelect(
@@ -465,19 +465,19 @@ class TestBatteryStatus:
                 )
             )
             status = tracker._update_status(select)  # type: ignore[arg-type]
-            assert status is BatteryStatus.NOT_WORKING
+            assert status is Status.NOT_WORKING
 
             # Message that changed status to correct should unblock the battery.
             select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
             status = tracker._update_status(select)  # type: ignore[arg-type]
-            assert status is BatteryStatus.WORKING
+            assert status is Status.WORKING
 
             # should block for 30 sec
             select = FakeSelect(
                 request_result=SetPowerResult(succeed={1}, failed={106})
             )
             status = tracker._update_status(select)  # type: ignore[arg-type]
-            assert status is BatteryStatus.UNCERTAIN
+            assert status is Status.UNCERTAIN
             time.shift(28)
 
             # If battery succeed, then it should unblock.
@@ -485,7 +485,7 @@ class TestBatteryStatus:
                 request_result=SetPowerResult(succeed={106}, failed={206})
             )
             status = tracker._update_status(select)  # type: ignore[arg-type]
-            assert status is BatteryStatus.WORKING
+            assert status is Status.WORKING
 
         await tracker.stop()
 
@@ -501,7 +501,7 @@ class TestBatteryStatus:
             mock_microgrid: mock_microgrid fixture
         """
 
-        status_channel = Broadcast[BatteryStatus]("battery_status")
+        status_channel = Broadcast[Status]("battery_status")
         request_result_channel = Broadcast[SetPowerResult]("request_result")
 
         tracker = BatteryStatusTracker(
@@ -518,13 +518,13 @@ class TestBatteryStatus:
 
             select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
             status = tracker._update_status(select)  # type: ignore[arg-type]
-            assert status is BatteryStatus.WORKING
+            assert status is Status.WORKING
 
             select = FakeSelect(
                 request_result=SetPowerResult(succeed={1}, failed={106})
             )
             status = tracker._update_status(select)  # type: ignore[arg-type]
-            assert status is BatteryStatus.UNCERTAIN
+            assert status is Status.UNCERTAIN
 
             expected_blocking_timeout = [1, 2, 4]
             for timeout in expected_blocking_timeout:
@@ -540,7 +540,7 @@ class TestBatteryStatus:
                 request_result=SetPowerResult(succeed={1}, failed={106})
             )
             status = tracker._update_status(select)  # type: ignore[arg-type]
-            assert status is BatteryStatus.NOT_WORKING
+            assert status is Status.NOT_WORKING
 
             await tracker.stop()
 
@@ -557,7 +557,7 @@ class TestBatteryStatus:
             mock_microgrid: mock_microgrid fixture
         """
 
-        status_channel = Broadcast[BatteryStatus]("battery_status")
+        status_channel = Broadcast[Status]("battery_status")
         request_result_channel = Broadcast[SetPowerResult]("request_result")
 
         tracker = BatteryStatusTracker(
@@ -572,10 +572,10 @@ class TestBatteryStatus:
         assert tracker._update_status(select) is None  # type: ignore[arg-type]
 
         select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
-        assert tracker._update_status(select) is BatteryStatus.WORKING  # type: ignore[arg-type]
+        assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
 
         select = FakeSelect(request_result=SetPowerResult(succeed={1}, failed={106}))
-        assert tracker._update_status(select) is BatteryStatus.UNCERTAIN  # type: ignore[arg-type]
+        assert tracker._update_status(select) is Status.UNCERTAIN  # type: ignore[arg-type]
 
         select = FakeSelect(
             inverter=inverter_data(
@@ -583,7 +583,7 @@ class TestBatteryStatus:
                 component_state=InverterState.COMPONENT_STATE_ERROR,
             )
         )
-        assert tracker._update_status(select) is BatteryStatus.NOT_WORKING  # type: ignore[arg-type]
+        assert tracker._update_status(select) is Status.NOT_WORKING  # type: ignore[arg-type]
 
         select = FakeSelect(request_result=SetPowerResult(succeed={1}, failed={106}))
         assert tracker._update_status(select) is None  # type: ignore[arg-type]
@@ -592,7 +592,7 @@ class TestBatteryStatus:
         assert tracker._update_status(select) is None  # type: ignore[arg-type]
 
         select = FakeSelect(inverter=inverter_data(component_id=INVERTER_ID))
-        assert tracker._update_status(select) is BatteryStatus.WORKING  # type: ignore[arg-type]
+        assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
 
         await tracker.stop()
 
@@ -606,7 +606,7 @@ class TestBatteryStatus:
             mock_microgrid: mock_microgrid fixture
         """
 
-        status_channel = Broadcast[BatteryStatus]("battery_status")
+        status_channel = Broadcast[Status]("battery_status")
         request_result_channel = Broadcast[SetPowerResult]("request_result")
 
         status_receiver = status_channel.new_receiver()
@@ -625,19 +625,19 @@ class TestBatteryStatus:
             assert await mock_microgrid.send(inverter_data(component_id=INVERTER_ID))
             assert await mock_microgrid.send(battery_data(component_id=BATTERY_ID))
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
-            assert status is BatteryStatus.WORKING
+            assert status is Status.WORKING
 
             assert await request_result_sender.send(
                 SetPowerResult(succeed={}, failed={BATTERY_ID})
             )
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
-            assert status is BatteryStatus.UNCERTAIN
+            assert status is Status.UNCERTAIN
 
             time.shift(2)
 
             assert await mock_microgrid.send(battery_data(component_id=BATTERY_ID))
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
-            assert status is BatteryStatus.WORKING
+            assert status is Status.WORKING
 
             assert await mock_microgrid.send(
                 inverter_data(
@@ -646,7 +646,7 @@ class TestBatteryStatus:
                 )
             )
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
-            assert status is BatteryStatus.NOT_WORKING
+            assert status is Status.NOT_WORKING
 
             assert await request_result_sender.send(
                 SetPowerResult(succeed={}, failed={BATTERY_ID})
@@ -656,6 +656,6 @@ class TestBatteryStatus:
 
             assert await mock_microgrid.send(inverter_data(component_id=INVERTER_ID))
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
-            assert status is BatteryStatus.WORKING
+            assert status is Status.WORKING
 
         await tracker.stop()

@@ -30,7 +30,7 @@ from frequenz.sdk.microgrid.component import (
 _logger = logging.getLogger(__name__)
 
 
-class BatteryStatus(Enum):
+class Status(Enum):
     """Tells if battery is can be used."""
 
     NOT_WORKING = 0
@@ -155,7 +155,7 @@ class BatteryStatusTracker:
         battery_id: int,
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
-        status_sender: Sender[BatteryStatus],
+        status_sender: Sender[Status],
         request_result_receiver: Receiver[SetPowerResult],
     ) -> None:
         """Create class instance.
@@ -178,7 +178,7 @@ class BatteryStatusTracker:
         self._max_data_age = max_data_age_sec
         # First battery is considered as not working.
         # Change status after first messages are received.
-        self._last_status = BatteryStatus.NOT_WORKING
+        self._last_status = Status.NOT_WORKING
         self._blocking_status = _BlockingStatus(1.0, max_blocking_duration_sec)
 
         inverter_id = self._find_adjacent_inverter_id(battery_id)
@@ -213,7 +213,7 @@ class BatteryStatusTracker:
 
     async def _run(
         self,
-        status_sender: Sender[BatteryStatus],
+        status_sender: Sender[Status],
         request_result_receiver: Receiver[SetPowerResult],
     ) -> None:
         """Process data from the components and request_result_receiver.
@@ -247,7 +247,7 @@ class BatteryStatusTracker:
             except Exception as err:  # pylint: disable=broad-except
                 _logger.exception("BatteryStatusTracker crashed with error: %s", err)
 
-    def _update_status(self, select: Select) -> Optional[BatteryStatus]:
+    def _update_status(self, select: Select) -> Optional[Status]:
         if msg := select.battery:
             self._battery.last_msg_correct = (
                 self._is_message_reliable(msg.inner)
@@ -309,7 +309,7 @@ class BatteryStatusTracker:
 
         return None
 
-    def _get_current_status(self) -> BatteryStatus:
+    def _get_current_status(self) -> Status:
         """Get current battery status.
 
         Returns:
@@ -320,15 +320,15 @@ class BatteryStatusTracker:
         )
 
         if not is_msg_correct:
-            return BatteryStatus.NOT_WORKING
-        if self._last_status == BatteryStatus.NOT_WORKING:
+            return Status.NOT_WORKING
+        if self._last_status == Status.NOT_WORKING:
             # If message just become correct, then try to use it
             self._blocking_status.unblock()
-            return BatteryStatus.WORKING
+            return Status.WORKING
         if self._blocking_status.is_blocked():
-            return BatteryStatus.UNCERTAIN
+            return Status.UNCERTAIN
 
-        return BatteryStatus.WORKING
+        return Status.WORKING
 
     def _no_critical_error(self, msg: Union[BatteryData, InverterData]) -> bool:
         """Check if battery or inverter message has any critical error.
@@ -343,7 +343,7 @@ class BatteryStatusTracker:
         # pylint: disable=protected-access
         critical_err = next((err for err in msg._errors if err.level == critical), None)
         if critical_err is not None:
-            if self._last_status == BatteryStatus.WORKING:
+            if self._last_status == Status.WORKING:
                 _logger.warning(
                     "Component %d has critical error: %s",
                     msg.component_id,
@@ -365,7 +365,7 @@ class BatteryStatusTracker:
         # pylint: disable=protected-access
         state = msg._component_state
         if state not in BatteryStatusTracker._inverter_valid_state:
-            if self._last_status == BatteryStatus.WORKING:
+            if self._last_status == Status.WORKING:
                 _logger.warning(
                     "Inverter %d has invalid state: %s",
                     msg.component_id,
@@ -387,7 +387,7 @@ class BatteryStatusTracker:
         # pylint: disable=protected-access
         state = msg._component_state
         if state not in BatteryStatusTracker._battery_valid_state:
-            if self._last_status == BatteryStatus.WORKING:
+            if self._last_status == Status.WORKING:
                 _logger.warning(
                     "Battery %d has invalid state: %s",
                     self.battery_id,
@@ -399,7 +399,7 @@ class BatteryStatusTracker:
         # pylint: disable=protected-access
         relay_state = msg._relay_state
         if relay_state not in BatteryStatusTracker._battery_valid_relay:
-            if self._last_status == BatteryStatus.WORKING:
+            if self._last_status == Status.WORKING:
                 _logger.warning(
                     "Battery %d has invalid relay state: %s",
                     self.battery_id,
@@ -432,7 +432,7 @@ class BatteryStatusTracker:
         """
         is_outdated = self._is_timestamp_outdated(message.timestamp)
 
-        if is_outdated and self._last_status == BatteryStatus.WORKING:
+        if is_outdated and self._last_status == Status.WORKING:
             _logger.warning(
                 "Component %d stopped sending data. Last timestamp: %s.",
                 message.component_id,

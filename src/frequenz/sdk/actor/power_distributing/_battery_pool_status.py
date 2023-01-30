@@ -13,13 +13,13 @@ from frequenz.channels import Broadcast, Receiver
 from frequenz.channels.util import MergeNamed
 
 from ..._internal.asyncio import cancel_and_await
-from ._battery_status import BatteryStatus, BatteryStatusTracker, SetPowerResult
+from ._battery_status import BatteryStatusTracker, SetPowerResult, Status
 
 _logger = logging.getLogger(__name__)
 
 
 @dataclass
-class Status:
+class BatteryStatus:
     """Status of the batteries."""
 
     working: Set[int]
@@ -56,7 +56,7 @@ class _BatteryStatusChannelHelper:
 
     def __post_init__(self):
         self.name: str = f"battery-{self.battery_id}-status"
-        channel = Broadcast[BatteryStatus](self.name)
+        channel = Broadcast[Status](self.name)
 
         receiver_name = f"{self.name}-receiver"
         self.receiver = channel.new_receiver(name=receiver_name, maxsize=1)
@@ -91,7 +91,7 @@ class BatteryPoolStatus:
         """
         # At first no battery is working, we will get notification when they start
         # working.
-        self._current_status = Status(working=set(), uncertain=set())
+        self._current_status = BatteryStatus(working=set(), uncertain=set())
 
         # Channel for sending results of requests to the batteries
         request_result_channel = Broadcast[SetPowerResult]("battery_request_status")
@@ -101,7 +101,7 @@ class BatteryPoolStatus:
 
         # Receivers for individual battery statuses are needed to create a `MergeNamed`
         # object.
-        receivers: Dict[str, Receiver[BatteryStatus]] = {}
+        receivers: Dict[str, Receiver[Status]] = {}
 
         for battery_id in battery_ids:
             channel = _BatteryStatusChannelHelper(battery_id)
@@ -117,7 +117,7 @@ class BatteryPoolStatus:
                 ),
             )
 
-        self._battery_status_channel = MergeNamed[BatteryStatus](
+        self._battery_status_channel = MergeNamed[Status](
             **receivers,
         )
 
@@ -145,7 +145,7 @@ class BatteryPoolStatus:
                     "BatteryPoolStatus failed with error: %s. Restarting.", err
                 )
 
-    async def _update_status(self, status_channel: MergeNamed[BatteryStatus]) -> None:
+    async def _update_status(self, status_channel: MergeNamed[Status]) -> None:
         """Wait for any battery to change status and update status.
 
         Args:
@@ -153,13 +153,13 @@ class BatteryPoolStatus:
         """
         async for channel_name, status in status_channel:
             battery_id = self._batteries[channel_name].battery_id
-            if status == BatteryStatus.WORKING:
+            if status == Status.WORKING:
                 self._current_status.working.add(battery_id)
                 self._current_status.uncertain.discard(battery_id)
-            elif status == BatteryStatus.UNCERTAIN:
+            elif status == Status.UNCERTAIN:
                 self._current_status.working.discard(battery_id)
                 self._current_status.uncertain.add(battery_id)
-            elif status == BatteryStatus.NOT_WORKING:
+            elif status == Status.NOT_WORKING:
                 self._current_status.working.discard(battery_id)
                 self._current_status.uncertain.discard(battery_id)
 
