@@ -44,7 +44,7 @@ from ...microgrid.component import (
     InverterData,
 )
 from ...power import DistributionAlgorithm, DistributionResult, InvBatPair
-from ._batteries_status import BatteriesStatus
+from ._battery_pool_status import BatteriesStatus
 from .request import Request
 from .result import Error, Ignored, OutOfBound, PartialFailure, Result, Success
 

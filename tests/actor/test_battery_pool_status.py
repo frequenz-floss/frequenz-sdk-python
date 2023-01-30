@@ -8,7 +8,7 @@ from typing import Set
 import pytest
 from pytest_mock import MockerFixture
 
-from frequenz.sdk.actor.power_distributing._batteries_status import BatteriesStatus
+from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteriesStatus
 from frequenz.sdk.microgrid.component import ComponentCategory
 
 from ..utils.mock_microgrid import MockMicrogridClient
