@@ -27,7 +27,7 @@ from frequenz.channels import Broadcast
 from google.protobuf.timestamp_pb2 import Timestamp  # pylint: disable=no-name-in-module
 from pytest_mock import MockerFixture
 
-from frequenz.sdk.microgrid._battery import (
+from frequenz.sdk.actor.power_distributing._battery_status import (
     BatteryStatus,
     BatteryStatusTracker,
     RequestResult,

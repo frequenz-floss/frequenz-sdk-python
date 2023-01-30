@@ -11,8 +11,8 @@ from pytest_mock import MockerFixture
 from frequenz.sdk.actor.power_distributing._batteries_status import BatteriesStatus
 from frequenz.sdk.microgrid.component import ComponentCategory
 
-from ..microgrid.test_battery_status import battery_data, component_graph, inverter_data
 from ..utils.mock_microgrid import MockMicrogridClient
+from .test_battery_status import battery_data, component_graph, inverter_data
 
 
 class TestBatteriesStatus:

@@ -13,7 +13,7 @@ from frequenz.channels import Broadcast, Receiver
 from frequenz.channels.util import MergeNamed
 
 from ..._internal.asyncio import cancel_and_await
-from ...microgrid._battery import BatteryStatus, BatteryStatusTracker, RequestResult
+from ._battery_status import BatteryStatus, BatteryStatusTracker, RequestResult
 
 _logger = logging.getLogger(__name__)
 

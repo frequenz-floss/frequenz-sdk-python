@@ -18,9 +18,14 @@ from frequenz.api.microgrid.inverter_pb2 import ComponentState as InverterCompon
 from frequenz.channels import Receiver, Sender
 from frequenz.channels.util import Select
 
-from ..._internal.asyncio import cancel_and_await
-from .. import get as get_microgrid
-from ..component import BatteryData, ComponentCategory, ComponentData, InverterData
+from frequenz.sdk._internal.asyncio import cancel_and_await
+from frequenz.sdk.microgrid import get as get_microgrid
+from frequenz.sdk.microgrid.component import (
+    BatteryData,
+    ComponentCategory,
+    ComponentData,
+    InverterData,
+)
 
 _logger = logging.getLogger(__name__)
 
