@@ -1,6 +1,6 @@
 # License: MIT
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
-"""Tests for BatteriesStatus."""
+"""Tests for BatteryPoolStatus."""
 
 import asyncio
 from typing import Set
@@ -8,15 +8,15 @@ from typing import Set
 import pytest
 from pytest_mock import MockerFixture
 
-from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteriesStatus
+from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
 from frequenz.sdk.microgrid.component import ComponentCategory
 
 from ..utils.mock_microgrid import MockMicrogridClient
 from .test_battery_status import battery_data, component_graph, inverter_data
 
 
-class TestBatteriesStatus:
-    """Tests for BatteriesStatus"""
+class TestBatteryPoolStatus:
+    """Tests for BatteryPoolStatus"""
 
     @pytest.fixture
     async def mock_microgrid(self, mocker: MockerFixture) -> MockMicrogridClient:
@@ -34,7 +34,7 @@ class TestBatteriesStatus:
         return microgrid
 
     async def test_batteries_status(self, mock_microgrid: MockMicrogridClient) -> None:
-        """Basic tests for BatteriesStatus.
+        """Basic tests for BatteryPoolStatus.
 
         BatteryStatusTracker is more tested in its own unit tests.
 
@@ -47,7 +47,7 @@ class TestBatteriesStatus:
                 component_category={ComponentCategory.BATTERY}
             )
         }
-        batteries_status = BatteriesStatus(
+        batteries_status = BatteryPoolStatus(
             battery_ids=batteries,
             max_data_age_sec=5,
             max_blocking_duration_sec=30,

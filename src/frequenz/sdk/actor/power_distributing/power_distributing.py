@@ -44,7 +44,7 @@ from ...microgrid.component import (
     InverterData,
 )
 from ...power import DistributionAlgorithm, DistributionResult, InvBatPair
-from ._battery_pool_status import BatteriesStatus
+from ._battery_pool_status import BatteryPoolStatus
 from .request import Request
 from .result import Error, Ignored, OutOfBound, PartialFailure, Result, Success
 
@@ -183,7 +183,7 @@ class PowerDistributingActor:
         self._users_tasks = self._create_users_tasks()
         self._started = asyncio.Event()
 
-        self._batteries_status = BatteriesStatus(
+        self._all_battery_status = BatteryPoolStatus(
             battery_ids=set(self._bat_inv_map.keys()),
             max_blocking_duration_sec=30.0,
             max_data_age_sec=10.0,
@@ -262,7 +262,7 @@ class PowerDistributingActor:
 
             try:
                 pairs_data: List[InvBatPair] = self._get_components_data(
-                    self._batteries_status.get_working_batteries(request.batteries)
+                    self._all_battery_status.get_working_batteries(request.batteries)
                 )
             except KeyError as err:
                 await user.channel.send(Error(request, str(err)))
@@ -319,7 +319,7 @@ class PowerDistributingActor:
 
             asyncio.gather(
                 *[
-                    self._batteries_status.update_status(
+                    self._all_battery_status.update_status(
                         succeed_batteries, failed_batteries
                     ),
                     user.channel.send(response),
@@ -652,5 +652,5 @@ class PowerDistributingActor:
     async def _stop_actor(self) -> None:
         """Stop all running async tasks."""
         await asyncio.gather(*[cancel_and_await(t) for t in self._users_tasks])
-        await self._batteries_status.stop()
+        await self._all_battery_status.stop()
         await self._stop()  # type: ignore # pylint: disable=no-member

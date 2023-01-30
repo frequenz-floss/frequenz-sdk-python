@@ -12,7 +12,7 @@ from frequenz.channels import Bidirectional, Receiver, Sender
 from pytest_mock import MockerFixture
 
 from frequenz.sdk.actor.power_distributing import PowerDistributingActor, Request
-from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteriesStatus
+from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
 from frequenz.sdk.actor.power_distributing.result import (
     Error,
     Ignored,
@@ -88,8 +88,8 @@ class TestPowerDistributingActor:
 
         attrs = {"get_working_batteries.return_value": {306}}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteriesStatus",
-            return_value=MagicMock(spec=BatteriesStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
         )
 
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
@@ -146,8 +146,8 @@ class TestPowerDistributingActor:
 
         attrs = {"get_working_batteries.return_value": request.batteries}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteriesStatus",
-            return_value=MagicMock(spec=BatteriesStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
@@ -185,8 +185,8 @@ class TestPowerDistributingActor:
 
         attrs = {"get_working_batteries.return_value": {106, 206}}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteriesStatus",
-            return_value=MagicMock(spec=BatteriesStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
@@ -242,8 +242,8 @@ class TestPowerDistributingActor:
 
         attrs = {"get_working_batteries.return_value": request.batteries}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteriesStatus",
-            return_value=MagicMock(spec=BatteriesStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
         )
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
@@ -286,8 +286,8 @@ class TestPowerDistributingActor:
             "get_working_batteries.side_effect": [{106, 206}, {106, 306}, {106, 206}]
         }
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteriesStatus",
-            return_value=MagicMock(spec=BatteriesStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
         )
 
         distributor = PowerDistributingActor(service_channels)
@@ -361,8 +361,8 @@ class TestPowerDistributingActor:
 
         attrs = {"get_working_batteries.return_value": request.batteries}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteriesStatus",
-            return_value=MagicMock(spec=BatteriesStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
@@ -408,8 +408,8 @@ class TestPowerDistributingActor:
 
         attrs = {"get_working_batteries.return_value": request.batteries}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteriesStatus",
-            return_value=MagicMock(spec=BatteriesStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
@@ -455,8 +455,8 @@ class TestPowerDistributingActor:
 
         attrs = {"get_working_batteries.return_value": request.batteries}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteriesStatus",
-            return_value=MagicMock(spec=BatteriesStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
@@ -494,8 +494,8 @@ class TestPowerDistributingActor:
 
         attrs = {"get_working_batteries.return_value": request.batteries - {106}}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteriesStatus",
-            return_value=MagicMock(spec=BatteriesStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)

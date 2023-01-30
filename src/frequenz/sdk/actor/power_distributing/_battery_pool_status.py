@@ -63,7 +63,7 @@ class _BatteryStatusChannelHelper:
         self.sender = channel.new_sender()
 
 
-class BatteriesStatus:
+class BatteryPoolStatus:
     """Track status of the batteries.
 
     Send set of working and uncertain batteries, when the any battery change status.
@@ -75,7 +75,7 @@ class BatteriesStatus:
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
     ) -> None:
-        """Create BatteriesStatus instance.
+        """Create BatteryPoolStatus instance.
 
         Args:
             battery_ids: set of batteries ids that should be stored in pool.
@@ -141,7 +141,9 @@ class BatteriesStatus:
             try:
                 await self._update_status(self._battery_status_channel)
             except Exception as err:  # pylint: disable=broad-except
-                _logger.error("BatteriesStatus failed with error: %s. Restarting.", err)
+                _logger.error(
+                    "BatteryPoolStatus failed with error: %s. Restarting.", err
+                )
 
     async def _update_status(self, status_channel: MergeNamed[BatteryStatus]) -> None:
         """Wait for any battery to change status and update status.
