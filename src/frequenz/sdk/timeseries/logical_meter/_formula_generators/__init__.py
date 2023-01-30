@@ -6,6 +6,7 @@
 from ._battery_power_formula import BatteryPowerFormula
 from ._battery_soc_formula import BatterySoCFormula
 from ._ev_charger_current_formula import EVChargerCurrentFormula
+from ._ev_charger_power_formula import EVChargerPowerFormula
 from ._formula_generator import (
     ComponentNotFound,
     FormulaGenerationError,
@@ -26,6 +27,7 @@ __all__ = [
     "GridPowerFormula",
     "BatteryPowerFormula",
     "BatterySoCFormula",
+    "EVChargerPowerFormula",
     "PVPowerFormula",
     #
     # Current formula generators
