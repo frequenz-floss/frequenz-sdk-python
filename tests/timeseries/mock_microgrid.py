@@ -6,28 +6,23 @@
 from __future__ import annotations
 
 import asyncio
-import time
 import typing
-from typing import Iterator, Tuple
+from typing import Callable, Set, Tuple
 
-from frequenz.api.microgrid import microgrid_pb2
-from frequenz.api.microgrid.battery_pb2 import Battery
-from frequenz.api.microgrid.battery_pb2 import Data as BatteryData
-from frequenz.api.microgrid.common_pb2 import AC, Metric, MetricAggregation
-from frequenz.api.microgrid.ev_charger_pb2 import Data as EVChargerData
-from frequenz.api.microgrid.ev_charger_pb2 import EVCharger
-from frequenz.api.microgrid.inverter_pb2 import Data as InverterData
-from frequenz.api.microgrid.inverter_pb2 import Inverter
-from frequenz.api.microgrid.inverter_pb2 import Type as InverterType
-from frequenz.api.microgrid.meter_pb2 import Data as MeterData
-from frequenz.api.microgrid.meter_pb2 import Meter
-from frequenz.api.microgrid.microgrid_pb2 import ComponentData, ComponentIdParam
+from frequenz.api.microgrid import (
+    battery_pb2,
+    common_pb2,
+    ev_charger_pb2,
+    inverter_pb2,
+    meter_pb2,
+    microgrid_pb2,
+)
 from frequenz.channels import Broadcast, Sender
 from google.protobuf.timestamp_pb2 import Timestamp  # pylint: disable=no-name-in-module
-from grpc.aio import grpc
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
+from frequenz.sdk._internal.asyncio import cancel_and_await
 from frequenz.sdk.actor import (
     ChannelRegistry,
     ComponentMetricRequest,
@@ -35,10 +30,21 @@ from frequenz.sdk.actor import (
     DataSourcingActor,
     ResamplerConfig,
 )
-from tests.microgrid import mock_api
+from frequenz.sdk.microgrid.client import Connection
+from frequenz.sdk.microgrid.component import (
+    BatteryData,
+    Component,
+    ComponentCategory,
+    ComponentData,
+    EVChargerData,
+    InverterData,
+    InverterType,
+    MeterData,
+)
+from tests.utils.mock_microgrid import MockMicrogridClient
 
 
-class MockMicrogrid:
+class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
     """Setup a MockApi instance with multiple component layouts for tests."""
 
     grid_id = 1
@@ -48,20 +54,20 @@ class MockMicrogrid:
     inverter_id_suffix = 8
     battery_id_suffix = 9
 
-    def __init__(
-        self,
-        server: mock_api.MockGrpcServer,
-        servicer: mock_api.MockMicrogridServicer,
-        grid_side_meter: bool,
-    ):
-        """Create a new instance.
+    _microgrid: MockMicrogridClient
 
-        NOTE: Use the `MockMicrogrid.new()` method to create an instance instead.
-        """
-        self._server = server
-        self._servicer = servicer
+    def __init__(self, grid_side_meter: bool, sample_rate_s: float = 0.01):
+        """Create a new instance."""
+        self._components: Set[Component] = set(
+            [
+                Component(1, ComponentCategory.GRID),
+                Component(4, ComponentCategory.METER),
+            ]
+        )
+        self._connections: Set[Connection] = set([Connection(1, 4)])
         self._id_increment = 0
         self._grid_side_meter = grid_side_meter
+        self._sample_rate_s = sample_rate_s
 
         self._connect_to = self.grid_id
         if self._grid_side_meter:
@@ -73,137 +79,139 @@ class MockMicrogrid:
         self.evc_ids: list[int] = []
         self.meter_ids: list[int] = [4]
 
+        self._streaming_coros: list[typing.Coroutine[None, None, None]] = []
+        self._streaming_tasks: list[asyncio.Task[None]] = []
         self._actors: list[typing.Any] = []
+        self._start_meter_streaming(4)
 
-    async def start(self) -> Tuple[Sender[ComponentMetricRequest], ChannelRegistry]:
+    async def start(
+        self, mocker: MockerFixture
+    ) -> Tuple[Sender[ComponentMetricRequest], ChannelRegistry]:
         """Start the MockServer, and the data source and resampling actors.
 
         Returns:
             A sender to send requests to the Resampling actor, and a corresponding
                 channel registry.
         """
-        await self._server.start()
-        await asyncio.sleep(0.2)
+        self._microgrid = MockMicrogridClient(self._components, self._connections)
+        self._microgrid.initialize(mocker)
+        self._streaming_tasks = [
+            asyncio.create_task(coro) for coro in self._streaming_coros
+        ]
+        await asyncio.sleep(self._sample_rate_s / 2)
         ret = await self._init_client_and_actors()
-        await asyncio.sleep(0.1)
         return ret
 
-    @classmethod
-    async def new(
-        cls, mocker: MockerFixture, *, grid_side_meter: bool = True
-    ) -> MockMicrogrid:
-        """Create a new MockMicrogrid instance."""
-        server, servicer = await MockMicrogrid._setup_service(mocker)
-        return MockMicrogrid(server, servicer, grid_side_meter)
-
-    @classmethod
-    async def _setup_service(
-        cls, mocker: MockerFixture
-    ) -> Tuple[mock_api.MockGrpcServer, mock_api.MockMicrogridServicer]:
-        """Initialize a mock microgrid api for a test."""
-        microgrid._microgrid._MICROGRID = None  # pylint: disable=protected-access
-        servicer = mock_api.MockMicrogridServicer()
-
-        # pylint: disable=unused-argument
-        def get_component_data(
-            request: ComponentIdParam, context: grpc.ServicerContext
-        ) -> Iterator[ComponentData]:
-            """Return an iterator for mock ComponentData."""
-            # pylint: disable=stop-iteration-return
-
-            def meter_msg(value: float) -> ComponentData:
-                timestamp = Timestamp()
-                timestamp.GetCurrentTime()
-                return ComponentData(
-                    id=request.id,
-                    ts=timestamp,
-                    meter=Meter(
-                        data=MeterData(
-                            ac=AC(
-                                power_active=Metric(value=value),
-                                phase_1=AC.ACPhase(current=Metric(value=value + 100.0)),
-                                phase_2=AC.ACPhase(current=Metric(value=value + 101.0)),
-                                phase_3=AC.ACPhase(current=Metric(value=value + 102.0)),
-                            )
-                        )
-                    ),
-                )
-
-            def inverter_msg(value: float) -> ComponentData:
-                timestamp = Timestamp()
-                timestamp.GetCurrentTime()
-                return ComponentData(
-                    id=request.id,
-                    ts=timestamp,
-                    inverter=Inverter(
-                        data=InverterData(ac=AC(power_active=Metric(value=value)))
-                    ),
-                )
-
-            def battery_msg(value: float) -> ComponentData:
-                timestamp = Timestamp()
-                timestamp.GetCurrentTime()
-                return ComponentData(
-                    id=request.id,
-                    ts=timestamp,
-                    battery=Battery(data=BatteryData(soc=MetricAggregation(avg=value))),
-                )
-
-            def evc_msg(value: float) -> ComponentData:
-                timestamp = Timestamp()
-                timestamp.GetCurrentTime()
-                return ComponentData(
-                    id=request.id,
-                    ts=timestamp,
-                    ev_charger=EVCharger(
-                        data=EVChargerData(
-                            ac=AC(
-                                power_active=Metric(value=value),
-                                phase_1=AC.ACPhase(current=Metric(value=value + 10.0)),
-                                phase_2=AC.ACPhase(current=Metric(value=value + 11.0)),
-                                phase_3=AC.ACPhase(current=Metric(value=value + 12.0)),
-                            )
-                        )
-                    ),
-                )
-
-            if request.id % 10 == cls.inverter_id_suffix:
-                next_msg = inverter_msg
-            elif (
-                request.id % 10 == cls.meter_id_suffix
-                or request.id == cls.main_meter_id
-            ):
-                next_msg = meter_msg
-            elif request.id % 10 == cls.battery_id_suffix:
-                next_msg = battery_msg
-            elif request.id % 10 == cls.evc_id_suffix:
-                next_msg = evc_msg
+    async def _comp_data_send_task(
+        self, comp_id: int, make_comp_data: Callable[[int, Timestamp], ComponentData]
+    ) -> None:
+        for value in range(1, 2000):
+            timestamp = Timestamp()
+            timestamp.GetCurrentTime()
+            val_to_send = value + int(comp_id / 10)
+            # for inverters with component_id > 100, send only half the messages.
+            if comp_id % 10 == self.inverter_id_suffix:
+                if comp_id < 100 or value <= 5:
+                    await self._microgrid.send(make_comp_data(val_to_send, timestamp))
             else:
-                raise RuntimeError(
-                    f"Component id {request.id} unsupported by MockMicrogrid"
-                )
-            for value in range(1, 10):
-                # for inverters with component_id > 100, send only half the messages.
-                if request.id % 10 == cls.inverter_id_suffix:
-                    if request.id < 100 or value <= 5:
-                        yield next_msg(value=value + int(request.id / 10))
-                else:
-                    yield next_msg(value=value + int(request.id / 10))
-                time.sleep(0.1)
+                await self._microgrid.send(make_comp_data(val_to_send, timestamp))
+            await asyncio.sleep(self._sample_rate_s)
 
-        mocker.patch.object(servicer, "GetComponentData", get_component_data)
-
-        server = mock_api.MockGrpcServer(servicer, port=57891)
-
-        servicer.add_component(
-            1, microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_GRID
+    def _start_meter_streaming(self, meter_id: int) -> None:
+        self._streaming_coros.append(
+            self._comp_data_send_task(
+                meter_id,
+                lambda value, ts: MeterData.from_proto(
+                    microgrid_pb2.ComponentData(
+                        id=meter_id,
+                        ts=ts,
+                        meter=meter_pb2.Meter(
+                            data=meter_pb2.Data(
+                                ac=common_pb2.AC(
+                                    power_active=common_pb2.Metric(value=value),
+                                    phase_1=common_pb2.AC.ACPhase(
+                                        current=common_pb2.Metric(value=value + 100.0)
+                                    ),
+                                    phase_2=common_pb2.AC.ACPhase(
+                                        current=common_pb2.Metric(value=value + 101.0)
+                                    ),
+                                    phase_3=common_pb2.AC.ACPhase(
+                                        current=common_pb2.Metric(value=value + 102.0)
+                                    ),
+                                )
+                            )
+                        ),
+                    ),
+                ),
+            )
         )
-        servicer.add_component(
-            4, microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_METER
-        )
-        servicer.add_connection(1, 4)
 
-        return (server, servicer)
+    def _start_battery_streaming(self, bat_id: int) -> None:
+        self._streaming_coros.append(
+            self._comp_data_send_task(
+                bat_id,
+                lambda value, ts: BatteryData.from_proto(
+                    microgrid_pb2.ComponentData(
+                        id=bat_id,
+                        ts=ts,
+                        battery=battery_pb2.Battery(
+                            data=battery_pb2.Data(
+                                soc=common_pb2.MetricAggregation(avg=value)
+                            )
+                        ),
+                    )
+                ),
+            )
+        )
+
+    def _start_inverter_streaming(self, inv_id: int) -> None:
+        self._streaming_coros.append(
+            self._comp_data_send_task(
+                inv_id,
+                lambda value, ts: InverterData.from_proto(
+                    microgrid_pb2.ComponentData(
+                        id=inv_id,
+                        ts=ts,
+                        inverter=inverter_pb2.Inverter(
+                            data=inverter_pb2.Data(
+                                ac=common_pb2.AC(
+                                    power_active=common_pb2.Metric(value=value)
+                                )
+                            )
+                        ),
+                    )
+                ),
+            )
+        )
+
+    def _start_ev_charger_streaming(self, evc_id: int) -> None:
+        self._streaming_coros.append(
+            self._comp_data_send_task(
+                evc_id,
+                lambda value, ts: EVChargerData.from_proto(
+                    microgrid_pb2.ComponentData(
+                        id=evc_id,
+                        ts=ts,
+                        ev_charger=ev_charger_pb2.EVCharger(
+                            data=ev_charger_pb2.Data(
+                                ac=common_pb2.AC(
+                                    power_active=common_pb2.Metric(value=value),
+                                    phase_1=common_pb2.AC.ACPhase(
+                                        current=common_pb2.Metric(value=value + 10.0)
+                                    ),
+                                    phase_2=common_pb2.AC.ACPhase(
+                                        current=common_pb2.Metric(value=value + 11.0)
+                                    ),
+                                    phase_3=common_pb2.AC.ACPhase(
+                                        current=common_pb2.Metric(value=value + 12.0)
+                                    ),
+                                )
+                            )
+                        ),
+                    )
+                ),
+            )
+        )
 
     def add_batteries(self, count: int) -> None:
         """Add batteries with connected inverters and meters to the microgrid.
@@ -221,22 +229,27 @@ class MockMicrogrid:
             self.battery_inverter_ids.append(inv_id)
             self.battery_ids.append(bat_id)
 
-            self._servicer.add_component(
-                meter_id,
-                microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_METER,
+            self._components.add(
+                Component(
+                    meter_id,
+                    ComponentCategory.METER,
+                )
             )
-            self._servicer.add_component(
-                inv_id,
-                microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_INVERTER,
-                InverterType.TYPE_BATTERY,
+            self._components.add(
+                Component(inv_id, ComponentCategory.INVERTER, InverterType.BATTERY)
             )
-            self._servicer.add_component(
-                bat_id,
-                microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_BATTERY,
+            self._components.add(
+                Component(
+                    bat_id,
+                    ComponentCategory.BATTERY,
+                )
             )
-            self._servicer.add_connection(self._connect_to, meter_id)
-            self._servicer.add_connection(meter_id, inv_id)
-            self._servicer.add_connection(inv_id, bat_id)
+            self._start_battery_streaming(bat_id)
+            self._start_inverter_streaming(inv_id)
+            self._start_meter_streaming(meter_id)
+            self._connections.add(Connection(self._connect_to, meter_id))
+            self._connections.add(Connection(meter_id, inv_id))
+            self._connections.add(Connection(inv_id, bat_id))
 
     def add_solar_inverters(self, count: int) -> None:
         """Add pv inverters and connected pv meters to the microgrid.
@@ -252,17 +265,23 @@ class MockMicrogrid:
             self.meter_ids.append(meter_id)
             self.pv_inverter_ids.append(inv_id)
 
-            self._servicer.add_component(
-                meter_id,
-                microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_METER,
+            self._components.add(
+                Component(
+                    meter_id,
+                    ComponentCategory.METER,
+                )
             )
-            self._servicer.add_component(
-                inv_id,
-                microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_INVERTER,
-                InverterType.TYPE_SOLAR,
+            self._components.add(
+                Component(
+                    inv_id,
+                    ComponentCategory.INVERTER,
+                    InverterType.SOLAR,
+                )
             )
-            self._servicer.add_connection(self._connect_to, meter_id)
-            self._servicer.add_connection(meter_id, inv_id)
+            self._start_inverter_streaming(inv_id)
+            self._start_meter_streaming(meter_id)
+            self._connections.add(Connection(self._connect_to, meter_id))
+            self._connections.add(Connection(meter_id, inv_id))
 
     def add_ev_chargers(self, count: int) -> None:
         """Add EV Chargers to the microgrid.
@@ -276,17 +295,18 @@ class MockMicrogrid:
 
             self.evc_ids.append(evc_id)
 
-            self._servicer.add_component(
-                evc_id,
-                microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER,
+            self._components.add(
+                Component(
+                    evc_id,
+                    ComponentCategory.EV_CHARGER,
+                )
             )
-            self._servicer.add_connection(self._connect_to, evc_id)
+            self._start_ev_charger_streaming(evc_id)
+            self._connections.add(Connection(self._connect_to, evc_id))
 
     async def _init_client_and_actors(
         self,
     ) -> Tuple[Sender[ComponentMetricRequest], ChannelRegistry]:
-        await microgrid.initialize("[::1]", 57891)
-
         channel_registry = ChannelRegistry(name="Microgrid Channel Registry")
 
         data_source_request_channel = Broadcast[ComponentMetricRequest](
@@ -314,7 +334,7 @@ class MockMicrogrid:
                 channel_registry=channel_registry,
                 data_sourcing_request_sender=data_source_request_sender,
                 resampling_request_receiver=resampling_actor_request_receiver,
-                config=ResamplerConfig(resampling_period_s=0.1),
+                config=ResamplerConfig(resampling_period_s=self._sample_rate_s),
             )
         )
 
@@ -324,5 +344,6 @@ class MockMicrogrid:
         """Clean up after a test."""
         for actor in self._actors:
             await actor._stop()  # pylint: disable=protected-access
-        await self._server.graceful_shutdown()
+        for task in self._streaming_tasks:
+            await cancel_and_await(task)
         microgrid._microgrid._MICROGRID = None  # pylint: disable=protected-access
