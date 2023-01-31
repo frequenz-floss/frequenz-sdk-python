@@ -1643,7 +1643,16 @@ printed.</li>
 <span class="normal">644</span>
 <span class="normal">645</span>
 <span class="normal">646</span>
-<span class="normal">647</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
+<span class="normal">647</span>
+<span class="normal">648</span>
+<span class="normal">649</span>
+<span class="normal">650</span>
+<span class="normal">651</span>
+<span class="normal">652</span>
+<span class="normal">653</span>
+<span class="normal">654</span>
+<span class="normal">655</span>
+<span class="normal">656</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
 <span class="k">class</span> <span class="nc">PowerDistributingActor</span><span class="p">:</span>
     <span class="c1"># pylint: disable=too-many-instance-attributes</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Tool to distribute power between batteries in microgrid.</span>
@@ -1763,6 +1772,12 @@ printed.</li>
         <span class="bp">self</span><span class="o">.</span><span class="n">_users_tasks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_users_tasks</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_started</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_all_battery_status</span> <span class="o">=</span> <span class="n">BatteryPoolStatus</span><span class="p">(</span>
+            <span class="n">battery_ids</span><span class="o">=</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bat_inv_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+            <span class="n">max_blocking_duration_sec</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>
+            <span class="n">max_data_age_sec</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
+        <span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">_create_users_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="n">Empty</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;For each user create a task to wait for request.</span>
 
@@ -1826,11 +1841,6 @@ printed.</li>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_channels</span><span class="p">()</span>
 
         <span class="n">api</span> <span class="o">=</span> <span class="n">microgrid</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">api_client</span>
-        <span class="n">battery_pool</span> <span class="o">=</span> <span class="k">await</span> <span class="n">BatteryPoolStatus</span><span class="o">.</span><span class="n">async_new</span><span class="p">(</span>
-            <span class="n">battery_ids</span><span class="o">=</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bat_inv_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
-            <span class="n">max_blocking_duration_sec</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>
-            <span class="n">max_data_age_sec</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
-        <span class="p">)</span>
 
         <span class="c1"># Wait few seconds to get data from the channels created above.</span>
         <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_data_sec</span><span class="p">)</span>
@@ -1841,7 +1851,7 @@ printed.</li>
 
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">pairs_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">InvBatPair</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_components_data</span><span class="p">(</span>
-                    <span class="n">battery_pool</span><span class="o">.</span><span class="n">get_working_batteries</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">batteries</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_all_battery_status</span><span class="o">.</span><span class="n">get_working_batteries</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">batteries</span><span class="p">)</span>
                 <span class="p">)</span>
             <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
                 <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)))</span>
@@ -1888,15 +1898,22 @@ printed.</li>
                     <span class="n">excess_power</span><span class="o">=</span><span class="n">distribution</span><span class="o">.</span><span class="n">remaining_power</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
+                <span class="n">succeed_batteries</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">battery_distribution</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="n">Success</span><span class="p">(</span>
                     <span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span>
                     <span class="n">succeed_power</span><span class="o">=</span><span class="n">distributed_power_value</span><span class="p">,</span>
-                    <span class="n">used_batteries</span><span class="o">=</span><span class="nb">set</span><span class="p">(</span><span class="n">battery_distribution</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+                    <span class="n">used_batteries</span><span class="o">=</span><span class="n">succeed_batteries</span><span class="p">,</span>
                     <span class="n">excess_power</span><span class="o">=</span><span class="n">distribution</span><span class="o">.</span><span class="n">remaining_power</span><span class="p">,</span>
                 <span class="p">)</span>
 
-            <span class="n">battery_pool</span><span class="o">.</span><span class="n">update_last_request_status</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
-            <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+            <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+                <span class="o">*</span><span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_all_battery_status</span><span class="o">.</span><span class="n">update_status</span><span class="p">(</span>
+                        <span class="n">succeed_batteries</span><span class="p">,</span> <span class="n">failed_batteries</span>
+                    <span class="p">),</span>
+                    <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">response</span><span class="p">),</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_set_distributed_power</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -2224,6 +2241,7 @@ printed.</li>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_stop_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop all running async tasks.&quot;&quot;&quot;</span>
         <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">cancel_and_await</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_users_tasks</span><span class="p">])</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all_battery_status</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stop</span><span class="p">()</span>  <span class="c1"># type: ignore # pylint: disable=no-member</span>
 </code></pre></div></td></tr></table></div>
         </details>
@@ -2338,7 +2356,13 @@ request. It is a time needed to collect first components data.</p>
 <span class="normal">181</span>
 <span class="normal">182</span>
 <span class="normal">183</span>
-<span class="normal">184</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">users_channels</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Bidirectional</span><span class="o">.</span><span class="n">Handle</span><span class="p">[</span><span class="n">Result</span><span class="p">,</span> <span class="n">Request</span><span class="p">]],</span>
     <span class="n">wait_for_data_sec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
@@ -2380,6 +2404,12 @@ request. It is a time needed to collect first components data.</p>
     <span class="p">]</span> <span class="o">=</span> <span class="n">users_channels</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_users_tasks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_users_tasks</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_started</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_all_battery_status</span> <span class="o">=</span> <span class="n">BatteryPoolStatus</span><span class="p">(</span>
+        <span class="n">battery_ids</span><span class="o">=</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bat_inv_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+        <span class="n">max_blocking_duration_sec</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>
+        <span class="n">max_data_age_sec</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
+    <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
@@ -2411,13 +2441,7 @@ as broken for some time.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">237</span>
-<span class="normal">238</span>
-<span class="normal">239</span>
-<span class="normal">240</span>
-<span class="normal">241</span>
-<span class="normal">242</span>
-<span class="normal">243</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">243</span>
 <span class="normal">244</span>
 <span class="normal">245</span>
 <span class="normal">246</span>
@@ -2493,7 +2517,15 @@ as broken for some time.</p>
 <span class="normal">316</span>
 <span class="normal">317</span>
 <span class="normal">318</span>
-<span class="normal">319</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">319</span>
+<span class="normal">320</span>
+<span class="normal">321</span>
+<span class="normal">322</span>
+<span class="normal">323</span>
+<span class="normal">324</span>
+<span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run actor main function.</span>
 
 <span class="sd">    It waits for new requests in task_queue and process it, and send</span>
@@ -2505,11 +2537,6 @@ as broken for some time.</p>
     <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_channels</span><span class="p">()</span>
 
     <span class="n">api</span> <span class="o">=</span> <span class="n">microgrid</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">api_client</span>
-    <span class="n">battery_pool</span> <span class="o">=</span> <span class="k">await</span> <span class="n">BatteryPoolStatus</span><span class="o">.</span><span class="n">async_new</span><span class="p">(</span>
-        <span class="n">battery_ids</span><span class="o">=</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bat_inv_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
-        <span class="n">max_blocking_duration_sec</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>
-        <span class="n">max_data_age_sec</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
-    <span class="p">)</span>
 
     <span class="c1"># Wait few seconds to get data from the channels created above.</span>
     <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_data_sec</span><span class="p">)</span>
@@ -2520,7 +2547,7 @@ as broken for some time.</p>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">pairs_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">InvBatPair</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_components_data</span><span class="p">(</span>
-                <span class="n">battery_pool</span><span class="o">.</span><span class="n">get_working_batteries</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">batteries</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_all_battery_status</span><span class="o">.</span><span class="n">get_working_batteries</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">batteries</span><span class="p">)</span>
             <span class="p">)</span>
         <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
             <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)))</span>
@@ -2567,15 +2594,22 @@ as broken for some time.</p>
                 <span class="n">excess_power</span><span class="o">=</span><span class="n">distribution</span><span class="o">.</span><span class="n">remaining_power</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="n">succeed_batteries</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">battery_distribution</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
             <span class="n">response</span> <span class="o">=</span> <span class="n">Success</span><span class="p">(</span>
                 <span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span>
                 <span class="n">succeed_power</span><span class="o">=</span><span class="n">distributed_power_value</span><span class="p">,</span>
-                <span class="n">used_batteries</span><span class="o">=</span><span class="nb">set</span><span class="p">(</span><span class="n">battery_distribution</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+                <span class="n">used_batteries</span><span class="o">=</span><span class="n">succeed_batteries</span><span class="p">,</span>
                 <span class="n">excess_power</span><span class="o">=</span><span class="n">distribution</span><span class="o">.</span><span class="n">remaining_power</span><span class="p">,</span>
             <span class="p">)</span>
 
-        <span class="n">battery_pool</span><span class="o">.</span><span class="n">update_last_request_status</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
-        <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+            <span class="o">*</span><span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_all_battery_status</span><span class="o">.</span><span class="n">update_status</span><span class="p">(</span>
+                    <span class="n">succeed_batteries</span><span class="p">,</span> <span class="n">failed_batteries</span>
+                <span class="p">),</span>
+                <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">response</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
