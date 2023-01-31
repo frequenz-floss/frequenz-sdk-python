@@ -183,6 +183,12 @@ class PowerDistributingActor:
         self._users_tasks = self._create_users_tasks()
         self._started = asyncio.Event()
 
+        self._all_battery_status = BatteryPoolStatus(
+            battery_ids=set(self._bat_inv_map.keys()),
+            max_blocking_duration_sec=30.0,
+            max_data_age_sec=10.0,
+        )
+
     def _create_users_tasks(self) -> List[asyncio.Task[Empty]]:
         """For each user create a task to wait for request.
 
@@ -246,11 +252,6 @@ class PowerDistributingActor:
         await self._create_channels()
 
         api = microgrid.get().api_client
-        battery_pool = await BatteryPoolStatus.async_new(
-            battery_ids=set(self._bat_inv_map.keys()),
-            max_blocking_duration_sec=30.0,
-            max_data_age_sec=10.0,
-        )
 
         # Wait few seconds to get data from the channels created above.
         await asyncio.sleep(self._wait_for_data_sec)
@@ -261,7 +262,7 @@ class PowerDistributingActor:
 
             try:
                 pairs_data: List[InvBatPair] = self._get_components_data(
-                    battery_pool.get_working_batteries(request.batteries)
+                    self._all_battery_status.get_working_batteries(request.batteries)
                 )
             except KeyError as err:
                 await user.channel.send(Error(request, str(err)))
@@ -308,15 +309,22 @@ class PowerDistributingActor:
                     excess_power=distribution.remaining_power,
                 )
             else:
+                succeed_batteries = set(battery_distribution.keys())
                 response = Success(
                     request=request,
                     succeed_power=distributed_power_value,
-                    used_batteries=set(battery_distribution.keys()),
+                    used_batteries=succeed_batteries,
                     excess_power=distribution.remaining_power,
                 )
 
-            battery_pool.update_last_request_status(response)
-            await user.channel.send(response)
+            asyncio.gather(
+                *[
+                    self._all_battery_status.update_status(
+                        succeed_batteries, failed_batteries
+                    ),
+                    user.channel.send(response),
+                ]
+            )
 
     async def _set_distributed_power(
         self,
@@ -644,4 +652,5 @@ class PowerDistributingActor:
     async def _stop_actor(self) -> None:
         """Stop all running async tasks."""
         await asyncio.gather(*[cancel_and_await(t) for t in self._users_tasks])
+        await self._all_battery_status.stop()
         await self._stop()  # type: ignore # pylint: disable=no-member
