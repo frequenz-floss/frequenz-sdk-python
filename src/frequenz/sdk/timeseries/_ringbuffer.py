@@ -11,8 +11,9 @@ from datetime import datetime, timedelta
 from typing import Any, Generic, List, Sequence, TypeVar
 
 import numpy as np
+from numpy.lib import math
 
-T = TypeVar("T")
+from frequenz.sdk.timeseries import Sample
 
 Container = TypeVar("Container", list, np.ndarray)
 
@@ -41,7 +42,7 @@ class Gap:
         return False
 
 
-class OrderedRingBuffer(Generic[T, Container]):
+class OrderedRingBuffer(Generic[Container]):
     """Time aware ringbuffer that keeps its entries sorted by time."""
 
     def __init__(
@@ -105,28 +106,25 @@ class OrderedRingBuffer(Generic[T, Container]):
         """
         return len(self._buffer)
 
-    def update(self, timestamp: datetime, value: T, missing: bool = False) -> None:
+    def update(self, sample: Sample) -> None:
         """Update the buffer with a new value for the given timestamp.
 
-        Args:
-            timestamp: Timestamp of the new value.
-            value: value to add.
-            missing: if true, the given timestamp will be recorded as missing.
-                The value will still be written.
+        Missing values are written as NaN. Be advised that when
+        `update()` is called with samples newer than the current time
+        + `sampling_period` (as is the case for loading historical data
+        after an app restart), a gap of missing data exists. This gap
+        does not contain NaN values but simply the old invalid values.
+        The list of gaps returned by `gaps()` will reflect this and
+        should be used as the only source of truth for unwritten data.
 
-                Note: When relying on your own values to mark missing data (e.g.
-                `math.nan`), be advised that when `update()` is called with
-                timestamps newer than the current time + `sampling_period`
-                (as is the case for loading historical data after an app
-                restart), a gap of missing data exists.
-                This gap does not contain NaN values but simply the old invalid values.
-                The list of gaps returned by `gaps()` will reflect this.
+        Args:
+            sample: Sample to add to the ringbuffer
 
         Raises:
             IndexError: When the timestamp to be added is too old.
         """
         # adjust timestamp to be exactly on the sample period time point
-        timestamp = self._normalize_timestamp(timestamp)
+        timestamp = self._normalize_timestamp(sample.timestamp)
 
         # Don't add outdated entries
         if timestamp < self._datetime_oldest and self._datetime_oldest != datetime.max:
@@ -140,9 +138,10 @@ class OrderedRingBuffer(Generic[T, Container]):
         self._datetime_oldest = self._datetime_newest - self._time_range
 
         # Update data
+        value: float = math.nan if sample.value is None else sample.value
         self._buffer[self.datetime_to_index(timestamp)] = value
 
-        self._update_gaps(timestamp, prev_newest, missing)
+        self._update_gaps(timestamp, prev_newest, sample.value is None)
 
     def datetime_to_index(
         self, timestamp: datetime, allow_outside_range: bool = False
@@ -387,7 +386,7 @@ class OrderedRingBuffer(Generic[T, Container]):
         """
         return index % self.maxlen
 
-    def __setitem__(self, index_or_slice: int | slice, value: T) -> None:
+    def __setitem__(self, index_or_slice: int | slice, value: float) -> None:
         """Set item or slice at requested position.
 
         No wrapping of the index will be done.
@@ -399,7 +398,7 @@ class OrderedRingBuffer(Generic[T, Container]):
         """
         self._buffer.__setitem__(index_or_slice, value)
 
-    def __getitem__(self, index_or_slice: int | slice) -> T | Sequence[T]:
+    def __getitem__(self, index_or_slice: int | slice) -> float | Sequence[float]:
         """Get item or slice at requested position.
 
         No wrapping of the index will be done.
