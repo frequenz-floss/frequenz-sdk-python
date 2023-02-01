@@ -129,7 +129,6 @@ class BaseMicrogridDataTest(IsolatedAsyncioTestCase):
             metric: [] for metric in metrics
         }
         while await select.ready():
-
             for metric in metrics:
                 if msg := getattr(select, metric):
                     returned_data[metric].append(msg.inner)

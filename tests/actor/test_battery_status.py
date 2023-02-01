@@ -213,6 +213,7 @@ class FakeSelect:
 BATTERY_ID = 106
 INVERTER_ID = 105
 
+
 # pylint: disable=protected-access, unused-argument
 class TestBatteryStatus:
     """Tests BatteryStatusTracker."""
