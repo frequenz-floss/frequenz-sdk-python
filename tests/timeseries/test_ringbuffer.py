@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-import math
 import random
 from datetime import datetime, timedelta
 from itertools import cycle, islice
@@ -14,6 +13,7 @@ from typing import Any
 import numpy as np
 import pytest
 
+from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._ringbuffer import Gap, OrderedRingBuffer
 
 FIVE_MINUTES = timedelta(minutes=5)
@@ -33,7 +33,7 @@ TWO_HUNDRED_MS = timedelta(milliseconds=200)
         OrderedRingBuffer([0] * 1800, TWO_HUNDRED_MS, datetime(2000, 1, 1)),
     ],
 )
-def test_timestamp_ringbuffer(buffer: OrderedRingBuffer[Any, Any]) -> None:
+def test_timestamp_ringbuffer(buffer: OrderedRingBuffer[Any]) -> None:
     """Test ordered ring buffer."""
     size = buffer.maxlen
 
@@ -46,7 +46,7 @@ def test_timestamp_ringbuffer(buffer: OrderedRingBuffer[Any, Any]) -> None:
     # Push in random order
     # for i in random.sample(range(size), size):
     for i in range(size):
-        buffer.update(datetime.fromtimestamp(200 + i * resolution), i)
+        buffer.update(Sample(datetime.fromtimestamp(200 + i * resolution), i))
 
     # Check all possible window sizes and start positions
     for i in range(0, size, 1000):
@@ -66,7 +66,7 @@ def test_timestamp_ringbuffer(buffer: OrderedRingBuffer[Any, Any]) -> None:
         (OrderedRingBuffer(np.empty(shape=(24,), dtype=np.float64), ONE_SECOND)),
     ],
 )
-def test_timestamp_ringbuffer_overwrite(buffer: OrderedRingBuffer[Any, Any]) -> None:
+def test_timestamp_ringbuffer_overwrite(buffer: OrderedRingBuffer[Any]) -> None:
     """Test overwrite behavior and correctness."""
     size = buffer.maxlen
 
@@ -74,11 +74,11 @@ def test_timestamp_ringbuffer_overwrite(buffer: OrderedRingBuffer[Any, Any]) -> 
 
     # Push in random order
     for i in random.sample(range(size), size):
-        buffer.update(datetime.fromtimestamp(200 + i), i)
+        buffer.update(Sample(datetime.fromtimestamp(200 + i), i))
 
     # Push the same amount twice
     for i in random.sample(range(size), size):
-        buffer.update(datetime.fromtimestamp(200 + i), i * 2)
+        buffer.update(Sample(datetime.fromtimestamp(200 + i), i * 2))
 
     # Check all possible window sizes and start positions
     for i in range(size):
@@ -102,7 +102,7 @@ def test_timestamp_ringbuffer_overwrite(buffer: OrderedRingBuffer[Any, Any]) -> 
     ],
 )
 def test_timestamp_ringbuffer_gaps(
-    buffer: OrderedRingBuffer[Any, Any],
+    buffer: OrderedRingBuffer[Any],
 ) -> None:
     """Test force_copy command for window()."""
     size = buffer.maxlen
@@ -110,7 +110,7 @@ def test_timestamp_ringbuffer_gaps(
 
     # Add initial data
     for i in random.sample(range(size), size):
-        buffer.update(datetime.fromtimestamp(200 + i), i)
+        buffer.update(Sample(datetime.fromtimestamp(200 + i), i))
 
     # Request window of the data
     buffer.window(
@@ -119,7 +119,7 @@ def test_timestamp_ringbuffer_gaps(
     )
 
     # Add entry far in the future
-    buffer.update(datetime.fromtimestamp(500 + size), 9999)
+    buffer.update(Sample(datetime.fromtimestamp(500 + size), 9999))
 
     # Expect exception for the same window
     with pytest.raises(IndexError):
@@ -146,10 +146,10 @@ def test_timestamp_ringbuffer_gaps(
     ],
 )
 def test_timestamp_ringbuffer_missing_parameter(
-    buffer: OrderedRingBuffer[Any, Any],
+    buffer: OrderedRingBuffer[Any],
 ) -> None:
     """Test ordered ring buffer."""
-    buffer.update(datetime(2, 2, 2, 0, 0), 0)
+    buffer.update(Sample(datetime(2, 2, 2, 0, 0), 0))
 
     # pylint: disable=protected-access
     assert buffer._normalize_timestamp(buffer.gaps[0].start) == buffer.gaps[0].start
@@ -164,7 +164,7 @@ def test_timestamp_ringbuffer_missing_parameter(
     assert buffer._normalize_timestamp(datetime(2, 2, 2, 0, 7, 31)) == datetime(
         2, 2, 2, 0, 10
     )
-    buffer.update(datetime(2, 2, 2, 0, 7, 31), 0)
+    buffer.update(Sample(datetime(2, 2, 2, 0, 7, 31), 0))
 
     assert buffer.datetime_to_index(
         datetime(2, 2, 2, 0, 7, 31)
@@ -172,7 +172,7 @@ def test_timestamp_ringbuffer_missing_parameter(
     assert len(buffer.gaps) == 2
 
     # import pdb; pdb.set_trace()
-    buffer.update(datetime(2, 2, 2, 0, 5), 0)
+    buffer.update(Sample(datetime(2, 2, 2, 0, 5), 0))
     assert len(buffer.gaps) == 1
 
 
@@ -192,7 +192,7 @@ def test_timestamp_ringbuffer_missing_parameter(
     ],
 )
 def test_timestamp_ringbuffer_missing_parameter_smoke(
-    buffer: OrderedRingBuffer[Any, Any]
+    buffer: OrderedRingBuffer[Any],
 ) -> None:
     """Test ordered ring buffer."""
     size = buffer.maxlen
@@ -211,11 +211,12 @@ def test_timestamp_ringbuffer_missing_parameter_smoke(
         for j in random.sample(range(size), size):
             missing = any(map(lambda x: x[0] <= j < x[1], expected_gaps_concrete))
             buffer.update(
-                datetime.fromtimestamp(
-                    200 + j * buffer.sampling_period.total_seconds()
-                ),
-                math.nan if missing else j,
-                missing,
+                Sample(
+                    datetime.fromtimestamp(
+                        200 + j * buffer.sampling_period.total_seconds()
+                    ),
+                    None if missing else j,
+                )
             )
 
         expected_gaps = list(
