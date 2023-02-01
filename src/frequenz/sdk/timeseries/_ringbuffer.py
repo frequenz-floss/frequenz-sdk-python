@@ -28,7 +28,7 @@ class Gap:
     """End of the range, exclusive."""
 
     def contains(self, timestamp: datetime):
-        """Check if a given timestamp is inside this  gap.
+        """Check if a given timestamp is inside this gap.
 
         Args:
             timestamp: Timestamp to check.
@@ -55,8 +55,8 @@ class OrderedRingBuffer(Generic[Container]):
 
         Args:
             buffer: Instance of a buffer container to use internally.
-            sampling_period: Timedelta of the desired resampling period.
-            time_index_alignment: Arbitary point in time used to align
+            sampling_period: Timedelta of the desired sampling period.
+            time_index_alignment: Arbitrary point in time used to align
                 timestamped data with the index position in the buffer.
                 Used to make the data stored in the buffer align with the
                 beginning and end of the buffer borders.
