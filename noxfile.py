@@ -235,6 +235,9 @@ def pylint(session: nox.Session, install_deps: bool = True) -> None:
         "pylint",
         "--extension-pkg-whitelist=pydantic",
         *paths,
+        ## ignore deprecated paths that will be removed soon.
+        "--ignore-paths=tests/data_ingestion,\ntests/utils/data_generation.py,\n"
+        "tests/test_data_handling,\ntests/test_microgrid_data_no_unnecessary_computations.py",
     )
 
 
