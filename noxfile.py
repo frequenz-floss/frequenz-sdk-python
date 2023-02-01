@@ -60,7 +60,7 @@ def min_dependencies() -> List[str]:
     """Extract the minimum dependencies from pyproject.toml.
 
     Raises:
-        Exception: If minimun dependencies are not properly
+        RuntimeError: If minimun dependencies are not properly
             set in pyproject.toml.
 
     Returns:
@@ -72,7 +72,7 @@ def min_dependencies() -> List[str]:
 
     dependencies = data.get("project", {}).get("dependencies", {})
     if not dependencies:
-        raise Exception(f"No dependencies found in file: {toml_file.name}")
+        raise RuntimeError(f"No dependencies found in file: {toml_file.name}")
 
     min_deps: List[str] = []
     for dep in dependencies:
@@ -80,7 +80,7 @@ def min_dependencies() -> List[str]:
         if any(op in min_dep for op in (">=", "==")):
             min_deps.append(min_dep.replace(">=", "=="))
         else:
-            raise Exception(f"Minimum requirement is not set: {dep}")
+            raise RuntimeError(f"Minimum requirement is not set: {dep}")
     return min_deps
 
 
@@ -235,6 +235,9 @@ def pylint(session: nox.Session, install_deps: bool = True) -> None:
         "pylint",
         "--extension-pkg-whitelist=pydantic",
         *paths,
+        ## ignore deprecated paths that will be removed soon.
+        "--ignore-paths=tests/data_ingestion,\ntests/utils/data_generation.py,\n"
+        "tests/test_data_handling,\ntests/test_microgrid_data_no_unnecessary_computations.py",
     )
 
 
