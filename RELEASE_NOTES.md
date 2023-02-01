@@ -14,6 +14,7 @@
 
 * A new class `OrderedRingBuffer` is now available, providing a sorted ring buffer of datetime-value pairs with tracking of any values that have not yet been written.
 * Add logical meter formula for EV power.
+* A `MovingWindow` class has been added that consumes a data stream from a logical meter and updates an `OrderedRingBuffer`.
 
 ## Bug Fixes
 
