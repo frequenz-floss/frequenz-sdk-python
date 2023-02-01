@@ -2029,7 +2029,7 @@ identify the right channel from the ChannelRegistry.</p>
 
         <span class="k">async</span> <span class="k">def</span> <span class="nf">sink_adapter</span><span class="p">(</span><span class="n">sample</span><span class="p">:</span> <span class="n">Sample</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="k">await</span> <span class="n">sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">sample</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error while sending with sender </span><span class="si">{</span><span class="n">sender</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">sender</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error while sending with sender </span><span class="si">{</span><span class="n">sender</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">sender</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_resampler</span><span class="o">.</span><span class="n">add_timeseries</span><span class="p">(</span><span class="n">request_channel_name</span><span class="p">,</span> <span class="n">receiver</span><span class="p">,</span> <span class="n">sink_adapter</span><span class="p">)</span>
 
