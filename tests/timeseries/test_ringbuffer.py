@@ -201,7 +201,6 @@ def test_timestamp_ringbuffer_missing_parameter_smoke(
     random.seed(0)
 
     for _ in range(0, 10):
-
         expected_gaps_abstract = [(0.1, 0.2), (0.35, 0.4), (0.86, 1.0)]
         expected_gaps_concrete = list(
             map(lambda x: (int(size * x[0]), int(size * x[1])), expected_gaps_abstract)
