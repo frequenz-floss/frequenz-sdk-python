@@ -85,7 +85,7 @@ class FormulaEvaluator:
             RuntimeError: when some streams have no value, or when the synchronization
                 of timestamps fails.
         """
-        metrics_by_ts: Dict[datetime, str] = {}
+        metrics_by_ts: Dict[datetime, list[str]] = {}
         for metric in metrics:
             result = metric.result()
             name = metric.get_name()
