@@ -22,9 +22,6 @@ class EVChargerCurrentFormula(FormulaGenerator):
 
         Returns:
             A formula engine that calculates total 3-phase ev charger current values.
-
-        Raises:
-            ComponentNotFound: when the component graph doesn't have a `GRID` component.
         """
         component_graph = microgrid.get().component_graph
         ev_chargers = [

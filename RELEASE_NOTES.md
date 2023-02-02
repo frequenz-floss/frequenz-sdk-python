@@ -13,7 +13,7 @@
 <!-- Here goes the main new features and examples or instructions on how to use them -->
 
 * A new class `OrderedRingBuffer` is now available, providing a sorted ring buffer of datetime-value pairs with tracking of any values that have not yet been written.
-
+* Add logical meter formula for EV power.
 
 ## Bug Fixes
 
