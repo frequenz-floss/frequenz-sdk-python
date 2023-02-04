@@ -79,6 +79,8 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         self.evc_ids: list[int] = []
         self.meter_ids: list[int] = [4]
 
+        self.evc_states: dict[int, ev_charger_pb2.State] = {}
+
         self._streaming_coros: list[typing.Coroutine[None, None, None]] = []
         self._streaming_tasks: list[asyncio.Task[None]] = []
         self._actors: list[typing.Any] = []
@@ -206,11 +208,12 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                                         current=common_pb2.Metric(value=value + 12.0)
                                     ),
                                 )
-                            )
+                            ),
+                            state=self.evc_states[evc_id],
                         ),
-                    )
+                    ),
                 ),
-            )
+            ),
         )
 
     def add_batteries(self, count: int) -> None:
@@ -294,7 +297,10 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             self._id_increment += 1
 
             self.evc_ids.append(evc_id)
-
+            self.evc_states[evc_id] = ev_charger_pb2.State(
+                cable_state=ev_charger_pb2.CABLE_STATE_UNPLUGGED,
+                component_state=ev_charger_pb2.COMPONENT_STATE_READY,
+            )
             self._components.add(
                 Component(
                     evc_id,
