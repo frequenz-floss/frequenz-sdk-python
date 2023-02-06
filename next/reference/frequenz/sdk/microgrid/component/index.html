@@ -892,6 +892,39 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid.component.EVChargerComponentState" class="md-nav__link">
+    EVChargerComponentState
+  </a>
+  
+    <nav class="md-nav" aria-label="EVChargerComponentState">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid.component.EVChargerComponentState-functions" class="md-nav__link">
+    Functions
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid.component._component_states.EVChargerComponentState.from_pb" class="md-nav__link">
+    from_pb()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#frequenz.sdk.microgrid.component.EVChargerData" class="md-nav__link">
     EVChargerData
   </a>
@@ -917,6 +950,13 @@
           <li class="md-nav__item">
   <a href="#frequenz.sdk.microgrid.component._component_data.EVChargerData.cable_state" class="md-nav__link">
     cable_state
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid.component._component_data.EVChargerData.component_state" class="md-nav__link">
+    component_state
   </a>
   
 </li>
@@ -1184,6 +1224,20 @@
           timeseries
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../timeseries/ev_charger_pool/" class="md-nav__link">
+        ev_charger_pool
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -1524,6 +1578,39 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid.component.EVChargerComponentState" class="md-nav__link">
+    EVChargerComponentState
+  </a>
+  
+    <nav class="md-nav" aria-label="EVChargerComponentState">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid.component.EVChargerComponentState-functions" class="md-nav__link">
+    Functions
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid.component._component_states.EVChargerComponentState.from_pb" class="md-nav__link">
+    from_pb()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#frequenz.sdk.microgrid.component.EVChargerData" class="md-nav__link">
     EVChargerData
   </a>
@@ -1549,6 +1636,13 @@
           <li class="md-nav__item">
   <a href="#frequenz.sdk.microgrid.component._component_data.EVChargerData.cable_state" class="md-nav__link">
     cable_state
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid.component._component_data.EVChargerData.component_state" class="md-nav__link">
+    component_state
   </a>
   
 </li>
@@ -3028,6 +3122,212 @@ in percent (%).</p>
 
 
 
+<h4 id="frequenz.sdk.microgrid.component.EVChargerComponentState" class="doc doc-heading">
+        <code>frequenz.sdk.microgrid.component.EVChargerComponentState</code>
+
+
+<a href="#frequenz.sdk.microgrid.component.EVChargerComponentState" class="headerlink" title="Permanent link">¤</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-external" title="enum.Enum" href="https://docs.python.org/3/library/enum.html#enum.Enum">Enum</a></code></p>
+
+  
+      <p>Component State of an EV Charger.</p>
+
+
+        <details class="quote">
+          <summary>Source code in <code>frequenz/sdk/microgrid/component/_component_states.py</code></summary>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">EVChargerComponentState</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Component State of an EV Charger.&quot;&quot;&quot;</span>
+
+    <span class="n">UNSPECIFIED</span> <span class="o">=</span> <span class="n">ev_charger_pb</span><span class="o">.</span><span class="n">ComponentState</span><span class="o">.</span><span class="n">COMPONENT_STATE_UNSPECIFIED</span>
+    <span class="n">STARTING</span> <span class="o">=</span> <span class="n">ev_charger_pb</span><span class="o">.</span><span class="n">ComponentState</span><span class="o">.</span><span class="n">COMPONENT_STATE_STARTING</span>
+    <span class="n">NOT_READY</span> <span class="o">=</span> <span class="n">ev_charger_pb</span><span class="o">.</span><span class="n">ComponentState</span><span class="o">.</span><span class="n">COMPONENT_STATE_NOT_READY</span>
+    <span class="n">READY</span> <span class="o">=</span> <span class="n">ev_charger_pb</span><span class="o">.</span><span class="n">ComponentState</span><span class="o">.</span><span class="n">COMPONENT_STATE_READY</span>
+    <span class="n">CHARGING</span> <span class="o">=</span> <span class="n">ev_charger_pb</span><span class="o">.</span><span class="n">ComponentState</span><span class="o">.</span><span class="n">COMPONENT_STATE_CHARGING</span>
+    <span class="n">DISCHARGING</span> <span class="o">=</span> <span class="n">ev_charger_pb</span><span class="o">.</span><span class="n">ComponentState</span><span class="o">.</span><span class="n">COMPONENT_STATE_DISCHARGING</span>
+    <span class="n">ERROR</span> <span class="o">=</span> <span class="n">ev_charger_pb</span><span class="o">.</span><span class="n">ComponentState</span><span class="o">.</span><span class="n">COMPONENT_STATE_ERROR</span>
+    <span class="n">AUTHORIZATION_REJECTED</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">ev_charger_pb</span><span class="o">.</span><span class="n">ComponentState</span><span class="o">.</span><span class="n">COMPONENT_STATE_AUTHORIZATION_REJECTED</span>
+    <span class="p">)</span>
+    <span class="n">INTERRUPTED</span> <span class="o">=</span> <span class="n">ev_charger_pb</span><span class="o">.</span><span class="n">ComponentState</span><span class="o">.</span><span class="n">COMPONENT_STATE_INTERRUPTED</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_pb</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">evc_state</span><span class="p">:</span> <span class="n">ev_charger_pb</span><span class="o">.</span><span class="n">ComponentState</span><span class="o">.</span><span class="n">ValueType</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EVChargerComponentState</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a protobuf ComponentState value to EVChargerComponentState enum.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            evc_state: protobuf component state to convert.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Enum value corresponding to the protobuf message.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="n">evc_state</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">EVChargerComponentState</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">UNSPECIFIED</span>
+
+        <span class="k">return</span> <span class="n">EVChargerComponentState</span><span class="p">(</span><span class="n">evc_state</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+        </details>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<h5 id="frequenz.sdk.microgrid.component.EVChargerComponentState-functions">Functions<a href="#frequenz.sdk.microgrid.component.EVChargerComponentState-functions" class="headerlink" title="Permanent link">¤</a></h5>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h6 id="frequenz.sdk.microgrid.component._component_states.EVChargerComponentState.from_pb" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">from_pb</span><span class="p">(</span><span class="n">evc_state</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#frequenz.sdk.microgrid.component._component_states.EVChargerComponentState.from_pb" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Convert a protobuf ComponentState value to EVChargerComponentState enum.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>evc_state</code></td>
+          <td class="doc-param-details">
+            <p>protobuf component state to convert.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><span title="frequenz.api.microgrid.ev_charger_pb2">ev_charger_pb</span>.<span title="frequenz.api.microgrid.ev_charger_pb2.ComponentState">ComponentState</span>.<span title="ev_charger_pb.ComponentState.ValueType">ValueType</span></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.component._component_states.EVChargerComponentState" href="#frequenz.sdk.microgrid.component.EVChargerComponentState">EVChargerComponentState</a></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>Enum value corresponding to the protobuf message.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+      <details class="quote">
+        <summary>Source code in <code>frequenz/sdk/microgrid/component/_component_states.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">from_pb</span><span class="p">(</span>
+    <span class="bp">cls</span><span class="p">,</span> <span class="n">evc_state</span><span class="p">:</span> <span class="n">ev_charger_pb</span><span class="o">.</span><span class="n">ComponentState</span><span class="o">.</span><span class="n">ValueType</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EVChargerComponentState</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a protobuf ComponentState value to EVChargerComponentState enum.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        evc_state: protobuf component state to convert.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Enum value corresponding to the protobuf message.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="n">evc_state</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">EVChargerComponentState</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">UNSPECIFIED</span>
+
+    <span class="k">return</span> <span class="n">EVChargerComponentState</span><span class="p">(</span><span class="n">evc_state</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
 <h4 id="frequenz.sdk.microgrid.component.EVChargerData" class="doc doc-heading">
         <code>frequenz.sdk.microgrid.component.EVChargerData</code>
 
@@ -3100,7 +3400,13 @@ in percent (%).</p>
 <span class="normal">284</span>
 <span class="normal">285</span>
 <span class="normal">286</span>
-<span class="normal">287</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">287</span>
+<span class="normal">288</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">EVChargerData</span><span class="p">(</span><span class="n">ComponentData</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A wrapper class for holding ev_charger data.&quot;&quot;&quot;</span>
 
@@ -3123,6 +3429,9 @@ in percent (%).</p>
 
     <span class="n">cable_state</span><span class="p">:</span> <span class="n">EVChargerCableState</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The state of the ev charger&#39;s cable.&quot;&quot;&quot;</span>
+
+    <span class="n">component_state</span><span class="p">:</span> <span class="n">EVChargerComponentState</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The state of the ev charger.&quot;&quot;&quot;</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EVChargerData</span><span class="p">:</span>
@@ -3149,6 +3458,9 @@ in percent (%).</p>
                 <span class="n">raw</span><span class="o">.</span><span class="n">ev_charger</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">phase_3</span><span class="o">.</span><span class="n">voltage</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
             <span class="p">),</span>
             <span class="n">cable_state</span><span class="o">=</span><span class="n">EVChargerCableState</span><span class="o">.</span><span class="n">from_pb</span><span class="p">(</span><span class="n">raw</span><span class="o">.</span><span class="n">ev_charger</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">cable_state</span><span class="p">),</span>
+            <span class="n">component_state</span><span class="o">=</span><span class="n">EVChargerComponentState</span><span class="o">.</span><span class="n">from_pb</span><span class="p">(</span>
+                <span class="n">raw</span><span class="o">.</span><span class="n">ev_charger</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">component_state</span>
+            <span class="p">),</span>
         <span class="p">)</span>
         <span class="n">ev_charger_data</span><span class="o">.</span><span class="n">_set_raw</span><span class="p">(</span><span class="n">raw</span><span class="o">=</span><span class="n">raw</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ev_charger_data</span>
@@ -3205,6 +3517,27 @@ in percent (%).</p>
   <div class="doc doc-contents ">
   
       <p>The state of the ev charger's cable.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.microgrid.component._component_data.EVChargerData.component_state" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">component_state</span><span class="p">:</span> <span class="n">EVChargerComponentState</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.microgrid.component._component_data.EVChargerData.component_state" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The state of the ev charger.</p>
   </div>
 
 </div>
@@ -3320,10 +3653,7 @@ wire for phase/line 1,2 and 3 respectively.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/microgrid/component/_component_data.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">260</span>
-<span class="normal">261</span>
-<span class="normal">262</span>
-<span class="normal">263</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">263</span>
 <span class="normal">264</span>
 <span class="normal">265</span>
 <span class="normal">266</span>
@@ -3347,7 +3677,13 @@ wire for phase/line 1,2 and 3 respectively.</p>
 <span class="normal">284</span>
 <span class="normal">285</span>
 <span class="normal">286</span>
-<span class="normal">287</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="normal">287</span>
+<span class="normal">288</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EVChargerData</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create EVChargerData from a protobuf message.</span>
 
@@ -3372,6 +3708,9 @@ wire for phase/line 1,2 and 3 respectively.</p>
             <span class="n">raw</span><span class="o">.</span><span class="n">ev_charger</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">phase_3</span><span class="o">.</span><span class="n">voltage</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="n">cable_state</span><span class="o">=</span><span class="n">EVChargerCableState</span><span class="o">.</span><span class="n">from_pb</span><span class="p">(</span><span class="n">raw</span><span class="o">.</span><span class="n">ev_charger</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">cable_state</span><span class="p">),</span>
+        <span class="n">component_state</span><span class="o">=</span><span class="n">EVChargerComponentState</span><span class="o">.</span><span class="n">from_pb</span><span class="p">(</span>
+            <span class="n">raw</span><span class="o">.</span><span class="n">ev_charger</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">component_state</span>
+        <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">ev_charger_data</span><span class="o">.</span><span class="n">_set_raw</span><span class="p">(</span><span class="n">raw</span><span class="o">=</span><span class="n">raw</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ev_charger_data</span>
