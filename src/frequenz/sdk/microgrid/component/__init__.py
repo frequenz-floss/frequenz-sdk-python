@@ -14,7 +14,7 @@ from ._component_data import (
     InverterData,
     MeterData,
 )
-from ._component_states import EVChargerCableState
+from ._component_states import EVChargerCableState, EVChargerComponentState
 
 __all__ = [
     "BatteryData",
@@ -23,6 +23,7 @@ __all__ = [
     "ComponentCategory",
     "ComponentMetricId",
     "EVChargerCableState",
+    "EVChargerComponentState",
     "EVChargerData",
     "InverterData",
     "InverterType",
