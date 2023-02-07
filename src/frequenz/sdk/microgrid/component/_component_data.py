@@ -14,7 +14,7 @@ import frequenz.api.microgrid.inverter_pb2 as inverter_pb
 import frequenz.api.microgrid.microgrid_pb2 as microgrid_pb
 import pytz
 
-from ._component_states import EVChargerCableState
+from ._component_states import EVChargerCableState, EVChargerComponentState
 
 
 @dataclass(frozen=True)
@@ -257,6 +257,9 @@ class EVChargerData(ComponentData):
     cable_state: EVChargerCableState
     """The state of the ev charger's cable."""
 
+    component_state: EVChargerComponentState
+    """The state of the ev charger."""
+
     @classmethod
     def from_proto(cls, raw: microgrid_pb.ComponentData) -> EVChargerData:
         """Create EVChargerData from a protobuf message.
@@ -282,6 +285,9 @@ class EVChargerData(ComponentData):
                 raw.ev_charger.data.ac.phase_3.voltage.value,
             ),
             cable_state=EVChargerCableState.from_pb(raw.ev_charger.state.cable_state),
+            component_state=EVChargerComponentState.from_pb(
+                raw.ev_charger.state.component_state
+            ),
         )
         ev_charger_data._set_raw(raw=raw)
         return ev_charger_data

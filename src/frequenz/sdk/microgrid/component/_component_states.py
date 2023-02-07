@@ -39,3 +39,36 @@ class EVChargerCableState(Enum):
             return cls.UNSPECIFIED
 
         return EVChargerCableState(evc_state)
+
+
+class EVChargerComponentState(Enum):
+    """Component State of an EV Charger."""
+
+    UNSPECIFIED = ev_charger_pb.ComponentState.COMPONENT_STATE_UNSPECIFIED
+    STARTING = ev_charger_pb.ComponentState.COMPONENT_STATE_STARTING
+    NOT_READY = ev_charger_pb.ComponentState.COMPONENT_STATE_NOT_READY
+    READY = ev_charger_pb.ComponentState.COMPONENT_STATE_READY
+    CHARGING = ev_charger_pb.ComponentState.COMPONENT_STATE_CHARGING
+    DISCHARGING = ev_charger_pb.ComponentState.COMPONENT_STATE_DISCHARGING
+    ERROR = ev_charger_pb.ComponentState.COMPONENT_STATE_ERROR
+    AUTHORIZATION_REJECTED = (
+        ev_charger_pb.ComponentState.COMPONENT_STATE_AUTHORIZATION_REJECTED
+    )
+    INTERRUPTED = ev_charger_pb.ComponentState.COMPONENT_STATE_INTERRUPTED
+
+    @classmethod
+    def from_pb(
+        cls, evc_state: ev_charger_pb.ComponentState.ValueType
+    ) -> EVChargerComponentState:
+        """Convert a protobuf ComponentState value to EVChargerComponentState enum.
+
+        Args:
+            evc_state: protobuf component state to convert.
+
+        Returns:
+            Enum value corresponding to the protobuf message.
+        """
+        if not any(t.value == evc_state for t in EVChargerComponentState):
+            return cls.UNSPECIFIED
+
+        return EVChargerComponentState(evc_state)
