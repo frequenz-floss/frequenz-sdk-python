@@ -15,14 +15,12 @@ from frequenz.sdk import microgrid
 from frequenz.sdk.actor import ChannelRegistry, ComponentMetricRequest
 from frequenz.sdk.microgrid.component import ComponentMetricId
 from frequenz.sdk.timeseries import Sample, Sample3Phase
-from frequenz.sdk.timeseries.logical_meter import LogicalMeter
-from frequenz.sdk.timeseries.logical_meter._formula_engine import (
+from frequenz.sdk.timeseries._formula_engine import (
     FormulaReceiver,
     FormulaReceiver3Phase,
-)
-from frequenz.sdk.timeseries.logical_meter._resampled_formula_builder import (
     ResampledFormulaBuilder,
 )
+from frequenz.sdk.timeseries.logical_meter import LogicalMeter
 
 from .mock_microgrid import MockMicrogrid
 

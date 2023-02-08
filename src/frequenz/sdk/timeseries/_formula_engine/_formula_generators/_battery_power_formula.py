@@ -7,7 +7,7 @@ import logging
 
 from .....sdk import microgrid
 from ....microgrid.component import ComponentCategory, ComponentMetricId, InverterType
-from .._formula_engine import FormulaEngine
+from ..._formula_engine import FormulaEngine
 from ._formula_generator import NON_EXISTING_COMPONENT_ID, FormulaGenerator
 
 logger = logging.getLogger(__name__)

@@ -15,15 +15,16 @@ from frequenz.channels import Sender
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid import ComponentGraph
 from ...microgrid.component import ComponentMetricId
-from ._formula_engine import (
+from .._formula_engine import (
     FormulaEngine,
     FormulaEngine3Phase,
     FormulaReceiver,
     FormulaReceiver3Phase,
+    ResampledFormulaBuilder,
     _GenericEngine,
     _GenericFormulaReceiver,
 )
-from ._formula_generators import (
+from .._formula_engine._formula_generators import (
     BatteryPowerFormula,
     BatterySoCFormula,
     EVChargerCurrentFormula,
@@ -33,7 +34,6 @@ from ._formula_generators import (
     GridPowerFormula,
     PVPowerFormula,
 )
-from ._resampled_formula_builder import ResampledFormulaBuilder
 
 logger = logging.getLogger(__name__)
 
