@@ -18,33 +18,55 @@ all the dependencies too):
 python -m pip install -e .
 ```
 
-You can also use `nox` to run the tests and other checks:
+Or you can install all development dependencies (`mypy`, `pylint`, `pytest`,
+etc.) in one go too:
+```sh
+python -m pip install -e .[dev]
+```
+
+If you don't want to install all the dependencies, you can also use `nox` to
+run the tests and other checks creating its own virtual environments:
 
 ```sh
-python -m pip install nox toml tomli
+python -m pip install nox toml
 nox
 ```
 
 You can also use `nox -R` to reuse the current testing environment to speed up
 test at the expense of a higher chance to end up with a dirty test environment.
 
-### Running tests individually
+### Running tests / checks individually
 
 For a better development test cycle you can install the runtime and test
 dependencies and run `pytest` manually.
 
 ```sh
-python -m pip install .
-python -m pip install pytest pytest-asyncio pytest-mock time_machine async_solipsism
+python -m pip install .[pytest]  # included in .[dev] too
 
 # And for example
 pytest tests/test_sdk.py
 ```
 
-To build the documentation, first install the dependencies:
+Or you can use `nox`:
 
 ```sh
-python -m pip install -e .[docs]
+nox -R -s pytest -- test/test_sdk.py
+```
+
+The same appliest to `pylint` or `mypy` for example:
+
+```sh
+nox -R -s pylint -- test/test_sdk.py
+nox -R -s mypy -- test/test_sdk.py
+```
+
+### Building the documentation
+
+To build the documentation, first install the dependencies (if you didn't
+install all `dev` dependencies):
+
+```sh
+python -m pip install -e .[docs-gen]
 ```
 
 Then you can build the documentation (it will be written in the `site/`

@@ -85,7 +85,7 @@ jobs:
       - name: Install build dependencies
         run: |
           python -m pip install -U pip
-          python -m pip install .[docs]
+          python -m pip install .[docs-gen]
 
       - name: Generate the documentation
         env:
@@ -163,7 +163,7 @@ jobs:
         if: steps.mike-metadata.outputs.version
         run: |
           python -m pip install -U pip
-          python -m pip install .[docs]
+          python -m pip install .[docs-gen]
 
       - name: Fetch the gh-pages branch
         if: steps.mike-metadata.outputs.version
