@@ -5,89 +5,24 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from math import isclose
 
-from frequenz.channels import Receiver, Sender
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
-from frequenz.sdk.actor import ChannelRegistry, ComponentMetricRequest
 from frequenz.sdk.microgrid.component import ComponentMetricId
-from frequenz.sdk.timeseries import Sample, Sample3Phase
-from frequenz.sdk.timeseries._formula_engine import (
-    FormulaReceiver,
-    FormulaReceiver3Phase,
-    ResampledFormulaBuilder,
-)
 from frequenz.sdk.timeseries.logical_meter import LogicalMeter
 
+from ._formula_engine.utils import (
+    equal_float_lists,
+    get_resampled_stream,
+    synchronize_receivers,
+)
 from .mock_microgrid import MockMicrogrid
 
 
 class TestLogicalMeter:
     """Tests for the logical meter."""
-
-    async def _get_resampled_stream(  # pylint: disable=too-many-arguments
-        self,
-        logical_meter: LogicalMeter,
-        channel_registry: ChannelRegistry,
-        request_sender: Sender[ComponentMetricRequest],
-        comp_id: int,
-        metric_id: ComponentMetricId,
-    ) -> Receiver[Sample]:
-        """Return the resampled data stream for the given component."""
-        # Create a `FormulaBuilder` instance, just in order to reuse its
-        # `_get_resampled_receiver` function implementation.
-
-        # pylint: disable=protected-access
-        builder = ResampledFormulaBuilder(
-            logical_meter._namespace,
-            "",
-            channel_registry,
-            request_sender,
-            metric_id,
-        )
-        return await builder._get_resampled_receiver(
-            comp_id,
-            metric_id,
-        )
-        # pylint: enable=protected-access
-
-    def _equal_float_lists(self, list1: list[float], list2: list[float]) -> bool:
-        return (
-            len(list1) > 0
-            and len(list1) == len(list2)
-            and all(isclose(v1, v2) for v1, v2 in zip(list1, list2))
-        )
-
-    async def _synchronize_receivers(
-        self,
-        receivers: list[FormulaReceiver | FormulaReceiver3Phase | Receiver[Sample]],
-    ) -> None:
-        by_ts: dict[
-            datetime, list[FormulaReceiver | FormulaReceiver3Phase | Receiver[Sample]]
-        ] = {}
-        for recv in receivers:
-            while True:
-                sample = await recv.receive()
-                assert sample is not None
-                if isinstance(sample, Sample) and sample.value is None:
-                    continue
-                if isinstance(sample, Sample3Phase) and sample.value_p1 is None:
-                    continue
-                by_ts.setdefault(sample.timestamp, []).append(recv)
-                break
-        latest_ts = max(by_ts)
-
-        for sample_ts, recvs in by_ts.items():
-            if sample_ts == latest_ts:
-                continue
-            while sample_ts < latest_ts:
-                for recv in recvs:
-                    val = await recv.receive()
-                    assert val is not None
-                    sample_ts = val.timestamp
 
     async def test_grid_power_1(self, mocker: MockerFixture) -> None:
         """Test the grid power formula with a grid side meter."""
@@ -103,7 +38,7 @@ class TestLogicalMeter:
 
         grid_power_recv = await logical_meter.grid_power()
 
-        main_meter_recv = await self._get_resampled_stream(
+        main_meter_recv = await get_resampled_stream(
             logical_meter,
             channel_registry,
             request_sender,
@@ -111,7 +46,7 @@ class TestLogicalMeter:
             ComponentMetricId.ACTIVE_POWER,
         )
 
-        await self._synchronize_receivers([grid_power_recv, main_meter_recv])
+        await synchronize_receivers([grid_power_recv, main_meter_recv])
         results = []
         main_meter_data = []
         for _ in range(10):
@@ -123,7 +58,7 @@ class TestLogicalMeter:
             assert val is not None and val.value is not None
             results.append(val.value)
         await mockgrid.cleanup()
-        assert self._equal_float_lists(results, main_meter_data)
+        assert equal_float_lists(results, main_meter_data)
 
     async def test_grid_power_2(
         self,
@@ -143,7 +78,7 @@ class TestLogicalMeter:
         grid_power_recv = await logical_meter.grid_power()
 
         meter_receivers = [
-            await self._get_resampled_stream(
+            await get_resampled_stream(
                 logical_meter,
                 channel_registry,
                 request_sender,
@@ -153,7 +88,7 @@ class TestLogicalMeter:
             for meter_id in mockgrid.meter_ids
         ]
 
-        await self._synchronize_receivers([grid_power_recv, *meter_receivers])
+        await synchronize_receivers([grid_power_recv, *meter_receivers])
 
         results = []
         meter_sums = []
@@ -172,7 +107,7 @@ class TestLogicalMeter:
         await mockgrid.cleanup()
 
         assert len(results) == 10
-        assert self._equal_float_lists(results, meter_sums)
+        assert equal_float_lists(results, meter_sums)
 
     async def test_battery_and_pv_power(  # pylint: disable=too-many-locals
         self,
@@ -193,7 +128,7 @@ class TestLogicalMeter:
         pv_power_recv = await logical_meter.pv_power()
 
         bat_inv_receivers = [
-            await self._get_resampled_stream(
+            await get_resampled_stream(
                 logical_meter,
                 channel_registry,
                 request_sender,
@@ -204,7 +139,7 @@ class TestLogicalMeter:
         ]
 
         pv_inv_receivers = [
-            await self._get_resampled_stream(
+            await get_resampled_stream(
                 logical_meter,
                 channel_registry,
                 request_sender,
@@ -214,7 +149,7 @@ class TestLogicalMeter:
             for meter_id in mockgrid.pv_inverter_ids
         ]
 
-        await self._synchronize_receivers(
+        await synchronize_receivers(
             [battery_power_recv, pv_power_recv, *bat_inv_receivers, *pv_inv_receivers]
         )
 
@@ -248,9 +183,9 @@ class TestLogicalMeter:
         await mockgrid.cleanup()
 
         assert len(battery_results) == 10
-        assert self._equal_float_lists(battery_results, battery_inv_sums)
+        assert equal_float_lists(battery_results, battery_inv_sums)
         assert len(pv_results) == 10
-        assert self._equal_float_lists(pv_results, pv_inv_sums)
+        assert equal_float_lists(pv_results, pv_inv_sums)
 
     async def test_soc(self, mocker: MockerFixture) -> None:
         """Test the soc calculation."""
@@ -268,7 +203,7 @@ class TestLogicalMeter:
         soc_recv = await logical_meter._soc()  # pylint: disable=protected-access
 
         bat_receivers = [
-            await self._get_resampled_stream(
+            await get_resampled_stream(
                 logical_meter,
                 channel_registry,
                 request_sender,
@@ -278,7 +213,7 @@ class TestLogicalMeter:
             for bat_id in mockgrid.battery_ids
         ]
 
-        await self._synchronize_receivers([soc_recv, *bat_receivers])
+        await synchronize_receivers([soc_recv, *bat_receivers])
 
         for ctr in range(10):
             bat_vals = []
@@ -316,7 +251,7 @@ class TestLogicalMeter:
             microgrid.get().component_graph,
         )
 
-        main_meter_recv = await self._get_resampled_stream(
+        main_meter_recv = await get_resampled_stream(
             logical_meter,
             channel_registry,
             request_sender,
@@ -433,7 +368,7 @@ class TestLogicalMeter:
         )
         net_current_recv = engine.new_receiver()
 
-        await self._synchronize_receivers(
+        await synchronize_receivers(
             [grid_current_recv, ev_current_recv, net_current_recv]
         )
 
@@ -473,7 +408,7 @@ class TestLogicalMeter:
             microgrid.get().component_graph,
         )
 
-        main_meter_recv = await self._get_resampled_stream(
+        main_meter_recv = await get_resampled_stream(
             logical_meter,
             channel_registry,
             request_sender,
@@ -483,9 +418,7 @@ class TestLogicalMeter:
         grid_power_recv = await logical_meter.grid_power()
         ev_power_recv = await logical_meter.ev_charger_power()
 
-        await self._synchronize_receivers(
-            [grid_power_recv, main_meter_recv, ev_power_recv]
-        )
+        await synchronize_receivers([grid_power_recv, main_meter_recv, ev_power_recv])
 
         ev_results = []
         for _ in range(10):
