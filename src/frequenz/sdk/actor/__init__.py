@@ -9,6 +9,7 @@ from ._config_managing import ConfigManagingActor
 from ._data_sourcing import ComponentMetricRequest, DataSourcingActor
 from ._decorator import actor
 from ._resampling import ComponentMetricsResamplingActor
+from ._run_utils import run
 
 __all__ = [
     "ChannelRegistry",
@@ -18,4 +19,5 @@ __all__ = [
     "DataSourcingActor",
     "ResamplerConfig",
     "actor",
+    "run",
 ]
