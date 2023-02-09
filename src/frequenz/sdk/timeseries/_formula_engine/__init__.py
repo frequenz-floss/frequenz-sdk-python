@@ -10,6 +10,7 @@ from ._formula_engine import (
     _GenericEngine,
     _GenericFormulaReceiver,
 )
+from ._formula_engine_pool import FormulaEnginePool
 from ._resampled_formula_builder import ResampledFormulaBuilder
 
 __all__ = [
@@ -17,6 +18,7 @@ __all__ = [
     "FormulaEngine3Phase",
     "FormulaReceiver",
     "FormulaReceiver3Phase",
+    "FormulaEnginePool",
     "_GenericEngine",
     "_GenericFormulaReceiver",
     "ResampledFormulaBuilder",

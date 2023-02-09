@@ -5,31 +5,20 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import uuid
-from typing import Dict, List, Type
 
 from frequenz.channels import Sender
 
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid import ComponentGraph
 from ...microgrid.component import ComponentMetricId
-from .._formula_engine import (
-    FormulaEngine,
-    FormulaEngine3Phase,
-    FormulaReceiver,
-    FormulaReceiver3Phase,
-    ResampledFormulaBuilder,
-    _GenericEngine,
-    _GenericFormulaReceiver,
-)
+from .._formula_engine import FormulaEnginePool, FormulaReceiver, FormulaReceiver3Phase
 from .._formula_engine._formula_generators import (
     BatteryPowerFormula,
     BatterySoCFormula,
     EVChargerCurrentFormula,
     EVChargerPowerFormula,
-    FormulaGenerator,
     GridCurrentFormula,
     GridPowerFormula,
     PVPowerFormula,
@@ -120,20 +109,11 @@ class LogicalMeter:
         # meter to use when communicating with the resampling actor.
         self._namespace = f"logical-meter-{uuid.uuid4()}"
         self._component_graph = component_graph
-        self._engines: Dict[str, FormulaEngine | FormulaEngine3Phase] = {}
-        self._tasks: List[asyncio.Task[None]] = []
-
-    async def _engine_from_formula_string(
-        self, formula: str, metric_id: ComponentMetricId, nones_are_zeros: bool
-    ) -> FormulaEngine:
-        builder = ResampledFormulaBuilder(
+        self._formula_pool = FormulaEnginePool(
             self._namespace,
-            formula,
             self._channel_registry,
             self._resampler_subscription_sender,
-            metric_id,
         )
-        return await builder.from_string(formula, nones_are_zeros)
 
     async def start_formula(
         self,
@@ -159,30 +139,9 @@ class LogicalMeter:
         Returns:
             A FormulaReceiver that streams values with the formulas applied.
         """
-        channel_key = formula + component_metric_id.value
-        if channel_key in self._engines:
-            return self._engines[channel_key].new_receiver()
-
-        formula_engine = await self._engine_from_formula_string(
+        return await self._formula_pool.from_string(
             formula, component_metric_id, nones_are_zeros
         )
-        self._engines[channel_key] = formula_engine
-
-        return formula_engine.new_receiver()
-
-    async def _get_formula_stream(
-        self,
-        channel_key: str,
-        generator: Type[FormulaGenerator[_GenericEngine]],
-    ) -> _GenericFormulaReceiver:
-        if channel_key in self._engines:
-            return self._engines[channel_key].new_receiver()
-
-        engine = await generator(
-            self._namespace, self._channel_registry, self._resampler_subscription_sender
-        ).generate()
-        self._engines[channel_key] = engine
-        return engine.new_receiver()
 
     async def grid_power(self) -> FormulaReceiver:
         """Fetch the grid power for the microgrid.
@@ -195,7 +154,7 @@ class LogicalMeter:
             A *new* receiver that will stream grid_power values.
 
         """
-        return await self._get_formula_stream("grid_power", GridPowerFormula)
+        return await self._formula_pool.from_generator("grid_power", GridPowerFormula)
 
     async def grid_current(self) -> FormulaReceiver3Phase:
         """Fetch the grid power for the microgrid.
@@ -208,7 +167,9 @@ class LogicalMeter:
             A *new* receiver that will stream grid_current values.
 
         """
-        return await self._get_formula_stream("grid_current", GridCurrentFormula)
+        return await self._formula_pool.from_generator(
+            "grid_current", GridCurrentFormula
+        )
 
     async def ev_charger_current(self) -> FormulaReceiver3Phase:
         """Fetch the cumulative ev charger current for the microgrid.
@@ -221,7 +182,7 @@ class LogicalMeter:
             A *new* receiver that will stream ev_charger_current values.
 
         """
-        return await self._get_formula_stream(
+        return await self._formula_pool.from_generator(
             "ev_charger_current", EVChargerCurrentFormula
         )
 
@@ -235,7 +196,9 @@ class LogicalMeter:
         Returns:
             A *new* receiver that will stream ev_charger_power values.
         """
-        return await self._get_formula_stream("ev_charger_power", EVChargerPowerFormula)
+        return await self._formula_pool.from_generator(
+            "ev_charger_power", EVChargerPowerFormula
+        )
 
     async def battery_power(self) -> FormulaReceiver:
         """Fetch the cumulative battery power in the microgrid.
@@ -248,7 +211,9 @@ class LogicalMeter:
             A *new* receiver that will stream battery_power values.
 
         """
-        return await self._get_formula_stream("battery_power", BatteryPowerFormula)
+        return await self._formula_pool.from_generator(
+            "battery_power", BatteryPowerFormula
+        )
 
     async def pv_power(self) -> FormulaReceiver:
         """Fetch the PV power production in the microgrid.
@@ -260,7 +225,7 @@ class LogicalMeter:
         Returns:
             A *new* receiver that will stream PV power production values.
         """
-        return await self._get_formula_stream("pv_power", PVPowerFormula)
+        return await self._formula_pool.from_generator("pv_power", PVPowerFormula)
 
     async def _soc(self) -> FormulaReceiver:
         """Fetch the SoC of the active batteries in the microgrid.
@@ -271,4 +236,4 @@ class LogicalMeter:
         Returns:
             A *new* receiver that will stream average SoC of active batteries.
         """
-        return await self._get_formula_stream("soc", BatterySoCFormula)
+        return await self._formula_pool.from_generator("soc", BatterySoCFormula)
