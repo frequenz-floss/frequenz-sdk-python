@@ -27,17 +27,17 @@ class TestFormulaComposition:
         mockgrid = MockMicrogrid(grid_side_meter=False, sample_rate_s=0.05)
         mockgrid.add_batteries(3)
         mockgrid.add_solar_inverters(2)
-        request_sender, channel_registry = await mockgrid.start(mocker)
+        request_chan, channel_registry = await mockgrid.start(mocker)
         logical_meter = LogicalMeter(
             channel_registry,
-            request_sender,
+            request_chan.new_sender(),
             microgrid.get().component_graph,
         )
 
         main_meter_recv = await get_resampled_stream(
             logical_meter,
             channel_registry,
-            request_sender,
+            request_chan.new_sender(),
             4,
             ComponentMetricId.ACTIVE_POWER,
         )
@@ -74,10 +74,10 @@ class TestFormulaComposition:
         """Test the composition of formulas with missing PV power data."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(3)
-        request_sender, channel_registry = await mockgrid.start(mocker)
+        request_chan, channel_registry = await mockgrid.start(mocker)
         logical_meter = LogicalMeter(
             channel_registry,
-            request_sender,
+            request_chan.new_sender(),
             microgrid.get().component_graph,
         )
 
@@ -105,10 +105,10 @@ class TestFormulaComposition:
         """Test the composition of formulas with missing battery power data."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_solar_inverters(2)
-        request_sender, channel_registry = await mockgrid.start(mocker)
+        request_chan, channel_registry = await mockgrid.start(mocker)
         logical_meter = LogicalMeter(
             channel_registry,
-            request_sender,
+            request_chan.new_sender(),
             microgrid.get().component_graph,
         )
 
@@ -137,10 +137,10 @@ class TestFormulaComposition:
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(3)
         mockgrid.add_ev_chargers(1)
-        request_sender, channel_registry = await mockgrid.start(mocker)
+        request_chan, channel_registry = await mockgrid.start(mocker)
         logical_meter = LogicalMeter(
             channel_registry,
-            request_sender,
+            request_chan.new_sender(),
             microgrid.get().component_graph,
         )
         grid_current_recv = await logical_meter.grid_current()

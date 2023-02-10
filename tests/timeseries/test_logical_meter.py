@@ -29,10 +29,10 @@ class TestLogicalMeter:
         mockgrid = MockMicrogrid(grid_side_meter=True)
         mockgrid.add_batteries(2)
         mockgrid.add_solar_inverters(1)
-        request_sender, channel_registry = await mockgrid.start(mocker)
+        request_chan, channel_registry = await mockgrid.start(mocker)
         logical_meter = LogicalMeter(
             channel_registry,
-            request_sender,
+            request_chan.new_sender(),
             microgrid.get().component_graph,
         )
 
@@ -41,7 +41,7 @@ class TestLogicalMeter:
         main_meter_recv = await get_resampled_stream(
             logical_meter,
             channel_registry,
-            request_sender,
+            request_chan.new_sender(),
             mockgrid.main_meter_id,
             ComponentMetricId.ACTIVE_POWER,
         )
@@ -68,10 +68,10 @@ class TestLogicalMeter:
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(2)
         mockgrid.add_solar_inverters(1)
-        request_sender, channel_registry = await mockgrid.start(mocker)
+        request_chan, channel_registry = await mockgrid.start(mocker)
         logical_meter = LogicalMeter(
             channel_registry,
-            request_sender,
+            request_chan.new_sender(),
             microgrid.get().component_graph,
         )
 
@@ -81,7 +81,7 @@ class TestLogicalMeter:
             await get_resampled_stream(
                 logical_meter,
                 channel_registry,
-                request_sender,
+                request_chan.new_sender(),
                 meter_id,
                 ComponentMetricId.ACTIVE_POWER,
             )
@@ -117,10 +117,10 @@ class TestLogicalMeter:
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(3)
         mockgrid.add_solar_inverters(2)
-        request_sender, channel_registry = await mockgrid.start(mocker)
+        request_chan, channel_registry = await mockgrid.start(mocker)
         logical_meter = LogicalMeter(
             channel_registry,
-            request_sender,
+            request_chan.new_sender(),
             microgrid.get().component_graph,
         )
 
@@ -131,7 +131,7 @@ class TestLogicalMeter:
             await get_resampled_stream(
                 logical_meter,
                 channel_registry,
-                request_sender,
+                request_chan.new_sender(),
                 meter_id,
                 ComponentMetricId.ACTIVE_POWER,
             )
@@ -142,7 +142,7 @@ class TestLogicalMeter:
             await get_resampled_stream(
                 logical_meter,
                 channel_registry,
-                request_sender,
+                request_chan.new_sender(),
                 meter_id,
                 ComponentMetricId.ACTIVE_POWER,
             )
@@ -193,10 +193,10 @@ class TestLogicalMeter:
         mockgrid.add_solar_inverters(2)
         mockgrid._id_increment = 8  # pylint: disable=protected-access
         mockgrid.add_batteries(3)
-        request_sender, channel_registry = await mockgrid.start(mocker)
+        request_chan, channel_registry = await mockgrid.start(mocker)
         logical_meter = LogicalMeter(
             channel_registry,
-            request_sender,
+            request_chan.new_sender(),
             microgrid.get().component_graph,
         )
 
@@ -206,7 +206,7 @@ class TestLogicalMeter:
             await get_resampled_stream(
                 logical_meter,
                 channel_registry,
-                request_sender,
+                request_chan.new_sender(),
                 bat_id,
                 ComponentMetricId.SOC,
             )
@@ -243,17 +243,17 @@ class TestLogicalMeter:
         """Test the battery power and pv power formulas."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_ev_chargers(5)
-        request_sender, channel_registry = await mockgrid.start(mocker)
+        request_chan, channel_registry = await mockgrid.start(mocker)
         logical_meter = LogicalMeter(
             channel_registry,
-            request_sender,
+            request_chan.new_sender(),
             microgrid.get().component_graph,
         )
 
         main_meter_recv = await get_resampled_stream(
             logical_meter,
             channel_registry,
-            request_sender,
+            request_chan.new_sender(),
             mockgrid.main_meter_id,
             ComponentMetricId.ACTIVE_POWER,
         )
