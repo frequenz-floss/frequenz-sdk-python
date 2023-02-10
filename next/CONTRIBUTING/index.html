@@ -769,8 +769,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#running-tests-individually" class="md-nav__link">
-    Running tests individually
+  <a href="#running-tests-checks-individually" class="md-nav__link">
+    Running tests / checks individually
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#building-the-documentation" class="md-nav__link">
+    Building the documentation
   </a>
   
 </li>
@@ -837,8 +844,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#running-tests-individually" class="md-nav__link">
-    Running tests individually
+  <a href="#running-tests-checks-individually" class="md-nav__link">
+    Running tests / checks individually
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#building-the-documentation" class="md-nav__link">
+    Building the documentation
   </a>
   
 </li>
@@ -886,23 +900,36 @@ python<span class="w"> </span>-m<span class="w"> </span>build
 all the dependencies too):</p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </code></pre></div>
-<p>You can also use <code>nox</code> to run the tests and other checks:</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>nox<span class="w"> </span>toml<span class="w"> </span>tomli
+<p>Or you can install all development dependencies (<code>mypy</code>, <code>pylint</code>, <code>pytest</code>,
+etc.) in one go too:
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
+</code></pre></div></p>
+<p>If you don't want to install all the dependencies, you can also use <code>nox</code> to
+run the tests and other checks creating its own virtual environments:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>nox<span class="w"> </span>toml
 nox
 </code></pre></div>
 <p>You can also use <code>nox -R</code> to reuse the current testing environment to speed up
 test at the expense of a higher chance to end up with a dirty test environment.</p>
-<h3 id="running-tests-individually">Running tests individually<a class="headerlink" href="#running-tests-individually" title="Permanent link">¤</a></h3>
+<h3 id="running-tests-checks-individually">Running tests / checks individually<a class="headerlink" href="#running-tests-checks-individually" title="Permanent link">¤</a></h3>
 <p>For a better development test cycle you can install the runtime and test
 dependencies and run <code>pytest</code> manually.</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.
-python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>pytest<span class="w"> </span>pytest-asyncio<span class="w"> </span>pytest-mock<span class="w"> </span>time_machine<span class="w"> </span>async_solipsism
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="o">[</span>pytest<span class="o">]</span><span class="w">  </span><span class="c1"># included in .[dev] too</span>
 
 <span class="c1"># And for example</span>
 pytest<span class="w"> </span>tests/test_sdk.py
 </code></pre></div>
-<p>To build the documentation, first install the dependencies:</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>docs<span class="o">]</span>
+<p>Or you can use <code>nox</code>:</p>
+<div class="highlight"><pre><span></span><code>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>pytest<span class="w"> </span>--<span class="w"> </span>test/test_sdk.py
+</code></pre></div>
+<p>The same appliest to <code>pylint</code> or <code>mypy</code> for example:</p>
+<div class="highlight"><pre><span></span><code>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>pylint<span class="w"> </span>--<span class="w"> </span>test/test_sdk.py
+nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>mypy<span class="w"> </span>--<span class="w"> </span>test/test_sdk.py
+</code></pre></div>
+<h3 id="building-the-documentation">Building the documentation<a class="headerlink" href="#building-the-documentation" title="Permanent link">¤</a></h3>
+<p>To build the documentation, first install the dependencies (if you didn't
+install all <code>dev</code> dependencies):</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>docs-gen<span class="o">]</span>
 </code></pre></div>
 <p>Then you can build the documentation (it will be written in the <code>site/</code>
 directory):</p>
