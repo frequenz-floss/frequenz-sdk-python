@@ -24,6 +24,10 @@ from ._state_tracker import EVChargerPoolStates, StateTracker
 logger = logging.getLogger(__name__)
 
 
+class EVChargerPoolError(Exception):
+    """An error that occurred in any of the EVChargerPool methods."""
+
+
 class EVChargerPool:
     """Interactions with EV Chargers."""
 
@@ -110,4 +114,51 @@ class EVChargerPool:
             "ev_charger_total_power",
             EVChargerPowerFormula,
             FormulaGeneratorConfig(component_ids=self._component_ids),
+        )
+
+    async def current(self, component_id: int) -> FormulaReceiver3Phase:
+        """Fetch the 3-phase current for the given ev_charger id.
+
+        Args:
+            component_id: id of the ev charger to stream current values for.
+
+        Returns:
+            A *new* receiver that will stream 3-phase current values for the given
+                ev charger.
+
+        Raises:
+            EVChargerPoolError: if the given component_id is not part of the pool.
+        """
+        if component_id not in self._component_ids:
+            raise EVChargerPoolError(
+                f"{component_id=} is not part of the EVChargerPool"
+                f" (with ids={self._component_ids})"
+            )
+        return await self._formula_pool.from_generator(
+            f"ev_charger_current_{component_id}",
+            EVChargerCurrentFormula,
+            FormulaGeneratorConfig(component_ids={component_id}),
+        )
+
+    async def power(self, component_id: int) -> FormulaReceiver:
+        """Fetch the power for the given ev_charger id.
+
+        Args:
+            component_id: id of the ev charger to stream power values for.
+
+        Returns:
+            A *new* receiver that will stream power values for the given ev charger.
+
+        Raises:
+            EVChargerPoolError: if the given component_id is not part of the pool.
+        """
+        if component_id not in self._component_ids:
+            raise EVChargerPoolError(
+                f"{component_id=} is not part of the EVChargerPool"
+                f" (with ids={self._component_ids})"
+            )
+        return await self._formula_pool.from_generator(
+            f"ev_charger_current_{component_id}",
+            EVChargerPowerFormula,
+            FormulaGeneratorConfig(component_ids={component_id}),
         )
