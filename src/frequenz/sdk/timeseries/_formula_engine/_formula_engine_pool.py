@@ -11,6 +11,10 @@ from frequenz.channels import Sender
 
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid.component import ComponentMetricId
+from ._formula_generators._formula_generator import (
+    FormulaGenerator,
+    FormulaGeneratorConfig,
+)
 from ._resampled_formula_builder import ResampledFormulaBuilder
 
 if TYPE_CHECKING:
@@ -21,7 +25,6 @@ if TYPE_CHECKING:
         _GenericEngine,
         _GenericFormulaReceiver,
     )
-    from ._formula_generators import FormulaGenerator
 
 
 class FormulaEnginePool:
@@ -88,12 +91,14 @@ class FormulaEnginePool:
         self,
         channel_key: str,
         generator: "Type[FormulaGenerator[_GenericEngine]]",
+        config: FormulaGeneratorConfig = FormulaGeneratorConfig(),
     ) -> "_GenericFormulaReceiver":
         """Get a receiver for a formula from a generator.
 
         Args:
             channel_key: A string to uniquely identify the formula.
             generator: A formula generator.
+            config: config to initialize the formula generator with.
 
         Returns:
             A FormulaReceiver or a FormulaReceiver3Phase instance based on what the
@@ -103,7 +108,10 @@ class FormulaEnginePool:
             return self._engines[channel_key].new_receiver()
 
         engine = await generator(
-            self._namespace, self._channel_registry, self._resampler_subscription_sender
+            self._namespace,
+            self._channel_registry,
+            self._resampler_subscription_sender,
+            config,
         ).generate()
         self._engines[channel_key] = engine
         return engine.new_receiver()

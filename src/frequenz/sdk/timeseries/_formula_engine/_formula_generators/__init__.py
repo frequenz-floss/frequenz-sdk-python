@@ -11,6 +11,7 @@ from ._formula_generator import (
     ComponentNotFound,
     FormulaGenerationError,
     FormulaGenerator,
+    FormulaGeneratorConfig,
 )
 from ._grid_current_formula import GridCurrentFormula
 from ._grid_power_formula import GridPowerFormula
@@ -21,6 +22,7 @@ __all__ = [
     # Base class
     #
     "FormulaGenerator",
+    "FormulaGeneratorConfig",
     #
     # Power Formula generators
     #
