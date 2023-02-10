@@ -84,20 +84,6 @@ def min_dependencies() -> List[str]:
     return min_deps
 
 
-FMT_DEPS = ["black", "isort"]
-DOCSTRING_DEPS = ["pydocstyle", "darglint"]
-PYTEST_DEPS = [
-    "pytest",
-    "pytest-cov",
-    "pytest-mock",
-    "pytest-asyncio",
-    "time-machine",
-    "async-solipsism",
-]
-MYPY_DEPS = ["mypy", "pandas-stubs", "grpc-stubs"]
-MIN_DEPS = min_dependencies()
-
-
 def _source_file_paths(session: nox.Session) -> List[str]:
     """Return the file paths to run the checks on.
 
@@ -145,9 +131,7 @@ def ci_checks_max(session: nox.Session) -> None:
     Args:
         session: the nox session.
     """
-    session.install(
-        ".[docs]", "pylint", "nox", *PYTEST_DEPS, *FMT_DEPS, *DOCSTRING_DEPS, *MYPY_DEPS
-    )
+    session.install(".[dev]")
 
     formatting(session, False)
     mypy(session, False)
@@ -165,7 +149,7 @@ def formatting(session: nox.Session, install_deps: bool = True) -> None:
         install_deps: True if dependencies should be installed.
     """
     if install_deps:
-        session.install(*FMT_DEPS)
+        session.install(".[format]")
 
     paths = _source_file_paths(session)
     session.run("black", "--check", *paths)
@@ -183,7 +167,7 @@ def mypy(session: nox.Session, install_deps: bool = True) -> None:
     if install_deps:
         # install the package itself as editable, so that it is possible to do
         # fast local tests with `nox -R -e mypy`.
-        session.install("-e", ".[docs]", "nox", *MYPY_DEPS, *PYTEST_DEPS)
+        session.install("-e", ".[mypy]")
 
     common_args = [
         "--install-types",
@@ -228,7 +212,7 @@ def pylint(session: nox.Session, install_deps: bool = True) -> None:
     if install_deps:
         # install the package itself as editable, so that it is possible to do
         # fast local tests with `nox -R -e pylint`.
-        session.install("-e", ".[docs]", "pylint", "nox", *PYTEST_DEPS)
+        session.install("-e", ".[pylint]")
 
     paths = _source_file_paths(session)
     session.run(
@@ -250,7 +234,7 @@ def docstrings(session: nox.Session, install_deps: bool = True) -> None:
         install_deps: True if dependencies should be installed.
     """
     if install_deps:
-        session.install(*DOCSTRING_DEPS, "toml")
+        session.install(".[docs-lint]")
 
     paths = _source_file_paths(session)
     session.run("pydocstyle", *paths)
@@ -281,7 +265,7 @@ def pytest_max(session: nox.Session, install_deps: bool = True) -> None:
     if install_deps:
         # install the package itself as editable, so that it is possible to do
         # fast local tests with `nox -R -e pytest_max`.
-        session.install("-e", ".", *PYTEST_DEPS)
+        session.install("-e", ".[pytest]")
 
     _pytest_impl(session, "max")
 
@@ -297,7 +281,7 @@ def pytest_min(session: nox.Session, install_deps: bool = True) -> None:
     if install_deps:
         # install the package itself as editable, so that it is possible to do
         # fast local tests with `nox -R -e pytest_min`.
-        session.install("-e", ".", *PYTEST_DEPS, *MIN_DEPS)
+        session.install("-e", ".[pytest]", *min_dependencies())
 
     _pytest_impl(session, "min")
 
