@@ -17,6 +17,7 @@ from .._formula_engine import FormulaEnginePool, FormulaReceiver, FormulaReceive
 from .._formula_engine._formula_generators import (
     EVChargerCurrentFormula,
     EVChargerPowerFormula,
+    FormulaGeneratorConfig,
 )
 from ._state_tracker import EVChargerPoolStates, StateTracker
 
@@ -90,7 +91,9 @@ class EVChargerPool:
             A *new* receiver that will stream ev_charger current values.
         """
         return await self._formula_pool.from_generator(
-            "ev_charger_total_current", EVChargerCurrentFormula
+            "ev_charger_total_current",
+            EVChargerCurrentFormula,
+            FormulaGeneratorConfig(component_ids=self._component_ids),
         )
 
     async def total_power(self) -> FormulaReceiver:
@@ -104,5 +107,7 @@ class EVChargerPool:
             A *new* receiver that will stream ev_charger power values.
         """
         return await self._formula_pool.from_generator(
-            "ev_charger_total_power", EVChargerPowerFormula
+            "ev_charger_total_power",
+            EVChargerPowerFormula,
+            FormulaGeneratorConfig(component_ids=self._component_ids),
         )
