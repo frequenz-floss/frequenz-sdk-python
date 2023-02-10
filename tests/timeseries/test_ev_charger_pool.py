@@ -6,15 +6,23 @@
 from __future__ import annotations
 
 import asyncio
+from math import isclose
 from typing import Optional
 
 from frequenz.api.microgrid import ev_charger_pb2
 from pytest_mock import MockerFixture
 
+from frequenz.sdk import microgrid
+from frequenz.sdk.microgrid.component import ComponentMetricId
 from frequenz.sdk.timeseries.ev_charger_pool import (
     EVChargerPool,
     EVChargerPoolStates,
     EVChargerState,
+)
+from frequenz.sdk.timeseries.logical_meter import LogicalMeter
+from tests.timeseries._formula_engine.utils import (
+    get_resampled_stream,
+    synchronize_receivers,
 )
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
@@ -27,9 +35,9 @@ class TestEVChargerPool:
 
         mockgrid = MockMicrogrid(grid_side_meter=False, sample_rate_s=0.01)
         mockgrid.add_ev_chargers(5)
-        await mockgrid.start(mocker)
+        request_chan, channel_registry = await mockgrid.start(mocker)
 
-        pool = EVChargerPool()
+        pool = EVChargerPool(channel_registry, request_chan.new_sender())
 
         states = pool.states()
 
@@ -79,3 +87,47 @@ class TestEVChargerPool:
 
         await pool._stop()  # pylint: disable=protected-access
         await mockgrid.cleanup()
+
+    async def test_ev_power(  # pylint: disable=too-many-locals
+        self,
+        mocker: MockerFixture,
+    ) -> None:
+        """Test the battery power and pv power formulas."""
+        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid.add_ev_chargers(5)
+        request_chan, channel_registry = await mockgrid.start(mocker)
+        logical_meter = LogicalMeter(
+            channel_registry,
+            request_chan.new_sender(),
+            microgrid.get().component_graph,
+        )
+
+        ev_pool = EVChargerPool(channel_registry, request_chan.new_sender())
+
+        main_meter_recv = await get_resampled_stream(
+            logical_meter,
+            channel_registry,
+            request_chan.new_sender(),
+            mockgrid.main_meter_id,
+            ComponentMetricId.ACTIVE_POWER,
+        )
+        grid_power_recv = await logical_meter.grid_power()
+        ev_power_recv = await ev_pool.total_power()
+
+        await synchronize_receivers([grid_power_recv, main_meter_recv, ev_power_recv])
+
+        ev_results = []
+        for _ in range(10):
+            grid_pow = await grid_power_recv.receive()
+            ev_pow = await ev_power_recv.receive()
+            main_pow = await main_meter_recv.receive()
+
+            assert grid_pow is not None and grid_pow.value is not None
+            assert ev_pow is not None and ev_pow.value is not None
+            assert main_pow is not None and main_pow.value is not None
+            assert isclose(grid_pow.value, ev_pow.value + main_pow.value)
+
+            ev_results.append(ev_pow.value)
+
+        await mockgrid.cleanup()
+        assert len(ev_results) == 10

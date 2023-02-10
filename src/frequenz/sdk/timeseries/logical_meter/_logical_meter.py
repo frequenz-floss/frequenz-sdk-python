@@ -17,8 +17,6 @@ from .._formula_engine import FormulaEnginePool, FormulaReceiver, FormulaReceive
 from .._formula_engine._formula_generators import (
     BatteryPowerFormula,
     BatterySoCFormula,
-    EVChargerCurrentFormula,
-    EVChargerPowerFormula,
     GridCurrentFormula,
     GridPowerFormula,
     PVPowerFormula,
@@ -169,35 +167,6 @@ class LogicalMeter:
         """
         return await self._formula_pool.from_generator(
             "grid_current", GridCurrentFormula
-        )
-
-    async def ev_charger_current(self) -> FormulaReceiver3Phase:
-        """Fetch the cumulative ev charger current for the microgrid.
-
-        If a formula engine to calculate ev charger current is not already
-        running, it will be started.  Else, we'll just get a new receiver to the
-        already existing data stream.
-
-        Returns:
-            A *new* receiver that will stream ev_charger_current values.
-
-        """
-        return await self._formula_pool.from_generator(
-            "ev_charger_current", EVChargerCurrentFormula
-        )
-
-    async def ev_charger_power(self) -> FormulaReceiver:
-        """Fetch the cumulative EV charger power for the microgrid.
-
-        If a formula engine to calculate EV charger power is not already
-        running, it will be started. Else, we'll just get a new receiver
-        to the already existing data stream.
-
-        Returns:
-            A *new* receiver that will stream ev_charger_power values.
-        """
-        return await self._formula_pool.from_generator(
-            "ev_charger_power", EVChargerPowerFormula
         )
 
     async def battery_power(self) -> FormulaReceiver:

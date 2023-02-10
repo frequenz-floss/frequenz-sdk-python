@@ -10,6 +10,7 @@ from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.microgrid.component import ComponentMetricId
+from frequenz.sdk.timeseries.ev_charger_pool import EVChargerPool
 from frequenz.sdk.timeseries.logical_meter import LogicalMeter
 
 from ..mock_microgrid import MockMicrogrid
@@ -144,7 +145,8 @@ class TestFormulaComposition:
             microgrid.get().component_graph,
         )
         grid_current_recv = await logical_meter.grid_current()
-        ev_current_recv = await logical_meter.ev_charger_current()
+        pool = EVChargerPool(channel_registry, request_chan.new_sender())
+        ev_current_recv = await pool.total_current()
 
         engine = (grid_current_recv.clone() - ev_current_recv.clone()).build(
             "net_current"
