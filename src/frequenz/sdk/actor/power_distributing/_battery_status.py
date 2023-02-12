@@ -147,7 +147,7 @@ class BatteryStatusTracker:
         InverterComponentState.COMPONENT_STATE_STANDBY,
         InverterComponentState.COMPONENT_STATE_IDLE,
         InverterComponentState.COMPONENT_STATE_CHARGING,
-        InverterComponentState.COMPONENT_STATE_STANDBY,
+        InverterComponentState.COMPONENT_STATE_DISCHARGING,
     }
 
     def __init__(  # pylint: disable=too-many-arguments
