@@ -207,10 +207,8 @@ def actor(cls: Type[Any]) -> Type[Any]:
                 except asyncio.CancelledError:
                     logger.debug("Cancelling actor: %s", cls.__name__)
                     raise
-                except Exception as err:  # pylint: disable=broad-except
-                    logger.exception(
-                        "Actor (%s) crashed with error: %s", cls.__name__, err
-                    )
+                except Exception:  # pylint: disable=broad-except
+                    logger.exception("Actor (%s) crashed", cls.__name__)
                     if (
                         self.restart_limit is None
                         or number_of_restarts < self.restart_limit
