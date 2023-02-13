@@ -25,12 +25,12 @@ TWO_HUNDRED_MS = timedelta(milliseconds=200)
 @pytest.mark.parametrize(
     "buffer",
     [
-        OrderedRingBuffer([0] * 1800, TWO_HUNDRED_MS),
+        OrderedRingBuffer([0.0] * 1800, TWO_HUNDRED_MS),
         OrderedRingBuffer(
             np.empty(shape=(24 * 1800,), dtype=np.float64),
             TWO_HUNDRED_MS,
         ),
-        OrderedRingBuffer([0] * 1800, TWO_HUNDRED_MS, datetime(2000, 1, 1)),
+        OrderedRingBuffer([0.0] * 1800, TWO_HUNDRED_MS, datetime(2000, 1, 1)),
     ],
 )
 def test_timestamp_ringbuffer(buffer: OrderedRingBuffer[Any]) -> None:
@@ -62,7 +62,7 @@ def test_timestamp_ringbuffer(buffer: OrderedRingBuffer[Any]) -> None:
 @pytest.mark.parametrize(
     "buffer",
     [
-        (OrderedRingBuffer([0] * 24, ONE_SECOND)),
+        (OrderedRingBuffer([0.0] * 24, ONE_SECOND)),
         (OrderedRingBuffer(np.empty(shape=(24,), dtype=np.float64), ONE_SECOND)),
     ],
 )
@@ -97,7 +97,7 @@ def test_timestamp_ringbuffer_overwrite(buffer: OrderedRingBuffer[Any]) -> None:
 @pytest.mark.parametrize(
     "buffer",
     [
-        (OrderedRingBuffer([0] * 24, ONE_SECOND)),
+        (OrderedRingBuffer([0.0] * 24, ONE_SECOND)),
         (OrderedRingBuffer(np.empty(shape=(24,), dtype=np.float64), ONE_SECOND)),
     ],
 )
@@ -138,7 +138,7 @@ def test_timestamp_ringbuffer_gaps(
 @pytest.mark.parametrize(
     "buffer",
     [
-        OrderedRingBuffer([0] * 24 * int(FIVE_MINUTES.total_seconds()), FIVE_MINUTES),
+        OrderedRingBuffer([0.0] * 24 * int(FIVE_MINUTES.total_seconds()), FIVE_MINUTES),
         OrderedRingBuffer(
             np.empty(shape=(24 * int(FIVE_MINUTES.total_seconds())), dtype=np.float64),
             FIVE_MINUTES,
@@ -179,12 +179,12 @@ def test_timestamp_ringbuffer_missing_parameter(
 @pytest.mark.parametrize(
     "buffer",
     [
-        OrderedRingBuffer([0] * 24 * int(ONE_MINUTE.total_seconds()), ONE_MINUTE),
+        OrderedRingBuffer([0.0] * 24 * int(ONE_MINUTE.total_seconds()), ONE_MINUTE),
         OrderedRingBuffer(
             np.empty(shape=(24 * int(ONE_MINUTE.total_seconds()),), dtype=np.float64),
             ONE_MINUTE,
         ),
-        OrderedRingBuffer([0] * 24 * int(FIVE_MINUTES.total_seconds()), FIVE_MINUTES),
+        OrderedRingBuffer([0.0] * 24 * int(FIVE_MINUTES.total_seconds()), FIVE_MINUTES),
         OrderedRingBuffer(
             np.empty(shape=(24 * int(FIVE_MINUTES.total_seconds())), dtype=np.float64),
             FIVE_MINUTES,

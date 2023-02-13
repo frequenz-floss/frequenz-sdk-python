@@ -70,7 +70,7 @@ def test_slices(days: int, buffer: OrderedRingBuffer[Any], median: bool) -> None
 def test_29_days_list(num_runs: int) -> Dict[str, float]:
     """Run the 29 day test on the list backend."""
     days = 29
-    buffer = OrderedRingBuffer([0] * MINUTES_IN_29_DAYS, timedelta(minutes=1))
+    buffer = OrderedRingBuffer([0.0] * MINUTES_IN_29_DAYS, timedelta(minutes=1))
 
     fill_time = timeit.Timer(lambda: fill_buffer(days, buffer)).timeit(number=1)
     test_time = timeit.Timer(lambda: test_days(days, buffer)).timeit(number=num_runs)
@@ -95,7 +95,7 @@ def test_29_days_array(num_runs: int) -> Dict[str, float]:
 def test_29_days_slicing_list(num_runs: int) -> Dict[str, float]:
     """Run slicing tests on list backend."""
     days = 29
-    buffer = OrderedRingBuffer([0] * MINUTES_IN_29_DAYS, timedelta(minutes=1))
+    buffer = OrderedRingBuffer([0.0] * MINUTES_IN_29_DAYS, timedelta(minutes=1))
 
     fill_time = timeit.Timer(lambda: fill_buffer(days, buffer)).timeit(number=1)
     median_test_time = timeit.Timer(
