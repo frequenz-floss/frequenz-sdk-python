@@ -13,7 +13,6 @@ from typing import Any, Generic, List, TypeVar, overload
 
 import numpy as np
 import numpy.typing as npt
-from numpy.lib import math
 
 from frequenz.sdk.timeseries import Sample
 
@@ -140,7 +139,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         self._datetime_oldest = self._datetime_newest - self._time_range
 
         # Update data
-        value: float = math.nan if sample.value is None else sample.value
+        value: float = np.nan if sample.value is None else sample.value
         self._buffer[self.datetime_to_index(timestamp)] = value
 
         self._update_gaps(timestamp, prev_newest, sample.value is None)
