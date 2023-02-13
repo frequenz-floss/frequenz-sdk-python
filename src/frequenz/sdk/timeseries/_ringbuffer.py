@@ -14,7 +14,7 @@ from typing import Any, Generic, List, TypeVar, overload
 import numpy as np
 import numpy.typing as npt
 
-from frequenz.sdk.timeseries import Sample
+from . import Sample
 
 FloatArray = TypeVar("FloatArray", List[float], npt.NDArray[np.float64])
 
