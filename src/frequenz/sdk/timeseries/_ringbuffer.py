@@ -205,7 +205,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
                 copy of the data.
 
         Raises:
-            IndexError: when requesting a window with invalid timestamps.
+            IndexError: When requesting a window with invalid timestamps.
 
         Returns:
             The requested window
