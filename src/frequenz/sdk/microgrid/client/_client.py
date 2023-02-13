@@ -25,6 +25,7 @@ from frequenz.api.microgrid.microgrid_pb2_grpc import MicrogridStub
 from frequenz.channels import Broadcast, Receiver, Sender
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
+from ..._internal._constants import RECEIVER_MAX_SIZE
 from ..component import (
     BatteryData,
     Component,
@@ -90,6 +91,7 @@ class MicrogridApiClient(ABC):
     async def meter_data(
         self,
         component_id: int,
+        maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[MeterData]:
         """Return a channel receiver that provides a `MeterData` stream.
 
@@ -99,6 +101,7 @@ class MicrogridApiClient(ABC):
 
         Args:
             component_id: id of the meter to get data for.
+            maxsize: Size of the receiver's buffer.
 
         Returns:
             A channel receiver that provides realtime meter data.
@@ -108,6 +111,7 @@ class MicrogridApiClient(ABC):
     async def battery_data(
         self,
         component_id: int,
+        maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[BatteryData]:
         """Return a channel receiver that provides a `BatteryData` stream.
 
@@ -117,6 +121,7 @@ class MicrogridApiClient(ABC):
 
         Args:
             component_id: id of the battery to get data for.
+            maxsize: Size of the receiver's buffer.
 
         Returns:
             A channel receiver that provides realtime battery data.
@@ -126,6 +131,7 @@ class MicrogridApiClient(ABC):
     async def inverter_data(
         self,
         component_id: int,
+        maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[InverterData]:
         """Return a channel receiver that provides an `InverterData` stream.
 
@@ -135,6 +141,7 @@ class MicrogridApiClient(ABC):
 
         Args:
             component_id: id of the inverter to get data for.
+            maxsize: Size of the receiver's buffer.
 
         Returns:
             A channel receiver that provides realtime inverter data.
@@ -144,6 +151,7 @@ class MicrogridApiClient(ABC):
     async def ev_charger_data(
         self,
         component_id: int,
+        maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[EVChargerData]:
         """Return a channel receiver that provides an `EvChargeData` stream.
 
@@ -153,6 +161,7 @@ class MicrogridApiClient(ABC):
 
         Args:
             component_id: id of the ev charger to get data for.
+            maxsize: Size of the receiver's buffer.
 
         Returns:
             A channel receiver that provides realtime ev charger data.
@@ -440,6 +449,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
     async def meter_data(
         self,
         component_id: int,
+        maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[MeterData]:
         """Return a channel receiver that provides a `MeterData` stream.
 
@@ -452,6 +462,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
 
         Args:
             component_id: id of the meter to get data for.
+            maxsize: Size of the receiver's buffer.
 
         Returns:
             A channel receiver that provides realtime meter data.
@@ -463,11 +474,12 @@ class MicrogridGrpcClient(MicrogridApiClient):
         return self._get_component_data_channel(
             component_id,
             MeterData.from_proto,
-        ).new_receiver()
+        ).new_receiver(maxsize=maxsize)
 
     async def battery_data(
         self,
         component_id: int,
+        maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[BatteryData]:
         """Return a channel receiver that provides a `BatteryData` stream.
 
@@ -480,6 +492,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
 
         Args:
             component_id: id of the battery to get data for.
+            maxsize: Size of the receiver's buffer.
 
         Returns:
             A channel receiver that provides realtime battery data.
@@ -491,11 +504,12 @@ class MicrogridGrpcClient(MicrogridApiClient):
         return self._get_component_data_channel(
             component_id,
             BatteryData.from_proto,
-        ).new_receiver()
+        ).new_receiver(maxsize=maxsize)
 
     async def inverter_data(
         self,
         component_id: int,
+        maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[InverterData]:
         """Return a channel receiver that provides an `InverterData` stream.
 
@@ -508,6 +522,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
 
         Args:
             component_id: id of the inverter to get data for.
+            maxsize: Size of the receiver's buffer.
 
         Returns:
             A channel receiver that provides realtime inverter data.
@@ -519,11 +534,12 @@ class MicrogridGrpcClient(MicrogridApiClient):
         return self._get_component_data_channel(
             component_id,
             InverterData.from_proto,
-        ).new_receiver()
+        ).new_receiver(maxsize=maxsize)
 
     async def ev_charger_data(
         self,
         component_id: int,
+        maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[EVChargerData]:
         """Return a channel receiver that provides an `EvChargeData` stream.
 
@@ -536,6 +552,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
 
         Args:
             component_id: id of the ev charger to get data for.
+            maxsize: Size of the receiver's buffer.
 
         Returns:
             A channel receiver that provides realtime ev charger data.
@@ -547,7 +564,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
         return self._get_component_data_channel(
             component_id,
             EVChargerData.from_proto,
-        ).new_receiver()
+        ).new_receiver(maxsize=maxsize)
 
     async def set_power(self, component_id: int, power_w: int) -> Empty:
         """Send request to the Microgrid to set power for component.
