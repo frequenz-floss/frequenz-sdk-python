@@ -130,7 +130,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         # Don't add outdated entries
         if timestamp < self._datetime_oldest and self._datetime_oldest != datetime.max:
             raise IndexError(
-                f"Timestamp too old (cut-off is at {self._datetime_oldest})."
+                f"Timestamp {timestamp} too old (cut-off is at {self._datetime_oldest})."
             )
 
         # Update timestamps
