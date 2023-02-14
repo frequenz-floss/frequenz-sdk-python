@@ -5,17 +5,18 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Generic, List, Sequence, TypeVar
+from typing import Any, Generic, List, TypeVar, overload
 
 import numpy as np
-from numpy.lib import math
+import numpy.typing as npt
 
-from frequenz.sdk.timeseries import Sample
+from . import Sample
 
-Container = TypeVar("Container", list, np.ndarray)
+FloatArray = TypeVar("FloatArray", List[float], npt.NDArray[np.float64])
 
 
 @dataclass
@@ -42,12 +43,12 @@ class Gap:
         return False
 
 
-class OrderedRingBuffer(Generic[Container]):
+class OrderedRingBuffer(Generic[FloatArray]):
     """Time aware ringbuffer that keeps its entries sorted by time."""
 
     def __init__(
         self,
-        buffer: Container,
+        buffer: FloatArray,
         sampling_period: timedelta,
         time_index_alignment: datetime = datetime(1, 1, 1),
     ) -> None:
@@ -129,7 +130,7 @@ class OrderedRingBuffer(Generic[Container]):
         # Don't add outdated entries
         if timestamp < self._datetime_oldest and self._datetime_oldest != datetime.max:
             raise IndexError(
-                f"Timestamp too old (cut-off is at {self._datetime_oldest})."
+                f"Timestamp {timestamp} too old (cut-off is at {self._datetime_oldest})."
             )
 
         # Update timestamps
@@ -138,7 +139,7 @@ class OrderedRingBuffer(Generic[Container]):
         self._datetime_oldest = self._datetime_newest - self._time_range
 
         # Update data
-        value: float = math.nan if sample.value is None else sample.value
+        value: float = np.nan if sample.value is None else sample.value
         self._buffer[self.datetime_to_index(timestamp)] = value
 
         self._update_gaps(timestamp, prev_newest, sample.value is None)
@@ -179,7 +180,7 @@ class OrderedRingBuffer(Generic[Container]):
 
     def window(
         self, start: datetime, end: datetime, force_copy: bool = False
-    ) -> Container:
+    ) -> FloatArray:
         """Request a view on the data between start timestamp and end timestamp.
 
         If the data is not used immediately it could be overwritten.
@@ -204,7 +205,7 @@ class OrderedRingBuffer(Generic[Container]):
                 copy of the data.
 
         Raises:
-            IndexError: when requesting a window with invalid timestamps.
+            IndexError: When requesting a window with invalid timestamps.
 
         Returns:
             The requested window
@@ -228,14 +229,13 @@ class OrderedRingBuffer(Generic[Container]):
                     window = np.concatenate((window, self._buffer[0:end_index]))
             return window
 
-        def in_gap(gap) -> bool:
-            return gap.contains(start) or gap.contains(end)
-
         # Return a copy if there are none-values in the data
-        if force_copy or any(map(in_gap, self._gaps)):
-            return deepcopy(self._buffer[start_index:end_index])
+        if force_copy or any(
+            map(lambda gap: gap.contains(start) or gap.contains(end), self._gaps)
+        ):
+            return deepcopy(self[start_index:end_index])
 
-        return self._buffer[start_index:end_index]
+        return self[start_index:end_index]
 
     def is_missing(self, timestamp: datetime) -> bool:
         """Check if the given timestamp falls within a gap.
@@ -386,7 +386,33 @@ class OrderedRingBuffer(Generic[Container]):
         """
         return index % self.maxlen
 
-    def __setitem__(self, index_or_slice: int | slice, value: float) -> None:
+    @overload
+    def __setitem__(self, index_or_slice: slice, value: Iterable[float]) -> None:
+        """Set values at the request slice positions.
+
+        No wrapping of the index will be done.
+        Create a feature request if you require this function.
+
+        Args:
+            index_or_slice: Slice specification of the requested data.
+            value: Sequence of value to set at the given range.
+        """
+
+    @overload
+    def __setitem__(self, index_or_slice: int, value: float) -> None:
+        """Set value at requested index.
+
+        No wrapping of the index will be done.
+        Create a feature request if you require this function.
+
+        Args:
+            index_or_slice: Index of the data.
+            value: Value to set at the given position.
+        """
+
+    def __setitem__(
+        self, index_or_slice: int | slice, value: float | Iterable[float]
+    ) -> None:
         """Set item or slice at requested position.
 
         No wrapping of the index will be done.
@@ -398,7 +424,29 @@ class OrderedRingBuffer(Generic[Container]):
         """
         self._buffer.__setitem__(index_or_slice, value)
 
-    def __getitem__(self, index_or_slice: int | slice) -> float | Sequence[float]:
+    @overload
+    def __getitem__(self, index_or_slice: int) -> float:
+        """Get item at requested position.
+
+        No wrapping of the index will be done.
+        Create a feature request if you require this function.
+
+        Args:
+            index_or_slice: Index of the requested data.
+        """
+
+    @overload
+    def __getitem__(self, index_or_slice: slice) -> FloatArray:
+        """Get the data described by the given slice.
+
+        No wrapping of the index will be done.
+        Create a feature request if you require this function.
+
+        Args:
+            index_or_slice: Slice specification of where the requested data is.
+        """
+
+    def __getitem__(self, index_or_slice: int | slice) -> float | FloatArray:
         """Get item or slice at requested position.
 
         No wrapping of the index will be done.

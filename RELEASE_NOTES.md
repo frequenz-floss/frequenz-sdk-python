@@ -11,7 +11,7 @@
 * A `MovingWindow` class has been added that consumes a data stream from a logical meter and updates an `OrderedRingBuffer`.
 * Add EVChargerPool implementation. It has only streaming state changes for ev chargers, now.
 * Add 3-phase current formulas: `3-phase grid_current` and `3-phase ev_charger_current` to the LogicalMeter.
-
+* A new class `SerializableRingbuffer` is now available, extending the `OrderedRingBuffer` class with the ability to load & dump the data to disk.
 
 ## Bug Fixes
 
