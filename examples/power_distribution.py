@@ -27,6 +27,7 @@ from frequenz.sdk.actor import (
     ResamplerConfig,
 )
 from frequenz.sdk.actor.power_distributing import (
+    BatteryStatus,
     PowerDistributingActor,
     Request,
     Result,
@@ -194,11 +195,14 @@ async def run() -> None:
         )
     }
 
+    battery_status_channel = Broadcast[BatteryStatus]("battery-status")
+
     power_distributor = PowerDistributingActor(
         users_channels={
             key: channel.service_handle
             for key, channel in power_distributor_channels.items()
         },
+        battery_status_sender=battery_status_channel.new_sender(),
     )
 
     # Channel to communicate between actors.

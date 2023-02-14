@@ -6,15 +6,20 @@ import asyncio
 from typing import Set
 
 import pytest
+from frequenz.channels import Broadcast
 from pytest_mock import MockerFixture
 
-from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
+from frequenz.sdk.actor.power_distributing._battery_pool_status import (
+    BatteryPoolStatus,
+    BatteryStatus,
+)
 from frequenz.sdk.microgrid.component import ComponentCategory
 
 from ..utils.mock_microgrid import MockMicrogridClient
 from .test_battery_status import battery_data, component_graph, inverter_data
 
 
+# pylint: disable=protected-access
 class TestBatteryPoolStatus:
     """Tests for BatteryPoolStatus"""
 
@@ -47,8 +52,11 @@ class TestBatteryPoolStatus:
                 component_category={ComponentCategory.BATTERY}
             )
         }
+        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_recv = battery_status_channel.new_receiver(maxsize=1)
         batteries_status = BatteryPoolStatus(
             battery_ids=batteries,
+            battery_status_sender=battery_status_channel.new_sender(),
             max_data_age_sec=5,
             max_blocking_duration_sec=30,
         )
@@ -69,6 +77,8 @@ class TestBatteryPoolStatus:
         )
         await asyncio.sleep(0.1)
         assert batteries_status.get_working_batteries(batteries) == expected_working
+        msg = await asyncio.wait_for(battery_status_recv.receive(), timeout=0.2)
+        assert msg == batteries_status._current_status
 
         assert await mock_microgrid.send(
             inverter_data(component_id=batteries_list[1] - 1)
@@ -83,6 +93,8 @@ class TestBatteryPoolStatus:
         expected_working = set(batteries_list)
         await asyncio.sleep(0.1)
         assert batteries_status.get_working_batteries(batteries) == expected_working
+        msg = await asyncio.wait_for(battery_status_recv.receive(), timeout=0.2)
+        assert msg == batteries_status._current_status
 
         await batteries_status.update_status(
             succeed_batteries={106}, failed_batteries={206, 306}

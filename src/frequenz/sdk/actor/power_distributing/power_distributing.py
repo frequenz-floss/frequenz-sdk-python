@@ -29,7 +29,7 @@ from typing import (  # pylint: disable=unused-import
 )
 
 import grpc
-from frequenz.channels import Bidirectional, Peekable, Receiver
+from frequenz.channels import Bidirectional, Peekable, Receiver, Sender
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
 from ... import microgrid
@@ -44,7 +44,7 @@ from ...microgrid.component import (
     InverterData,
 )
 from ...power import DistributionAlgorithm, DistributionResult, InvBatPair
-from ._battery_pool_status import BatteryPoolStatus
+from ._battery_pool_status import BatteryPoolStatus, BatteryStatus
 from .request import Request
 from .result import Error, Ignored, OutOfBound, PartialFailure, Result, Success
 
@@ -143,6 +143,7 @@ class PowerDistributingActor:
     def __init__(
         self,
         users_channels: Dict[str, Bidirectional.Handle[Result, Request]],
+        battery_status_sender: Sender[BatteryStatus],
         wait_for_data_sec: float = 2,
     ) -> None:
         """Create class instance.
@@ -150,6 +151,8 @@ class PowerDistributingActor:
         Args:
             users_channels: BidirectionalHandle for each user. Key should be
                 user id and value should be BidirectionalHandle.
+            battery_status_sender: Channel for sending information which batteries are
+                working.
             wait_for_data_sec: How long actor should wait before processing first
                 request. It is a time needed to collect first components data.
         """
@@ -185,6 +188,7 @@ class PowerDistributingActor:
 
         self._all_battery_status = BatteryPoolStatus(
             battery_ids=set(self._bat_inv_map.keys()),
+            battery_status_sender=battery_status_sender,
             max_blocking_duration_sec=30.0,
             max_data_age_sec=10.0,
         )

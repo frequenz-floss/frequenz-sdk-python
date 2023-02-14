@@ -9,7 +9,7 @@ import logging
 from dataclasses import dataclass
 from typing import Dict, Set
 
-from frequenz.channels import Broadcast, Receiver
+from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.channels.util import MergeNamed
 
 from ..._internal.asyncio import cancel_and_await
@@ -72,6 +72,7 @@ class BatteryPoolStatus:
     def __init__(
         self,
         battery_ids: Set[int],
+        battery_status_sender: Sender[BatteryStatus],
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
     ) -> None:
@@ -79,6 +80,8 @@ class BatteryPoolStatus:
 
         Args:
             battery_ids: set of batteries ids that should be stored in pool.
+            battery_status_sender: The sender used for sending the status of the
+                batteries in the pool.
             max_data_age_sec: If component stopped sending data, then
                 this is the maximum time when its last message should be considered as
                 valid. After that time, component won't be used until it starts sending
@@ -121,7 +124,7 @@ class BatteryPoolStatus:
             **receivers,
         )
 
-        self._task = asyncio.create_task(self._run())
+        self._task = asyncio.create_task(self._run(battery_status_sender))
 
     async def join(self) -> None:
         """Await for the battery pool, and return when the task completes.
@@ -146,23 +149,30 @@ class BatteryPoolStatus:
         )
         await self._battery_status_channel.stop()
 
-    async def _run(self) -> None:
-        """Start tracking batteries status."""
+    async def _run(self, battery_status_sender: Sender[BatteryStatus]) -> None:
+        """Start tracking batteries status.
+
+        Args:
+            battery_status_sender: The sender used for sending the status of the
+                batteries in the pool.
+        """
         while True:
             try:
-                await self._update_status(self._battery_status_channel)
+                await self._update_status(battery_status_sender)
             except Exception as err:  # pylint: disable=broad-except
                 _logger.error(
                     "BatteryPoolStatus failed with error: %s. Restarting.", err
                 )
 
-    async def _update_status(self, status_channel: MergeNamed[Status]) -> None:
+    async def _update_status(
+        self, battery_status_sender: Sender[BatteryStatus]
+    ) -> None:
         """Wait for any battery to change status and update status.
 
         Args:
-            status_channel: Receivers packed in Select object.
+            battery_status_sender: Sender to send the current status of the batteries.
         """
-        async for channel_name, status in status_channel:
+        async for channel_name, status in self._battery_status_channel:
             battery_id = self._batteries[channel_name].battery_id
             if status == Status.WORKING:
                 self._current_status.working.add(battery_id)
@@ -174,7 +184,7 @@ class BatteryPoolStatus:
                 self._current_status.working.discard(battery_id)
                 self._current_status.uncertain.discard(battery_id)
 
-            # In the future here we should send status to the subscribed actors
+            await battery_status_sender.send(self._current_status)
 
     async def update_status(
         self, succeed_batteries: Set[int], failed_batteries: Set[int]

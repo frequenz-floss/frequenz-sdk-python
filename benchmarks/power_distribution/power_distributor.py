@@ -10,10 +10,11 @@ import timeit
 from dataclasses import dataclass
 from typing import Any, Coroutine, Dict, List, Set  # pylint: disable=unused-import
 
-from frequenz.channels import Bidirectional
+from frequenz.channels import Bidirectional, Broadcast
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.actor.power_distributing import (
+    BatteryStatus,
     Error,
     Ignored,
     OutOfBound,
@@ -123,7 +124,11 @@ async def run_test(  # pylint: disable=too-many-locals
         user_id: channel.service_handle for user_id, channel in channels.items()
     }
 
-    distributor = PowerDistributingActor(service_channels)
+    battery_status_channel = Broadcast[BatteryStatus]("battery-status")
+
+    distributor = PowerDistributingActor(
+        service_channels, battery_status_sender=battery_status_channel.new_sender()
+    )
 
     tasks: List[Coroutine[Any, Any, List[Result]]] = []
     for user_id, channel in channels.items():
