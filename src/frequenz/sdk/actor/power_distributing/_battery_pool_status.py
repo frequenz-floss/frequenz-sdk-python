@@ -123,6 +123,17 @@ class BatteryPoolStatus:
 
         self._task = asyncio.create_task(self._run())
 
+    async def join(self) -> None:
+        """Await for the battery pool, and return when the task completes.
+
+        It will not terminate the program while BatteryPool is working.
+        BatteryPool can be stopped with the `stop` method.
+        This method is not needed in source code, because BatteryPool is owned
+        by the internal code.
+        It is needed only when user needs to run his own instance of the BatteryPool.
+        """
+        await self._task
+
     async def stop(self) -> None:
         """Stop tracking batteries status."""
         await cancel_and_await(self._task)
