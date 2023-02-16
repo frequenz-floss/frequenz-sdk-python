@@ -16,7 +16,7 @@ from frequenz.api.microgrid.battery_pb2 import RelayState as BatteryRelayState
 from frequenz.api.microgrid.common_pb2 import ErrorLevel
 from frequenz.api.microgrid.inverter_pb2 import ComponentState as InverterComponentState
 from frequenz.channels import Receiver, Sender
-from frequenz.channels.util import Select
+from frequenz.channels.util import Select, Timer
 
 from frequenz.sdk._internal.asyncio import cancel_and_await
 from frequenz.sdk.microgrid import get as get_microgrid
@@ -62,8 +62,16 @@ T = TypeVar("T")
 @dataclass
 class _ComponentStreamStatus:
     component_id: int
+    """Component id."""
+
+    data_recv_timer: Timer
+    """Timer that is set when no component data has been received for some time."""
+
     last_msg_timestamp: datetime = datetime.now(tz=timezone.utc)
+    """Timestamp of the last message from the component."""
+
     last_msg_correct: bool = False
+    """Flag whether last message was correct or not."""
 
 
 @dataclass
@@ -185,8 +193,12 @@ class BatteryStatusTracker:
         if inverter_id is None:
             raise RuntimeError(f"Can't find inverter adjacent to battery: {battery_id}")
 
-        self._battery = _ComponentStreamStatus(battery_id)
-        self._inverter = _ComponentStreamStatus(inverter_id)
+        self._battery = _ComponentStreamStatus(
+            battery_id, data_recv_timer=Timer(max_data_age_sec)
+        )
+        self._inverter = _ComponentStreamStatus(
+            inverter_id, data_recv_timer=Timer(max_data_age_sec)
+        )
 
         # Select needs receivers that can be get in async way only.
         self._select = None
@@ -232,6 +244,8 @@ class BatteryStatusTracker:
 
         self._select = Select(
             battery=battery_receiver,
+            battery_timer=self._battery.data_recv_timer,
+            inverter_timer=self._inverter.data_recv_timer,
             inverter=inverter_receiver,
             request_result=request_result_receiver,
         )
@@ -255,6 +269,7 @@ class BatteryStatusTracker:
                 and self._no_critical_error(msg.inner)
             )
             self._battery.last_msg_timestamp = msg.inner.timestamp
+            self._battery.data_recv_timer.reset()
 
         elif msg := select.inverter:
             self._inverter.last_msg_correct = (
@@ -263,37 +278,42 @@ class BatteryStatusTracker:
                 and self._no_critical_error(msg.inner)
             )
             self._inverter.last_msg_timestamp = msg.inner.timestamp
+            self._inverter.data_recv_timer.reset()
 
         elif msg := select.request_result:
             result: SetPowerResult = msg.inner
             if self.battery_id in result.succeed:
                 self._blocking_status.unblock()
 
-            elif self.battery_id in result.failed:
-                # check if component stopped sending data
-                if self._battery.last_msg_correct and self._is_timestamp_outdated(
-                    self._battery.last_msg_timestamp
-                ):
-                    self._battery.last_msg_correct = False
+            elif (
+                self.battery_id in result.failed
+                and self._last_status != Status.NOT_WORKING
+            ):
+                duration = self._blocking_status.block()
 
-                if self._inverter.last_msg_correct and self._is_timestamp_outdated(
-                    self._inverter.last_msg_timestamp
-                ):
-                    self._inverter.last_msg_correct = False
-
-                component_correct = (
-                    self._battery.last_msg_correct and self._inverter.last_msg_correct
+                if duration > 0:
+                    _logger.warning(
+                        "battery %d failed last response. block it for %f sec",
+                        self.battery_id,
+                        duration,
+                    )
+        elif msg := select.battery_timer:
+            if self._battery.last_msg_correct:
+                self._battery.last_msg_correct = False
+                _logger.warning(
+                    "Battery %d stopped sending data, last timestamp: %s",
+                    self._battery.component_id,
+                    self._battery.last_msg_timestamp,
                 )
-                if component_correct:
-                    # if component is sending data, but request fails, then block it
-                    # for some time
-                    duration = self._blocking_status.block()
-                    if duration > 0:
-                        _logger.warning(
-                            "battery %d failed last response. block it for %f sec",
-                            self.battery_id,
-                            duration,
-                        )
+        elif msg := select.inverter_timer:
+            if self._inverter.last_msg_correct:
+                self._inverter.last_msg_correct = False
+                _logger.warning(
+                    "Inverter %d stopped sending data, last timestamp: %s",
+                    self._inverter.component_id,
+                    self._inverter.last_msg_timestamp,
+                )
+
         else:
             _logger.error("Unknown message returned from select")
 

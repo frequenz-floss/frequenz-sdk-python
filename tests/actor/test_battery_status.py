@@ -190,21 +190,30 @@ class Message(Generic[T]):
 class FakeSelect:
     """Helper class to mock Select object used in BatteryStatusTracker"""
 
-    def __init__(
+    # This is just number of Select instance attributes.
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         battery: Optional[BatteryData] = None,
         inverter: Optional[InverterData] = None,
         request_result: Optional[SetPowerResult] = None,
+        battery_timer_flag: bool = False,
+        inverter_timer_flag: bool = False,
     ) -> None:
         """Create FakeSelect instance
 
         Args:
             battery: Expected battery message. Defaults to None.
             inverter: Expected inverter message. Defaults to None.
+            battery_timer_flag: If true the battery data timer will be set to indicate
+                that no messages have been received for a while.
+            inverter_timer_flag: If true the inverter data timer will be set to indicate
+                that no messages have been received for a while.
             request_result: Expected SetPowerResult message. Defaults to None.
         """
         self.battery = None if battery is None else Message(battery)
         self.inverter = None if inverter is None else Message(inverter)
+        self.inverter_timer = inverter_timer_flag
+        self.battery_timer = battery_timer_flag
         self.request_result = (
             None if request_result is None else Message(request_result)
         )
@@ -536,13 +545,6 @@ class TestBatteryStatus:
                 assert tracker._update_status(select) is None  # type: ignore[arg-type]
                 time.shift(timeout)
 
-            # Battery message should be to old after 5 seconds.
-            select = FakeSelect(
-                request_result=SetPowerResult(succeed={1}, failed={106})
-            )
-            status = tracker._update_status(select)  # type: ignore[arg-type]
-            assert status is Status.NOT_WORKING
-
             await tracker.stop()
 
     @time_machine.travel("2022-01-01 00:00 UTC", tick=False)
@@ -595,6 +597,69 @@ class TestBatteryStatus:
         select = FakeSelect(inverter=inverter_data(component_id=INVERTER_ID))
         assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
 
+        await tracker.stop()
+
+    @time_machine.travel("2022-01-01 00:00 UTC", tick=False)
+    async def test_timers(
+        self, mock_microgrid: MockMicrogridClient, mocker: MockerFixture
+    ) -> None:
+        """Test if messages changes battery status/
+
+        Tests uses FakeSelect to test status in sync way.
+        Otherwise we would have lots of async calls and waiting.
+
+        Args:
+            mock_microgrid: mock_microgrid fixture
+            mocker: pytest mocker instance
+        """
+        status_channel = Broadcast[Status]("battery_status")
+        request_result_channel = Broadcast[SetPowerResult]("request_result")
+
+        tracker = BatteryStatusTracker(
+            BATTERY_ID,
+            max_data_age_sec=5,
+            max_blocking_duration_sec=30,
+            status_sender=status_channel.new_sender(),
+            request_result_receiver=request_result_channel.new_receiver(),
+        )
+
+        battery_timer_spy = mocker.spy(tracker._battery.data_recv_timer, "reset")
+        inverter_timer_spy = mocker.spy(tracker._inverter.data_recv_timer, "reset")
+
+        assert tracker.battery_id == BATTERY_ID
+        assert tracker._last_status == Status.NOT_WORKING
+
+        select = FakeSelect(inverter=inverter_data(component_id=INVERTER_ID))
+        assert tracker._update_status(select) is None  # type: ignore[arg-type]
+
+        select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
+        assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
+
+        assert battery_timer_spy.call_count == 1
+
+        select = FakeSelect(battery_timer_flag=True)
+        assert tracker._update_status(select) is Status.NOT_WORKING  # type: ignore[arg-type]
+
+        assert battery_timer_spy.call_count == 1
+
+        select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
+        assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
+
+        assert battery_timer_spy.call_count == 2
+
+        select = FakeSelect(inverter_timer_flag=True)
+        assert tracker._update_status(select) is Status.NOT_WORKING  # type: ignore[arg-type]
+
+        select = FakeSelect(battery_timer_flag=True)
+        assert tracker._update_status(select) is None  # type: ignore[arg-type]
+
+        select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
+        assert tracker._update_status(select) is None  # type: ignore[arg-type]
+
+        select = FakeSelect(inverter=inverter_data(component_id=INVERTER_ID))
+        assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
+
+        assert inverter_timer_spy.call_count == 2
         await tracker.stop()
 
     @time_machine.travel("2022-01-01 00:00 UTC", tick=False)
