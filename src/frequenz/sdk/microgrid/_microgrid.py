@@ -1,7 +1,7 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""Microgrid singleton abstraction.
+"""Microgrid Connection Manager singleton abstraction.
 
 This module provides a singleton abstraction over the microgrid. The main
 purpose is to provide the connection the microgrid API client and the microgrid
@@ -22,7 +22,7 @@ _DEFAULT_MICROGRID_HOST = "[::1]"
 _DEFAULT_MICROGRID_PORT = 443
 
 
-class Microgrid(ABC):
+class ConnectionManager(ABC):
     """Creates and stores core features."""
 
     def __init__(self, host: str, port: int) -> None:
@@ -81,7 +81,7 @@ class Microgrid(ABC):
         """Initialize the object. This function should be called only once."""
 
 
-class _MicrogridInsecure(Microgrid):
+class _InsecureConnectionManager(ConnectionManager):
     """Microgrid Api with insecure channel implementation."""
 
     def __init__(
@@ -137,7 +137,7 @@ class _MicrogridInsecure(Microgrid):
         await self._graph.refresh_from_api(self._api)
 
 
-_MICROGRID: Optional[Microgrid] = None
+_MICROGRID: Optional[ConnectionManager] = None
 
 
 async def initialize(host: str, port: int) -> None:
@@ -157,7 +157,7 @@ async def initialize(host: str, port: int) -> None:
     if _MICROGRID is not None:
         raise AssertionError("MicrogridApi was already initialized.")
 
-    microgrid_api = _MicrogridInsecure(host, port)
+    microgrid_api = _InsecureConnectionManager(host, port)
     await microgrid_api._initialize()  # pylint: disable=protected-access
 
     # Check again that _MICROGRID_API is None in case somebody had the great idea of
@@ -168,7 +168,7 @@ async def initialize(host: str, port: int) -> None:
     _MICROGRID = microgrid_api
 
 
-def get() -> Microgrid:
+def get() -> ConnectionManager:
     """Get the MicrogridApi instance created by initialize().
 
     This function should be only called after initialize().

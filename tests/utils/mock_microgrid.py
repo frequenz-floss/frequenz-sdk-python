@@ -10,7 +10,7 @@ from frequenz.channels import Broadcast, Receiver
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 from pytest_mock import MockerFixture
 
-from frequenz.sdk.microgrid import Microgrid
+from frequenz.sdk.microgrid import ConnectionManager
 from frequenz.sdk.microgrid._graph import ComponentGraph, _MicrogridComponentGraph
 from frequenz.sdk.microgrid.client import Connection
 from frequenz.sdk.microgrid.component import (
@@ -57,7 +57,7 @@ class MockMicrogridClient:
             "component_graph": self._component_graph,
         }
 
-        self._mock_microgrid = MagicMock(spec=Microgrid, **kwargs)
+        self._mock_microgrid = MagicMock(spec=ConnectionManager, **kwargs)
         self._battery_data_senders = {
             id: channel.new_sender() for id, channel in bat_channels.items()
         }
@@ -83,7 +83,7 @@ class MockMicrogridClient:
         )
 
     @property
-    def mock_microgrid(self) -> Microgrid:
+    def mock_microgrid(self) -> ConnectionManager:
         """Return mock microgrid.
 
         This is needed to patch existing microgrid.get() method.
