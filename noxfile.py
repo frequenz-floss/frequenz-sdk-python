@@ -50,13 +50,13 @@ Usage:
         nox -R -e pytest_min -- -s -x tests/timeseries/test_logical_meter.py
 """
 
-from typing import List
+from __future__ import annotations
 
 import nox
 import toml
 
 
-def min_dependencies() -> List[str]:
+def min_dependencies() -> list[str]:
     """Extract the minimum dependencies from pyproject.toml.
 
     Raises:
@@ -74,7 +74,7 @@ def min_dependencies() -> List[str]:
     if not dependencies:
         raise RuntimeError(f"No dependencies found in file: {toml_file.name}")
 
-    min_deps: List[str] = []
+    min_deps: list[str] = []
     for dep in dependencies:
         min_dep = dep.split(",")[0]
         if any(op in min_dep for op in (">=", "==")):
@@ -84,7 +84,7 @@ def min_dependencies() -> List[str]:
     return min_deps
 
 
-def _source_file_paths(session: nox.Session) -> List[str]:
+def _source_file_paths(session: nox.Session) -> list[str]:
     """Return the file paths to run the checks on.
 
     If positional arguments are present in the nox session, we use those as the
