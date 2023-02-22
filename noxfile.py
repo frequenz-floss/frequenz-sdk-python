@@ -52,8 +52,24 @@ Usage:
 
 from __future__ import annotations
 
+from typing import Any, Iterable
+
 import nox
 import toml
+
+DEFAULT_PATH_PACKAGES = {
+    "benchmarks": "benchmarks",
+    "docs": "docs",
+    "examples": "examples",
+    "src": "frequenz.sdk",
+    "tests": "tests",
+    "noxfile.py": "noxfile",
+}
+"""A list of path to be used by default and its corresponding package name.
+
+The package name is needed for mypy, as it takes packages when full import
+checking needs to be done.
+"""
 
 
 def min_dependencies() -> list[str]:
@@ -98,14 +114,7 @@ def _source_file_paths(session: nox.Session) -> list[str]:
     """
     if session.posargs:
         return session.posargs
-    return [
-        "benchmarks",
-        "docs",
-        "examples",
-        "src",
-        "tests",
-        "noxfile.py",
-    ]
+    return list(DEFAULT_PATH_PACKAGES.keys())
 
 
 # Run all checks except `ci_checks` by default.  When running locally with just
@@ -169,36 +178,24 @@ def mypy(session: nox.Session, install_deps: bool = True) -> None:
         # fast local tests with `nox -R -e mypy`.
         session.install("-e", ".[mypy]")
 
-    common_args = [
+    def _flatten(iterable: Iterable[Iterable[Any]]) -> Iterable[Any]:
+        return [item for sublist in iterable for item in sublist]
+
+    args = (
+        session.posargs
+        if session.posargs
+        else _flatten(("-p", p) for p in DEFAULT_PATH_PACKAGES.values())
+    )
+
+    session.run(
+        "mypy",
         "--install-types",
         "--namespace-packages",
         "--non-interactive",
         "--explicit-package-bases",
         "--strict",
-    ]
-
-    # If we have session arguments, we just use those...
-    if session.posargs:
-        session.run("mypy", *common_args, *session.posargs)
-        return
-
-    check_paths = _source_file_paths(session)
-    pkg_paths = [
-        path
-        for path in check_paths
-        if not path.startswith("src") and not path.endswith(".py")
-    ]
-    file_paths = [path for path in check_paths if path.endswith(".py")]
-
-    pkg_args = []
-    for pkg in pkg_paths:
-        if pkg == "src":
-            pkg = "frequenz.channels"
-        pkg_args.append("-p")
-        pkg_args.append(pkg)
-
-    session.run("mypy", *common_args, *pkg_args)
-    session.run("mypy", *common_args, *file_paths)
+        *args,
+    )
 
 
 @nox.session
