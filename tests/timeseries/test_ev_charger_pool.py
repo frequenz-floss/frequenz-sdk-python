@@ -14,10 +14,11 @@ from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.microgrid.component import ComponentMetricId
-from frequenz.sdk.timeseries.ev_charger_pool import (
-    EVChargerPool,
+from frequenz.sdk.timeseries.ev_charger_pool import EVChargerPool
+from frequenz.sdk.timeseries.ev_charger_pool._state_tracker import (
     EVChargerPoolStates,
     EVChargerState,
+    StateTracker,
 )
 from frequenz.sdk.timeseries.logical_meter import LogicalMeter
 from tests.timeseries._formula_engine.utils import (
@@ -35,11 +36,10 @@ class TestEVChargerPool:
 
         mockgrid = MockMicrogrid(grid_side_meter=False, sample_rate_s=0.01)
         mockgrid.add_ev_chargers(5)
-        request_chan, channel_registry = await mockgrid.start(mocker)
+        await mockgrid.start(mocker)
 
-        pool = EVChargerPool(channel_registry, request_chan.new_sender())
-
-        states = pool.states()
+        state_tracker = StateTracker(set(mockgrid.evc_ids))
+        states = state_tracker.new_receiver()
 
         async def check_next_state(
             expected: dict[int, EVChargerState],
@@ -85,7 +85,7 @@ class TestEVChargerPool:
         expected_states[evc_1_id] = EVChargerState.ERROR
         await check_next_state(expected_states, (evc_1_id, EVChargerState.ERROR))
 
-        await pool._stop()  # pylint: disable=protected-access
+        await state_tracker.stop()
         await mockgrid.cleanup()
 
     async def test_ev_power(  # pylint: disable=too-many-locals

@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 import uuid
 
-from frequenz.channels import Receiver, Sender
+from frequenz.channels import Sender
 
 from ... import microgrid
 from ...actor import ChannelRegistry, ComponentMetricRequest
@@ -19,7 +19,6 @@ from .._formula_engine._formula_generators import (
     EVChargerPowerFormula,
     FormulaGeneratorConfig,
 )
-from ._state_tracker import EVChargerPoolStates, StateTracker
 
 logger = logging.getLogger(__name__)
 
@@ -61,28 +60,12 @@ class EVChargerPool:
                     component_category={ComponentCategory.EV_CHARGER}
                 )
             }
-        self._state_tracker: StateTracker | None = None
         self._namespace = f"ev-charger-pool-{uuid.uuid4()}"
         self._formula_pool = FormulaEnginePool(
             self._namespace,
             self._channel_registry,
             self._resampler_subscription_sender,
         )
-
-    async def _stop(self) -> None:
-        if self._state_tracker:
-            await self._state_tracker.stop()
-
-    def states(self) -> Receiver[EVChargerPoolStates]:
-        """Return a receiver that streams ev charger states.
-
-        Returns:
-            A receiver that streams the states of all ev chargers in the pool, every
-                time the states of any of them change.
-        """
-        if not self._state_tracker:
-            self._state_tracker = StateTracker(self._component_ids)
-        return self._state_tracker.new_receiver()
 
     async def total_current(self) -> FormulaReceiver3Phase:
         """Fetch the total current for the ev chargers in the pool.
