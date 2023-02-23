@@ -2,6 +2,7 @@
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
 """Frequenz Python SDK resampling example."""
+import asyncio
 import dataclasses
 from datetime import datetime, timezone
 from typing import Iterator
@@ -9,7 +10,6 @@ from typing import Iterator
 import async_solipsism
 import pytest
 import time_machine
-from async_solipsism.socket import asyncio
 from frequenz.channels import Broadcast
 
 from frequenz.sdk.actor import (
