@@ -201,7 +201,12 @@ def actor(cls: Type[Any]) -> Type[Any]:
             """
             logger.debug("Starting actor: %s", cls.__name__)
             number_of_restarts = 0
-            while True:
+            while (
+                self.restart_limit is None or number_of_restarts <= self.restart_limit
+            ):
+                if number_of_restarts > 0:
+                    logger.info("Restarting actor: %s", cls.__name__)
+
                 try:
                     await super().run()
                 except asyncio.CancelledError:
@@ -209,15 +214,10 @@ def actor(cls: Type[Any]) -> Type[Any]:
                     raise
                 except Exception:  # pylint: disable=broad-except
                     logger.exception("Actor (%s) crashed", cls.__name__)
-                    if (
-                        self.restart_limit is None
-                        or number_of_restarts < self.restart_limit
-                    ):
-                        number_of_restarts += 1
-                        logger.info("Restarting actor: %s", cls.__name__)
-                    else:
-                        logger.info("Shutting down actor: %s", cls.__name__)
-                        break
+                finally:
+                    number_of_restarts += 1
+
+            logger.info("Shutting down actor: %s", cls.__name__)
 
         async def _stop(self) -> None:
             """Stop an running actor."""
