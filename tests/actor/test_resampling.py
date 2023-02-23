@@ -26,7 +26,7 @@ from frequenz.sdk.timeseries import Sample
 
 
 @pytest.fixture(autouse=True)
-def fake_loop() -> Iterator[async_solipsism.EventLoop]:
+def event_loop() -> Iterator[async_solipsism.EventLoop]:
     """Replace the loop with one that doesn't interact with the outside world."""
     loop = async_solipsism.EventLoop()
     yield loop
