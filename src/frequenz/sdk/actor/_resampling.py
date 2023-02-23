@@ -105,7 +105,7 @@ class ComponentMetricsResamplingActor:
 
         # noqa: DAR401 error
         """
-        tasks_to_cancel: set[asyncio.Task] = set()
+        tasks_to_cancel: set[asyncio.Task[None]] = set()
         try:
             subscriptions_task = asyncio.create_task(
                 self._process_resampling_requests()

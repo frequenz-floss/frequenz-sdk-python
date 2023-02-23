@@ -139,7 +139,7 @@ class _MicrogridComponentGraph(ComponentGraph):
             InvalidGraphError: if `components` and `connections` are not both `None`
                 and either of them is either `None` or empty
         """
-        self._graph = nx.DiGraph()
+        self._graph: nx.DiGraph = nx.DiGraph()
 
         if components is None and connections is None:
             return

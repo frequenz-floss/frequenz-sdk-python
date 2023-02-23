@@ -47,8 +47,10 @@ class EVChargerPool:
                 not specified, IDs of all EV Chargers in the microgrid will be fetched
                 from the component graph.
         """
-        self._channel_registry = channel_registry
-        self._resampler_subscription_sender = resampler_subscription_sender
+        self._channel_registry: ChannelRegistry = channel_registry
+        self._resampler_subscription_sender: Sender[
+            ComponentMetricRequest
+        ] = resampler_subscription_sender
         self._component_ids: set[int] = set()
         if component_ids is not None:
             self._component_ids = component_ids
@@ -60,8 +62,8 @@ class EVChargerPool:
                     component_category={ComponentCategory.EV_CHARGER}
                 )
             }
-        self._namespace = f"ev-charger-pool-{uuid.uuid4()}"
-        self._formula_pool = FormulaEnginePool(
+        self._namespace: str = f"ev-charger-pool-{uuid.uuid4()}"
+        self._formula_pool: FormulaEnginePool = FormulaEnginePool(
             self._namespace,
             self._channel_registry,
             self._resampler_subscription_sender,

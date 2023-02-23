@@ -28,7 +28,7 @@ class Gap:
     end: datetime
     """End of the range, exclusive."""
 
-    def contains(self, timestamp: datetime):
+    def contains(self, timestamp: datetime) -> bool:
         """Check if a given timestamp is inside this gap.
 
         Args:
@@ -69,14 +69,14 @@ class OrderedRingBuffer(Generic[FloatArray]):
                 "2022-01-01 12:00:00" to "2022-01-02 12:00:00" (date chosen
                 arbitrarily here).
         """
-        self._buffer = buffer
-        self._sampling_period = sampling_period
-        self._time_index_alignment = time_index_alignment
+        self._buffer: FloatArray = buffer
+        self._sampling_period: timedelta = sampling_period
+        self._time_index_alignment: datetime = time_index_alignment
 
         self._gaps: list[Gap] = []
-        self._datetime_newest = datetime.min
-        self._datetime_oldest = datetime.max
-        self._time_range = (len(self._buffer) - 1) * sampling_period
+        self._datetime_newest: datetime = datetime.min
+        self._datetime_oldest: datetime = datetime.max
+        self._time_range: timedelta = (len(self._buffer) - 1) * sampling_period
 
     @property
     def sampling_period(self) -> timedelta:

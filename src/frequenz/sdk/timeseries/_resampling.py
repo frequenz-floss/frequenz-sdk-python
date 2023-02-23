@@ -657,7 +657,7 @@ class _StreamingHelper:
         self._helper: _ResamplingHelper = helper
         self._source: Source = source
         self._sink: Sink = sink
-        self._receiving_task: asyncio.Task = asyncio.create_task(
+        self._receiving_task: asyncio.Task[None] = asyncio.create_task(
             self._receive_samples()
         )
 

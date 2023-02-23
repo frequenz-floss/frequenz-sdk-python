@@ -79,7 +79,7 @@ class _BlockingStatus:
     min_duration_sec: float
     max_duration_sec: float
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.last_blocking_duration_sec: float = self.min_duration_sec
         self.blocked_until: Optional[datetime] = None
 
@@ -114,7 +114,7 @@ class _BlockingStatus:
 
         return self.last_blocking_duration_sec
 
-    def unblock(self):
+    def unblock(self) -> None:
         """Unblock battery.
 
         This will reset duration of the next blocking timeout.
@@ -186,24 +186,26 @@ class BatteryStatusTracker:
         self._max_data_age = max_data_age_sec
         # First battery is considered as not working.
         # Change status after first messages are received.
-        self._last_status = Status.NOT_WORKING
-        self._blocking_status = _BlockingStatus(1.0, max_blocking_duration_sec)
+        self._last_status: Status = Status.NOT_WORKING
+        self._blocking_status: _BlockingStatus = _BlockingStatus(
+            1.0, max_blocking_duration_sec
+        )
 
         inverter_id = self._find_adjacent_inverter_id(battery_id)
         if inverter_id is None:
             raise RuntimeError(f"Can't find inverter adjacent to battery: {battery_id}")
 
-        self._battery = _ComponentStreamStatus(
+        self._battery: _ComponentStreamStatus = _ComponentStreamStatus(
             battery_id, data_recv_timer=Timer(max_data_age_sec)
         )
-        self._inverter = _ComponentStreamStatus(
+        self._inverter: _ComponentStreamStatus = _ComponentStreamStatus(
             inverter_id, data_recv_timer=Timer(max_data_age_sec)
         )
 
         # Select needs receivers that can be get in async way only.
-        self._select = None
+        self._select: Select | None = None
 
-        self._task = asyncio.create_task(
+        self._task: asyncio.Task[None] = asyncio.create_task(
             self._run(status_sender, set_power_result_receiver)
         )
 

@@ -76,7 +76,7 @@ class SerializableRingBuffer(OrderedRingBuffer[FloatArray]):
             return None
 
         with open(path, mode="rb") as fileobj:
-            instance: SerializableRingBuffer = pickle.load(fileobj)
+            instance: SerializableRingBuffer[FloatArray] = pickle.load(fileobj)
             instance._path = path  # pylint: disable=protected-access
             # Set latest file format version for next time it dumps.
             # pylint: disable=protected-access
