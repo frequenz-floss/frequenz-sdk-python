@@ -28,6 +28,8 @@ class EVChargerState(Enum):
     """State of individual ev charger."""
 
     UNSPECIFIED = "UNSPECIFIED"
+    MISSING = "MISSING"
+
     IDLE = "IDLE"
     EV_PLUGGED = "EV_PLUGGED"
     EV_LOCKED = "EV_LOCKED"
@@ -43,11 +45,16 @@ class EVChargerState(Enum):
         Returns:
             An `EVChargerState` instance.
         """
+        if data.component_state == EVChargerComponentState.UNSPECIFIED:
+            return EVChargerState.UNSPECIFIED
         if data.component_state in (
             EVChargerComponentState.AUTHORIZATION_REJECTED,
             EVChargerComponentState.ERROR,
         ):
             return EVChargerState.ERROR
+
+        if data.cable_state == EVChargerCableState.UNSPECIFIED:
+            return EVChargerState.UNSPECIFIED
         if data.cable_state == EVChargerCableState.EV_LOCKED:
             return EVChargerState.EV_LOCKED
         if data.cable_state == EVChargerCableState.EV_PLUGGED:
@@ -145,12 +152,10 @@ class StateTracker:
             *[api_client.ev_charger_data(cid) for cid in self._component_ids]
         )
 
-        latest_messages: list[EVChargerData] = await asyncio.gather(
-            *[stream.receive() for stream in streams]
-        )
+        # Start with the `MISSING` state for all components.  This will change as data
+        # starts arriving from the individual components.
         self._states = {
-            msg.component_id: EVChargerState.from_ev_charger_data(msg)
-            for msg in latest_messages
+            component_id: EVChargerState.MISSING for component_id in self._component_ids
         }
         self._merged_stream = Merge(*streams)
         sender = self._channel.new_sender()
