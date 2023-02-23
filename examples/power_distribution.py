@@ -14,15 +14,19 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 from queue import Queue
-from typing import Any, List, Optional, Set
+from typing import List, Optional, Set
 
 from frequenz.channels import Bidirectional, Broadcast, Receiver, Sender
 
 from frequenz.sdk import microgrid
-from frequenz.sdk._data_handling import TimeSeriesEntry
-from frequenz.sdk._data_ingestion import MicrogridData
-from frequenz.sdk._data_ingestion.formula_calculator import FormulaCalculator
-from frequenz.sdk.actor import actor
+from frequenz.sdk.actor import (
+    ChannelRegistry,
+    ComponentMetricRequest,
+    ComponentMetricsResamplingActor,
+    DataSourcingActor,
+    ResamplerConfig,
+    actor,
+)
 from frequenz.sdk.actor.power_distributing import (
     PowerDistributingActor,
     Request,
@@ -30,6 +34,8 @@ from frequenz.sdk.actor.power_distributing import (
     Success,
 )
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
+from frequenz.sdk.timeseries import Sample
+from frequenz.sdk.timeseries.logical_meter import LogicalMeter
 
 _logger = logging.getLogger(__name__)
 HOST = "microgrid.sandbox.api.frequenz.io"  # it should be the host name.
@@ -113,7 +119,7 @@ class DataCollectingActor:
     def __init__(
         self,
         request_channel: Sender[List[float]],
-        active_power_data: Receiver[TimeSeriesEntry[Any]],
+        active_power_data: Receiver[Sample],
     ) -> None:
         """Create actor instance.
 
@@ -154,27 +160,33 @@ async def run() -> None:
     )
     await microgrid.initialize(HOST, PORT)
 
-    # await initialize(HOST, PORT) # in v0.8.0
+    channel_registry = ChannelRegistry(name="Microgrid Channel Registry")
 
-    # Create MicrogridData
-    microgrid_data_channels = {
-        "batteries_active_power": Broadcast[TimeSeriesEntry[Any]](
-            "batteries_active_power_formula", resend_latest=True
-        ),
-    }
-
-    formula_calculator = FormulaCalculator(microgrid.get().component_graph)
-    microgrid_data = MicrogridData(
-        microgrid_client=microgrid.get().api_client,
-        # microgrid_client=microgrid_api.microgrid_api,  # in v0.8.0
-        component_graph=microgrid.get().component_graph,
-        outputs={
-            key: channel.new_sender()
-            for key, channel in microgrid_data_channels.items()
-        },
-        formula_calculator=formula_calculator,
+    data_source_request_channel = Broadcast[ComponentMetricRequest](
+        "Data Source Request Channel"
     )
 
+    resampling_actor_request_channel = Broadcast[ComponentMetricRequest](
+        "Resampling Actor Request Channel"
+    )
+
+    _ds_actor = DataSourcingActor(
+        request_receiver=data_source_request_channel.new_receiver(),
+        registry=channel_registry,
+    )
+
+    _resampling_actor = ComponentMetricsResamplingActor(
+        channel_registry=channel_registry,
+        data_sourcing_request_sender=data_source_request_channel.new_sender(),
+        resampling_request_receiver=resampling_actor_request_channel.new_receiver(),
+        config=ResamplerConfig(resampling_period_s=1.0),
+    )
+
+    logical_meter = LogicalMeter(
+        channel_registry,
+        resampling_actor_request_channel.new_sender(),
+        microgrid.get().component_graph,
+    )
     sending_actor_id: str = "SendingActor"
     # Bidirectional channel is used for one sender - one receiver communication
     power_distributor_channels = {
@@ -212,15 +224,12 @@ async def run() -> None:
 
     client_actor = DataCollectingActor(
         request_channel=power_dist_req_chan.new_sender(),
-        active_power_data=microgrid_data_channels[
-            "batteries_active_power"
-        ].new_receiver(name="DecisionMakingActor"),
+        active_power_data=await logical_meter.grid_power(),
     )
 
     # pylint: disable=no-member
     await service_actor.join()  # type: ignore[attr-defined]
     await client_actor.join()  # type: ignore[attr-defined]
-    await microgrid_data.join()  # type: ignore[attr-defined]
     await power_distributor.join()  # type: ignore[attr-defined]
 
 
