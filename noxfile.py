@@ -140,7 +140,7 @@ def ci_checks_max(session: nox.Session) -> None:
     Args:
         session: the nox session.
     """
-    session.install(".[dev]")
+    session.install("-e", ".[dev]")
 
     formatting(session, False)
     mypy(session, False)
@@ -158,7 +158,7 @@ def formatting(session: nox.Session, install_deps: bool = True) -> None:
         install_deps: True if dependencies should be installed.
     """
     if install_deps:
-        session.install(".[format]")
+        session.install("-e", ".[format]")
 
     paths = _source_file_paths(session)
     session.run("black", "--check", *paths)
@@ -228,7 +228,7 @@ def docstrings(session: nox.Session, install_deps: bool = True) -> None:
         install_deps: True if dependencies should be installed.
     """
     if install_deps:
-        session.install(".[docs-lint]")
+        session.install("-e", ".[docs-lint]")
 
     paths = _source_file_paths(session)
     session.run("pydocstyle", *paths)
