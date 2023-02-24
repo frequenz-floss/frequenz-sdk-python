@@ -18,16 +18,16 @@ class EVChargerCurrentFormula(FormulaGenerator):
     """Create a formula engine from the component graph for calculating grid current."""
 
     async def generate(self) -> FormulaEngine3Phase:
-        """Generate a formula for calculating total ev current for given component ids.
+        """Generate a formula for calculating total EV current for given component ids.
 
         Returns:
-            A formula engine that calculates total 3-phase ev charger current values.
+            A formula engine that calculates total 3-phase EV Charger current values.
         """
         component_ids = self._config.component_ids
 
         if not component_ids:
             logger.warning(
-                "No ev charger component IDs specified. "
+                "No EV Charger component IDs specified. "
                 "Subscribing to the resampling actor with a non-existing "
                 "component id, so that `0` values are sent from the formula."
             )
@@ -72,7 +72,7 @@ class EVChargerCurrentFormula(FormulaGenerator):
     ) -> FormulaEngine:
         builder = self._get_builder("ev-current", metric_id)
 
-        # generate a formula that just adds values from all ev-chargers.
+        # generate a formula that just adds values from all EV Chargers.
         for idx, component_id in enumerate(component_ids):
             if idx > 0:
                 builder.push_oper("+")

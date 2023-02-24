@@ -1,7 +1,7 @@
 # License: MIT
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
-"""State tracking for ev charger pools."""
+"""State tracking for EV Charger pools."""
 
 from __future__ import annotations
 
@@ -57,21 +57,21 @@ class EVChargerState(Enum):
 
 @dataclass(frozen=True)
 class EVChargerPoolStates:
-    """States of all ev chargers in the pool."""
+    """States of all EV Chargers in the pool."""
 
     _states: dict[int, EVChargerState]
     _changed_component: Optional[int] = None
 
     def __iter__(self) -> Iterator[tuple[int, EVChargerState]]:
-        """Iterate over states of all ev chargers.
+        """Iterate over states of all EV Chargers.
 
         Returns:
-            An iterator over all ev charger states.
+            An iterator over all EV Charger states.
         """
         return iter(self._states.items())
 
     def latest_change(self) -> Optional[tuple[int, EVChargerState]]:
-        """Return the most recent ev charger state change.
+        """Return the most recent EV Charger state change.
 
         The first `EVChargerPoolStates` instance created by a `StateTracker` will just
         be a representation of the states of all EV Chargers.  At that point, the most
@@ -80,7 +80,7 @@ class EVChargerPoolStates:
 
         Returns:
             None, when the most recent change is unknown.  Otherwise, a tuple with
-                the component ID of an ev charger that just had a state change, and its
+                the component ID of an EV Charger that just had a state change, and its
                 new state.
         """
         if self._changed_component is None:
@@ -94,13 +94,13 @@ class EVChargerPoolStates:
 
 
 class StateTracker:
-    """A class for keeping track of the states of all ev chargers in a pool."""
+    """A class for keeping track of the states of all EV Chargers in a pool."""
 
     def __init__(self, component_ids: set[int]) -> None:
         """Create a `_StateTracker` instance.
 
         Args:
-            component_ids: ev charger component ids to track the states of.
+            component_ids: EV Charger component ids to track the states of.
         """
         self._component_ids = component_ids
         self._channel = Broadcast[EVChargerPoolStates](
@@ -111,7 +111,7 @@ class StateTracker:
         self._states: dict[int, EVChargerState] = {}
 
     def _get(self) -> EVChargerPoolStates:
-        """Get a representation of the current states of all ev chargers.
+        """Get a representation of the current states of all EV Chargers.
 
         Returns:
             An `EVChargerPoolStates` instance.
@@ -122,15 +122,15 @@ class StateTracker:
         self,
         data: EVChargerData,
     ) -> Optional[EVChargerPoolStates]:
-        """Update the state of an ev charger, from a new data point.
+        """Update the state of an EV Charger, from a new data point.
 
         Args:
-            data: component data from the microgrid, for an ev charger in the pool.
+            data: component data from the microgrid, for an EV Charger in the pool.
 
         Returns:
-            A new `EVChargerPoolStates` instance representing all the ev chargers in
-                the pool, in case there has been a state change for any of the ev
-                chargers, or `None` otherwise.
+            A new `EVChargerPoolStates` instance representing all the EV Chargers in
+                the pool, in case there has been a state change for any of the EV
+                Chargers, or `None` otherwise.
         """
         evc_id = data.component_id
         new_state = EVChargerState.from_ev_charger_data(data)
@@ -163,7 +163,7 @@ class StateTracker:
         """Return a receiver that streams ev charger states.
 
         Returns:
-            A receiver that streams the states of all ev chargers in the pool, every
+            A receiver that streams the states of all EV Chargers in the pool, every
                 time the states of any of them change.
         """
         if self._task is None or self._task.done():

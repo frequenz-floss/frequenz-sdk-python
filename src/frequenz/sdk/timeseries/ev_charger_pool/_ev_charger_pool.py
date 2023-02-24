@@ -1,7 +1,7 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""Interactions with pools of ev chargers."""
+"""Interactions with pools of EV Chargers."""
 
 from __future__ import annotations
 
@@ -44,7 +44,7 @@ class EVChargerPool:
             resampler_subscription_sender: A sender for sending metric requests to the
                 resampling actor.
             component_ids: An optional list of component_ids belonging to this pool.  If
-                not specified, IDs of all ev chargers in the microgrid will be fetched
+                not specified, IDs of all EV Chargers in the microgrid will be fetched
                 from the component graph.
         """
         self._channel_registry = channel_registry
@@ -68,14 +68,14 @@ class EVChargerPool:
         )
 
     async def total_current(self) -> FormulaReceiver3Phase:
-        """Fetch the total current for the ev chargers in the pool.
+        """Fetch the total current for the EV Chargers in the pool.
 
-        If a formula engine to calculate ev charger current is not already
-        running, it will be started.  Else, we'll just get a new receiver to the
-        already existing data stream.
+        If a formula engine to calculate EV Charger current is not already running, it
+        will be started.  Else, we'll just get a new receiver to the already existing
+        data stream.
 
         Returns:
-            A *new* receiver that will stream ev_charger current values.
+            A *new* receiver that will stream EV Charger current values.
         """
         return await self._formula_pool.from_generator(
             "ev_charger_total_current",
@@ -84,14 +84,14 @@ class EVChargerPool:
         )
 
     async def total_power(self) -> FormulaReceiver:
-        """Fetch the total power for the ev chargers in the pool.
+        """Fetch the total power for the EV Chargers in the pool.
 
-        If a formula engine to calculate EV charger power is not already
+        If a formula engine to calculate EV Charger power is not already
         running, it will be started. Else, we'll just get a new receiver
         to the already existing data stream.
 
         Returns:
-            A *new* receiver that will stream ev_charger power values.
+            A *new* receiver that will stream EV Charger power values.
         """
         return await self._formula_pool.from_generator(
             "ev_charger_total_power",
@@ -100,14 +100,14 @@ class EVChargerPool:
         )
 
     async def current(self, component_id: int) -> FormulaReceiver3Phase:
-        """Fetch the 3-phase current for the given ev_charger id.
+        """Fetch the 3-phase current for the given EV Charger id.
 
         Args:
-            component_id: id of the ev charger to stream current values for.
+            component_id: id of the EV Charger to stream current values for.
 
         Returns:
             A *new* receiver that will stream 3-phase current values for the given
-                ev charger.
+                EV Charger.
 
         Raises:
             EVChargerPoolError: if the given component_id is not part of the pool.
@@ -124,13 +124,13 @@ class EVChargerPool:
         )
 
     async def power(self, component_id: int) -> FormulaReceiver:
-        """Fetch the power for the given ev_charger id.
+        """Fetch the power for the given EV Charger id.
 
         Args:
-            component_id: id of the ev charger to stream power values for.
+            component_id: id of the EV Charger to stream power values for.
 
         Returns:
-            A *new* receiver that will stream power values for the given ev charger.
+            A *new* receiver that will stream power values for the given EV Charger.
 
         Raises:
             EVChargerPoolError: if the given component_id is not part of the pool.
