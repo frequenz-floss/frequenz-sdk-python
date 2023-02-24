@@ -49,3 +49,15 @@ class ChannelRegistry:
         if key not in self._channels:
             self._channels[key] = Broadcast(f"{self._name}-{key}")
         return self._channels[key].new_receiver()
+
+    async def _close_channel(self, key: str) -> None:
+        """Close a channel with the given key.
+
+        This method is private and should only be used in special cases.
+
+        Args:
+            key: A key to identify the channel.
+        """
+        if key in self._channels:
+            if channel := self._channels.pop(key, None):
+                await channel.close()
