@@ -164,7 +164,7 @@ class BatteryStatusTracker:
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
         status_sender: Sender[Status],
-        request_result_receiver: Receiver[SetPowerResult],
+        set_power_result_receiver: Receiver[SetPowerResult],
     ) -> None:
         """Create class instance.
 
@@ -177,7 +177,7 @@ class BatteryStatusTracker:
             max_blocking_duration_sec: This value tell what should be the maximum
                 timeout used for blocking failing component.
             status_sender: Channel to send status updates.
-            request_result_receiver: Channel to receive results of the requests to the
+            set_power_result_receiver: Channel to receive results of the requests to the
                 components.
 
         Raises:
@@ -204,7 +204,7 @@ class BatteryStatusTracker:
         self._select = None
 
         self._task = asyncio.create_task(
-            self._run(status_sender, request_result_receiver)
+            self._run(status_sender, set_power_result_receiver)
         )
 
     @property
@@ -226,15 +226,15 @@ class BatteryStatusTracker:
     async def _run(
         self,
         status_sender: Sender[Status],
-        request_result_receiver: Receiver[SetPowerResult],
+        set_power_result_receiver: Receiver[SetPowerResult],
     ) -> None:
-        """Process data from the components and request_result_receiver.
+        """Process data from the components and set_power_result_receiver.
 
         New status is send only when it change.
 
         Args:
             status_sender: Channel to send status updates.
-            request_result_receiver: Channel to receive results of the requests to the
+            set_power_result_receiver: Channel to receive results of the requests to the
                 components.
         """
         api_client = get_microgrid().api_client
@@ -247,7 +247,7 @@ class BatteryStatusTracker:
             battery_timer=self._battery.data_recv_timer,
             inverter_timer=self._inverter.data_recv_timer,
             inverter=inverter_receiver,
-            request_result=request_result_receiver,
+            set_power_result=set_power_result_receiver,
         )
 
         while True:
@@ -280,7 +280,7 @@ class BatteryStatusTracker:
             self._inverter.last_msg_timestamp = msg.inner.timestamp
             self._inverter.data_recv_timer.reset()
 
-        elif msg := select.request_result:
+        elif msg := select.set_power_result:
             result: SetPowerResult = msg.inner
             if self.battery_id in result.succeed:
                 self._blocking_status.unblock()
