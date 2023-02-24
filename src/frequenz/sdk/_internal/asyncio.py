@@ -3,11 +3,14 @@
 
 """General purpose async tools."""
 
+from __future__ import annotations
+
 import asyncio
 from abc import ABC
+from typing import Any
 
 
-async def cancel_and_await(task: asyncio.Task) -> None:
+async def cancel_and_await(task: asyncio.Task[Any]) -> None:
     """Cancel a task and wait for it to finish.
 
     The `CancelledError` is suppresed, but any other exception will be propagated.
