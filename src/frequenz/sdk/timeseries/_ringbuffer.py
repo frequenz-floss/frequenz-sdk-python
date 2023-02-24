@@ -9,7 +9,7 @@ from collections.abc import Iterable
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Generic, List, TypeVar, overload
+from typing import Generic, List, TypeVar, overload
 
 import numpy as np
 import numpy.typing as npt
@@ -220,14 +220,15 @@ class OrderedRingBuffer(Generic[FloatArray]):
 
         # Requested window wraps around the ends
         if start_index >= end_index:
-            window: Any = self._buffer[start_index:]
-
             if end_index > 0:
                 if isinstance(self._buffer, list):
-                    window += self._buffer[0:end_index]
-                else:
-                    window = np.concatenate((window, self._buffer[0:end_index]))
-            return window
+                    return self._buffer[start_index:] + self._buffer[0:end_index]
+                if isinstance(self._buffer, np.ndarray):
+                    return np.concatenate(
+                        (self._buffer[start_index:], self._buffer[0:end_index])
+                    )
+                assert False, f"Unknown _buffer type: {type(self._buffer)}"
+            return self._buffer[start_index:]
 
         # Return a copy if there are none-values in the data
         if force_copy or any(
