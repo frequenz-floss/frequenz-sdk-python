@@ -140,9 +140,9 @@ class FormulaEvaluator:
         if self._first_run:
             metric_ts = await self._synchronize_metric_timestamps(ready_metrics)
         else:
-            res = next(iter(ready_metrics)).result()
-            assert res is not None
-            metric_ts = res.timestamp
+            sample = next(iter(ready_metrics)).result()
+            assert sample is not None
+            metric_ts = sample.timestamp
 
         for step in self._steps:
             step.apply(eval_stack)
@@ -154,7 +154,7 @@ class FormulaEvaluator:
 
         res = eval_stack.pop()
         if isnan(res) or isinf(res):
-            res = None
+            return Sample(metric_ts, None)
 
         return Sample(metric_ts, res)
 
