@@ -49,6 +49,12 @@ class MockMicrogridClient:
         meter_channels = self._create_meter_channels()
         ev_charger_channels = self._create_ev_charger_channels()
 
+        self._all_channels: Dict[int, Broadcast[Any]] = {}
+        self._all_channels.update(bat_channels)
+        self._all_channels.update(inv_channels)
+        self._all_channels.update(meter_channels)
+        self._all_channels.update(ev_charger_channels)
+
         mock_api = self._create_mock_api(
             bat_channels, inv_channels, meter_channels, ev_charger_channels
         )
@@ -127,6 +133,15 @@ class MockMicrogridClient:
             return await self._ev_charger_data_senders[cid].send(data)
 
         raise RuntimeError(f"{type(data)} is not supported in MockMicrogridClient.")
+
+    async def close_channel(self, cid: int) -> None:
+        """Close channel for given component id.
+
+        Args:
+            cid: Component id
+        """
+        if cid in self._all_channels:
+            await self._all_channels[cid].close()
 
     def _create_battery_channels(self) -> Dict[int, Broadcast[BatteryData]]:
         """Create channels for the batteries.
