@@ -9,7 +9,7 @@ from collections.abc import Iterable
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Generic, List, SupportsIndex, TypeVar, overload
+from typing import Generic, List, SupportsFloat, SupportsIndex, TypeVar, overload
 
 import numpy as np
 import numpy.typing as npt
@@ -423,7 +423,23 @@ class OrderedRingBuffer(Generic[FloatArray]):
             index_or_slice: Index or slice specification of the requested data.
             value: Value to set at the given position.
         """
-        self._buffer.__setitem__(index_or_slice, value)
+        # There seem to be 2 different mypy bugs at play here.
+        # First we need to check that the combination of input arguments are
+        # correct to make the type checker happy (I guess it could be inferred
+        # from the @overloads, but it's not currently working without this
+        # hack).
+        # Then we need to ignore a no-untyped-call error, for some reason it
+        # can't get the type for self._buffer.__setitem__()
+        if isinstance(index_or_slice, SupportsIndex) and isinstance(
+            value, SupportsFloat
+        ):
+            self._buffer.__setitem__(index_or_slice, value)  # type: ignore[no-untyped-call]
+        elif isinstance(index_or_slice, slice) and isinstance(value, Iterable):
+            self._buffer.__setitem__(index_or_slice, value)  # type: ignore[no-untyped-call]
+        else:
+            assert (
+                False
+            ), f"Incompatible input arguments: {type(index_or_slice)=} {type(value)=}"
 
     @overload
     def __getitem__(self, index_or_slice: SupportsIndex) -> float:
