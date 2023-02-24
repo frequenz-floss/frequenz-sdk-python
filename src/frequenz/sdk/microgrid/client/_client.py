@@ -360,7 +360,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
                     retry_spec.get_progress(),
                     interval,
                 )
-                await asyncio.sleep(interval)  # type: ignore
+                await asyncio.sleep(interval)
             else:
                 logger.warning(
                     "`GetComponentData`, for component_id=%d: connection ended, "
