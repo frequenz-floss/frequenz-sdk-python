@@ -343,12 +343,21 @@ class MicrogridApiSource:
             stream_senders = self._get_metric_senders(
                 category, self._req_streaming_metrics[comp_id]
             )
-        api_data_receiver = self.comp_data_receivers[comp_id]
+        api_data_receiver: Receiver[Any] = self.comp_data_receivers[comp_id]
 
         async for data in api_data_receiver:
             for extractor, senders in stream_senders:
                 for sender in senders:
                     await sender.send(Sample(data.timestamp, extractor(data)))
+
+        await asyncio.gather(
+            *[
+                # pylint: disable=protected-access
+                self._registry._close_channel(r.get_channel_name())
+                for requests in self._req_streaming_metrics[comp_id].values()
+                for r in requests
+            ]
+        )
 
     async def _update_streams(
         self,
