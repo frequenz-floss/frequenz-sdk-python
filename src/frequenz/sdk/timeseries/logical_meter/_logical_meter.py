@@ -144,9 +144,9 @@ class LogicalMeter:
     async def grid_power(self) -> FormulaReceiver:
         """Fetch the grid power for the microgrid.
 
-        If a formula engine to calculate grid power is not already running, it
-        will be started.  Else, we'll just get a new receiver to the already
-        existing data stream.
+        If a formula engine to calculate grid power is not already running, it will be
+        started.  Else, it will return a new receiver to the already existing data
+        stream.
 
         Returns:
             A *new* receiver that will stream grid_power values.
@@ -157,9 +157,9 @@ class LogicalMeter:
     async def grid_current(self) -> FormulaReceiver3Phase:
         """Fetch the grid power for the microgrid.
 
-        If a formula engine to calculate grid current is not already running, it
-        will be started.  Else, we'll just get a new receiver to the already
-        existing data stream.
+        If a formula engine to calculate grid current is not already running, it will be
+        started.  Else, it will return a new receiver to the already existing data
+        stream.
 
         Returns:
             A *new* receiver that will stream grid_current values.
@@ -172,9 +172,9 @@ class LogicalMeter:
     async def battery_power(self) -> FormulaReceiver:
         """Fetch the cumulative battery power in the microgrid.
 
-        If a formula engine to calculate cumulative battery power is not
-        already running, it will be started.  Else, we'll just get a new
-        receiver to the already existing data stream.
+        If a formula engine to calculate cumulative battery power is not already
+        running, it will be started.  Else, it will return a new receiver to the already
+        existing data stream.
 
         Returns:
             A *new* receiver that will stream battery_power values.
@@ -187,12 +187,13 @@ class LogicalMeter:
     async def pv_power(self) -> FormulaReceiver:
         """Fetch the PV power production in the microgrid.
 
-        If a formula engine to calculate PV power production is not
-        already running, it will be started.  Else, we'll just get a new
-        receiver to the already existing data stream.
+        If a formula engine to calculate PV power production is not already running, it
+        will be started.  Else, it will return a new receiver to the already existing
+        data stream.
 
         Returns:
             A *new* receiver that will stream PV power production values.
+
         """
         return await self._formula_pool.from_generator("pv_power", PVPowerFormula)
 

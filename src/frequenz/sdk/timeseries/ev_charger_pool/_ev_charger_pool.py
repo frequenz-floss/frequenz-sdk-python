@@ -71,7 +71,7 @@ class EVChargerPool:
         """Fetch the total current for the EV Chargers in the pool.
 
         If a formula engine to calculate EV Charger current is not already running, it
-        will be started.  Else, we'll just get a new receiver to the already existing
+        will be started.  Else, it will return a new receiver to the already existing
         data stream.
 
         Returns:
@@ -86,12 +86,13 @@ class EVChargerPool:
     async def total_power(self) -> FormulaReceiver:
         """Fetch the total power for the EV Chargers in the pool.
 
-        If a formula engine to calculate EV Charger power is not already
-        running, it will be started. Else, we'll just get a new receiver
-        to the already existing data stream.
+        If a formula engine to calculate EV Charger power is not already running, it
+        will be started.  Else, it will return a new receiver to the already existing
+        data stream.
 
         Returns:
             A *new* receiver that will stream EV Charger power values.
+
         """
         return await self._formula_pool.from_generator(
             "ev_charger_total_power",
