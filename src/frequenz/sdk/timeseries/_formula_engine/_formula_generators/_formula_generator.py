@@ -3,8 +3,11 @@
 
 """Base class for formula generators that use the component graphs."""
 
+from __future__ import annotations
+
 import sys
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Generic
 
 from frequenz.channels import Sender
@@ -26,6 +29,13 @@ class ComponentNotFound(FormulaGenerationError):
 NON_EXISTING_COMPONENT_ID = sys.maxsize
 
 
+@dataclass(frozen=True)
+class FormulaGeneratorConfig:
+    """Config for formula generators."""
+
+    component_ids: set[int] | None = None
+
+
 class FormulaGenerator(ABC, Generic[_GenericEngine]):
     """A class for generating formulas from the component graph."""
 
@@ -34,6 +44,7 @@ class FormulaGenerator(ABC, Generic[_GenericEngine]):
         namespace: str,
         channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
+        config: FormulaGeneratorConfig,
     ) -> None:
         """Create a `FormulaGenerator` instance.
 
@@ -43,10 +54,12 @@ class FormulaGenerator(ABC, Generic[_GenericEngine]):
                 actor.
             resampler_subscription_sender: A sender for sending metric requests to the
                 resampling actor.
+            config: configs for the formula generator.
         """
         self._channel_registry = channel_registry
         self._resampler_subscription_sender = resampler_subscription_sender
         self._namespace = namespace
+        self._config = config
 
     def _get_builder(
         self, name: str, component_metric_id: ComponentMetricId

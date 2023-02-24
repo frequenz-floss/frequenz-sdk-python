@@ -3,11 +3,11 @@
 
 """Formula generator from component graph for 3-phase Grid Current."""
 
-import logging
-from typing import List
+from __future__ import annotations
 
-from .....sdk import microgrid
-from ....microgrid.component import Component, ComponentCategory, ComponentMetricId
+import logging
+
+from ....microgrid.component import ComponentMetricId
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase
 from ._formula_generator import NON_EXISTING_COMPONENT_ID, FormulaGenerator
 
@@ -18,21 +18,16 @@ class EVChargerCurrentFormula(FormulaGenerator):
     """Create a formula engine from the component graph for calculating grid current."""
 
     async def generate(self) -> FormulaEngine3Phase:
-        """Generate a formula for calculating total ev current from the component graph.
+        """Generate a formula for calculating total EV current for given component ids.
 
         Returns:
-            A formula engine that calculates total 3-phase ev charger current values.
+            A formula engine that calculates total 3-phase EV Charger current values.
         """
-        component_graph = microgrid.get().component_graph
-        ev_chargers = [
-            comp
-            for comp in component_graph.components()
-            if comp.category == ComponentCategory.EV_CHARGER
-        ]
+        component_ids = self._config.component_ids
 
-        if not ev_chargers:
+        if not component_ids:
             logger.warning(
-                "Unable to find any EV Chargers in the component graph. "
+                "No EV Charger component IDs specified. "
                 "Subscribing to the resampling actor with a non-existing "
                 "component id, so that `0` values are sent from the formula."
             )
@@ -54,17 +49,17 @@ class EVChargerCurrentFormula(FormulaGenerator):
             (
                 (
                     await self._gen_phase_formula(
-                        ev_chargers, ComponentMetricId.CURRENT_PHASE_1
+                        component_ids, ComponentMetricId.CURRENT_PHASE_1
                     )
                 ).new_receiver(),
                 (
                     await self._gen_phase_formula(
-                        ev_chargers, ComponentMetricId.CURRENT_PHASE_2
+                        component_ids, ComponentMetricId.CURRENT_PHASE_2
                     )
                 ).new_receiver(),
                 (
                     await self._gen_phase_formula(
-                        ev_chargers, ComponentMetricId.CURRENT_PHASE_3
+                        component_ids, ComponentMetricId.CURRENT_PHASE_3
                     )
                 ).new_receiver(),
             ),
@@ -72,16 +67,16 @@ class EVChargerCurrentFormula(FormulaGenerator):
 
     async def _gen_phase_formula(
         self,
-        ev_chargers: List[Component],
+        component_ids: set[int],
         metric_id: ComponentMetricId,
     ) -> FormulaEngine:
         builder = self._get_builder("ev-current", metric_id)
 
-        # generate a formula that just adds values from all ev-chargers.
-        for idx, comp in enumerate(ev_chargers):
+        # generate a formula that just adds values from all EV Chargers.
+        for idx, component_id in enumerate(component_ids):
             if idx > 0:
                 builder.push_oper("+")
 
-            await builder.push_component_metric(comp.component_id, nones_are_zeros=True)
+            await builder.push_component_metric(component_id, nones_are_zeros=True)
 
         return builder.build()

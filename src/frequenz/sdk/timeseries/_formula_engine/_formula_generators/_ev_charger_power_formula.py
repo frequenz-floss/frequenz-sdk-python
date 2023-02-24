@@ -5,8 +5,7 @@
 
 import logging
 
-from .....sdk import microgrid
-from ....microgrid.component import ComponentCategory, ComponentMetricId
+from ....microgrid.component import ComponentMetricId
 from .._formula_engine import FormulaEngine
 from ._formula_generator import NON_EXISTING_COMPONENT_ID, FormulaGenerator
 
@@ -17,22 +16,17 @@ class EVChargerPowerFormula(FormulaGenerator):
     """Create a formula engine from the component graph for calculating grid power."""
 
     async def generate(self) -> FormulaEngine:
-        """Generate a formula for calculating total EV power from the component graph.
+        """Generate a formula for calculating total EV power for given component ids.
 
         Returns:
-            A formula engine that calculates total EV charger power values.
+            A formula engine that calculates total EV Charger power values.
         """
         builder = self._get_builder("ev-power", ComponentMetricId.ACTIVE_POWER)
-        component_graph = microgrid.get().component_graph
-        ev_chargers = [
-            comp
-            for comp in component_graph.components()
-            if comp.category == ComponentCategory.EV_CHARGER
-        ]
 
-        if not ev_chargers:
+        component_ids = self._config.component_ids
+        if not component_ids:
             logger.warning(
-                "Unable to find any EV Chargers in the component graph. "
+                "No EV Charger component IDs specified. "
                 "Subscribing to the resampling actor with a non-existing "
                 "component id, so that `0` values are sent from the formula."
             )
@@ -44,10 +38,10 @@ class EVChargerPowerFormula(FormulaGenerator):
             )
             return builder.build()
 
-        for idx, comp in enumerate(ev_chargers):
+        for idx, component_id in enumerate(component_ids):
             if idx > 0:
                 builder.push_oper("+")
 
-            await builder.push_component_metric(comp.component_id, nones_are_zeros=True)
+            await builder.push_component_metric(component_id, nones_are_zeros=True)
 
         return builder.build()

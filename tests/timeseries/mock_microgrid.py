@@ -17,7 +17,7 @@ from frequenz.api.microgrid import (
     meter_pb2,
     microgrid_pb2,
 )
-from frequenz.channels import Broadcast, Sender
+from frequenz.channels import Broadcast
 from google.protobuf.timestamp_pb2 import Timestamp  # pylint: disable=no-name-in-module
 from pytest_mock import MockerFixture
 
@@ -88,7 +88,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
     async def start(
         self, mocker: MockerFixture
-    ) -> Tuple[Sender[ComponentMetricRequest], ChannelRegistry]:
+    ) -> Tuple[Broadcast[ComponentMetricRequest], ChannelRegistry]:
         """Start the MockServer, and the data source and resampling actors.
 
         Returns:
@@ -312,7 +312,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
     async def _init_client_and_actors(
         self,
-    ) -> Tuple[Sender[ComponentMetricRequest], ChannelRegistry]:
+    ) -> Tuple[Broadcast[ComponentMetricRequest], ChannelRegistry]:
         channel_registry = ChannelRegistry(name="Microgrid Channel Registry")
 
         data_source_request_channel = Broadcast[ComponentMetricRequest](
@@ -324,7 +324,6 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         resampling_actor_request_channel = Broadcast[ComponentMetricRequest](
             "Resampling Actor Request Channel"
         )
-        resampling_actor_request_sender = resampling_actor_request_channel.new_sender()
         resampling_actor_request_receiver = (
             resampling_actor_request_channel.new_receiver()
         )
@@ -344,7 +343,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             )
         )
 
-        return (resampling_actor_request_sender, channel_registry)
+        return (resampling_actor_request_channel, channel_registry)
 
     async def cleanup(self) -> None:
         """Clean up after a test."""

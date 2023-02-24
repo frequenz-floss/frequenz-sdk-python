@@ -3,10 +3,8 @@
 
 """Interactions with EV Chargers."""
 
-from ._ev_charger_pool import EVChargerPool, EVChargerPoolStates, EVChargerState
+from ._ev_charger_pool import EVChargerPool
 
 __all__ = [
     "EVChargerPool",
-    "EVChargerPoolStates",
-    "EVChargerState",
 ]

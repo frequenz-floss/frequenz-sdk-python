@@ -1,134 +1,30 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""Interactions with pools of ev chargers."""
+"""Interactions with pools of EV Chargers."""
 
 from __future__ import annotations
 
-import asyncio
 import logging
-from collections.abc import Iterator
-from dataclasses import dataclass
-from enum import Enum
-from typing import Optional
+import uuid
 
-from frequenz.channels import Broadcast, Receiver
-from frequenz.channels.util import Merge
+from frequenz.channels import Sender
 
 from ... import microgrid
-from ..._internal.asyncio import cancel_and_await
-from ...microgrid.component import (
-    ComponentCategory,
-    EVChargerCableState,
-    EVChargerComponentState,
-    EVChargerData,
+from ...actor import ChannelRegistry, ComponentMetricRequest
+from ...microgrid.component import ComponentCategory
+from .._formula_engine import FormulaEnginePool, FormulaReceiver, FormulaReceiver3Phase
+from .._formula_engine._formula_generators import (
+    EVChargerCurrentFormula,
+    EVChargerPowerFormula,
+    FormulaGeneratorConfig,
 )
 
 logger = logging.getLogger(__name__)
 
 
-class EVChargerState(Enum):
-    """State of individual ev charger."""
-
-    UNSPECIFIED = "UNSPECIFIED"
-    IDLE = "IDLE"
-    EV_PLUGGED = "EV_PLUGGED"
-    EV_LOCKED = "EV_LOCKED"
-    ERROR = "ERROR"
-
-    @classmethod
-    def from_ev_charger_data(cls, data: EVChargerData) -> EVChargerState:
-        """Create an `EVChargerState` instance from component data.
-
-        Args:
-            data: ev charger data coming from microgrid.
-
-        Returns:
-            An `EVChargerState` instance.
-        """
-        if data.component_state in (
-            EVChargerComponentState.AUTHORIZATION_REJECTED,
-            EVChargerComponentState.ERROR,
-        ):
-            return EVChargerState.ERROR
-        if data.cable_state == EVChargerCableState.EV_LOCKED:
-            return EVChargerState.EV_LOCKED
-        if data.cable_state == EVChargerCableState.EV_PLUGGED:
-            return EVChargerState.EV_PLUGGED
-        return EVChargerState.IDLE
-
-
-@dataclass(frozen=True)
-class EVChargerPoolStates:
-    """States of all ev chargers in the pool."""
-
-    _states: dict[int, EVChargerState]
-    _changed_component: Optional[int] = None
-
-    def __iter__(self) -> Iterator[tuple[int, EVChargerState]]:
-        """Iterate over states of all ev chargers.
-
-        Returns:
-            An iterator over all ev charger states.
-        """
-        return iter(self._states.items())
-
-    def latest_change(self) -> Optional[tuple[int, EVChargerState]]:
-        """Return the most recent ev charger state change.
-
-        Returns:
-            A tuple with the component ID of an ev charger that just had a state
-                change, and its new state.
-        """
-        if self._changed_component is None:
-            return None
-        return (
-            self._changed_component,
-            self._states.setdefault(
-                self._changed_component, EVChargerState.UNSPECIFIED
-            ),
-        )
-
-
-class _StateTracker:
-    """A class for keeping track of the states of all ev chargers in a pool."""
-
-    def __init__(self, comp_states: dict[int, EVChargerState]) -> None:
-        """Create a `_StateTracker` instance.
-
-        Args:
-            comp_states: initial states of all ev chargers in the pool.
-        """
-        self._states = comp_states
-
-    def get(self) -> EVChargerPoolStates:
-        """Get a representation of the current states of all ev chargers.
-
-        Returns:
-            An `EVChargerPoolStates` instance.
-        """
-        return EVChargerPoolStates(self._states)
-
-    def update(
-        self,
-        data: EVChargerData,
-    ) -> Optional[EVChargerPoolStates]:
-        """Update the state of an ev charger, from a new data point.
-
-        Args:
-            data: component data from the microgrid, for an ev charger in the pool.
-
-        Returns:
-            A new `EVChargerPoolStates` instance representing all the ev chargers in
-                the pool, in case there has been a state change for any of the ev
-                chargers, or `None` otherwise.
-        """
-        evc_id = data.component_id
-        new_state = EVChargerState.from_ev_charger_data(data)
-        if evc_id not in self._states or self._states[evc_id] != new_state:
-            self._states[evc_id] = new_state
-            return EVChargerPoolStates(self._states, evc_id)
-        return None
+class EVChargerPoolError(Exception):
+    """An error that occurred in any of the EVChargerPool methods."""
 
 
 class EVChargerPool:
@@ -136,16 +32,24 @@ class EVChargerPool:
 
     def __init__(
         self,
-        component_ids: Optional[set[int]] = None,
+        channel_registry: ChannelRegistry,
+        resampler_subscription_sender: Sender[ComponentMetricRequest],
+        component_ids: set[int] | None = None,
     ) -> None:
         """Create an `EVChargerPool` instance.
 
         Args:
+            channel_registry: A channel registry instance shared with the resampling
+                actor.
+            resampler_subscription_sender: A sender for sending metric requests to the
+                resampling actor.
             component_ids: An optional list of component_ids belonging to this pool.  If
-                not specified, IDs of all ev chargers in the microgrid will be fetched
+                not specified, IDs of all EV Chargers in the microgrid will be fetched
                 from the component graph.
         """
-        self._component_ids = set()
+        self._channel_registry = channel_registry
+        self._resampler_subscription_sender = resampler_subscription_sender
+        self._component_ids: set[int] = set()
         if component_ids is not None:
             self._component_ids = component_ids
         else:
@@ -156,47 +60,89 @@ class EVChargerPool:
                     component_category={ComponentCategory.EV_CHARGER}
                 )
             }
-        self._channel = Broadcast[EVChargerPoolStates](
-            "EVCharger States", resend_latest=True
-        )
-        self._task: Optional[asyncio.Task[None]] = None
-        self._merged_stream: Optional[Merge] = None
-
-    async def _run(self) -> None:
-        logger.debug("Starting EVChargerPool for components: %s", self._component_ids)
-        api_client = microgrid.get().api_client
-        streams: list[Receiver[EVChargerData]] = await asyncio.gather(
-            *[api_client.ev_charger_data(cid) for cid in self._component_ids]
+        self._namespace = f"ev-charger-pool-{uuid.uuid4()}"
+        self._formula_pool = FormulaEnginePool(
+            self._namespace,
+            self._channel_registry,
+            self._resampler_subscription_sender,
         )
 
-        latest_messages: list[EVChargerData] = await asyncio.gather(
-            *[stream.receive() for stream in streams]
-        )
-        states = {
-            msg.component_id: EVChargerState.from_ev_charger_data(msg)
-            for msg in latest_messages
-        }
-        state_tracker = _StateTracker(states)
-        self._merged_stream = Merge(*streams)
-        sender = self._channel.new_sender()
-        await sender.send(state_tracker.get())
-        async for data in self._merged_stream:
-            if updated_states := state_tracker.update(data):
-                await sender.send(updated_states)
+    async def total_current(self) -> FormulaReceiver3Phase:
+        """Fetch the total current for the EV Chargers in the pool.
 
-    async def _stop(self) -> None:
-        if self._task:
-            await cancel_and_await(self._task)
-        if self._merged_stream:
-            await self._merged_stream.stop()
-
-    def states(self) -> Receiver[EVChargerPoolStates]:
-        """Return a receiver that streams ev charger states.
+        If a formula engine to calculate EV Charger current is not already running, it
+        will be started.  Else, it will return a new receiver to the already existing
+        data stream.
 
         Returns:
-            A receiver that streams the states of all ev chargers in the pool, every
-                time the states of any of them change.
+            A *new* receiver that will stream EV Charger current values.
         """
-        if self._task is None or self._task.done():
-            self._task = asyncio.create_task(self._run())
-        return self._channel.new_receiver()
+        return await self._formula_pool.from_generator(
+            "ev_charger_total_current",
+            EVChargerCurrentFormula,
+            FormulaGeneratorConfig(component_ids=self._component_ids),
+        )
+
+    async def total_power(self) -> FormulaReceiver:
+        """Fetch the total power for the EV Chargers in the pool.
+
+        If a formula engine to calculate EV Charger power is not already running, it
+        will be started.  Else, it will return a new receiver to the already existing
+        data stream.
+
+        Returns:
+            A *new* receiver that will stream EV Charger power values.
+
+        """
+        return await self._formula_pool.from_generator(
+            "ev_charger_total_power",
+            EVChargerPowerFormula,
+            FormulaGeneratorConfig(component_ids=self._component_ids),
+        )
+
+    async def current(self, component_id: int) -> FormulaReceiver3Phase:
+        """Fetch the 3-phase current for the given EV Charger id.
+
+        Args:
+            component_id: id of the EV Charger to stream current values for.
+
+        Returns:
+            A *new* receiver that will stream 3-phase current values for the given
+                EV Charger.
+
+        Raises:
+            EVChargerPoolError: if the given component_id is not part of the pool.
+        """
+        if component_id not in self._component_ids:
+            raise EVChargerPoolError(
+                f"{component_id=} is not part of the EVChargerPool"
+                f" (with ids={self._component_ids})"
+            )
+        return await self._formula_pool.from_generator(
+            f"ev_charger_current_{component_id}",
+            EVChargerCurrentFormula,
+            FormulaGeneratorConfig(component_ids={component_id}),
+        )
+
+    async def power(self, component_id: int) -> FormulaReceiver:
+        """Fetch the power for the given EV Charger id.
+
+        Args:
+            component_id: id of the EV Charger to stream power values for.
+
+        Returns:
+            A *new* receiver that will stream power values for the given EV Charger.
+
+        Raises:
+            EVChargerPoolError: if the given component_id is not part of the pool.
+        """
+        if component_id not in self._component_ids:
+            raise EVChargerPoolError(
+                f"{component_id=} is not part of the EVChargerPool"
+                f" (with ids={self._component_ids})"
+            )
+        return await self._formula_pool.from_generator(
+            f"ev_charger_current_{component_id}",
+            EVChargerPowerFormula,
+            FormulaGeneratorConfig(component_ids={component_id}),
+        )

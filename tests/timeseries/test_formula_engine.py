@@ -10,13 +10,17 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 from frequenz.channels import Broadcast, Receiver
 
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries.logical_meter._formula_engine import (
+from frequenz.sdk.timeseries._formula_engine._formula_engine import (
     FormulaBuilder,
     FormulaEngine,
     FormulaReceiver,
     HigherOrderFormulaBuilder,
 )
-from frequenz.sdk.timeseries.logical_meter._tokenizer import Token, Tokenizer, TokenType
+from frequenz.sdk.timeseries._formula_engine._tokenizer import (
+    Token,
+    Tokenizer,
+    TokenType,
+)
 
 
 class TestTokenizer:
