@@ -212,7 +212,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
         try:
             component_list = await self.api.ListComponents(
                 microgrid_pb.ComponentFilter(),
-                timeout=DEFAULT_GRPC_CALL_TIMEOUT,
+                timeout=int(DEFAULT_GRPC_CALL_TIMEOUT),
             )
         except grpc.aio.AioRpcError as err:
             msg = f"Failed to list components. Microgrid API: {self.target}. Err: {err.details()}"
@@ -267,7 +267,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
             valid_components, all_connections = await asyncio.gather(
                 self.components(),
                 self.api.ListConnections(
-                    connection_filter, timeout=DEFAULT_GRPC_CALL_TIMEOUT
+                    connection_filter, timeout=int(DEFAULT_GRPC_CALL_TIMEOUT)
                 ),
             )
         except grpc.aio.AioRpcError as err:
@@ -554,7 +554,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
                     microgrid_pb.PowerLevelParam(
                         component_id=component_id, power_w=power_w
                     ),
-                    timeout=DEFAULT_GRPC_CALL_TIMEOUT,
+                    timeout=int(DEFAULT_GRPC_CALL_TIMEOUT),
                 )
             else:
                 power_w *= -1
@@ -562,7 +562,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
                     microgrid_pb.PowerLevelParam(
                         component_id=component_id, power_w=power_w
                     ),
-                    timeout=DEFAULT_GRPC_CALL_TIMEOUT,
+                    timeout=int(DEFAULT_GRPC_CALL_TIMEOUT),
                 )
         except grpc.aio.AioRpcError as err:
             msg = f"Failed to set power. Microgrid API: {self.target}. Err: {err.details()}"
@@ -600,7 +600,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
         if lower > 0:
             raise ValueError(f"Lower bound {upper} must be less than or equal to 0.")
 
-        set_bounds_call = self.api.SetBounds(timeout=DEFAULT_GRPC_CALL_TIMEOUT)
+        set_bounds_call = self.api.SetBounds(timeout=int(DEFAULT_GRPC_CALL_TIMEOUT))
         try:
             await set_bounds_call.write(
                 microgrid_pb.SetBoundsParam(
