@@ -139,7 +139,10 @@ required_plugins = [ "pytest-asyncio", "pytest-mock" ]
 [[tool.mypy.overrides]]
 module = [
     "grpc.aio",
-    "grpc.aio.*"
+    "grpc.aio.*",
+    # There is a stubs package available, but it's not working:
+    # https://github.com/eggplants/networkx-stubs/issues/1
+    "networkx",
 ]
 ignore_missing_imports = true
 
