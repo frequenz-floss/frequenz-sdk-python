@@ -9,7 +9,7 @@ from collections.abc import Iterable
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Generic, List, TypeVar, overload
+from typing import Generic, List, SupportsIndex, TypeVar, overload
 
 import numpy as np
 import numpy.typing as npt
@@ -400,7 +400,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         """
 
     @overload
-    def __setitem__(self, index_or_slice: int, value: float) -> None:
+    def __setitem__(self, index_or_slice: SupportsIndex, value: float) -> None:
         """Set value at requested index.
 
         No wrapping of the index will be done.
@@ -412,7 +412,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         """
 
     def __setitem__(
-        self, index_or_slice: int | slice, value: float | Iterable[float]
+        self, index_or_slice: SupportsIndex | slice, value: float | Iterable[float]
     ) -> None:
         """Set item or slice at requested position.
 
@@ -426,7 +426,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         self._buffer.__setitem__(index_or_slice, value)
 
     @overload
-    def __getitem__(self, index_or_slice: int) -> float:
+    def __getitem__(self, index_or_slice: SupportsIndex) -> float:
         """Get item at requested position.
 
         No wrapping of the index will be done.
@@ -447,7 +447,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
             index_or_slice: Slice specification of where the requested data is.
         """
 
-    def __getitem__(self, index_or_slice: int | slice) -> float | FloatArray:
+    def __getitem__(self, index_or_slice: SupportsIndex | slice) -> float | FloatArray:
         """Get item or slice at requested position.
 
         No wrapping of the index will be done.
