@@ -94,8 +94,8 @@ class BatteryPoolStatus:
         self._current_status = BatteryStatus(working=set(), uncertain=set())
 
         # Channel for sending results of requests to the batteries
-        request_result_channel = Broadcast[SetPowerResult]("battery_request_status")
-        self._request_result_sender = request_result_channel.new_sender()
+        set_power_result_channel = Broadcast[SetPowerResult]("battery_request_status")
+        self._set_power_result_sender = set_power_result_channel.new_sender()
 
         self._batteries: Dict[str, BatteryStatusTracker] = {}
 
@@ -112,7 +112,7 @@ class BatteryPoolStatus:
                 max_data_age_sec=max_data_age_sec,
                 max_blocking_duration_sec=max_blocking_duration_sec,
                 status_sender=channel.sender,
-                request_result_receiver=request_result_channel.new_receiver(
+                set_power_result_receiver=set_power_result_channel.new_receiver(
                     f"battery_{battery_id}_request_status"
                 ),
             )
@@ -122,6 +122,17 @@ class BatteryPoolStatus:
         )
 
         self._task = asyncio.create_task(self._run())
+
+    async def join(self) -> None:
+        """Await for the battery pool, and return when the task completes.
+
+        It will not terminate the program while BatteryPool is working.
+        BatteryPool can be stopped with the `stop` method.
+        This method is not needed in source code, because BatteryPool is owned
+        by the internal code.
+        It is needed only when user needs to run his own instance of the BatteryPool.
+        """
+        await self._task
 
     async def stop(self) -> None:
         """Stop tracking batteries status."""
@@ -178,7 +189,7 @@ class BatteryPoolStatus:
             succeed_batteries: Batteries that succeed request
             failed_batteries: Batteries that failed request
         """
-        await self._request_result_sender.send(
+        await self._set_power_result_sender.send(
             SetPowerResult(succeed_batteries, failed_batteries)
         )
 
