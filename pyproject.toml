@@ -59,6 +59,7 @@ docs-gen = [
 docs-lint = [
     "pydocstyle",
     "darglint",
+    "tomli",  # Needed by pydocstyle to read pyproject.toml
 ]
 format = [
     "black",
