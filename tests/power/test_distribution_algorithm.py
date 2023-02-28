@@ -7,20 +7,13 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
-import frequenz.api.microgrid.microgrid_pb2 as microgrid_pb
 import pytest
-from frequenz.api.microgrid.battery_pb2 import Battery
-from frequenz.api.microgrid.battery_pb2 import Data as PbBatteryData
-from frequenz.api.microgrid.battery_pb2 import Properties as BatteryProperties
-from frequenz.api.microgrid.common_pb2 import AC, DC, Bounds
-from frequenz.api.microgrid.common_pb2 import Metric as PbMetric
-from frequenz.api.microgrid.common_pb2 import MetricAggregation
-from frequenz.api.microgrid.inverter_pb2 import Data as PbInverterData
-from frequenz.api.microgrid.inverter_pb2 import Inverter
-from google.protobuf.timestamp_pb2 import Timestamp  # pylint: disable=no-name-in-module
+from frequenz.api.microgrid.common_pb2 import Bounds
 
 from frequenz.sdk.microgrid.component import BatteryData, InverterData
 from frequenz.sdk.power import DistributionAlgorithm, InvBatPair
+
+from ..utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
 
 
 @dataclass
@@ -46,21 +39,6 @@ class Metric:
     now: Optional[float]
     bound: Optional[Bound] = None
 
-    def to_protobuf(self) -> PbMetric:
-        """Create protobuf Metric message from that instance.
-
-        Returns:
-           Protobuf Metric
-        """
-        if self.now is None:
-            if self.bound is None:
-                return PbMetric()
-            return PbMetric(system_bounds=self.bound.to_protobuf())
-        if self.bound is None:
-            return PbMetric(value=self.now)
-
-        return PbMetric(value=self.now, system_bounds=self.bound.to_protobuf())
-
 
 def battery_msg(  # pylint: disable=too-many-arguments
     component_id: int,
@@ -82,26 +60,16 @@ def battery_msg(  # pylint: disable=too-many-arguments
     Returns:
         Protobuf battery component with data above
     """
-    pb_timestamp = Timestamp()
-    pb_timestamp.FromDatetime(timestamp)
-    capacitypb = capacity.to_protobuf()
-    socpb = soc.to_protobuf()
-    pb_data = microgrid_pb.ComponentData(
-        id=component_id,
-        ts=pb_timestamp,
-        battery=Battery(
-            properties=BatteryProperties(capacity=capacitypb.value),
-            data=PbBatteryData(
-                soc=MetricAggregation(
-                    avg=socpb.value, system_bounds=socpb.system_bounds
-                ),
-                dc=DC(
-                    power=PbMetric(system_bounds=power.to_protobuf()),
-                ),
-            ),
-        ),
+    return BatteryDataWrapper(
+        component_id=component_id,
+        capacity=capacity.now if capacity.now is not None else float("NaN"),
+        soc=soc.now if soc.now is not None else float("NaN"),
+        soc_lower_bound=soc.bound.lower if soc.bound is not None else float("NaN"),
+        soc_upper_bound=soc.bound.upper if soc.bound is not None else float("NaN"),
+        power_lower_bound=power.lower,
+        power_upper_bound=power.upper,
+        timestamp=timestamp,
     )
-    return BatteryData.from_proto(pb_data)
 
 
 def inverter_msg(
@@ -120,19 +88,12 @@ def inverter_msg(
     Returns:
         Protobuf inverter component with data above.
     """
-    pb_timestamp = Timestamp()
-    pb_timestamp.FromDatetime(timestamp)
-    pb_data = microgrid_pb.ComponentData(
-        id=component_id,
-        ts=pb_timestamp,
-        inverter=Inverter(
-            data=PbInverterData(
-                ac=AC(power_active=PbMetric(system_bounds=power.to_protobuf())),
-            )
-        ),
+    return InverterDataWrapper(
+        component_id=component_id,
+        timestamp=timestamp,
+        active_power_lower_bound=power.lower,
+        active_power_upper_bound=power.upper,
     )
-
-    return InverterData.from_proto(pb_data)
 
 
 class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
@@ -147,16 +108,16 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
         components: List[InvBatPair] = []
         for i in range(0, num):
-            bat_msg = microgrid_pb.ComponentData(
-                id=2 * i,
-                battery=Battery(properties=BatteryProperties(capacity=capacity[i])),
+            battery_data = BatteryDataWrapper(
+                component_id=2 * i,
+                timestamp=datetime.now(tz=timezone.utc),
+                capacity=capacity[i],
             )
-            battery = BatteryData.from_proto(bat_msg)
+            inverter_data = InverterDataWrapper(
+                component_id=2 * i + 1, timestamp=datetime.now(tz=timezone.utc)
+            )
 
-            inv_msg = microgrid_pb.ComponentData(id=2 * i + 1, inverter=Inverter())
-            inverter = InverterData.from_proto(inv_msg)
-
-            components.append(InvBatPair(battery, inverter))
+            components.append(InvBatPair(battery_data, inverter_data))
         return components
 
     def test_total_capacity_all_0(self) -> None:

@@ -7,24 +7,17 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Generic, Iterable, List, Optional, Set, Tuple, TypeVar
 
-import frequenz.api.microgrid.microgrid_pb2 as microgrid_pb
 import pytest
-import pytz
 import time_machine
-from frequenz.api.microgrid.battery_pb2 import Battery as PbBattery
 from frequenz.api.microgrid.battery_pb2 import ComponentState as BatteryState
 from frequenz.api.microgrid.battery_pb2 import Error as BatteryError
 from frequenz.api.microgrid.battery_pb2 import ErrorCode as BatteryErrorCode
 from frequenz.api.microgrid.battery_pb2 import RelayState as BatteryRelayState
-from frequenz.api.microgrid.battery_pb2 import State as PbBatteryState
 from frequenz.api.microgrid.common_pb2 import ErrorLevel
 from frequenz.api.microgrid.inverter_pb2 import ComponentState as InverterState
 from frequenz.api.microgrid.inverter_pb2 import Error as InverterError
 from frequenz.api.microgrid.inverter_pb2 import ErrorCode as InverterErrorCode
-from frequenz.api.microgrid.inverter_pb2 import Inverter as PbInverter
-from frequenz.api.microgrid.inverter_pb2 import State as PbInverterState
 from frequenz.channels import Broadcast
-from google.protobuf.timestamp_pb2 import Timestamp  # pylint: disable=no-name-in-module
 from pytest_mock import MockerFixture
 
 from frequenz.sdk.actor.power_distributing._battery_status import (
@@ -40,6 +33,7 @@ from frequenz.sdk.microgrid.component import (
     InverterData,
 )
 
+from ..utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
 from ..utils.mock_microgrid import MockMicrogridClient
 
 
@@ -69,29 +63,14 @@ def battery_data(
     Returns:
         BatteryData with given arguments.
     """
-    if timestamp is None:
-        timestamp = datetime.now(tz=pytz.utc)
 
-    # Create protobuf message first. Thanks to that I don't have to specify
-    # all class variables.
-    pb_timestamp = Timestamp()
-    pb_timestamp.FromDatetime(timestamp)
-
-    pb_data = microgrid_pb.ComponentData(
-        id=component_id,
-        ts=pb_timestamp,
-        battery=PbBattery(
-            state=PbBatteryState(
-                component_state=component_state,
-                relay_state=relay_state,
-            ),
-            # We don't need this method in public api. But we need it in unit tests.
-            # pylint: disable=protected-access
-            errors=[] if errors is None else errors,
-        ),
+    return BatteryDataWrapper(
+        component_id=component_id,
+        timestamp=datetime.now(tz=timezone.utc) if timestamp is None else timestamp,
+        _relay_state=relay_state,
+        _component_state=component_state,
+        _errors=list(errors) if errors is not None else [],
     )
-
-    return BatteryData.from_proto(pb_data)
 
 
 def inverter_data(
@@ -117,26 +96,13 @@ def inverter_data(
     Returns:
         InverterData with given arguments.
     """
-    if timestamp is None:
-        timestamp = datetime.now(tz=pytz.utc)
 
-    # Create protobuf message first. Thanks to that I don't have to specify
-    # all InverterData class variable.
-    pb_timestamp = Timestamp()
-    pb_timestamp.FromDatetime(timestamp)
-
-    pb_data = microgrid_pb.ComponentData(
-        id=component_id,
-        ts=pb_timestamp,
-        inverter=PbInverter(
-            state=PbInverterState(
-                component_state=component_state,
-            ),
-            errors=[] if errors is None else errors,
-        ),
+    return InverterDataWrapper(
+        component_id=component_id,
+        timestamp=datetime.now(tz=timezone.utc) if timestamp is None else timestamp,
+        _component_state=component_state,
+        _errors=list(errors) if errors is not None else [],
     )
-
-    return InverterData.from_proto(pb_data)
 
 
 def component_graph() -> Tuple[Set[Component], Set[Connection]]:
