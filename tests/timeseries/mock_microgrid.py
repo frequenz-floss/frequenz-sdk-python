@@ -7,18 +7,10 @@ from __future__ import annotations
 
 import asyncio
 import typing
+from datetime import datetime, timezone
 from typing import Callable, Set, Tuple
 
-from frequenz.api.microgrid import (
-    battery_pb2,
-    common_pb2,
-    ev_charger_pb2,
-    inverter_pb2,
-    meter_pb2,
-    microgrid_pb2,
-)
 from frequenz.channels import Broadcast
-from google.protobuf.timestamp_pb2 import Timestamp  # pylint: disable=no-name-in-module
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
@@ -32,16 +24,21 @@ from frequenz.sdk.actor import (
 )
 from frequenz.sdk.microgrid.client import Connection
 from frequenz.sdk.microgrid.component import (
-    BatteryData,
     Component,
     ComponentCategory,
     ComponentData,
-    EVChargerData,
-    InverterData,
+    EVChargerCableState,
+    EVChargerComponentState,
     InverterType,
-    MeterData,
 )
 from tests.utils.mock_microgrid import MockMicrogridClient
+
+from ..utils.component_data_wrapper import (
+    BatteryDataWrapper,
+    EvChargerDataWrapper,
+    InverterDataWrapper,
+    MeterDataWrapper,
+)
 
 
 class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
@@ -79,7 +76,8 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         self.evc_ids: list[int] = []
         self.meter_ids: list[int] = [4]
 
-        self.evc_states: dict[int, ev_charger_pb2.State] = {}
+        self.evc_component_states: dict[int, EVChargerComponentState] = {}
+        self.evc_cable_states: dict[int, EVChargerCableState] = {}
 
         self._streaming_coros: list[typing.Coroutine[None, None, None]] = []
         self._streaming_tasks: list[asyncio.Task[None]] = []
@@ -105,11 +103,10 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         return ret
 
     async def _comp_data_send_task(
-        self, comp_id: int, make_comp_data: Callable[[int, Timestamp], ComponentData]
+        self, comp_id: int, make_comp_data: Callable[[int, datetime], ComponentData]
     ) -> None:
         for value in range(1, 2000):
-            timestamp = Timestamp()
-            timestamp.GetCurrentTime()
+            timestamp = datetime.now(tz=timezone.utc)
             val_to_send = value + int(comp_id / 10)
             # for inverters with component_id > 100, send only half the messages.
             if comp_id % 10 == self.inverter_id_suffix:
@@ -123,27 +120,11 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         self._streaming_coros.append(
             self._comp_data_send_task(
                 meter_id,
-                lambda value, ts: MeterData.from_proto(
-                    microgrid_pb2.ComponentData(
-                        id=meter_id,
-                        ts=ts,
-                        meter=meter_pb2.Meter(
-                            data=meter_pb2.Data(
-                                ac=common_pb2.AC(
-                                    power_active=common_pb2.Metric(value=value),
-                                    phase_1=common_pb2.AC.ACPhase(
-                                        current=common_pb2.Metric(value=value + 100.0)
-                                    ),
-                                    phase_2=common_pb2.AC.ACPhase(
-                                        current=common_pb2.Metric(value=value + 101.0)
-                                    ),
-                                    phase_3=common_pb2.AC.ACPhase(
-                                        current=common_pb2.Metric(value=value + 102.0)
-                                    ),
-                                )
-                            )
-                        ),
-                    ),
+                lambda value, ts: MeterDataWrapper(
+                    component_id=meter_id,
+                    timestamp=ts,
+                    active_power=value,
+                    current_per_phase=(value + 100.0, value + 101.0, value + 102.0),
                 ),
             )
         )
@@ -152,16 +133,8 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         self._streaming_coros.append(
             self._comp_data_send_task(
                 bat_id,
-                lambda value, ts: BatteryData.from_proto(
-                    microgrid_pb2.ComponentData(
-                        id=bat_id,
-                        ts=ts,
-                        battery=battery_pb2.Battery(
-                            data=battery_pb2.Data(
-                                soc=common_pb2.MetricAggregation(avg=value)
-                            )
-                        ),
-                    )
+                lambda value, ts: BatteryDataWrapper(
+                    component_id=bat_id, timestamp=ts, soc=value
                 ),
             )
         )
@@ -170,18 +143,8 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         self._streaming_coros.append(
             self._comp_data_send_task(
                 inv_id,
-                lambda value, ts: InverterData.from_proto(
-                    microgrid_pb2.ComponentData(
-                        id=inv_id,
-                        ts=ts,
-                        inverter=inverter_pb2.Inverter(
-                            data=inverter_pb2.Data(
-                                ac=common_pb2.AC(
-                                    power_active=common_pb2.Metric(value=value)
-                                )
-                            )
-                        ),
-                    )
+                lambda value, ts: InverterDataWrapper(
+                    component_id=inv_id, timestamp=ts, active_power=value
                 ),
             )
         )
@@ -190,28 +153,13 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         self._streaming_coros.append(
             self._comp_data_send_task(
                 evc_id,
-                lambda value, ts: EVChargerData.from_proto(
-                    microgrid_pb2.ComponentData(
-                        id=evc_id,
-                        ts=ts,
-                        ev_charger=ev_charger_pb2.EVCharger(
-                            data=ev_charger_pb2.Data(
-                                ac=common_pb2.AC(
-                                    power_active=common_pb2.Metric(value=value),
-                                    phase_1=common_pb2.AC.ACPhase(
-                                        current=common_pb2.Metric(value=value + 10.0)
-                                    ),
-                                    phase_2=common_pb2.AC.ACPhase(
-                                        current=common_pb2.Metric(value=value + 11.0)
-                                    ),
-                                    phase_3=common_pb2.AC.ACPhase(
-                                        current=common_pb2.Metric(value=value + 12.0)
-                                    ),
-                                )
-                            ),
-                            state=self.evc_states[evc_id],
-                        ),
-                    ),
+                lambda value, ts: EvChargerDataWrapper(
+                    component_id=evc_id,
+                    timestamp=ts,
+                    active_power=value,
+                    current_per_phase=(value + 10.0, value + 11.0, value + 12.0),
+                    component_state=self.evc_component_states[evc_id],
+                    cable_state=self.evc_cable_states[evc_id],
                 ),
             ),
         )
@@ -297,10 +245,9 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             self._id_increment += 1
 
             self.evc_ids.append(evc_id)
-            self.evc_states[evc_id] = ev_charger_pb2.State(
-                cable_state=ev_charger_pb2.CABLE_STATE_UNPLUGGED,
-                component_state=ev_charger_pb2.COMPONENT_STATE_READY,
-            )
+            self.evc_component_states[evc_id] = EVChargerComponentState.READY
+            self.evc_cable_states[evc_id] = EVChargerCableState.UNPLUGGED
+
             self._components.add(
                 Component(
                     evc_id,
