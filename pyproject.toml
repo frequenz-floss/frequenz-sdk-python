@@ -33,7 +33,6 @@ dependencies = [
     "networkx >= 2.8, < 3",
     "pandas >= 1.5.2, < 2",
     "protobuf >= 4.21.6, < 5",
-    "pyarrow >= 10.0.1, < 11",
     "pydantic >= 1.9",
     "sympy >= 1.10.1, < 2",
     "toml >= 0.10",
