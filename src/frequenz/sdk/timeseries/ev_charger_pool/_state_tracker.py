@@ -107,7 +107,7 @@ class StateTracker:
             "EVCharger States", resend_latest=True
         )
         self._task: Optional[asyncio.Task[None]] = None
-        self._merged_stream: Optional[Merge] = None
+        self._merged_stream: Optional[Merge[EVChargerData]] = None
         self._states: dict[int, EVChargerState] = {}
 
     def _get(self) -> EVChargerPoolStates:

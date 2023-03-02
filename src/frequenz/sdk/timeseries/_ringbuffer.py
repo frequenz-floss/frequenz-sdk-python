@@ -9,7 +9,7 @@ from collections.abc import Iterable
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Generic, List, TypeVar, overload
+from typing import Generic, List, SupportsFloat, SupportsIndex, TypeVar, overload
 
 import numpy as np
 import numpy.typing as npt
@@ -28,7 +28,7 @@ class Gap:
     end: datetime
     """End of the range, exclusive."""
 
-    def contains(self, timestamp: datetime):
+    def contains(self, timestamp: datetime) -> bool:
         """Check if a given timestamp is inside this gap.
 
         Args:
@@ -69,14 +69,14 @@ class OrderedRingBuffer(Generic[FloatArray]):
                 "2022-01-01 12:00:00" to "2022-01-02 12:00:00" (date chosen
                 arbitrarily here).
         """
-        self._buffer = buffer
-        self._sampling_period = sampling_period
-        self._time_index_alignment = time_index_alignment
+        self._buffer: FloatArray = buffer
+        self._sampling_period: timedelta = sampling_period
+        self._time_index_alignment: datetime = time_index_alignment
 
         self._gaps: list[Gap] = []
-        self._datetime_newest = datetime.min
-        self._datetime_oldest = datetime.max
-        self._time_range = (len(self._buffer) - 1) * sampling_period
+        self._datetime_newest: datetime = datetime.min
+        self._datetime_oldest: datetime = datetime.max
+        self._time_range: timedelta = (len(self._buffer) - 1) * sampling_period
 
     @property
     def sampling_period(self) -> timedelta:
@@ -220,14 +220,15 @@ class OrderedRingBuffer(Generic[FloatArray]):
 
         # Requested window wraps around the ends
         if start_index >= end_index:
-            window: Any = self._buffer[start_index:]
-
             if end_index > 0:
                 if isinstance(self._buffer, list):
-                    window += self._buffer[0:end_index]
-                else:
-                    window = np.concatenate((window, self._buffer[0:end_index]))
-            return window
+                    return self._buffer[start_index:] + self._buffer[0:end_index]
+                if isinstance(self._buffer, np.ndarray):
+                    return np.concatenate(
+                        (self._buffer[start_index:], self._buffer[0:end_index])
+                    )
+                assert False, f"Unknown _buffer type: {type(self._buffer)}"
+            return self._buffer[start_index:]
 
         # Return a copy if there are none-values in the data
         if force_copy or any(
@@ -399,7 +400,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         """
 
     @overload
-    def __setitem__(self, index_or_slice: int, value: float) -> None:
+    def __setitem__(self, index_or_slice: SupportsIndex, value: float) -> None:
         """Set value at requested index.
 
         No wrapping of the index will be done.
@@ -411,7 +412,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         """
 
     def __setitem__(
-        self, index_or_slice: int | slice, value: float | Iterable[float]
+        self, index_or_slice: SupportsIndex | slice, value: float | Iterable[float]
     ) -> None:
         """Set item or slice at requested position.
 
@@ -422,10 +423,26 @@ class OrderedRingBuffer(Generic[FloatArray]):
             index_or_slice: Index or slice specification of the requested data.
             value: Value to set at the given position.
         """
-        self._buffer.__setitem__(index_or_slice, value)
+        # There seem to be 2 different mypy bugs at play here.
+        # First we need to check that the combination of input arguments are
+        # correct to make the type checker happy (I guess it could be inferred
+        # from the @overloads, but it's not currently working without this
+        # hack).
+        # Then we need to ignore a no-untyped-call error, for some reason it
+        # can't get the type for self._buffer.__setitem__()
+        if isinstance(index_or_slice, SupportsIndex) and isinstance(
+            value, SupportsFloat
+        ):
+            self._buffer.__setitem__(index_or_slice, value)  # type: ignore[no-untyped-call]
+        elif isinstance(index_or_slice, slice) and isinstance(value, Iterable):
+            self._buffer.__setitem__(index_or_slice, value)  # type: ignore[no-untyped-call]
+        else:
+            assert (
+                False
+            ), f"Incompatible input arguments: {type(index_or_slice)=} {type(value)=}"
 
     @overload
-    def __getitem__(self, index_or_slice: int) -> float:
+    def __getitem__(self, index_or_slice: SupportsIndex) -> float:
         """Get item at requested position.
 
         No wrapping of the index will be done.
@@ -446,7 +463,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
             index_or_slice: Slice specification of where the requested data is.
         """
 
-    def __getitem__(self, index_or_slice: int | slice) -> float | FloatArray:
+    def __getitem__(self, index_or_slice: SupportsIndex | slice) -> float | FloatArray:
         """Get item or slice at requested position.
 
         No wrapping of the index will be done.

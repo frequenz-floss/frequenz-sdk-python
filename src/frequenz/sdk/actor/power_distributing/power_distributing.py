@@ -189,7 +189,7 @@ class PowerDistributingActor:
             max_data_age_sec=10.0,
         )
 
-    def _create_users_tasks(self) -> List[asyncio.Task[Empty]]:
+    def _create_users_tasks(self) -> List[asyncio.Task[None]]:
         """For each user create a task to wait for request.
 
         Returns:
@@ -298,6 +298,7 @@ class PowerDistributingActor:
                 api, distribution, request.request_timeout_sec
             )
 
+            response: Success | PartialFailure
             if len(failed_batteries) > 0:
                 succeed_batteries = set(battery_distribution.keys()) - failed_batteries
                 response = PartialFailure(

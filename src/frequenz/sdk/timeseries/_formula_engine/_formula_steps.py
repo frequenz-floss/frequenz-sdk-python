@@ -145,7 +145,7 @@ class OpenParen(FormulaStep):
         """
         return "("
 
-    def apply(self, _: List[Optional[float]]) -> None:
+    def apply(self, _: List[float]) -> None:
         """No-op."""
 
 

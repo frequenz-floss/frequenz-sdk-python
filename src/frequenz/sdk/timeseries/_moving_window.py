@@ -9,6 +9,7 @@ import asyncio
 import logging
 from collections.abc import Sequence
 from datetime import datetime, timedelta
+from typing import SupportsIndex, overload
 
 import numpy as np
 from frequenz.channels import Receiver
@@ -21,7 +22,7 @@ from ._ringbuffer import OrderedRingBuffer
 log = logging.getLogger(__name__)
 
 
-class MovingWindow(Sequence):
+class MovingWindow:
     """
     A data window that moves with the latest datapoints of a data stream.
 
@@ -115,7 +116,9 @@ class MovingWindow(Sequence):
             time_index_alignment=window_alignment,
         )
         self._copy_buffer = False
-        self._update_window_task: asyncio.Task = asyncio.create_task(self._run_impl())
+        self._update_window_task: asyncio.Task[None] = asyncio.create_task(
+            self._run_impl()
+        )
         log.debug("Cancelling MovingWindow task: %s", __name__)
 
     async def _run_impl(self) -> None:
@@ -143,7 +146,28 @@ class MovingWindow(Sequence):
         """
         return len(self._buffer)
 
-    def __getitem__(self, key: int | datetime | slice) -> float | ArrayLike:
+    @overload
+    def __getitem__(self, key: SupportsIndex) -> float:
+        """See the main __getitem__ method.
+
+        # noqa: DAR101 key
+        """
+
+    @overload
+    def __getitem__(self, key: datetime) -> float:
+        """See the main __getitem__ method.
+
+        # noqa: DAR101 key
+        """
+
+    @overload
+    def __getitem__(self, key: slice) -> ArrayLike:
+        """See the main __getitem__ method.
+
+        # noqa: DAR101 key
+        """
+
+    def __getitem__(self, key: SupportsIndex | datetime | slice) -> float | ArrayLike:
         """
         Return a sub window of the `MovingWindow`.
 
@@ -180,10 +204,17 @@ class MovingWindow(Sequence):
         elif isinstance(key, datetime):
             log.debug("Returning value at time %s ", key)
             return self._buffer[self._buffer.datetime_to_index(key)]
-        elif isinstance(key, int):
+        elif isinstance(key, SupportsIndex):
             return self._buffer[key]
 
         raise TypeError(
             "Key has to be either a timestamp or an integer "
             "or a slice of timestamps or integers"
         )
+
+
+# We need to register the class as a subclass of Sequence like this because
+# otherwise type-checking fails complaining that MovingWindow has more
+# overloads of __getitem__() than Sequence (which doesn't have an overload with
+# a datetime key)
+Sequence.register(MovingWindow)

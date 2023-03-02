@@ -6,7 +6,17 @@
 import asyncio
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, Iterable, Optional, Set, TypeVar
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    Iterable,
+    Optional,
+    Set,
+    TypeVar,
+    cast,
+)
 
 import grpc
 from frequenz.api.microgrid import common_pb2 as common_pb
@@ -210,10 +220,12 @@ class MicrogridGrpcClient(MicrogridApiClient):
                 when the api call exceeded timeout
         """
         try:
+            # grpc.aio is missing types and mypy thinks this is not awaitable,
+            # but it is
             component_list = await self.api.ListComponents(
                 microgrid_pb.ComponentFilter(),
-                timeout=DEFAULT_GRPC_CALL_TIMEOUT,
-            )
+                timeout=DEFAULT_GRPC_CALL_TIMEOUT,  # type: ignore[arg-type]
+            )  # type: ignore[misc]
         except grpc.aio.AioRpcError as err:
             msg = f"Failed to list components. Microgrid API: {self.target}. Err: {err.details()}"
             raise grpc.aio.AioRpcError(
@@ -266,8 +278,14 @@ class MicrogridGrpcClient(MicrogridApiClient):
         try:
             valid_components, all_connections = await asyncio.gather(
                 self.components(),
-                self.api.ListConnections(
-                    connection_filter, timeout=DEFAULT_GRPC_CALL_TIMEOUT
+                # grpc.aio is missing types and mypy thinks this is not
+                # awaitable, but it is
+                cast(
+                    Awaitable[microgrid_pb.ConnectionList],
+                    self.api.ListConnections(
+                        connection_filter,
+                        timeout=DEFAULT_GRPC_CALL_TIMEOUT,  # type: ignore[arg-type]
+                    ),
                 ),
             )
         except grpc.aio.AioRpcError as err:
@@ -321,7 +339,9 @@ class MicrogridGrpcClient(MicrogridApiClient):
                 call = self.api.GetComponentData(
                     microgrid_pb.ComponentIdParam(id=component_id),
                 )
-                async for msg in call:
+                # grpc.aio is missing types and mypy thinks this is not
+                # async iterable, but it is
+                async for msg in call:  # type: ignore[attr-defined]
                     await sender.send(transform(msg))
             except grpc.aio.AioRpcError as err:
                 api_details = f"Microgrid API: {self.target}."
@@ -340,7 +360,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
                     retry_spec.get_progress(),
                     interval,
                 )
-                await asyncio.sleep(interval)  # type: ignore
+                await asyncio.sleep(interval)
             else:
                 logger.warning(
                     "`GetComponentData`, for component_id=%d: connection ended, "
@@ -550,20 +570,24 @@ class MicrogridGrpcClient(MicrogridApiClient):
         """
         try:
             if power_w >= 0:
+                # grpc.aio is missing types and mypy thinks this is not
+                # async iterable, but it is
                 result: Empty = await self.api.Charge(
                     microgrid_pb.PowerLevelParam(
                         component_id=component_id, power_w=power_w
                     ),
-                    timeout=DEFAULT_GRPC_CALL_TIMEOUT,
-                )
+                    timeout=DEFAULT_GRPC_CALL_TIMEOUT,  # type: ignore[arg-type]
+                )  # type: ignore[misc]
             else:
+                # grpc.aio is missing types and mypy thinks this is not
+                # async iterable, but it is
                 power_w *= -1
                 result = await self.api.Discharge(
                     microgrid_pb.PowerLevelParam(
                         component_id=component_id, power_w=power_w
                     ),
-                    timeout=DEFAULT_GRPC_CALL_TIMEOUT,
-                )
+                    timeout=DEFAULT_GRPC_CALL_TIMEOUT,  # type: ignore[arg-type]
+                )  # type: ignore[misc]
         except grpc.aio.AioRpcError as err:
             msg = f"Failed to set power. Microgrid API: {self.target}. Err: {err.details()}"
             raise grpc.aio.AioRpcError(
@@ -600,8 +624,14 @@ class MicrogridGrpcClient(MicrogridApiClient):
         if lower > 0:
             raise ValueError(f"Lower bound {upper} must be less than or equal to 0.")
 
-        set_bounds_call = self.api.SetBounds(timeout=DEFAULT_GRPC_CALL_TIMEOUT)
+        # grpc.aio is missing types and mypy thinks request_iterator is
+        # a required argument, but it is not
+        set_bounds_call = self.api.SetBounds(
+            timeout=DEFAULT_GRPC_CALL_TIMEOUT,
+        )  # type: ignore[call-arg]
         try:
+            # grpc.aio is missing types and mypy thinks set_bounds_call can be Empty
+            assert not isinstance(set_bounds_call, Empty)
             await set_bounds_call.write(
                 microgrid_pb.SetBoundsParam(
                     component_id=component_id,

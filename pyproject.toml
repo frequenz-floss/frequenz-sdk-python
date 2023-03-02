@@ -33,7 +33,6 @@ dependencies = [
     "networkx >= 2.8, < 3",
     "pandas >= 1.5.2, < 2",
     "protobuf >= 4.21.6, < 5",
-    "pyarrow >= 10.0.1, < 11",
     "pydantic >= 1.9",
     "sympy >= 1.10.1, < 2",
     "toml >= 0.10",
@@ -59,6 +58,7 @@ docs-gen = [
 docs-lint = [
     "pydocstyle",
     "darglint",
+    "tomli",  # Needed by pydocstyle to read pyproject.toml
 ]
 format = [
     "black",
@@ -135,10 +135,19 @@ src_paths = ["src", "examples", "tests"]
 asyncio_mode = "auto"
 required_plugins = [ "pytest-asyncio", "pytest-mock" ]
 
+[tool.mypy]
+# This is a temporary hack, for details see:
+# * https://github.com/frequenz-floss/frequenz-sdk-python/pull/219
+# * https://github.com/frequenz-floss/frequenz-sdk-python/issues/226
+exclude = ["src/frequenz/sdk/timeseries/_formula_engine/"]
+
 [[tool.mypy.overrides]]
 module = [
     "grpc.aio",
-    "grpc.aio.*"
+    "grpc.aio.*",
+    # There is a stubs package available, but it's not working:
+    # https://github.com/eggplants/networkx-stubs/issues/1
+    "networkx",
 ]
 ignore_missing_imports = true
 

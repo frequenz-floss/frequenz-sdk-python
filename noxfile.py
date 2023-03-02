@@ -50,13 +50,29 @@ Usage:
         nox -R -e pytest_min -- -s -x tests/timeseries/test_logical_meter.py
 """
 
-from typing import List
+from __future__ import annotations
+
+from typing import Any, Iterable
 
 import nox
 import toml
 
+DEFAULT_PATH_PACKAGES = {
+    "benchmarks": "benchmarks",
+    "docs": "docs",
+    "examples": "examples",
+    "src": "frequenz.sdk",
+    "tests": "tests",
+    "noxfile.py": "noxfile",
+}
+"""A list of path to be used by default and its corresponding package name.
 
-def min_dependencies() -> List[str]:
+The package name is needed for mypy, as it takes packages when full import
+checking needs to be done.
+"""
+
+
+def min_dependencies() -> list[str]:
     """Extract the minimum dependencies from pyproject.toml.
 
     Raises:
@@ -74,7 +90,7 @@ def min_dependencies() -> List[str]:
     if not dependencies:
         raise RuntimeError(f"No dependencies found in file: {toml_file.name}")
 
-    min_deps: List[str] = []
+    min_deps: list[str] = []
     for dep in dependencies:
         min_dep = dep.split(",")[0]
         if any(op in min_dep for op in (">=", "==")):
@@ -84,7 +100,7 @@ def min_dependencies() -> List[str]:
     return min_deps
 
 
-def _source_file_paths(session: nox.Session) -> List[str]:
+def _source_file_paths(session: nox.Session) -> list[str]:
     """Return the file paths to run the checks on.
 
     If positional arguments are present in the nox session, we use those as the
@@ -98,14 +114,7 @@ def _source_file_paths(session: nox.Session) -> List[str]:
     """
     if session.posargs:
         return session.posargs
-    return [
-        "benchmarks",
-        "docs",
-        "examples",
-        "src",
-        "tests",
-        "noxfile.py",
-    ]
+    return list(DEFAULT_PATH_PACKAGES.keys())
 
 
 # Run all checks except `ci_checks` by default.  When running locally with just
@@ -131,7 +140,7 @@ def ci_checks_max(session: nox.Session) -> None:
     Args:
         session: the nox session.
     """
-    session.install(".[dev]")
+    session.install("-e", ".[dev]")
 
     formatting(session, False)
     mypy(session, False)
@@ -149,7 +158,7 @@ def formatting(session: nox.Session, install_deps: bool = True) -> None:
         install_deps: True if dependencies should be installed.
     """
     if install_deps:
-        session.install(".[format]")
+        session.install("-e", ".[format]")
 
     paths = _source_file_paths(session)
     session.run("black", "--check", *paths)
@@ -169,36 +178,24 @@ def mypy(session: nox.Session, install_deps: bool = True) -> None:
         # fast local tests with `nox -R -e mypy`.
         session.install("-e", ".[mypy]")
 
-    common_args = [
+    def _flatten(iterable: Iterable[Iterable[Any]]) -> Iterable[Any]:
+        return [item for sublist in iterable for item in sublist]
+
+    args = (
+        session.posargs
+        if session.posargs
+        else _flatten(("-p", p) for p in DEFAULT_PATH_PACKAGES.values())
+    )
+
+    session.run(
+        "mypy",
         "--install-types",
         "--namespace-packages",
         "--non-interactive",
         "--explicit-package-bases",
         "--strict",
-    ]
-
-    # If we have session arguments, we just use those...
-    if session.posargs:
-        session.run("mypy", *common_args, *session.posargs)
-        return
-
-    check_paths = _source_file_paths(session)
-    pkg_paths = [
-        path
-        for path in check_paths
-        if not path.startswith("src") and not path.endswith(".py")
-    ]
-    file_paths = [path for path in check_paths if path.endswith(".py")]
-
-    pkg_args = []
-    for pkg in pkg_paths:
-        if pkg == "src":
-            pkg = "frequenz.channels"
-        pkg_args.append("-p")
-        pkg_args.append(pkg)
-
-    session.run("mypy", *common_args, *pkg_args)
-    session.run("mypy", *common_args, *file_paths)
+        *args,
+    )
 
 
 @nox.session
@@ -231,7 +228,7 @@ def docstrings(session: nox.Session, install_deps: bool = True) -> None:
         install_deps: True if dependencies should be installed.
     """
     if install_deps:
-        session.install(".[docs-lint]")
+        session.install("-e", ".[docs-lint]")
 
     paths = _source_file_paths(session)
     session.run("pydocstyle", *paths)

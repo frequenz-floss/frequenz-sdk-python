@@ -44,7 +44,8 @@ class SerializableRingBuffer(OrderedRingBuffer[FloatArray]):
                 "2022-01-01 12:00:00" to "2022-01-02 12:00:00" (date chosen
                 arbitrarily here).
         """
-        super().__init__(buffer, sampling_period, time_index_alignment)
+        # Overcome a bug in mypy: https://github.com/python/mypy/issues/14774
+        super().__init__(buffer, sampling_period, time_index_alignment)  # type: ignore[arg-type]
         self._path = path
         self._file_format_version = FILE_FORMAT_VERSION
 
@@ -76,7 +77,7 @@ class SerializableRingBuffer(OrderedRingBuffer[FloatArray]):
             return None
 
         with open(path, mode="rb") as fileobj:
-            instance: SerializableRingBuffer = pickle.load(fileobj)
+            instance: SerializableRingBuffer[FloatArray] = pickle.load(fileobj)
             instance._path = path  # pylint: disable=protected-access
             # Set latest file format version for next time it dumps.
             # pylint: disable=protected-access

@@ -54,7 +54,7 @@ class _BatteryStatusChannelHelper:
     battery_id: int
     """Id of the battery for which we should create channel."""
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.name: str = f"battery-{self.battery_id}-status"
         channel = Broadcast[Status](self.name)
 

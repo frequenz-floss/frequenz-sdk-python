@@ -140,9 +140,9 @@ class FormulaEvaluator:
         if self._first_run:
             metric_ts = await self._synchronize_metric_timestamps(ready_metrics)
         else:
-            res = next(iter(ready_metrics)).result()
-            assert res is not None
-            metric_ts = res.timestamp
+            sample = next(iter(ready_metrics)).result()
+            assert sample is not None
+            metric_ts = sample.timestamp
 
         for step in self._steps:
             step.apply(eval_stack)
@@ -154,7 +154,7 @@ class FormulaEvaluator:
 
         res = eval_stack.pop()
         if isnan(res) or isinf(res):
-            res = None
+            return Sample(metric_ts, None)
 
         return Sample(metric_ts, res)
 
@@ -179,9 +179,9 @@ class FormulaEngine:
             steps: Steps for the engine to execute, in post-fix order.
             metric_fetchers: Fetchers for each metric stream the formula depends on.
         """
-        self._name = name
-        self._channel = FormulaChannel(self._name, self)
-        self._task = None
+        self._name: str = name
+        self._channel: FormulaChannel = FormulaChannel(self._name, self)
+        self._task: asyncio.Task[None] | None = None
         self._evaluator = FormulaEvaluator(name, steps, metric_fetchers)
 
     async def _run(self) -> None:
@@ -241,10 +241,12 @@ class FormulaEngine3Phase:
             name: A name for the formula.
             phase_streams: output streams of formula engines running per-phase formulas.
         """
-        self._name = name
-        self._channel = FormulaChannel3Phase(self._name, self)
-        self._task = None
-        self._streams = phase_streams
+        self._name: str = name
+        self._channel: FormulaChannel3Phase = FormulaChannel3Phase(self._name, self)
+        self._task: asyncio.Task[None] | None = None
+        self._streams: tuple[
+            FormulaReceiver, FormulaReceiver, FormulaReceiver
+        ] = phase_streams
 
     async def _run(self) -> None:
         sender = self._channel.new_sender()
@@ -434,7 +436,7 @@ class _BaseFormulaChannel(
             resend_latest: Whether to resend latest channel values to newly created
                 receivers, like in `Broadcast` channels.
         """
-        self._engine = engine
+        self._engine: _GenericEngine = engine
         super().__init__(name, resend_latest)
 
     @property

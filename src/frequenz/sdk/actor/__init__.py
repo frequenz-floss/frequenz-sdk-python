@@ -3,11 +3,12 @@
 
 """A base class for creating simple composable actors."""
 
+from ..timeseries._resampling import ResamplerConfig
 from ._channel_registry import ChannelRegistry
 from ._config_managing import ConfigManagingActor
 from ._data_sourcing import ComponentMetricRequest, DataSourcingActor
 from ._decorator import actor
-from ._resampling import ComponentMetricsResamplingActor, ResamplerConfig
+from ._resampling import ComponentMetricsResamplingActor
 
 __all__ = [
     "ChannelRegistry",
