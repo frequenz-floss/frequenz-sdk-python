@@ -2066,7 +2066,7 @@ identify the right channel from the ChannelRegistry.</p>
 
 <span class="sd">        # noqa: DAR401 error</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">tasks_to_cancel</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">tasks_to_cancel</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">subscriptions_task</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_process_resampling_requests</span><span class="p">()</span>
@@ -2395,7 +2395,7 @@ handling requests.</p>
 
 <span class="sd">    # noqa: DAR401 error</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">tasks_to_cancel</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">tasks_to_cancel</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">subscriptions_task</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_process_resampling_requests</span><span class="p">()</span>

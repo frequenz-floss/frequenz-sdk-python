@@ -2349,7 +2349,8 @@ printed.</li>
 <span class="normal">653</span>
 <span class="normal">654</span>
 <span class="normal">655</span>
-<span class="normal">656</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
+<span class="normal">656</span>
+<span class="normal">657</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
 <span class="k">class</span> <span class="nc">PowerDistributingActor</span><span class="p">:</span>
     <span class="c1"># pylint: disable=too-many-instance-attributes</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Tool to distribute power between batteries in microgrid.</span>
@@ -2475,7 +2476,7 @@ printed.</li>
             <span class="n">max_data_age_sec</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_create_users_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="n">Empty</span><span class="p">]]:</span>
+    <span class="k">def</span> <span class="nf">_create_users_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;For each user create a task to wait for request.</span>
 
 <span class="sd">        Returns:</span>
@@ -2584,6 +2585,7 @@ printed.</li>
                 <span class="n">api</span><span class="p">,</span> <span class="n">distribution</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">request_timeout_sec</span>
             <span class="p">)</span>
 
+            <span class="n">response</span><span class="p">:</span> <span class="n">Success</span> <span class="o">|</span> <span class="n">PartialFailure</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed_batteries</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">succeed_batteries</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">battery_distribution</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">-</span> <span class="n">failed_batteries</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="n">PartialFailure</span><span class="p">(</span>
@@ -3222,7 +3224,8 @@ as broken for some time.</p>
 <span class="normal">324</span>
 <span class="normal">325</span>
 <span class="normal">326</span>
-<span class="normal">327</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">327</span>
+<span class="normal">328</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run actor main function.</span>
 
 <span class="sd">    It waits for new requests in task_queue and process it, and send</span>
@@ -3280,6 +3283,7 @@ as broken for some time.</p>
             <span class="n">api</span><span class="p">,</span> <span class="n">distribution</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">request_timeout_sec</span>
         <span class="p">)</span>
 
+        <span class="n">response</span><span class="p">:</span> <span class="n">Success</span> <span class="o">|</span> <span class="n">PartialFailure</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed_batteries</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">succeed_batteries</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">battery_distribution</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">-</span> <span class="n">failed_batteries</span>
             <span class="n">response</span> <span class="o">=</span> <span class="n">PartialFailure</span><span class="p">(</span>
