@@ -345,15 +345,10 @@ class MicrogridApiSource:
             )
         api_data_receiver = self.comp_data_receivers[comp_id]
 
-        def process_msg(data: Any) -> None:
-            tasks = []
+        async for data in api_data_receiver:
             for extractor, senders in stream_senders:
                 for sender in senders:
-                    tasks.append(sender.send(Sample(data.timestamp, extractor(data))))
-            asyncio.gather(*tasks)
-
-        async for data in api_data_receiver:
-            process_msg(data)
+                    await sender.send(Sample(data.timestamp, extractor(data)))
 
     async def _update_streams(
         self,
