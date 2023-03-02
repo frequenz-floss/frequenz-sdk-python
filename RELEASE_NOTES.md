@@ -12,6 +12,8 @@
 * Add EVChargerPool implementation. It has only streaming state changes for ev chargers, now.
 * Add 3-phase current formulas: `3-phase grid_current` and `3-phase ev_charger_current` to the LogicalMeter.
 * A new class `SerializableRingbuffer` is now available, extending the `OrderedRingBuffer` class with the ability to load & dump the data to disk.
+* The datasourcing actor now automatically closes all sending channels when the input channel closes.
+* The datasourcing actor no longer creates an extra task for every single sample and sender
 
 ## Bug Fixes
 
