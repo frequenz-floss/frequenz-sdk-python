@@ -143,9 +143,9 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             # for inverters with component_id > 100, send only half the messages.
             if comp_id % 10 == self.inverter_id_suffix:
                 if comp_id < 100 or value <= 5:
-                    await self._microgrid.send(make_comp_data(val_to_send, timestamp))
+                    self._microgrid.send(make_comp_data(val_to_send, timestamp))
             else:
-                await self._microgrid.send(make_comp_data(val_to_send, timestamp))
+                self._microgrid.send(make_comp_data(val_to_send, timestamp))
             await asyncio.sleep(self._sample_rate_s)
 
         await self._microgrid.close_channel(comp_id)

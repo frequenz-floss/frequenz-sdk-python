@@ -89,7 +89,7 @@ async def benchmark_data_sourcing(
                     nonlocal samples_sent
                     samples_sent += 1
 
-            await request_sender.send(request)
+            request_sender.send(request)
             consume_tasks.append(asyncio.create_task(consume(recv_channel)))
 
     DataSourcingActor(request_receiver, channel_registry)

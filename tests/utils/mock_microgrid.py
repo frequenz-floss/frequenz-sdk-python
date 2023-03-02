@@ -55,7 +55,7 @@ class MockMicrogridClient:
         self._all_channels.update(meter_channels)
         self._all_channels.update(ev_charger_channels)
 
-        mock_api = self._create_mock_api(
+        self.api_client = mock_api = self._create_mock_api(
             bat_channels, inv_channels, meter_channels, ev_charger_channels
         )
         kwargs: Dict[str, Any] = {
@@ -110,7 +110,7 @@ class MockMicrogridClient:
         """
         return self._component_graph
 
-    async def send(self, data: ComponentData) -> bool:
+    def send(self, data: ComponentData) -> bool:
         """Send component data using channel.
 
         This simulates component sending data. Right now only battery and inverter
@@ -124,13 +124,13 @@ class MockMicrogridClient:
         """
         cid = data.component_id
         if isinstance(data, BatteryData):
-            return await self._battery_data_senders[cid].send(data)
+            return self._battery_data_senders[cid].send(data)
         if isinstance(data, InverterData):
-            return await self._inverter_data_senders[cid].send(data)
+            return self._inverter_data_senders[cid].send(data)
         if isinstance(data, MeterData):
-            return await self._meter_data_senders[cid].send(data)
+            return self._meter_data_senders[cid].send(data)
         if isinstance(data, EVChargerData):
-            return await self._ev_charger_data_senders[cid].send(data)
+            return self._ev_charger_data_senders[cid].send(data)
 
         raise RuntimeError(f"{type(data)} is not supported in MockMicrogridClient.")
 

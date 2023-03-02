@@ -348,7 +348,7 @@ class MicrogridApiSource:
         async for data in api_data_receiver:
             for extractor, senders in stream_senders:
                 for sender in senders:
-                    await sender.send(Sample(data.timestamp, extractor(data)))
+                    sender.send(Sample(data.timestamp, extractor(data)))
 
         await asyncio.gather(
             *[
