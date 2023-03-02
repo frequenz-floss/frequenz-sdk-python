@@ -26,7 +26,7 @@ async def push_lm_data(sender: Sender[Sample], test_seq: Sequence[float]) -> Non
     start_ts: datetime = datetime(2023, 1, 1)
     for i, j in zip(test_seq, range(0, len(test_seq))):
         timestamp = start_ts + timedelta(seconds=j)
-        await sender.send(Sample(timestamp, float(i)))
+        sender.send(Sample(timestamp, float(i)))
 
     await asyncio.sleep(0.0)
 

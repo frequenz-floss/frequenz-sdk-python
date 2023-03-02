@@ -73,7 +73,7 @@ class ComponentMetricsResamplingActor:
             request, namespace=request.namespace + ":Source"
         )
         data_source_channel_name = data_source_request.get_channel_name()
-        await self._data_sourcing_request_sender.send(data_source_request)
+        self._data_sourcing_request_sender.send(data_source_request)
         receiver = self._channel_registry.new_receiver(data_source_channel_name)
 
         # This is a temporary hack until the Sender implementation uses
@@ -81,8 +81,7 @@ class ComponentMetricsResamplingActor:
         sender = self._channel_registry.new_sender(request.get_channel_name())
 
         async def sink_adapter(sample: Sample) -> None:
-            if not await sender.send(sample):
-                raise RuntimeError(f"Error while sending with sender {sender}", sender)
+            sender.send(sample)
 
         self._resampler.add_timeseries(request_channel_name, receiver, sink_adapter)
 

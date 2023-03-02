@@ -65,9 +65,9 @@ class EchoActor:
         select = Select(channel_1=self._recv1, channel_2=self._recv2)
         while await select.ready():
             if msg := select.channel_1:
-                await self._output.send(msg.inner)
+                self._output.send(msg.inner)
             elif msg := select.channel_2:
-                await self._output.send(msg.inner)
+                self._output.send(msg.inner)
 
 
 async def test_basic_actor() -> None:
@@ -87,12 +87,12 @@ async def test_basic_actor() -> None:
 
     echo_rx = echo_chan.new_receiver()
 
-    await input_chan_1.new_sender().send(True)
+    input_chan_1.new_sender().send(True)
 
     msg = await echo_rx.receive()
     assert msg is True
 
-    await input_chan_2.new_sender().send(False)
+    input_chan_2.new_sender().send(False)
 
     msg = await echo_rx.receive()
     assert msg is False
@@ -110,6 +110,6 @@ async def test_actor_does_not_restart() -> None:
         channel.new_receiver(),
     )
 
-    await channel.new_sender().send(1)
+    channel.new_sender().send(1)
     # pylint: disable=no-member
     await _faulty_actor.join()  # type: ignore

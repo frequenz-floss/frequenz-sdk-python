@@ -197,7 +197,7 @@ class FormulaEngine:
                     "Formula application failed: %s. Error: %s", self._name, err
                 )
             else:
-                await sender.send(msg)
+                sender.send(msg)
 
     async def _stop(self) -> None:
         """Stop a running formula engine."""
@@ -265,7 +265,7 @@ class FormulaEngine3Phase:
                 logger.exception("FormulaEngine task cancelled: %s", self._name)
                 break
             else:
-                await sender.send(msg)
+                sender.send(msg)
 
     async def _stop(self) -> None:
         """Stop a running formula engine."""

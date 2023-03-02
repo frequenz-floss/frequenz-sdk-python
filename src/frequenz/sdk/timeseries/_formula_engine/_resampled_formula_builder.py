@@ -55,7 +55,7 @@ class ResampledFormulaBuilder(FormulaBuilder):
             A receiver to stream resampled data for the given component id.
         """
         request = ComponentMetricRequest(self._namespace, component_id, metric_id, None)
-        await self._resampler_subscription_sender.send(request)
+        self._resampler_subscription_sender.send(request)
         return self._channel_registry.new_receiver(request.get_channel_name())
 
     async def push_component_metric(

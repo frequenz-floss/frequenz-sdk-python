@@ -189,7 +189,7 @@ class BatteryPoolStatus:
             succeed_batteries: Batteries that succeed request
             failed_batteries: Batteries that failed request
         """
-        await self._set_power_result_sender.send(
+        self._set_power_result_sender.send(
             SetPowerResult(succeed_batteries, failed_batteries)
         )
 

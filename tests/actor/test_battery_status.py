@@ -654,12 +654,12 @@ class TestBatteryStatus:
         await asyncio.sleep(0.01)
 
         with time_machine.travel("2022-01-01 00:00 UTC", tick=False) as time:
-            assert await mock_microgrid.send(inverter_data(component_id=INVERTER_ID))
-            assert await mock_microgrid.send(battery_data(component_id=BATTERY_ID))
+            mock_microgrid.send(inverter_data(component_id=INVERTER_ID))
+            mock_microgrid.send(battery_data(component_id=BATTERY_ID))
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
             assert status is Status.WORKING
 
-            assert await set_power_result_sender.send(
+            set_power_result_sender.send(
                 SetPowerResult(succeed={}, failed={BATTERY_ID})
             )
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
@@ -667,11 +667,11 @@ class TestBatteryStatus:
 
             time.shift(2)
 
-            assert await mock_microgrid.send(battery_data(component_id=BATTERY_ID))
+            mock_microgrid.send(battery_data(component_id=BATTERY_ID))
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
             assert status is Status.WORKING
 
-            assert await mock_microgrid.send(
+            mock_microgrid.send(
                 inverter_data(
                     component_id=INVERTER_ID,
                     timestamp=datetime.now(tz=timezone.utc) - timedelta(seconds=7),
@@ -680,13 +680,13 @@ class TestBatteryStatus:
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
             assert status is Status.NOT_WORKING
 
-            assert await set_power_result_sender.send(
+            set_power_result_sender.send(
                 SetPowerResult(succeed={}, failed={BATTERY_ID})
             )
             await asyncio.sleep(0.3)
             assert len(status_receiver) == 0
 
-            assert await mock_microgrid.send(inverter_data(component_id=INVERTER_ID))
+            mock_microgrid.send(inverter_data(component_id=INVERTER_ID))
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
             assert status is Status.WORKING
 

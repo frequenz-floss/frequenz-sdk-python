@@ -66,19 +66,19 @@ class TestDataSourcingActor:
         active_power_recv = registry.new_receiver(
             active_power_request.get_channel_name()
         )
-        await req_sender.send(active_power_request)
+        req_sender.send(active_power_request)
 
         soc_request = ComponentMetricRequest(
             "test-namespace", 9, ComponentMetricId.SOC, None
         )
         soc_recv = registry.new_receiver(soc_request.get_channel_name())
-        await req_sender.send(soc_request)
+        req_sender.send(soc_request)
 
         soc2_request = ComponentMetricRequest(
             "test-namespace", 9, ComponentMetricId.SOC, None
         )
         soc2_recv = registry.new_receiver(soc2_request.get_channel_name())
-        await req_sender.send(soc2_request)
+        req_sender.send(soc2_request)
 
         for _ in range(3):
             sample = await soc_recv.receive()

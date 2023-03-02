@@ -80,14 +80,9 @@ class TestFormulaEngine:
         tests_passed = 0
         for io_pair in io_pairs:
             io_input, io_output = io_pair
-            assert all(
-                await asyncio.gather(
-                    *[
-                        chan.new_sender().send(Sample(now, value))
-                        for chan, value in zip(channels.values(), io_input)
-                    ]
-                )
-            )
+            for chan, value in zip(channels.values(), io_input):
+                chan.new_sender().send(Sample(now, value))
+
             next_val = (
                 await engine._evaluator.apply()  # pylint: disable=protected-access
             )
@@ -339,14 +334,8 @@ class TestFormulaChannel:
         tests_passed = 0
         for io_pair in io_pairs:
             io_input, io_output = io_pair
-            assert all(
-                await asyncio.gather(
-                    *[
-                        chan.new_sender().send(Sample(now, value))
-                        for chan, value in zip(channels, io_input)
-                    ]
-                )
-            )
+            for chan, value in zip(channels, io_input):
+                chan.new_sender().send(Sample(now, value))
             next_val = await result_chan.receive()
             assert next_val.value == io_output
             tests_passed += 1
@@ -576,14 +565,8 @@ class TestFormulaAverager:
         tests_passed = 0
         for io_pair in io_pairs:
             io_input, io_output = io_pair
-            assert all(
-                await asyncio.gather(
-                    *[
-                        chan.new_sender().send(Sample(now, value))
-                        for chan, value in zip(channels.values(), io_input)
-                    ]
-                )
-            )
+            for chan, value in zip(channels.values(), io_input):
+                chan.new_sender().send(Sample(now, value))
             next_val = (
                 await engine._evaluator.apply()  # pylint: disable=protected-access
             )

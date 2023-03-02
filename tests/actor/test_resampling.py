@@ -60,7 +60,7 @@ async def _assert_resampling_works(
 
     fake_time.shift(0.1)
     sample = Sample(_now(), 3)  # ts = 0.3s
-    await timeseries_sender.send(sample)
+    timeseries_sender.send(sample)
 
     fake_time.shift(0.1)
     new_sample = await timeseries_receiver.receive()  # At 0.4s (timer)
@@ -71,7 +71,7 @@ async def _assert_resampling_works(
 
     fake_time.shift(0.05)
     sample = Sample(_now(), 4)  # ts = 0.45s
-    await timeseries_sender.send(sample)
+    timeseries_sender.send(sample)
     fake_time.shift(0.15)
     new_sample = await timeseries_receiver.receive()  # At 0.6s (timer)
     assert new_sample is not None
@@ -80,12 +80,12 @@ async def _assert_resampling_works(
     assert new_sample.timestamp == _now()
 
     fake_time.shift(0.05)
-    await timeseries_sender.send(Sample(_now(), 8))  # ts = 0.65s
+    timeseries_sender.send(Sample(_now(), 8))  # ts = 0.65s
     fake_time.shift(0.05)
-    await timeseries_sender.send(Sample(_now(), 1))  # ts = 0.7s
+    timeseries_sender.send(Sample(_now(), 1))  # ts = 0.7s
     fake_time.shift(0.05)
     sample = Sample(_now(), 9)  # ts = 0.75s
-    await timeseries_sender.send(sample)
+    timeseries_sender.send(sample)
     fake_time.shift(0.05)
     new_sample = await timeseries_receiver.receive()  # At 0.8s (timer)
     assert new_sample is not None
@@ -137,7 +137,7 @@ async def test_single_request(
         start_time=None,
     )
 
-    await resampling_req_sender.send(subs_req)
+    resampling_req_sender.send(subs_req)
     data_source_req = await data_source_req_recv.receive()
     assert data_source_req is not None
     assert data_source_req == dataclasses.replace(
@@ -183,11 +183,11 @@ async def test_duplicate_request(
         start_time=None,
     )
 
-    await resampling_req_sender.send(subs_req)
+    resampling_req_sender.send(subs_req)
     data_source_req = await data_source_req_recv.receive()
 
     # Send duplicate request
-    await resampling_req_sender.send(subs_req)
+    resampling_req_sender.send(subs_req)
     with pytest.raises(asyncio.TimeoutError):
         await asyncio.wait_for(data_source_req_recv.receive(), timeout=0.1)
 

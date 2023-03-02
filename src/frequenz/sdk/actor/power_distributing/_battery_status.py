@@ -258,7 +258,7 @@ class BatteryStatusTracker:
                     new_status = self._update_status(self._select)
 
                     if new_status is not None:
-                        await status_sender.send(new_status)
+                        status_sender.send(new_status)
 
             except Exception as err:  # pylint: disable=broad-except
                 _logger.exception("BatteryStatusTracker crashed with error: %s", err)

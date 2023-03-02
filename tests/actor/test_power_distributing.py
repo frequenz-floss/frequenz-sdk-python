@@ -111,7 +111,7 @@ class TestPowerDistributingActor:
 
         graph = microgrid.component_graph
         for battery in graph.components(component_category={ComponentCategory.BATTERY}):
-            assert await microgrid.send(
+            microgrid.send(
                 battery_msg(
                     battery.component_id,
                     capacity=Metric(98000),
@@ -122,7 +122,7 @@ class TestPowerDistributingActor:
 
         inverters = graph.components(component_category={ComponentCategory.INVERTER})
         for inverter in inverters:
-            assert await microgrid.send(
+            microgrid.send(
                 inverter_msg(
                     inverter.component_id,
                     power=Bound(-500, 500),
@@ -154,7 +154,7 @@ class TestPowerDistributingActor:
         distributor = PowerDistributingActor({"user1": channel.service_handle})
 
         client_handle = channel.client_handle
-        await client_handle.send(request)
+        client_handle.send(request)
 
         done, pending = await asyncio.wait(
             [asyncio.create_task(client_handle.receive())],
@@ -194,20 +194,18 @@ class TestPowerDistributingActor:
         distributor = PowerDistributingActor(service_channels)
 
         user1_handle = channel1.client_handle
-        task1 = user1_handle.send(
+        user1_handle.send(
             Request(
                 power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
             )
         )
 
         user2_handle = channel2.client_handle
-        task2 = user2_handle.send(
+        user2_handle.send(
             Request(
                 power=1300, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
             )
         )
-
-        await asyncio.gather(*[task1, task2])
 
         done, pending = await asyncio.wait(
             [
@@ -250,7 +248,7 @@ class TestPowerDistributingActor:
         distributor = PowerDistributingActor(service_channels)
 
         user1_handle = channel1.client_handle
-        await user1_handle.send(request)
+        user1_handle.send(request)
 
         done, _ = await asyncio.wait(
             [asyncio.create_task(user1_handle.receive())],
@@ -293,27 +291,25 @@ class TestPowerDistributingActor:
         distributor = PowerDistributingActor(service_channels)
 
         user1_handle = channel1.client_handle
-        task1 = user1_handle.send(
+        user1_handle.send(
             Request(
                 power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
             )
         )
 
         user2_handle = channel2.client_handle
-        task2 = user2_handle.send(
+        user2_handle.send(
             Request(
                 power=1200, batteries={106, 306}, request_timeout_sec=SAFETY_TIMEOUT
             )
         )
 
         user3_handle = channel3.client_handle
-        task3 = user3_handle.send(
+        user3_handle.send(
             Request(
                 power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
             )
         )
-
-        await asyncio.gather(*[task1, task2, task3])
 
         done, _ = await asyncio.wait(
             [
@@ -370,7 +366,7 @@ class TestPowerDistributingActor:
         distributor = PowerDistributingActor(service_channels)
 
         user1_handle = channel1.client_handle
-        await user1_handle.send(request)
+        user1_handle.send(request)
 
         done, pending = await asyncio.wait(
             [asyncio.create_task(user1_handle.receive())],
@@ -417,7 +413,7 @@ class TestPowerDistributingActor:
         distributor = PowerDistributingActor(service_channels)
 
         user1_handle = channel1.client_handle
-        await user1_handle.send(request)
+        user1_handle.send(request)
 
         done, pending = await asyncio.wait(
             [asyncio.create_task(user1_handle.receive())],
@@ -464,7 +460,7 @@ class TestPowerDistributingActor:
         distributor = PowerDistributingActor(service_channels)
 
         user1_handle = channel1.client_handle
-        await user1_handle.send(request)
+        user1_handle.send(request)
 
         done, pending = await asyncio.wait(
             [asyncio.create_task(user1_handle.receive())],
@@ -503,7 +499,7 @@ class TestPowerDistributingActor:
         distributor = PowerDistributingActor({"user1": channel.service_handle})
 
         client_handle = channel.client_handle
-        await client_handle.send(request)
+        client_handle.send(request)
 
         done, pending = await asyncio.wait(
             [asyncio.create_task(client_handle.receive())],

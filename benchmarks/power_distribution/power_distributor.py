@@ -53,7 +53,7 @@ async def run_user(user: User, batteries: Set[int], request_num: int) -> List[Re
     """
     result: List[Result] = []
     for _ in range(request_num):
-        await user.channel.send(
+        user.channel.send(
             Request(power=random.randrange(100000, 1000000), batteries=batteries)
         )
         try:

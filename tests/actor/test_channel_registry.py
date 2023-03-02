@@ -16,8 +16,8 @@ async def test_channel_registry() -> None:
     sender21 = reg.new_sender("21-hello")
     receiver21 = reg.new_receiver("21-hello")
 
-    await sender20.send(30)
-    await sender21.send(31)
+    sender20.send(30)
+    sender21.send(31)
 
     rcvd = await receiver21.receive()
     assert rcvd == 31

@@ -15,7 +15,7 @@ from unittest.mock import AsyncMock, MagicMock
 import async_solipsism
 import pytest
 import time_machine
-from frequenz.channels import Broadcast
+from frequenz.channels import Broadcast, SenderError
 
 from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._resampling import (
@@ -212,8 +212,8 @@ async def test_resampling_with_one_window(
     # Send a few samples and run a resample tick, advancing the fake time by one period
     sample0s = Sample(timestamp, value=5.0)
     sample1s = Sample(timestamp + timedelta(seconds=1), value=12.0)
-    await source_sendr.send(sample0s)
-    await source_sendr.send(sample1s)
+    source_sendr.send(sample0s)
+    source_sendr.send(sample1s)
     fake_time.shift(resampling_period_s)
     await resampler.resample(one_shot=True)
 
@@ -237,9 +237,9 @@ async def test_resampling_with_one_window(
     sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=2.0)
     sample3s = Sample(timestamp + timedelta(seconds=3), value=4.0)
     sample4s = Sample(timestamp + timedelta(seconds=4), value=5.0)
-    await source_sendr.send(sample2_5s)
-    await source_sendr.send(sample3s)
-    await source_sendr.send(sample4s)
+    source_sendr.send(sample2_5s)
+    source_sendr.send(sample3s)
+    source_sendr.send(sample4s)
     fake_time.shift(resampling_period_s)
     await resampler.resample(one_shot=True)
 
@@ -321,8 +321,8 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     # Send a few samples and run a resample tick, advancing the fake time by one period
     sample0s = Sample(timestamp, value=5.0)
     sample1s = Sample(timestamp + timedelta(seconds=1), value=12.0)
-    await source_sendr.send(sample0s)
-    await source_sendr.send(sample1s)
+    source_sendr.send(sample0s)
+    source_sendr.send(sample1s)
     fake_time.shift(resampling_period_s)
     await resampler.resample(one_shot=True)
 
@@ -346,9 +346,9 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=2.0)
     sample3s = Sample(timestamp + timedelta(seconds=3), value=4.0)
     sample4s = Sample(timestamp + timedelta(seconds=4), value=5.0)
-    await source_sendr.send(sample2_5s)
-    await source_sendr.send(sample3s)
-    await source_sendr.send(sample4s)
+    source_sendr.send(sample2_5s)
+    source_sendr.send(sample3s)
+    source_sendr.send(sample4s)
     fake_time.shift(resampling_period_s)
     await resampler.resample(one_shot=True)
 
@@ -373,8 +373,8 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     # Third resampling run
     sample5s = Sample(timestamp + timedelta(seconds=5), value=1.0)
     sample6s = Sample(timestamp + timedelta(seconds=6), value=3.0)
-    await source_sendr.send(sample5s)
-    await source_sendr.send(sample6s)
+    source_sendr.send(sample5s)
+    source_sendr.send(sample6s)
     fake_time.shift(resampling_period_s)
     await resampler.resample(one_shot=True)
 
@@ -478,8 +478,8 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     # Send a few samples and run a resample tick, advancing the fake time by one period
     sample0s = Sample(timestamp, value=5.0)
     sample1s = Sample(timestamp + timedelta(seconds=1), value=12.0)
-    await source_sendr.send(sample0s)
-    await source_sendr.send(sample1s)
+    source_sendr.send(sample0s)
+    source_sendr.send(sample1s)
     fake_time.shift(resampling_period_s)
     await resampler.resample(one_shot=True)
 
@@ -503,9 +503,9 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=2.0)
     sample3s = Sample(timestamp + timedelta(seconds=3), value=4.0)
     sample4s = Sample(timestamp + timedelta(seconds=4), value=5.0)
-    await source_sendr.send(sample2_5s)
-    await source_sendr.send(sample3s)
-    await source_sendr.send(sample4s)
+    source_sendr.send(sample2_5s)
+    source_sendr.send(sample3s)
+    source_sendr.send(sample4s)
     fake_time.shift(resampling_period_s)
     await resampler.resample(one_shot=True)
 
@@ -530,8 +530,8 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     # Third resampling run
     sample5s = Sample(timestamp + timedelta(seconds=5), value=1.0)
     sample6s = Sample(timestamp + timedelta(seconds=6), value=3.0)
-    await source_sendr.send(sample5s)
-    await source_sendr.send(sample6s)
+    source_sendr.send(sample5s)
+    source_sendr.send(sample6s)
     fake_time.shift(resampling_period_s)
     await resampler.resample(one_shot=True)
 
@@ -621,7 +621,7 @@ async def test_receiving_stopped_resampling_error(
 
     # Send a sample and run a resample tick, advancing the fake time by one period
     sample0s = Sample(timestamp, value=5.0)
-    await source_sendr.send(sample0s)
+    source_sendr.send(sample0s)
     fake_time.shift(resampling_period_s)
     await resampler.resample(one_shot=True)
 
@@ -639,7 +639,12 @@ async def test_receiving_stopped_resampling_error(
 
     # Close channel, try to resample again
     await source_chan.close()
-    assert await source_sendr.send(sample0s) is False
+
+    try:
+        source_sendr.send(sample0s)
+    except SenderError:
+        pass
+
     fake_time.shift(resampling_period_s)
     with pytest.raises(ResamplingError) as excinfo:
         await resampler.resample(one_shot=True)

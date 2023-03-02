@@ -94,9 +94,9 @@ def actor(cls: Type[Any]) -> Type[Any]:
             select = Select(channel_1=self._recv1, channel_2=self._recv2)
             while await select.ready():
                 if msg := select.channel_1:
-                    await self._output.send(msg.inner)
+                    self._output.send(msg.inner)
                 elif msg := select.channel_2:
-                    await self._output.send(msg.inner)
+                    self._output.send(msg.inner)
 
 
     input_chan_1: Broadcast[bool] = Broadcast("input_chan_1")
@@ -112,7 +112,7 @@ def actor(cls: Type[Any]) -> Type[Any]:
     )
     echo_rx = echo_chan.new_receiver()
 
-    await input_chan_2.new_sender().send(True)
+    input_chan_2.new_sender().send(True)
     msg = await echo_rx.receive()
     ```
 
@@ -132,7 +132,7 @@ def actor(cls: Type[Any]) -> Type[Any]:
 
         async def run(self) -> None:
             async for msg in self._recv:
-                await self._output.send(msg)
+                self._output.send(msg)
 
 
     @actor
@@ -149,7 +149,7 @@ def actor(cls: Type[Any]) -> Type[Any]:
 
         async def run(self) -> None:
             async for msg in self._recv:
-                await self._output.send(msg)
+                self._output.send(msg)
 
 
     input_chan: Broadcast[bool] = Broadcast("Input to A1")
@@ -168,7 +168,7 @@ def actor(cls: Type[Any]) -> Type[Any]:
 
     a2_rx = a2_chan.new_receiver()
 
-    await input_chan.new_sender().send(True)
+    input_chan.new_sender().send(True)
     msg = await a2_rx.receive()
     ```
 

@@ -342,7 +342,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
                 # grpc.aio is missing types and mypy thinks this is not
                 # async iterable, but it is
                 async for msg in call:  # type: ignore[attr-defined]
-                    await sender.send(transform(msg))
+                    sender.send(transform(msg))
             except grpc.aio.AioRpcError as err:
                 api_details = f"Microgrid API: {self.target}."
                 logger.exception(

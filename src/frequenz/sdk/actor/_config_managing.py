@@ -67,7 +67,7 @@ class ConfigManagingActor:
         """Send config file using a broadcast channel."""
         conf_vars = self._read_config()
         config = Config(conf_vars)
-        await self._output.send(config)
+        self._output.send(config)
 
     async def run(self) -> None:
         """Watch config file and update when modified.

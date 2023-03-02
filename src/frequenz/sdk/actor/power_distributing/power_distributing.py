@@ -122,7 +122,7 @@ class PowerDistributingActor:
 
         # Set power 1200W to given batteries.
         request = Request(power=1200, batteries=batteries_ids, request_timeout_sec=10.0)
-        await client_handle.send(request)
+        client_handle.send(request)
 
         # It is recommended to use timeout when waiting for the response!
         result: Result = await asyncio.wait_for(client_handle.receive(), timeout=10)
@@ -265,12 +265,12 @@ class PowerDistributingActor:
                     self._all_battery_status.get_working_batteries(request.batteries)
                 )
             except KeyError as err:
-                await user.channel.send(Error(request, str(err)))
+                user.channel.send(Error(request, str(err)))
                 continue
 
             if len(pairs_data) == 0:
                 error_msg = f"No data for the given batteries {str(request.batteries)}"
-                await user.channel.send(Error(request, str(error_msg)))
+                user.channel.send(Error(request, str(error_msg)))
                 continue
 
             try:
@@ -279,7 +279,7 @@ class PowerDistributingActor:
                 )
             except ValueError as err:
                 error_msg = f"Couldn't distribute power, error: {str(err)}"
-                await user.channel.send(Error(request, str(error_msg)))
+                user.channel.send(Error(request, str(error_msg)))
                 continue
 
             distributed_power_value = request.power - distribution.remaining_power
@@ -318,12 +318,13 @@ class PowerDistributingActor:
                     excess_power=distribution.remaining_power,
                 )
 
+            user.channel.send(response)
+
             asyncio.gather(
                 *[
                     self._all_battery_status.update_status(
                         succeed_batteries, failed_batteries
-                    ),
-                    user.channel.send(response),
+                    )
                 ]
             )
 
@@ -413,10 +414,7 @@ class PowerDistributingActor:
             prev_request, prev_user = self._request_queue.get_nowait()
             # Generators seems to be the fastest
             if prev_request.batteries == batteries:
-                task = asyncio.create_task(
-                    prev_user.channel.send(Ignored(prev_request))
-                )
-                to_ignore.append(task)
+                prev_user.channel.send(Ignored(prev_request))
             # Use generators as generators seems to be the fastest.
             elif any(battery_id in prev_request.batteries for battery_id in batteries):
                 # If that happen PowerDistributor has no way to distinguish what
@@ -473,7 +471,7 @@ class PowerDistributingActor:
             # We should discover as fast as possible that request is wrong.
             check_result = self._check_request(request)
             if check_result is not None:
-                await user.channel.send(check_result)
+                user.channel.send(check_result)
                 continue
 
             tasks = self._remove_duplicated_requests(request, user)
@@ -484,7 +482,7 @@ class PowerDistributingActor:
                     "Consider increasing size of the queue."
                 )
                 _logger.error(msg)
-                await user.channel.send(Error(request, str(msg)))
+                user.channel.send(Error(request, str(msg)))
             else:
                 self._request_queue.put_nowait((request, user))
                 await asyncio.gather(*tasks)

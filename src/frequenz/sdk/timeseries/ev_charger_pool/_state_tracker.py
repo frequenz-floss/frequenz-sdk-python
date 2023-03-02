@@ -154,10 +154,10 @@ class StateTracker:
         }
         self._merged_stream = Merge(*streams)
         sender = self._channel.new_sender()
-        await sender.send(self._get())
+        sender.send(self._get())
         async for data in self._merged_stream:
             if updated_states := self._update(data):
-                await sender.send(updated_states)
+                sender.send(updated_states)
 
     def new_receiver(self) -> Receiver[EVChargerPoolStates]:
         """Return a receiver that streams ev charger states.
