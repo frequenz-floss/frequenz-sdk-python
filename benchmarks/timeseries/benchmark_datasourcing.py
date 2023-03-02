@@ -111,4 +111,6 @@ async def benchmark_data_sourcing(
 
 
 if __name__ == "__main__":
-    asyncio.run(benchmark_data_sourcing(300, 100))
+    import sys
+
+    asyncio.run(benchmark_data_sourcing(int(sys.argv[1]), int(sys.argv[2])))
