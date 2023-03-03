@@ -14,7 +14,8 @@ import time_machine
 from frequenz.sdk.actor import actor, run
 
 
-@pytest.fixture(autouse=True)
+# Setting 'autouse' has no effect as this method replaces the event loop for all tests in the file.
+@pytest.fixture()
 def event_loop() -> Iterator[async_solipsism.EventLoop]:
     """Replace the loop with one that doesn't interact with the outside world."""
     loop = async_solipsism.EventLoop()
