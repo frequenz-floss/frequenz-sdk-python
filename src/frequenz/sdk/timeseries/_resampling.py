@@ -12,7 +12,7 @@ import math
 from bisect import bisect
 from collections import deque
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import AsyncIterator, Callable, Coroutine, Optional, Sequence
 
 from frequenz.channels.util import Timer
@@ -354,6 +354,18 @@ class Resampler:
         self._timer: Timer = Timer(config.resampling_period_s)
         """The timer to trigger the next resampling."""
 
+        self._window_end: datetime = datetime.now(timezone.utc) + timedelta(
+            seconds=self._config.resampling_period_s
+        )
+        """The time in which the current window ends.
+
+        This is used to make sure every resampling window is generated at
+        precise times. We can't rely on the timer timestamp because timers will
+        never fire at the exact requested time, so if we don't use a precise
+        time for the end of the window, the resampling windows we produce will
+        have different sizes.
+        """
+
     @property
     def config(self) -> ResamplerConfig:
         """Get the resampler configuration.
@@ -435,11 +447,12 @@ class Resampler:
                 timeseries from the resampler before calling this method
                 again).
         """
-        async for timer_timestamp in self._timer:
+        async for _ in self._timer:
             results = await asyncio.gather(
-                *[r.resample(timer_timestamp) for r in self._resamplers.values()],
+                *[r.resample(self._window_end) for r in self._resamplers.values()],
                 return_exceptions=True,
             )
+            self._update_window_end()
             exceptions = {
                 source: results[i]
                 for i, source in enumerate(self._resamplers)
@@ -451,6 +464,11 @@ class Resampler:
                 raise ResamplingError(exceptions)
             if one_shot:
                 break
+
+    def _update_window_end(self) -> None:
+        self._window_end = self._window_end + timedelta(
+            seconds=self._config.resampling_period_s
+        )
 
 
 class _ResamplingHelper:

@@ -174,6 +174,88 @@ async def test_helper_buffer_too_big(
     assert helper._buffer.maxlen == DEFAULT_BUFFER_LEN_MAX
 
 
+async def test_resampling_window_size_is_constant(
+    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample]
+) -> None:
+    """Test resampling window size is consistent."""
+    timestamp = datetime.now(timezone.utc)
+
+    resampling_period_s = 2
+    expected_resampled_value = 42.0
+
+    resampling_fun_mock = MagicMock(
+        spec=ResamplingFunction, return_value=expected_resampled_value
+    )
+    config = ResamplerConfig(
+        resampling_period_s=resampling_period_s,
+        max_data_age_in_periods=1.0,
+        resampling_function=resampling_fun_mock,
+        initial_buffer_len=4,
+    )
+    resampler = Resampler(config)
+
+    source_receiver = source_chan.new_receiver()
+    source_sender = source_chan.new_sender()
+
+    sink_mock = AsyncMock(spec=Sink, return_value=True)
+
+    resampler.add_timeseries("test", source_receiver, sink_mock)
+    source_props = resampler.get_source_properties(source_receiver)
+
+    # Test timeline
+    #
+    # t(s)   0          1          2   2.5    3          4
+    #        |----------|----------R----|-----|----------R-----> (no more samples)
+    # value  5.0       12.0            2.0   4.0        5.0
+    #
+    # R = resampling is done
+
+    # Send a few samples and run a resample tick, advancing the fake time by one period
+    sample0s = Sample(timestamp, value=5.0)
+    sample1s = Sample(timestamp + timedelta(seconds=1), value=12.0)
+    await source_sender.send(sample0s)
+    await source_sender.send(sample1s)
+    fake_time.shift(resampling_period_s)  # timer matches resampling period
+    await resampler.resample(one_shot=True)
+
+    assert datetime.now(timezone.utc).timestamp() == 2
+    sink_mock.assert_called_once_with(
+        Sample(
+            timestamp + timedelta(seconds=resampling_period_s), expected_resampled_value
+        )
+    )
+    resampling_fun_mock.assert_called_once_with(
+        a_sequence(sample1s), config, source_props
+    )
+    sink_mock.reset_mock()
+    resampling_fun_mock.reset_mock()
+
+    # Second resampling run
+    sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=2.0)
+    sample3s = Sample(timestamp + timedelta(seconds=3), value=4.0)
+    sample4s = Sample(timestamp + timedelta(seconds=4), value=5.0)
+    await source_sender.send(sample2_5s)
+    await source_sender.send(sample3s)
+    await source_sender.send(sample4s)
+    fake_time.shift(resampling_period_s + 0.5)  # Timer fired with some delay
+    await resampler.resample(one_shot=True)
+
+    assert datetime.now(timezone.utc).timestamp() == 4.5
+    sink_mock.assert_called_once_with(
+        Sample(
+            # But the sample still gets 4s as timestamp, because we are keeping
+            # the window size constant, not dependent on when the timer fired
+            timestamp + timedelta(seconds=resampling_period_s * 2),
+            expected_resampled_value,
+        )
+    )
+    resampling_fun_mock.assert_called_once_with(
+        a_sequence(sample2_5s, sample3s, sample4s), config, source_props
+    )
+    sink_mock.reset_mock()
+    resampling_fun_mock.reset_mock()
+
+
 async def test_resampling_with_one_window(
     fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample]
 ) -> None:
