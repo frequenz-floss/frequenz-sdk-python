@@ -447,12 +447,12 @@ class Resampler:
                 timeseries from the resampler before calling this method
                 again).
         """
-        async for _ in self._timer:
+        async for timer_timestamp in self._timer:
             results = await asyncio.gather(
                 *[r.resample(self._window_end) for r in self._resamplers.values()],
                 return_exceptions=True,
             )
-            self._update_window_end()
+            self._update_window_end(timer_timestamp)
             exceptions = {
                 source: results[i]
                 for i, source in enumerate(self._resamplers)
@@ -465,7 +465,23 @@ class Resampler:
             if one_shot:
                 break
 
-    def _update_window_end(self) -> None:
+    def _update_window_end(self, timer_timestamp: datetime) -> None:
+        # We use abs() here to account for errors in the timer where the timer
+        # fires before its time even when in theory it shouldn't be possible,
+        # but we want to be resilient to timer implementation changes that
+        # could end up in this case, either because there were some time jump
+        # or some rounding error.
+        timer_error_s = abs((timer_timestamp - self._window_end).total_seconds())
+        if timer_error_s > (self._config.resampling_period_s / 10.0):
+            _logger.warning(
+                "The resampling timer fired too late. It should have fired at "
+                "%s, but it fired at %s (%s seconds difference; resampling "
+                "period is %s seconds)",
+                self._window_end,
+                timer_timestamp,
+                timer_error_s,
+                self._config.resampling_period_s,
+            )
         self._window_end = self._window_end + timedelta(
             seconds=self._config.resampling_period_s
         )
