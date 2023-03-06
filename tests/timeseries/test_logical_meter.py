@@ -189,7 +189,8 @@ class TestLogicalMeter:
 
     async def test_soc(self, mocker: MockerFixture) -> None:
         """Test the soc calculation."""
-        mockgrid = MockMicrogrid(grid_side_meter=False, sample_rate_s=0.02)
+        # Samplerates <= 0.02 cause flaky failures
+        mockgrid = MockMicrogrid(grid_side_meter=False, sample_rate_s=0.04)
         mockgrid.add_solar_inverters(2)
         mockgrid._id_increment = 8  # pylint: disable=protected-access
         mockgrid.add_batteries(3)
