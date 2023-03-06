@@ -156,16 +156,14 @@ async def test_helper_buffer_too_big(
 
     _ = helper.resample(datetime.now(timezone.utc))
     # Ignore errors produced by wrongly finalized gRPC server in unrelated tests
-    assert _filter_logs(
+    assert (
+        "frequenz.sdk.timeseries._resampling",
+        logging.ERROR,
+        f"The new buffer length ({DEFAULT_BUFFER_LEN_MAX + 1}) "
+        f"for timeseries test is too big, using {DEFAULT_BUFFER_LEN_MAX} instead",
+    ) in _filter_logs(
         caplog.record_tuples,
-    ) == [
-        (
-            "frequenz.sdk.timeseries._resampling",
-            logging.ERROR,
-            f"The new buffer length ({DEFAULT_BUFFER_LEN_MAX + 1}) "
-            f"for timeseries test is too big, using {DEFAULT_BUFFER_LEN_MAX} instead",
-        )
-    ]
+    )
     # pylint: disable=protected-access
     assert helper._buffer.maxlen == DEFAULT_BUFFER_LEN_MAX
 
