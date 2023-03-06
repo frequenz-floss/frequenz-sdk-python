@@ -75,6 +75,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         self.battery_ids: list[int] = []
         self.evc_ids: list[int] = []
         self.meter_ids: list[int] = [4]
+        self.bat_inv_map: dict[int, int] = {}
 
         self.evc_component_states: dict[int, EVChargerComponentState] = {}
         self.evc_cable_states: dict[int, EVChargerCableState] = {}
@@ -179,6 +180,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             self.meter_ids.append(meter_id)
             self.battery_inverter_ids.append(inv_id)
             self.battery_ids.append(bat_id)
+            self.bat_inv_map[bat_id] = inv_id
 
             self._components.add(
                 Component(

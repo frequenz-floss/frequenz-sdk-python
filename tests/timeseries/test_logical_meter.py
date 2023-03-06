@@ -20,6 +20,8 @@ from ._formula_engine.utils import (
 )
 from .mock_microgrid import MockMicrogrid
 
+# pylint: disable=too-many-locals
+
 
 class TestLogicalMeter:
     """Tests for the logical meter."""
@@ -202,8 +204,8 @@ class TestLogicalMeter:
 
         soc_recv = await logical_meter._soc()  # pylint: disable=protected-access
 
-        bat_receivers = [
-            await get_resampled_stream(
+        bat_receivers = {
+            bat_id: await get_resampled_stream(
                 logical_meter,
                 channel_registry,
                 request_chan.new_sender(),
@@ -211,23 +213,38 @@ class TestLogicalMeter:
                 ComponentMetricId.SOC,
             )
             for bat_id in mockgrid.battery_ids
-        ]
+        }
 
-        await synchronize_receivers([soc_recv, *bat_receivers])
+        bat_inv_map = mockgrid.bat_inv_map
+        inv_receivers = {
+            inverter_id: await get_resampled_stream(
+                logical_meter,
+                channel_registry,
+                request_chan.new_sender(),
+                inverter_id,
+                ComponentMetricId.ACTIVE_POWER,
+            )
+            for inverter_id in mockgrid.bat_inv_map.values()
+        }
 
-        for ctr in range(10):
+        await synchronize_receivers(
+            [soc_recv, *bat_receivers.values(), *inv_receivers.values()]
+        )
+
+        for _ in range(10):
             bat_vals = []
-            for recv in bat_receivers:
-                val = await recv.receive()
+            for bat_id, bat_recv in bat_receivers.items():
+                inv_id = bat_inv_map[bat_id]
+                inv_recv = inv_receivers[inv_id]
+                inv_msg = await inv_recv.receive()
+                # We won't use batteries where adjacent inverter is not sending active
+                # power.
+                if inv_msg.value is None:
+                    continue
+
+                val = await bat_recv.receive()
                 assert val is not None and val.value is not None
                 bat_vals.append(val.value)
-
-            assert len(bat_vals) == 3
-            # After 5 values, the inverter with component_id > 100 stops sending
-            # data. And the values from the last battery goes out of the calculation.
-            # So we drop it from out control value as well.
-            if ctr >= 5:
-                bat_vals = bat_vals[:2]
 
             soc_sample = await soc_recv.receive()
             assert soc_sample is not None and soc_sample.value is not None
