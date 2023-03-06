@@ -16,4 +16,4 @@
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+* The resampler now correctly produces resampling windows of exact *resampling period* size, which only include samples emitted during the resampling window (see #170)
