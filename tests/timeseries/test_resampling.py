@@ -115,10 +115,7 @@ async def test_resampler_config_len_warn(
     )
     assert config.initial_buffer_len == init_len
     # Ignore errors produced by wrongly finalized gRPC server in unrelated tests
-    assert _filter_logs(
-        caplog.record_tuples,
-        logger_name="frequenz.sdk.timeseries._resampling",
-    ) == [
+    assert _filter_logs(caplog.record_tuples) == [
         (
             "frequenz.sdk.timeseries._resampling",
             logging.WARNING,
@@ -161,7 +158,6 @@ async def test_helper_buffer_too_big(
     # Ignore errors produced by wrongly finalized gRPC server in unrelated tests
     assert _filter_logs(
         caplog.record_tuples,
-        logger_name="frequenz.sdk.timeseries._resampling",
     ) == [
         (
             "frequenz.sdk.timeseries._resampling",
@@ -890,7 +886,7 @@ def _get_buffer_len(resampler: Resampler, source_recvr: Source) -> int:
 def _filter_logs(
     record_tuples: list[tuple[str, int, str]],
     *,
-    logger_name: str,
+    logger_name: str = "frequenz.sdk.timeseries._resampling",
     logger_level: int | None = None,
 ) -> list[tuple[str, int, str]]:
     return [
