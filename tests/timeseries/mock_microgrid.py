@@ -53,8 +53,16 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
     _microgrid: MockMicrogridClient
 
-    def __init__(self, grid_side_meter: bool, sample_rate_s: float = 0.01):
-        """Create a new instance."""
+    def __init__(
+        self, grid_side_meter: bool, num_values: int = 2000, sample_rate_s: float = 0.01
+    ):
+        """Create a new instance.
+
+        Args:
+            grid_side_meter: whether the main meter should be on the grid side or not.
+            num_values: number of values to generate for each component.
+            sample_rate_s: sample rate in seconds.
+        """
         self._components: Set[Component] = set(
             [
                 Component(1, ComponentCategory.GRID),
@@ -64,6 +72,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         self._connections: Set[Connection] = set([Connection(1, 4)])
         self._id_increment = 0
         self._grid_side_meter = grid_side_meter
+        self._num_values = num_values
         self._sample_rate_s = sample_rate_s
 
         self._connect_to = self.grid_id
@@ -85,6 +94,31 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         self._actors: list[typing.Any] = []
         self._start_meter_streaming(4)
 
+    def start_mock_client(
+        self, initialize_cb: Callable[[MockMicrogridClient], None]
+    ) -> MockMicrogridClient:
+        """Set up the mock client.
+
+        Creates the microgrid mock client, initializes it, and starts the streaming
+        tasks.
+
+        For unittests, users should use the `start()` method.
+
+        Args:
+            initialize_cb: callback to initialize the mock client.
+
+        Returns:
+            A MockMicrogridClient instance.
+        """
+        self._microgrid = MockMicrogridClient(self._components, self._connections)
+
+        initialize_cb(self._microgrid)
+
+        self._streaming_tasks = [
+            asyncio.create_task(coro) for coro in self._streaming_coros
+        ]
+        return self._microgrid
+
     async def start(
         self, mocker: MockerFixture
     ) -> Tuple[Broadcast[ComponentMetricRequest], ChannelRegistry]:
@@ -94,11 +128,8 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             A sender to send requests to the Resampling actor, and a corresponding
                 channel registry.
         """
-        self._microgrid = MockMicrogridClient(self._components, self._connections)
-        self._microgrid.initialize(mocker)
-        self._streaming_tasks = [
-            asyncio.create_task(coro) for coro in self._streaming_coros
-        ]
+        self.start_mock_client(lambda mock_client: mock_client.initialize(mocker))
+
         await asyncio.sleep(self._sample_rate_s / 2)
         ret = await self._init_client_and_actors()
         return ret
@@ -106,7 +137,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
     async def _comp_data_send_task(
         self, comp_id: int, make_comp_data: Callable[[int, datetime], ComponentData]
     ) -> None:
-        for value in range(1, 2000):
+        for value in range(1, self._num_values + 1):
             timestamp = datetime.now(tz=timezone.utc)
             val_to_send = value + int(comp_id / 10)
             # for inverters with component_id > 100, send only half the messages.
