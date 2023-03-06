@@ -661,14 +661,15 @@ class _ResamplingHelper:
         # We need to pass a dummy Sample to bisect because it only support
         # specifying a key extraction function in Python 3.10, so we need to
         # compare samples at the moment.
-        cut_index = bisect(self._buffer, Sample(minimum_relevant_timestamp, None))
+        min_index = bisect(self._buffer, Sample(minimum_relevant_timestamp, None))
+        max_index = bisect(self._buffer, Sample(timestamp, None))
         # Using itertools for slicing doesn't look very efficient, but
         # experiements with a custom (ring) buffer that can slice showed that
         # it is not that bad. See:
         # https://github.com/frequenz-floss/frequenz-sdk-python/pull/130
         # So if we need more performance beyond this point, we probably need to
         # resort to some C (or similar) implementation.
-        relevant_samples = list(itertools.islice(self._buffer, cut_index, None))
+        relevant_samples = list(itertools.islice(self._buffer, min_index, max_index))
         value = (
             conf.resampling_function(relevant_samples, conf, props)
             if relevant_samples
