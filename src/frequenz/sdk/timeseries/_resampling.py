@@ -346,8 +346,13 @@ class Resampler:
             config: The configuration for the resampler.
         """
         self._config = config
+        """The configuration for this resampler."""
+
         self._resamplers: dict[Source, _StreamingHelper] = {}
+        """A mapping between sources and the streaming helper handling that source."""
+
         self._timer: Timer = Timer(config.resampling_period_s)
+        """The timer to trigger the next resampling."""
 
     @property
     def config(self) -> ResamplerConfig:
