@@ -478,7 +478,6 @@ class TimeSeriesFormula(Formula, Generic[Value]):
 
             # Symbol metadata is not available, e.g. component category
             if symbol_mapping is None:
-
                 # Component data is available and up to date
                 if cache_lookup_result.entry is not None:
                     kwargs[symbol] = cache_lookup_result.entry.value

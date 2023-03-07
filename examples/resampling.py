@@ -108,6 +108,7 @@ async def run() -> None:  # pylint: disable=too-many-locals
     second_stage_resampler.add_timeseries(average_chan.new_receiver(), _print_sample)
 
     average_sender = average_chan.new_sender()
+
     # Needed until channels Senders raises exceptions on errors
     async def sink_adapter(sample: Sample) -> None:
         assert await average_sender.send(sample)
