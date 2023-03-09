@@ -16,8 +16,8 @@ from __future__ import annotations
 import asyncio
 import logging
 from asyncio.tasks import ALL_COMPLETED
-from dataclasses import dataclass
-from math import ceil, floor
+from dataclasses import dataclass, replace
+from math import ceil, floor, isnan
 from typing import (  # pylint: disable=unused-import
     Any,
     Dict,
@@ -558,24 +558,100 @@ class PowerDistributingActor:
 
             inverter_id: int = self._bat_inv_map[battery_id]
 
-            battery_data: Optional[BatteryData] = self._battery_receivers[
-                battery_id
-            ].peek()
-
-            if battery_data is None:
-                _logger.warning("None returned from battery receiver %d.", battery_id)
+            data = self._get_battery_inverter_data(battery_id, inverter_id)
+            if data is None:
+                _logger.warning(
+                    "Skipping battery %d because its message isn't correct.",
+                    battery_id,
+                )
                 continue
 
-            inverter_data: Optional[InverterData] = self._inverter_receivers[
-                inverter_id
-            ].peek()
-
-            if inverter_data is None:
-                _logger.warning("None returned from inverter receiver %d.", inverter_id)
-                continue
-
-            pairs_data.append(InvBatPair(battery_data, inverter_data))
+            pairs_data.append(data)
         return pairs_data
+
+    def _get_battery_inverter_data(
+        self, battery_id: int, inverter_id: int
+    ) -> Optional[InvBatPair]:
+        """Get battery and inverter data if they are correct.
+
+        Each float data from the microgrid can be "NaN".
+        We can't do math operations on "NaN".
+        So check all the metrics and:
+        * if power bounds are NaN, then try to replace it with the corresponding
+          power bounds from the adjacent component. If metric in the adjacent component
+          is also NaN, then return None.
+        * if other metrics are NaN then return None. We can't assume anything for other
+          metrics.
+
+        Args:
+            battery_id: battery id
+            inverter_id: inverter id
+
+        Returns:
+            Data for the battery and adjacent inverter without NaN values.
+            Return None if we could not replace NaN values.
+        """
+        battery_data = self._battery_receivers[battery_id].peek()
+        inverter_data = self._inverter_receivers[inverter_id].peek()
+
+        # It means that nothing has been send on this channels, yet.
+        # This should be handled by BatteryStatus. BatteryStatus should not return
+        # this batteries as working.
+        if battery_data is None or inverter_data is None:
+            _logger.error(
+                "Battery %d or inverter %d send no data, yet. They should be not used.",
+                battery_id,
+                inverter_id,
+            )
+            return None
+
+        not_replaceable_metrics = [
+            battery_data.soc,
+            battery_data.soc_lower_bound,
+            battery_data.soc_upper_bound,
+            # We could replace capacity with 0, but it won't change distribution.
+            # This battery will be ignored in distribution anyway.
+            battery_data.capacity,
+        ]
+        if any(map(isnan, not_replaceable_metrics)):
+            _logger.debug("Some metrics for battery %d are NaN", battery_id)
+            return None
+
+        replaceable_metrics = [
+            battery_data.power_lower_bound,
+            battery_data.power_upper_bound,
+            inverter_data.active_power_lower_bound,
+            inverter_data.active_power_upper_bound,
+        ]
+
+        # If all values are ok then return them.
+        if not any(map(isnan, replaceable_metrics)):
+            return InvBatPair(battery_data, inverter_data)
+
+        # Replace NaN with the corresponding value in the adjacent component.
+        # If both metrics are None, return None to ignore this battery.
+        replaceable_pairs = [
+            ("power_lower_bound", "active_power_lower_bound"),
+            ("power_upper_bound", "active_power_upper_bound"),
+        ]
+
+        battery_new_metrics = {}
+        inverter_new_metrics = {}
+        for bat_attr, inv_attr in replaceable_pairs:
+            bat_bound = getattr(battery_data, bat_attr)
+            inv_bound = getattr(inverter_data, inv_attr)
+            if isnan(bat_bound) and isnan(inv_bound):
+                _logger.debug("Some metrics for battery %d are NaN", battery_id)
+                return None
+            if isnan(bat_bound):
+                battery_new_metrics[bat_attr] = inv_bound
+            elif isnan(inv_bound):
+                inverter_new_metrics[inv_attr] = bat_bound
+
+        return InvBatPair(
+            replace(battery_data, **battery_new_metrics),
+            replace(inverter_data, **inverter_new_metrics),
+        )
 
     async def _create_channels(self) -> None:
         """Create channels to get data of components in microgrid."""
