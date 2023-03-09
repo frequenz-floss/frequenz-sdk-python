@@ -524,7 +524,7 @@ class _ResamplingHelper:
             samples_time_delta.total_seconds()
         ) / props.received_samples
 
-        _logger.info(
+        _logger.debug(
             "New input sampling period calculated for %r: %ss",
             self._name,
             props.sampling_period_s,
@@ -580,7 +580,7 @@ class _ResamplingHelper:
         if new_buffer_len == self._buffer.maxlen:
             return False
 
-        _logger.info(
+        _logger.debug(
             "New buffer length calculated for %r: %s",
             self._name,
             new_buffer_len,
