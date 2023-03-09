@@ -8,10 +8,14 @@ from dataclasses import dataclass
 from typing import Set, Tuple, TypeVar
 from unittest.mock import AsyncMock, MagicMock
 
-from frequenz.channels import Bidirectional, Receiver, Sender
+from frequenz.channels import Bidirectional, Broadcast, Receiver, Sender
 from pytest_mock import MockerFixture
 
-from frequenz.sdk.actor.power_distributing import PowerDistributingActor, Request
+from frequenz.sdk.actor.power_distributing import (
+    BatteryStatus,
+    PowerDistributingActor,
+    Request,
+)
 from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
 from frequenz.sdk.actor.power_distributing.result import (
     Error,
@@ -93,7 +97,11 @@ class TestPowerDistributingActor:
         )
 
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
-        distributor = PowerDistributingActor({"user1": channel.service_handle})
+        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        distributor = PowerDistributingActor(
+            {"user1": channel.service_handle},
+            battery_status_sender=battery_status_channel.new_sender(),
+        )
 
         assert distributor._bat_inv_map == {106: 105, 206: 205, 306: 305}
         assert distributor._inv_bat_map == {105: 106, 205: 206, 305: 306}
@@ -151,7 +159,11 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        distributor = PowerDistributingActor({"user1": channel.service_handle})
+        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        distributor = PowerDistributingActor(
+            {"user1": channel.service_handle},
+            battery_status_sender=battery_status_channel.new_sender(),
+        )
 
         client_handle = channel.client_handle
         await client_handle.send(request)
@@ -191,7 +203,11 @@ class TestPowerDistributingActor:
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-        distributor = PowerDistributingActor(service_channels)
+        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        distributor = PowerDistributingActor(
+            users_channels=service_channels,
+            battery_status_sender=battery_status_channel.new_sender(),
+        )
 
         user1_handle = channel1.client_handle
         task1 = user1_handle.send(
@@ -247,7 +263,11 @@ class TestPowerDistributingActor:
         )
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-        distributor = PowerDistributingActor(service_channels)
+        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        distributor = PowerDistributingActor(
+            users_channels=service_channels,
+            battery_status_sender=battery_status_channel.new_sender(),
+        )
 
         user1_handle = channel1.client_handle
         await user1_handle.send(request)
@@ -290,7 +310,11 @@ class TestPowerDistributingActor:
             return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
         )
 
-        distributor = PowerDistributingActor(service_channels)
+        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        distributor = PowerDistributingActor(
+            users_channels=service_channels,
+            battery_status_sender=battery_status_channel.new_sender(),
+        )
 
         user1_handle = channel1.client_handle
         task1 = user1_handle.send(
@@ -367,7 +391,11 @@ class TestPowerDistributingActor:
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-        distributor = PowerDistributingActor(service_channels)
+        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        distributor = PowerDistributingActor(
+            users_channels=service_channels,
+            battery_status_sender=battery_status_channel.new_sender(),
+        )
 
         user1_handle = channel1.client_handle
         await user1_handle.send(request)
@@ -414,7 +442,11 @@ class TestPowerDistributingActor:
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-        distributor = PowerDistributingActor(service_channels)
+        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        distributor = PowerDistributingActor(
+            users_channels=service_channels,
+            battery_status_sender=battery_status_channel.new_sender(),
+        )
 
         user1_handle = channel1.client_handle
         await user1_handle.send(request)
@@ -461,7 +493,11 @@ class TestPowerDistributingActor:
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-        distributor = PowerDistributingActor(service_channels)
+        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        distributor = PowerDistributingActor(
+            users_channels=service_channels,
+            battery_status_sender=battery_status_channel.new_sender(),
+        )
 
         user1_handle = channel1.client_handle
         await user1_handle.send(request)
@@ -500,7 +536,11 @@ class TestPowerDistributingActor:
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-        distributor = PowerDistributingActor({"user1": channel.service_handle})
+        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        distributor = PowerDistributingActor(
+            users_channels={"user1": channel.service_handle},
+            battery_status_sender=battery_status_channel.new_sender(),
+        )
 
         client_handle = channel.client_handle
         await client_handle.send(request)

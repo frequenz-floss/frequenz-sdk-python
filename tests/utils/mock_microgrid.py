@@ -10,6 +10,7 @@ from frequenz.channels import Broadcast, Receiver
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 from pytest_mock import MockerFixture
 
+from frequenz.sdk._internal._constants import RECEIVER_MAX_SIZE
 from frequenz.sdk.microgrid import ConnectionManager
 from frequenz.sdk.microgrid._graph import ComponentGraph, _MicrogridComponentGraph
 from frequenz.sdk.microgrid.client import Connection
@@ -264,6 +265,7 @@ class MockMicrogridClient:
         self,
         component_id: int,
         channels: Dict[int, Broadcast[BatteryData]],
+        maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[BatteryData]:
         """Return receiver of the broadcast channel for given component_id.
 
@@ -274,12 +276,15 @@ class MockMicrogridClient:
         Returns:
             Receiver from the given channels.
         """
-        return channels[component_id].new_receiver("component" + str(component_id))
+        return channels[component_id].new_receiver(
+            "component" + str(component_id), maxsize=maxsize
+        )
 
     def _get_meter_receiver(
         self,
         component_id: int,
         channels: Dict[int, Broadcast[MeterData]],
+        maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[MeterData]:
         """Return receiver of the broadcast channel for given component_id.
 
@@ -290,12 +295,15 @@ class MockMicrogridClient:
         Returns:
             Receiver from the given channels.
         """
-        return channels[component_id].new_receiver("component" + str(component_id))
+        return channels[component_id].new_receiver(
+            "component" + str(component_id), maxsize=maxsize
+        )
 
     def _get_ev_charger_receiver(
         self,
         component_id: int,
         channels: Dict[int, Broadcast[EVChargerData]],
+        maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[EVChargerData]:
         """Return receiver of the broadcast channel for given component_id.
 
@@ -306,12 +314,15 @@ class MockMicrogridClient:
         Returns:
             Receiver from the given channels.
         """
-        return channels[component_id].new_receiver("component" + str(component_id))
+        return channels[component_id].new_receiver(
+            "component" + str(component_id), maxsize=maxsize
+        )
 
     def _get_inverter_receiver(
         self,
         component_id: int,
         channels: Dict[int, Broadcast[InverterData]],
+        maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[InverterData]:
         """Return receiver of the broadcast channel for given component_id.
 
@@ -322,4 +333,6 @@ class MockMicrogridClient:
         Returns:
             Receiver from the given channels.
         """
-        return channels[component_id].new_receiver("component" + str(component_id))
+        return channels[component_id].new_receiver(
+            "component" + str(component_id), maxsize=maxsize
+        )

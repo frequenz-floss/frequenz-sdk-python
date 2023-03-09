@@ -10,6 +10,7 @@ It also provides all the secondary features that should be used to communicate w
 PowerDistributingActor and send requests for charging or discharging power.
 """
 
+from ._battery_pool_status import BatteryStatus
 from .power_distributing import PowerDistributingActor
 from .request import Request
 from .result import Error, Ignored, OutOfBound, PartialFailure, Result, Success
@@ -23,4 +24,5 @@ __all__ = [
     "Ignored",
     "OutOfBound",
     "PartialFailure",
+    "BatteryStatus",
 ]

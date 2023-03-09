@@ -10,8 +10,13 @@ this feature.
 import asyncio
 import logging
 
+from frequenz.channels import Broadcast
+
 from frequenz.sdk import microgrid
-from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
+from frequenz.sdk.actor.power_distributing._battery_pool_status import (
+    BatteryPoolStatus,
+    BatteryStatus,
+)
 from frequenz.sdk.microgrid.component import ComponentCategory
 
 _logger = logging.getLogger(__name__)
@@ -31,12 +36,18 @@ async def main() -> None:
             component_category={ComponentCategory.BATTERY}
         )
     }
+    battery_status_channel = Broadcast[BatteryStatus]("battery-status-channel")
 
     batteries_status = BatteryPoolStatus(
+        battery_status_sender=battery_status_channel.new_sender(),
         battery_ids=batteries,
         max_data_age_sec=5,
         max_blocking_duration_sec=30,
     )
+
+    battery_status_receiver = battery_status_channel.new_receiver()
+    async for status in battery_status_receiver:
+        print(f"Received new battery status {status}")
 
     await batteries_status.join()
 
