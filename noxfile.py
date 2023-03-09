@@ -11,7 +11,7 @@ from typing import List
 
 import nox
 
-FMT_DEPS = ["black", "isort"]
+FMT_DEPS = ["black==22.12.0", "isort==5.11.1"]
 DOCSTRING_DEPS = ["pydocstyle", "darglint"]
 PYTEST_DEPS = [
     "pytest",
@@ -21,7 +21,7 @@ PYTEST_DEPS = [
     "time-machine",
     "async-solipsism",
 ]
-MYPY_DEPS = ["mypy", "pandas-stubs", "grpc-stubs"]
+MYPY_DEPS = ["mypy==0.991", "pandas-stubs", "grpc-stubs"]
 
 
 def _source_file_paths(session: nox.Session) -> List[str]:
@@ -72,7 +72,13 @@ def ci_checks_max(session: nox.Session) -> None:
         session: the nox session.
     """
     session.install(
-        ".[docs]", "pylint", "nox", *PYTEST_DEPS, *FMT_DEPS, *DOCSTRING_DEPS, *MYPY_DEPS
+        ".[docs]",
+        "pylint==2.15.9",
+        "nox",
+        *PYTEST_DEPS,
+        *FMT_DEPS,
+        *DOCSTRING_DEPS,
+        *MYPY_DEPS,
     )
 
     formatting(session, False)
@@ -154,7 +160,7 @@ def pylint(session: nox.Session, install_deps: bool = True) -> None:
     if install_deps:
         # install the package itself as editable, so that it is possible to do
         # fast local tests with `nox -R -e pylint`.
-        session.install("-e", ".[docs]", "pylint", "nox", *PYTEST_DEPS)
+        session.install("-e", ".[docs]", "pylint==2.15.9", "nox", *PYTEST_DEPS)
 
     paths = _source_file_paths(session)
     session.run(

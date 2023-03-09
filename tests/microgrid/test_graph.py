@@ -32,7 +32,6 @@ def _check_predecessors_and_successors(graph: gr.ComponentGraph) -> None:
     }
 
     for conn in graph.connections():
-
         if conn.end not in expected_predecessors:
             expected_predecessors[conn.end] = set()
         expected_predecessors[conn.end].add(components[conn.start])

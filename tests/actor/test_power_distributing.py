@@ -386,7 +386,6 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
             "frequenz.sdk.microgrid.get", return_value=mock_microgrid
         ):
-
             distributor = PowerDistributingActor(service_channels)
 
             # Mock that all requested batteries are working.
@@ -446,7 +445,6 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
             "frequenz.sdk.microgrid.get", return_value=mock_microgrid
         ):
-
             distributor = PowerDistributingActor(service_channels)
 
             # Mock that all requested batteries are working.
@@ -545,7 +543,6 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
             "frequenz.sdk.microgrid.get", return_value=mock_microgrid
         ):
-
             distributor = PowerDistributingActor(service_channels)
 
             # Mock that all requested batteries are working.
@@ -612,7 +609,6 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
             "frequenz.sdk.microgrid.get", return_value=mock_microgrid
         ):
-
             distributor = PowerDistributingActor(service_channels)
 
             # Mock that all requested batteries are working.
@@ -679,7 +675,6 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
             "frequenz.sdk.microgrid.get", return_value=mock_microgrid
         ):
-
             distributor = PowerDistributingActor(service_channels)
 
             # Mock that all requested batteries are working.
@@ -739,7 +734,6 @@ class TestPowerDistributingActor(IsolatedAsyncioTestCase):
         with mock.patch("asyncio.sleep", new_callable=AsyncMock) and mock.patch(
             "frequenz.sdk.microgrid.get", return_value=mock_microgrid
         ):
-
             distributor = PowerDistributingActor({"user1": channel.service_handle})
 
             # Mock that all requested batteries are working.

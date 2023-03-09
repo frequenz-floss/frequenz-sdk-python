@@ -347,7 +347,7 @@ class MicrogridApiSource:
 
         def process_msg(data: Any) -> None:
             tasks = []
-            for (extractor, senders) in stream_senders:
+            for extractor, senders in stream_senders:
                 for sender in senders:
                     tasks.append(sender.send(Sample(data.timestamp, extractor(data))))
             asyncio.gather(*tasks)
