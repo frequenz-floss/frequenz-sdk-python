@@ -148,6 +148,8 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                 await self._microgrid.send(make_comp_data(val_to_send, timestamp))
             await asyncio.sleep(self._sample_rate_s)
 
+        await self._microgrid.close_channel(comp_id)
+
     def _start_meter_streaming(self, meter_id: int) -> None:
         self._streaming_coros.append(
             self._comp_data_send_task(

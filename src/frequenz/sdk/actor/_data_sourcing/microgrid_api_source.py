@@ -343,7 +343,10 @@ class MicrogridApiSource:
             stream_senders = self._get_metric_senders(
                 category, self._req_streaming_metrics[comp_id]
             )
-        api_data_receiver = self.comp_data_receivers[comp_id]
+        api_data_receiver: Receiver[Any] = self.comp_data_receivers[comp_id]
+
+        senders_done: asyncio.Event = asyncio.Event()
+        pending_messages = 0
 
         def process_msg(data: Any) -> None:
             tasks = []
@@ -351,9 +354,27 @@ class MicrogridApiSource:
                 for sender in senders:
                     tasks.append(sender.send(Sample(data.timestamp, extractor(data))))
             asyncio.gather(*tasks)
+            nonlocal pending_messages
+            pending_messages -= 1
+            if pending_messages == 0:
+                senders_done.set()
 
         async for data in api_data_receiver:
+            pending_messages += 1
+            senders_done.clear()
             process_msg(data)
+
+        while pending_messages > 0:
+            await senders_done.wait()
+
+        await asyncio.gather(
+            *[
+                # pylint: disable=protected-access
+                self._registry._close_channel(r.get_channel_name())
+                for requests in self._req_streaming_metrics[comp_id].values()
+                for r in requests
+            ]
+        )
 
     async def _update_streams(
         self,
