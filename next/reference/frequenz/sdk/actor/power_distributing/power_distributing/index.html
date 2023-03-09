@@ -775,6 +775,59 @@
   
   
   
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_1_1_5_1" type="checkbox" id="__nav_2_1_1_5_1" >
+      
+      
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../../timeseries/battery_pool/">battery_pool</a>
+          
+            <label for="__nav_2_1_1_5_1">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="battery_pool" data-md-level="5">
+        <label class="md-nav__title" for="__nav_2_1_1_5_1">
+          <span class="md-nav__icon md-icon"></span>
+          battery_pool
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../timeseries/battery_pool/battery_pool/" class="md-nav__link">
+        battery_pool
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
     <li class="md-nav__item">
       <a href="../../../timeseries/ev_charger_pool/" class="md-nav__link">
         ev_charger_pool
@@ -1667,7 +1720,11 @@ printed.</li>
 <span class="normal">654</span>
 <span class="normal">655</span>
 <span class="normal">656</span>
-<span class="normal">657</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
+<span class="normal">657</span>
+<span class="normal">658</span>
+<span class="normal">659</span>
+<span class="normal">660</span>
+<span class="normal">661</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
 <span class="k">class</span> <span class="nc">PowerDistributingActor</span><span class="p">:</span>
     <span class="c1"># pylint: disable=too-many-instance-attributes</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Tool to distribute power between batteries in microgrid.</span>
@@ -1747,6 +1804,7 @@ printed.</li>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">users_channels</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Bidirectional</span><span class="o">.</span><span class="n">Handle</span><span class="p">[</span><span class="n">Result</span><span class="p">,</span> <span class="n">Request</span><span class="p">]],</span>
+        <span class="n">battery_status_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span><span class="n">BatteryStatus</span><span class="p">],</span>
         <span class="n">wait_for_data_sec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create class instance.</span>
@@ -1754,6 +1812,8 @@ printed.</li>
 <span class="sd">        Args:</span>
 <span class="sd">            users_channels: BidirectionalHandle for each user. Key should be</span>
 <span class="sd">                user id and value should be BidirectionalHandle.</span>
+<span class="sd">            battery_status_sender: Channel for sending information which batteries are</span>
+<span class="sd">                working.</span>
 <span class="sd">            wait_for_data_sec: How long actor should wait before processing first</span>
 <span class="sd">                request. It is a time needed to collect first components data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1789,6 +1849,7 @@ printed.</li>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_all_battery_status</span> <span class="o">=</span> <span class="n">BatteryPoolStatus</span><span class="p">(</span>
             <span class="n">battery_ids</span><span class="o">=</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bat_inv_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+            <span class="n">battery_status_sender</span><span class="o">=</span><span class="n">battery_status_sender</span><span class="p">,</span>
             <span class="n">max_blocking_duration_sec</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>
             <span class="n">max_data_age_sec</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
         <span class="p">)</span>
@@ -2279,7 +2340,7 @@ printed.</li>
 
 
 <h6 id="frequenz.sdk.actor.power_distributing.power_distributing.PowerDistributingActor.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">users_channels</span><span class="p">,</span> <span class="n">wait_for_data_sec</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">users_channels</span><span class="p">,</span> <span class="n">battery_status_sender</span><span class="p">,</span> <span class="n">wait_for_data_sec</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span></code>
 
 <a href="#frequenz.sdk.actor.power_distributing.power_distributing.PowerDistributingActor.__init__" class="headerlink" title="Permanent link">¤</a></h6>
 
@@ -2305,6 +2366,19 @@ user id and value should be BidirectionalHandle.</p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
                     <code><a class="autorefs autorefs-external" title="typing.Dict" href="https://docs.python.org/3/library/typing.html#typing.Dict">Dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>, <span title="frequenz.channels.Bidirectional">Bidirectional</span>.<span title="frequenz.channels.Bidirectional.Handle">Handle</span>[<a class="autorefs autorefs-internal" title="frequenz.sdk.actor.power_distributing.result.Result" href="../result/#frequenz.sdk.actor.power_distributing.result.Result">Result</a>, <a class="autorefs autorefs-internal" title="frequenz.sdk.actor.power_distributing.request.Request" href="../request/#frequenz.sdk.actor.power_distributing.request.Request">Request</a>]]</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>battery_status_sender</code></td>
+          <td class="doc-param-details">
+            <p>Channel for sending information which batteries are
+working.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><span title="frequenz.channels.Sender">Sender</span>[<a class="autorefs autorefs-internal" title="frequenz.sdk.actor.power_distributing._battery_pool_status.BatteryStatus" href="../#frequenz.sdk.actor.power_distributing.BatteryStatus">BatteryStatus</a>]</code>
                 </span>
             </p>
           </td>
@@ -2378,9 +2452,14 @@ request. It is a time needed to collect first components data.</p>
 <span class="normal">187</span>
 <span class="normal">188</span>
 <span class="normal">189</span>
-<span class="normal">190</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">users_channels</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Bidirectional</span><span class="o">.</span><span class="n">Handle</span><span class="p">[</span><span class="n">Result</span><span class="p">,</span> <span class="n">Request</span><span class="p">]],</span>
+    <span class="n">battery_status_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span><span class="n">BatteryStatus</span><span class="p">],</span>
     <span class="n">wait_for_data_sec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create class instance.</span>
@@ -2388,6 +2467,8 @@ request. It is a time needed to collect first components data.</p>
 <span class="sd">    Args:</span>
 <span class="sd">        users_channels: BidirectionalHandle for each user. Key should be</span>
 <span class="sd">            user id and value should be BidirectionalHandle.</span>
+<span class="sd">        battery_status_sender: Channel for sending information which batteries are</span>
+<span class="sd">            working.</span>
 <span class="sd">        wait_for_data_sec: How long actor should wait before processing first</span>
 <span class="sd">            request. It is a time needed to collect first components data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -2423,6 +2504,7 @@ request. It is a time needed to collect first components data.</p>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_all_battery_status</span> <span class="o">=</span> <span class="n">BatteryPoolStatus</span><span class="p">(</span>
         <span class="n">battery_ids</span><span class="o">=</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bat_inv_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+        <span class="n">battery_status_sender</span><span class="o">=</span><span class="n">battery_status_sender</span><span class="p">,</span>
         <span class="n">max_blocking_duration_sec</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>
         <span class="n">max_data_age_sec</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
     <span class="p">)</span>
@@ -2457,11 +2539,7 @@ as broken for some time.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">243</span>
-<span class="normal">244</span>
-<span class="normal">245</span>
-<span class="normal">246</span>
-<span class="normal">247</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">247</span>
 <span class="normal">248</span>
 <span class="normal">249</span>
 <span class="normal">250</span>
@@ -2542,7 +2620,11 @@ as broken for some time.</p>
 <span class="normal">325</span>
 <span class="normal">326</span>
 <span class="normal">327</span>
-<span class="normal">328</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
+<span class="normal">331</span>
+<span class="normal">332</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run actor main function.</span>
 
 <span class="sd">    It waits for new requests in task_queue and process it, and send</span>
