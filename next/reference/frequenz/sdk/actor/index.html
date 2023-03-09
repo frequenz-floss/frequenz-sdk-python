@@ -1138,6 +1138,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.run" class="md-nav__link">
+    run()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3966,9 +3973,7 @@ the examples below.</p>
 <span class="normal">231</span>
 <span class="normal">232</span>
 <span class="normal">233</span>
-<span class="normal">234</span>
-<span class="normal">235</span>
-<span class="normal">236</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">actor</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="normal">234</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">actor</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Decorate a class into a simple composable actor.</span>
 
 <span class="sd">    A actor using the `actor` decorator should define an `async def run(self)`</span>
@@ -4114,25 +4119,23 @@ the examples below.</p>
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Starting actor: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
             <span class="n">number_of_restarts</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">while</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">restart_limit</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">number_of_restarts</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">restart_limit</span>
+            <span class="p">):</span>
+                <span class="k">if</span> <span class="n">number_of_restarts</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Restarting actor: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+
                 <span class="k">try</span><span class="p">:</span>
                     <span class="k">await</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
                 <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">CancelledError</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Cancelling actor: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
                     <span class="k">raise</span>
-                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-except</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span>
-                        <span class="s2">&quot;Actor (</span><span class="si">%s</span><span class="s2">) crashed with error: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">err</span>
-                    <span class="p">)</span>
-                    <span class="k">if</span> <span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">restart_limit</span> <span class="ow">is</span> <span class="kc">None</span>
-                        <span class="ow">or</span> <span class="n">number_of_restarts</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">restart_limit</span>
-                    <span class="p">):</span>
-                        <span class="n">number_of_restarts</span> <span class="o">+=</span> <span class="mi">1</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Restarting actor: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Shutting down actor: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
-                        <span class="k">break</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-except</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Actor (</span><span class="si">%s</span><span class="s2">) crashed&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+                <span class="k">finally</span><span class="p">:</span>
+                    <span class="n">number_of_restarts</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Shutting down actor: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
 
         <span class="k">async</span> <span class="k">def</span> <span class="nf">_stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;Stop an running actor.&quot;&quot;&quot;</span>
@@ -4147,6 +4150,155 @@ the examples below.</p>
             <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_actor_task</span>
 
     <span class="k">return</span> <span class="n">ActorClass</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="frequenz.sdk.actor.run" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">frequenz</span><span class="o">.</span><span class="n">sdk</span><span class="o">.</span><span class="n">actor</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">*</span><span class="n">actors</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#frequenz.sdk.actor.run" class="headerlink" title="Permanent link">¤</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Await the completion of all actors.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>actors</code></td>
+          <td class="doc-param-details">
+            <p>the actors to be awaited.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>()</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#AssertionError">AssertionError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>if any of the actors is not an instance of BaseActor.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+      <details class="quote">
+        <summary>Source code in <code>frequenz/sdk/actor/_run_utils.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="o">*</span><span class="n">actors</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Await the completion of all actors.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        actors: the actors to be awaited.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        AssertionError: if any of the actors is not an instance of BaseActor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Check that each actor is an instance of BaseActor at runtime,</span>
+    <span class="c1"># due to the indirection created by the actor decorator.</span>
+    <span class="k">for</span> <span class="n">actor</span> <span class="ow">in</span> <span class="n">actors</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="n">BaseActor</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">actor</span><span class="si">}</span><span class="s2"> is not an instance of BaseActor&quot;</span>
+
+    <span class="n">pending_tasks</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">actor</span> <span class="ow">in</span> <span class="n">actors</span><span class="p">:</span>
+        <span class="n">pending_tasks</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">join</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">actor</span><span class="p">)))</span>
+
+    <span class="c1"># Currently the actor decorator manages the life-cycle of the actor tasks</span>
+    <span class="k">while</span> <span class="n">pending_tasks</span><span class="p">:</span>
+        <span class="n">done_tasks</span><span class="p">,</span> <span class="n">pending_tasks</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span>
+            <span class="n">pending_tasks</span><span class="p">,</span> <span class="n">return_when</span><span class="o">=</span><span class="n">asyncio</span><span class="o">.</span><span class="n">FIRST_COMPLETED</span>
+        <span class="p">)</span>
+
+        <span class="c1"># This should always be only one task, but we handle many for extra safety</span>
+        <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">done_tasks</span><span class="p">:</span>
+            <span class="c1"># Cancellation needs to be checked first, otherwise the other methods</span>
+            <span class="c1"># could raise a CancelledError</span>
+            <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">cancelled</span><span class="p">():</span>
+                <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;The actor </span><span class="si">%s</span><span class="s2"> was cancelled&quot;</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">get_name</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="n">exception</span> <span class="o">:=</span> <span class="n">task</span><span class="o">.</span><span class="n">exception</span><span class="p">():</span>
+                <span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="s2">&quot;The actor </span><span class="si">%s</span><span class="s2"> was finished due to an uncaught exception&quot;</span><span class="p">,</span>
+                    <span class="n">task</span><span class="o">.</span><span class="n">get_name</span><span class="p">(),</span>
+                    <span class="n">exc_info</span><span class="o">=</span><span class="n">exception</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;The actor </span><span class="si">%s</span><span class="s2"> finished normally&quot;</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">get_name</span><span class="p">())</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
