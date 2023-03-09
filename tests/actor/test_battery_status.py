@@ -32,8 +32,11 @@ from frequenz.sdk.microgrid.component import (
     ComponentCategory,
     InverterData,
 )
+from frequenz.sdk.simulate.utils.component_data_wrapper import (
+    BatteryDataWrapper,
+    InverterDataWrapper,
+)
 
-from ..utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
 from ..utils.mock_microgrid import MockMicrogridClient
 
 

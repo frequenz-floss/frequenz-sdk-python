@@ -22,6 +22,10 @@ from frequenz.sdk._internal._constants import (
 )
 from frequenz.sdk.actor.power_distributing import BatteryStatus
 from frequenz.sdk.microgrid.component import ComponentCategory
+from frequenz.sdk.simulate.utils.component_data_wrapper import (
+    BatteryDataWrapper,
+    InverterDataWrapper,
+)
 from frequenz.sdk.timeseries.battery_pool import (
     BatteryPool,
     Bound,
@@ -34,7 +38,6 @@ from frequenz.sdk.timeseries.battery_pool._metric_calculator import (
 )
 
 from ...utils.component_data_streamer import MockComponentDataStreamer
-from ...utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
 from ...utils.component_graph_utils import (
     ComponentGraphConfig,
     create_component_graph_structure,

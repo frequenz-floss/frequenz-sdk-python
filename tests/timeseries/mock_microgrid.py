@@ -31,14 +31,13 @@ from frequenz.sdk.microgrid.component import (
     EVChargerComponentState,
     InverterType,
 )
-from tests.utils.mock_microgrid import MockMicrogridClient
-
-from ..utils.component_data_wrapper import (
+from frequenz.sdk.simulate.utils.component_data_wrapper import (
     BatteryDataWrapper,
     EvChargerDataWrapper,
     InverterDataWrapper,
     MeterDataWrapper,
 )
+from tests.utils.mock_microgrid import MockMicrogridClient
 
 
 class MockMicrogrid:  # pylint: disable=too-many-instance-attributes

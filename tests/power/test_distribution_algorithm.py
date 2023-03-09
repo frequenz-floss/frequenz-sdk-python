@@ -12,8 +12,10 @@ from frequenz.api.microgrid.common_pb2 import Bounds
 
 from frequenz.sdk.microgrid.component import BatteryData, InverterData
 from frequenz.sdk.power import DistributionAlgorithm, InvBatPair
-
-from ..utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
+from frequenz.sdk.simulate.utils.component_data_wrapper import (
+    BatteryDataWrapper,
+    InverterDataWrapper,
+)
 
 
 @dataclass
