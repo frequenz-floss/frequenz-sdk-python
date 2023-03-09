@@ -5,7 +5,7 @@
 from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.channels.util import Select
 
-from frequenz.sdk.actor import actor
+from frequenz.sdk.actor import actor, run
 
 
 @actor
@@ -111,5 +111,4 @@ async def test_actor_does_not_restart() -> None:
     )
 
     await channel.new_sender().send(1)
-    # pylint: disable=no-member
-    await _faulty_actor.join()  # type: ignore
+    await run(_faulty_actor)

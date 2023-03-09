@@ -2,6 +2,7 @@
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
 """Frequenz Python SDK resampling example."""
+import asyncio
 import dataclasses
 from datetime import datetime, timezone
 from typing import Iterator
@@ -9,7 +10,6 @@ from typing import Iterator
 import async_solipsism
 import pytest
 import time_machine
-from async_solipsism.socket import asyncio
 from frequenz.channels import Broadcast
 
 from frequenz.sdk.actor import (
@@ -25,8 +25,9 @@ from frequenz.sdk.timeseries import Sample
 #
 
 
-@pytest.fixture(autouse=True)
-def fake_loop() -> Iterator[async_solipsism.EventLoop]:
+# Setting 'autouse' has no effect as this method replaces the event loop for all tests in the file.
+@pytest.fixture()
+def event_loop() -> Iterator[async_solipsism.EventLoop]:
     """Replace the loop with one that doesn't interact with the outside world."""
     loop = async_solipsism.EventLoop()
     yield loop

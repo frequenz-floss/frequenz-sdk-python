@@ -18,14 +18,13 @@ from typing import List, Optional, Set
 
 from frequenz.channels import Bidirectional, Broadcast, Receiver, Sender
 
-from frequenz.sdk import microgrid
+from frequenz.sdk import actor, microgrid
 from frequenz.sdk.actor import (
     ChannelRegistry,
     ComponentMetricRequest,
     ComponentMetricsResamplingActor,
     DataSourcingActor,
     ResamplerConfig,
-    actor,
 )
 from frequenz.sdk.actor.power_distributing import (
     PowerDistributingActor,
@@ -42,7 +41,7 @@ HOST = "microgrid.sandbox.api.frequenz.io"  # it should be the host name.
 PORT = 61060
 
 
-@actor
+@actor.actor
 class DecisionMakingActor:
     """Actor that receives set receives power for given batteries."""
 
@@ -112,7 +111,7 @@ class DecisionMakingActor:
                 _logger.info("Set power with %d succeed.", power_to_set)
 
 
-@actor
+@actor.actor
 class DataCollectingActor:
     """Actor that makes decisions about how much to charge/discharge batteries."""
 
@@ -227,10 +226,7 @@ async def run() -> None:
         active_power_data=await logical_meter.grid_power(),
     )
 
-    # pylint: disable=no-member
-    await service_actor.join()  # type: ignore[attr-defined]
-    await client_actor.join()  # type: ignore[attr-defined]
-    await power_distributor.join()  # type: ignore[attr-defined]
+    await actor.run(service_actor, client_actor, power_distributor)
 
 
 asyncio.run(run())
