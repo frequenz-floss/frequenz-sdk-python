@@ -1263,7 +1263,19 @@ between each other.  Channels are identified by string names.</p>
 <span class="normal">48</span>
 <span class="normal">49</span>
 <span class="normal">50</span>
-<span class="normal">51</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ChannelRegistry</span><span class="p">:</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ChannelRegistry</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Dynamically creates, own and provide access to channels.</span>
 
 <span class="sd">    It can be used by actors to dynamically establish a communication channel</span>
@@ -1304,6 +1316,18 @@ between each other.  Channels are identified by string names.</p>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">Broadcast</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_close_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Close a channel with the given key.</span>
+
+<span class="sd">        This method is private and should only be used in special cases.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            key: A key to identify the channel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">channel</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">await</span> <span class="n">channel</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
         </details>
 
