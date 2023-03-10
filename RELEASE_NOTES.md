@@ -7,6 +7,9 @@
 ## Upgrading
 
 * Remove `_soc` formula from the LogicalMeter. This feature has been moved to the BatteryPool.
+* Upgrade PowerDistributingActor to handle components with the NaN metrics (#247):
+    * if power bounds are NaN, then it tries to replace them with corresponding power bounds from adjacent component. If these components are also NaN, then it ignores battery.
+    * if other metrics metrics are NaN then it ignores battery.
 
 ## New Features
 
