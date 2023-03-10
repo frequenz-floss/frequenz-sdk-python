@@ -6,7 +6,7 @@
 
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
+* Remove `_soc` formula from the LogicalMeter. This feature has been moved to the BatteryPool.
 
 ## New Features
 

@@ -16,7 +16,6 @@ from ...microgrid.component import ComponentMetricId
 from .._formula_engine import FormulaEnginePool, FormulaReceiver, FormulaReceiver3Phase
 from .._formula_engine._formula_generators import (
     BatteryPowerFormula,
-    BatterySoCFormula,
     GridCurrentFormula,
     GridPowerFormula,
     PVPowerFormula,
@@ -196,14 +195,3 @@ class LogicalMeter:
 
         """
         return await self._formula_pool.from_generator("pv_power", PVPowerFormula)
-
-    async def _soc(self) -> FormulaReceiver:
-        """Fetch the SoC of the active batteries in the microgrid.
-
-        NOTE: This method is part of the logical meter only temporarily, and will get
-        moved to the `BatteryPool` within the next few releases.
-
-        Returns:
-            A *new* receiver that will stream average SoC of active batteries.
-        """
-        return await self._formula_pool.from_generator("soc", BatterySoCFormula)
