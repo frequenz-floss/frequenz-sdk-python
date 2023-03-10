@@ -135,7 +135,7 @@ class TestFormulaComposition:
 
     async def test_3_phase_formulas(self, mocker: MockerFixture) -> None:
         """Test 3 phase formulas current formulas and their composition."""
-        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_side_meter=False, sample_rate_s=0.05)
         mockgrid.add_batteries(3)
         mockgrid.add_ev_chargers(1)
         request_chan, channel_registry = await mockgrid.start(mocker)
