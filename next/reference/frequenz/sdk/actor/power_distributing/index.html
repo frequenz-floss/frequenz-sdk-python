@@ -2691,7 +2691,83 @@ printed.</li>
 <span class="normal">658</span>
 <span class="normal">659</span>
 <span class="normal">660</span>
-<span class="normal">661</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
+<span class="normal">661</span>
+<span class="normal">662</span>
+<span class="normal">663</span>
+<span class="normal">664</span>
+<span class="normal">665</span>
+<span class="normal">666</span>
+<span class="normal">667</span>
+<span class="normal">668</span>
+<span class="normal">669</span>
+<span class="normal">670</span>
+<span class="normal">671</span>
+<span class="normal">672</span>
+<span class="normal">673</span>
+<span class="normal">674</span>
+<span class="normal">675</span>
+<span class="normal">676</span>
+<span class="normal">677</span>
+<span class="normal">678</span>
+<span class="normal">679</span>
+<span class="normal">680</span>
+<span class="normal">681</span>
+<span class="normal">682</span>
+<span class="normal">683</span>
+<span class="normal">684</span>
+<span class="normal">685</span>
+<span class="normal">686</span>
+<span class="normal">687</span>
+<span class="normal">688</span>
+<span class="normal">689</span>
+<span class="normal">690</span>
+<span class="normal">691</span>
+<span class="normal">692</span>
+<span class="normal">693</span>
+<span class="normal">694</span>
+<span class="normal">695</span>
+<span class="normal">696</span>
+<span class="normal">697</span>
+<span class="normal">698</span>
+<span class="normal">699</span>
+<span class="normal">700</span>
+<span class="normal">701</span>
+<span class="normal">702</span>
+<span class="normal">703</span>
+<span class="normal">704</span>
+<span class="normal">705</span>
+<span class="normal">706</span>
+<span class="normal">707</span>
+<span class="normal">708</span>
+<span class="normal">709</span>
+<span class="normal">710</span>
+<span class="normal">711</span>
+<span class="normal">712</span>
+<span class="normal">713</span>
+<span class="normal">714</span>
+<span class="normal">715</span>
+<span class="normal">716</span>
+<span class="normal">717</span>
+<span class="normal">718</span>
+<span class="normal">719</span>
+<span class="normal">720</span>
+<span class="normal">721</span>
+<span class="normal">722</span>
+<span class="normal">723</span>
+<span class="normal">724</span>
+<span class="normal">725</span>
+<span class="normal">726</span>
+<span class="normal">727</span>
+<span class="normal">728</span>
+<span class="normal">729</span>
+<span class="normal">730</span>
+<span class="normal">731</span>
+<span class="normal">732</span>
+<span class="normal">733</span>
+<span class="normal">734</span>
+<span class="normal">735</span>
+<span class="normal">736</span>
+<span class="normal">737</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
 <span class="k">class</span> <span class="nc">PowerDistributingActor</span><span class="p">:</span>
     <span class="c1"># pylint: disable=too-many-instance-attributes</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Tool to distribute power between batteries in microgrid.</span>
@@ -2894,7 +2970,7 @@ printed.</li>
 
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">pairs_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">InvBatPair</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_components_data</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_all_battery_status</span><span class="o">.</span><span class="n">get_working_batteries</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">batteries</span><span class="p">)</span>
+                    <span class="n">request</span><span class="o">.</span><span class="n">batteries</span>
                 <span class="p">)</span>
             <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
                 <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)))</span>
@@ -3176,8 +3252,8 @@ printed.</li>
 <span class="sd">            Pairs of battery and adjacent inverter data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">pairs_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">InvBatPair</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="k">for</span> <span class="n">battery_id</span> <span class="ow">in</span> <span class="n">batteries</span><span class="p">:</span>
+        <span class="n">working_batteries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all_battery_status</span><span class="o">.</span><span class="n">get_working_batteries</span><span class="p">(</span><span class="n">batteries</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">battery_id</span> <span class="ow">in</span> <span class="n">working_batteries</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">battery_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_battery_receivers</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;No battery </span><span class="si">{</span><span class="n">battery_id</span><span class="si">}</span><span class="s2">, &quot;</span>
@@ -3186,24 +3262,100 @@ printed.</li>
 
             <span class="n">inverter_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bat_inv_map</span><span class="p">[</span><span class="n">battery_id</span><span class="p">]</span>
 
-            <span class="n">battery_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BatteryData</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_battery_receivers</span><span class="p">[</span>
-                <span class="n">battery_id</span>
-            <span class="p">]</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
-
-            <span class="k">if</span> <span class="n">battery_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;None returned from battery receiver </span><span class="si">%d</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">battery_id</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_battery_inverter_data</span><span class="p">(</span><span class="n">battery_id</span><span class="p">,</span> <span class="n">inverter_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;Skipping battery </span><span class="si">%d</span><span class="s2"> because its message isn&#39;t correct.&quot;</span><span class="p">,</span>
+                    <span class="n">battery_id</span><span class="p">,</span>
+                <span class="p">)</span>
                 <span class="k">continue</span>
 
-            <span class="n">inverter_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">InverterData</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inverter_receivers</span><span class="p">[</span>
-                <span class="n">inverter_id</span>
-            <span class="p">]</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
-
-            <span class="k">if</span> <span class="n">inverter_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;None returned from inverter receiver </span><span class="si">%d</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">inverter_id</span><span class="p">)</span>
-                <span class="k">continue</span>
-
-            <span class="n">pairs_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">InvBatPair</span><span class="p">(</span><span class="n">battery_data</span><span class="p">,</span> <span class="n">inverter_data</span><span class="p">))</span>
+            <span class="n">pairs_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pairs_data</span>
+
+    <span class="k">def</span> <span class="nf">_get_battery_inverter_data</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">battery_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">inverter_id</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">InvBatPair</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get battery and inverter data if they are correct.</span>
+
+<span class="sd">        Each float data from the microgrid can be &quot;NaN&quot;.</span>
+<span class="sd">        We can&#39;t do math operations on &quot;NaN&quot;.</span>
+<span class="sd">        So check all the metrics and:</span>
+<span class="sd">        * if power bounds are NaN, then try to replace it with the corresponding</span>
+<span class="sd">          power bounds from the adjacent component. If metric in the adjacent component</span>
+<span class="sd">          is also NaN, then return None.</span>
+<span class="sd">        * if other metrics are NaN then return None. We can&#39;t assume anything for other</span>
+<span class="sd">          metrics.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            battery_id: battery id</span>
+<span class="sd">            inverter_id: inverter id</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Data for the battery and adjacent inverter without NaN values.</span>
+<span class="sd">            Return None if we could not replace NaN values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">battery_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_battery_receivers</span><span class="p">[</span><span class="n">battery_id</span><span class="p">]</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+        <span class="n">inverter_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inverter_receivers</span><span class="p">[</span><span class="n">inverter_id</span><span class="p">]</span><span class="o">.</span><span class="n">peek</span><span class="p">()</span>
+
+        <span class="c1"># It means that nothing has been send on this channels, yet.</span>
+        <span class="c1"># This should be handled by BatteryStatus. BatteryStatus should not return</span>
+        <span class="c1"># this batteries as working.</span>
+        <span class="k">if</span> <span class="n">battery_data</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">inverter_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s2">&quot;Battery </span><span class="si">%d</span><span class="s2"> or inverter </span><span class="si">%d</span><span class="s2"> send no data, yet. They should be not used.&quot;</span><span class="p">,</span>
+                <span class="n">battery_id</span><span class="p">,</span>
+                <span class="n">inverter_id</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">not_replaceable_metrics</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">battery_data</span><span class="o">.</span><span class="n">soc</span><span class="p">,</span>
+            <span class="n">battery_data</span><span class="o">.</span><span class="n">soc_lower_bound</span><span class="p">,</span>
+            <span class="n">battery_data</span><span class="o">.</span><span class="n">soc_upper_bound</span><span class="p">,</span>
+            <span class="c1"># We could replace capacity with 0, but it won&#39;t change distribution.</span>
+            <span class="c1"># This battery will be ignored in distribution anyway.</span>
+            <span class="n">battery_data</span><span class="o">.</span><span class="n">capacity</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">isnan</span><span class="p">,</span> <span class="n">not_replaceable_metrics</span><span class="p">)):</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Some metrics for battery </span><span class="si">%d</span><span class="s2"> are NaN&quot;</span><span class="p">,</span> <span class="n">battery_id</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">replaceable_metrics</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">battery_data</span><span class="o">.</span><span class="n">power_lower_bound</span><span class="p">,</span>
+            <span class="n">battery_data</span><span class="o">.</span><span class="n">power_upper_bound</span><span class="p">,</span>
+            <span class="n">inverter_data</span><span class="o">.</span><span class="n">active_power_lower_bound</span><span class="p">,</span>
+            <span class="n">inverter_data</span><span class="o">.</span><span class="n">active_power_upper_bound</span><span class="p">,</span>
+        <span class="p">]</span>
+
+        <span class="c1"># If all values are ok then return them.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">isnan</span><span class="p">,</span> <span class="n">replaceable_metrics</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">InvBatPair</span><span class="p">(</span><span class="n">battery_data</span><span class="p">,</span> <span class="n">inverter_data</span><span class="p">)</span>
+
+        <span class="c1"># Replace NaN with the corresponding value in the adjacent component.</span>
+        <span class="c1"># If both metrics are None, return None to ignore this battery.</span>
+        <span class="n">replaceable_pairs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s2">&quot;power_lower_bound&quot;</span><span class="p">,</span> <span class="s2">&quot;active_power_lower_bound&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;power_upper_bound&quot;</span><span class="p">,</span> <span class="s2">&quot;active_power_upper_bound&quot;</span><span class="p">),</span>
+        <span class="p">]</span>
+
+        <span class="n">battery_new_metrics</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">inverter_new_metrics</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">bat_attr</span><span class="p">,</span> <span class="n">inv_attr</span> <span class="ow">in</span> <span class="n">replaceable_pairs</span><span class="p">:</span>
+            <span class="n">bat_bound</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">battery_data</span><span class="p">,</span> <span class="n">bat_attr</span><span class="p">)</span>
+            <span class="n">inv_bound</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">inverter_data</span><span class="p">,</span> <span class="n">inv_attr</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">isnan</span><span class="p">(</span><span class="n">bat_bound</span><span class="p">)</span> <span class="ow">and</span> <span class="n">isnan</span><span class="p">(</span><span class="n">inv_bound</span><span class="p">):</span>
+                <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Some metrics for battery </span><span class="si">%d</span><span class="s2"> are NaN&quot;</span><span class="p">,</span> <span class="n">battery_id</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">isnan</span><span class="p">(</span><span class="n">bat_bound</span><span class="p">):</span>
+                <span class="n">battery_new_metrics</span><span class="p">[</span><span class="n">bat_attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">inv_bound</span>
+            <span class="k">elif</span> <span class="n">isnan</span><span class="p">(</span><span class="n">inv_bound</span><span class="p">):</span>
+                <span class="n">inverter_new_metrics</span><span class="p">[</span><span class="n">inv_attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">bat_bound</span>
+
+        <span class="k">return</span> <span class="n">InvBatPair</span><span class="p">(</span>
+            <span class="n">replace</span><span class="p">(</span><span class="n">battery_data</span><span class="p">,</span> <span class="o">**</span><span class="n">battery_new_metrics</span><span class="p">),</span>
+            <span class="n">replace</span><span class="p">(</span><span class="n">inverter_data</span><span class="p">,</span> <span class="o">**</span><span class="n">inverter_new_metrics</span><span class="p">),</span>
+        <span class="p">)</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_create_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create channels to get data of components in microgrid.&quot;&quot;&quot;</span>
@@ -3613,7 +3765,7 @@ as broken for some time.</p>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">pairs_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">InvBatPair</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_components_data</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_all_battery_status</span><span class="o">.</span><span class="n">get_working_batteries</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">batteries</span><span class="p">)</span>
+                <span class="n">request</span><span class="o">.</span><span class="n">batteries</span>
             <span class="p">)</span>
         <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
             <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)))</span>
