@@ -266,7 +266,7 @@ class PowerDistributingActor:
 
             try:
                 pairs_data: List[InvBatPair] = self._get_components_data(
-                    self._all_battery_status.get_working_batteries(request.batteries)
+                    request.batteries
                 )
             except KeyError as err:
                 await user.channel.send(Error(request, str(err)))
@@ -548,8 +548,8 @@ class PowerDistributingActor:
             Pairs of battery and adjacent inverter data.
         """
         pairs_data: List[InvBatPair] = []
-
-        for battery_id in batteries:
+        working_batteries = self._all_battery_status.get_working_batteries(batteries)
+        for battery_id in working_batteries:
             if battery_id not in self._battery_receivers:
                 raise KeyError(
                     f"No battery {battery_id}, "
