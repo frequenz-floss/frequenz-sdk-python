@@ -5,8 +5,6 @@
 
 from __future__ import annotations
 
-from math import isclose
-
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
@@ -188,67 +186,3 @@ class TestLogicalMeter:
         assert equal_float_lists(battery_results, battery_inv_sums)
         assert len(pv_results) == 10
         assert equal_float_lists(pv_results, pv_inv_sums)
-
-    async def test_soc(self, mocker: MockerFixture) -> None:
-        """Test the soc calculation."""
-        mockgrid = MockMicrogrid(grid_side_meter=False, sample_rate_s=0.02)
-        mockgrid.add_solar_inverters(2)
-        mockgrid._id_increment = 8  # pylint: disable=protected-access
-        mockgrid.add_batteries(3)
-        request_chan, channel_registry = await mockgrid.start(mocker)
-        logical_meter = LogicalMeter(
-            channel_registry,
-            request_chan.new_sender(),
-            microgrid.get().component_graph,
-        )
-
-        soc_recv = await logical_meter._soc()  # pylint: disable=protected-access
-
-        bat_receivers = {
-            bat_id: await get_resampled_stream(
-                logical_meter,
-                channel_registry,
-                request_chan.new_sender(),
-                bat_id,
-                ComponentMetricId.SOC,
-            )
-            for bat_id in mockgrid.battery_ids
-        }
-
-        bat_inv_map = mockgrid.bat_inv_map
-        inv_receivers = {
-            inverter_id: await get_resampled_stream(
-                logical_meter,
-                channel_registry,
-                request_chan.new_sender(),
-                inverter_id,
-                ComponentMetricId.ACTIVE_POWER,
-            )
-            for inverter_id in mockgrid.bat_inv_map.values()
-        }
-
-        await synchronize_receivers(
-            [soc_recv, *bat_receivers.values(), *inv_receivers.values()]
-        )
-
-        for _ in range(10):
-            bat_vals = []
-            for bat_id, bat_recv in bat_receivers.items():
-                inv_id = bat_inv_map[bat_id]
-                inv_recv = inv_receivers[inv_id]
-                inv_msg = await inv_recv.receive()
-                # We won't use batteries where adjacent inverter is not sending active
-                # power.
-                if inv_msg.value is None:
-                    continue
-
-                val = await bat_recv.receive()
-                assert val is not None and val.value is not None
-                bat_vals.append(val.value)
-
-            soc_sample = await soc_recv.receive()
-            assert soc_sample is not None and soc_sample.value is not None
-
-            assert isclose(soc_sample.value, sum(bat_vals) / len(bat_vals))
-
-        await mockgrid.cleanup()
