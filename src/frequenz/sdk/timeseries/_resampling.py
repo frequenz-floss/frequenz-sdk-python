@@ -12,7 +12,7 @@ import math
 from bisect import bisect
 from collections import deque
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import AsyncIterator, Callable, Coroutine, Optional, Sequence
 
 from frequenz.channels.util import Timer
@@ -346,8 +346,25 @@ class Resampler:
             config: The configuration for the resampler.
         """
         self._config = config
+        """The configuration for this resampler."""
+
         self._resamplers: dict[Source, _StreamingHelper] = {}
+        """A mapping between sources and the streaming helper handling that source."""
+
         self._timer: Timer = Timer(config.resampling_period_s)
+        """The timer to trigger the next resampling."""
+
+        self._window_end: datetime = datetime.now(timezone.utc) + timedelta(
+            seconds=self._config.resampling_period_s
+        )
+        """The time in which the current window ends.
+
+        This is used to make sure every resampling window is generated at
+        precise times. We can't rely on the timer timestamp because timers will
+        never fire at the exact requested time, so if we don't use a precise
+        time for the end of the window, the resampling windows we produce will
+        have different sizes.
+        """
 
     @property
     def config(self) -> ResamplerConfig:
@@ -432,9 +449,10 @@ class Resampler:
         """
         async for timer_timestamp in self._timer:
             results = await asyncio.gather(
-                *[r.resample(timer_timestamp) for r in self._resamplers.values()],
+                *[r.resample(self._window_end) for r in self._resamplers.values()],
                 return_exceptions=True,
             )
+            self._update_window_end(timer_timestamp)
             exceptions = {
                 source: results[i]
                 for i, source in enumerate(self._resamplers)
@@ -446,6 +464,27 @@ class Resampler:
                 raise ResamplingError(exceptions)
             if one_shot:
                 break
+
+    def _update_window_end(self, timer_timestamp: datetime) -> None:
+        # We use abs() here to account for errors in the timer where the timer
+        # fires before its time even when in theory it shouldn't be possible,
+        # but we want to be resilient to timer implementation changes that
+        # could end up in this case, either because there were some time jump
+        # or some rounding error.
+        timer_error_s = abs((timer_timestamp - self._window_end).total_seconds())
+        if timer_error_s > (self._config.resampling_period_s / 10.0):
+            _logger.warning(
+                "The resampling timer fired too late. It should have fired at "
+                "%s, but it fired at %s (%s seconds difference; resampling "
+                "period is %s seconds)",
+                self._window_end,
+                timer_timestamp,
+                timer_error_s,
+                self._config.resampling_period_s,
+            )
+        self._window_end = self._window_end + timedelta(
+            seconds=self._config.resampling_period_s
+        )
 
 
 class _ResamplingHelper:
@@ -622,14 +661,15 @@ class _ResamplingHelper:
         # We need to pass a dummy Sample to bisect because it only support
         # specifying a key extraction function in Python 3.10, so we need to
         # compare samples at the moment.
-        cut_index = bisect(self._buffer, Sample(minimum_relevant_timestamp, None))
+        min_index = bisect(self._buffer, Sample(minimum_relevant_timestamp, None))
+        max_index = bisect(self._buffer, Sample(timestamp, None))
         # Using itertools for slicing doesn't look very efficient, but
         # experiements with a custom (ring) buffer that can slice showed that
         # it is not that bad. See:
         # https://github.com/frequenz-floss/frequenz-sdk-python/pull/130
         # So if we need more performance beyond this point, we probably need to
         # resort to some C (or similar) implementation.
-        relevant_samples = list(itertools.islice(self._buffer, cut_index, None))
+        relevant_samples = list(itertools.islice(self._buffer, min_index, max_index))
         value = (
             conf.resampling_function(relevant_samples, conf, props)
             if relevant_samples
