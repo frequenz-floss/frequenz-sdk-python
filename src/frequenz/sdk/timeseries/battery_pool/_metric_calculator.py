@@ -12,7 +12,6 @@ from typing import Generic, Iterable, TypeVar
 
 from ... import microgrid
 from ...microgrid.component import ComponentCategory, ComponentMetricId, InverterType
-from ...timeseries import Sample
 from ._component_metrics import ComponentMetricsData
 from ._result_types import Bound, CapacityMetrics, PowerMetrics, SoCMetrics
 
@@ -59,7 +58,7 @@ def battery_inverter_mapping(batteries: Iterable[int]) -> dict[int, int]:
 
 # Formula output types class have no common interface
 # Print all possible types here.
-T = TypeVar("T", Sample, SoCMetrics, CapacityMetrics, PowerMetrics)
+T = TypeVar("T", SoCMetrics, CapacityMetrics, PowerMetrics)
 
 
 class MetricCalculator(ABC, Generic[T]):

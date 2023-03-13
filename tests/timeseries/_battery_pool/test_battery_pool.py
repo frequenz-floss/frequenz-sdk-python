@@ -509,12 +509,7 @@ async def run_capacity_test(setup_args: SetupArgs) -> None:
         ),
         Scenario(
             batteries_in_pool[1],
-            {"capacity": 200, "soc_lower_bound": float("NaN")},
-            CapacityMetrics(now, 30, Bound(600, 2700)),
-        ),
-        Scenario(
-            batteries_in_pool[1],
-            {"soc_lower_bound": 20},
+            {"capacity": 200},
             CapacityMetrics(now, 230, Bound(4600, 20700)),
         ),
     ]
@@ -601,12 +596,7 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
     scenarios: list[Scenario[SoCMetrics]] = [
         Scenario(
             batteries_in_pool[0],
-            {"capacity": 150},
-            SoCMetrics(now, 30, Bound(20, 80)),
-        ),
-        Scenario(
-            batteries_in_pool[0],
-            {"soc": 10},
+            {"capacity": 150, "soc": 10},
             SoCMetrics(now, 15, Bound(20, 80)),
         ),
         Scenario(
@@ -631,10 +621,12 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
             {"soc": 30},
             SoCMetrics(now, 30, Bound(20, 80)),
         ),
+        # Final metric didn't change, so nothing should be received.
         Scenario(
             batteries_in_pool[0],
             {"capacity": 0, "soc_lower_bound": 10, "soc_upper_bound": 100},
-            SoCMetrics(now, 30, Bound(20, 80)),
+            None,
+            wait_for_result=False,
         ),
         # Test zero division error
         Scenario(
@@ -789,12 +781,20 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
             PowerMetrics(now, Bound(-10, 0), Bound(0, 200)),
         ),
         Scenario(
+            batteries_in_pool[1],
+            {
+                "power_lower_bound": -100,
+                "power_upper_bound": float("NaN"),
+            },
+            PowerMetrics(now, Bound(-100, 0), Bound(0, 6000)),
+        ),
+        Scenario(
             bat_inv_map[batteries_in_pool[1]],
             {
                 "active_power_lower_bound": float("NaN"),
                 "active_power_upper_bound": float("NaN"),
             },
-            PowerMetrics(now, Bound(-10, 0), Bound(0, 200)),
+            PowerMetrics(now, Bound(-100, 0), Bound(0, 0)),
         ),
         # All components are sending NaN, can't calculate bounds
         Scenario(

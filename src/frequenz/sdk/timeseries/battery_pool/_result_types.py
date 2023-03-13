@@ -3,7 +3,7 @@
 
 """Methods for processing battery-inverter data."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
 
@@ -22,7 +22,8 @@ class Bound:
 class CapacityMetrics:
     """Capacity metrics."""
 
-    timestamp: datetime
+    # compare = False tells the dataclass to not use name for comparison methods
+    timestamp: datetime = field(compare=False)
     """Timestamp of the metrics,"""
 
     total_capacity: float
@@ -53,7 +54,8 @@ class CapacityMetrics:
 class SoCMetrics:
     """Soc metrics."""
 
-    timestamp: datetime
+    # compare = False tells the dataclass to not use name for comparison methods
+    timestamp: datetime = field(compare=False)
     """Timestamp of the metrics."""
 
     average_soc: float
@@ -91,7 +93,8 @@ class SoCMetrics:
 class PowerMetrics:
     """Power bounds metrics."""
 
-    timestamp: datetime
+    # compare = False tells the dataclass to not use name for comparison methods
+    timestamp: datetime = field(compare=False)
     """Timestamp of the metrics."""
 
     supply_bound: Bound
