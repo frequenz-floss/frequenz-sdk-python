@@ -69,12 +69,12 @@ nox = [
     "toml >= 0.10.2, < 1",
 ]
 pytest = [
-    "pytest",
-    "pytest-cov",
-    "pytest-mock",
-    "pytest-asyncio",
-    "time-machine",
-    "async-solipsism",
+    "pytest >= 7.2.1, < 8",
+    "pytest-cov >= 4.0.0, < 5",
+    "pytest-mock >= 3.10.0, < 4",
+    "pytest-asyncio >= 0.20.3, < 1",
+    "time-machine >= 2.9.0, < 3",
+    "async-solipsism >= 0.5, < 1",
 ]
 mypy = [
     "mypy >= 1.0.1, < 2",
