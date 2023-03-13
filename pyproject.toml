@@ -61,8 +61,8 @@ docs-lint = [
     "tomli",  # Needed by pydocstyle to read pyproject.toml
 ]
 format = [
-    "black",
-    "isort",
+    "black >= 23.1.0, < 24",
+    "isort >= 5.12.0, < 6",
 ]
 nox = [
     "nox",
