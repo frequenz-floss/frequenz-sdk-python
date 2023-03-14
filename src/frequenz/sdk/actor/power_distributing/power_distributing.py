@@ -66,14 +66,17 @@ class _User:
 @actor
 class PowerDistributingActor:
     # pylint: disable=too-many-instance-attributes
-    """Tool to distribute power between batteries in microgrid.
+    """Actor to distribute the power between batteries in a microgrid.
 
-    The purpose of this tool is to keep equal SoC level in the batteries.
-    PowerDistributor can have many users. Each user should first register in order
-    to get its id, channel for sending request, and channel for receiving response.
+    The purpose of this tool is to keep an equal SoC level in all batteries.
+    The PowerDistributingActor can have many concurrent users which at this time
+    need to be known at construction time.
 
-    It is recommended to wait for PowerDistributor output with timeout. Otherwise if
-    the processing function fail then the response will never come.
+    For each user a bidirectional channel needs to be created through which
+    they can send and receive requests and responses.
+
+    It is recommended to wait for PowerDistributingActor output with timeout. Otherwise if
+    the processing function fails then the response will never come.
     The timeout should be Result:request_timeout_sec + time for processing the request.
 
     Edge cases:
@@ -92,8 +95,8 @@ class PowerDistributingActor:
 
         from frequenz.sdk.microgrid.graph import _MicrogridComponentGraph
         from frequenz.sdk.microgrid.component import ComponentCategory
-        from frequenz.sdk.actor.power_distribution import (
-            PowerDistributor,
+        from frequenz.sdk.actor.power_distributing import (
+            PowerDistributingActor,
             Request,
             Result,
             Success,
@@ -114,7 +117,7 @@ class PowerDistributingActor:
         batteries_ids = {c.component_id for c in batteries}
 
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
-        power_distributor = PowerDistributor(
+        power_distributor = PowerDistributingActor(
             mock_api, component_graph, {"user1": channel.service_handle}
         )
 
@@ -172,7 +175,7 @@ class PowerDistributingActor:
 
         # The components in different requests be for the same components, or for
         # completely different components. They should not overlap.
-        # Otherwise the PowerDistributor has no way to decide what request is more
+        # Otherwise the PowerDistributingActor has no way to decide what request is more
         # important. It will execute both. And later request will override the previous
         # one.
         # That is why the queue of maxsize = total number of batteries should be enough.
@@ -423,7 +426,7 @@ class PowerDistributingActor:
                 to_ignore.append(task)
             # Use generators as generators seems to be the fastest.
             elif any(battery_id in prev_request.batteries for battery_id in batteries):
-                # If that happen PowerDistributor has no way to distinguish what
+                # If that happen PowerDistributingActor has no way to distinguish what
                 # request is more important. This should not happen
                 _logger.error(
                     "Batteries in two requests overlap! Actor: %s requested %s "
@@ -448,11 +451,11 @@ class PowerDistributingActor:
         to the user. If request is correct, then add it to the main queue to be
         process.
 
-        If main queue has request for the same subset of batteries, then remove older
-        request, and send its user response with Result.Status.IGNORED.
+        Already existing requests for the same subset of batteries will be
+        removed and their users will be notified with a Result.Status.IGNORED response.
         Only new request will re processed.
-        If set of batteries are not the same but have common elements, then both
-        batteries will be processed.
+        If the sets of batteries are not the same but they have common elements,
+        then both batteries will be processed.
 
         Args:
             user: User that sends the requests.
@@ -467,17 +470,17 @@ class PowerDistributingActor:
 
                 self._users_channels.pop(user.user_id)
                 if len(self._users_channels) == 0:
-                    _logger.error("No users in PowerDistributor!")
+                    _logger.error("No users in PowerDistributingActor!")
                 return
 
-            # Wait for PowerDistributor to start.
+            # Wait for PowerDistributingActor to start.
             if not self._started.is_set():
                 await self._started.wait()
 
             # We should discover as fast as possible that request is wrong.
-            check_result = self._check_request(request)
-            if check_result is not None:
-                await user.channel.send(check_result)
+            error = self._check_request(request)
+            if error is not None:
+                await user.channel.send(error)
                 continue
 
             tasks = self._remove_duplicated_requests(request, user)
