@@ -2311,11 +2311,13 @@ None will be send if there is no component to calculate metric.</p>
 <span class="normal">46</span>
 <span class="normal">47</span>
 <span class="normal">48</span>
-<span class="normal">49</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="normal">49</span>
+<span class="normal">50</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">CapacityMetrics</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Capacity metrics.&quot;&quot;&quot;</span>
 
-    <span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="c1"># compare = False tells the dataclass to not use name for comparison methods</span>
+    <span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Timestamp of the metrics,&quot;&quot;&quot;</span>
 
     <span class="n">total_capacity</span><span class="p">:</span> <span class="nb">float</span>
@@ -2387,7 +2389,7 @@ bound.upper = sum(
 
 
 <h6 id="frequenz.sdk.timeseries.battery_pool._result_types.CapacityMetrics.timestamp" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span></code>
+<code class="highlight language-python"><span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
@@ -2461,9 +2463,7 @@ total_capacity = sum(battery.capacity for battery in working_batteries)
 
         <details class="quote">
           <summary>Source code in <code>frequenz/sdk/timeseries/battery_pool/_result_types.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 90</span>
-<span class="normal"> 91</span>
-<span class="normal"> 92</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 92</span>
 <span class="normal"> 93</span>
 <span class="normal"> 94</span>
 <span class="normal"> 95</span>
@@ -2502,11 +2502,15 @@ total_capacity = sum(battery.capacity for battery in working_batteries)
 <span class="normal">128</span>
 <span class="normal">129</span>
 <span class="normal">130</span>
-<span class="normal">131</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">PowerMetrics</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Power bounds metrics.&quot;&quot;&quot;</span>
 
-    <span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="c1"># compare = False tells the dataclass to not use name for comparison methods</span>
+    <span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Timestamp of the metrics.&quot;&quot;&quot;</span>
 
     <span class="n">supply_bound</span><span class="p">:</span> <span class="n">Bound</span>
@@ -2628,7 +2632,7 @@ supply_bound.lower = sum(
 
 
 <h6 id="frequenz.sdk.timeseries.battery_pool._result_types.PowerMetrics.timestamp" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span></code>
+<code class="highlight language-python"><span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
@@ -2677,8 +2681,7 @@ supply_bound.lower = sum(
 
         <details class="quote">
           <summary>Source code in <code>frequenz/sdk/timeseries/battery_pool/_result_types.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">52</span>
-<span class="normal">53</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">53</span>
 <span class="normal">54</span>
 <span class="normal">55</span>
 <span class="normal">56</span>
@@ -2712,11 +2715,14 @@ supply_bound.lower = sum(
 <span class="normal">84</span>
 <span class="normal">85</span>
 <span class="normal">86</span>
-<span class="normal">87</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="normal">87</span>
+<span class="normal">88</span>
+<span class="normal">89</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">SoCMetrics</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Soc metrics.&quot;&quot;&quot;</span>
 
-    <span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="c1"># compare = False tells the dataclass to not use name for comparison methods</span>
+    <span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Timestamp of the metrics.&quot;&quot;&quot;</span>
 
     <span class="n">average_soc</span><span class="p">:</span> <span class="nb">float</span>
@@ -2823,7 +2829,7 @@ bound.upper = capacity_upper_bound/total_capacity</p>
 
 
 <h6 id="frequenz.sdk.timeseries.battery_pool._result_types.SoCMetrics.timestamp" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span></code>
+<code class="highlight language-python"><span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
