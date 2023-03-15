@@ -429,6 +429,30 @@ class Resampler:
             return False
         return True
 
+    async def _wait_for_next_resampling_period(self) -> None:
+        """Wait for next resampling period.
+
+        If resampling period already started, then return without sleeping.
+        That would allow us to catch up with resampling.
+        Print warning if function woke up to late.
+        """
+        now = datetime.now(tz=timezone.utc)
+        if self._window_end > now:
+            sleep_for = self._window_end - now
+            await asyncio.sleep(sleep_for.total_seconds())
+
+        timer_error_s = (now - self._window_end).total_seconds()
+        if timer_error_s > (self._config.resampling_period_s / 10.0):
+            _logger.warning(
+                "The resampling task woke up too late. Resampling should have started "
+                "at %s, but it started at %s (%s seconds difference; resampling "
+                "period is %s seconds)",
+                self._window_end,
+                now,
+                timer_error_s,
+                self._config.resampling_period_s,
+            )
+
     async def resample(self, *, one_shot: bool = False) -> None:
         """Start resampling all known timeseries.
 
@@ -447,12 +471,17 @@ class Resampler:
                 timeseries from the resampler before calling this method
                 again).
         """
-        async for timer_timestamp in self._timer:
+        while True:
+            await self._wait_for_next_resampling_period()
+
             results = await asyncio.gather(
                 *[r.resample(self._window_end) for r in self._resamplers.values()],
                 return_exceptions=True,
             )
-            self._update_window_end(timer_timestamp)
+
+            self._window_end = self._window_end + timedelta(
+                seconds=self._config.resampling_period_s
+            )
             exceptions = {
                 source: results[i]
                 for i, source in enumerate(self._resamplers)
@@ -464,27 +493,6 @@ class Resampler:
                 raise ResamplingError(exceptions)
             if one_shot:
                 break
-
-    def _update_window_end(self, timer_timestamp: datetime) -> None:
-        # We use abs() here to account for errors in the timer where the timer
-        # fires before its time even when in theory it shouldn't be possible,
-        # but we want to be resilient to timer implementation changes that
-        # could end up in this case, either because there were some time jump
-        # or some rounding error.
-        timer_error_s = abs((timer_timestamp - self._window_end).total_seconds())
-        if timer_error_s > (self._config.resampling_period_s / 10.0):
-            _logger.warning(
-                "The resampling timer fired too late. It should have fired at "
-                "%s, but it fired at %s (%s seconds difference; resampling "
-                "period is %s seconds)",
-                self._window_end,
-                timer_timestamp,
-                timer_error_s,
-                self._config.resampling_period_s,
-            )
-        self._window_end = self._window_end + timedelta(
-            seconds=self._config.resampling_period_s
-        )
 
 
 class _ResamplingHelper:

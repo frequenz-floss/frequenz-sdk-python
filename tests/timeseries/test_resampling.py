@@ -341,8 +341,9 @@ async def test_timer_errors_are_logged(
     assert (
         "frequenz.sdk.timeseries._resampling",
         logging.WARNING,
-        "The resampling timer fired too late. It should have fired at 1970-01-01 00:00:04+00:00, "
-        "but it fired at 1970-01-01 00:00:04.399800+00:00 (0.3998 seconds difference; resampling "
+        "The resampling task woke up too late. Resampling should have started at "
+        "1970-01-01 00:00:04+00:00, but it started at "
+        "1970-01-01 00:00:04.399800+00:00 (0.3998 seconds difference; resampling "
         "period is 2 seconds)",
     ) in _filter_logs(caplog.record_tuples, logger_level=logging.WARNING)
     sink_mock.reset_mock()
