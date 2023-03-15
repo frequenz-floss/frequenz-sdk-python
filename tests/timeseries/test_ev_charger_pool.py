@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import asyncio
 from math import isclose
-from typing import Optional
 
 from pytest_mock import MockerFixture
 
@@ -18,7 +17,6 @@ from frequenz.sdk.microgrid.component import (
     EVChargerComponentState,
 )
 from frequenz.sdk.timeseries.ev_charger_pool._state_tracker import (
-    EVChargerPoolStates,
     EVChargerState,
     StateTracker,
 )
@@ -40,45 +38,39 @@ class TestEVChargerPool:
         await mockgrid.start(mocker)
 
         state_tracker = StateTracker(set(mockgrid.evc_ids))
-        states = state_tracker.new_receiver()
 
-        async def check_next_state(
+        async def check_states(
             expected: dict[int, EVChargerState],
-            latest: Optional[tuple[int, EVChargerState]],
-        ) -> EVChargerPoolStates:
-            pool_states = await states.receive()
-            assert pool_states.latest_change() == latest
-            assert pool_states._states == expected  # pylint: disable=protected-access
-            return pool_states
+        ) -> None:
+            await asyncio.sleep(0.02)
+            for comp_id, exp_state in expected.items():
+                assert state_tracker.get(comp_id) == exp_state
 
         ## check that all chargers are in idle state.
         expected_states = {evc_id: EVChargerState.IDLE for evc_id in mockgrid.evc_ids}
         assert len(expected_states) == 5
-        await check_next_state(expected_states, None)
+        await check_states(expected_states)
 
         ## check that EV_PLUGGED state gets set
-        await asyncio.sleep(0.02)
         evc_2_id = mockgrid.evc_ids[2]
         mockgrid.evc_cable_states[evc_2_id] = EVChargerCableState.EV_PLUGGED
         mockgrid.evc_component_states[evc_2_id] = EVChargerComponentState.READY
         expected_states[evc_2_id] = EVChargerState.EV_PLUGGED
-        await check_next_state(expected_states, (evc_2_id, EVChargerState.EV_PLUGGED))
+        await check_states(expected_states)
 
         ## check that EV_LOCKED state gets set
-        await asyncio.sleep(0.03)
         evc_3_id = mockgrid.evc_ids[3]
         mockgrid.evc_cable_states[evc_3_id] = EVChargerCableState.EV_LOCKED
         mockgrid.evc_component_states[evc_3_id] = EVChargerComponentState.READY
         expected_states[evc_3_id] = EVChargerState.EV_LOCKED
-        await check_next_state(expected_states, (evc_3_id, EVChargerState.EV_LOCKED))
+        await check_states(expected_states)
 
         ## check that ERROR state gets set
-        await asyncio.sleep(0.1)
         evc_1_id = mockgrid.evc_ids[1]
         mockgrid.evc_cable_states[evc_1_id] = EVChargerCableState.EV_LOCKED
         mockgrid.evc_component_states[evc_1_id] = EVChargerComponentState.ERROR
         expected_states[evc_1_id] = EVChargerState.ERROR
-        await check_next_state(expected_states, (evc_1_id, EVChargerState.ERROR))
+        await check_states(expected_states)
 
         await state_tracker.stop()
         await mockgrid.cleanup()
