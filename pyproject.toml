@@ -31,7 +31,7 @@ dependencies = [
     "grpcio >= 1.51.1, < 2",
     "grpcio-tools >= 1.51.1, < 2",
     "networkx >= 2.8, < 3",
-    "pandas >= 1.5.2, < 2",
+    "numpy >= 1.24.2, < 2",
     "protobuf >= 4.21.6, < 5",
     "pydantic >= 1.9",
     "sympy >= 1.10.1, < 2",
@@ -78,7 +78,6 @@ pytest = [
 ]
 mypy = [
     "mypy >= 1.0.1, < 2",
-    "pandas-stubs == 1.5.3.230304",
     "grpc-stubs == 1.24.12",  # This dependency introduces breaking changes in patch releases
     # For checking the noxfile, docs/ script, and tests
     "frequenz-sdk[docs-gen,nox,pytest]",
