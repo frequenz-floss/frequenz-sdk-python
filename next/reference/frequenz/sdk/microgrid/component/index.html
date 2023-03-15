@@ -1975,7 +1975,8 @@
 
         <details class="quote">
           <summary>Source code in <code>frequenz/sdk/microgrid/component/_component_data.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">114</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">113</span>
+<span class="normal">114</span>
 <span class="normal">115</span>
 <span class="normal">116</span>
 <span class="normal">117</span>
@@ -2042,8 +2043,7 @@
 <span class="normal">178</span>
 <span class="normal">179</span>
 <span class="normal">180</span>
-<span class="normal">181</span>
-<span class="normal">182</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">181</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">BatteryData</span><span class="p">(</span><span class="n">ComponentData</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A wrapper class for holding battery data.&quot;&quot;&quot;</span>
 
@@ -2098,7 +2098,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">battery_data</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span>
             <span class="n">component_id</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-            <span class="n">timestamp</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">ToDatetime</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">pytz</span><span class="o">.</span><span class="n">UTC</span><span class="p">),</span>
+            <span class="n">timestamp</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">ToDatetime</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
             <span class="n">soc</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">battery</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">soc</span><span class="o">.</span><span class="n">avg</span><span class="p">,</span>
             <span class="n">soc_lower_bound</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">battery</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">soc</span><span class="o">.</span><span class="n">system_bounds</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
             <span class="n">soc_upper_bound</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">battery</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">soc</span><span class="o">.</span><span class="n">system_bounds</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
@@ -2343,7 +2343,8 @@ in percent (%).</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/microgrid/component/_component_data.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">157</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">156</span>
+<span class="normal">157</span>
 <span class="normal">158</span>
 <span class="normal">159</span>
 <span class="normal">160</span>
@@ -2367,8 +2368,7 @@ in percent (%).</p>
 <span class="normal">178</span>
 <span class="normal">179</span>
 <span class="normal">180</span>
-<span class="normal">181</span>
-<span class="normal">182</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="normal">181</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BatteryData</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create BatteryData from a protobuf message.</span>
 
@@ -2380,7 +2380,7 @@ in percent (%).</p>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">battery_data</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span>
         <span class="n">component_id</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-        <span class="n">timestamp</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">ToDatetime</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">pytz</span><span class="o">.</span><span class="n">UTC</span><span class="p">),</span>
+        <span class="n">timestamp</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">ToDatetime</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
         <span class="n">soc</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">battery</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">soc</span><span class="o">.</span><span class="n">avg</span><span class="p">,</span>
         <span class="n">soc_lower_bound</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">battery</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">soc</span><span class="o">.</span><span class="n">system_bounds</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
         <span class="n">soc_upper_bound</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">battery</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">soc</span><span class="o">.</span><span class="n">system_bounds</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
@@ -2652,7 +2652,8 @@ in percent (%).</p>
 
         <details class="quote">
           <summary>Source code in <code>frequenz/sdk/microgrid/component/_component_data.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">20</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">19</span>
+<span class="normal">20</span>
 <span class="normal">21</span>
 <span class="normal">22</span>
 <span class="normal">23</span>
@@ -2688,8 +2689,7 @@ in percent (%).</p>
 <span class="normal">53</span>
 <span class="normal">54</span>
 <span class="normal">55</span>
-<span class="normal">56</span>
-<span class="normal">57</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">56</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">ComponentData</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A private base class for strongly typed component data classes.&quot;&quot;&quot;</span>
 
@@ -2849,14 +2849,14 @@ in percent (%).</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/microgrid/component/_component_data.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">50</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">49</span>
+<span class="normal">50</span>
 <span class="normal">51</span>
 <span class="normal">52</span>
 <span class="normal">53</span>
 <span class="normal">54</span>
 <span class="normal">55</span>
-<span class="normal">56</span>
-<span class="normal">57</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="normal">56</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="nd">@abstractmethod</span>
 <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComponentData</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create ComponentData from a protobuf message.</span>
@@ -3402,7 +3402,8 @@ in percent (%).</p>
 
         <details class="quote">
           <summary>Source code in <code>frequenz/sdk/microgrid/component/_component_data.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">236</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">235</span>
+<span class="normal">236</span>
 <span class="normal">237</span>
 <span class="normal">238</span>
 <span class="normal">239</span>
@@ -3458,8 +3459,7 @@ in percent (%).</p>
 <span class="normal">289</span>
 <span class="normal">290</span>
 <span class="normal">291</span>
-<span class="normal">292</span>
-<span class="normal">293</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">292</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">EVChargerData</span><span class="p">(</span><span class="n">ComponentData</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A wrapper class for holding ev_charger data.&quot;&quot;&quot;</span>
 
@@ -3498,7 +3498,7 @@ in percent (%).</p>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ev_charger_data</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span>
             <span class="n">component_id</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-            <span class="n">timestamp</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">ToDatetime</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">pytz</span><span class="o">.</span><span class="n">UTC</span><span class="p">),</span>
+            <span class="n">timestamp</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">ToDatetime</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
             <span class="n">active_power</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">ev_charger</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">power_active</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
             <span class="n">current_per_phase</span><span class="o">=</span><span class="p">(</span>
                 <span class="n">raw</span><span class="o">.</span><span class="n">ev_charger</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">phase_1</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
@@ -3706,7 +3706,8 @@ wire for phase/line 1,2 and 3 respectively.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/microgrid/component/_component_data.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">263</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">262</span>
+<span class="normal">263</span>
 <span class="normal">264</span>
 <span class="normal">265</span>
 <span class="normal">266</span>
@@ -3735,8 +3736,7 @@ wire for phase/line 1,2 and 3 respectively.</p>
 <span class="normal">289</span>
 <span class="normal">290</span>
 <span class="normal">291</span>
-<span class="normal">292</span>
-<span class="normal">293</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="normal">292</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EVChargerData</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create EVChargerData from a protobuf message.</span>
 
@@ -3748,7 +3748,7 @@ wire for phase/line 1,2 and 3 respectively.</p>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ev_charger_data</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span>
         <span class="n">component_id</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-        <span class="n">timestamp</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">ToDatetime</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">pytz</span><span class="o">.</span><span class="n">UTC</span><span class="p">),</span>
+        <span class="n">timestamp</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">ToDatetime</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
         <span class="n">active_power</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">ev_charger</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">power_active</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
         <span class="n">current_per_phase</span><span class="o">=</span><span class="p">(</span>
             <span class="n">raw</span><span class="o">.</span><span class="n">ev_charger</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">phase_1</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
@@ -3806,7 +3806,8 @@ wire for phase/line 1,2 and 3 respectively.</p>
 
         <details class="quote">
           <summary>Source code in <code>frequenz/sdk/microgrid/component/_component_data.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">185</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">184</span>
+<span class="normal">185</span>
 <span class="normal">186</span>
 <span class="normal">187</span>
 <span class="normal">188</span>
@@ -3853,8 +3854,7 @@ wire for phase/line 1,2 and 3 respectively.</p>
 <span class="normal">229</span>
 <span class="normal">230</span>
 <span class="normal">231</span>
-<span class="normal">232</span>
-<span class="normal">233</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">232</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">InverterData</span><span class="p">(</span><span class="n">ComponentData</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A wrapper class for holding inverter data.&quot;&quot;&quot;</span>
 
@@ -3893,7 +3893,7 @@ wire for phase/line 1,2 and 3 respectively.</p>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">inverter_data</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span>
             <span class="n">component_id</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-            <span class="n">timestamp</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">ToDatetime</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">pytz</span><span class="o">.</span><span class="n">UTC</span><span class="p">),</span>
+            <span class="n">timestamp</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">ToDatetime</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
             <span class="n">active_power</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">inverter</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">power_active</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
             <span class="n">active_power_lower_bound</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">inverter</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">power_active</span><span class="o">.</span><span class="n">system_bounds</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
             <span class="n">active_power_upper_bound</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">inverter</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">power_active</span><span class="o">.</span><span class="n">system_bounds</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
@@ -4050,7 +4050,8 @@ This will be a positive number, or zero if no charging is possible.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/microgrid/component/_component_data.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">212</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">211</span>
+<span class="normal">212</span>
 <span class="normal">213</span>
 <span class="normal">214</span>
 <span class="normal">215</span>
@@ -4070,8 +4071,7 @@ This will be a positive number, or zero if no charging is possible.</p>
 <span class="normal">229</span>
 <span class="normal">230</span>
 <span class="normal">231</span>
-<span class="normal">232</span>
-<span class="normal">233</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="normal">232</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InverterData</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create InverterData from a protobuf message.</span>
 
@@ -4083,7 +4083,7 @@ This will be a positive number, or zero if no charging is possible.</p>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">inverter_data</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span>
         <span class="n">component_id</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-        <span class="n">timestamp</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">ToDatetime</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">pytz</span><span class="o">.</span><span class="n">UTC</span><span class="p">),</span>
+        <span class="n">timestamp</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">ToDatetime</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
         <span class="n">active_power</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">inverter</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">power_active</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
         <span class="n">active_power_lower_bound</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">inverter</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">power_active</span><span class="o">.</span><span class="n">system_bounds</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
         <span class="n">active_power_upper_bound</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">inverter</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">power_active</span><span class="o">.</span><span class="n">system_bounds</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
@@ -4189,7 +4189,8 @@ This will be a positive number, or zero if no charging is possible.</p>
 
         <details class="quote">
           <summary>Source code in <code>frequenz/sdk/microgrid/component/_component_data.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 60</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 59</span>
+<span class="normal"> 60</span>
 <span class="normal"> 61</span>
 <span class="normal"> 62</span>
 <span class="normal"> 63</span>
@@ -4239,8 +4240,7 @@ This will be a positive number, or zero if no charging is possible.</p>
 <span class="normal">107</span>
 <span class="normal">108</span>
 <span class="normal">109</span>
-<span class="normal">110</span>
-<span class="normal">111</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">110</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">MeterData</span><span class="p">(</span><span class="n">ComponentData</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A wrapper class for holding meter data.&quot;&quot;&quot;</span>
 
@@ -4276,7 +4276,7 @@ This will be a positive number, or zero if no charging is possible.</p>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">meter_data</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span>
             <span class="n">component_id</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-            <span class="n">timestamp</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">ToDatetime</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">pytz</span><span class="o">.</span><span class="n">UTC</span><span class="p">),</span>
+            <span class="n">timestamp</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">ToDatetime</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
             <span class="n">active_power</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">meter</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">power_active</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
             <span class="n">current_per_phase</span><span class="o">=</span><span class="p">(</span>
                 <span class="n">raw</span><span class="o">.</span><span class="n">meter</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">phase_1</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
@@ -4460,7 +4460,8 @@ This will be a positive number, or zero if no charging is possible.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/microgrid/component/_component_data.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 84</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 83</span>
+<span class="normal"> 84</span>
 <span class="normal"> 85</span>
 <span class="normal"> 86</span>
 <span class="normal"> 87</span>
@@ -4486,8 +4487,7 @@ This will be a positive number, or zero if no charging is possible.</p>
 <span class="normal">107</span>
 <span class="normal">108</span>
 <span class="normal">109</span>
-<span class="normal">110</span>
-<span class="normal">111</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="normal">110</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">from_proto</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeterData</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create MeterData from a protobuf message.</span>
 
@@ -4499,7 +4499,7 @@ This will be a positive number, or zero if no charging is possible.</p>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">meter_data</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span>
         <span class="n">component_id</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-        <span class="n">timestamp</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">ToDatetime</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">pytz</span><span class="o">.</span><span class="n">UTC</span><span class="p">),</span>
+        <span class="n">timestamp</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">ToDatetime</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
         <span class="n">active_power</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">meter</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">power_active</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
         <span class="n">current_per_phase</span><span class="o">=</span><span class="p">(</span>
             <span class="n">raw</span><span class="o">.</span><span class="n">meter</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">phase_1</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
