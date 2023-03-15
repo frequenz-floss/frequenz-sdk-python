@@ -53,7 +53,7 @@ def battery_data(
     Args:
         component_id: component id
         timestamp: Timestamp of the component message.
-            Defaults to datetime.now(tz=pytz.utc).
+            Defaults to datetime.now(tz=timezone.utc).
         relay_state: Battery relay state.
             Defaults to BatteryRelayState.RELAY_STATE_CLOSED.
         component_state: Component state.
@@ -88,7 +88,7 @@ def inverter_data(
     Args:
         component_id: component id
         timestamp: Timestamp of the component message.
-            Defaults to datetime.now(tz=pytz.utc).
+            Defaults to datetime.now(tz=timezone.utc).
         component_state: Component state.
             Defaults to InverterState.CHARGING.
         errors: List of the components error. By default empty list will be created.

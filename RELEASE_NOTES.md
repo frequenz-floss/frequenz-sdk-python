@@ -6,8 +6,8 @@
 
 * Remove `_soc` formula from the LogicalMeter. This feature has been moved to the BatteryPool.
 * Upgrade PowerDistributingActor to handle components with the NaN metrics (#247):
-    * if power bounds are NaN, then it tries to replace them with corresponding power bounds from adjacent component. If these components are also NaN, then it ignores battery.
-    * if other metrics metrics are NaN then it ignores battery.
+  * if power bounds are NaN, then it tries to replace them with corresponding power bounds from adjacent component. If these components are also NaN, then it ignores battery.
+  * if other metrics metrics are NaN then it ignores battery.
 * BatteryStatus to track that a component stopped sending messages. If the battery or its adjacent inverter stopped sending messages, then the battery would be considered as not working. (#207)
 * PowerDistributing to send battery status to subscribed users (#205)
 * Rename microgrid.Microgrid to microgrid.ConnectionManager (#208)
@@ -21,12 +21,13 @@
 * BatteryPool implementation for aggregating battery-inverter metrics into higher level metrics. (#205)
 * Add EV power and current streams to `EVChargerPool` (#201)
 
-
 ## Bug Fixes
 
 * The resampler now correctly produces resampling windows of exact *resampling period* size, which only include samples emitted during the resampling window (see #170)
 
 ## Removing
+
 * Deprecated code (#232):
-    * frequenz.sdk._data_ingestion
-    * frequenz.sdk._data_handling
+  * frequenz.sdk._data_ingestion
+  * frequenz.sdk._data_handling
+* The pandas(-stubs) and pytz dependencies are no longer needed (#261).

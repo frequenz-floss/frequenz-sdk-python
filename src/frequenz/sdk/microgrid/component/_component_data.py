@@ -6,13 +6,12 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional, Tuple
 
 import frequenz.api.microgrid.battery_pb2 as battery_pb
 import frequenz.api.microgrid.inverter_pb2 as inverter_pb
 import frequenz.api.microgrid.microgrid_pb2 as microgrid_pb
-import pytz
 
 from ._component_states import EVChargerCableState, EVChargerComponentState
 
@@ -93,7 +92,7 @@ class MeterData(ComponentData):
         """
         meter_data = cls(
             component_id=raw.id,
-            timestamp=raw.ts.ToDatetime(tzinfo=pytz.UTC),
+            timestamp=raw.ts.ToDatetime(tzinfo=timezone.utc),
             active_power=raw.meter.data.ac.power_active.value,
             current_per_phase=(
                 raw.meter.data.ac.phase_1.current.value,
@@ -166,7 +165,7 @@ class BatteryData(ComponentData):
         """
         battery_data = cls(
             component_id=raw.id,
-            timestamp=raw.ts.ToDatetime(tzinfo=pytz.UTC),
+            timestamp=raw.ts.ToDatetime(tzinfo=timezone.utc),
             soc=raw.battery.data.soc.avg,
             soc_lower_bound=raw.battery.data.soc.system_bounds.lower,
             soc_upper_bound=raw.battery.data.soc.system_bounds.upper,
@@ -221,7 +220,7 @@ class InverterData(ComponentData):
         """
         inverter_data = cls(
             component_id=raw.id,
-            timestamp=raw.ts.ToDatetime(tzinfo=pytz.UTC),
+            timestamp=raw.ts.ToDatetime(tzinfo=timezone.utc),
             active_power=raw.inverter.data.ac.power_active.value,
             active_power_lower_bound=raw.inverter.data.ac.power_active.system_bounds.lower,
             active_power_upper_bound=raw.inverter.data.ac.power_active.system_bounds.upper,
@@ -272,7 +271,7 @@ class EVChargerData(ComponentData):
         """
         ev_charger_data = cls(
             component_id=raw.id,
-            timestamp=raw.ts.ToDatetime(tzinfo=pytz.UTC),
+            timestamp=raw.ts.ToDatetime(tzinfo=timezone.utc),
             active_power=raw.ev_charger.data.ac.power_active.value,
             current_per_phase=(
                 raw.ev_charger.data.ac.phase_1.current.value,
