@@ -13,3 +13,12 @@ updates:
     versioning-strategy: auto
     # Allow up to 10 open pull requests for updates to dependency versions
     open-pull-requests-limit: 10
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "06:00"
+    labels:
+      - "part:tooling"
+      - "type:tech-debt"
