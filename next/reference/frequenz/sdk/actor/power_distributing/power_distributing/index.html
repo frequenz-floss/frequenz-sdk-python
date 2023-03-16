@@ -1056,12 +1056,14 @@ amount power to charge/discharge.</p>
   <div class="doc doc-contents ">
 
   
-      <p>Tool to distribute power between batteries in microgrid.</p>
-<p>The purpose of this tool is to keep equal SoC level in the batteries.
-PowerDistributor can have many users. Each user should first register in order
-to get its id, channel for sending request, and channel for receiving response.</p>
-<p>It is recommended to wait for PowerDistributor output with timeout. Otherwise if
-the processing function fail then the response will never come.
+      <p>Actor to distribute the power between batteries in a microgrid.</p>
+<p>The purpose of this tool is to keep an equal SoC level in all batteries.
+The PowerDistributingActor can have many concurrent users which at this time
+need to be known at construction time.</p>
+<p>For each user a bidirectional channel needs to be created through which
+they can send and receive requests and responses.</p>
+<p>It is recommended to wait for PowerDistributingActor output with timeout. Otherwise if
+the processing function fails then the response will never come.
 The timeout should be Result:request_timeout_sec + time for processing the request.</p>
 <p>Edge cases:
 * If there are 2 requests to be processed for the same subset of batteries, then
@@ -1080,8 +1082,8 @@ printed.</li>
 
 <span class="kn">from</span> <span class="nn">frequenz.sdk.microgrid.graph</span> <span class="kn">import</span> <span class="n">_MicrogridComponentGraph</span>
 <span class="kn">from</span> <span class="nn">frequenz.sdk.microgrid.component</span> <span class="kn">import</span> <span class="n">ComponentCategory</span>
-<span class="kn">from</span> <span class="nn">frequenz.sdk.actor.power_distribution</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">PowerDistributor</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">frequenz.sdk.actor.power_distributing</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">PowerDistributingActor</span><span class="p">,</span>
     <span class="n">Request</span><span class="p">,</span>
     <span class="n">Result</span><span class="p">,</span>
     <span class="n">Success</span><span class="p">,</span>
@@ -1102,7 +1104,7 @@ printed.</li>
 <span class="n">batteries_ids</span> <span class="o">=</span> <span class="p">{</span><span class="n">c</span><span class="o">.</span><span class="n">component_id</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">batteries</span><span class="p">}</span>
 
 <span class="n">channel</span> <span class="o">=</span> <span class="n">Bidirectional</span><span class="p">[</span><span class="n">Request</span><span class="p">,</span> <span class="n">Result</span><span class="p">](</span><span class="s2">&quot;user1&quot;</span><span class="p">,</span> <span class="s2">&quot;power_distributor&quot;</span><span class="p">)</span>
-<span class="n">power_distributor</span> <span class="o">=</span> <span class="n">PowerDistributor</span><span class="p">(</span>
+<span class="n">power_distributor</span> <span class="o">=</span> <span class="n">PowerDistributingActor</span><span class="p">(</span>
     <span class="n">mock_api</span><span class="p">,</span> <span class="n">component_graph</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;user1&quot;</span><span class="p">:</span> <span class="n">channel</span><span class="o">.</span><span class="n">service_handle</span><span class="p">}</span>
 <span class="p">)</span>
 
@@ -1800,17 +1802,23 @@ printed.</li>
 <span class="normal">734</span>
 <span class="normal">735</span>
 <span class="normal">736</span>
-<span class="normal">737</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
+<span class="normal">737</span>
+<span class="normal">738</span>
+<span class="normal">739</span>
+<span class="normal">740</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
 <span class="k">class</span> <span class="nc">PowerDistributingActor</span><span class="p">:</span>
     <span class="c1"># pylint: disable=too-many-instance-attributes</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tool to distribute power between batteries in microgrid.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actor to distribute the power between batteries in a microgrid.</span>
 
-<span class="sd">    The purpose of this tool is to keep equal SoC level in the batteries.</span>
-<span class="sd">    PowerDistributor can have many users. Each user should first register in order</span>
-<span class="sd">    to get its id, channel for sending request, and channel for receiving response.</span>
+<span class="sd">    The purpose of this tool is to keep an equal SoC level in all batteries.</span>
+<span class="sd">    The PowerDistributingActor can have many concurrent users which at this time</span>
+<span class="sd">    need to be known at construction time.</span>
 
-<span class="sd">    It is recommended to wait for PowerDistributor output with timeout. Otherwise if</span>
-<span class="sd">    the processing function fail then the response will never come.</span>
+<span class="sd">    For each user a bidirectional channel needs to be created through which</span>
+<span class="sd">    they can send and receive requests and responses.</span>
+
+<span class="sd">    It is recommended to wait for PowerDistributingActor output with timeout. Otherwise if</span>
+<span class="sd">    the processing function fails then the response will never come.</span>
 <span class="sd">    The timeout should be Result:request_timeout_sec + time for processing the request.</span>
 
 <span class="sd">    Edge cases:</span>
@@ -1829,8 +1837,8 @@ printed.</li>
 
 <span class="sd">        from frequenz.sdk.microgrid.graph import _MicrogridComponentGraph</span>
 <span class="sd">        from frequenz.sdk.microgrid.component import ComponentCategory</span>
-<span class="sd">        from frequenz.sdk.actor.power_distribution import (</span>
-<span class="sd">            PowerDistributor,</span>
+<span class="sd">        from frequenz.sdk.actor.power_distributing import (</span>
+<span class="sd">            PowerDistributingActor,</span>
 <span class="sd">            Request,</span>
 <span class="sd">            Result,</span>
 <span class="sd">            Success,</span>
@@ -1851,7 +1859,7 @@ printed.</li>
 <span class="sd">        batteries_ids = {c.component_id for c in batteries}</span>
 
 <span class="sd">        channel = Bidirectional[Request, Result](&quot;user1&quot;, &quot;power_distributor&quot;)</span>
-<span class="sd">        power_distributor = PowerDistributor(</span>
+<span class="sd">        power_distributor = PowerDistributingActor(</span>
 <span class="sd">            mock_api, component_graph, {&quot;user1&quot;: channel.service_handle}</span>
 <span class="sd">        )</span>
 
@@ -1909,7 +1917,7 @@ printed.</li>
 
         <span class="c1"># The components in different requests be for the same components, or for</span>
         <span class="c1"># completely different components. They should not overlap.</span>
-        <span class="c1"># Otherwise the PowerDistributor has no way to decide what request is more</span>
+        <span class="c1"># Otherwise the PowerDistributingActor has no way to decide what request is more</span>
         <span class="c1"># important. It will execute both. And later request will override the previous</span>
         <span class="c1"># one.</span>
         <span class="c1"># That is why the queue of maxsize = total number of batteries should be enough.</span>
@@ -2160,7 +2168,7 @@ printed.</li>
                 <span class="n">to_ignore</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
             <span class="c1"># Use generators as generators seems to be the fastest.</span>
             <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">battery_id</span> <span class="ow">in</span> <span class="n">prev_request</span><span class="o">.</span><span class="n">batteries</span> <span class="k">for</span> <span class="n">battery_id</span> <span class="ow">in</span> <span class="n">batteries</span><span class="p">):</span>
-                <span class="c1"># If that happen PowerDistributor has no way to distinguish what</span>
+                <span class="c1"># If that happen PowerDistributingActor has no way to distinguish what</span>
                 <span class="c1"># request is more important. This should not happen</span>
                 <span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
                     <span class="s2">&quot;Batteries in two requests overlap! Actor: </span><span class="si">%s</span><span class="s2"> requested </span><span class="si">%s</span><span class="s2"> &quot;</span>
@@ -2185,11 +2193,11 @@ printed.</li>
 <span class="sd">        to the user. If request is correct, then add it to the main queue to be</span>
 <span class="sd">        process.</span>
 
-<span class="sd">        If main queue has request for the same subset of batteries, then remove older</span>
-<span class="sd">        request, and send its user response with Result.Status.IGNORED.</span>
+<span class="sd">        Already existing requests for the same subset of batteries will be</span>
+<span class="sd">        removed and their users will be notified with a Result.Status.IGNORED response.</span>
 <span class="sd">        Only new request will re processed.</span>
-<span class="sd">        If set of batteries are not the same but have common elements, then both</span>
-<span class="sd">        batteries will be processed.</span>
+<span class="sd">        If the sets of batteries are not the same but they have common elements,</span>
+<span class="sd">        then both batteries will be processed.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            user: User that sends the requests.</span>
@@ -2204,17 +2212,17 @@ printed.</li>
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">_users_channels</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_users_channels</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No users in PowerDistributor!&quot;</span><span class="p">)</span>
+                    <span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No users in PowerDistributingActor!&quot;</span><span class="p">)</span>
                 <span class="k">return</span>
 
-            <span class="c1"># Wait for PowerDistributor to start.</span>
+            <span class="c1"># Wait for PowerDistributingActor to start.</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_started</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
                 <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_started</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
 
             <span class="c1"># We should discover as fast as possible that request is wrong.</span>
-            <span class="n">check_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_request</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">check_result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">check_result</span><span class="p">)</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_request</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
                 <span class="k">continue</span>
 
             <span class="n">tasks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_remove_duplicated_requests</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
@@ -2557,10 +2565,7 @@ request. It is a time needed to collect first components data.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">143</span>
-<span class="normal">144</span>
-<span class="normal">145</span>
-<span class="normal">146</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">146</span>
 <span class="normal">147</span>
 <span class="normal">148</span>
 <span class="normal">149</span>
@@ -2608,7 +2613,10 @@ request. It is a time needed to collect first components data.</p>
 <span class="normal">191</span>
 <span class="normal">192</span>
 <span class="normal">193</span>
-<span class="normal">194</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">users_channels</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Bidirectional</span><span class="o">.</span><span class="n">Handle</span><span class="p">[</span><span class="n">Result</span><span class="p">,</span> <span class="n">Request</span><span class="p">]],</span>
     <span class="n">battery_status_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span><span class="n">BatteryStatus</span><span class="p">],</span>
@@ -2640,7 +2648,7 @@ request. It is a time needed to collect first components data.</p>
 
     <span class="c1"># The components in different requests be for the same components, or for</span>
     <span class="c1"># completely different components. They should not overlap.</span>
-    <span class="c1"># Otherwise the PowerDistributor has no way to decide what request is more</span>
+    <span class="c1"># Otherwise the PowerDistributingActor has no way to decide what request is more</span>
     <span class="c1"># important. It will execute both. And later request will override the previous</span>
     <span class="c1"># one.</span>
     <span class="c1"># That is why the queue of maxsize = total number of batteries should be enough.</span>
@@ -2691,10 +2699,7 @@ as broken for some time.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">247</span>
-<span class="normal">248</span>
-<span class="normal">249</span>
-<span class="normal">250</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">250</span>
 <span class="normal">251</span>
 <span class="normal">252</span>
 <span class="normal">253</span>
@@ -2776,7 +2781,10 @@ as broken for some time.</p>
 <span class="normal">329</span>
 <span class="normal">330</span>
 <span class="normal">331</span>
-<span class="normal">332</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">332</span>
+<span class="normal">333</span>
+<span class="normal">334</span>
+<span class="normal">335</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run actor main function.</span>
 
 <span class="sd">    It waits for new requests in task_queue and process it, and send</span>
