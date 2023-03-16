@@ -6,8 +6,11 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime
 from math import isclose
+from typing import Any
 
+from frequenz.channels import Broadcast, Receiver
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
@@ -16,6 +19,7 @@ from frequenz.sdk.microgrid.component import (
     EVChargerCableState,
     EVChargerComponentState,
 )
+from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries.ev_charger_pool._state_tracker import (
     EVChargerState,
     StateTracker,
@@ -112,3 +116,99 @@ class TestEVChargerPool:
 
         await mockgrid.cleanup()
         assert len(ev_results) == 10
+
+    async def test_ev_component_data(self, mocker: MockerFixture) -> None:
+        """Test the component_data method of EVChargerPool."""
+        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid.add_ev_chargers(1)
+        await mockgrid.start(mocker)
+        evc_id = mockgrid.evc_ids[0]
+
+        ev_pool = microgrid.ev_charger_pool()
+
+        resampled_p1_channel = Broadcast[Sample]("resampled-current-phase-1")
+        resampled_p2_channel = Broadcast[Sample]("resampled-current-phase-2")
+        resampled_p3_channel = Broadcast[Sample]("resampled-current-phase-3")
+
+        async def send_resampled_current(
+            phase_1: float | None, phase_2: float | None, phase_3: float | None
+        ) -> None:
+            sender_p1 = resampled_p1_channel.new_sender()
+            sender_p2 = resampled_p2_channel.new_sender()
+            sender_p3 = resampled_p3_channel.new_sender()
+
+            now = datetime.now()
+            asyncio.gather(
+                sender_p1.send(Sample(now, phase_1)),
+                sender_p2.send(Sample(now, phase_2)),
+                sender_p3.send(Sample(now, phase_3)),
+            )
+
+        async def mock_current_streams(
+            _1: Any, _2: int
+        ) -> tuple[Receiver[Sample], Receiver[Sample], Receiver[Sample]]:
+            return (
+                resampled_p1_channel.new_receiver(),
+                resampled_p2_channel.new_receiver(),
+                resampled_p3_channel.new_receiver(),
+            )
+
+        mocker.patch(
+            "frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool._get_current_streams",
+            mock_current_streams,
+        )
+
+        recv = await ev_pool.component_data(evc_id)
+
+        await send_resampled_current(2, 3, 5)
+        await asyncio.sleep(0.02)
+        status = await recv.receive()
+        assert (
+            status.current.value_p1,
+            status.current.value_p2,
+            status.current.value_p3,
+        ) == (2, 3, 5)
+        assert status.state == EVChargerState.MISSING
+
+        await send_resampled_current(2, 3, None)
+        await asyncio.sleep(0.02)
+        status = await recv.receive()
+        assert (
+            status.current.value_p1,
+            status.current.value_p2,
+            status.current.value_p3,
+        ) == (2, 3, None)
+        assert status.state == EVChargerState.IDLE
+
+        await send_resampled_current(None, None, None)
+        await asyncio.sleep(0.02)
+        status = await recv.receive()
+        assert (
+            status.current.value_p1,
+            status.current.value_p2,
+            status.current.value_p3,
+        ) == (None, None, None)
+        assert status.state == EVChargerState.MISSING
+
+        await send_resampled_current(None, None, None)
+        mockgrid.evc_cable_states[evc_id] = EVChargerCableState.EV_PLUGGED
+        await asyncio.sleep(0.02)
+        status = await recv.receive()
+        assert (
+            status.current.value_p1,
+            status.current.value_p2,
+            status.current.value_p3,
+        ) == (None, None, None)
+        assert status.state == EVChargerState.MISSING
+
+        await send_resampled_current(4, None, None)
+        await asyncio.sleep(0.02)
+        status = await recv.receive()
+        assert (
+            status.current.value_p1,
+            status.current.value_p2,
+            status.current.value_p3,
+        ) == (4, None, None)
+        assert status.state == EVChargerState.EV_PLUGGED
+
+        await mockgrid.cleanup()

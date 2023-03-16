@@ -3,8 +3,12 @@
 
 """Interactions with EV Chargers."""
 
-from ._ev_charger_pool import EVChargerPool
+from ._ev_charger_pool import EVChargerData, EVChargerPool, EVChargerPoolError
+from ._state_tracker import EVChargerState
 
 __all__ = [
     "EVChargerPool",
+    "EVChargerData",
+    "EVChargerPoolError",
+    "EVChargerState",
 ]
