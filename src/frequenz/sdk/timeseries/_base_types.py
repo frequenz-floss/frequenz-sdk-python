@@ -3,9 +3,12 @@
 
 """Timeseries basic types."""
 
+from __future__ import annotations
+
+import functools
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
+from typing import Callable, Iterator, Optional, overload
 
 
 # Ordering by timestamp is a bit arbitrary, and it is not always what might be
@@ -48,3 +51,85 @@ class Sample3Phase:
 
     value_p3: Optional[float]
     """The value of the 3rd phase in this sample."""
+
+    def __iter__(self) -> Iterator[float | None]:
+        """Return an iterator that yields values from each of the phases.
+
+        Yields:
+            Per-phase measurements one-by-one.
+        """
+        yield self.value_p1
+        yield self.value_p2
+        yield self.value_p3
+
+    @overload
+    def max(self, default: float) -> float:
+        ...
+
+    @overload
+    def max(self, default: None = None) -> float | None:
+        ...
+
+    def max(self, default: float | None = None) -> float | None:
+        """Return the max value among all phases, or default if they are all `None`.
+
+        Args:
+            default: value to return if all phases are `None`.
+
+        Returns:
+            Max value among all phases, if available, default value otherwise.
+        """
+        if not any(self):
+            return default
+        value: float = functools.reduce(
+            lambda x, y: x if x > y else y,
+            filter(None, self),
+        )
+        return value
+
+    @overload
+    def min(self, default: float) -> float:
+        ...
+
+    @overload
+    def min(self, default: None = None) -> float | None:
+        ...
+
+    def min(self, default: float | None = None) -> float | None:
+        """Return the min value among all phases, or default if they are all `None`.
+
+        Args:
+            default: value to return if all phases are `None`.
+
+        Returns:
+            Min value among all phases, if available, default value otherwise.
+        """
+        if not any(self):
+            return default
+        value: float = functools.reduce(
+            lambda x, y: x if x < y else y,
+            filter(None, self),
+        )
+        return value
+
+    def map(
+        self, function: Callable[[float], float], default: float | None = None
+    ) -> Sample3Phase:
+        """Apply the given function on each of the phase values and return the result.
+
+        If a phase value is `None`, replace it with `default` instead.
+
+        Args:
+            function: The function to apply on each of the phase values.
+            default: The value to apply if a phase value is `None`.
+
+        Returns:
+            A new `Sample3Phase` instance, with the given function applied on values
+                for each of the phases.
+        """
+        return Sample3Phase(
+            timestamp=self.timestamp,
+            value_p1=default if self.value_p1 is None else function(self.value_p1),
+            value_p2=default if self.value_p2 is None else function(self.value_p2),
+            value_p3=default if self.value_p3 is None else function(self.value_p3),
+        )
