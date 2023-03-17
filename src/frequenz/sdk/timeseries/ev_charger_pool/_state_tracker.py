@@ -59,6 +59,14 @@ class EVChargerState(Enum):
             return EVChargerState.EV_PLUGGED
         return EVChargerState.IDLE
 
+    def is_ev_connected(self) -> bool:
+        """Check whether an EV is connected to the charger.
+
+        Returns:
+            Whether an EV is connected to the charger.
+        """
+        return self in (EVChargerState.EV_PLUGGED, EVChargerState.EV_LOCKED)
+
 
 class StateTracker:
     """A class for keeping track of the states of all EV Chargers in a pool."""
