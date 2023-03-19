@@ -8,9 +8,9 @@ from __future__ import annotations
 from datetime import datetime
 from math import isclose
 
-from frequenz.channels import Receiver, Sender
+from frequenz.channels import Receiver
 
-from frequenz.sdk.actor import ChannelRegistry, ComponentMetricRequest
+from frequenz.sdk.microgrid import _data_pipeline
 from frequenz.sdk.microgrid.component import ComponentMetricId
 from frequenz.sdk.timeseries import Sample, Sample3Phase
 from frequenz.sdk.timeseries._formula_engine import (
@@ -18,13 +18,9 @@ from frequenz.sdk.timeseries._formula_engine import (
     FormulaReceiver3Phase,
     ResampledFormulaBuilder,
 )
-from frequenz.sdk.timeseries.logical_meter import LogicalMeter
 
 
 async def get_resampled_stream(  # pylint: disable=too-many-arguments
-    logical_meter: LogicalMeter,
-    channel_registry: ChannelRegistry,
-    request_sender: Sender[ComponentMetricRequest],
     comp_id: int,
     metric_id: ComponentMetricId,
 ) -> Receiver[Sample]:
@@ -34,10 +30,10 @@ async def get_resampled_stream(  # pylint: disable=too-many-arguments
 
     # pylint: disable=protected-access
     builder = ResampledFormulaBuilder(
-        logical_meter._namespace,
+        _data_pipeline._get().logical_meter()._namespace,
         "",
-        channel_registry,
-        request_sender,
+        _data_pipeline._get()._channel_registry,
+        _data_pipeline._get()._resampling_request_sender(),
         metric_id,
     )
     return await builder._get_resampled_receiver(
