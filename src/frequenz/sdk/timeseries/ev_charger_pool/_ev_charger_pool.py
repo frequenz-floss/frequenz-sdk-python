@@ -9,6 +9,7 @@ import asyncio
 import logging
 import uuid
 from asyncio import Task
+from collections import abc
 from dataclasses import dataclass
 
 from frequenz.channels import Broadcast, ChannelClosedError, Receiver, Sender
@@ -86,6 +87,15 @@ class EVChargerPool:
             self._channel_registry,
             self._resampler_subscription_sender,
         )
+
+    @property
+    def component_ids(self) -> abc.Set[int]:
+        """Return component IDs of all EV Chargers managed by this EVChargerPool.
+
+        Returns:
+            Set of managed component IDs.
+        """
+        return self._component_ids
 
     async def current(self) -> FormulaReceiver3Phase:
         """Fetch the total current for the EV Chargers in the pool.
