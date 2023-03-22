@@ -12,6 +12,8 @@
   * The `Success.used_batteries` property was renamed to `succeeded_batteries`.
   * The `PartialFailure.success_batteries` property was renamed to `succeeded_batteries`.
   * The `succeed_power` property was renamed to `succeeded_power` for both `Success` and `PartialFailure`.
+* Update MovingWindow to accept size parameter as timedelta instead of int (#269).
+  This change allows users to define the time span of the moving window more intuitively, representing the duration over which samples will be stored.
 
 ## New Features
 
@@ -26,6 +28,7 @@
       )
       grid_power = microgrid.logical_meter().grid_power()
   ```
+
 * The `Result` class (and subclasses) for the `PowerDistributingActor` are now dataclasses, so logging them will produce a more detailed output.
 
 ## Bug Fixes

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 from collections.abc import Sequence
 from datetime import datetime, timedelta
 from typing import SupportsIndex, overload
@@ -49,7 +50,10 @@ class MovingWindow:
     **Example1** (calculating the mean of a time interval):
 
     ```
-    window = MovingWindow(size=100, resampled_data_recv=resampled_data_recv)
+    window = MovingWindow(
+        size=timedelta(minutes=5),
+        resampled_data_recv=resampled_data_recv,
+    )
 
     time_start = datetime.now()
     time_end = time_start + timedelta(minutes=5)
@@ -70,7 +74,7 @@ class MovingWindow:
 
     # create a window that stores two days of data
     # starting at 1.1.23 with samplerate=1
-    window = MovingWindow(size = (60 * 60 * 24 * 2), sample_receiver)
+    window = MovingWindow(size=timedelta(days=2), sample_receiver)
 
     # wait for one full day until the buffer is filled
     asyncio.sleep(60*60*24)
@@ -84,7 +88,7 @@ class MovingWindow:
 
     def __init__(
         self,
-        size: int,
+        size: timedelta,
         resampled_data_recv: Receiver[Sample],
         sampling_period: timedelta,
         window_alignment: datetime = datetime(1, 1, 1),
@@ -97,7 +101,7 @@ class MovingWindow:
         The task stops running only if the channel receiver is closed.
 
         Args:
-            size: The number of elements that are stored.
+            size: The time span of the moving window over which samples will be stored.
             resampled_data_recv: A receiver that delivers samples with a
                 given sampling period.
             sampling_period: The sampling period.
@@ -109,9 +113,19 @@ class MovingWindow:
         Raises:
             asyncio.CancelledError: when the task gets cancelled.
         """
+        assert (
+            sampling_period.total_seconds() > 0
+        ), "The sampling period should be greater than zero."
+        assert (
+            sampling_period <= size
+        ), "The sampling period should be equal to or lower than the window size."
+
+        # Sampling period might not fit perfectly into the window size.
+        num_samples = math.ceil(size / sampling_period)
+
         self._resampled_data_recv = resampled_data_recv
         self._buffer = OrderedRingBuffer(
-            np.empty(shape=size, dtype=float),
+            np.empty(shape=num_samples, dtype=float),
             sampling_period=sampling_period,
             time_index_alignment=window_alignment,
         )
