@@ -27,7 +27,7 @@ class MovingWindow:
     A data window that moves with the latest datapoints of a data stream.
 
     After initialization the `MovingWindow` can be accessed by an integer
-    index or a timestamp. A sub window can be accessed by using a slice of integers
+    index or a timestamp. A sub window can be accessed by using a slice of
     integers or timestamps.
 
     Note that a numpy ndarray is returned and thus users can use
