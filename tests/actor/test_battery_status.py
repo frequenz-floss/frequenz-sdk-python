@@ -37,12 +37,13 @@ from ..utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapp
 from ..utils.mock_microgrid import MockMicrogridClient
 
 
-def battery_data(
+def battery_data(  # pylint: disable=too-many-arguments
     component_id: int,
     timestamp: Optional[datetime] = None,
     relay_state: BatteryRelayState.ValueType = BatteryRelayState.RELAY_STATE_CLOSED,
     component_state: BatteryState.ValueType = BatteryState.COMPONENT_STATE_CHARGING,
     errors: Optional[Iterable[BatteryError]] = None,
+    capacity: float = 0,
 ) -> BatteryData:
     """Create BatteryData with given arguments.
 
@@ -66,6 +67,7 @@ def battery_data(
 
     return BatteryDataWrapper(
         component_id=component_id,
+        capacity=capacity,
         timestamp=datetime.now(tz=timezone.utc) if timestamp is None else timestamp,
         _relay_state=relay_state,
         _component_state=component_state,
@@ -352,6 +354,15 @@ class TestBatteryStatus:
             )
         )
         assert tracker._update_status(select) is None  # type: ignore[arg-type]
+
+        # Check if NaN capacity changes the battery status.
+        select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
+        assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
+
+        select = FakeSelect(
+            battery=battery_data(component_id=BATTERY_ID, capacity=float("NaN"))
+        )
+        assert tracker._update_status(select) is Status.NOT_WORKING  # type: ignore[arg-type]
 
         await tracker.stop()
 

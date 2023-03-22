@@ -6,7 +6,7 @@
 
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with --> 
+* Update BatteryStatus to mark battery with unknown capacity as not working (#263)
 
 ## New Features
 

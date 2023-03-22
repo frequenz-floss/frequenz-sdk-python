@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
@@ -269,6 +270,7 @@ class BatteryStatusTracker:
                 self._is_message_reliable(msg.inner)
                 and self._is_battery_state_correct(msg.inner)
                 and self._no_critical_error(msg.inner)
+                and self._is_capacity_present(msg.inner)
             )
             self._battery.last_msg_timestamp = msg.inner.timestamp
             self._battery.data_recv_timer.reset()
@@ -351,6 +353,26 @@ class BatteryStatusTracker:
             return Status.UNCERTAIN
 
         return Status.WORKING
+
+    def _is_capacity_present(self, msg: BatteryData) -> bool:
+        """Check whether the battery capacity is NaN or not.
+
+        If battery capacity is missing, then we can't work with it.
+
+        Args:
+            msg: battery message
+
+        Returns:
+            True if battery capacity is present, false otherwise.
+        """
+        if math.isnan(msg.capacity):
+            if self._last_status == Status.WORKING:
+                _logger.warning(
+                    "Battery %d capacity is NaN",
+                    msg.component_id,
+                )
+            return False
+        return True
 
     def _no_critical_error(self, msg: Union[BatteryData, InverterData]) -> bool:
         """Check if battery or inverter message has any critical error.
