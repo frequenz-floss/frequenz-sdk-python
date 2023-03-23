@@ -129,7 +129,7 @@ class MovingWindow:
             sampling_period=sampling_period,
             time_index_alignment=window_alignment,
         )
-        self._copy_buffer = False
+
         self._update_window_task: asyncio.Task[None] = asyncio.create_task(
             self._run_impl()
         )
@@ -212,7 +212,7 @@ class MovingWindow:
             # we are doing runtime typechecks since there is no abstract slice type yet
             # see also (https://peps.python.org/pep-0696)
             if isinstance(key.start, datetime) and isinstance(key.stop, datetime):
-                return self._buffer.window(key.start, key.stop, self._copy_buffer)
+                return self._buffer.window(key.start, key.stop)
             if isinstance(key.start, int) and isinstance(key.stop, int):
                 return self._buffer[key]
         elif isinstance(key, datetime):
