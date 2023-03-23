@@ -136,14 +136,18 @@ class MovingWindow:
         log.debug("Cancelling MovingWindow task: %s", __name__)
 
     async def _run_impl(self) -> None:
-        """Awaits samples from the receiver and updates the underlying ringbuffer."""
+        """Awaits samples from the receiver and updates the underlying ringbuffer.
+
+        Raises:
+            asyncio.CancelledError: if the MovingWindow task is cancelled.
+        """
         try:
             async for sample in self._resampled_data_recv:
                 log.debug("Received new sample: %s", sample)
                 self._buffer.update(sample)
         except asyncio.CancelledError:
             log.info("MovingWindow task has been cancelled.")
-            return
+            raise
 
         log.error("Channel has been closed")
 
