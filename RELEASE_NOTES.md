@@ -14,6 +14,9 @@
   * The `succeed_power` property was renamed to `succeeded_power` for both `Success` and `PartialFailure`.
 * Update MovingWindow to accept size parameter as timedelta instead of int (#269).
   This change allows users to define the time span of the moving window more intuitively, representing the duration over which samples will be stored.
+* Add a resampler in the MovingWindow to control the granularity of the samples to be stored in the underlying buffer (#269).
+  Notice that the parameter `sampling_period` has been renamed to `input_sampling_period`
+  to better distinguish it from the sampling period parameter in the resampler.
 
 ## New Features
 

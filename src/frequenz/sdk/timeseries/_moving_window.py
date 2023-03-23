@@ -13,11 +13,12 @@ from datetime import datetime, timedelta
 from typing import SupportsIndex, overload
 
 import numpy as np
-from frequenz.channels import Receiver
+from frequenz.channels import Broadcast, Receiver, Sender
 from numpy.typing import ArrayLike
 
 from .._internal.asyncio import cancel_and_await
 from . import Sample
+from ._resampling import Resampler, ResamplerConfig
 from ._ringbuffer import OrderedRingBuffer
 
 log = logging.getLogger(__name__)
@@ -46,6 +47,13 @@ class MovingWindow:
     [`OrderedRingBuffer`][frequenz.sdk.timeseries._ringbuffer.OrderedRingBuffer]
     documentation.
 
+    Resampling might be required to reduce the number of samples to store, and
+    it can be set by specifying the resampler config parameter so that the user
+    can control the granularity of the samples to be stored in the underlying
+    buffer.
+
+    If resampling is not required, the resampler config parameter can be
+    set to None in which case the MovingWindow will not perform any resampling.
 
     **Example1** (calculating the mean of a time interval):
 
@@ -86,11 +94,12 @@ class MovingWindow:
     ```
     """
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         size: timedelta,
         resampled_data_recv: Receiver[Sample],
-        sampling_period: timedelta,
+        input_sampling_period: timedelta,
+        resampler_config: ResamplerConfig | None = None,
         window_alignment: datetime = datetime(1, 1, 1),
     ) -> None:
         """
@@ -104,7 +113,8 @@ class MovingWindow:
             size: The time span of the moving window over which samples will be stored.
             resampled_data_recv: A receiver that delivers samples with a
                 given sampling period.
-            sampling_period: The sampling period.
+            input_sampling_period: The time interval between consecutive input samples.
+            resampler_config: The resampler configuration in case resampling is required.
             window_alignment: A datetime object that defines a point in time to which
                 the window is aligned to modulo window size.
                 (default is midnight 01.01.01)
@@ -114,26 +124,42 @@ class MovingWindow:
             asyncio.CancelledError: when the task gets cancelled.
         """
         assert (
-            sampling_period.total_seconds() > 0
-        ), "The sampling period should be greater than zero."
+            input_sampling_period.total_seconds() > 0
+        ), "The input sampling period should be greater than zero."
         assert (
-            sampling_period <= size
-        ), "The sampling period should be equal to or lower than the window size."
+            input_sampling_period <= size
+        ), "The input sampling period should be equal to or lower than the window size."
+
+        sampling = input_sampling_period
+        self._resampler: Resampler | None = None
+        self._resampler_sender: Sender[Sample] | None = None
+        self._resampler_task: asyncio.Task[None] | None = None
+
+        if resampler_config:
+            resampling_period = timedelta(seconds=resampler_config.resampling_period_s)
+            assert (
+                resampling_period <= size
+            ), "The resampling period should be equal to or lower than the window size."
+
+            self._resampler = Resampler(resampler_config)
+            sampling = resampling_period
 
         # Sampling period might not fit perfectly into the window size.
-        num_samples = math.ceil(size / sampling_period)
+        num_samples = math.ceil(size.total_seconds() / sampling.total_seconds())
 
         self._resampled_data_recv = resampled_data_recv
         self._buffer = OrderedRingBuffer(
             np.empty(shape=num_samples, dtype=float),
-            sampling_period=sampling_period,
+            sampling_period=sampling,
             time_index_alignment=window_alignment,
         )
+
+        if self._resampler:
+            self._configure_resampler()
 
         self._update_window_task: asyncio.Task[None] = asyncio.create_task(
             self._run_impl()
         )
-        log.debug("Cancelling MovingWindow task: %s", __name__)
 
     async def _run_impl(self) -> None:
         """Awaits samples from the receiver and updates the underlying ringbuffer.
@@ -144,7 +170,11 @@ class MovingWindow:
         try:
             async for sample in self._resampled_data_recv:
                 log.debug("Received new sample: %s", sample)
-                self._buffer.update(sample)
+                if self._resampler and self._resampler_sender:
+                    await self._resampler_sender.send(sample)
+                else:
+                    self._buffer.update(sample)
+
         except asyncio.CancelledError:
             log.info("MovingWindow task has been cancelled.")
             raise
@@ -152,8 +182,25 @@ class MovingWindow:
         log.error("Channel has been closed")
 
     async def stop(self) -> None:
-        """Cancel the running task and stop the MovingWindow."""
+        """Cancel the running tasks and stop the MovingWindow."""
         await cancel_and_await(self._update_window_task)
+        if self._resampler_task:
+            await cancel_and_await(self._resampler_task)
+
+    def _configure_resampler(self) -> None:
+        """Configure the components needed to run the resampler."""
+        assert self._resampler is not None
+
+        async def sink_buffer(sample: Sample) -> None:
+            if sample.value is not None:
+                self._buffer.update(sample)
+
+        resampler_channel = Broadcast[Sample]("average")
+        self._resampler_sender = resampler_channel.new_sender()
+        self._resampler.add_timeseries(
+            "avg", resampler_channel.new_receiver(), sink_buffer
+        )
+        self._resampler_task = asyncio.create_task(self._resampler.resample())
 
     def __len__(self) -> int:
         """
