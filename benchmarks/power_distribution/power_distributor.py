@@ -24,6 +24,7 @@ from frequenz.sdk.actor.power_distributing import (
     Result,
     Success,
 )
+from frequenz.sdk.microgrid import connection_manager
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
 
 HOST = "microgrid.sandbox.api.frequenz.io"
@@ -154,7 +155,7 @@ async def run() -> None:
 
     await microgrid.initialize(HOST, PORT)
 
-    all_batteries: Set[Component] = microgrid.get().component_graph.components(
+    all_batteries: Set[Component] = connection_manager.get().component_graph.components(
         component_category={ComponentCategory.BATTERY}
     )
     batteries_ids = {c.component_id for c in all_batteries}

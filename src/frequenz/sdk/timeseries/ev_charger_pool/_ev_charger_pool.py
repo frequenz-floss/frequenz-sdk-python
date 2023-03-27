@@ -10,8 +10,8 @@ import uuid
 
 from frequenz.channels import Sender
 
-from ... import microgrid
 from ...actor import ChannelRegistry, ComponentMetricRequest
+from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory
 from .._formula_engine import FormulaEnginePool, FormulaReceiver, FormulaReceiver3Phase
 from .._formula_engine._formula_generators import (
@@ -55,7 +55,7 @@ class EVChargerPool:
         if component_ids is not None:
             self._component_ids = component_ids
         else:
-            graph = microgrid.get().component_graph
+            graph = connection_manager.get().component_graph
             self._component_ids = {
                 evc.component_id
                 for evc in graph.components(

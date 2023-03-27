@@ -21,6 +21,7 @@ from frequenz.sdk.actor import (
 )
 from frequenz.sdk.actor.power_distributing import PowerDistributingActor
 from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryStatus
+from frequenz.sdk.microgrid import connection_manager
 from frequenz.sdk.microgrid.component import ComponentCategory
 from frequenz.sdk.timeseries.battery_pool import BatteryPool
 
@@ -57,7 +58,7 @@ def create_battery_pool() -> BatteryPool:
         battery_status_sender=battery_status_channel.new_sender(),
     )
 
-    batteries = microgrid.get().component_graph.components(
+    batteries = connection_manager.get().component_graph.components(
         component_category={ComponentCategory.BATTERY}
     )
 

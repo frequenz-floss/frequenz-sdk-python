@@ -20,7 +20,7 @@ from ...actor._data_sourcing.microgrid_api_source import (
     _BatteryDataMethods,
     _InverterDataMethods,
 )
-from ...microgrid import get as get_microgrid
+from ...microgrid import connection_manager
 from ...microgrid.component import (
     BatteryData,
     ComponentCategory,
@@ -209,7 +209,7 @@ class LatestBatteryMetricsFetcher(LatestMetricsFetcher[BatteryData]):
         Returns:
             Receiver for this component metrics.
         """
-        api = get_microgrid().api_client
+        api = connection_manager.get().api_client
         return await api.battery_data(self._component_id, maxsize=1)
 
     def _component_category(self) -> ComponentCategory:
@@ -260,7 +260,7 @@ class LatestInverterMetricsFetcher(LatestMetricsFetcher[InverterData]):
         Returns:
             Receiver for this component metrics.
         """
-        api = get_microgrid().api_client
+        api = connection_manager.get().api_client
         return await api.inverter_data(self._component_id, maxsize=1)
 
     def _component_category(self) -> ComponentCategory:

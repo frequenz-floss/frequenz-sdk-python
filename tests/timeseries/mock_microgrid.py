@@ -329,8 +329,11 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
     async def cleanup(self) -> None:
         """Clean up after a test."""
+        # pylint: disable=protected-access
         for actor in self._actors:
-            await actor._stop()  # pylint: disable=protected-access
+            await actor._stop()
+
         for task in self._streaming_tasks:
             await cancel_and_await(task)
-        microgrid._microgrid._MICROGRID = None  # pylint: disable=protected-access
+        microgrid.connection_manager._CONNECTION_MANAGER = None
+        # pylint: enable=protected-access

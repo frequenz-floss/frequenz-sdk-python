@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from frequenz.sdk.microgrid import _microgrid
+from frequenz.sdk.microgrid import connection_manager
 from frequenz.sdk.microgrid.client import Connection
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
 
@@ -89,7 +89,7 @@ class TestMicrogridApi:
         return connections
 
     @mock.patch("grpc.aio.insecure_channel")
-    async def test_microgrid_api(
+    async def test_connection_manager(
         self,
         _: MagicMock,
         components: List[List[Component]],
@@ -107,22 +107,22 @@ class TestMicrogridApi:
         microgrid_client.connections = AsyncMock(side_effect=connections)
 
         with mock.patch(
-            "frequenz.sdk.microgrid._microgrid.MicrogridGrpcClient",
+            "frequenz.sdk.microgrid.connection_manager.MicrogridGrpcClient",
             return_value=microgrid_client,
         ):
             # Get instance without initializing git first.
             with pytest.raises(RuntimeError):
-                _microgrid.get()
+                connection_manager.get()
 
             tasks = [
-                asyncio.create_task(_microgrid.initialize("127.0.0.1", 10001)),
-                asyncio.create_task(_microgrid.initialize("127.0.0.1", 10001)),
+                asyncio.create_task(connection_manager.initialize("127.0.0.1", 10001)),
+                asyncio.create_task(connection_manager.initialize("127.0.0.1", 10001)),
             ]
             initialize_task = asyncio.wait(tasks, return_when=ALL_COMPLETED)
 
-            # Check if we can get _microgrid after not full initialization
+            # Check if we can get connection_manager after not full initialization
             with pytest.raises(RuntimeError):
-                _microgrid.get()
+                connection_manager.get()
 
             done, pending = await initialize_task
             assert len(pending) == 0
@@ -136,7 +136,7 @@ class TestMicrogridApi:
             assert assertion_counter == 1
 
             # Initialization is over we should now get api
-            api = _microgrid.get()
+            api = connection_manager.get()
             assert api.api_client is microgrid_client
 
             graph = api.component_graph
@@ -145,9 +145,9 @@ class TestMicrogridApi:
 
             # It should not be possible to initialize method once again
             with pytest.raises(AssertionError):
-                await _microgrid.initialize("127.0.0.1", 10001)
+                await connection_manager.initialize("127.0.0.1", 10001)
 
-            api2 = _microgrid.get()
+            api2 = connection_manager.get()
 
             assert api is api2
             graph = api2.component_graph
@@ -155,7 +155,7 @@ class TestMicrogridApi:
             assert set(graph.connections()) == set(connections[0])
 
     @mock.patch("grpc.aio.insecure_channel")
-    async def test_microgrid_api_from_another_method(
+    async def test_connection_manager_another_method(
         self,
         _: MagicMock,
         components: List[List[Component]],
@@ -173,7 +173,7 @@ class TestMicrogridApi:
         microgrid_client.components = AsyncMock(return_value=[])
         microgrid_client.connections = AsyncMock(return_value=[])
 
-        api = _microgrid.get()
+        api = connection_manager.get()
         graph = api.component_graph
         assert set(graph.components()) == set(components[0])
         assert set(graph.connections()) == set(connections[0])

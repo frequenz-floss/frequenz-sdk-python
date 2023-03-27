@@ -17,6 +17,7 @@ from frequenz.sdk.actor.power_distributing._battery_pool_status import (
     BatteryPoolStatus,
     BatteryStatus,
 )
+from frequenz.sdk.microgrid import connection_manager
 from frequenz.sdk.microgrid.component import ComponentCategory
 
 _logger = logging.getLogger(__name__)
@@ -32,7 +33,7 @@ async def main() -> None:
     await microgrid.initialize(HOST, PORT)
     batteries = {
         bat.component_id
-        for bat in microgrid.get().component_graph.components(
+        for bat in connection_manager.get().component_graph.components(
             component_category={ComponentCategory.BATTERY}
         )
     }

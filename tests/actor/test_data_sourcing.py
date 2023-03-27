@@ -13,7 +13,7 @@ from frequenz.sdk.actor import (
     ComponentMetricRequest,
     DataSourcingActor,
 )
-from frequenz.sdk.microgrid import _microgrid
+from frequenz.sdk.microgrid import connection_manager
 from frequenz.sdk.microgrid.component import ComponentMetricId
 from tests.microgrid import mock_api
 
@@ -52,7 +52,7 @@ class TestDataSourcingActor:
         servicer.add_connection(7, 8)
         servicer.add_connection(8, 9)
 
-        await _microgrid.initialize("[::1]", 57899)
+        await connection_manager.initialize("[::1]", 57899)
 
         req_chan = Broadcast[ComponentMetricRequest]("data_sourcing_requests")
         req_sender = req_chan.new_sender()
@@ -94,4 +94,6 @@ class TestDataSourcingActor:
             assert 100.0 == sample.value
 
         assert await server.graceful_shutdown()
-        _microgrid._MICROGRID = None  # pylint: disable=protected-access
+        connection_manager._CONNECTION_MANAGER = (  # pylint: disable=protected-access
+            None
+        )
