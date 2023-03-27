@@ -137,7 +137,7 @@ class _InsecureConnectionManager(ConnectionManager):
         await self._graph.refresh_from_api(self._api)
 
 
-_MICROGRID: Optional[ConnectionManager] = None
+_CONNECTION_MANAGER: Optional[ConnectionManager] = None
 
 
 async def initialize(host: str, port: int) -> None:
@@ -152,9 +152,9 @@ async def initialize(host: str, port: int) -> None:
     """
     # From Doc: pylint just try to discourage this usage.
     # That doesn't mean you cannot use it.
-    global _MICROGRID  # pylint: disable=global-statement
+    global _CONNECTION_MANAGER  # pylint: disable=global-statement
 
-    if _MICROGRID is not None:
+    if _CONNECTION_MANAGER is not None:
         raise AssertionError("MicrogridApi was already initialized.")
 
     microgrid_api = _InsecureConnectionManager(host, port)
@@ -162,10 +162,10 @@ async def initialize(host: str, port: int) -> None:
 
     # Check again that _MICROGRID_API is None in case somebody had the great idea of
     # calling initialize() twice and in parallel.
-    if _MICROGRID is not None:
+    if _CONNECTION_MANAGER is not None:
         raise AssertionError("MicrogridApi was already initialized.")
 
-    _MICROGRID = microgrid_api
+    _CONNECTION_MANAGER = microgrid_api
 
 
 def get() -> ConnectionManager:
@@ -182,10 +182,10 @@ def get() -> ConnectionManager:
     Returns:
         MicrogridApi instance.
     """
-    if _MICROGRID is None:
+    if _CONNECTION_MANAGER is None:
         raise RuntimeError(
-            "MicrogridApi is not initialized (or the initialization didn't "
-            "finished yet). Call and/or await for initialize() to finish."
+            "ConnectionManager is not initialized. "
+            "Call `await microgrid.initialize()` first."
         )
 
-    return _MICROGRID
+    return _CONNECTION_MANAGER

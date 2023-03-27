@@ -9,12 +9,10 @@ for monitoring and adjusting the state of a microgrid.
 
 from . import client, component
 from ._graph import ComponentGraph
-from ._microgrid import ConnectionManager, get, initialize
+from .connection_manager import initialize
 
 __all__ = [
     "ComponentGraph",
-    "ConnectionManager",
-    "get",
     "initialize",
     "client",
     "component",
