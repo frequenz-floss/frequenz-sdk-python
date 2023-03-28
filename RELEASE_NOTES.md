@@ -16,3 +16,4 @@
 ## Bug Fixes
 
 * Change PowerDistributor to use all batteries if none is working (#258)
+* Update the ordered ring buffer to fix the len() function so that it returns a value equal to or greater than zero, as expected (#274)

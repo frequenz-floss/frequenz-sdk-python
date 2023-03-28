@@ -490,5 +490,6 @@ class OrderedRingBuffer(Generic[FloatArray]):
         end_index = self.datetime_to_index(self._datetime_newest)
 
         if end_index < start_index:
-            return len(self._buffer) - start_index + end_index
-        return start_index - end_index
+            return len(self._buffer) - start_index + end_index + 1
+
+        return end_index + 1 - start_index
