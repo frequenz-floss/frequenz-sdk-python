@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from pytest_mock import MockerFixture
 
+from frequenz.sdk import microgrid
 from frequenz.sdk.microgrid.component import ComponentMetricId
 
 from ._formula_engine.utils import (
@@ -27,13 +28,12 @@ class TestLogicalMeter:
         mockgrid = MockMicrogrid(grid_side_meter=True)
         mockgrid.add_batteries(2)
         mockgrid.add_solar_inverters(1)
-        pipeline = await mockgrid.start(mocker)
-        logical_meter = pipeline.logical_meter()
+        await mockgrid.start(mocker)
+        logical_meter = microgrid.logical_meter()
 
         grid_power_recv = await logical_meter.grid_power()
 
         main_meter_recv = await get_resampled_stream(
-            pipeline,
             mockgrid.main_meter_id,
             ComponentMetricId.ACTIVE_POWER,
         )
@@ -60,14 +60,13 @@ class TestLogicalMeter:
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(2)
         mockgrid.add_solar_inverters(1)
-        pipeline = await mockgrid.start(mocker)
-        logical_meter = pipeline.logical_meter()
+        await mockgrid.start(mocker)
+        logical_meter = microgrid.logical_meter()
 
         grid_power_recv = await logical_meter.grid_power()
 
         meter_receivers = [
             await get_resampled_stream(
-                pipeline,
                 meter_id,
                 ComponentMetricId.ACTIVE_POWER,
             )
@@ -103,15 +102,14 @@ class TestLogicalMeter:
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(3)
         mockgrid.add_solar_inverters(2)
-        pipeline = await mockgrid.start(mocker)
-        logical_meter = pipeline.logical_meter()
+        await mockgrid.start(mocker)
+        logical_meter = microgrid.logical_meter()
 
         battery_power_recv = await logical_meter.battery_power()
         pv_power_recv = await logical_meter.pv_power()
 
         bat_inv_receivers = [
             await get_resampled_stream(
-                pipeline,
                 meter_id,
                 ComponentMetricId.ACTIVE_POWER,
             )
@@ -120,7 +118,6 @@ class TestLogicalMeter:
 
         pv_inv_receivers = [
             await get_resampled_stream(
-                pipeline,
                 meter_id,
                 ComponentMetricId.ACTIVE_POWER,
             )

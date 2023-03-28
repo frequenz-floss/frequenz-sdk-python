@@ -11,6 +11,7 @@ from typing import Optional
 
 from pytest_mock import MockerFixture
 
+from frequenz.sdk import microgrid
 from frequenz.sdk.microgrid.component import (
     ComponentMetricId,
     EVChargerCableState,
@@ -89,14 +90,13 @@ class TestEVChargerPool:
         """Test the battery power and pv power formulas."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_ev_chargers(5)
-        pipeline = await mockgrid.start(mocker)
+        await mockgrid.start(mocker)
 
-        logical_meter = pipeline.logical_meter()
+        logical_meter = microgrid.logical_meter()
 
-        ev_pool = pipeline.ev_charger_pool()
+        ev_pool = microgrid.ev_charger_pool()
 
         main_meter_recv = await get_resampled_stream(
-            pipeline,
             mockgrid.main_meter_id,
             ComponentMetricId.ACTIVE_POWER,
         )

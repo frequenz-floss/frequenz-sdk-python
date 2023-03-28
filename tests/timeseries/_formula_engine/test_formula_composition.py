@@ -8,6 +8,7 @@ from math import isclose
 
 from pytest_mock import MockerFixture
 
+from frequenz.sdk import microgrid
 from frequenz.sdk.microgrid.component import ComponentMetricId
 
 from ..mock_microgrid import MockMicrogrid
@@ -25,11 +26,10 @@ class TestFormulaComposition:
         mockgrid = MockMicrogrid(grid_side_meter=False, sample_rate_s=0.05)
         mockgrid.add_batteries(3)
         mockgrid.add_solar_inverters(2)
-        pipeline = await mockgrid.start(mocker)
-        logical_meter = pipeline.logical_meter()
+        await mockgrid.start(mocker)
+        logical_meter = microgrid.logical_meter()
 
         main_meter_recv = await get_resampled_stream(
-            pipeline,
             4,
             ComponentMetricId.ACTIVE_POWER,
         )
@@ -66,8 +66,8 @@ class TestFormulaComposition:
         """Test the composition of formulas with missing PV power data."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(3)
-        pipeline = await mockgrid.start(mocker)
-        logical_meter = pipeline.logical_meter()
+        await mockgrid.start(mocker)
+        logical_meter = microgrid.logical_meter()
 
         battery_power_recv = await logical_meter.battery_power()
         pv_power_recv = await logical_meter.pv_power()
@@ -93,8 +93,8 @@ class TestFormulaComposition:
         """Test the composition of formulas with missing battery power data."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_solar_inverters(2)
-        pipeline = await mockgrid.start(mocker)
-        logical_meter = pipeline.logical_meter()
+        await mockgrid.start(mocker)
+        logical_meter = microgrid.logical_meter()
 
         battery_power_recv = await logical_meter.battery_power()
         pv_power_recv = await logical_meter.pv_power()
@@ -121,9 +121,9 @@ class TestFormulaComposition:
         mockgrid = MockMicrogrid(grid_side_meter=False, sample_rate_s=0.05)
         mockgrid.add_batteries(3)
         mockgrid.add_ev_chargers(1)
-        pipeline = await mockgrid.start(mocker)
-        logical_meter = pipeline.logical_meter()
-        ev_pool = pipeline.ev_charger_pool()
+        await mockgrid.start(mocker)
+        logical_meter = microgrid.logical_meter()
+        ev_pool = microgrid.ev_charger_pool()
 
         grid_current_recv = await logical_meter.grid_current()
         ev_current_recv = await ev_pool.total_current()

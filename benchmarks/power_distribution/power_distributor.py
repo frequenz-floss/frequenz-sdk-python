@@ -13,6 +13,7 @@ from typing import Any, Coroutine, Dict, List, Set  # pylint: disable=unused-imp
 from frequenz.channels import Bidirectional, Broadcast
 
 from frequenz.sdk import microgrid
+from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.actor.power_distributing import (
     BatteryStatus,
     Error,
@@ -153,7 +154,7 @@ async def run() -> None:
     """Create microgrid api and run tests."""
     # pylint: disable=protected-access
 
-    await microgrid.initialize(HOST, PORT)
+    await microgrid.initialize(HOST, PORT, ResamplerConfig(resampling_period_s=1.0))
 
     all_batteries: Set[Component] = connection_manager.get().component_graph.components(
         component_category={ComponentCategory.BATTERY}

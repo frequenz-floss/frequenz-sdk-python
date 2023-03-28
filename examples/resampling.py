@@ -43,7 +43,7 @@ async def _print_sample(sample: Sample) -> None:
 
 async def run() -> None:  # pylint: disable=too-many-locals
     """Run main functions that initializes and creates everything."""
-    await microgrid.initialize(HOST, PORT)
+    await microgrid.initialize(HOST, PORT, ResamplerConfig(resampling_period_s=0.2))
 
     channel_registry = ChannelRegistry(name="data-registry")
 

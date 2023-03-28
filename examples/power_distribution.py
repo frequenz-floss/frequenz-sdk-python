@@ -159,7 +159,7 @@ async def run() -> None:
     logging.basicConfig(
         level=logging.DEBUG, format="%(asctime)s %(name)s %(levelname)s:%(message)s"
     )
-    await microgrid.initialize(HOST, PORT)
+    await microgrid.initialize(HOST, PORT, ResamplerConfig(resampling_period_s=1.0))
 
     channel_registry = ChannelRegistry(name="Microgrid Channel Registry")
 
