@@ -298,3 +298,23 @@ def test_len_ringbuffer_samples_overwrite_buffer() -> None:
             buffer.update(Sample(timestamp, float(sample_value)))
 
         assert len(buffer) == half_buffer_size
+
+
+def test_ringbuffer_empty_buffer() -> None:
+    """Test capacity ordered ring buffer."""
+    empty_np_buffer = np.empty(shape=0, dtype=float)
+    empty_list_buffer: list[float] = []
+
+    assert len(empty_np_buffer) == len(empty_list_buffer) == 0
+
+    with pytest.raises(AssertionError):
+        OrderedRingBuffer(
+            empty_np_buffer,
+            sampling_period=timedelta(seconds=1),
+            time_index_alignment=datetime(1, 1, 1),
+        )
+        OrderedRingBuffer(
+            empty_list_buffer,
+            sampling_period=timedelta(seconds=1),
+            time_index_alignment=datetime(1, 1, 1),
+        )
