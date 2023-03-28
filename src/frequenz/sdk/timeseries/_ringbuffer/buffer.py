@@ -152,6 +152,26 @@ class OrderedRingBuffer(Generic[FloatArray]):
 
         self._update_gaps(timestamp, prev_newest, sample.value is None)
 
+    @property
+    def time_bound_oldest(self) -> datetime:
+        """
+        Return the time bounds of the ring buffer.
+
+        Returns:
+            The timestamp of the oldest sample of the ring buffer.
+        """
+        return self._datetime_oldest
+
+    @property
+    def time_bound_newest(self) -> datetime:
+        """
+        Return the time bounds of the ring buffer.
+
+        Returns:
+            The timestamp of the newest sample of the ring buffer.
+        """
+        return self._datetime_newest
+
     def datetime_to_index(
         self, timestamp: datetime, allow_outside_range: bool = False
     ) -> int:
