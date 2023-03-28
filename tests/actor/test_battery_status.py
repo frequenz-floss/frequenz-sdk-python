@@ -34,7 +34,7 @@ from frequenz.sdk.microgrid.component import (
 )
 
 from ..utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
-from ..utils.mock_microgrid import MockMicrogridClient
+from ..utils.mock_microgrid_client import MockMicrogridClient
 
 
 def battery_data(  # pylint: disable=too-many-arguments
