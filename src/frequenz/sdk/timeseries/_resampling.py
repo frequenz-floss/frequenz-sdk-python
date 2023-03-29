@@ -146,12 +146,12 @@ class ResamplerConfig:
     Example:
         If `resampling_period_s` is 3, the input sampling period is
         1 and `max_data_age_in_periods` is 2, then data older than 3*2
-        = 6 secods will be discarded when creating a new sample and never
+        = 6 seconds will be discarded when creating a new sample and never
         passed to the resampling function.
 
         If `resampling_period_s` is 3, the input sampling period is
         5 and `max_data_age_in_periods` is 2, then data older than 5*2
-        = 10 secods will be discarded when creating a new sample and never
+        = 10 seconds will be discarded when creating a new sample and never
         passed to the resampling function.
     """
 
@@ -177,7 +177,7 @@ class ResamplerConfig:
     """The minimum length of the resampling buffer that will emit a warning.
 
     If a buffer grows bigger than this value, it will emit a warning in the
-    logs, so buffers don't grow too big inadvertly.
+    logs, so buffers don't grow too big inadvertently.
 
     It must be at least 1 and at most `max_buffer_len`.
     """
@@ -242,12 +242,11 @@ class SourceStoppedError(RuntimeError):
         """Create an instance.
 
         Args:
-            source: The source of the timeseries that stopped producting
-                samples.
+            source: The source of the timeseries that stopped producing samples.
         """
         super().__init__(f"Timeseries stopped producing samples, source: {source}")
         self.source = source
-        """The source of the timeseries that stopped producting samples."""
+        """The source of the timeseries that stopped producing samples."""
 
     def __repr__(self) -> str:
         """Return the representation of the instance.
@@ -672,7 +671,7 @@ class _ResamplingHelper:
         min_index = bisect(self._buffer, Sample(minimum_relevant_timestamp, None))
         max_index = bisect(self._buffer, Sample(timestamp, None))
         # Using itertools for slicing doesn't look very efficient, but
-        # experiements with a custom (ring) buffer that can slice showed that
+        # experiments with a custom (ring) buffer that can slice showed that
         # it is not that bad. See:
         # https://github.com/frequenz-floss/frequenz-sdk-python/pull/130
         # So if we need more performance beyond this point, we probably need to
