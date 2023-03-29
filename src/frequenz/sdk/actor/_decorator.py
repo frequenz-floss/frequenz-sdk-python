@@ -14,6 +14,8 @@ import inspect
 import logging
 from typing import Any, Generic, Optional, Type, TypeVar
 
+from frequenz.sdk._internal.asyncio import cancel_and_await
+
 logger = logging.getLogger(__name__)
 
 OT = TypeVar("OT")
@@ -221,11 +223,7 @@ def actor(cls: Type[Any]) -> Type[Any]:
 
         async def _stop(self) -> None:
             """Stop an running actor."""
-            self._actor_task.cancel()
-            try:
-                await self._actor_task
-            except asyncio.CancelledError:
-                pass
+            await cancel_and_await(self._actor_task)
 
         async def join(self) -> None:
             """Await the actor's task, and return when the task completes."""
