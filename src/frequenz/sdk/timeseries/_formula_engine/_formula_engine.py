@@ -191,7 +191,7 @@ class FormulaEngine:
                 msg = await self._evaluator.apply()
             except asyncio.CancelledError:
                 logger.exception("FormulaEngine task cancelled: %s", self._name)
-                break
+                raise
             except Exception as err:  # pylint: disable=broad-except
                 logger.warning(
                     "Formula application failed: %s. Error: %s", self._name, err
