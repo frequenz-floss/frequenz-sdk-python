@@ -78,7 +78,7 @@ pytest = [
 ]
 mypy = [
     "mypy == 1.1.1",
-    "grpc-stubs == 1.24.12",  # This dependency introduces breaking changes in patch releases
+    "grpc-stubs == 1.24.12.1",  # This dependency introduces breaking changes in patch releases
     # For checking the noxfile, docs/ script, and tests
     "frequenz-sdk[docs-gen,nox,pytest]",
 ]
