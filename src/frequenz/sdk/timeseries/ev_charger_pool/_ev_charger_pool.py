@@ -87,7 +87,7 @@ class EVChargerPool:
             self._resampler_subscription_sender,
         )
 
-    async def total_current(self) -> FormulaReceiver3Phase:
+    async def current(self) -> FormulaReceiver3Phase:
         """Fetch the total current for the EV Chargers in the pool.
 
         If a formula engine to calculate EV Charger current is not already running, it
@@ -103,7 +103,7 @@ class EVChargerPool:
             FormulaGeneratorConfig(component_ids=self._component_ids),
         )
 
-    async def total_power(self) -> FormulaReceiver:
+    async def power(self) -> FormulaReceiver:
         """Fetch the total power for the EV Chargers in the pool.
 
         If a formula engine to calculate EV Charger power is not already running, it

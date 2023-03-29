@@ -97,7 +97,7 @@ class TestEVChargerPool:
             ComponentMetricId.ACTIVE_POWER,
         )
         grid_power_recv = await logical_meter.grid_power()
-        ev_power_recv = await ev_pool.total_power()
+        ev_power_recv = await ev_pool.power()
 
         await synchronize_receivers([grid_power_recv, main_meter_recv, ev_power_recv])
 
