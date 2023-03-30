@@ -692,21 +692,21 @@ class PowerDistributingActor:
         distribution: Dict[int, int],
         request_timeout_sec: float,
     ) -> Tuple[int, Set[int]]:
-        """Parse result of `set_power` requests.
+        """Parse the results of `set_power` requests.
 
-        Check if any task failed and why. If any task didn't success, then corresponding
-        battery is marked as broken.
+        Check if any task has failed and determine the reason for failure.
+        If any task did not succeed, then the corresponding battery is marked as broken.
 
         Args:
-            tasks: Dictionary where key is inverter id and value is task that set power
-                for this inverter. Each tasks should be finished or cancelled.
-            distribution: Dictionary where key is inverter id and value is how much
+            tasks: A dictionary where the key is the inverter ID and the value is the task that
+                set the power for this inverter. Each task should be finished or cancelled.
+            distribution: A dictionary where the key is the inverter ID and the value is how much
                 power was set to the corresponding inverter.
-            request_timeout_sec: timeout which has been used for request.
+            request_timeout_sec: The timeout that was used for the request.
 
         Returns:
-            Tuple where first element is total failed power, and the second element
-                set of batteries that failed.
+            A tuple where the first element is the total failed power, and the second element is
+            the set of batteries that failed.
         """
         failed_power: int = 0
         failed_batteries: Set[int] = set()
