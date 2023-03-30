@@ -11,6 +11,7 @@ import uuid
 from asyncio import Task
 from collections import abc
 from dataclasses import dataclass
+from datetime import timedelta
 
 from frequenz.channels import Broadcast, ChannelClosedError, Receiver, Sender
 
@@ -24,6 +25,7 @@ from .._formula_engine._formula_generators import (
     EVChargerPowerFormula,
     FormulaGeneratorConfig,
 )
+from ._set_current_bounds import BoundsSetter
 from ._state_tracker import EVChargerState, StateTracker
 
 logger = logging.getLogger(__name__)
@@ -50,6 +52,7 @@ class EVChargerPool:
         channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         component_ids: set[int] | None = None,
+        repeat_interval: timedelta = timedelta(seconds=3.0),
     ) -> None:
         """Create an `EVChargerPool` instance.
 
@@ -61,8 +64,11 @@ class EVChargerPool:
             component_ids: An optional list of component_ids belonging to this pool.  If
                 not specified, IDs of all EV Chargers in the microgrid will be fetched
                 from the component graph.
+            repeat_interval: Interval after which to repeat the last set bounds to the
+                microgrid API, if no new calls to `set_bounds` have been made.
         """
         self._channel_registry: ChannelRegistry = channel_registry
+        self._repeat_interval = repeat_interval
         self._resampler_subscription_sender: Sender[
             ComponentMetricRequest
         ] = resampler_subscription_sender
@@ -87,6 +93,7 @@ class EVChargerPool:
             self._channel_registry,
             self._resampler_subscription_sender,
         )
+        self._bounds_setter: BoundsSetter | None = None
 
     @property
     def component_ids(self) -> abc.Set[int]:
@@ -157,6 +164,20 @@ class EVChargerPool:
         self._status_streams[component_id] = (task, output_chan)
 
         return output_chan.new_receiver()
+
+    async def set_bounds(self, component_id: int, max_amps: float) -> None:
+        """Send given max current bound for the given EV Charger to the microgrid API.
+
+        Bounds are used to limit the max current drawn by an EV, although the exact
+        value will be determined by the EV.
+
+        Args:
+            component_id: ID of EV Charger to set the current bounds to.
+            max_amps: Current bound value to set for the EV Charger.
+        """
+        if not self._bounds_setter:
+            self._bounds_setter = BoundsSetter(self._repeat_interval)
+        await self._bounds_setter.set(component_id, max_amps)
 
     async def _get_current_streams(
         self, component_id: int
