@@ -397,7 +397,7 @@ class PowerDistributingActor:
 
     def _remove_duplicated_requests(
         self, request: Request, user: _User
-    ) -> List[asyncio.Task[bool]]:
+    ) -> List[asyncio.Task[None]]:
         """Remove duplicated requests from the queue.
 
         Remove old requests in which set of batteries are the same as in new request.
@@ -414,7 +414,7 @@ class PowerDistributingActor:
         batteries = request.batteries
 
         good_requests: List[Tuple[Request, _User]] = []
-        to_ignore: List[asyncio.Task[bool]] = []
+        to_ignore: List[asyncio.Task[None]] = []
 
         while not self._request_queue.empty():
             prev_request, prev_user = self._request_queue.get_nowait()

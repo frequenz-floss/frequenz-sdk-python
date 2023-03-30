@@ -81,8 +81,7 @@ class ComponentMetricsResamplingActor:
         sender = self._channel_registry.new_sender(request.get_channel_name())
 
         async def sink_adapter(sample: Sample) -> None:
-            if not await sender.send(sample):
-                raise RuntimeError(f"Error while sending with sender {sender}", sender)
+            await sender.send(sample)
 
         self._resampler.add_timeseries(request_channel_name, receiver, sink_adapter)
 
