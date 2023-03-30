@@ -8,7 +8,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from copy import deepcopy
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Generic, List, SupportsFloat, SupportsIndex, TypeVar, overload
 
 import numpy as np
@@ -50,7 +50,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         self,
         buffer: FloatArray,
         sampling_period: timedelta,
-        time_index_alignment: datetime = datetime(1, 1, 1),
+        time_index_alignment: datetime = datetime(1, 1, 1, tzinfo=timezone.utc),
     ) -> None:
         """Initialize the time aware ringbuffer.
 
@@ -76,8 +76,8 @@ class OrderedRingBuffer(Generic[FloatArray]):
         self._time_index_alignment: datetime = time_index_alignment
 
         self._gaps: list[Gap] = []
-        self._datetime_newest: datetime = datetime.min
-        self._datetime_oldest: datetime = datetime.max
+        self._datetime_newest: datetime = datetime.min.replace(tzinfo=timezone.utc)
+        self._datetime_oldest: datetime = datetime.max.replace(tzinfo=timezone.utc)
         self._time_range: timedelta = (len(self._buffer) - 1) * sampling_period
 
     @property
@@ -130,7 +130,10 @@ class OrderedRingBuffer(Generic[FloatArray]):
         timestamp = self._normalize_timestamp(sample.timestamp)
 
         # Don't add outdated entries
-        if timestamp < self._datetime_oldest and self._datetime_oldest != datetime.max:
+        if (
+            timestamp < self._datetime_oldest
+            and self._datetime_oldest != datetime.max.replace(tzinfo=timezone.utc)
+        ):
             raise IndexError(
                 f"Timestamp {timestamp} too old (cut-off is at {self._datetime_oldest})."
             )
@@ -485,7 +488,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         Returns:
             The length.
         """
-        if self._datetime_newest == datetime.min:
+        if self._datetime_newest == datetime.min.replace(tzinfo=timezone.utc):
             return 0
 
         start_index = self.datetime_to_index(self._datetime_oldest)

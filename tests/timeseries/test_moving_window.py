@@ -4,7 +4,7 @@
 """Tests for the moving window."""
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Sequence, Tuple
 
 import numpy as np
@@ -23,7 +23,7 @@ async def push_lm_data(sender: Sender[Sample], test_seq: Sequence[float]) -> Non
         sender: Sender for pushing resampled samples to the `MovingWindow`.
         test_seq: The Sequence that is pushed into the `MovingWindow`.
     """
-    start_ts: datetime = datetime(2023, 1, 1)
+    start_ts: datetime = datetime(2023, 1, 1, tzinfo=timezone.utc)
     for i, j in zip(test_seq, range(0, len(test_seq))):
         timestamp = start_ts + timedelta(seconds=j)
         await sender.send(Sample(timestamp, float(i)))
@@ -58,7 +58,7 @@ async def test_access_window_by_timestamp() -> None:
     """Test indexing a window by timestamp"""
     window, sender = init_moving_window(timedelta(seconds=1))
     await push_lm_data(sender, [1])
-    assert np.array_equal(window[datetime(2023, 1, 1)], 1.0)
+    assert np.array_equal(window[datetime(2023, 1, 1, tzinfo=timezone.utc)], 1.0)
 
 
 async def test_access_window_by_int_slice() -> None:
@@ -72,7 +72,7 @@ async def test_access_window_by_ts_slice() -> None:
     """Test accessing a subwindow with a timestamp slice"""
     window, sender = init_moving_window(timedelta(seconds=5))
     await push_lm_data(sender, range(0, 5))
-    time_start = datetime(2023, 1, 1) + timedelta(seconds=3)
+    time_start = datetime(2023, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=3)
     time_end = time_start + timedelta(seconds=2)
     assert np.array_equal(window[time_start:time_end], np.array([3.0, 4.0]))  # type: ignore
 

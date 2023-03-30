@@ -9,7 +9,7 @@ import asyncio
 import logging
 import math
 from collections.abc import Sequence
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import SupportsIndex, overload
 
 import numpy as np
@@ -41,9 +41,10 @@ class MovingWindow:
     the point in time that defines the alignment can be outside of the time window.
     Modulo arithmetic is used to move the `window_alignment` timestamp into the
     latest window.
-    If for example the `window_alignment` parameter is set to `datetime(1, 1, 1)`
-    and the window size is bigger than one day then the first element will always
-    be aligned to the midnight. For further information see also the
+    If for example the `window_alignment` parameter is set to
+    `datetime(1, 1, 1, tzinfo=timezone.utc)` and the window size is bigger than
+    one day then the first element will always be aligned to the midnight.
+    For further information see also the
     [`OrderedRingBuffer`][frequenz.sdk.timeseries._ringbuffer.OrderedRingBuffer]
     documentation.
 
@@ -63,7 +64,7 @@ class MovingWindow:
         resampled_data_recv=resampled_data_recv,
     )
 
-    time_start = datetime.now()
+    time_start = datetime.now(tz=timezone.utc)
     time_end = time_start + timedelta(minutes=5)
 
     # ... wait for 5 minutes until the buffer is filled
@@ -88,8 +89,8 @@ class MovingWindow:
     asyncio.sleep(60*60*24)
 
     # create a polars series with one full day of data
-    time_start = datetime(2023, 1, 1)
-    time_end = datetime(2023, 1, 2)
+    time_start = datetime(2023, 1, 1, tzinfo=timezone.utc)
+    time_end = datetime(2023, 1, 2, tzinfo=timezone.utc)
     s = pl.Series("Jan_1", mv[time_start:time_end])
     ```
     """
@@ -100,7 +101,7 @@ class MovingWindow:
         resampled_data_recv: Receiver[Sample],
         input_sampling_period: timedelta,
         resampler_config: ResamplerConfig | None = None,
-        window_alignment: datetime = datetime(1, 1, 1),
+        window_alignment: datetime = datetime(1, 1, 1, tzinfo=timezone.utc),
     ) -> None:
         """
         Initialize the MovingWindow.
@@ -117,7 +118,7 @@ class MovingWindow:
             resampler_config: The resampler configuration in case resampling is required.
             window_alignment: A datetime object that defines a point in time to which
                 the window is aligned to modulo window size.
-                (default is midnight 01.01.01)
+                (default is midnight 01.01.01 UTC)
                 For further information, consult the class level documentation.
 
         Raises:

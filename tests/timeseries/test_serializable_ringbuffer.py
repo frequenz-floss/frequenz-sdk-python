@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import numpy as np
@@ -34,7 +34,12 @@ def load_dump_test(dumped: SerializableRingBuffer[Any]) -> None:
     # But use update a bit so the timestamp and gaps are initialized
     for i in range(0, size, 100):
         dumped.update(
-            Sample(datetime.fromtimestamp(200 + i * FIVE_MINUTES.total_seconds()), i)
+            Sample(
+                datetime.fromtimestamp(
+                    200 + i * FIVE_MINUTES.total_seconds(), tz=timezone.utc
+                ),
+                i,
+            )
         )
 
     dumped.dump()
@@ -71,7 +76,7 @@ def test_load_dump_short(tmp_path_factory: pytest.TempPathFactory) -> None:
             [0.0] * int(24 * FIVE_MINUTES.total_seconds()),
             FIVE_MINUTES,
             f"{tmpdir}/test_list.bin",
-            datetime(2, 2, 2),
+            datetime(2, 2, 2, tzinfo=timezone.utc),
         )
     )
 
@@ -80,7 +85,7 @@ def test_load_dump_short(tmp_path_factory: pytest.TempPathFactory) -> None:
             np.empty(shape=(24 * int(FIVE_MINUTES.total_seconds()),), dtype=np.float64),
             FIVE_MINUTES,
             f"{tmpdir}/test_array.bin",
-            datetime(2, 2, 2),
+            datetime(2, 2, 2, tzinfo=timezone.utc),
         )
     )
 
@@ -94,7 +99,7 @@ def test_load_dump(tmp_path_factory: pytest.TempPathFactory) -> None:
             [0.0] * _29_DAYS,
             ONE_MINUTE,
             f"{tmpdir}/test_list_29.bin",
-            datetime(2, 2, 2),
+            datetime(2, 2, 2, tzinfo=timezone.utc),
         )
     )
 
@@ -103,6 +108,6 @@ def test_load_dump(tmp_path_factory: pytest.TempPathFactory) -> None:
             np.empty(shape=(_29_DAYS,), dtype=np.float64),
             ONE_MINUTE,
             f"{tmpdir}/test_array_29.bin",
-            datetime(2, 2, 2),
+            datetime(2, 2, 2, tzinfo=timezone.utc),
         )
     )
