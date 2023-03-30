@@ -2065,8 +2065,7 @@ identify the right channel from the ChannelRegistry.</p>
 <span class="normal">152</span>
 <span class="normal">153</span>
 <span class="normal">154</span>
-<span class="normal">155</span>
-<span class="normal">156</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
+<span class="normal">155</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
 <span class="k">class</span> <span class="nc">ComponentMetricsResamplingActor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;An actor to resample microgrid component metrics.&quot;&quot;&quot;</span>
 
@@ -2126,8 +2125,7 @@ identify the right channel from the ChannelRegistry.</p>
         <span class="n">sender</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel_registry</span><span class="o">.</span><span class="n">new_sender</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">get_channel_name</span><span class="p">())</span>
 
         <span class="k">async</span> <span class="k">def</span> <span class="nf">sink_adapter</span><span class="p">(</span><span class="n">sample</span><span class="p">:</span> <span class="n">Sample</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="k">await</span> <span class="n">sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">sample</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error while sending with sender </span><span class="si">{</span><span class="n">sender</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">sender</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_resampler</span><span class="o">.</span><span class="n">add_timeseries</span><span class="p">(</span><span class="n">request_channel_name</span><span class="p">,</span> <span class="n">receiver</span><span class="p">,</span> <span class="n">sink_adapter</span><span class="p">)</span>
 
@@ -2403,7 +2401,8 @@ handling requests.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/actor/_resampling.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 94</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 93</span>
+<span class="normal"> 94</span>
 <span class="normal"> 95</span>
 <span class="normal"> 96</span>
 <span class="normal"> 97</span>
@@ -2464,8 +2463,7 @@ handling requests.</p>
 <span class="normal">152</span>
 <span class="normal">153</span>
 <span class="normal">154</span>
-<span class="normal">155</span>
-<span class="normal">156</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">155</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Resample known component metrics and process resampling requests.</span>
 
 <span class="sd">    If there is a resampling error while resampling some component metric,</span>

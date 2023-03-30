@@ -3125,7 +3125,7 @@ printed.</li>
 
     <span class="k">def</span> <span class="nf">_remove_duplicated_requests</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">_User</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove duplicated requests from the queue.</span>
 
 <span class="sd">        Remove old requests in which set of batteries are the same as in new request.</span>
@@ -3142,7 +3142,7 @@ printed.</li>
         <span class="n">batteries</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">batteries</span>
 
         <span class="n">good_requests</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Request</span><span class="p">,</span> <span class="n">_User</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">to_ignore</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">to_ignore</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request_queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
             <span class="n">prev_request</span><span class="p">,</span> <span class="n">prev_user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request_queue</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">()</span>
