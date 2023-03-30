@@ -5,13 +5,33 @@
 
 import asyncio
 from datetime import datetime, timedelta, timezone
-from typing import Sequence, Tuple
+from typing import Iterator, Sequence, Tuple
 
+import async_solipsism
 import numpy as np
+import pytest
+import time_machine
 from frequenz.channels import Broadcast, Sender
 
 from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._moving_window import MovingWindow
+from frequenz.sdk.timeseries._resampling import ResamplerConfig
+
+
+# Setting 'autouse' has no effect as this method replaces the event loop for all tests in the file.
+@pytest.fixture()
+def event_loop() -> Iterator[async_solipsism.EventLoop]:
+    """Replace the loop with one that doesn't interact with the outside world."""
+    loop = async_solipsism.EventLoop()
+    yield loop
+    loop.close()
+
+
+@pytest.fixture
+def fake_time() -> Iterator[time_machine.Coordinates]:
+    """Replace real time with a time machine that doesn't automatically tick."""
+    with time_machine.travel(0, tick=False) as traveller:
+        yield traveller
 
 
 async def push_lm_data(sender: Sender[Sample], test_seq: Sequence[float]) -> None:
@@ -82,3 +102,36 @@ async def test_window_size() -> None:
     window, sender = init_moving_window(timedelta(seconds=5))
     await push_lm_data(sender, range(0, 20))
     assert len(window) == 5
+
+
+# pylint: disable=redefined-outer-name
+async def test_resampling_window(fake_time: time_machine.Coordinates) -> None:
+    """Test resampling in MovingWindow."""
+    channel = Broadcast[Sample]("net_power")
+    sender = channel.new_sender()
+
+    window_size = timedelta(seconds=16)
+    input_sampling = timedelta(seconds=1)
+    output_sampling = timedelta(seconds=2)
+    resampler_config = ResamplerConfig(
+        resampling_period_s=output_sampling.total_seconds()
+    )
+
+    window = MovingWindow(
+        size=window_size,
+        resampled_data_recv=channel.new_receiver(),
+        input_sampling_period=input_sampling,
+        resampler_config=resampler_config,
+    )
+
+    stream_values = [4.0, 8.0, 2.0, 6.0, 5.0] * 100
+    for value in stream_values:
+        timestamp = datetime.now(tz=timezone.utc)
+        sample = Sample(timestamp, float(value))
+        await sender.send(sample)
+        await asyncio.sleep(0.1)
+        fake_time.shift(0.1)
+
+    assert len(window) == window_size / output_sampling
+    for value in window:  # type: ignore
+        assert 4.9 < value < 5.1
