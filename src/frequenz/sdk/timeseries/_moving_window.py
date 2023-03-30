@@ -140,7 +140,8 @@ class MovingWindow:
             input_sampling_period <= size
         ), "The input sampling period should be equal to or lower than the window size."
 
-        sampling = input_sampling_period
+        self._sampling_period = input_sampling_period
+
         self._resampler: Resampler | None = None
         self._resampler_sender: Sender[Sample] | None = None
         self._resampler_task: asyncio.Task[None] | None = None
@@ -151,15 +152,17 @@ class MovingWindow:
             ), "The resampling period should be equal to or lower than the window size."
 
             self._resampler = Resampler(resampler_config)
-            sampling = resampler_config.resampling_period
+            self._sampling_period = resampler_config.resampling_period
 
         # Sampling period might not fit perfectly into the window size.
-        num_samples = math.ceil(size.total_seconds() / sampling.total_seconds())
+        num_samples = math.ceil(
+            size.total_seconds() / self._sampling_period.total_seconds()
+        )
 
         self._resampled_data_recv = resampled_data_recv
         self._buffer = OrderedRingBuffer(
             np.empty(shape=num_samples, dtype=float),
-            sampling_period=sampling,
+            sampling_period=self._sampling_period,
             align_to=align_to,
         )
 
@@ -169,6 +172,16 @@ class MovingWindow:
         self._update_window_task: asyncio.Task[None] = asyncio.create_task(
             self._run_impl()
         )
+
+    @property
+    def sampling_period(self) -> timedelta:
+        """
+        Return the sampling period of the MovingWindow.
+
+        Returns:
+            The sampling period of the MovingWindow.
+        """
+        return self._sampling_period
 
     async def _run_impl(self) -> None:
         """Awaits samples from the receiver and updates the underlying ring buffer.
