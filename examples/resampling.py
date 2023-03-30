@@ -113,7 +113,7 @@ async def run() -> None:  # pylint: disable=too-many-locals
 
     # Needed until channels Senders raises exceptions on errors
     async def sink_adapter(sample: Sample) -> None:
-        assert await average_sender.send(sample)
+        await average_sender.send(sample)
 
     print("Starting...")
 

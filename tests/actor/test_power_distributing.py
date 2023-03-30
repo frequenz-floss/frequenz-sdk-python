@@ -119,7 +119,7 @@ class TestPowerDistributingActor:
 
         graph = microgrid.component_graph
         for battery in graph.components(component_category={ComponentCategory.BATTERY}):
-            assert await microgrid.send(
+            await microgrid.send(
                 battery_msg(
                     battery.component_id,
                     capacity=Metric(98000),
@@ -130,7 +130,7 @@ class TestPowerDistributingActor:
 
         inverters = graph.components(component_category={ComponentCategory.INVERTER})
         for inverter in inverters:
-            assert await microgrid.send(
+            await microgrid.send(
                 inverter_msg(
                     inverter.component_id,
                     power=Bound(-500, 500),

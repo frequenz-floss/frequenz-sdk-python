@@ -7,6 +7,7 @@
 ## Upgrading
 
 * Update BatteryStatus to mark battery with unknown capacity as not working (#263)
+* The channels dependency was updated to v0.14.0 (#292)
 
 ## New Features
 

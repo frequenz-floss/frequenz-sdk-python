@@ -80,13 +80,11 @@ class TestFormulaEngine:
         tests_passed = 0
         for io_pair in io_pairs:
             io_input, io_output = io_pair
-            assert all(
-                await asyncio.gather(
-                    *[
-                        chan.new_sender().send(Sample(now, value))
-                        for chan, value in zip(channels.values(), io_input)
-                    ]
-                )
+            await asyncio.gather(
+                *[
+                    chan.new_sender().send(Sample(now, value))
+                    for chan, value in zip(channels.values(), io_input)
+                ]
             )
             next_val = (
                 await engine._evaluator.apply()  # pylint: disable=protected-access
@@ -339,13 +337,11 @@ class TestFormulaChannel:
         tests_passed = 0
         for io_pair in io_pairs:
             io_input, io_output = io_pair
-            assert all(
-                await asyncio.gather(
-                    *[
-                        chan.new_sender().send(Sample(now, value))
-                        for chan, value in zip(channels, io_input)
-                    ]
-                )
+            await asyncio.gather(
+                *[
+                    chan.new_sender().send(Sample(now, value))
+                    for chan, value in zip(channels, io_input)
+                ]
             )
             next_val = await result_chan.receive()
             assert next_val.value == io_output
@@ -576,13 +572,11 @@ class TestFormulaAverager:
         tests_passed = 0
         for io_pair in io_pairs:
             io_input, io_output = io_pair
-            assert all(
-                await asyncio.gather(
-                    *[
-                        chan.new_sender().send(Sample(now, value))
-                        for chan, value in zip(channels.values(), io_input)
-                    ]
-                )
+            await asyncio.gather(
+                *[
+                    chan.new_sender().send(Sample(now, value))
+                    for chan, value in zip(channels.values(), io_input)
+                ]
             )
             next_val = (
                 await engine._evaluator.apply()  # pylint: disable=protected-access

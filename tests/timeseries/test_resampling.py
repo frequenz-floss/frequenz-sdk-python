@@ -15,7 +15,7 @@ from unittest.mock import AsyncMock, MagicMock
 import async_solipsism
 import pytest
 import time_machine
-from frequenz.channels import Broadcast
+from frequenz.channels import Broadcast, SenderError
 
 from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._resampling import (
@@ -901,7 +901,8 @@ async def test_receiving_stopped_resampling_error(
 
     # Close channel, try to resample again
     await source_chan.close()
-    assert await source_sendr.send(sample0s) is False
+    with pytest.raises(SenderError):
+        await source_sendr.send(sample0s)
     fake_time.shift(resampling_period_s)
     with pytest.raises(ResamplingError) as excinfo:
         await resampler.resample(one_shot=True)

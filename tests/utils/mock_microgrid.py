@@ -112,7 +112,7 @@ class MockMicrogridClient:
         """
         return self._component_graph
 
-    async def send(self, data: ComponentData) -> bool:
+    async def send(self, data: ComponentData) -> None:
         """Send component data using channel.
 
         This simulates component sending data. Right now only battery and inverter
@@ -121,20 +121,22 @@ class MockMicrogridClient:
         Args:
             data: Data to be send
 
-        Returns:
-            Whether data was send, or not.
+        Raises:
+            SenderError: if the underlying channel was closed.
+                A [ChannelClosedError][frequenz.channels.ChannelClosedError] is
+                set as the cause.
         """
         cid = data.component_id
         if isinstance(data, BatteryData):
-            return await self._battery_data_senders[cid].send(data)
-        if isinstance(data, InverterData):
-            return await self._inverter_data_senders[cid].send(data)
-        if isinstance(data, MeterData):
-            return await self._meter_data_senders[cid].send(data)
-        if isinstance(data, EVChargerData):
-            return await self._ev_charger_data_senders[cid].send(data)
-
-        raise RuntimeError(f"{type(data)} is not supported in MockMicrogridClient.")
+            await self._battery_data_senders[cid].send(data)
+        elif isinstance(data, InverterData):
+            await self._inverter_data_senders[cid].send(data)
+        elif isinstance(data, MeterData):
+            await self._meter_data_senders[cid].send(data)
+        elif isinstance(data, EVChargerData):
+            await self._ev_charger_data_senders[cid].send(data)
+        else:
+            raise RuntimeError(f"{type(data)} is not supported in MockMicrogridClient.")
 
     async def close_channel(self, cid: int) -> None:
         """Close channel for given component id.

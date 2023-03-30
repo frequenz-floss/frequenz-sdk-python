@@ -67,28 +67,22 @@ class TestBatteryPoolStatus:
 
         batteries_list = list(batteries)
 
-        assert await mock_microgrid.send(battery_data(component_id=batteries_list[0]))
+        await mock_microgrid.send(battery_data(component_id=batteries_list[0]))
         await asyncio.sleep(0.1)
         assert batteries_status.get_working_batteries(batteries) == expected_working
 
         expected_working.add(batteries_list[0])
-        assert await mock_microgrid.send(
-            inverter_data(component_id=batteries_list[0] - 1)
-        )
+        await mock_microgrid.send(inverter_data(component_id=batteries_list[0] - 1))
         await asyncio.sleep(0.1)
         assert batteries_status.get_working_batteries(batteries) == expected_working
         msg = await asyncio.wait_for(battery_status_recv.receive(), timeout=0.2)
         assert msg == batteries_status._current_status
 
-        assert await mock_microgrid.send(
-            inverter_data(component_id=batteries_list[1] - 1)
-        )
-        assert await mock_microgrid.send(battery_data(component_id=batteries_list[1]))
+        await mock_microgrid.send(inverter_data(component_id=batteries_list[1] - 1))
+        await mock_microgrid.send(battery_data(component_id=batteries_list[1]))
 
-        assert await mock_microgrid.send(
-            inverter_data(component_id=batteries_list[2] - 1)
-        )
-        assert await mock_microgrid.send(battery_data(component_id=batteries_list[2]))
+        await mock_microgrid.send(inverter_data(component_id=batteries_list[2] - 1))
+        await mock_microgrid.send(battery_data(component_id=batteries_list[2]))
 
         expected_working = set(batteries_list)
         await asyncio.sleep(0.1)
