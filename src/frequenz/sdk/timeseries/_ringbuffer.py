@@ -69,6 +69,8 @@ class OrderedRingBuffer(Generic[FloatArray]):
                 "2022-01-01 12:00:00" to "2022-01-02 12:00:00" (date chosen
                 arbitrarily here).
         """
+        assert len(buffer) > 0, "The buffer capacity must be higher than zero"
+
         self._buffer: FloatArray = buffer
         self._sampling_period: timedelta = sampling_period
         self._time_index_alignment: datetime = time_index_alignment
@@ -490,5 +492,6 @@ class OrderedRingBuffer(Generic[FloatArray]):
         end_index = self.datetime_to_index(self._datetime_newest)
 
         if end_index < start_index:
-            return len(self._buffer) - start_index + end_index
-        return start_index - end_index
+            return len(self._buffer) - start_index + end_index + 1
+
+        return end_index + 1 - start_index

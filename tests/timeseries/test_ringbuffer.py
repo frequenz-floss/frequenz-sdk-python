@@ -243,3 +243,78 @@ def test_timestamp_ringbuffer_missing_parameter_smoke(
             buffer.gaps,
             key=window_to_timestamp,
         )
+
+
+def test_len_ringbuffer_samples_fit_buffer_size() -> None:
+    """Test the length of ordered ring buffer.
+
+    The number of samples fits the ordered ring buffer size.
+    """
+    min_samples = 1
+    max_samples = 100
+
+    for num_samples in range(
+        min_samples, max_samples + 1
+    ):  # Include max_samples in the range
+        test_samples = range(num_samples)
+
+        buffer = OrderedRingBuffer(
+            np.empty(shape=len(test_samples), dtype=float),
+            sampling_period=timedelta(seconds=1),
+            time_index_alignment=datetime(1, 1, 1),
+        )
+
+        start_ts: datetime = datetime(2023, 1, 1)
+        for index, sample_value in enumerate(test_samples):
+            timestamp = start_ts + timedelta(seconds=index)
+            buffer.update(Sample(timestamp, float(sample_value)))
+
+        assert len(buffer) == len(test_samples)
+
+
+def test_len_ringbuffer_samples_overwrite_buffer() -> None:
+    """Test the length of ordered ring buffer.
+
+    The number of samples overwrites the ordered ring buffer.
+    """
+    min_samples = 2
+    max_samples = 100
+
+    for num_samples in range(
+        min_samples, max_samples + 1
+    ):  # Include max_samples in the range
+        test_samples = range(num_samples)
+        half_buffer_size = len(test_samples) // 2
+
+        buffer = OrderedRingBuffer(
+            np.empty(shape=half_buffer_size, dtype=float),
+            sampling_period=timedelta(seconds=1),
+            time_index_alignment=datetime(1, 1, 1),
+        )
+
+        start_ts: datetime = datetime(2023, 1, 1)
+        for index, sample_value in enumerate(test_samples):
+            timestamp = start_ts + timedelta(seconds=index)
+            buffer.update(Sample(timestamp, float(sample_value)))
+
+        assert len(buffer) == half_buffer_size
+
+
+def test_ringbuffer_empty_buffer() -> None:
+    """Test capacity ordered ring buffer."""
+    empty_np_buffer = np.empty(shape=0, dtype=float)
+    empty_list_buffer: list[float] = []
+
+    assert len(empty_np_buffer) == len(empty_list_buffer) == 0
+
+    with pytest.raises(AssertionError):
+        OrderedRingBuffer(
+            empty_np_buffer,
+            sampling_period=timedelta(seconds=1),
+            time_index_alignment=datetime(1, 1, 1),
+        )
+        OrderedRingBuffer(
+            empty_list_buffer,
+            sampling_period=timedelta(seconds=1),
+            time_index_alignment=datetime(1, 1, 1),
+        )
