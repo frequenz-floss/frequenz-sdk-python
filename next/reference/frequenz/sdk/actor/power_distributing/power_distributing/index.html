@@ -2453,21 +2453,21 @@ printed.</li>
         <span class="n">distribution</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
         <span class="n">request_timeout_sec</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse result of `set_power` requests.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse the results of `set_power` requests.</span>
 
-<span class="sd">        Check if any task failed and why. If any task didn&#39;t success, then corresponding</span>
-<span class="sd">        battery is marked as broken.</span>
+<span class="sd">        Check if any task has failed and determine the reason for failure.</span>
+<span class="sd">        If any task did not succeed, then the corresponding battery is marked as broken.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            tasks: Dictionary where key is inverter id and value is task that set power</span>
-<span class="sd">                for this inverter. Each tasks should be finished or cancelled.</span>
-<span class="sd">            distribution: Dictionary where key is inverter id and value is how much</span>
+<span class="sd">            tasks: A dictionary where the key is the inverter ID and the value is the task that</span>
+<span class="sd">                set the power for this inverter. Each task should be finished or cancelled.</span>
+<span class="sd">            distribution: A dictionary where the key is the inverter ID and the value is how much</span>
 <span class="sd">                power was set to the corresponding inverter.</span>
-<span class="sd">            request_timeout_sec: timeout which has been used for request.</span>
+<span class="sd">            request_timeout_sec: The timeout that was used for the request.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Tuple where first element is total failed power, and the second element</span>
-<span class="sd">                set of batteries that failed.</span>
+<span class="sd">            A tuple where the first element is the total failed power, and the second element is</span>
+<span class="sd">            the set of batteries that failed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">failed_power</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">failed_batteries</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
