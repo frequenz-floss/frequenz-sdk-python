@@ -179,6 +179,13 @@ class EVChargerPool:
             self._bounds_setter = BoundsSetter(self._repeat_interval)
         await self._bounds_setter.set(component_id, max_amps)
 
+    async def stop(self) -> None:
+        """Stop all tasks and channels owned by the EVChargerPool."""
+        if self._bounds_setter:
+            await self._bounds_setter.stop()
+        if self._state_tracker:
+            await self._state_tracker.stop()
+
     async def _get_current_streams(
         self, component_id: int
     ) -> tuple[Receiver[Sample], Receiver[Sample], Receiver[Sample]]:
