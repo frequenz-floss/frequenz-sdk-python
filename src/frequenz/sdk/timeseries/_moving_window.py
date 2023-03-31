@@ -62,6 +62,7 @@ class MovingWindow:
     window = MovingWindow(
         size=timedelta(minutes=5),
         resampled_data_recv=resampled_data_recv,
+        input_sampling_period=timedelta(seconds=1),
     )
 
     time_start = datetime.now(tz=timezone.utc)
@@ -83,7 +84,11 @@ class MovingWindow:
 
     # create a window that stores two days of data
     # starting at 1.1.23 with samplerate=1
-    window = MovingWindow(size=timedelta(days=2), sample_receiver)
+    window = MovingWindow(
+        size=timedelta(days=2),
+        resampled_data_recv=sample_receiver,
+        input_sampling_period=timedelta(seconds=1),
+    )
 
     # wait for one full day until the buffer is filled
     asyncio.sleep(60*60*24)
