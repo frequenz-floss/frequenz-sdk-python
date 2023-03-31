@@ -25,7 +25,7 @@ from .._formula_engine._formula_generators import (
     EVChargerPowerFormula,
     FormulaGeneratorConfig,
 )
-from ._set_current_bounds import BoundsSetter
+from ._set_current_bounds import BoundsSetter, ComponentCurrentLimit
 from ._state_tracker import EVChargerState, StateTracker
 
 logger = logging.getLogger(__name__)
@@ -178,6 +178,19 @@ class EVChargerPool:
         if not self._bounds_setter:
             self._bounds_setter = BoundsSetter(self._repeat_interval)
         await self._bounds_setter.set(component_id, max_amps)
+
+    def new_bounds_sender(self) -> Sender[ComponentCurrentLimit]:
+        """Return a `Sender` for setting EV Charger current bounds with.
+
+        Bounds are used to limit the max current drawn by an EV, although the exact
+        value will be determined by the EV.
+
+        Returns:
+            A new `Sender`.
+        """
+        if not self._bounds_setter:
+            self._bounds_setter = BoundsSetter(self._repeat_interval)
+        return self._bounds_setter.new_bounds_sender()
 
     async def stop(self) -> None:
         """Stop all tasks and channels owned by the EVChargerPool."""

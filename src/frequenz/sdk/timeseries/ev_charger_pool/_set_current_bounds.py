@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from typing import Dict
 
-from frequenz.channels import Broadcast
+from frequenz.channels import Broadcast, Sender
 from frequenz.channels.util import Select, Timer
 
 from ..._internal.asyncio import cancel_and_await
@@ -58,6 +58,14 @@ class BoundsSetter:
             max_amps: Current bound value to set for the EV Charger.
         """
         await self._bounds_tx.send(ComponentCurrentLimit(component_id, max_amps))
+
+    def new_bounds_sender(self) -> Sender[ComponentCurrentLimit]:
+        """Return a `Sender` for setting EV Charger current bounds with.
+
+        Returns:
+            A new `Sender`.
+        """
+        return self._bounds_chan.new_sender()
 
     async def stop(self) -> None:
         """Stop the BoundsSetter."""
