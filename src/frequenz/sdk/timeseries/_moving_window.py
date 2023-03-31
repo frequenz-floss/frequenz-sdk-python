@@ -123,7 +123,7 @@ class MovingWindow:
             resampler_config: The resampler configuration in case resampling is required.
             window_alignment: A datetime object that defines a point in time to which
                 the window is aligned to modulo window size.
-                (default is midnight 01.01.01 UTC)
+                (default is 0001-01-01T00:00:00+00:00)
                 For further information, consult the class level documentation.
 
         Raises:
