@@ -3,7 +3,7 @@
 
 """Formula generator from component graph for Grid Power."""
 
-from .....sdk import microgrid
+from ....microgrid import connection_manager
 from ....microgrid.component import ComponentCategory, ComponentMetricId
 from .._formula_engine import FormulaEngine
 from ._formula_generator import ComponentNotFound, FormulaGenerator
@@ -24,7 +24,7 @@ class GridPowerFormula(FormulaGenerator):
             ComponentNotFound: when the component graph doesn't have a `GRID` component.
         """
         builder = self._get_builder("grid-power", ComponentMetricId.ACTIVE_POWER)
-        component_graph = microgrid.get().component_graph
+        component_graph = connection_manager.get().component_graph
         grid_component = next(
             (
                 comp

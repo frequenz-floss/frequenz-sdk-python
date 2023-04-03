@@ -18,9 +18,11 @@ from frequenz.sdk.actor import (
     ChannelRegistry,
     ComponentMetricRequest,
     DataSourcingActor,
+    ResamplerConfig,
 )
 from frequenz.sdk.actor.power_distributing import PowerDistributingActor
 from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryStatus
+from frequenz.sdk.microgrid import connection_manager
 from frequenz.sdk.microgrid.component import ComponentCategory
 from frequenz.sdk.timeseries.battery_pool import BatteryPool
 
@@ -57,7 +59,7 @@ def create_battery_pool() -> BatteryPool:
         battery_status_sender=battery_status_channel.new_sender(),
     )
 
-    batteries = microgrid.get().component_graph.components(
+    batteries = connection_manager.get().component_graph.components(
         component_category={ComponentCategory.BATTERY}
     )
 
@@ -75,7 +77,9 @@ async def main() -> None:
     logging.basicConfig(
         level=logging.DEBUG, format="%(asctime)s %(name)s %(levelname)s:%(message)s"
     )
-    await microgrid.initialize(host=HOST, port=PORT)
+    await microgrid.initialize(
+        host=HOST, port=PORT, resampler_config=ResamplerConfig(resampling_period_s=1.0)
+    )
 
     battery_pool = create_battery_pool()
     receivers: Dict[str, Receiver[Any]] = {

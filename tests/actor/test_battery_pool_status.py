@@ -15,7 +15,7 @@ from frequenz.sdk.actor.power_distributing._battery_pool_status import (
 )
 from frequenz.sdk.microgrid.component import ComponentCategory
 
-from ..utils.mock_microgrid import MockMicrogridClient
+from ..utils.mock_microgrid_client import MockMicrogridClient
 from .test_battery_status import battery_data, component_graph, inverter_data
 
 

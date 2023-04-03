@@ -17,13 +17,11 @@ from frequenz.sdk.microgrid.component import (
     EVChargerCableState,
     EVChargerComponentState,
 )
-from frequenz.sdk.timeseries.ev_charger_pool import EVChargerPool
 from frequenz.sdk.timeseries.ev_charger_pool._state_tracker import (
     EVChargerPoolStates,
     EVChargerState,
     StateTracker,
 )
-from frequenz.sdk.timeseries.logical_meter import LogicalMeter
 from tests.timeseries._formula_engine.utils import (
     get_resampled_stream,
     synchronize_receivers,
@@ -92,19 +90,13 @@ class TestEVChargerPool:
         """Test the battery power and pv power formulas."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_ev_chargers(5)
-        request_chan, channel_registry = await mockgrid.start(mocker)
-        logical_meter = LogicalMeter(
-            channel_registry,
-            request_chan.new_sender(),
-            microgrid.get().component_graph,
-        )
+        await mockgrid.start(mocker)
 
-        ev_pool = EVChargerPool(channel_registry, request_chan.new_sender())
+        logical_meter = microgrid.logical_meter()
+
+        ev_pool = microgrid.ev_charger_pool()
 
         main_meter_recv = await get_resampled_stream(
-            logical_meter,
-            channel_registry,
-            request_chan.new_sender(),
             mockgrid.main_meter_id,
             ComponentMetricId.ACTIVE_POWER,
         )

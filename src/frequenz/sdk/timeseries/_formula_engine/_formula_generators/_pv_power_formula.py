@@ -5,7 +5,7 @@
 
 import logging
 
-from .....sdk import microgrid
+from ....microgrid import connection_manager
 from ....microgrid.component import ComponentCategory, ComponentMetricId, InverterType
 from .._formula_engine import FormulaEngine
 from ._formula_generator import NON_EXISTING_COMPONENT_ID, FormulaGenerator
@@ -27,7 +27,7 @@ class PVPowerFormula(FormulaGenerator):
         """
         builder = self._get_builder("pv-power", ComponentMetricId.ACTIVE_POWER)
 
-        component_graph = microgrid.get().component_graph
+        component_graph = connection_manager.get().component_graph
         pv_inverters = list(
             comp
             for comp in component_graph.components()

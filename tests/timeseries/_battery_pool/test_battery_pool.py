@@ -39,7 +39,7 @@ from ...utils.component_graph_utils import (
     ComponentGraphConfig,
     create_component_graph_structure,
 )
-from ...utils.mock_microgrid import MockMicrogridClient
+from ...utils.mock_microgrid_client import MockMicrogridClient
 from ...utils.sdk_interface import SdkInterface
 
 _logger = logging.getLogger(__name__)

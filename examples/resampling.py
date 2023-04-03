@@ -16,6 +16,7 @@ from frequenz.sdk.actor import (
     ComponentMetricsResamplingActor,
     DataSourcingActor,
 )
+from frequenz.sdk.microgrid import connection_manager
 from frequenz.sdk.microgrid.component import ComponentCategory, ComponentMetricId
 from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._resampling import Resampler, ResamplerConfig, Sink, Source
@@ -42,7 +43,7 @@ async def _print_sample(sample: Sample) -> None:
 
 async def run() -> None:  # pylint: disable=too-many-locals
     """Run main functions that initializes and creates everything."""
-    await microgrid.initialize(HOST, PORT)
+    await microgrid.initialize(HOST, PORT, ResamplerConfig(resampling_period_s=0.2))
 
     channel_registry = ChannelRegistry(name="data-registry")
 
@@ -68,7 +69,7 @@ async def run() -> None:  # pylint: disable=too-many-locals
         config=ResamplerConfig(resampling_period_s=1),
     )
 
-    components = await microgrid.get().api_client.components()
+    components = await connection_manager.get().api_client.components()
     battery_ids = [
         comp.component_id
         for comp in components

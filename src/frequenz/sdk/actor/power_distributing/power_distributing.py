@@ -32,10 +32,9 @@ import grpc
 from frequenz.channels import Bidirectional, Peekable, Receiver, Sender
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
-from ... import microgrid
 from ..._internal.asyncio import cancel_and_await
 from ...actor._decorator import actor
-from ...microgrid import ComponentGraph
+from ...microgrid import ComponentGraph, connection_manager
 from ...microgrid.client import MicrogridApiClient
 from ...microgrid.component import (
     BatteryData,
@@ -168,7 +167,7 @@ class PowerDistributingActor:
         )
 
         self._bat_inv_map, self._inv_bat_map = self._get_components_pairs(
-            microgrid.get().component_graph
+            connection_manager.get().component_graph
         )
         self._battery_receivers: Dict[int, Peekable[BatteryData]] = {}
         self._inverter_receivers: Dict[int, Peekable[InverterData]] = {}
@@ -258,7 +257,7 @@ class PowerDistributingActor:
         """
         await self._create_channels()
 
-        api = microgrid.get().api_client
+        api = connection_manager.get().api_client
 
         # Wait few seconds to get data from the channels created above.
         await asyncio.sleep(self._wait_for_data_sec)
@@ -677,7 +676,7 @@ class PowerDistributingActor:
 
     async def _create_channels(self) -> None:
         """Create channels to get data of components in microgrid."""
-        api = microgrid.get().api_client
+        api = connection_manager.get().api_client
         for battery_id, inverter_id in self._bat_inv_map.items():
             bat_recv: Receiver[BatteryData] = await api.battery_data(battery_id)
             self._battery_receivers[battery_id] = bat_recv.into_peekable()

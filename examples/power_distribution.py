@@ -33,6 +33,7 @@ from frequenz.sdk.actor.power_distributing import (
     Result,
     Success,
 )
+from frequenz.sdk.microgrid import connection_manager
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
 from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries.logical_meter import LogicalMeter
@@ -158,7 +159,7 @@ async def run() -> None:
     logging.basicConfig(
         level=logging.DEBUG, format="%(asctime)s %(name)s %(levelname)s:%(message)s"
     )
-    await microgrid.initialize(HOST, PORT)
+    await microgrid.initialize(HOST, PORT, ResamplerConfig(resampling_period_s=1.0))
 
     channel_registry = ChannelRegistry(name="Microgrid Channel Registry")
 
@@ -185,7 +186,7 @@ async def run() -> None:
     logical_meter = LogicalMeter(
         channel_registry,
         resampling_actor_request_channel.new_sender(),
-        microgrid.get().component_graph,
+        connection_manager.get().component_graph,
     )
     sending_actor_id: str = "SendingActor"
     # Bidirectional channel is used for one sender - one receiver communication
@@ -212,7 +213,7 @@ async def run() -> None:
 
     # You should get components from ComponentGraph, not from the api.
     # It is faster and and non blocking approach.
-    batteries: Set[Component] = microgrid.get().component_graph.components(
+    batteries: Set[Component] = connection_manager.get().component_graph.components(
         # component_type=set(ComponentType.BATTERY) in v0.8.0
         component_category={ComponentCategory.BATTERY}
     )

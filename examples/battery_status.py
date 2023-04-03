@@ -13,10 +13,12 @@ import logging
 from frequenz.channels import Broadcast
 
 from frequenz.sdk import microgrid
+from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.actor.power_distributing._battery_pool_status import (
     BatteryPoolStatus,
     BatteryStatus,
 )
+from frequenz.sdk.microgrid import connection_manager
 from frequenz.sdk.microgrid.component import ComponentCategory
 
 _logger = logging.getLogger(__name__)
@@ -29,10 +31,10 @@ async def main() -> None:
     logging.basicConfig(
         level=logging.DEBUG, format="%(asctime)s %(name)s %(levelname)s:%(message)s"
     )
-    await microgrid.initialize(HOST, PORT)
+    await microgrid.initialize(HOST, PORT, ResamplerConfig(resampling_period_s=1.0))
     batteries = {
         bat.component_id
-        for bat in microgrid.get().component_graph.components(
+        for bat in connection_manager.get().component_graph.components(
             component_category={ComponentCategory.BATTERY}
         )
     }

@@ -5,7 +5,7 @@
 
 from typing import Set
 
-from .....sdk import microgrid
+from ....microgrid import connection_manager
 from ....microgrid.component import Component, ComponentCategory, ComponentMetricId
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase
 from ._formula_generator import ComponentNotFound, FormulaGenerator
@@ -23,7 +23,7 @@ class GridCurrentFormula(FormulaGenerator):
         Raises:
             ComponentNotFound: when the component graph doesn't have a `GRID` component.
         """
-        component_graph = microgrid.get().component_graph
+        component_graph = connection_manager.get().component_graph
         grid_component = next(
             (
                 comp

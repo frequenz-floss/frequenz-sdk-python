@@ -20,7 +20,7 @@ from frequenz.channels import Receiver, Sender
 from frequenz.channels.util import Select, Timer
 
 from frequenz.sdk._internal.asyncio import cancel_and_await
-from frequenz.sdk.microgrid import get as get_microgrid
+from frequenz.sdk.microgrid import connection_manager
 from frequenz.sdk.microgrid.component import (
     BatteryData,
     ComponentCategory,
@@ -240,7 +240,7 @@ class BatteryStatusTracker:
             set_power_result_receiver: Channel to receive results of the requests to the
                 components.
         """
-        api_client = get_microgrid().api_client
+        api_client = connection_manager.get().api_client
 
         battery_receiver = await api_client.battery_data(self._battery.component_id)
         inverter_receiver = await api_client.inverter_data(self._inverter.component_id)
@@ -494,7 +494,7 @@ class BatteryStatusTracker:
         Returns:
             Id of the inverter. If battery hasn't adjacent inverter, then return None.
         """
-        graph = get_microgrid().component_graph
+        graph = connection_manager.get().component_graph
         return next(
             (
                 comp.component_id

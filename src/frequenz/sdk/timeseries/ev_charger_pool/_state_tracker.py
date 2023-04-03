@@ -140,7 +140,7 @@ class StateTracker:
         return None
 
     async def _run(self) -> None:
-        api_client = microgrid.get().api_client
+        api_client = microgrid.connection_manager.get().api_client
         streams: list[Receiver[EVChargerData]] = await asyncio.gather(
             *[api_client.ev_charger_data(cid) for cid in self._component_ids]
         )

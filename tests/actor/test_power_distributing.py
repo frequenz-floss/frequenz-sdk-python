@@ -29,7 +29,7 @@ from frequenz.sdk.microgrid.component import Component, ComponentCategory
 
 from ..conftest import SAFETY_TIMEOUT
 from ..power.test_distribution_algorithm import Bound, Metric, battery_msg, inverter_msg
-from ..utils.mock_microgrid import MockMicrogridClient
+from ..utils.mock_microgrid_client import MockMicrogridClient
 
 T = TypeVar("T")  # Declare type variable
 

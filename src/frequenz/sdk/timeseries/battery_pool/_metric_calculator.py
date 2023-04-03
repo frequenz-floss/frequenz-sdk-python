@@ -10,7 +10,7 @@ from collections.abc import Mapping, Set
 from datetime import datetime, timezone
 from typing import Generic, Iterable, TypeVar
 
-from ... import microgrid
+from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory, ComponentMetricId, InverterType
 from ._component_metrics import ComponentMetricsData
 from ._result_types import Bound, CapacityMetrics, PowerMetrics, SoCMetrics
@@ -28,7 +28,7 @@ def battery_inverter_mapping(batteries: Iterable[int]) -> dict[int, int]:
     Returns:
         Mapping between battery and adjacent inverter.
     """
-    graph = microgrid.get().component_graph
+    graph = connection_manager.get().component_graph
     bat_inv_map: dict[int, int] = {}
     for battery_id in batteries:
         try:

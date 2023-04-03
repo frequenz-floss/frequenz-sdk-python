@@ -12,10 +12,10 @@ from typing import Any
 
 from frequenz.channels import Receiver
 
-from ... import microgrid
 from ..._internal._constants import RECEIVER_MAX_SIZE
 from ..._internal.asyncio import cancel_and_await
 from ...actor.power_distributing._battery_pool_status import BatteryStatus
+from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory
 from ._methods import AggregateMethod, SendOnUpdate
 from ._metric_calculator import CapacityCalculator, PowerBoundsCalculator, SoCCalculator
@@ -174,7 +174,7 @@ class BatteryPool:
         Returns:
             All batteries in the microgrid.
         """
-        graph = microgrid.get().component_graph
+        graph = connection_manager.get().component_graph
         return {
             battery.component_id
             for battery in graph.components(
