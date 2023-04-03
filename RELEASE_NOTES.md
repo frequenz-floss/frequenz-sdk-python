@@ -11,7 +11,17 @@
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+* Automatic creation of core data-pipeline actors, to eliminate a lot
+  of boiler plate code.  This makes it much simpler to deploy apps
+  (#270).  For example:
+
+  ``` python
+  async def run():
+      await microgrid.initialize(
+          host=HOST, port=PORT, resampler_config=ResamplerConfig(resampling_period_s=1.0)
+      )
+      grid_power = microgrid.logical_meter().grid_power()
+  ```
 
 ## Bug Fixes
 
