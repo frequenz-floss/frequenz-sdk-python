@@ -617,6 +617,20 @@
 
             
           
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../microgrid/connection_manager/" class="md-nav__link">
+        connection_manager
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -1495,7 +1509,7 @@ fetching high level metrics for this subset.</p>
 <span class="sd">        Returns:</span>
 <span class="sd">            All batteries in the microgrid.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">graph</span> <span class="o">=</span> <span class="n">microgrid</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">component_graph</span>
+        <span class="n">graph</span> <span class="o">=</span> <span class="n">connection_manager</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">component_graph</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="n">battery</span><span class="o">.</span><span class="n">component_id</span>
             <span class="k">for</span> <span class="n">battery</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">components</span><span class="p">(</span>

@@ -619,6 +619,20 @@
 
             
           
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="connection_manager/" class="md-nav__link">
+        connection_manager
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -891,80 +905,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#frequenz.sdk.microgrid.ConnectionManager" class="md-nav__link">
-    ConnectionManager
-  </a>
-  
-    <nav class="md-nav" aria-label="ConnectionManager">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#frequenz.sdk.microgrid.ConnectionManager-attributes" class="md-nav__link">
-    Attributes
-  </a>
-  
-    <nav class="md-nav" aria-label="Attributes">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#frequenz.sdk.microgrid._microgrid.ConnectionManager.api_client" class="md-nav__link">
-    api_client
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#frequenz.sdk.microgrid._microgrid.ConnectionManager.component_graph" class="md-nav__link">
-    component_graph
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#frequenz.sdk.microgrid._microgrid.ConnectionManager.host" class="md-nav__link">
-    host
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#frequenz.sdk.microgrid._microgrid.ConnectionManager.port" class="md-nav__link">
-    port
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#frequenz.sdk.microgrid.ConnectionManager-functions" class="md-nav__link">
-    Functions
-  </a>
-  
-    <nav class="md-nav" aria-label="Functions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#frequenz.sdk.microgrid._microgrid.ConnectionManager.__init__" class="md-nav__link">
-    __init__()
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -979,8 +919,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.microgrid.get" class="md-nav__link">
-    get()
+  <a href="#frequenz.sdk.microgrid.ev_charger_pool" class="md-nav__link">
+    ev_charger_pool()
   </a>
   
 </li>
@@ -988,6 +928,13 @@
           <li class="md-nav__item">
   <a href="#frequenz.sdk.microgrid.initialize" class="md-nav__link">
     initialize()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid.logical_meter" class="md-nav__link">
+    logical_meter()
   </a>
   
 </li>
@@ -1740,339 +1687,23 @@ these components.</p>
   </div>
 
 </div>
-
-<div class="doc doc-object doc-class">
-
-
-
-<h4 id="frequenz.sdk.microgrid.ConnectionManager" class="doc doc-heading">
-        <code>frequenz.sdk.microgrid.ConnectionManager</code>
-
-
-<a href="#frequenz.sdk.microgrid.ConnectionManager" class="headerlink" title="Permanent link">¤</a></h4>
-
-
-  <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
-
-  
-      <p>Creates and stores core features.</p>
-
-
-        <details class="quote">
-          <summary>Source code in <code>frequenz/sdk/microgrid/_microgrid.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">25</span>
-<span class="normal">26</span>
-<span class="normal">27</span>
-<span class="normal">28</span>
-<span class="normal">29</span>
-<span class="normal">30</span>
-<span class="normal">31</span>
-<span class="normal">32</span>
-<span class="normal">33</span>
-<span class="normal">34</span>
-<span class="normal">35</span>
-<span class="normal">36</span>
-<span class="normal">37</span>
-<span class="normal">38</span>
-<span class="normal">39</span>
-<span class="normal">40</span>
-<span class="normal">41</span>
-<span class="normal">42</span>
-<span class="normal">43</span>
-<span class="normal">44</span>
-<span class="normal">45</span>
-<span class="normal">46</span>
-<span class="normal">47</span>
-<span class="normal">48</span>
-<span class="normal">49</span>
-<span class="normal">50</span>
-<span class="normal">51</span>
-<span class="normal">52</span>
-<span class="normal">53</span>
-<span class="normal">54</span>
-<span class="normal">55</span>
-<span class="normal">56</span>
-<span class="normal">57</span>
-<span class="normal">58</span>
-<span class="normal">59</span>
-<span class="normal">60</span>
-<span class="normal">61</span>
-<span class="normal">62</span>
-<span class="normal">63</span>
-<span class="normal">64</span>
-<span class="normal">65</span>
-<span class="normal">66</span>
-<span class="normal">67</span>
-<span class="normal">68</span>
-<span class="normal">69</span>
-<span class="normal">70</span>
-<span class="normal">71</span>
-<span class="normal">72</span>
-<span class="normal">73</span>
-<span class="normal">74</span>
-<span class="normal">75</span>
-<span class="normal">76</span>
-<span class="normal">77</span>
-<span class="normal">78</span>
-<span class="normal">79</span>
-<span class="normal">80</span>
-<span class="normal">81</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ConnectionManager</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates and stores core features.&quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create object instance.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            host: server host</span>
-<span class="sd">            port: server port</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_host</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">host</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">port</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">host</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get host of the currently connected server.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            host</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_host</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">port</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get port of the currently connected server.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            port</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_port</span>
-
-    <span class="nd">@property</span>
-    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">api_client</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MicrogridApiClient</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get MicrogridApiClient.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            api client</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-    <span class="nd">@property</span>
-    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">component_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComponentGraph</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get component graph.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            component graph</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">_update_api</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_host</span> <span class="o">=</span> <span class="n">host</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_port</span> <span class="o">=</span> <span class="n">port</span>
-
-    <span class="nd">@abstractmethod</span>
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">_initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the object. This function should be called only once.&quot;&quot;&quot;</span>
-</code></pre></div></td></tr></table></div>
-        </details>
-
-  
-
-  <div class="doc doc-children">
-
-
-
-
-
-<h5 id="frequenz.sdk.microgrid.ConnectionManager-attributes">Attributes<a href="#frequenz.sdk.microgrid.ConnectionManager-attributes" class="headerlink" title="Permanent link">¤</a></h5>
-
-<div class="doc doc-object doc-attribute">
-
-
-
-<h6 id="frequenz.sdk.microgrid._microgrid.ConnectionManager.api_client" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">api_client</span><span class="p">:</span> <span class="n">MicrogridApiClient</span></code>
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
-  </span>
-
-<a href="#frequenz.sdk.microgrid._microgrid.ConnectionManager.api_client" class="headerlink" title="Permanent link">¤</a></h6>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Get MicrogridApiClient.</p>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>RETURNS</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.client.MicrogridApiClient" href="client/#frequenz.sdk.microgrid.client.MicrogridApiClient">MicrogridApiClient</a></code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <p>api client</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-attribute">
-
-
-
-<h6 id="frequenz.sdk.microgrid._microgrid.ConnectionManager.component_graph" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">component_graph</span><span class="p">:</span> <span class="n">ComponentGraph</span></code>
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
-  </span>
-
-<a href="#frequenz.sdk.microgrid._microgrid.ConnectionManager.component_graph" class="headerlink" title="Permanent link">¤</a></h6>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Get component graph.</p>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>RETURNS</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid._graph.ComponentGraph" href="#frequenz.sdk.microgrid.ComponentGraph">ComponentGraph</a></code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <p>component graph</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-attribute">
-
-
-
-<h6 id="frequenz.sdk.microgrid._microgrid.ConnectionManager.host" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">host</span><span class="p">:</span> <span class="nb">str</span></code>
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
-  </span>
-
-<a href="#frequenz.sdk.microgrid._microgrid.ConnectionManager.host" class="headerlink" title="Permanent link">¤</a></h6>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Get host of the currently connected server.</p>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>RETURNS</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <p>host</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-attribute">
-
-
-
-<h6 id="frequenz.sdk.microgrid._microgrid.ConnectionManager.port" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">port</span><span class="p">:</span> <span class="nb">int</span></code>
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
-  </span>
-
-<a href="#frequenz.sdk.microgrid._microgrid.ConnectionManager.port" class="headerlink" title="Permanent link">¤</a></h6>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Get port of the currently connected server.</p>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>RETURNS</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <p>port</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-  </div>
-
-</div>
-
-<h5 id="frequenz.sdk.microgrid.ConnectionManager-functions">Functions<a href="#frequenz.sdk.microgrid.ConnectionManager-functions" class="headerlink" title="Permanent link">¤</a></h5>
+<h3 id="frequenz.sdk.microgrid-functions">Functions<a href="#frequenz.sdk.microgrid-functions" class="headerlink" title="Permanent link">¤</a></h3>
 
 <div class="doc doc-object doc-function">
 
 
 
-<h6 id="frequenz.sdk.microgrid._microgrid.ConnectionManager.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span></code>
+<h4 id="frequenz.sdk.microgrid.ev_charger_pool" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">frequenz</span><span class="o">.</span><span class="n">sdk</span><span class="o">.</span><span class="n">microgrid</span><span class="o">.</span><span class="n">ev_charger_pool</span><span class="p">(</span><span class="n">ev_charger_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
-<a href="#frequenz.sdk.microgrid._microgrid.ConnectionManager.__init__" class="headerlink" title="Permanent link">¤</a></h6>
+<a href="#frequenz.sdk.microgrid.ev_charger_pool" class="headerlink" title="Permanent link">¤</a></h4>
 
 
   <div class="doc doc-contents ">
   
-      <p>Create object instance.</p>
+      <p>Return the corresponding EVChargerPool instance for the given ids.</p>
+<p>If an EVChargerPool instance for the given ids doesn't exist, a new one is
+created and returned.</p>
 
   <table>
     <thead>
@@ -2083,102 +1714,20 @@ these components.</p>
     </thead>
     <tbody>
         <tr>
-          <td><code>host</code></td>
+          <td><code>ev_charger_ids</code></td>
           <td class="doc-param-details">
-            <p>server host</p>
+            <p>Optional set of IDs of EV Charger to be managed by the
+EVChargerPool.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#set">set</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a>] | None</code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>None</code>
                 </span>
             </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>port</code></td>
-          <td class="doc-param-details">
-            <p>server port</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-      <details class="quote">
-        <summary>Source code in <code>frequenz/sdk/microgrid/_microgrid.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">28</span>
-<span class="normal">29</span>
-<span class="normal">30</span>
-<span class="normal">31</span>
-<span class="normal">32</span>
-<span class="normal">33</span>
-<span class="normal">34</span>
-<span class="normal">35</span>
-<span class="normal">36</span>
-<span class="normal">37</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create object instance.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        host: server host</span>
-<span class="sd">        port: server port</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_host</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">host</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">port</span>
-</code></pre></div></td></tr></table></div>
-      </details>
-  </div>
-
-</div>
-
-
-
-  </div>
-
-  </div>
-
-</div>
-<h3 id="frequenz.sdk.microgrid-functions">Functions<a href="#frequenz.sdk.microgrid-functions" class="headerlink" title="Permanent link">¤</a></h3>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h4 id="frequenz.sdk.microgrid.get" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">frequenz</span><span class="o">.</span><span class="n">sdk</span><span class="o">.</span><span class="n">microgrid</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></code>
-
-<a href="#frequenz.sdk.microgrid.get" class="headerlink" title="Permanent link">¤</a></h4>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Get the MicrogridApi instance created by initialize().</p>
-<p>This function should be only called after initialize().</p>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>RAISES</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-            <span class="doc-raises-annotation">
-                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError">RuntimeError</a></code>
-            </span>
-          </td>
-          <td class="doc-raises-details">
-            <p>Raised when:
-* If <code>initialize()</code> method was not called before this call.
-* If <code>initialize()</code> methods was called but was not awaited and instance was
-    not created yet.</p>
           </td>
         </tr>
     </tbody>
@@ -2195,59 +1744,45 @@ these components.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid._microgrid.ConnectionManager" href="#frequenz.sdk.microgrid.ConnectionManager">ConnectionManager</a></code>
+                  <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool" href="../timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool">EVChargerPool</a></code>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>MicrogridApi instance.</p>
+            <p>An EVChargerPool instance.</p>
           </td>
         </tr>
     </tbody>
   </table>
 
       <details class="quote">
-        <summary>Source code in <code>frequenz/sdk/microgrid/_microgrid.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">171</span>
-<span class="normal">172</span>
-<span class="normal">173</span>
-<span class="normal">174</span>
-<span class="normal">175</span>
-<span class="normal">176</span>
-<span class="normal">177</span>
-<span class="normal">178</span>
-<span class="normal">179</span>
-<span class="normal">180</span>
-<span class="normal">181</span>
-<span class="normal">182</span>
-<span class="normal">183</span>
-<span class="normal">184</span>
-<span class="normal">185</span>
-<span class="normal">186</span>
-<span class="normal">187</span>
-<span class="normal">188</span>
-<span class="normal">189</span>
-<span class="normal">190</span>
-<span class="normal">191</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ConnectionManager</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the MicrogridApi instance created by initialize().</span>
+        <summary>Source code in <code>frequenz/sdk/microgrid/_data_pipeline.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">ev_charger_pool</span><span class="p">(</span><span class="n">ev_charger_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EVChargerPool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the corresponding EVChargerPool instance for the given ids.</span>
 
-<span class="sd">    This function should be only called after initialize().</span>
+<span class="sd">    If an EVChargerPool instance for the given ids doesn&#39;t exist, a new one is</span>
+<span class="sd">    created and returned.</span>
 
-<span class="sd">    Raises:</span>
-<span class="sd">        RuntimeError: Raised when:</span>
-<span class="sd">            * If `initialize()` method was not called before this call.</span>
-<span class="sd">            * If `initialize()` methods was called but was not awaited and instance was</span>
-<span class="sd">                not created yet.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ev_charger_ids: Optional set of IDs of EV Charger to be managed by the</span>
+<span class="sd">            EVChargerPool.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        MicrogridApi instance.</span>
+<span class="sd">        An EVChargerPool instance.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">_MICROGRID</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-            <span class="s2">&quot;MicrogridApi is not initialized (or the initialization didn&#39;t &quot;</span>
-            <span class="s2">&quot;finished yet). Call and/or await for initialize() to finish.&quot;</span>
-        <span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">_MICROGRID</span>
+    <span class="k">return</span> <span class="n">_get</span><span class="p">()</span><span class="o">.</span><span class="n">ev_charger_pool</span><span class="p">(</span><span class="n">ev_charger_ids</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
@@ -2259,7 +1794,7 @@ these components.</p>
 
 
 <h4 id="frequenz.sdk.microgrid.initialize" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">frequenz</span><span class="o">.</span><span class="n">sdk</span><span class="o">.</span><span class="n">microgrid</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">frequenz</span><span class="o">.</span><span class="n">sdk</span><span class="o">.</span><span class="n">microgrid</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">resampler_config</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-async"><code>async</code></small>
@@ -2270,7 +1805,7 @@ these components.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Initialize the MicrogridApi. This function should be called only once.</p>
+      <p>Initialize the microgrid connection manager and the data pipeline.</p>
 
   <table>
     <thead>
@@ -2283,7 +1818,7 @@ these components.</p>
         <tr>
           <td><code>host</code></td>
           <td class="doc-param-details">
-            <p>Microgrid host</p>
+            <p>Host to connect to, to reach the microgrid API.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2295,7 +1830,7 @@ these components.</p>
         <tr>
           <td><code>port</code></td>
           <td class="doc-param-details">
-            <p>Microgrid port</p>
+            <p>port to connect to.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2304,83 +1839,103 @@ these components.</p>
             </p>
           </td>
         </tr>
-    </tbody>
-  </table>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>RAISES</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
         <tr>
-          <td>
-            <span class="doc-raises-annotation">
-                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#AssertionError">AssertionError</a></code>
-            </span>
-          </td>
-          <td class="doc-raises-details">
-            <p>If method was called more then once.</p>
+          <td><code>resampler_config</code></td>
+          <td class="doc-param-details">
+            <p>Configuration for the resampling actor.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor.ResamplerConfig" href="../actor/#frequenz.sdk.actor.ResamplerConfig">ResamplerConfig</a></code>
+                </span>
+            </p>
           </td>
         </tr>
     </tbody>
   </table>
 
       <details class="quote">
-        <summary>Source code in <code>frequenz/sdk/microgrid/_microgrid.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">143</span>
-<span class="normal">144</span>
-<span class="normal">145</span>
-<span class="normal">146</span>
-<span class="normal">147</span>
-<span class="normal">148</span>
-<span class="normal">149</span>
-<span class="normal">150</span>
-<span class="normal">151</span>
-<span class="normal">152</span>
-<span class="normal">153</span>
-<span class="normal">154</span>
-<span class="normal">155</span>
-<span class="normal">156</span>
-<span class="normal">157</span>
-<span class="normal">158</span>
-<span class="normal">159</span>
-<span class="normal">160</span>
-<span class="normal">161</span>
-<span class="normal">162</span>
-<span class="normal">163</span>
-<span class="normal">164</span>
-<span class="normal">165</span>
-<span class="normal">166</span>
-<span class="normal">167</span>
-<span class="normal">168</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">host</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialize the MicrogridApi. This function should be called only once.</span>
+        <summary>Source code in <code>frequenz/sdk/microgrid/__init__.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">host</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">resampler_config</span><span class="p">:</span> <span class="n">ResamplerConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialize the microgrid connection manager and the data pipeline.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        host: Microgrid host</span>
-<span class="sd">        port: Microgrid port</span>
-
-<span class="sd">    Raises:</span>
-<span class="sd">        AssertionError: If method was called more then once.</span>
+<span class="sd">        host: Host to connect to, to reach the microgrid API.</span>
+<span class="sd">        port: port to connect to.</span>
+<span class="sd">        resampler_config: Configuration for the resampling actor.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># From Doc: pylint just try to discourage this usage.</span>
-    <span class="c1"># That doesn&#39;t mean you cannot use it.</span>
-    <span class="k">global</span> <span class="n">_MICROGRID</span>  <span class="c1"># pylint: disable=global-statement</span>
+    <span class="k">await</span> <span class="n">connection_manager</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+    <span class="n">_data_pipeline</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">resampler_config</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
 
-    <span class="k">if</span> <span class="n">_MICROGRID</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;MicrogridApi was already initialized.&quot;</span><span class="p">)</span>
+</div>
 
-    <span class="n">microgrid_api</span> <span class="o">=</span> <span class="n">_InsecureConnectionManager</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
-    <span class="k">await</span> <span class="n">microgrid_api</span><span class="o">.</span><span class="n">_initialize</span><span class="p">()</span>  <span class="c1"># pylint: disable=protected-access</span>
+<div class="doc doc-object doc-function">
 
-    <span class="c1"># Check again that _MICROGRID_API is None in case somebody had the great idea of</span>
-    <span class="c1"># calling initialize() twice and in parallel.</span>
-    <span class="k">if</span> <span class="n">_MICROGRID</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;MicrogridApi was already initialized.&quot;</span><span class="p">)</span>
 
-    <span class="n">_MICROGRID</span> <span class="o">=</span> <span class="n">microgrid_api</span>
+
+<h4 id="frequenz.sdk.microgrid.logical_meter" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">frequenz</span><span class="o">.</span><span class="n">sdk</span><span class="o">.</span><span class="n">microgrid</span><span class="o">.</span><span class="n">logical_meter</span><span class="p">()</span></code>
+
+<a href="#frequenz.sdk.microgrid.logical_meter" class="headerlink" title="Permanent link">¤</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Return the logical meter instance.</p>
+<p>If a LogicalMeter instance doesn't exist, a new one is created and returned.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.logical_meter.LogicalMeter" href="../timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter">LogicalMeter</a></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>A logical meter instance.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+      <details class="quote">
+        <summary>Source code in <code>frequenz/sdk/microgrid/_data_pipeline.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">logical_meter</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">LogicalMeter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the logical meter instance.</span>
+
+<span class="sd">    If a LogicalMeter instance doesn&#39;t exist, a new one is created and returned.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A logical meter instance.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_get</span><span class="p">()</span><span class="o">.</span><span class="n">logical_meter</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>

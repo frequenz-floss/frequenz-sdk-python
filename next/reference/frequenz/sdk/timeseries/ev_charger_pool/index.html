@@ -617,6 +617,20 @@
 
             
           
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../microgrid/connection_manager/" class="md-nav__link">
+        connection_manager
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -1237,7 +1251,7 @@
         <span class="k">if</span> <span class="n">component_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_component_ids</span> <span class="o">=</span> <span class="n">component_ids</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">graph</span> <span class="o">=</span> <span class="n">microgrid</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">component_graph</span>
+            <span class="n">graph</span> <span class="o">=</span> <span class="n">connection_manager</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">component_graph</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_component_ids</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="n">evc</span><span class="o">.</span><span class="n">component_id</span>
                 <span class="k">for</span> <span class="n">evc</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">components</span><span class="p">(</span>
@@ -1478,7 +1492,7 @@ from the component graph.</p>
     <span class="k">if</span> <span class="n">component_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_component_ids</span> <span class="o">=</span> <span class="n">component_ids</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">graph</span> <span class="o">=</span> <span class="n">microgrid</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">component_graph</span>
+        <span class="n">graph</span> <span class="o">=</span> <span class="n">connection_manager</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">component_graph</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_component_ids</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">evc</span><span class="o">.</span><span class="n">component_id</span>
             <span class="k">for</span> <span class="n">evc</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">components</span><span class="p">(</span>

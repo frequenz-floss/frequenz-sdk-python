@@ -621,6 +621,20 @@
 
             
           
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../microgrid/connection_manager/" class="md-nav__link">
+        connection_manager
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -2105,7 +2119,8 @@ printed.</li>
 
         <details class="quote">
           <summary>Source code in <code>frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 66</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 65</span>
+<span class="normal"> 66</span>
 <span class="normal"> 67</span>
 <span class="normal"> 68</span>
 <span class="normal"> 69</span>
@@ -2797,8 +2812,7 @@ printed.</li>
 <span class="normal">755</span>
 <span class="normal">756</span>
 <span class="normal">757</span>
-<span class="normal">758</span>
-<span class="normal">759</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
+<span class="normal">758</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
 <span class="k">class</span> <span class="nc">PowerDistributingActor</span><span class="p">:</span>
     <span class="c1"># pylint: disable=too-many-instance-attributes</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Actor to distribute the power between batteries in a microgrid.</span>
@@ -2903,7 +2917,7 @@ printed.</li>
         <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_bat_inv_map</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inv_bat_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_components_pairs</span><span class="p">(</span>
-            <span class="n">microgrid</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">component_graph</span>
+            <span class="n">connection_manager</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">component_graph</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_battery_receivers</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Peekable</span><span class="p">[</span><span class="n">BatteryData</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_inverter_receivers</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Peekable</span><span class="p">[</span><span class="n">InverterData</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -2993,7 +3007,7 @@ printed.</li>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_channels</span><span class="p">()</span>
 
-        <span class="n">api</span> <span class="o">=</span> <span class="n">microgrid</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">api_client</span>
+        <span class="n">api</span> <span class="o">=</span> <span class="n">connection_manager</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">api_client</span>
 
         <span class="c1"># Wait few seconds to get data from the channels created above.</span>
         <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_data_sec</span><span class="p">)</span>
@@ -3412,7 +3426,7 @@ printed.</li>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_create_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create channels to get data of components in microgrid.&quot;&quot;&quot;</span>
-        <span class="n">api</span> <span class="o">=</span> <span class="n">microgrid</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">api_client</span>
+        <span class="n">api</span> <span class="o">=</span> <span class="n">connection_manager</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">api_client</span>
         <span class="k">for</span> <span class="n">battery_id</span><span class="p">,</span> <span class="n">inverter_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bat_inv_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">bat_recv</span><span class="p">:</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">BatteryData</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">api</span><span class="o">.</span><span class="n">battery_data</span><span class="p">(</span><span class="n">battery_id</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_battery_receivers</span><span class="p">[</span><span class="n">battery_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">bat_recv</span><span class="o">.</span><span class="n">into_peekable</span><span class="p">()</span>
@@ -3577,7 +3591,8 @@ request. It is a time needed to collect first components data.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">146</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">145</span>
+<span class="normal">146</span>
 <span class="normal">147</span>
 <span class="normal">148</span>
 <span class="normal">149</span>
@@ -3627,8 +3642,7 @@ request. It is a time needed to collect first components data.</p>
 <span class="normal">193</span>
 <span class="normal">194</span>
 <span class="normal">195</span>
-<span class="normal">196</span>
-<span class="normal">197</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<span class="normal">196</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">users_channels</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Bidirectional</span><span class="o">.</span><span class="n">Handle</span><span class="p">[</span><span class="n">Result</span><span class="p">,</span> <span class="n">Request</span><span class="p">]],</span>
     <span class="n">battery_status_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span><span class="n">BatteryStatus</span><span class="p">],</span>
@@ -3653,7 +3667,7 @@ request. It is a time needed to collect first components data.</p>
     <span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_bat_inv_map</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inv_bat_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_components_pairs</span><span class="p">(</span>
-        <span class="n">microgrid</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">component_graph</span>
+        <span class="n">connection_manager</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">component_graph</span>
     <span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_battery_receivers</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Peekable</span><span class="p">[</span><span class="n">BatteryData</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_inverter_receivers</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Peekable</span><span class="p">[</span><span class="n">InverterData</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -3711,7 +3725,8 @@ as broken for some time.</p>
 
       <details class="quote">
         <summary>Source code in <code>frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">250</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">249</span>
+<span class="normal">250</span>
 <span class="normal">251</span>
 <span class="normal">252</span>
 <span class="normal">253</span>
@@ -3795,8 +3810,7 @@ as broken for some time.</p>
 <span class="normal">331</span>
 <span class="normal">332</span>
 <span class="normal">333</span>
-<span class="normal">334</span>
-<span class="normal">335</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">334</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run actor main function.</span>
 
 <span class="sd">    It waits for new requests in task_queue and process it, and send</span>
@@ -3807,7 +3821,7 @@ as broken for some time.</p>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_channels</span><span class="p">()</span>
 
-    <span class="n">api</span> <span class="o">=</span> <span class="n">microgrid</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">api_client</span>
+    <span class="n">api</span> <span class="o">=</span> <span class="n">connection_manager</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">api_client</span>
 
     <span class="c1"># Wait few seconds to get data from the channels created above.</span>
     <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_data_sec</span><span class="p">)</span>
