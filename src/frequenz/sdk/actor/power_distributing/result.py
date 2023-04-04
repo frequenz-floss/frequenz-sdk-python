@@ -27,8 +27,8 @@ class Success(Result):
     def __init__(
         self,
         request: Request,
-        succeed_power: int,
-        used_batteries: Set[int],
+        succeeded_power: int,
+        succeeded_batteries: Set[int],
         excess_power: int,
     ) -> None:
         """Create class instance.
@@ -42,8 +42,8 @@ class Success(Result):
                 because it was outside available power bounds.
         """
         super().__init__(request)
-        self.succeed_power: int = succeed_power
-        self.used_batteries: Set[int] = used_batteries
+        self.succeed_power: int = succeeded_power
+        self.used_batteries: Set[int] = succeeded_batteries
         self.excess_power: int = excess_power
 
 
@@ -56,8 +56,8 @@ class PartialFailure(Result):
     def __init__(  # pylint: disable=too-many-arguments
         self,
         request: Request,
-        succeed_power: int,
-        succeed_batteries: Set[int],
+        succeeded_power: int,
+        succeeded_batteries: Set[int],
         failed_power: int,
         failed_batteries: Set[int],
         excess_power: int,
@@ -76,8 +76,8 @@ class PartialFailure(Result):
                 because it was outside available power bounds.
         """
         super().__init__(request)
-        self.succeed_power: int = succeed_power
-        self.succeed_batteries: Set[int] = succeed_batteries
+        self.succeed_power: int = succeeded_power
+        self.succeed_batteries: Set[int] = succeeded_batteries
         self.failed_power: int = failed_power
         self.failed_batteries: Set[int] = failed_batteries
         self.excess_power: int = excess_power
