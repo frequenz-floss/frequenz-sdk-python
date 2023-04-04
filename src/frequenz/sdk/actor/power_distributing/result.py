@@ -3,122 +3,100 @@
 
 """Results from PowerDistributingActor."""
 
-from abc import ABC
-from typing import Set
+from __future__ import annotations
+
+import dataclasses
 
 from .request import Request
 
 
-class Result(ABC):
-    """Base class for the power distributor result."""
+@dataclasses.dataclass
+class _BaseResultMixin:
+    """Base mixin class for reporting power distribution results."""
 
-    def __init__(self, request: Request) -> None:
-        """Create class instance.
-
-        Args:
-            request: The user's request to which this message responds.
-        """
-        self.request: Request = request
+    request: Request
+    """The user's request to which this message responds."""
 
 
-class Success(Result):
-    """Send if setting power for all batteries succeed."""
-
-    def __init__(
-        self,
-        request: Request,
-        succeeded_power: int,
-        succeeded_batteries: Set[int],
-        excess_power: int,
-    ) -> None:
-        """Create class instance.
-
-        Args:
-            request: The user's request to which this message responds.
-            succeed_power: Part of the requested power that was successfully set.
-            used_batteries: Subset of the requested batteries, that were used to
-                realize the request.
-            excess_power: Part of the requested power that could not be fulfilled,
-                because it was outside available power bounds.
-        """
-        super().__init__(request)
-        self.succeed_power: int = succeeded_power
-        self.used_batteries: Set[int] = succeeded_batteries
-        self.excess_power: int = excess_power
+# When moving to Python 3.10+ we should replace this with an union type:
+# Result = Success | PartialFailure | Error | OutOfBound | Ignored
+# For now it can't be done because before 3.10 isinstance(result, Success)
+# doesn't work, so it is hard to figure out what type of result you got in
+# a forward compatible way.
+# When moving we should use the _BaseResultMixin as a base class for all
+# results.
+@dataclasses.dataclass
+class Result(_BaseResultMixin):
+    """Power distribution result."""
 
 
-class PartialFailure(Result):
-    """Send if any battery failed and didn't perform the request."""
+@dataclasses.dataclass
+class _BaseSuccessMixin:
+    """Result returned when setting the power succeed for all batteries."""
 
-    # It is very simple class with only data so it should be ok to disable pylint.
-    # All these results should be dataclass but in python < 3.10 it is risky
-    # to derive after dataclass.
-    def __init__(  # pylint: disable=too-many-arguments
-        self,
-        request: Request,
-        succeeded_power: int,
-        succeeded_batteries: Set[int],
-        failed_power: int,
-        failed_batteries: Set[int],
-        excess_power: int,
-    ) -> None:
-        """Create class instance.
+    succeeded_power: int
+    """The part of the requested power that was successfully set."""
 
-        Args:
-            request: The user's request to which this message responds.
-            succeed_power: Part of the requested power that was successfully set.
-            succeed_batteries: Subset of the requested batteries for which the request
-                succeed.
-            failed_power: Part of the requested power that failed.
-            failed_batteries: Subset of the requested batteries for which the request
-                failed.
-            excess_power: Part of the requested power that could not be fulfilled,
-                because it was outside available power bounds.
-        """
-        super().__init__(request)
-        self.succeed_power: int = succeeded_power
-        self.succeed_batteries: Set[int] = succeeded_batteries
-        self.failed_power: int = failed_power
-        self.failed_batteries: Set[int] = failed_batteries
-        self.excess_power: int = excess_power
+    succeeded_batteries: set[int]
+    """The subset of batteries for which power was set successfully."""
 
+    excess_power: int
+    """The part of the requested power that could not be fulfilled.
 
-class Error(Result):
-    """Error occurred and power was not set."""
-
-    def __init__(self, request: Request, msg: str) -> None:
-        """Create class instance.
-
-        Args:
-            request: The user's request to which this message responds.
-            msg: Error message explaining why error happened.
-        """
-        super().__init__(request)
-        self.msg: str = msg
-
-
-class OutOfBound(Result):
-    """Send if power was not set because requested power was not within bounds.
-
-    This message is send only if Request.adjust_power = False.
+    This happens when the requested power is outside the available power bounds.
     """
 
-    def __init__(self, request: Request, bound: int) -> None:
-        """Create class instance.
 
-        Args:
-            request: The user's request to which this message responds.
-            bound: Total power bound for the requested batteries.
-                If requested power < 0, then this value is lower bound.
-                Otherwise it is upper bound.
-        """
-        super().__init__(request)
-        self.bound: int = bound
+# We need to put the _BaseSuccessMixin before Result in the inheritance list to
+# make sure that the Result attributes appear before the _BaseSuccessMixin,
+# otherwise the request attribute will be last in the dataclass constructor
+# because of how MRO works.
 
 
+@dataclasses.dataclass
+class Success(_BaseSuccessMixin, Result):  # Order matters here. See above.
+    """Result returned when setting the power succeed for all batteries."""
+
+
+@dataclasses.dataclass
+class PartialFailure(_BaseSuccessMixin, Result):
+    """Result returned when any battery failed to perform the request."""
+
+    failed_power: int
+    """The part of the requested power that failed to be set."""
+
+    failed_batteries: set[int]
+    """The subset of batteries for which the request failed."""
+
+
+@dataclasses.dataclass
+class Error(Result):
+    """Result returned when an error occurred and power was not set at all."""
+
+    msg: str
+    """The error message explaining why error happened."""
+
+
+@dataclasses.dataclass
+class OutOfBound(Result):
+    """Result returned when the power was not set because it was out of bounds.
+
+    This result happens when the originating request was done with
+    `adjust_power = False` and the requested power is not within the batteries bounds.
+    """
+
+    bound: int
+    """The total power bound for the requested batteries.
+
+    If the requested power negative, then this value is the lower bound.
+    Otherwise it is upper bound.
+    """
+
+
+@dataclasses.dataclass
 class Ignored(Result):
-    """Send if request was ignored.
+    """Result returned when the request was ignored.
 
-    Request was ignored because new request for the same subset of batteries
-    was received.
+    The request can be ignored when a new request for the same subset of
+    batteries was received.
     """

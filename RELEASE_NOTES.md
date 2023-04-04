@@ -26,6 +26,7 @@
       )
       grid_power = microgrid.logical_meter().grid_power()
   ```
+* The `Result` class (and subclasses) for the `PowerDistributingActor` are now dataclasses, so logging them will produce a more detailed output.
 
 ## Bug Fixes
 
