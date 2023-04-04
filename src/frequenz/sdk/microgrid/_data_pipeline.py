@@ -29,6 +29,13 @@ if typing.TYPE_CHECKING:
     from ..timeseries.ev_charger_pool import EVChargerPool
     from ..timeseries.logical_meter import LogicalMeter
 
+_REQUEST_RECV_BUFFER_SIZE = 500
+"""The maximum number of requests that can be queued in the request receiver.
+
+A larger buffer size means that the DataSourcing and Resampling actors don't drop
+requests and will be able to keep up with higher request rates in larger installations.
+"""
+
 
 @dataclass
 class _ActorInfo:
@@ -131,7 +138,10 @@ class _DataPipeline:
                 "Data Pipeline: Data Sourcing Actor Request Channel"
             )
             actor = DataSourcingActor(
-                request_receiver=channel.new_receiver(), registry=self._channel_registry
+                request_receiver=channel.new_receiver(
+                    maxsize=_REQUEST_RECV_BUFFER_SIZE
+                ),
+                registry=self._channel_registry,
             )
             self._data_sourcing_actor = _ActorInfo(actor, channel)
         return self._data_sourcing_actor.channel.new_sender()
@@ -153,7 +163,9 @@ class _DataPipeline:
             actor = ComponentMetricsResamplingActor(
                 channel_registry=self._channel_registry,
                 data_sourcing_request_sender=self._data_sourcing_request_sender(),
-                resampling_request_receiver=channel.new_receiver(),
+                resampling_request_receiver=channel.new_receiver(
+                    maxsize=_REQUEST_RECV_BUFFER_SIZE
+                ),
                 config=self._resampler_config,
             )
             self._resampling_actor = _ActorInfo(actor, channel)
