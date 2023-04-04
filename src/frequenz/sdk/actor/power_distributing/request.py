@@ -2,22 +2,30 @@
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 """Definition of the user request."""
 
-from dataclasses import dataclass
-from typing import Set
+from __future__ import annotations
+
+import dataclasses
 
 
-@dataclass
+@dataclasses.dataclass
 class Request:
-    """Request from the user."""
+    """Request to set power to the `PowerDistributingActor`."""
 
-    # How much power to set
     power: int
-    # In which batteries the power should be set
-    batteries: Set[int]
-    # Timeout for the server to respond on the requests.
+    """The amount of power to be set."""
+
+    batteries: set[int]
+    """The set of batteries to use when requesting the power to be set."""
+
     request_timeout_sec: float = 5.0
-    # If True and requested power value is above upper bound, then the power will be
-    # decreased to match the bounds. Only the decreased power will be set.
-    # If False and the requested power is above upper bound, then request won't
-    # be processed. result.OutOfBound message will be send back to the user.
+    """The maximum amount of time to wait for the request to be fulfilled."""
+
     adjust_power: bool = True
+    """Whether to adjust the power to match the bounds.
+
+    If `True`, the power will be adjusted (lowered) to match the bounds, so
+    only the decreased power will be set.
+
+    If `False` and the power is outside the batteries' bounds, the request will
+    fail and replied to with an `OutOfBound` result.
+    """
