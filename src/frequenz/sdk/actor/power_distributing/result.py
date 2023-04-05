@@ -55,7 +55,7 @@ class _BaseSuccessMixin:
 
 @dataclasses.dataclass
 class Success(_BaseSuccessMixin, Result):  # Order matters here. See above.
-    """Result returned when setting the power succeed for all batteries."""
+    """Result returned when setting the power succeeded for all batteries."""
 
 
 @dataclasses.dataclass
