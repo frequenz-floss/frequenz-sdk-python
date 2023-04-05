@@ -271,12 +271,12 @@ class PowerDistributingActor:
                     request.batteries
                 )
             except KeyError as err:
-                await user.channel.send(Error(request, str(err)))
+                await user.channel.send(Error(request=request, msg=str(err)))
                 continue
 
             if len(pairs_data) == 0:
                 error_msg = f"No data for the given batteries {str(request.batteries)}"
-                await user.channel.send(Error(request, str(error_msg)))
+                await user.channel.send(Error(request=request, msg=str(error_msg)))
                 continue
 
             try:
@@ -285,7 +285,7 @@ class PowerDistributingActor:
                 )
             except ValueError as err:
                 error_msg = f"Couldn't distribute power, error: {str(err)}"
-                await user.channel.send(Error(request, str(error_msg)))
+                await user.channel.send(Error(request=request, msg=str(error_msg)))
                 continue
 
             distributed_power_value = request.power - distribution.remaining_power
@@ -380,17 +380,17 @@ class PowerDistributingActor:
                     f"No battery {battery}, available batteries: "
                     f"{list(self._battery_receivers.keys())}"
                 )
-                return Error(request, msg)
+                return Error(request=request, msg=msg)
 
         if not request.adjust_power:
             if request.power < 0:
                 bound = self._get_lower_bound(request.batteries)
                 if request.power < bound:
-                    return OutOfBound(request, bound)
+                    return OutOfBound(request=request, bound=bound)
             else:
                 bound = self._get_upper_bound(request.batteries)
                 if request.power > bound:
-                    return OutOfBound(request, bound)
+                    return OutOfBound(request=request, bound=bound)
 
         return None
 
@@ -420,7 +420,7 @@ class PowerDistributingActor:
             # Generators seems to be the fastest
             if prev_request.batteries == batteries:
                 task = asyncio.create_task(
-                    prev_user.channel.send(Ignored(prev_request))
+                    prev_user.channel.send(Ignored(request=prev_request))
                 )
                 to_ignore.append(task)
             # Use generators as generators seems to be the fastest.
@@ -490,7 +490,7 @@ class PowerDistributingActor:
                     "Consider increasing size of the queue."
                 )
                 _logger.error(msg)
-                await user.channel.send(Error(request, str(msg)))
+                await user.channel.send(Error(request=request, msg=str(msg)))
             else:
                 self._request_queue.put_nowait((request, user))
                 await asyncio.gather(*tasks)
