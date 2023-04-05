@@ -2054,12 +2054,12 @@ printed.</li>
                     <span class="n">request</span><span class="o">.</span><span class="n">batteries</span>
                 <span class="p">)</span>
             <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-                <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)))</span>
+                <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)))</span>
                 <span class="k">continue</span>
 
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pairs_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;No data for the given batteries </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">batteries</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)))</span>
+                <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)))</span>
                 <span class="k">continue</span>
 
             <span class="k">try</span><span class="p">:</span>
@@ -2068,7 +2068,7 @@ printed.</li>
                 <span class="p">)</span>
             <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
                 <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Couldn&#39;t distribute power, error: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)))</span>
+                <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)))</span>
                 <span class="k">continue</span>
 
             <span class="n">distributed_power_value</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">power</span> <span class="o">-</span> <span class="n">distribution</span><span class="o">.</span><span class="n">remaining_power</span>
@@ -2092,8 +2092,8 @@ printed.</li>
                 <span class="n">succeed_batteries</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">battery_distribution</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">-</span> <span class="n">failed_batteries</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="n">PartialFailure</span><span class="p">(</span>
                     <span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span>
-                    <span class="n">succeed_power</span><span class="o">=</span><span class="n">distributed_power_value</span><span class="p">,</span>
-                    <span class="n">succeed_batteries</span><span class="o">=</span><span class="n">succeed_batteries</span><span class="p">,</span>
+                    <span class="n">succeeded_power</span><span class="o">=</span><span class="n">distributed_power_value</span><span class="p">,</span>
+                    <span class="n">succeeded_batteries</span><span class="o">=</span><span class="n">succeed_batteries</span><span class="p">,</span>
                     <span class="n">failed_power</span><span class="o">=</span><span class="n">failed_power</span><span class="p">,</span>
                     <span class="n">failed_batteries</span><span class="o">=</span><span class="n">failed_batteries</span><span class="p">,</span>
                     <span class="n">excess_power</span><span class="o">=</span><span class="n">distribution</span><span class="o">.</span><span class="n">remaining_power</span><span class="p">,</span>
@@ -2102,8 +2102,8 @@ printed.</li>
                 <span class="n">succeed_batteries</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">battery_distribution</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="n">Success</span><span class="p">(</span>
                     <span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span>
-                    <span class="n">succeed_power</span><span class="o">=</span><span class="n">distributed_power_value</span><span class="p">,</span>
-                    <span class="n">used_batteries</span><span class="o">=</span><span class="n">succeed_batteries</span><span class="p">,</span>
+                    <span class="n">succeeded_power</span><span class="o">=</span><span class="n">distributed_power_value</span><span class="p">,</span>
+                    <span class="n">succeeded_batteries</span><span class="o">=</span><span class="n">succeed_batteries</span><span class="p">,</span>
                     <span class="n">excess_power</span><span class="o">=</span><span class="n">distribution</span><span class="o">.</span><span class="n">remaining_power</span><span class="p">,</span>
                 <span class="p">)</span>
 
@@ -2163,17 +2163,17 @@ printed.</li>
                     <span class="sa">f</span><span class="s2">&quot;No battery </span><span class="si">{</span><span class="n">battery</span><span class="si">}</span><span class="s2">, available batteries: &quot;</span>
                     <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_battery_receivers</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
-                <span class="k">return</span> <span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">request</span><span class="o">.</span><span class="n">adjust_power</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">power</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">bound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_lower_bound</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">batteries</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">power</span> <span class="o">&lt;</span> <span class="n">bound</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">OutOfBound</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">bound</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">OutOfBound</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">bound</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">bound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_upper_bound</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">batteries</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">power</span> <span class="o">&gt;</span> <span class="n">bound</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">OutOfBound</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">bound</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">OutOfBound</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">bound</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="kc">None</span>
 
@@ -2203,7 +2203,7 @@ printed.</li>
             <span class="c1"># Generators seems to be the fastest</span>
             <span class="k">if</span> <span class="n">prev_request</span><span class="o">.</span><span class="n">batteries</span> <span class="o">==</span> <span class="n">batteries</span><span class="p">:</span>
                 <span class="n">task</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span>
-                    <span class="n">prev_user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Ignored</span><span class="p">(</span><span class="n">prev_request</span><span class="p">))</span>
+                    <span class="n">prev_user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Ignored</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">prev_request</span><span class="p">))</span>
                 <span class="p">)</span>
                 <span class="n">to_ignore</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
             <span class="c1"># Use generators as generators seems to be the fastest.</span>
@@ -2273,7 +2273,7 @@ printed.</li>
                     <span class="s2">&quot;Consider increasing size of the queue.&quot;</span>
                 <span class="p">)</span>
                 <span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-                <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">msg</span><span class="p">)))</span>
+                <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">msg</span><span class="p">)))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_request_queue</span><span class="o">.</span><span class="n">put_nowait</span><span class="p">((</span><span class="n">request</span><span class="p">,</span> <span class="n">user</span><span class="p">))</span>
                 <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">tasks</span><span class="p">)</span>
@@ -2868,12 +2868,12 @@ as broken for some time.</p>
                 <span class="n">request</span><span class="o">.</span><span class="n">batteries</span>
             <span class="p">)</span>
         <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-            <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)))</span>
+            <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)))</span>
             <span class="k">continue</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pairs_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;No data for the given batteries </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">batteries</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)))</span>
+            <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)))</span>
             <span class="k">continue</span>
 
         <span class="k">try</span><span class="p">:</span>
@@ -2882,7 +2882,7 @@ as broken for some time.</p>
             <span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
             <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Couldn&#39;t distribute power, error: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)))</span>
+            <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">Error</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)))</span>
             <span class="k">continue</span>
 
         <span class="n">distributed_power_value</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">power</span> <span class="o">-</span> <span class="n">distribution</span><span class="o">.</span><span class="n">remaining_power</span>
@@ -2906,8 +2906,8 @@ as broken for some time.</p>
             <span class="n">succeed_batteries</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">battery_distribution</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">-</span> <span class="n">failed_batteries</span>
             <span class="n">response</span> <span class="o">=</span> <span class="n">PartialFailure</span><span class="p">(</span>
                 <span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span>
-                <span class="n">succeed_power</span><span class="o">=</span><span class="n">distributed_power_value</span><span class="p">,</span>
-                <span class="n">succeed_batteries</span><span class="o">=</span><span class="n">succeed_batteries</span><span class="p">,</span>
+                <span class="n">succeeded_power</span><span class="o">=</span><span class="n">distributed_power_value</span><span class="p">,</span>
+                <span class="n">succeeded_batteries</span><span class="o">=</span><span class="n">succeed_batteries</span><span class="p">,</span>
                 <span class="n">failed_power</span><span class="o">=</span><span class="n">failed_power</span><span class="p">,</span>
                 <span class="n">failed_batteries</span><span class="o">=</span><span class="n">failed_batteries</span><span class="p">,</span>
                 <span class="n">excess_power</span><span class="o">=</span><span class="n">distribution</span><span class="o">.</span><span class="n">remaining_power</span><span class="p">,</span>
@@ -2916,8 +2916,8 @@ as broken for some time.</p>
             <span class="n">succeed_batteries</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">battery_distribution</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
             <span class="n">response</span> <span class="o">=</span> <span class="n">Success</span><span class="p">(</span>
                 <span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span>
-                <span class="n">succeed_power</span><span class="o">=</span><span class="n">distributed_power_value</span><span class="p">,</span>
-                <span class="n">used_batteries</span><span class="o">=</span><span class="n">succeed_batteries</span><span class="p">,</span>
+                <span class="n">succeeded_power</span><span class="o">=</span><span class="n">distributed_power_value</span><span class="p">,</span>
+                <span class="n">succeeded_batteries</span><span class="o">=</span><span class="n">succeed_batteries</span><span class="p">,</span>
                 <span class="n">excess_power</span><span class="o">=</span><span class="n">distribution</span><span class="o">.</span><span class="n">remaining_power</span><span class="p">,</span>
             <span class="p">)</span>
 

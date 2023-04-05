@@ -560,6 +560,53 @@
     Request
   </a>
   
+    <nav class="md-nav" aria-label="Request">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.power_distributing.request.Request-attributes" class="md-nav__link">
+    Attributes
+  </a>
+  
+    <nav class="md-nav" aria-label="Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.power_distributing.request.Request.adjust_power" class="md-nav__link">
+    adjust_power
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.power_distributing.request.Request.batteries" class="md-nav__link">
+    batteries
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.power_distributing.request.Request.power" class="md-nav__link">
+    power
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.power_distributing.request.Request.request_timeout_sec" class="md-nav__link">
+    request_timeout_sec
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -921,6 +968,53 @@
     Request
   </a>
   
+    <nav class="md-nav" aria-label="Request">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.power_distributing.request.Request-attributes" class="md-nav__link">
+    Attributes
+  </a>
+  
+    <nav class="md-nav" aria-label="Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.power_distributing.request.Request.adjust_power" class="md-nav__link">
+    adjust_power
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.power_distributing.request.Request.batteries" class="md-nav__link">
+    batteries
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.power_distributing.request.Request.power" class="md-nav__link">
+    power
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.power_distributing.request.Request.request_timeout_sec" class="md-nav__link">
+    request_timeout_sec
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -996,13 +1090,12 @@
   <div class="doc doc-contents ">
 
   
-      <p>Request from the user.</p>
+      <p>Request to set power to the <code>PowerDistributingActor</code>.</p>
 
 
         <details class="quote">
           <summary>Source code in <code>/home/runner/.local/lib/python3.8/site-packages/frequenz/sdk/actor/power_distributing/request.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 9</span>
-<span class="normal">10</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">10</span>
 <span class="normal">11</span>
 <span class="normal">12</span>
 <span class="normal">13</span>
@@ -1015,21 +1108,36 @@
 <span class="normal">20</span>
 <span class="normal">21</span>
 <span class="normal">22</span>
-<span class="normal">23</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span> <span class="nc">Request</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Request from the user.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Request to set power to the `PowerDistributingActor`.&quot;&quot;&quot;</span>
 
-    <span class="c1"># How much power to set</span>
     <span class="n">power</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="c1"># In which batteries the power should be set</span>
-    <span class="n">batteries</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
-    <span class="c1"># Timeout for the server to respond on the requests.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The requested power in watts.&quot;&quot;&quot;</span>
+
+    <span class="n">batteries</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The component ids of the batteries to be used for this request.&quot;&quot;&quot;</span>
+
     <span class="n">request_timeout_sec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span>
-    <span class="c1"># If True and requested power value is above upper bound, then the power will be</span>
-    <span class="c1"># decreased to match the bounds. Only the decreased power will be set.</span>
-    <span class="c1"># If False and the requested power is above upper bound, then request won&#39;t</span>
-    <span class="c1"># be processed. result.OutOfBound message will be send back to the user.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The maximum amount of time to wait for the request to be fulfilled.&quot;&quot;&quot;</span>
+
     <span class="n">adjust_power</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Whether to adjust the power to match the bounds.</span>
+
+<span class="sd">    If `True`, the power will be adjusted (lowered) to match the bounds, so</span>
+<span class="sd">    only the reduced power will be set.</span>
+
+<span class="sd">    If `False` and the power is outside the batteries&#39; bounds, the request will</span>
+<span class="sd">    fail and be replied to with an `OutOfBound` result.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
         </details>
 
@@ -1041,7 +1149,95 @@
 
 
 
+<h5 id="frequenz.sdk.actor.power_distributing.request.Request-attributes">Attributes<a href="#frequenz.sdk.actor.power_distributing.request.Request-attributes" class="headerlink" title="Permanent link">¤</a></h5>
 
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.actor.power_distributing.request.Request.adjust_power" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">adjust_power</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.actor.power_distributing.request.Request.adjust_power" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Whether to adjust the power to match the bounds.</p>
+<p>If <code>True</code>, the power will be adjusted (lowered) to match the bounds, so
+only the reduced power will be set.</p>
+<p>If <code>False</code> and the power is outside the batteries' bounds, the request will
+fail and be replied to with an <code>OutOfBound</code> result.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.actor.power_distributing.request.Request.batteries" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">batteries</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.actor.power_distributing.request.Request.batteries" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The component ids of the batteries to be used for this request.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.actor.power_distributing.request.Request.power" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">power</span><span class="p">:</span> <span class="nb">int</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.actor.power_distributing.request.Request.power" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The requested power in watts.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.actor.power_distributing.request.Request.request_timeout_sec" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">request_timeout_sec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.actor.power_distributing.request.Request.request_timeout_sec" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The maximum amount of time to wait for the request to be fulfilled.</p>
+  </div>
+
+</div>
 
 
 
