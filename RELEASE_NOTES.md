@@ -8,6 +8,10 @@
 
 * Update BatteryStatus to mark battery with unknown capacity as not working (#263)
 * The channels dependency was updated to v0.14.0 (#292)
+* Some properties for `PowerDistributingActor` results were renamed to be more consistent between `Success` and `PartialFailure`:
+  * The `Success.used_batteries` property was renamed to `succeeded_batteries`.
+  * The `PartialFailure.success_batteries` property was renamed to `succeeded_batteries`.
+  * The `succeed_power` property was renamed to `succeeded_power` for both `Success` and `PartialFailure`.
 
 ## New Features
 
@@ -22,6 +26,7 @@
       )
       grid_power = microgrid.logical_meter().grid_power()
   ```
+* The `Result` class (and subclasses) for the `PowerDistributingActor` are now dataclasses, so logging them will produce a more detailed output.
 
 ## Bug Fixes
 

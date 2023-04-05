@@ -179,7 +179,7 @@ class TestPowerDistributingActor:
 
         result: Result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeed_power == 1000
+        assert result.succeeded_power == 1000
         assert result.excess_power == 200
         assert result.request == request
 
@@ -238,8 +238,8 @@ class TestPowerDistributingActor:
 
         result: Result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.used_batteries == {206}
-        assert result.succeed_power == 500
+        assert result.succeeded_batteries == {206}
+        assert result.succeeded_power == 500
         assert result.excess_power == 700
         assert result.request == request
 
@@ -291,8 +291,8 @@ class TestPowerDistributingActor:
 
         result: Result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.used_batteries == {206}
-        assert result.succeed_power == 500
+        assert result.succeeded_batteries == {206}
+        assert result.succeeded_power == 500
         assert result.excess_power == 700
         assert result.request == request
 
@@ -360,8 +360,8 @@ class TestPowerDistributingActor:
 
         result: Result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.used_batteries == {206}
-        assert result.succeed_power == 1000
+        assert result.succeeded_batteries == {206}
+        assert result.succeeded_power == 1000
         assert result.excess_power == 200
         assert result.request == request
 
@@ -695,7 +695,7 @@ class TestPowerDistributingActor:
 
         result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeed_power == 1000
+        assert result.succeeded_power == 1000
         assert result.excess_power == 0
         assert result.request == request
 
@@ -739,5 +739,5 @@ class TestPowerDistributingActor:
         result = done.pop().result()
         assert isinstance(result, Success)
         assert result.excess_power == 700
-        assert result.succeed_power == 500
+        assert result.succeeded_power == 500
         assert result.request == request
