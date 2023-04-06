@@ -23,7 +23,7 @@ class TestFormulaComposition:
         mocker: MockerFixture,
     ) -> None:
         """Test the composition of formulas."""
-        mockgrid = MockMicrogrid(grid_side_meter=False, sample_rate_s=0.05)
+        mockgrid = MockMicrogrid(grid_side_meter=False, sample_rate_s=0.1)
         mockgrid.add_batteries(3)
         mockgrid.add_solar_inverters(2)
         await mockgrid.start(mocker)
