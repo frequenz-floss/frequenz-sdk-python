@@ -126,7 +126,7 @@ class TestFormulaComposition:
         ev_pool = microgrid.ev_charger_pool()
 
         grid_current_recv = await logical_meter.grid_current()
-        ev_current_recv = await ev_pool.total_current()
+        ev_current_recv = await ev_pool.current()
 
         engine = (grid_current_recv.clone() - ev_current_recv.clone()).build(
             "net_current"
