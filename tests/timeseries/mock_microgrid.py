@@ -25,7 +25,7 @@ from frequenz.sdk.microgrid.component import (
     EVChargerComponentState,
     InverterType,
 )
-from tests.utils.mock_microgrid_client import MockMicrogridClient
+from tests.utils import MockMicrogridClient
 
 from ..utils.component_data_wrapper import (
     BatteryDataWrapper,
