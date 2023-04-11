@@ -11,6 +11,7 @@ ResamplingActor.
 from __future__ import annotations
 
 import typing
+from collections import abc
 from dataclasses import dataclass
 from datetime import timedelta
 
@@ -33,8 +34,10 @@ if typing.TYPE_CHECKING:
         Request,
         Result,
     )
+    from ..timeseries.battery_pool import BatteryPool
     from ..timeseries.ev_charger_pool import EVChargerPool
     from ..timeseries.logical_meter import LogicalMeter
+
 
 _REQUEST_RECV_BUFFER_SIZE = 500
 """The maximum number of requests that can be queued in the request receiver.
@@ -78,6 +81,7 @@ class _DataPipeline:
         self._data_sourcing_actor: _ActorInfo | None = None
         self._resampling_actor: _ActorInfo | None = None
 
+        self._battery_status_channel = Broadcast["BatteryStatus"]("battery-status")
         self._power_distribution_channel = Bidirectional["Request", "Result"](
             "Default", "Power Distributing Actor"
         )
@@ -86,6 +90,7 @@ class _DataPipeline:
 
         self._logical_meter: "LogicalMeter" | None = None
         self._ev_charger_pools: dict[frozenset[int], "EVChargerPool"] = {}
+        self._battery_pools: dict[frozenset[int], "BatteryPool"] = {}
 
     def logical_meter(self) -> LogicalMeter:
         """Return the logical meter instance.
@@ -116,7 +121,7 @@ class _DataPipeline:
         created and returned.
 
         Args:
-            ev_charger_ids: Optional set of IDs of EV Charger to be managed by the
+            ev_charger_ids: Optional set of IDs of EV Chargers to be managed by the
                 EVChargerPool.
 
         Returns:
@@ -136,6 +141,43 @@ class _DataPipeline:
                 component_ids=ev_charger_ids,
             )
         return self._ev_charger_pools[key]
+
+    def battery_pool(
+        self,
+        battery_ids: abc.Set[int] | None = None,
+    ) -> BatteryPool:
+        """Return the corresponding BatteryPool instance for the given ids.
+
+        If a BatteryPool instance for the given ids doesn't exist, a new one is created
+        and returned.
+
+        Args:
+            battery_ids: Optional set of IDs of batteries to be managed by the
+                BatteryPool.
+
+        Returns:
+            A BatteryPool instance.
+        """
+        from ..timeseries.battery_pool import BatteryPool
+
+        if not self._power_distributing_actor:
+            self._start_power_distributing_actor()
+
+        # We use frozenset to make a hashable key from the input set.
+        key: frozenset[int] = frozenset()
+        if battery_ids is not None:
+            key = frozenset(battery_ids)
+
+        if key not in self._battery_pools:
+            self._battery_pools[key] = BatteryPool(
+                batteries_status_receiver=self._battery_status_channel.new_receiver(),
+                min_update_interval=timedelta(
+                    seconds=self._resampler_config.resampling_period_s
+                ),
+                batteries_id=battery_ids,
+            )
+
+        return self._battery_pools[key]
 
     def power_distributing_handle(self) -> Bidirectional.Handle[Request, Result]:
         """Return the handle to the power distributing actor.
