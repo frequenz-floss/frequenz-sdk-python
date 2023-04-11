@@ -123,7 +123,7 @@ class PowerDistributingActor:
         client_handle = channel.client_handle
 
         # Set power 1200W to given batteries.
-        request = Request(power=1200, batteries=batteries_ids, request_timeout_sec=10.0)
+        request = Request(power=1200.0, batteries=batteries_ids, request_timeout_sec=10.0)
         await client_handle.send(request)
 
         # It is recommended to use timeout when waiting for the response!
@@ -208,7 +208,7 @@ class PowerDistributingActor:
             )
         return tasks
 
-    def _get_upper_bound(self, batteries: Set[int]) -> int:
+    def _get_upper_bound(self, batteries: Set[int]) -> float:
         """Get total upper bound of power to be set for given batteries.
 
         Note, output of that function doesn't guarantee that this bound will be
@@ -227,7 +227,7 @@ class PowerDistributingActor:
         )
         return floor(bound)
 
-    def _get_lower_bound(self, batteries: Set[int]) -> int:
+    def _get_lower_bound(self, batteries: Set[int]) -> float:
         """Get total lower bound of power to be set for given batteries.
 
         Note, output of that function doesn't guarantee that this bound will be
@@ -338,7 +338,7 @@ class PowerDistributingActor:
         api: MicrogridApiClient,
         distribution: DistributionResult,
         timeout_sec: float,
-    ) -> Tuple[int, Set[int]]:
+    ) -> Tuple[float, Set[int]]:
         """Send distributed power to the inverters.
 
         Args:
@@ -688,9 +688,9 @@ class PowerDistributingActor:
         self,
         # type comment to quiet pylint and mypy `unused-import` error
         tasks,  # type: Dict[int, asyncio.Task[Empty]]
-        distribution: Dict[int, int],
+        distribution: Dict[int, float],
         request_timeout_sec: float,
-    ) -> Tuple[int, Set[int]]:
+    ) -> Tuple[float, Set[int]]:
         """Parse the results of `set_power` requests.
 
         Check if any task has failed and determine the reason for failure.
@@ -707,7 +707,7 @@ class PowerDistributingActor:
             A tuple where the first element is the total failed power, and the second element is
             the set of batteries that failed.
         """
-        failed_power: int = 0
+        failed_power: float = 0.0
         failed_batteries: Set[int] = set()
 
         for inverter_id, aws in tasks.items():

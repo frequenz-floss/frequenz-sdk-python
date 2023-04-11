@@ -11,7 +11,7 @@ import dataclasses
 class Request:
     """Request to set power to the `PowerDistributingActor`."""
 
-    power: int
+    power: float
     """The requested power in watts."""
 
     batteries: set[int]

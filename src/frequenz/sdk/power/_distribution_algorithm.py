@@ -27,14 +27,14 @@ class InvBatPair(NamedTuple):
 class DistributionResult:
     """Distribution result."""
 
-    distribution: Dict[int, int]
+    distribution: Dict[int, float]
     """The power to be set for each inverter.
 
     The key is inverter ID, and the value is the power that should be set for
     that inverter.
     """
 
-    remaining_power: int
+    remaining_power: float
     """The power which could not be distributed because of bounds."""
 
 
@@ -309,9 +309,9 @@ class DistributionAlgorithm:
     def _distribute_power(
         self,
         components: List[InvBatPair],
-        power_w: int,
+        power_w: float,
         available_soc: Dict[int, float],
-        upper_bounds: Dict[int, int],
+        upper_bounds: Dict[int, float],
     ) -> DistributionResult:
         # pylint: disable=too-many-locals
         """Distribute power between given components.
@@ -337,15 +337,15 @@ class DistributionAlgorithm:
             sum_ratio,
         ) = self._compute_battery_availability_ratio(components, available_soc)
 
-        distribution: Dict[int, int] = {}
+        distribution: Dict[int, float] = {}
 
         # sum_ratio == 0 means that all batteries are fully charged / discharged
         if sum_ratio == 0.0:
             distribution = {inverter.component_id: 0 for _, inverter in components}
             return DistributionResult(distribution, power_w)
 
-        distributed_power = 0
-        power_to_distribute: int = power_w
+        distributed_power: float = 0.0
+        power_to_distribute: float = power_w
         used_ratio: float = 0.0
         ratio = sum_ratio
         for pair, battery_ratio in battery_availability_ratio:
@@ -353,7 +353,7 @@ class DistributionAlgorithm:
             # ratio = 0, means all remaining batteries reach max SoC lvl or have no
             # capacity
             if ratio == 0.0:
-                distribution[inverter.component_id] = 0
+                distribution[inverter.component_id] = 0.0
                 continue
 
             distribution[inverter.component_id] = floor(
@@ -379,9 +379,9 @@ class DistributionAlgorithm:
 
     def _greedy_distribute_remaining_power(
         self,
-        distribution: Dict[int, int],
-        upper_bounds: Dict[int, int],
-        remaining_power: int,
+        distribution: Dict[int, float],
+        upper_bounds: Dict[int, float],
+        remaining_power: float,
     ) -> DistributionResult:
         """Add remaining power greedily to the given distribution.
 
@@ -396,16 +396,16 @@ class DistributionAlgorithm:
         Returns:
             Return the power for each inverter in given distribution.
         """
-        if remaining_power == 0:
+        if remaining_power == 0.0:
             return DistributionResult(distribution, remaining_power)
 
-        new_distribution: Dict[int, int] = {}
+        new_distribution: Dict[int, float] = {}
 
         for inverter_id, power in distribution.items():
-            if remaining_power == 0 or power == 0:
+            if remaining_power == 0.0 or power == 0.0:
                 new_distribution[inverter_id] = power
             else:
-                remaining_power_capacity: int = upper_bounds[inverter_id] - power
+                remaining_power_capacity: float = upper_bounds[inverter_id] - power
                 to_add = min(remaining_power_capacity, remaining_power)
                 new_distribution[inverter_id] = power + to_add
                 remaining_power -= to_add
@@ -413,7 +413,7 @@ class DistributionAlgorithm:
         return DistributionResult(new_distribution, remaining_power)
 
     def distribute_power(
-        self, power: int, components: List[InvBatPair]
+        self, power: float, components: List[InvBatPair]
     ) -> DistributionResult:
         """Distribute given power between given components.
 
@@ -425,12 +425,12 @@ class DistributionAlgorithm:
         Returns:
             Distribution result
         """
-        if power >= 0:
+        if power >= 0.0:
             return self._distribute_consume_power(power, components)
         return self._distribute_supply_power(power, components)
 
     def _distribute_consume_power(
-        self, power_w: int, components: List[InvBatPair]
+        self, power_w: float, components: List[InvBatPair]
     ) -> DistributionResult:
         """Distribute power between the given components.
 
@@ -455,7 +455,7 @@ class DistributionAlgorithm:
                 0.0, battery.soc_upper_bound - battery.soc
             )
 
-        bounds: Dict[int, int] = {}
+        bounds: Dict[int, float] = {}
         for battery, inverter in components:
             # We can supply/consume with int only
             inverter_bound = inverter.active_power_upper_bound
@@ -471,7 +471,7 @@ class DistributionAlgorithm:
         )
 
     def _distribute_supply_power(
-        self, power_w: int, components: List[InvBatPair]
+        self, power_w: float, components: List[InvBatPair]
     ) -> DistributionResult:
         """Distribute power between the given components.
 
@@ -493,7 +493,7 @@ class DistributionAlgorithm:
                 0.0, battery.soc - battery.soc_lower_bound
             )
 
-        bounds: Dict[int, int] = {}
+        bounds: Dict[int, float] = {}
         for battery, inverter in components:
             # We can consume with int only
             inverter_bound = inverter.active_power_lower_bound
