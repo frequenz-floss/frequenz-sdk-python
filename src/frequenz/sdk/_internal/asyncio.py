@@ -13,11 +13,15 @@ from typing import Any
 async def cancel_and_await(task: asyncio.Task[Any]) -> None:
     """Cancel a task and wait for it to finish.
 
+    Exits immediately if the task is already done.
+
     The `CancelledError` is suppresed, but any other exception will be propagated.
 
     Args:
         task: The task to be cancelled and waited for.
     """
+    if task.done():
+        return
     task.cancel()
     try:
         await task
