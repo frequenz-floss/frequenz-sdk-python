@@ -55,7 +55,7 @@ class BoundsSetter:
 
         Args:
             component_id: ID of EV Charger to set the current bounds to.
-            max_amps: Current bound value to set for the EV Charger.
+            max_amps: maximum current in amps, that an EV can draw from this EV Charger.
         """
         await self._bounds_tx.send(ComponentCurrentLimit(component_id, max_amps))
 
