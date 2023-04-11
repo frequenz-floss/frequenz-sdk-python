@@ -5,7 +5,7 @@
 
 import random
 import timeit
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, TypeVar
 
 import numpy as np
@@ -23,7 +23,7 @@ T = TypeVar("T")
 def fill_buffer(days: int, buffer: OrderedRingBuffer[Any]) -> None:
     """Fill the given buffer up to the given amount of days, one sample per minute."""
     random.seed(0)
-    basetime = datetime(2022, 1, 1)
+    basetime = datetime(2022, 1, 1, tzinfo=timezone.utc)
     print("..filling", end="", flush=True)
 
     for day in range(days):
@@ -36,7 +36,7 @@ def fill_buffer(days: int, buffer: OrderedRingBuffer[Any]) -> None:
 
 def test_days(days: int, buffer: OrderedRingBuffer[Any]) -> None:
     """Gets the data for each of the 29 days."""
-    basetime = datetime(2022, 1, 1)
+    basetime = datetime(2022, 1, 1, tzinfo=timezone.utc)
 
     for day in range(days):
         # pylint: disable=unused-variable
@@ -51,7 +51,7 @@ def test_slices(days: int, buffer: OrderedRingBuffer[Any], median: bool) -> None
     Takes a buffer, fills it up and then excessively gets
     the data for each day to calculate the average/median.
     """
-    basetime = datetime(2022, 1, 1)
+    basetime = datetime(2022, 1, 1, tzinfo=timezone.utc)
 
     total = 0.0
 

@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 import pickle
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from os.path import exists
 
 from ._ringbuffer import FloatArray, OrderedRingBuffer
@@ -25,7 +25,7 @@ class SerializableRingBuffer(OrderedRingBuffer[FloatArray]):
         buffer: FloatArray,
         sampling_period: timedelta,
         path: str,
-        time_index_alignment: datetime = datetime(1, 1, 1),
+        time_index_alignment: datetime = datetime(1, 1, 1, tzinfo=timezone.utc),
     ) -> None:
         """Initialize the time aware ringbuffer.
 
