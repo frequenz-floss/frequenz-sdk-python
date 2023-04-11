@@ -3321,12 +3321,12 @@ instance.</p>
 <span class="sd">    Example:</span>
 <span class="sd">        If `resampling_period_s` is 3, the input sampling period is</span>
 <span class="sd">        1 and `max_data_age_in_periods` is 2, then data older than 3*2</span>
-<span class="sd">        = 6 secods will be discarded when creating a new sample and never</span>
+<span class="sd">        = 6 seconds will be discarded when creating a new sample and never</span>
 <span class="sd">        passed to the resampling function.</span>
 
 <span class="sd">        If `resampling_period_s` is 3, the input sampling period is</span>
 <span class="sd">        5 and `max_data_age_in_periods` is 2, then data older than 5*2</span>
-<span class="sd">        = 10 secods will be discarded when creating a new sample and never</span>
+<span class="sd">        = 10 seconds will be discarded when creating a new sample and never</span>
 <span class="sd">        passed to the resampling function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -3352,7 +3352,7 @@ instance.</p>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The minimum length of the resampling buffer that will emit a warning.</span>
 
 <span class="sd">    If a buffer grows bigger than this value, it will emit a warning in the</span>
-<span class="sd">    logs, so buffers don&#39;t grow too big inadvertly.</span>
+<span class="sd">    logs, so buffers don&#39;t grow too big inadvertently.</span>
 
 <span class="sd">    It must be at least 1 and at most `max_buffer_len`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -3499,11 +3499,11 @@ the resampling period).</p>
   <summary>Example</summary>
   <p>If <code>resampling_period_s</code> is 3, the input sampling period is
 1 and <code>max_data_age_in_periods</code> is 2, then data older than 3*2
-= 6 secods will be discarded when creating a new sample and never
+= 6 seconds will be discarded when creating a new sample and never
 passed to the resampling function.</p>
 <p>If <code>resampling_period_s</code> is 3, the input sampling period is
 5 and <code>max_data_age_in_periods</code> is 2, then data older than 5*2
-= 10 secods will be discarded when creating a new sample and never
+= 10 seconds will be discarded when creating a new sample and never
 passed to the resampling function.</p>
 </details>  </div>
 
@@ -3574,7 +3574,7 @@ value.</p>
   
       <p>The minimum length of the resampling buffer that will emit a warning.</p>
 <p>If a buffer grows bigger than this value, it will emit a warning in the
-logs, so buffers don't grow too big inadvertly.</p>
+logs, so buffers don't grow too big inadvertently.</p>
 <p>It must be at least 1 and at most <code>max_buffer_len</code>.</p>
   </div>
 
