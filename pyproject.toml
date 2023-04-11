@@ -53,7 +53,7 @@ docs-gen = [
     "mkdocs-literate-nav == 0.6.0",
     "mkdocs-material == 9.1.6",
     "mkdocs-section-index == 0.3.5",
-    "mkdocstrings[python] == 0.21.1",
+    "mkdocstrings[python] == 0.21.2",
 ]
 docs-lint = [
     "pydocstyle == 6.3.0",
