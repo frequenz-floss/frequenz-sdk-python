@@ -1716,8 +1716,9 @@ created and returned.</p>
         <tr>
           <td><code>ev_charger_ids</code></td>
           <td class="doc-param-details">
-            <p>Optional set of IDs of EV Charger to be managed by the
-EVChargerPool.</p>
+            <p>Optional set of IDs of EV Chargers to be managed by the
+EVChargerPool.  If not specified, all EV Chargers available in the
+component graph are used.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1769,15 +1770,17 @@ EVChargerPool.</p>
 <span class="normal">306</span>
 <span class="normal">307</span>
 <span class="normal">308</span>
-<span class="normal">309</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">ev_charger_pool</span><span class="p">(</span><span class="n">ev_charger_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EVChargerPool</span><span class="p">:</span>
+<span class="normal">309</span>
+<span class="normal">310</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">ev_charger_pool</span><span class="p">(</span><span class="n">ev_charger_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EVChargerPool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the corresponding EVChargerPool instance for the given ids.</span>
 
 <span class="sd">    If an EVChargerPool instance for the given ids doesn&#39;t exist, a new one is</span>
 <span class="sd">    created and returned.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        ev_charger_ids: Optional set of IDs of EV Charger to be managed by the</span>
-<span class="sd">            EVChargerPool.</span>
+<span class="sd">        ev_charger_ids: Optional set of IDs of EV Chargers to be managed by the</span>
+<span class="sd">            EVChargerPool.  If not specified, all EV Chargers available in the</span>
+<span class="sd">            component graph are used.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        An EVChargerPool instance.</span>
