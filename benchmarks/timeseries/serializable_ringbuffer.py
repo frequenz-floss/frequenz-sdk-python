@@ -8,7 +8,7 @@ from __future__ import annotations
 import fnmatch
 import os
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import numpy as np
@@ -68,7 +68,12 @@ def main() -> None:
 
     for i in range(0, SIZE, 10000):
         ringbuffer.update(
-            Sample(datetime.fromtimestamp(200 + i * FIVE_MINUTES.total_seconds()), i)
+            Sample(
+                datetime.fromtimestamp(
+                    200 + i * FIVE_MINUTES.total_seconds(), tz=timezone.utc
+                ),
+                i,
+            )
         )
 
     print(

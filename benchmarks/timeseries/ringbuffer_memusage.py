@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import argparse
 import tracemalloc
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import numpy as np
 
@@ -71,7 +71,12 @@ def main(ringbuffer_len: int, iterations: int, gap_size: int) -> None:
 
     for i in range(0, ringbuffer_len * iterations, gap_size + 1):
         ringbuffer.update(
-            Sample(datetime.fromtimestamp(200 + i * FIVE_MINUTES.total_seconds()), i)
+            Sample(
+                datetime.fromtimestamp(
+                    200 + i * FIVE_MINUTES.total_seconds(), tz=timezone.utc
+                ),
+                i,
+            )
         )
 
     # Snapshot memory allocations after ringbuffer update
