@@ -300,13 +300,40 @@ def ev_charger_pool(ev_charger_ids: set[int] | None = None) -> EVChargerPool:
     created and returned.
 
     Args:
-        ev_charger_ids: Optional set of IDs of EV Charger to be managed by the
-            EVChargerPool.
+        ev_charger_ids: Optional set of IDs of EV Chargers to be managed by the
+            EVChargerPool.  If not specified, all EV Chargers available in the
+            component graph are used.
 
     Returns:
         An EVChargerPool instance.
     """
     return _get().ev_charger_pool(ev_charger_ids)
+
+
+def battery_pool(battery_ids: abc.Set[int] | None = None) -> BatteryPool:
+    """Return the corresponding BatteryPool instance for the given ids.
+
+    If a BatteryPool instance for the given ids doesn't exist, a new one is
+    created and returned.
+
+    Args:
+        battery_ids: Optional set of IDs of batteries to be managed by the
+            BatteryPool.  If not specified, all batteries available in the
+            component graph are used.
+
+    Returns:
+        A BatteryPool instance.
+    """
+    return _get().battery_pool(battery_ids)
+
+
+def power_distributing_handle() -> Bidirectional.Handle[Request, Result]:
+    """Return the handle to the power distributing actor.
+
+    Returns:
+        A Bidirectional handle to communicate with the power distributing actor.
+    """
+    return _get().power_distributing_handle()
 
 
 def _get() -> _DataPipeline:
