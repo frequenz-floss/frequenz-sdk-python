@@ -301,7 +301,8 @@ def ev_charger_pool(ev_charger_ids: set[int] | None = None) -> EVChargerPool:
 
     Args:
         ev_charger_ids: Optional set of IDs of EV Chargers to be managed by the
-            EVChargerPool.
+            EVChargerPool.  If not specified, all EV Chargers available in the
+            component graph are used.
 
     Returns:
         An EVChargerPool instance.
@@ -317,7 +318,8 @@ def battery_pool(battery_ids: abc.Set[int] | None = None) -> BatteryPool:
 
     Args:
         battery_ids: Optional set of IDs of batteries to be managed by the
-            BatteryPool.
+            BatteryPool.  If not specified, all batteries available in the
+            component graph are used.
 
     Returns:
         A BatteryPool instance.
