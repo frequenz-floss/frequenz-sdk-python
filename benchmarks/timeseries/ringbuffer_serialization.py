@@ -1,7 +1,7 @@
 # License: MIT
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
-"""Benchmarks the `SerializableRingbuffer` class."""
+"""Benchmarks the serialization of the `OrderedRingBuffer` class."""
 
 from __future__ import annotations
 
@@ -13,8 +13,9 @@ from typing import Any
 
 import numpy as np
 
+import frequenz.sdk.timeseries._ringbuffer_serialization as io
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._serializable_ringbuffer import SerializableRingBuffer
+from frequenz.sdk.timeseries._ringbuffer import OrderedRingBuffer
 
 FILE_NAME = "ringbuffer.pkl"
 FIVE_MINUTES = timedelta(minutes=5)
@@ -37,7 +38,7 @@ def delete_files_with_prefix(prefix: str) -> None:
 
 
 def benchmark_serialization(
-    ringbuffer: SerializableRingBuffer[Any], iterations: int
+    ringbuffer: OrderedRingBuffer[Any], iterations: int
 ) -> float:
     """Benchmark the given buffer `iteration` times.
 
@@ -48,8 +49,8 @@ def benchmark_serialization(
     total = 0.0
     for _ in range(iterations):
         start = time.time()
-        ringbuffer.dump()
-        SerializableRingBuffer.load(FILE_NAME)
+        io.dump(ringbuffer, FILE_NAME)
+        io.load(FILE_NAME)
         end = time.time()
         total += end - start
         delete_files_with_prefix(FILE_NAME)
@@ -59,8 +60,8 @@ def benchmark_serialization(
 
 def main() -> None:
     """Run Benchmark."""
-    ringbuffer = SerializableRingBuffer(
-        np.arange(0, SIZE, dtype=np.float64), timedelta(minutes=5), FILE_NAME
+    ringbuffer = OrderedRingBuffer(
+        np.arange(0, SIZE, dtype=np.float64), timedelta(minutes=5)
     )
 
     print("size:", SIZE)
