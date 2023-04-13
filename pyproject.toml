@@ -134,12 +134,6 @@ src_paths = ["src", "examples", "tests"]
 asyncio_mode = "auto"
 required_plugins = [ "pytest-asyncio", "pytest-mock" ]
 
-[tool.mypy]
-# This is a temporary hack, for details see:
-# * https://github.com/frequenz-floss/frequenz-sdk-python/pull/219
-# * https://github.com/frequenz-floss/frequenz-sdk-python/issues/226
-exclude = ["src/frequenz/sdk/timeseries/_formula_engine/"]
-
 [[tool.mypy.overrides]]
 module = [
     "grpc.aio",
