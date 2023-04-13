@@ -12,16 +12,15 @@ from typing import Any
 import numpy as np
 import pytest
 
-import frequenz.sdk.timeseries._ringbuffer_serialization as io
+import frequenz.sdk.timeseries._ringbuffer as rb
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._ringbuffer import OrderedRingBuffer
 
 FIVE_MINUTES = timedelta(minutes=5)
 _29_DAYS = 60 * 24 * 29
 ONE_MINUTE = timedelta(minutes=1)
 
 
-def load_dump_test(dumped: OrderedRingBuffer[Any], path: str) -> None:
+def load_dump_test(dumped: rb.OrderedRingBuffer[Any], path: str) -> None:
     """Test ordered ring buffer."""
     size = dumped.maxlen
 
@@ -43,11 +42,11 @@ def load_dump_test(dumped: OrderedRingBuffer[Any], path: str) -> None:
             )
         )
 
-    io.dump(dumped, path)
+    rb.dump(dumped, path)
 
     # Load old data
     # pylint: disable=protected-access
-    loaded = io.load(path)
+    loaded = rb.load(path)
     assert loaded is not None
 
     np.testing.assert_equal(dumped[:], loaded[:])
@@ -73,7 +72,7 @@ def test_load_dump_short(tmp_path_factory: pytest.TempPathFactory) -> None:
     tmpdir = tmp_path_factory.mktemp("load_dump")
 
     load_dump_test(
-        OrderedRingBuffer(
+        rb.OrderedRingBuffer(
             [0.0] * int(24 * FIVE_MINUTES.total_seconds()),
             FIVE_MINUTES,
             datetime(2, 2, 2, tzinfo=timezone.utc),
@@ -82,7 +81,7 @@ def test_load_dump_short(tmp_path_factory: pytest.TempPathFactory) -> None:
     )
 
     load_dump_test(
-        OrderedRingBuffer(
+        rb.OrderedRingBuffer(
             np.empty(shape=(24 * int(FIVE_MINUTES.total_seconds()),), dtype=np.float64),
             FIVE_MINUTES,
             datetime(2, 2, 2, tzinfo=timezone.utc),
@@ -96,7 +95,7 @@ def test_load_dump(tmp_path_factory: pytest.TempPathFactory) -> None:
     tmpdir = tmp_path_factory.mktemp("load_dump")
 
     load_dump_test(
-        OrderedRingBuffer(
+        rb.OrderedRingBuffer(
             [0.0] * _29_DAYS,
             ONE_MINUTE,
             datetime(2, 2, 2, tzinfo=timezone.utc),
@@ -105,7 +104,7 @@ def test_load_dump(tmp_path_factory: pytest.TempPathFactory) -> None:
     )
 
     load_dump_test(
-        OrderedRingBuffer(
+        rb.OrderedRingBuffer(
             np.empty(shape=(_29_DAYS,), dtype=np.float64),
             ONE_MINUTE,
             datetime(2, 2, 2, tzinfo=timezone.utc),

@@ -14,7 +14,7 @@ from typing import Generic, List, SupportsFloat, SupportsIndex, TypeVar, overloa
 import numpy as np
 import numpy.typing as npt
 
-from . import Sample
+from .. import Sample
 
 FloatArray = TypeVar("FloatArray", List[float], npt.NDArray[np.float64])
 
