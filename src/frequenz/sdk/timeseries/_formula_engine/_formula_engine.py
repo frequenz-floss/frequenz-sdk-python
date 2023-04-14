@@ -159,6 +159,90 @@ class FormulaEvaluator:
         return Sample(metric_ts, res)
 
 
+_GenericEngine = TypeVar("_GenericEngine", "FormulaEngine", "FormulaEngine3Phase")
+_GenericHigherOrderBuilder = TypeVar(
+    "_GenericHigherOrderBuilder",
+    "HigherOrderFormulaBuilder",
+    "HigherOrderFormulaBuilder3Phase",
+)
+
+
+class _ComposableFormulaEngine(
+    ABC, Generic[_GenericEngine, _GenericHigherOrderBuilder]
+):
+    """A base class for formula engines."""
+
+    _higher_order_builder: Type[_GenericHigherOrderBuilder]
+    _task: asyncio.Task[None] | None = None
+
+    async def _stop(self) -> None:
+        """Stop a running formula engine."""
+        if self._task is None:
+            return
+        await cancel_and_await(self._task)
+
+    def __add__(
+        self,
+        other: _GenericEngine | _GenericHigherOrderBuilder,
+    ) -> _GenericHigherOrderBuilder:
+        """Return a formula builder that adds (data in) `other` to `self`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return self._higher_order_builder(self) + other  # type: ignore
+
+    def __sub__(
+        self, other: _GenericEngine | _GenericHigherOrderBuilder
+    ) -> _GenericHigherOrderBuilder:
+        """Return a formula builder that subtracts (data in) `other` from `self`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return self._higher_order_builder(self) - other  # type: ignore
+
+    def __mul__(
+        self, other: _GenericEngine | _GenericHigherOrderBuilder
+    ) -> _GenericHigherOrderBuilder:
+        """Return a formula builder that multiplies (data in) `self` with `other`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return self._higher_order_builder(self) * other  # type: ignore
+
+    def __truediv__(
+        self, other: _GenericEngine | _GenericHigherOrderBuilder
+    ) -> _GenericHigherOrderBuilder:
+        """Return a formula builder that divides (data in) `self` by `other`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return self._higher_order_builder(self) / other  # type: ignore
+
+
 class FormulaEngine:
     """
     The FormulaEngine evaluates formulas and streams the results.
