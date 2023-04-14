@@ -104,6 +104,7 @@ class EVChargerPool:
         """
         return self._component_ids
 
+    @property
     def current(self) -> FormulaEngine3Phase:
         """Fetch the total current for the EV Chargers in the pool.
 
@@ -123,6 +124,7 @@ class EVChargerPool:
             FormulaGeneratorConfig(component_ids=self._component_ids),
         )  # type: ignore[return-value]
 
+    @property
     def power(self) -> FormulaEngine:
         """Fetch the total power for the EV Chargers in the pool.
 

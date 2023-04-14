@@ -96,8 +96,8 @@ class TestEVChargerPool:
             mockgrid.main_meter_id,
             ComponentMetricId.ACTIVE_POWER,
         )
-        grid_power_recv = logical_meter.grid_power().new_receiver()
-        ev_power_recv = ev_pool.power().new_receiver()
+        grid_power_recv = logical_meter.grid_power.new_receiver()
+        ev_power_recv = ev_pool.power.new_receiver()
 
         await synchronize_receivers([grid_power_recv, main_meter_recv, ev_power_recv])
 

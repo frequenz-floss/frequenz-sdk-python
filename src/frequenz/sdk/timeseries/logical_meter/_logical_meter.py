@@ -140,6 +140,7 @@ class LogicalMeter:
             formula, component_metric_id, nones_are_zeros
         )
 
+    @property
     def grid_power(self) -> FormulaEngine:
         """Fetch the grid power for the microgrid.
 
@@ -157,6 +158,7 @@ class LogicalMeter:
             GridPowerFormula,
         )  # type: ignore[return-value]
 
+    @property
     def grid_current(self) -> FormulaEngine3Phase:
         """Fetch the grid power for the microgrid.
 
@@ -174,6 +176,7 @@ class LogicalMeter:
             GridCurrentFormula,
         )  # type: ignore[return-value]
 
+    @property
     def battery_power(self) -> FormulaEngine:
         """Fetch the cumulative battery power in the microgrid.
 
@@ -191,6 +194,7 @@ class LogicalMeter:
             BatteryPowerFormula,
         )  # type: ignore[return-value]
 
+    @property
     def pv_power(self) -> FormulaEngine:
         """Fetch the PV power production in the microgrid.
 
