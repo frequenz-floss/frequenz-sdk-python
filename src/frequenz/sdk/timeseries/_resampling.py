@@ -428,30 +428,6 @@ class Resampler:
             return False
         return True
 
-    async def _wait_for_next_resampling_period(self) -> None:
-        """Wait for next resampling period.
-
-        If resampling period already started, then return without sleeping.
-        That would allow us to catch up with resampling.
-        Print warning if function woke up to late.
-        """
-        now = datetime.now(tz=timezone.utc)
-        if self._window_end > now:
-            sleep_for = self._window_end - now
-            await asyncio.sleep(sleep_for.total_seconds())
-
-        timer_error_s = (now - self._window_end).total_seconds()
-        if timer_error_s > (self._config.resampling_period_s / 10.0):
-            _logger.warning(
-                "The resampling task woke up too late. Resampling should have started "
-                "at %s, but it started at %s (%s seconds difference; resampling "
-                "period is %s seconds)",
-                self._window_end,
-                now,
-                timer_error_s,
-                self._config.resampling_period_s,
-            )
-
     async def resample(self, *, one_shot: bool = False) -> None:
         """Start resampling all known timeseries.
 
@@ -492,6 +468,30 @@ class Resampler:
                 raise ResamplingError(exceptions)
             if one_shot:
                 break
+
+    async def _wait_for_next_resampling_period(self) -> None:
+        """Wait for next resampling period.
+
+        If resampling period already started, then return without sleeping.
+        That would allow us to catch up with resampling.
+        Print warning if function woke up to late.
+        """
+        now = datetime.now(tz=timezone.utc)
+        if self._window_end > now:
+            sleep_for = self._window_end - now
+            await asyncio.sleep(sleep_for.total_seconds())
+
+        timer_error_s = (now - self._window_end).total_seconds()
+        if timer_error_s > (self._config.resampling_period_s / 10.0):
+            _logger.warning(
+                "The resampling task woke up too late. Resampling should have started "
+                "at %s, but it started at %s (%s seconds difference; resampling "
+                "period is %s seconds)",
+                self._window_end,
+                now,
+                timer_error_s,
+                self._config.resampling_period_s,
+            )
 
 
 class _ResamplingHelper:
