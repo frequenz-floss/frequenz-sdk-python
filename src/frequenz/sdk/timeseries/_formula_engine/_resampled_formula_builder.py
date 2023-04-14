@@ -4,6 +4,8 @@
 """A builder for creating formula engines that operate on resampled component metrics."""
 
 
+from __future__ import annotations
+
 from frequenz.channels import Receiver, Sender
 
 from ...actor import ChannelRegistry, ComponentMetricRequest
@@ -40,9 +42,10 @@ class ResampledFormulaBuilder(FormulaBuilder):
         self._resampler_subscription_sender = resampler_subscription_sender
         self._namespace = namespace
         self._metric_id = metric_id
+        self._resampler_requests: list[ComponentMetricRequest] = []
         super().__init__(formula_name)
 
-    async def _get_resampled_receiver(
+    def _get_resampled_receiver(
         self, component_id: int, metric_id: ComponentMetricId
     ) -> Receiver[Sample]:
         """Get a receiver with the resampled data for the given component id.
@@ -55,10 +58,15 @@ class ResampledFormulaBuilder(FormulaBuilder):
             A receiver to stream resampled data for the given component id.
         """
         request = ComponentMetricRequest(self._namespace, component_id, metric_id, None)
-        await self._resampler_subscription_sender.send(request)
+        self._resampler_requests.append(request)
         return self._channel_registry.new_receiver(request.get_channel_name())
 
-    async def push_component_metric(
+    async def subscribe(self) -> None:
+        """Subscribe to all resampled component metric streams."""
+        for request in self._resampler_requests:
+            await self._resampler_subscription_sender.send(request)
+
+    def push_component_metric(
         self, component_id: int, *, nones_are_zeros: bool
     ) -> None:
         """Push a resampled component metric stream to the formula engine.
@@ -68,10 +76,10 @@ class ResampledFormulaBuilder(FormulaBuilder):
             nones_are_zeros: Whether to treat None values from the stream as 0s.  If
                 False, the returned value will be a None.
         """
-        receiver = await self._get_resampled_receiver(component_id, self._metric_id)
+        receiver = self._get_resampled_receiver(component_id, self._metric_id)
         self.push_metric(f"#{component_id}", receiver, nones_are_zeros)
 
-    async def from_string(
+    def from_string(
         self,
         formula: str,
         nones_are_zeros: bool,
@@ -99,7 +107,7 @@ class ResampledFormulaBuilder(FormulaBuilder):
 
         for token in tokenizer:
             if token.type == TokenType.COMPONENT_METRIC:
-                await self.push_component_metric(
+                self.push_component_metric(
                     int(token.value), nones_are_zeros=nones_are_zeros
                 )
             elif token.type == TokenType.OPER:
