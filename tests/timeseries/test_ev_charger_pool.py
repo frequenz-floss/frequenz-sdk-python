@@ -92,12 +92,12 @@ class TestEVChargerPool:
 
         ev_pool = microgrid.ev_charger_pool()
 
-        main_meter_recv = await get_resampled_stream(
+        main_meter_recv = get_resampled_stream(
             mockgrid.main_meter_id,
             ComponentMetricId.ACTIVE_POWER,
         )
-        grid_power_recv = await logical_meter.grid_power()
-        ev_power_recv = await ev_pool.power()
+        grid_power_recv = logical_meter.grid_power().new_receiver()
+        ev_power_recv = ev_pool.power().new_receiver()
 
         await synchronize_receivers([grid_power_recv, main_meter_recv, ev_power_recv])
 
@@ -158,7 +158,7 @@ class TestEVChargerPool:
             mock_current_streams,
         )
 
-        recv = await ev_pool.component_data(evc_id)
+        recv = ev_pool.component_data(evc_id)
 
         await send_resampled_current(2, 3, 5)
         await asyncio.sleep(0.02)

@@ -13,7 +13,6 @@ from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._formula_engine._formula_engine import (
     FormulaBuilder,
     FormulaEngine,
-    FormulaReceiver,
     HigherOrderFormulaBuilder,
 )
 from frequenz.sdk.timeseries._formula_engine._tokenizer import (
@@ -48,7 +47,7 @@ class TestTokenizer:
 class TestFormulaEngine:
     """Tests for the FormulaEngine."""
 
-    async def run_test(
+    async def run_test(  # pylint: disable=too-many-locals
         self,
         formula: str,
         postfix: str,
@@ -70,11 +69,9 @@ class TestFormulaEngine:
             elif token.type == TokenType.OPER:
                 builder.push_oper(token.value)
         engine = builder.build()
+        results_rx = engine.new_receiver()
 
-        assert (
-            repr(engine._evaluator._steps)  # pylint: disable=protected-access
-            == postfix
-        )
+        assert repr(builder._steps) == postfix  # pylint: disable=protected-access
 
         now = datetime.now()
         tests_passed = 0
@@ -86,9 +83,7 @@ class TestFormulaEngine:
                     for chan, value in zip(channels.values(), io_input)
                 ]
             )
-            next_val = (
-                await engine._evaluator.apply()  # pylint: disable=protected-access
-            )
+            next_val = await results_rx.receive()
             assert (next_val).value == io_output
             tests_passed += 1
         await engine._stop()  # pylint: disable=protected-access
@@ -293,7 +288,7 @@ class TestFormulaEngine:
         )
 
 
-class TestFormulaChannel:
+class TestFormulaEngineComposition:
     """Tests for formula channels."""
 
     def make_engine(self, stream_id: int, data: Receiver[Sample]) -> FormulaEngine:
@@ -305,18 +300,18 @@ class TestFormulaChannel:
             data,
             nones_are_zeros=False,
         )
-        return builder.build()
+        return FormulaEngine(builder)
 
     async def run_test(  # pylint: disable=too-many-locals
         self,
         num_items: int,
         make_builder: Union[
             Callable[
-                [FormulaReceiver, FormulaReceiver, FormulaReceiver],
+                [FormulaEngine, FormulaEngine, FormulaEngine],
                 HigherOrderFormulaBuilder,
             ],
             Callable[
-                [FormulaReceiver, FormulaReceiver, FormulaReceiver, FormulaReceiver],
+                [FormulaEngine, FormulaEngine, FormulaEngine, FormulaEngine],
                 HigherOrderFormulaBuilder,
             ],
         ],
@@ -329,7 +324,7 @@ class TestFormulaChannel:
             self.make_engine(ctr, channels[ctr].new_receiver())
             for ctr in range(num_items)
         ]
-        builder = make_builder(*[e.new_receiver() for e in l1_engines])
+        builder = make_builder(*l1_engines)
         engine = builder.build("l2 formula", nones_are_zeros)
         result_chan = engine.new_receiver()
 
@@ -567,7 +562,7 @@ class TestFormulaAverager:
 
         builder.push_average(streams)
         engine = builder.build()
-
+        results_rx = engine.new_receiver()
         now = datetime.now()
         tests_passed = 0
         for io_pair in io_pairs:
@@ -578,9 +573,7 @@ class TestFormulaAverager:
                     for chan, value in zip(channels.values(), io_input)
                 ]
             )
-            next_val = (
-                await engine._evaluator.apply()  # pylint: disable=protected-access
-            )
+            next_val = await results_rx.receive()
             assert (next_val).value == io_output
             tests_passed += 1
         await engine._stop()  # pylint: disable=protected-access

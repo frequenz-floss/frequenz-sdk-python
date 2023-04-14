@@ -7,20 +7,17 @@ from __future__ import annotations
 
 from datetime import datetime
 from math import isclose
+from typing import overload
 
 from frequenz.channels import Receiver
 
 from frequenz.sdk.microgrid import _data_pipeline
 from frequenz.sdk.microgrid.component import ComponentMetricId
 from frequenz.sdk.timeseries import Sample, Sample3Phase
-from frequenz.sdk.timeseries._formula_engine import (
-    FormulaReceiver,
-    FormulaReceiver3Phase,
-    ResampledFormulaBuilder,
-)
+from frequenz.sdk.timeseries._formula_engine import ResampledFormulaBuilder
 
 
-async def get_resampled_stream(  # pylint: disable=too-many-arguments
+def get_resampled_stream(  # pylint: disable=too-many-arguments
     comp_id: int,
     metric_id: ComponentMetricId,
 ) -> Receiver[Sample]:
@@ -36,7 +33,7 @@ async def get_resampled_stream(  # pylint: disable=too-many-arguments
         _data_pipeline._get()._resampling_request_sender(),
         metric_id,
     )
-    return await builder._get_resampled_receiver(
+    return builder._get_resampled_receiver(
         comp_id,
         metric_id,
     )
@@ -52,16 +49,28 @@ def equal_float_lists(list1: list[float], list2: list[float]) -> bool:
     )
 
 
+@overload
 async def synchronize_receivers(
-    receivers: list[FormulaReceiver | FormulaReceiver3Phase | Receiver[Sample]],
+    receivers: list[Receiver[Sample]],
+) -> None:
+    ...
+
+
+@overload
+async def synchronize_receivers(
+    receivers: list[Receiver[Sample3Phase]],
+) -> None:
+    ...
+
+
+async def synchronize_receivers(
+    receivers: list[Receiver[Sample]] | list[Receiver[Sample3Phase]],
 ) -> None:
     """Check if given receivers are all returning the same timestamp.
 
     If not, try to synchronize them.
     """
-    by_ts: dict[
-        datetime, list[FormulaReceiver | FormulaReceiver3Phase | Receiver[Sample]]
-    ] = {}
+    by_ts: dict[datetime, list[Receiver[Sample] | Receiver[Sample3Phase]]] = {}
     for recv in receivers:
         while True:
             sample = await recv.receive()
