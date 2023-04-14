@@ -13,7 +13,6 @@ from __future__ import annotations
 import typing
 from collections import abc
 from dataclasses import dataclass
-from datetime import timedelta
 
 from frequenz.channels import Bidirectional, Broadcast, Sender
 
@@ -175,9 +174,7 @@ class _DataPipeline:
                 batteries_status_receiver=self._battery_status_channel.new_receiver(
                     maxsize=1
                 ),
-                min_update_interval=timedelta(
-                    seconds=self._resampler_config.resampling_period_s
-                ),
+                min_update_interval=self._resampler_config.resampling_period,
                 batteries_id=battery_ids,
             )
 

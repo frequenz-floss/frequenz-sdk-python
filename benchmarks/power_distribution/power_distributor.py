@@ -8,6 +8,7 @@ import csv
 import random
 import timeit
 from dataclasses import dataclass
+from datetime import timedelta
 from typing import Any, Coroutine, Dict, List, Set  # pylint: disable=unused-import
 
 from frequenz.channels import Bidirectional, Broadcast
@@ -154,7 +155,9 @@ async def run() -> None:
     """Create microgrid api and run tests."""
     # pylint: disable=protected-access
 
-    await microgrid.initialize(HOST, PORT, ResamplerConfig(resampling_period_s=1.0))
+    await microgrid.initialize(
+        HOST, PORT, ResamplerConfig(resampling_period=timedelta(seconds=1.0))
+    )
 
     all_batteries: Set[Component] = connection_manager.get().component_graph.components(
         component_category={ComponentCategory.BATTERY}

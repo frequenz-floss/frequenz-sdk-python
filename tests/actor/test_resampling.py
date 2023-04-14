@@ -4,7 +4,7 @@
 """Frequenz Python SDK resampling example."""
 import asyncio
 import dataclasses
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Iterator
 
 import async_solipsism
@@ -126,7 +126,7 @@ async def test_single_request(
         data_sourcing_request_sender=data_source_req_chan.new_sender(),
         resampling_request_receiver=resampling_req_chan.new_receiver(),
         config=ResamplerConfig(
-            resampling_period_s=0.2,
+            resampling_period=timedelta(seconds=0.2),
             max_data_age_in_periods=2,
         ),
     )
@@ -172,7 +172,7 @@ async def test_duplicate_request(
         data_sourcing_request_sender=data_source_req_chan.new_sender(),
         resampling_request_receiver=resampling_req_chan.new_receiver(),
         config=ResamplerConfig(
-            resampling_period_s=0.2,
+            resampling_period=timedelta(seconds=0.2),
             max_data_age_in_periods=2,
         ),
     )

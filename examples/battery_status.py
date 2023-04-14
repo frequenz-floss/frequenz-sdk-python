@@ -9,6 +9,7 @@ this feature.
 
 import asyncio
 import logging
+from datetime import timedelta
 
 from frequenz.channels import Broadcast
 
@@ -31,7 +32,9 @@ async def main() -> None:
     logging.basicConfig(
         level=logging.DEBUG, format="%(asctime)s %(name)s %(levelname)s:%(message)s"
     )
-    await microgrid.initialize(HOST, PORT, ResamplerConfig(resampling_period_s=1.0))
+    await microgrid.initialize(
+        HOST, PORT, ResamplerConfig(resampling_period=timedelta(seconds=1.0))
+    )
     batteries = {
         bat.component_id
         for bat in connection_manager.get().component_graph.components(

@@ -29,7 +29,7 @@ def _benchmark_resampling_helper(resamples: int, samples: int) -> None:
     helper = _ResamplingHelper(
         "benchmark",
         ResamplerConfig(
-            resampling_period_s=1.0,
+            resampling_period=timedelta(seconds=1.0),
             max_data_age_in_periods=3.0,
             resampling_function=nop,
             initial_buffer_len=samples * 3,
