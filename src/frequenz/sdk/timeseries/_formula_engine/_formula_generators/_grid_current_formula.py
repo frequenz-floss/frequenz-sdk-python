@@ -14,7 +14,7 @@ from ._formula_generator import ComponentNotFound, FormulaGenerator
 class GridCurrentFormula(FormulaGenerator):
     """Create a formula engine from the component graph for calculating grid current."""
 
-    async def generate(self) -> FormulaEngine3Phase:
+    def generate(self) -> FormulaEngine3Phase:
         """Generate a formula for calculating grid current from the component graph.
 
         Returns:
@@ -43,25 +43,19 @@ class GridCurrentFormula(FormulaGenerator):
         return FormulaEngine3Phase(
             "grid-current",
             (
-                (
-                    await self._gen_phase_formula(
-                        grid_successors, ComponentMetricId.CURRENT_PHASE_1
-                    )
-                ).new_receiver(),
-                (
-                    await self._gen_phase_formula(
-                        grid_successors, ComponentMetricId.CURRENT_PHASE_2
-                    )
-                ).new_receiver(),
-                (
-                    await self._gen_phase_formula(
-                        grid_successors, ComponentMetricId.CURRENT_PHASE_3
-                    )
-                ).new_receiver(),
+                self._gen_phase_formula(
+                    grid_successors, ComponentMetricId.CURRENT_PHASE_1
+                ),
+                self._gen_phase_formula(
+                    grid_successors, ComponentMetricId.CURRENT_PHASE_2
+                ),
+                self._gen_phase_formula(
+                    grid_successors, ComponentMetricId.CURRENT_PHASE_3
+                ),
             ),
         )
 
-    async def _gen_phase_formula(
+    def _gen_phase_formula(
         self,
         grid_successors: Set[Component],
         metric_id: ComponentMetricId,
@@ -90,7 +84,7 @@ class GridCurrentFormula(FormulaGenerator):
             else:
                 continue
 
-            await builder.push_component_metric(
+            builder.push_component_metric(
                 comp.component_id, nones_are_zeros=nones_are_zeros
             )
 

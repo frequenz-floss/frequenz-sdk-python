@@ -8,13 +8,12 @@ from __future__ import annotations
 import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Generic
 
 from frequenz.channels import Sender
 
 from ....actor import ChannelRegistry, ComponentMetricRequest
 from ....microgrid.component import ComponentMetricId
-from .._formula_engine import _GenericEngine
+from .._formula_engine import FormulaEngine, FormulaEngine3Phase
 from .._resampled_formula_builder import ResampledFormulaBuilder
 
 
@@ -36,7 +35,7 @@ class FormulaGeneratorConfig:
     component_ids: set[int] | None = None
 
 
-class FormulaGenerator(ABC, Generic[_GenericEngine]):
+class FormulaGenerator(ABC):
     """A class for generating formulas from the component graph."""
 
     def __init__(
@@ -74,5 +73,5 @@ class FormulaGenerator(ABC, Generic[_GenericEngine]):
         return builder
 
     @abstractmethod
-    async def generate(self) -> _GenericEngine:
+    def generate(self) -> FormulaEngine | FormulaEngine3Phase:
         """Generate a formula engine, based on the component graph."""

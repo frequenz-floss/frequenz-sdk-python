@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class BatteryPowerFormula(FormulaGenerator):
     """Creates a formula engine from the component graph for calculating grid power."""
 
-    async def generate(
+    def generate(
         self,
     ) -> FormulaEngine:
         """Make a formula for the cumulative AC battery power of a microgrid.
@@ -54,7 +54,7 @@ class BatteryPowerFormula(FormulaGenerator):
             # If there are no battery inverters, we have to send 0 values as the same
             # frequency as the other streams.  So we subscribe with a non-existing
             # component id, just to get a `None` message at the resampling interval.
-            await builder.push_component_metric(
+            builder.push_component_metric(
                 NON_EXISTING_COMPONENT_ID, nones_are_zeros=True
             )
             return builder.build()
@@ -62,6 +62,6 @@ class BatteryPowerFormula(FormulaGenerator):
         for idx, comp in enumerate(battery_inverters):
             if idx > 0:
                 builder.push_oper("+")
-            await builder.push_component_metric(comp.component_id, nones_are_zeros=True)
+            builder.push_component_metric(comp.component_id, nones_are_zeros=True)
 
         return builder.build()

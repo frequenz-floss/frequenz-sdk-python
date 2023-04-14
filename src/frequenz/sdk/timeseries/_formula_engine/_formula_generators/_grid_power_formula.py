@@ -12,7 +12,7 @@ from ._formula_generator import ComponentNotFound, FormulaGenerator
 class GridPowerFormula(FormulaGenerator):
     """Creates a formula engine from the component graph for calculating grid power."""
 
-    async def generate(
+    def generate(
         self,
     ) -> FormulaEngine:
         """Generate a formula for calculating grid power from the component graph.
@@ -63,7 +63,7 @@ class GridPowerFormula(FormulaGenerator):
             else:
                 continue
 
-            await builder.push_component_metric(
+            builder.push_component_metric(
                 comp.component_id, nones_are_zeros=nones_are_zeros
             )
 
