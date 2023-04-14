@@ -15,8 +15,6 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import AsyncIterator, Callable, Coroutine, Optional, Sequence
 
-from frequenz.channels.util import Timer
-
 from .._internal.asyncio import cancel_and_await
 from . import Sample
 
@@ -349,9 +347,6 @@ class Resampler:
 
         self._resamplers: dict[Source, _StreamingHelper] = {}
         """A mapping between sources and the streaming helper handling that source."""
-
-        self._timer: Timer = Timer(config.resampling_period_s)
-        """The timer to trigger the next resampling."""
 
         self._window_end: datetime = datetime.now(timezone.utc) + timedelta(
             seconds=self._config.resampling_period_s
