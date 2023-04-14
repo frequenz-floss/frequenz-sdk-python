@@ -58,6 +58,10 @@
 
   * The `SourceProperties` of the resampler now uses a `timedelta` for the input sampling period. The attribute was renamed from `sampling_period_s` to `sampling_period` accordingly.
 
+  * The periods are now aligned to the `UNIX_EPOCH` by default.
+
+    To use the old behaviour (aligning to the time the resampler was created), pass `align_to=None` to the `ResamplerConfig`.
+
 ## New Features
 
 * The core data-pipeline actors are now created automatically (#270).
@@ -75,6 +79,10 @@
   ```
 
 * The `Result` class (and subclasses) for the `PowerDistributingActor` are now `dataclass`es, so logging them will produce a more detailed output.
+
+* The `Resampler` can now can align the resampling period to an arbitrary `datetime`.
+
+  This can be configured via the new `align_to` option in the `ResamplerConfig`. By default the resampling period is aligned to the `UNIX_EPOCH`.
 
 ## Bug Fixes
 
