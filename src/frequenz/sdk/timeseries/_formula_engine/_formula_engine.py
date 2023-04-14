@@ -547,6 +547,18 @@ class _BaseHOFormulaBuilder(ABC):
         ] = deque()
         self._steps.append((TokenType.COMPONENT_METRIC, engine))
 
+    @overload
+    def _push(
+        self, oper: str, other: _CompositionType1Phase
+    ) -> HigherOrderFormulaBuilder:
+        ...
+
+    @overload
+    def _push(
+        self, oper: str, other: _CompositionType3Phase
+    ) -> HigherOrderFormulaBuilder3Phase:
+        ...
+
     def _push(
         self, oper: str, other: _CompositionType
     ) -> HigherOrderFormulaBuilder | HigherOrderFormulaBuilder3Phase:
@@ -569,6 +581,14 @@ class _BaseHOFormulaBuilder(ABC):
         )
         return self
 
+    @overload
+    def __add__(self, other: _CompositionType1Phase) -> HigherOrderFormulaBuilder:
+        ...
+
+    @overload
+    def __add__(self, other: _CompositionType3Phase) -> HigherOrderFormulaBuilder3Phase:
+        ...
+
     def __add__(
         self, other: _CompositionType
     ) -> HigherOrderFormulaBuilder | HigherOrderFormulaBuilder3Phase:
@@ -583,6 +603,14 @@ class _BaseHOFormulaBuilder(ABC):
                 into a formula engine.
         """
         return self._push("+", other)
+
+    @overload
+    def __sub__(self, other: _CompositionType1Phase) -> HigherOrderFormulaBuilder:
+        ...
+
+    @overload
+    def __sub__(self, other: _CompositionType3Phase) -> HigherOrderFormulaBuilder3Phase:
+        ...
 
     def __sub__(
         self,
@@ -600,6 +628,14 @@ class _BaseHOFormulaBuilder(ABC):
         """
         return self._push("-", other)
 
+    @overload
+    def __mul__(self, other: _CompositionType1Phase) -> HigherOrderFormulaBuilder:
+        ...
+
+    @overload
+    def __mul__(self, other: _CompositionType3Phase) -> HigherOrderFormulaBuilder3Phase:
+        ...
+
     def __mul__(
         self,
         other: _CompositionType,
@@ -615,6 +651,16 @@ class _BaseHOFormulaBuilder(ABC):
                 into a formula engine.
         """
         return self._push("*", other)
+
+    @overload
+    def __truediv__(self, other: _CompositionType1Phase) -> HigherOrderFormulaBuilder:
+        ...
+
+    @overload
+    def __truediv__(
+        self, other: _CompositionType3Phase
+    ) -> HigherOrderFormulaBuilder3Phase:
+        ...
 
     def __truediv__(
         self,
