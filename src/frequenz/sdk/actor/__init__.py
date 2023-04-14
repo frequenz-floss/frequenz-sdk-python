@@ -5,7 +5,7 @@
 
 from ..timeseries._resampling import ResamplerConfig
 from ._channel_registry import ChannelRegistry
-from ._config_managing import ConfigManagingActor
+from ._config_managing import ConfigManagingActor, parse_duration
 from ._data_sourcing import ComponentMetricRequest, DataSourcingActor
 from ._decorator import actor
 from ._resampling import ComponentMetricsResamplingActor
@@ -16,6 +16,7 @@ __all__ = [
     "ComponentMetricRequest",
     "ComponentMetricsResamplingActor",
     "ConfigManagingActor",
+    "parse_duration",
     "DataSourcingActor",
     "ResamplerConfig",
     "actor",

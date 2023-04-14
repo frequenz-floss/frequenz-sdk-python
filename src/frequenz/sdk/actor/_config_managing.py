@@ -3,8 +3,11 @@
 
 """Read and update config variables."""
 
+from __future__ import annotations
+
 import logging
 import os
+from datetime import timedelta
 from typing import Any, Dict, Optional, Set
 
 import toml
@@ -15,6 +18,64 @@ from ..actor._decorator import actor
 from ..config import Config
 
 logger = logging.getLogger(__name__)
+
+
+def parse_duration(duration_str: str) -> timedelta:
+    """Parse a duration string.
+
+    A duration string is a sequence of numbers followed by a unit.
+
+    The supported units are:
+    - w: weeks
+    - d: days
+    - h: hours
+    - m: minutes
+    - s: seconds
+    - ms: milliseconds
+    - us: microseconds
+
+    Example string: "1w 1d 2h 3m 4s" is 1 day, 2 hours, 3 minutes and 4 seconds.
+
+    Args:
+        duration_str: Duration string to parse.
+
+    Returns:
+        A timedelta object representing the duration.
+
+    Raises:
+        ValueError: If the duration string is invalid.
+    """
+    abrv_map: dict[str, str] = {
+        "w": "weeks",
+        "d": "days",
+        "h": "hours",
+        "m": "minutes",
+        "s": "seconds",
+        "ms": "milliseconds",
+        "us": "microseconds",
+    }
+
+    delta_args: dict[str, int] = {}
+
+    for part in duration_str.split():
+        value = 0
+        unit = ""
+        for i, character in enumerate(part):
+            if character.isdigit():
+                value = value * 10 + int(character)
+            else:
+                unit = part[i:]
+                break
+
+        if unit not in abrv_map:
+            raise ValueError(f"Invalid duration unit: {unit}")
+
+        if abrv_map[unit] in delta_args:
+            raise ValueError(f"Duplicate duration unit: {unit}")
+
+        delta_args[abrv_map[unit]] = value
+
+    return timedelta(**delta_args)
 
 
 @actor
