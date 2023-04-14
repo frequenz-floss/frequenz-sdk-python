@@ -19,7 +19,7 @@ from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory, ComponentMetricId
 from .. import Sample, Sample3Phase
-from .._formula_engine import FormulaEnginePool, FormulaReceiver, FormulaReceiver3Phase
+from .._formula_engine import FormulaEngine, FormulaEngine3Phase, FormulaEnginePool
 from .._formula_engine._formula_generators import (
     EVChargerCurrentFormula,
     EVChargerPowerFormula,
@@ -104,40 +104,45 @@ class EVChargerPool:
         """
         return self._component_ids
 
-    async def current(self) -> FormulaReceiver3Phase:
+    def current(self) -> FormulaEngine3Phase:
         """Fetch the total current for the EV Chargers in the pool.
 
         If a formula engine to calculate EV Charger current is not already running, it
-        will be started.  Else, it will return a new receiver to the already existing
-        data stream.
+        will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
 
         Returns:
-            A *new* receiver that will stream EV Charger current values.
+            A FormulaEngine that will calculate and stream the total current of all EV
+                Chargers.
         """
-        return await self._formula_pool.from_generator(
+        return self._formula_pool.from_generator(
             "ev_charger_total_current",
             EVChargerCurrentFormula,
             FormulaGeneratorConfig(component_ids=self._component_ids),
-        )
+        )  # type: ignore[return-value]
 
-    async def power(self) -> FormulaReceiver:
+    def power(self) -> FormulaEngine:
         """Fetch the total power for the EV Chargers in the pool.
 
         If a formula engine to calculate EV Charger power is not already running, it
-        will be started.  Else, it will return a new receiver to the already existing
-        data stream.
+        will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
 
         Returns:
-            A *new* receiver that will stream EV Charger power values.
-
+            A FormulaEngine that will calculate and stream the total power of all EV
+                Chargers.
         """
-        return await self._formula_pool.from_generator(
+        return self._formula_pool.from_generator(
             "ev_charger_total_power",
             EVChargerPowerFormula,
             FormulaGeneratorConfig(component_ids=self._component_ids),
-        )
+        )  # type: ignore[return-value]
 
-    async def component_data(self, component_id: int) -> Receiver[EVChargerData]:
+    def component_data(self, component_id: int) -> Receiver[EVChargerData]:
         """Stream 3-phase current values and state of an EV Charger.
 
         Args:

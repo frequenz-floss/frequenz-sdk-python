@@ -19,12 +19,7 @@ from ._resampled_formula_builder import ResampledFormulaBuilder
 
 if TYPE_CHECKING:
     # Break circular import by enclosing these type hints in a `TYPE_CHECKING` block.
-    from .._formula_engine import (
-        FormulaReceiver,
-        FormulaReceiver3Phase,
-        _GenericEngine,
-        _GenericFormulaReceiver,
-    )
+    from .._formula_engine import FormulaEngine, FormulaEngine3Phase
 
 
 class FormulaEnginePool:
@@ -51,14 +46,14 @@ class FormulaEnginePool:
         self._namespace = namespace
         self._channel_registry = channel_registry
         self._resampler_subscription_sender = resampler_subscription_sender
-        self._engines: dict[str, "FormulaReceiver|FormulaReceiver3Phase"] = {}
+        self._engines: dict[str, "FormulaEngine|FormulaEngine3Phase"] = {}
 
-    async def from_string(
+    def from_string(
         self,
         formula: str,
         component_metric_id: ComponentMetricId,
         nones_are_zeros: bool = False,
-    ) -> "FormulaReceiver":
+    ) -> FormulaEngine:
         """Get a receiver for a manual formula.
 
         Args:
@@ -73,7 +68,7 @@ class FormulaEnginePool:
         """
         channel_key = formula + component_metric_id.value
         if channel_key in self._engines:
-            return self._engines[channel_key].new_receiver()
+            return self._engines[channel_key]  # type: ignore
 
         builder = ResampledFormulaBuilder(
             self._namespace,
@@ -82,17 +77,17 @@ class FormulaEnginePool:
             self._resampler_subscription_sender,
             component_metric_id,
         )
-        formula_engine = await builder.from_string(formula, nones_are_zeros)
+        formula_engine = builder.from_string(formula, nones_are_zeros)
         self._engines[channel_key] = formula_engine
 
-        return formula_engine.new_receiver()
+        return formula_engine
 
-    async def from_generator(
+    def from_generator(
         self,
         channel_key: str,
-        generator: "Type[FormulaGenerator[_GenericEngine]]",
+        generator: "Type[FormulaGenerator]",
         config: FormulaGeneratorConfig = FormulaGeneratorConfig(),
-    ) -> "_GenericFormulaReceiver":
+    ) -> FormulaEngine | FormulaEngine3Phase:
         """Get a receiver for a formula from a generator.
 
         Args:
@@ -105,13 +100,13 @@ class FormulaEnginePool:
                 FormulaGenerator returns.
         """
         if channel_key in self._engines:
-            return self._engines[channel_key].new_receiver()
+            return self._engines[channel_key]
 
-        engine = await generator(
+        engine = generator(
             self._namespace,
             self._channel_registry,
             self._resampler_subscription_sender,
             config,
         ).generate()
         self._engines[channel_key] = engine
-        return engine.new_receiver()
+        return engine

@@ -13,7 +13,7 @@ from frequenz.channels import Sender
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid import ComponentGraph
 from ...microgrid.component import ComponentMetricId
-from .._formula_engine import FormulaEnginePool, FormulaReceiver, FormulaReceiver3Phase
+from .._formula_engine import FormulaEngine, FormulaEngine3Phase, FormulaEnginePool
 from .._formula_engine._formula_generators import (
     BatteryPowerFormula,
     GridCurrentFormula,
@@ -112,12 +112,12 @@ class LogicalMeter:
             self._resampler_subscription_sender,
         )
 
-    async def start_formula(
+    def start_formula(
         self,
         formula: str,
         component_metric_id: ComponentMetricId,
         nones_are_zeros: bool = False,
-    ) -> FormulaReceiver:
+    ) -> FormulaEngine:
         """Start execution of the given formula.
 
         Formulas can have Component IDs that are preceeded by a pound symbol("#"), and
@@ -134,64 +134,76 @@ class LogicalMeter:
                 False, the returned value will be a None.
 
         Returns:
-            A FormulaReceiver that streams values with the formulas applied.
+            A FormulaEngine that applies the formula and streams values.
         """
-        return await self._formula_pool.from_string(
+        return self._formula_pool.from_string(
             formula, component_metric_id, nones_are_zeros
         )
 
-    async def grid_power(self) -> FormulaReceiver:
+    def grid_power(self) -> FormulaEngine:
         """Fetch the grid power for the microgrid.
 
         If a formula engine to calculate grid power is not already running, it will be
-        started.  Else, it will return a new receiver to the already existing data
-        stream.
+        started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
 
         Returns:
-            A *new* receiver that will stream grid_power values.
-
+            A FormulaEngine that will calculate and stream grid power.
         """
-        return await self._formula_pool.from_generator("grid_power", GridPowerFormula)
+        return self._formula_pool.from_generator(
+            "grid_power",
+            GridPowerFormula,
+        )  # type: ignore[return-value]
 
-    async def grid_current(self) -> FormulaReceiver3Phase:
+    def grid_current(self) -> FormulaEngine3Phase:
         """Fetch the grid power for the microgrid.
 
         If a formula engine to calculate grid current is not already running, it will be
-        started.  Else, it will return a new receiver to the already existing data
-        stream.
+        started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
 
         Returns:
-            A *new* receiver that will stream grid_current values.
-
+            A FormulaEngine that will calculate and stream grid current.
         """
-        return await self._formula_pool.from_generator(
-            "grid_current", GridCurrentFormula
-        )
+        return self._formula_pool.from_generator(
+            "grid_current",
+            GridCurrentFormula,
+        )  # type: ignore[return-value]
 
-    async def battery_power(self) -> FormulaReceiver:
+    def battery_power(self) -> FormulaEngine:
         """Fetch the cumulative battery power in the microgrid.
 
         If a formula engine to calculate cumulative battery power is not already
-        running, it will be started.  Else, it will return a new receiver to the already
-        existing data stream.
+        running, it will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
 
         Returns:
-            A *new* receiver that will stream battery_power values.
-
+            A FormulaEngine that will calculate and stream battery power.
         """
-        return await self._formula_pool.from_generator(
-            "battery_power", BatteryPowerFormula
-        )
+        return self._formula_pool.from_generator(
+            "battery_power",
+            BatteryPowerFormula,
+        )  # type: ignore[return-value]
 
-    async def pv_power(self) -> FormulaReceiver:
+    def pv_power(self) -> FormulaEngine:
         """Fetch the PV power production in the microgrid.
 
         If a formula engine to calculate PV power production is not already running, it
-        will be started.  Else, it will return a new receiver to the already existing
-        data stream.
+        will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
 
         Returns:
-            A *new* receiver that will stream PV power production values.
-
+            A FormulaEngine that will calculate and stream PV power production.
         """
-        return await self._formula_pool.from_generator("pv_power", PVPowerFormula)
+        return self._formula_pool.from_generator(
+            "pv_power",
+            PVPowerFormula,
+        )  # type: ignore[return-value]
