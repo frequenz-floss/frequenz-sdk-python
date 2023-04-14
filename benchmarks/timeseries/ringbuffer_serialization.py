@@ -13,9 +13,8 @@ from typing import Any
 
 import numpy as np
 
-import frequenz.sdk.timeseries._ringbuffer_serialization as io
+import frequenz.sdk.timeseries._ringbuffer as rb
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._ringbuffer import OrderedRingBuffer
 
 FILE_NAME = "ringbuffer.pkl"
 FIVE_MINUTES = timedelta(minutes=5)
@@ -38,7 +37,7 @@ def delete_files_with_prefix(prefix: str) -> None:
 
 
 def benchmark_serialization(
-    ringbuffer: OrderedRingBuffer[Any], iterations: int
+    ringbuffer: rb.OrderedRingBuffer[Any], iterations: int
 ) -> float:
     """Benchmark the given buffer `iteration` times.
 
@@ -49,8 +48,8 @@ def benchmark_serialization(
     total = 0.0
     for _ in range(iterations):
         start = time.time()
-        io.dump(ringbuffer, FILE_NAME)
-        io.load(FILE_NAME)
+        rb.dump(ringbuffer, FILE_NAME)
+        rb.load(FILE_NAME)
         end = time.time()
         total += end - start
         delete_files_with_prefix(FILE_NAME)
@@ -60,7 +59,7 @@ def benchmark_serialization(
 
 def main() -> None:
     """Run Benchmark."""
-    ringbuffer = OrderedRingBuffer(
+    ringbuffer = rb.OrderedRingBuffer(
         np.arange(0, SIZE, dtype=np.float64), timedelta(minutes=5)
     )
 

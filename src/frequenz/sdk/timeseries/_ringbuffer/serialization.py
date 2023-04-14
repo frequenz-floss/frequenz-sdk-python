@@ -9,7 +9,7 @@ from __future__ import annotations
 import pickle
 from os.path import exists
 
-from ._ringbuffer import FloatArray, OrderedRingBuffer
+from .buffer import FloatArray, OrderedRingBuffer
 
 # Version of the latest file dumping/loading format
 FILE_FORMAT_VERSION: int = 1
