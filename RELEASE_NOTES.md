@@ -6,6 +6,24 @@
 
 ## Upgrading
 
++ Formulas composition has changed (#327) -
+  - receivers from formulas are no longer composable.
+  - formula composition is now done by composing FormulaEngine instances.
+  - Automatic formulas from the logical meter and *pools, are now
+    properties, and return `FormulaEngine` instances, which can be
+    composed further, or can provide a receiver to fetch values.
+
+  ``` python
+  grid_power_receiver = microgrid.logical_meter().grid_power.new_receiver()
+
+  self._inverter_power = (
+      microgrid.logical_meter().pv_power
+      + microgrid.logical_meter().battery_power
+  ).build("inverter_power")
+
+  inverter_power_receiver = self._inverter_power.new_receiver()
+  ```
+
 * Update BatteryStatus to mark battery with unknown capacity as not working (#263)
 * The channels dependency was updated to v0.14.0 (#292)
 * Some properties for `PowerDistributingActor` results were renamed to be more consistent between `Success` and `PartialFailure`:
