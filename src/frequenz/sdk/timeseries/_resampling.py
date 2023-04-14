@@ -311,11 +311,11 @@ class SourceProperties:
     received_samples: int = 0
     """Total samples received by this source so far."""
 
-    sampling_period_s: Optional[float] = None
-    """The sampling period of this source (in seconds).
+    sampling_period: Optional[timedelta] = None
+    """The sampling period of this source.
 
-    This is we receive (on average) one sample for this source every
-    `sampling_period_s` seconds.
+    This means we receive (on average) one sample for this source every
+    `sampling_period` time.
 
     `None` means it is unknown.
     """
@@ -496,7 +496,7 @@ class _ResamplingHelper:
     """Keeps track of *relevant* samples to pass them to the resampling function.
 
     Samples are stored in an internal ring buffer. All collected samples that
-    are newer than `max(resampling_period, input_period_s)
+    are newer than `max(resampling_period, input_period)
     * max_data_age_in_periods` are considered *relevant* and are passed
     to the provided `resampling_function` when calling the `resample()` method.
     All older samples are discarded.
@@ -552,7 +552,7 @@ class _ResamplingHelper:
 
         # We only update it if we didn't before and we have enough data
         if (
-            props.sampling_period_s is not None
+            props.sampling_period is not None
             or props.sampling_start is None
             or props.received_samples
             < config.resampling_period.total_seconds() * config.max_data_age_in_periods
@@ -564,14 +564,14 @@ class _ResamplingHelper:
             return False
 
         samples_time_delta = now - props.sampling_start
-        props.sampling_period_s = (
-            samples_time_delta.total_seconds()
-        ) / props.received_samples
+        props.sampling_period = timedelta(
+            seconds=samples_time_delta.total_seconds() / props.received_samples
+        )
 
         _logger.debug(
             "New input sampling period calculated for %r: %ss",
             self._name,
-            props.sampling_period_s,
+            props.sampling_period,
         )
         return True
 
@@ -581,26 +581,28 @@ class _ResamplingHelper:
         Returns:
             Whether the buffer length was changed (was really updated).
         """
-        input_sampling_period_s = self._source_properties.sampling_period_s
-
         # To make type checking happy
-        assert input_sampling_period_s is not None
         assert self._buffer.maxlen is not None
+        assert self._source_properties.sampling_period is not None
+
+        input_sampling_period = self._source_properties.sampling_period
 
         config = self._config
 
         # If we are upsampling, one sample could be enough for back-filling, but
         # we store max_data_age_in_periods for input periods, so resampling
         # functions can do more complex inter/extrapolation if they need to.
-        if input_sampling_period_s > config.resampling_period.total_seconds():
-            new_buffer_len = input_sampling_period_s * config.max_data_age_in_periods
+        if input_sampling_period > config.resampling_period:
+            new_buffer_len = (
+                input_sampling_period.total_seconds() * config.max_data_age_in_periods
+            )
         # If we are upsampling, we want a buffer that can hold
         # max_data_age_in_periods * resampling_period of data, and we
-        # one sample every input_sampling_period_s.
+        # one sample every input_sampling_period.
         else:
             new_buffer_len = (
                 config.resampling_period.total_seconds()
-                / input_sampling_period_s
+                / input_sampling_period.total_seconds()
                 * config.max_data_age_in_periods
             )
 
@@ -655,13 +657,14 @@ class _ResamplingHelper:
         # To see which samples are relevant we need to consider if we are down
         # or upsampling.
         period = (
-            max(conf.resampling_period.total_seconds(), props.sampling_period_s)
-            if props.sampling_period_s is not None
-            else conf.resampling_period.total_seconds()
+            max(
+                conf.resampling_period,
+                props.sampling_period,
+            )
+            if props.sampling_period is not None
+            else conf.resampling_period
         )
-        minimum_relevant_timestamp = timestamp - timedelta(
-            seconds=period * conf.max_data_age_in_periods
-        )
+        minimum_relevant_timestamp = timestamp - period * conf.max_data_age_in_periods
 
         # We need to pass a dummy Sample to bisect because it only support
         # specifying a key extraction function in Python 3.10, so we need to
