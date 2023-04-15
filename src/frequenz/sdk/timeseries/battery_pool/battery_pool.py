@@ -6,17 +6,24 @@
 from __future__ import annotations
 
 import asyncio
+import uuid
 from collections.abc import Set
 from datetime import timedelta
 from typing import Any
 
-from frequenz.channels import Receiver
+from frequenz.channels import Receiver, Sender
 
 from ..._internal._constants import RECEIVER_MAX_SIZE
 from ..._internal.asyncio import cancel_and_await
+from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...actor.power_distributing._battery_pool_status import BatteryStatus
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory
+from .._formula_engine import FormulaEngine, FormulaEnginePool
+from .._formula_engine._formula_generators import (
+    BatteryPowerFormula,
+    FormulaGeneratorConfig,
+)
 from ._methods import AggregateMethod, SendOnUpdate
 from ._metric_calculator import CapacityCalculator, PowerBoundsCalculator, SoCCalculator
 from ._result_types import CapacityMetrics, PowerMetrics, SoCMetrics
@@ -29,8 +36,10 @@ class BatteryPool:
     fetching high level metrics for this subset.
     """
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
+        channel_registry: ChannelRegistry,
+        resampler_subscription_sender: Sender[ComponentMetricRequest],
         batteries_status_receiver: Receiver[BatteryStatus],
         min_update_interval: timedelta,
         batteries_id: Set[int] | None = None,
@@ -38,6 +47,10 @@ class BatteryPool:
         """Create the class instance.
 
         Args:
+            channel_registry: A channel registry instance shared with the resampling
+                actor.
+            resampler_subscription_sender: A sender for sending metric requests to the
+                resampling actor.
             batteries_status_receiver: Receiver to receive status of the batteries.
                 Receivers should has maxsize = 1 to fetch only the latest status.
                 Battery status channel should has resend_latest = True.
@@ -71,6 +84,13 @@ class BatteryPool:
         self._min_update_interval = min_update_interval
         self._active_methods: dict[str, AggregateMethod[Any]] = {}
 
+        self._namespace: str = f"battery-pool-{self._batteries}-{uuid.uuid4()}"
+        self._formula_pool: FormulaEnginePool = FormulaEnginePool(
+            self._namespace,
+            channel_registry,
+            resampler_subscription_sender,
+        )
+
     @property
     def battery_ids(self) -> Set[int]:
         """Return ids of the batteries in the pool.
@@ -79,6 +99,26 @@ class BatteryPool:
             Ids of the batteries in the pool
         """
         return self._batteries
+
+    @property
+    def power(self) -> FormulaEngine:
+        """Fetch the total power of the batteries in the pool.
+
+        If a formula engine to calculate this metric is not already running, it will be
+        started.
+
+        A receiver from the formula engine can be obtained by calling the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream the total power of all
+                batteries in the pool.
+        """
+        return self._formula_pool.from_generator(
+            "battery_pool_power",
+            BatteryPowerFormula,
+            FormulaGeneratorConfig(component_ids=self._batteries),
+        )  # type: ignore[return-value]
 
     async def soc(
         self, maxsize: int | None = RECEIVER_MAX_SIZE

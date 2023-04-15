@@ -176,6 +176,8 @@ class _DataPipeline:
 
         if key not in self._battery_pools:
             self._battery_pools[key] = BatteryPool(
+                channel_registry=self._channel_registry,
+                resampler_subscription_sender=self._resampling_request_sender(),
                 batteries_status_receiver=self._battery_status_channel.new_receiver(
                     maxsize=1
                 ),
