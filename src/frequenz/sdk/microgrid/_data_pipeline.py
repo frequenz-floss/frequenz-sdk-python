@@ -81,7 +81,9 @@ class _DataPipeline:
         self._data_sourcing_actor: _ActorInfo | None = None
         self._resampling_actor: _ActorInfo | None = None
 
-        self._battery_status_channel = Broadcast["BatteryStatus"]("battery-status")
+        self._battery_status_channel = Broadcast["BatteryStatus"](
+            "battery-status", resend_latest=True
+        )
         self._power_distribution_channel = Bidirectional["Request", "Result"](
             "Default", "Power Distributing Actor"
         )
@@ -170,7 +172,9 @@ class _DataPipeline:
 
         if key not in self._battery_pools:
             self._battery_pools[key] = BatteryPool(
-                batteries_status_receiver=self._battery_status_channel.new_receiver(),
+                batteries_status_receiver=self._battery_status_channel.new_receiver(
+                    maxsize=1
+                ),
                 min_update_interval=timedelta(
                     seconds=self._resampler_config.resampling_period_s
                 ),
