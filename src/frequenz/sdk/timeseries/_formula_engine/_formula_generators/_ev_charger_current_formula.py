@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import logging
+from collections import abc
 
 from ....microgrid.component import ComponentMetricId
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase
@@ -67,7 +68,7 @@ class EVChargerCurrentFormula(FormulaGenerator):
 
     def _gen_phase_formula(
         self,
-        component_ids: set[int],
+        component_ids: abc.Set[int],
         metric_id: ComponentMetricId,
     ) -> FormulaEngine:
         builder = self._get_builder("ev-current", metric_id)
