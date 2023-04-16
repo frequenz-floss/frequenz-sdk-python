@@ -5,7 +5,6 @@
 
 import logging
 from dataclasses import dataclass
-from math import ceil, floor
 from typing import Dict, List, NamedTuple, Tuple
 
 from frequenz.sdk._internal._math import is_close_to_zero
@@ -358,7 +357,7 @@ class DistributionAlgorithm:
                 distribution[inverter.component_id] = 0.0
                 continue
 
-            distribution[inverter.component_id] = floor(
+            distribution[inverter.component_id] = (
                 power_to_distribute * battery_ratio / ratio
             )
 
@@ -462,7 +461,7 @@ class DistributionAlgorithm:
             # We can supply/consume with int only
             inverter_bound = inverter.active_power_upper_bound
             battery_bound = battery.power_upper_bound
-            bounds[inverter.component_id] = floor(min(inverter_bound, battery_bound))
+            bounds[inverter.component_id] = min(inverter_bound, battery_bound)
 
         result: DistributionResult = self._distribute_power(
             components, power_w, available_soc, bounds
@@ -500,9 +499,7 @@ class DistributionAlgorithm:
             # We can consume with int only
             inverter_bound = inverter.active_power_lower_bound
             battery_bound = battery.power_lower_bound
-            bounds[inverter.component_id] = -1 * ceil(
-                max(inverter_bound, battery_bound)
-            )
+            bounds[inverter.component_id] = -1 * max(inverter_bound, battery_bound)
 
         result: DistributionResult = self._distribute_power(
             components, -1 * power_w, available_soc, bounds

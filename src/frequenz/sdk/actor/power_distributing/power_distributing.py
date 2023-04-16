@@ -17,7 +17,7 @@ import asyncio
 import logging
 from asyncio.tasks import ALL_COMPLETED
 from dataclasses import dataclass, replace
-from math import ceil, floor, isnan
+from math import isnan
 from typing import (  # pylint: disable=unused-import
     Any,
     Dict,
@@ -221,11 +221,10 @@ class PowerDistributingActor:
             Upper bound for `set_power` operation.
         """
         pairs_data: List[InvBatPair] = self._get_components_data(batteries)
-        bound = sum(
+        return sum(
             min(battery.power_upper_bound, inverter.active_power_upper_bound)
             for battery, inverter in pairs_data
         )
-        return floor(bound)
 
     def _get_lower_bound(self, batteries: Set[int]) -> float:
         """Get total lower bound of power to be set for given batteries.
@@ -240,11 +239,10 @@ class PowerDistributingActor:
             Lower bound for `set_power` operation.
         """
         pairs_data: List[InvBatPair] = self._get_components_data(batteries)
-        bound = sum(
+        return sum(
             max(battery.power_lower_bound, inverter.active_power_lower_bound)
             for battery, inverter in pairs_data
         )
-        return ceil(bound)
 
     async def run(self) -> None:
         """Run actor main function.
