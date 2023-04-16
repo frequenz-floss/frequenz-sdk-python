@@ -77,9 +77,10 @@ class BatteryPool:
 
         self._working_batteries: set[int] = set()
 
-        self._update_battery_status_task = asyncio.create_task(
-            self._update_battery_status(batteries_status_receiver)
-        )
+        if self._batteries:
+            self._update_battery_status_task = asyncio.create_task(
+                self._update_battery_status(batteries_status_receiver)
+            )
 
         self._min_update_interval = min_update_interval
         self._active_methods: dict[str, AggregateMethod[Any]] = {}
