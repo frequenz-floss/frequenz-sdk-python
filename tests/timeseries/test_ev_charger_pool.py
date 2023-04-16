@@ -93,6 +93,7 @@ class TestEVChargerPool:
         ev_pool = microgrid.ev_charger_pool()
 
         main_meter_recv = get_resampled_stream(
+            logical_meter._namespace,  # pylint: disable=protected-access
             mockgrid.main_meter_id,
             ComponentMetricId.ACTIVE_POWER,
         )

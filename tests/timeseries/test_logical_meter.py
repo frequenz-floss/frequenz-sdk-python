@@ -34,6 +34,7 @@ class TestLogicalMeter:
         grid_power_recv = logical_meter.grid_power.new_receiver()
 
         main_meter_recv = get_resampled_stream(
+            logical_meter._namespace,  # pylint: disable=protected-access
             mockgrid.main_meter_id,
             ComponentMetricId.ACTIVE_POWER,
         )
@@ -67,6 +68,7 @@ class TestLogicalMeter:
 
         meter_receivers = [
             get_resampled_stream(
+                logical_meter._namespace,  # pylint: disable=protected-access
                 meter_id,
                 ComponentMetricId.ACTIVE_POWER,
             )
@@ -111,6 +113,7 @@ class TestLogicalMeter:
 
         bat_inv_receivers = [
             get_resampled_stream(
+                battery_pool._namespace,  # pylint: disable=protected-access
                 meter_id,
                 ComponentMetricId.ACTIVE_POWER,
             )
@@ -119,6 +122,7 @@ class TestLogicalMeter:
 
         pv_inv_receivers = [
             get_resampled_stream(
+                logical_meter._namespace,  # pylint: disable=protected-access
                 meter_id,
                 ComponentMetricId.ACTIVE_POWER,
             )

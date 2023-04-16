@@ -30,6 +30,7 @@ class TestFormulaComposition:
         logical_meter = microgrid.logical_meter()
         battery_pool = microgrid.battery_pool()
         main_meter_recv = get_resampled_stream(
+            logical_meter._namespace,  # pylint: disable=protected-access
             4,
             ComponentMetricId.ACTIVE_POWER,
         )
