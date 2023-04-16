@@ -10,11 +10,17 @@ ResamplingActor.
 
 from __future__ import annotations
 
+import logging
 import typing
 from collections import abc
 from dataclasses import dataclass
 
 from frequenz.channels import Bidirectional, Broadcast, Sender
+
+from . import connection_manager
+from .component import ComponentCategory
+
+logger = logging.getLogger(__name__)
 
 # A number of imports had to be done inside functions where they are used, to break
 # import cycles.
@@ -101,7 +107,6 @@ class _DataPipeline:
         Returns:
             A logical meter instance.
         """
-        from ..microgrid import connection_manager
         from ..timeseries.logical_meter import LogicalMeter
 
         if self._logical_meter is None:
@@ -194,6 +199,16 @@ class _DataPipeline:
     def _start_power_distributing_actor(self) -> None:
         """Start the power distributing actor if it is not already running."""
         if self._power_distributing_actor:
+            return
+
+        component_graph = connection_manager.get().component_graph
+        if not component_graph.components(
+            component_category={ComponentCategory.BATTERY}
+        ):
+            logger.warning(
+                "No batteries found in the component graph. "
+                "The power distributing actor will not be started."
+            )
             return
 
         from ..actor.power_distributing import PowerDistributingActor
