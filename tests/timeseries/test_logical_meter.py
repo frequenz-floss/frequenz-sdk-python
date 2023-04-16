@@ -103,9 +103,10 @@ class TestLogicalMeter:
         mockgrid.add_batteries(3)
         mockgrid.add_solar_inverters(2)
         await mockgrid.start(mocker)
+        battery_pool = microgrid.battery_pool()
         logical_meter = microgrid.logical_meter()
 
-        battery_power_recv = logical_meter.battery_power.new_receiver()
+        battery_power_recv = battery_pool.power.new_receiver()
         pv_power_recv = logical_meter.pv_power.new_receiver()
 
         bat_inv_receivers = [
