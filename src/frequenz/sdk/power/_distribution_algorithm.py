@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from math import ceil, floor
 from typing import Dict, List, NamedTuple, Tuple
 
+from frequenz.sdk._internal._math import is_close_to_zero
+
 from ..microgrid.component import BatteryData, InverterData
 
 _logger = logging.getLogger(__name__)
@@ -258,7 +260,7 @@ class DistributionAlgorithm:
             Sum of all batteries capacity in the components list.
         """
         total_capacity: float = sum(bat.capacity for bat, _ in components)
-        if total_capacity == 0.0:
+        if is_close_to_zero(total_capacity):
             msg = "All batteries have capacity 0."
             _logger.error(msg)
             raise ValueError(msg)
@@ -340,7 +342,7 @@ class DistributionAlgorithm:
         distribution: Dict[int, float] = {}
 
         # sum_ratio == 0 means that all batteries are fully charged / discharged
-        if sum_ratio == 0.0:
+        if is_close_to_zero(sum_ratio):
             distribution = {inverter.component_id: 0 for _, inverter in components}
             return DistributionResult(distribution, power_w)
 
@@ -352,7 +354,7 @@ class DistributionAlgorithm:
             inverter = pair[1]
             # ratio = 0, means all remaining batteries reach max SoC lvl or have no
             # capacity
-            if ratio == 0.0:
+            if is_close_to_zero(ratio):
                 distribution[inverter.component_id] = 0.0
                 continue
 
@@ -396,13 +398,13 @@ class DistributionAlgorithm:
         Returns:
             Return the power for each inverter in given distribution.
         """
-        if remaining_power == 0.0:
+        if is_close_to_zero(remaining_power):
             return DistributionResult(distribution, remaining_power)
 
         new_distribution: Dict[int, float] = {}
 
         for inverter_id, power in distribution.items():
-            if remaining_power == 0.0 or power == 0.0:
+            if is_close_to_zero(remaining_power) or is_close_to_zero(power):
                 new_distribution[inverter_id] = power
             else:
                 remaining_power_capacity: float = upper_bounds[inverter_id] - power
