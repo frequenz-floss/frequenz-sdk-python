@@ -8,18 +8,20 @@ import asyncio
 import dataclasses
 import logging
 from dataclasses import dataclass, is_dataclass, replace
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Any, AsyncIterator, Generic, Iterator, TypeVar
 
 import async_solipsism
 import pytest
-from frequenz.channels import Broadcast, Receiver, Sender
+from frequenz.channels import Receiver, Sender
 from pytest_mock import MockerFixture
 
+from frequenz.sdk import microgrid
 from frequenz.sdk._internal._constants import (
     MAX_BATTERY_DATA_AGE_SEC,
     WAIT_FOR_COMPONENT_DATA_SEC,
 )
+from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.actor.power_distributing import BatteryStatus
 from frequenz.sdk.microgrid.component import ComponentCategory
 from frequenz.sdk.timeseries.battery_pool import (
@@ -40,7 +42,6 @@ from ...utils.component_graph_utils import (
     create_component_graph_structure,
 )
 from ...utils.mock_microgrid_client import MockMicrogridClient
-from ...utils.sdk_interface import SdkInterface
 
 _logger = logging.getLogger(__name__)
 
@@ -130,27 +131,37 @@ async def setup_all_batteries(mocker: MockerFixture) -> AsyncIterator[SetupArgs]
     mock_microgrid = create_mock_microgrid(
         mocker, ComponentGraphConfig(batteries_num=2)
     )
-    sdk = SdkInterface(resampling_period_s=1)
+    min_update_interval: float = 0.2
+    # pylint: disable=protected-access
+    microgrid._data_pipeline._DATA_PIPELINE = None
+    microgrid._data_pipeline.initialize(ResamplerConfig(min_update_interval))
     streamer = MockComponentDataStreamer(mock_microgrid)
 
     # We don't use status channel from the sdk interface to limit
     # the scope of this tests. This tests should cover BatteryPool only.
     # We use our own battery status channel, where we easily control set of working
     # batteries.
-    battery_status_channel = Broadcast[BatteryStatus]("bat_status", resend_latest=True)
-    sender_channel = battery_status_channel.new_sender()
-    min_update_interval: float = 0.2
-    battery_pool = BatteryPool(
-        batteries_status_receiver=battery_status_channel.new_receiver(maxsize=1),
-        min_update_interval=timedelta(seconds=min_update_interval),
-    )
+    battery_pool = microgrid.battery_pool()
+
+    assert microgrid._data_pipeline._DATA_PIPELINE is not None
 
     args = SetupArgs(
-        battery_pool, min_update_interval, mock_microgrid, streamer, sender_channel
+        battery_pool,
+        min_update_interval,
+        mock_microgrid,
+        streamer,
+        microgrid._data_pipeline._DATA_PIPELINE._battery_status_channel.new_sender(),
     )
 
     yield args
-    await asyncio.gather(*[sdk.stop(), battery_pool.stop(), streamer.stop()])
+    await asyncio.gather(
+        *[
+            microgrid._data_pipeline._DATA_PIPELINE._stop(),
+            battery_pool.stop(),
+            streamer.stop(),
+        ]
+    )
+    # pylint: enable=protected-access
 
 
 @pytest.fixture
@@ -170,29 +181,39 @@ async def setup_batteries_pool(mocker: MockerFixture) -> AsyncIterator[SetupArgs
         mocker, ComponentGraphConfig(batteries_num=4)
     )
     streamer = MockComponentDataStreamer(mock_microgrid)
-    sdk = SdkInterface(resampling_period_s=1)
+    min_update_interval: float = 0.2
+    # pylint: disable=protected-access
+    microgrid._data_pipeline._DATA_PIPELINE = None
+    microgrid._data_pipeline.initialize(ResamplerConfig(min_update_interval))
 
     # We don't use status channel from the sdk interface to limit
     # the scope of this tests. This tests should cover BatteryPool only.
     # We use our own battery status channel, where we easily control set of working
     # batteries.
-    battery_status_channel = Broadcast[BatteryStatus]("bat_status", resend_latest=True)
-    sender_channel = battery_status_channel.new_sender()
-    min_update_interval: float = 0.2
     all_batteries = list(get_components(mock_microgrid, ComponentCategory.BATTERY))
 
-    battery_pool = BatteryPool(
-        batteries_id=set(all_batteries[:2]),
-        batteries_status_receiver=battery_status_channel.new_receiver(maxsize=1),
-        min_update_interval=timedelta(seconds=min_update_interval),
-    )
+    battery_pool = microgrid.battery_pool(set(all_batteries[:2]))
+
+    assert microgrid._data_pipeline._DATA_PIPELINE is not None
 
     args = SetupArgs(
-        battery_pool, min_update_interval, mock_microgrid, streamer, sender_channel
+        battery_pool,
+        min_update_interval,
+        mock_microgrid,
+        streamer,
+        microgrid._data_pipeline._DATA_PIPELINE._battery_status_channel.new_sender(),
     )
 
     yield args
-    await asyncio.gather(*[sdk.stop(), battery_pool.stop(), streamer.stop()])
+
+    await asyncio.gather(
+        *[
+            microgrid._data_pipeline._DATA_PIPELINE._stop(),
+            battery_pool.stop(),
+            streamer.stop(),
+        ]
+    )
+    # pylint: enable=protected-access
 
 
 T = TypeVar("T")

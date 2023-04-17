@@ -9,7 +9,7 @@ for monitoring and adjusting the state of a microgrid.
 
 from ..actor import ResamplerConfig
 from . import _data_pipeline, client, component, connection_manager
-from ._data_pipeline import ev_charger_pool, logical_meter
+from ._data_pipeline import battery_pool, ev_charger_pool, logical_meter
 from ._graph import ComponentGraph
 
 
@@ -30,6 +30,7 @@ __all__ = [
     "initialize",
     "client",
     "component",
+    "battery_pool",
     "ev_charger_pool",
     "logical_meter",
 ]
