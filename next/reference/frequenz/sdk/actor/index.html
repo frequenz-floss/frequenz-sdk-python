@@ -1151,8 +1151,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.resampling_period_s" class="md-nav__link">
-    resampling_period_s
+  <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.resampling_period" class="md-nav__link">
+    resampling_period
   </a>
   
 </li>
@@ -3185,7 +3185,9 @@ instance.</p>
 
         <details class="quote">
           <summary>Source code in <code>/home/runner/.local/lib/python3.8/site-packages/frequenz/sdk/timeseries/_resampling.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">124</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
 <span class="normal">125</span>
 <span class="normal">126</span>
 <span class="normal">127</span>
@@ -3294,24 +3296,22 @@ instance.</p>
 <span class="normal">230</span>
 <span class="normal">231</span>
 <span class="normal">232</span>
-<span class="normal">233</span>
-<span class="normal">234</span>
-<span class="normal">235</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">233</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">ResamplerConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Resampler configuration.&quot;&quot;&quot;</span>
 
-    <span class="n">resampling_period_s</span><span class="p">:</span> <span class="nb">float</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;The resampling period in seconds.</span>
+    <span class="n">resampling_period</span><span class="p">:</span> <span class="n">timedelta</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The resampling period.</span>
 
 <span class="sd">    This is the time it passes between resampled data should be calculated.</span>
 
-<span class="sd">    It must be a positive number.</span>
+<span class="sd">    It must be a positive time span.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">max_data_age_in_periods</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The maximum age a sample can have to be considered *relevant* for resampling.</span>
 
-<span class="sd">    Expressed in number of periods, where period is the `resampling_period_s`</span>
+<span class="sd">    Expressed in number of periods, where period is the `resampling_period`</span>
 <span class="sd">    if we are downsampling (resampling period bigger than the input period) or</span>
 <span class="sd">    the input sampling period if we are upsampling (input period bigger than</span>
 <span class="sd">    the resampling period).</span>
@@ -3319,12 +3319,12 @@ instance.</p>
 <span class="sd">    It must be bigger than 1.0.</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        If `resampling_period_s` is 3, the input sampling period is</span>
+<span class="sd">        If `resampling_period` is 3 seconds, the input sampling period is</span>
 <span class="sd">        1 and `max_data_age_in_periods` is 2, then data older than 3*2</span>
 <span class="sd">        = 6 seconds will be discarded when creating a new sample and never</span>
 <span class="sd">        passed to the resampling function.</span>
 
-<span class="sd">        If `resampling_period_s` is 3, the input sampling period is</span>
+<span class="sd">        If `resampling_period` is 3 seconds, the input sampling period is</span>
 <span class="sd">        5 and `max_data_age_in_periods` is 2, then data older than 5*2</span>
 <span class="sd">        = 10 seconds will be discarded when creating a new sample and never</span>
 <span class="sd">        passed to the resampling function.</span>
@@ -3374,9 +3374,9 @@ instance.</p>
 <span class="sd">        Raises:</span>
 <span class="sd">            ValueError: If any value is out of range.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">resampling_period_s</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">resampling_period</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;resampling_period_s (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">resampling_period_s</span><span class="si">}</span><span class="s2">) must be positive&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;resampling_period (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">resampling_period</span><span class="si">}</span><span class="s2">) must be positive&quot;</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_data_age_in_periods</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -3489,7 +3489,7 @@ value.</p>
   <div class="doc doc-contents ">
   
       <p>The maximum age a sample can have to be considered <em>relevant</em> for resampling.</p>
-<p>Expressed in number of periods, where period is the <code>resampling_period_s</code>
+<p>Expressed in number of periods, where period is the <code>resampling_period</code>
 if we are downsampling (resampling period bigger than the input period) or
 the input sampling period if we are upsampling (input period bigger than
 the resampling period).</p>
@@ -3497,11 +3497,11 @@ the resampling period).</p>
 
 <details class="example">
   <summary>Example</summary>
-  <p>If <code>resampling_period_s</code> is 3, the input sampling period is
+  <p>If <code>resampling_period</code> is 3 seconds, the input sampling period is
 1 and <code>max_data_age_in_periods</code> is 2, then data older than 3*2
 = 6 seconds will be discarded when creating a new sample and never
 passed to the resampling function.</p>
-<p>If <code>resampling_period_s</code> is 3, the input sampling period is
+<p>If <code>resampling_period</code> is 3 seconds, the input sampling period is
 5 and <code>max_data_age_in_periods</code> is 2, then data older than 5*2
 = 10 seconds will be discarded when creating a new sample and never
 passed to the resampling function.</p>
@@ -3537,21 +3537,21 @@ value.</p>
 
 
 
-<h6 id="frequenz.sdk.timeseries._resampling.ResamplerConfig.resampling_period_s" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">resampling_period_s</span><span class="p">:</span> <span class="nb">float</span></code>
+<h6 id="frequenz.sdk.timeseries._resampling.ResamplerConfig.resampling_period" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">resampling_period</span><span class="p">:</span> <span class="n">timedelta</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
-<a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.resampling_period_s" class="headerlink" title="Permanent link">¤</a></h6>
+<a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.resampling_period" class="headerlink" title="Permanent link">¤</a></h6>
 
 
   <div class="doc doc-contents ">
   
-      <p>The resampling period in seconds.</p>
+      <p>The resampling period.</p>
 <p>This is the time it passes between resampled data should be calculated.</p>
-<p>It must be a positive number.</p>
+<p>It must be a positive time span.</p>
   </div>
 
 </div>
@@ -3619,7 +3619,9 @@ logs, so buffers don't grow too big inadvertently.</p>
 
       <details class="quote">
         <summary>Source code in <code>/home/runner/.local/lib/python3.8/site-packages/frequenz/sdk/timeseries/_resampling.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">196</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
 <span class="normal">197</span>
 <span class="normal">198</span>
 <span class="normal">199</span>
@@ -3656,17 +3658,15 @@ logs, so buffers don't grow too big inadvertently.</p>
 <span class="normal">230</span>
 <span class="normal">231</span>
 <span class="normal">232</span>
-<span class="normal">233</span>
-<span class="normal">234</span>
-<span class="normal">235</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">233</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Check that config values are valid.</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If any value is out of range.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">resampling_period_s</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">resampling_period</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;resampling_period_s (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">resampling_period_s</span><span class="si">}</span><span class="s2">) must be positive&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;resampling_period (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">resampling_period</span><span class="si">}</span><span class="s2">) must be positive&quot;</span>
         <span class="p">)</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_data_age_in_periods</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
