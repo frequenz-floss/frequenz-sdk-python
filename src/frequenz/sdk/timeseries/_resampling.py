@@ -589,24 +589,24 @@ class _ResamplingHelper:
 
         config = self._config
 
-        # If we are upsampling, one sample could be enough for back-filling, but
-        # we store max_data_age_in_periods for input periods, so resampling
-        # functions can do more complex inter/extrapolation if they need to.
-        if input_sampling_period > config.resampling_period:
-            new_buffer_len = (
-                input_sampling_period.total_seconds() * config.max_data_age_in_periods
-            )
-        # If we are upsampling, we want a buffer that can hold
-        # max_data_age_in_periods * resampling_period of data, and we
-        # one sample every input_sampling_period.
-        else:
-            new_buffer_len = (
+        new_buffer_len = math.ceil(
+            # If we are upsampling, one sample could be enough for
+            # back-filling, but we store max_data_age_in_periods for input
+            # periods, so resampling functions can do more complex
+            # inter/extrapolation if they need to.
+            (input_sampling_period.total_seconds() * config.max_data_age_in_periods)
+            if input_sampling_period > config.resampling_period
+            # If we are downsampling, we want a buffer that can hold
+            # max_data_age_in_periods * resampling_period of data, and we one
+            # sample every input_sampling_period.
+            else (
                 config.resampling_period.total_seconds()
                 / input_sampling_period.total_seconds()
                 * config.max_data_age_in_periods
             )
+        )
 
-        new_buffer_len = max(1, math.ceil(new_buffer_len))
+        new_buffer_len = max(1, new_buffer_len)
         if new_buffer_len > config.max_buffer_len:
             _logger.error(
                 "The new buffer length (%s) for timeseries %s is too big, using %s instead",
