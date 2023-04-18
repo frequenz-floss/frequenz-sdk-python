@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import typing
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Callable, Set
 
 from pytest_mock import MockerFixture
@@ -119,7 +119,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
         # pylint: disable=protected-access
         _data_pipeline._DATA_PIPELINE = _data_pipeline._DataPipeline(
-            ResamplerConfig(resampling_period_s=self._sample_rate_s)
+            ResamplerConfig(resampling_period=timedelta(seconds=self._sample_rate_s))
         )
         # pylint: enable=protected-access
 

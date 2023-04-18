@@ -142,13 +142,12 @@ class MovingWindow:
         self._resampler_task: asyncio.Task[None] | None = None
 
         if resampler_config:
-            resampling_period = timedelta(seconds=resampler_config.resampling_period_s)
             assert (
-                resampling_period <= size
+                resampler_config.resampling_period <= size
             ), "The resampling period should be equal to or lower than the window size."
 
             self._resampler = Resampler(resampler_config)
-            sampling = resampling_period
+            sampling = resampler_config.resampling_period
 
         # Sampling period might not fit perfectly into the window size.
         num_samples = math.ceil(size.total_seconds() / sampling.total_seconds())

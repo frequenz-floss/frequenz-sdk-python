@@ -15,8 +15,6 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import AsyncIterator, Callable, Coroutine, Optional, Sequence
 
-from frequenz.channels.util import Timer
-
 from .._internal.asyncio import cancel_and_await
 from . import Sample
 
@@ -78,10 +76,10 @@ ResamplingFunction = Callable[
 
 A resampling function produces a new sample based on a list of pre-existing
 samples. It can do "upsampling" when there data rate of the `input_samples`
-period is smaller than the `resampling_period_s`, or "downsampling" if it is
+period is smaller than the `resampling_period`, or "downsampling" if it is
 bigger.
 
-In general a resampling window is the same as the `resampling_period_s`, and
+In general a resampling window is the same as the `resampling_period`, and
 this function might receive input samples from multiple windows in the past to
 enable extrapolation, but no samples from the future (so the timestamp of the
 new sample that is going to be produced will always be bigger than the biggest
@@ -125,18 +123,18 @@ def average(
 class ResamplerConfig:
     """Resampler configuration."""
 
-    resampling_period_s: float
-    """The resampling period in seconds.
+    resampling_period: timedelta
+    """The resampling period.
 
     This is the time it passes between resampled data should be calculated.
 
-    It must be a positive number.
+    It must be a positive time span.
     """
 
     max_data_age_in_periods: float = 3.0
     """The maximum age a sample can have to be considered *relevant* for resampling.
 
-    Expressed in number of periods, where period is the `resampling_period_s`
+    Expressed in number of periods, where period is the `resampling_period`
     if we are downsampling (resampling period bigger than the input period) or
     the input sampling period if we are upsampling (input period bigger than
     the resampling period).
@@ -144,12 +142,12 @@ class ResamplerConfig:
     It must be bigger than 1.0.
 
     Example:
-        If `resampling_period_s` is 3, the input sampling period is
+        If `resampling_period` is 3 seconds, the input sampling period is
         1 and `max_data_age_in_periods` is 2, then data older than 3*2
         = 6 seconds will be discarded when creating a new sample and never
         passed to the resampling function.
 
-        If `resampling_period_s` is 3, the input sampling period is
+        If `resampling_period` is 3 seconds, the input sampling period is
         5 and `max_data_age_in_periods` is 2, then data older than 5*2
         = 10 seconds will be discarded when creating a new sample and never
         passed to the resampling function.
@@ -199,9 +197,9 @@ class ResamplerConfig:
         Raises:
             ValueError: If any value is out of range.
         """
-        if self.resampling_period_s < 0.0:
+        if self.resampling_period.total_seconds() < 0.0:
             raise ValueError(
-                f"resampling_period_s ({self.resampling_period_s}) must be positive"
+                f"resampling_period ({self.resampling_period}) must be positive"
             )
         if self.max_data_age_in_periods < 1.0:
             raise ValueError(
@@ -313,11 +311,11 @@ class SourceProperties:
     received_samples: int = 0
     """Total samples received by this source so far."""
 
-    sampling_period_s: Optional[float] = None
-    """The sampling period of this source (in seconds).
+    sampling_period: Optional[timedelta] = None
+    """The sampling period of this source.
 
-    This is we receive (on average) one sample for this source every
-    `sampling_period_s` seconds.
+    This means we receive (on average) one sample for this source every
+    `sampling_period` time.
 
     `None` means it is unknown.
     """
@@ -350,11 +348,8 @@ class Resampler:
         self._resamplers: dict[Source, _StreamingHelper] = {}
         """A mapping between sources and the streaming helper handling that source."""
 
-        self._timer: Timer = Timer(config.resampling_period_s)
-        """The timer to trigger the next resampling."""
-
-        self._window_end: datetime = datetime.now(timezone.utc) + timedelta(
-            seconds=self._config.resampling_period_s
+        self._window_end: datetime = (
+            datetime.now(timezone.utc) + self._config.resampling_period
         )
         """The time in which the current window ends.
 
@@ -428,30 +423,6 @@ class Resampler:
             return False
         return True
 
-    async def _wait_for_next_resampling_period(self) -> None:
-        """Wait for next resampling period.
-
-        If resampling period already started, then return without sleeping.
-        That would allow us to catch up with resampling.
-        Print warning if function woke up to late.
-        """
-        now = datetime.now(tz=timezone.utc)
-        if self._window_end > now:
-            sleep_for = self._window_end - now
-            await asyncio.sleep(sleep_for.total_seconds())
-
-        timer_error_s = (now - self._window_end).total_seconds()
-        if timer_error_s > (self._config.resampling_period_s / 10.0):
-            _logger.warning(
-                "The resampling task woke up too late. Resampling should have started "
-                "at %s, but it started at %s (%s seconds difference; resampling "
-                "period is %s seconds)",
-                self._window_end,
-                now,
-                timer_error_s,
-                self._config.resampling_period_s,
-            )
-
     async def resample(self, *, one_shot: bool = False) -> None:
         """Start resampling all known timeseries.
 
@@ -478,9 +449,7 @@ class Resampler:
                 return_exceptions=True,
             )
 
-            self._window_end = self._window_end + timedelta(
-                seconds=self._config.resampling_period_s
-            )
+            self._window_end = self._window_end + self._config.resampling_period
             exceptions = {
                 source: results[i]
                 for i, source in enumerate(self._resamplers)
@@ -493,13 +462,42 @@ class Resampler:
             if one_shot:
                 break
 
+    async def _wait_for_next_resampling_period(self) -> None:
+        """Wait for next resampling period.
+
+        If resampling period already started, then return without sleeping.
+        That would allow us to catch up with resampling.
+        Print warning if function woke up to late.
+        """
+        now = datetime.now(tz=timezone.utc)
+        if self._window_end > now:
+            sleep_for = self._window_end - now
+            await asyncio.sleep(sleep_for.total_seconds())
+
+        timer_error = now - self._window_end
+        # We use a tolerance of 10% of the resampling period
+        tolerance = timedelta(
+            seconds=self._config.resampling_period.total_seconds() / 10.0
+        )
+        if timer_error > tolerance:
+            _logger.warning(
+                "The resampling task woke up too late. Resampling should have "
+                "started at %s, but it started at %s (tolerance: %s, "
+                "difference: %s; resampling period: %s)",
+                self._window_end,
+                now,
+                tolerance,
+                timer_error,
+                self._config.resampling_period,
+            )
+
 
 class _ResamplingHelper:
     """Keeps track of *relevant* samples to pass them to the resampling function.
 
     Samples are stored in an internal ring buffer. All collected samples that
-    are newer than `max(resampling_period_s, input_period_s)
-    * max_data_age_in_periods` seconds are considered *relevant* and are passed
+    are newer than `max(resampling_period, input_period)
+    * max_data_age_in_periods` are considered *relevant* and are passed
     to the provided `resampling_function` when calling the `resample()` method.
     All older samples are discarded.
     """
@@ -554,10 +552,10 @@ class _ResamplingHelper:
 
         # We only update it if we didn't before and we have enough data
         if (
-            props.sampling_period_s is not None
+            props.sampling_period is not None
             or props.sampling_start is None
             or props.received_samples
-            < config.resampling_period_s * config.max_data_age_in_periods
+            < config.resampling_period.total_seconds() * config.max_data_age_in_periods
             or len(self._buffer) < self._buffer.maxlen
             # There might be a race between the first sample being received and
             # this function being called
@@ -566,14 +564,14 @@ class _ResamplingHelper:
             return False
 
         samples_time_delta = now - props.sampling_start
-        props.sampling_period_s = (
-            samples_time_delta.total_seconds()
-        ) / props.received_samples
+        props.sampling_period = timedelta(
+            seconds=samples_time_delta.total_seconds() / props.received_samples
+        )
 
         _logger.debug(
             "New input sampling period calculated for %r: %ss",
             self._name,
-            props.sampling_period_s,
+            props.sampling_period,
         )
         return True
 
@@ -583,30 +581,32 @@ class _ResamplingHelper:
         Returns:
             Whether the buffer length was changed (was really updated).
         """
-        input_sampling_period_s = self._source_properties.sampling_period_s
-
         # To make type checking happy
-        assert input_sampling_period_s is not None
         assert self._buffer.maxlen is not None
+        assert self._source_properties.sampling_period is not None
+
+        input_sampling_period = self._source_properties.sampling_period
 
         config = self._config
 
-        # If we are upsampling, one sample could be enough for back-filling, but
-        # we store max_data_age_in_periods for input periods, so resampling
-        # functions can do more complex inter/extrapolation if they need to.
-        if input_sampling_period_s > config.resampling_period_s:
-            new_buffer_len = input_sampling_period_s * config.max_data_age_in_periods
-        # If we are upsampling, we want a buffer that can hold
-        # max_data_age_in_periods * resampling_period_s seconds of data, and we
-        # one sample every input_sampling_period_s.
-        else:
-            new_buffer_len = (
-                config.resampling_period_s
-                / input_sampling_period_s
+        new_buffer_len = math.ceil(
+            # If we are upsampling, one sample could be enough for
+            # back-filling, but we store max_data_age_in_periods for input
+            # periods, so resampling functions can do more complex
+            # inter/extrapolation if they need to.
+            (input_sampling_period.total_seconds() * config.max_data_age_in_periods)
+            if input_sampling_period > config.resampling_period
+            # If we are downsampling, we want a buffer that can hold
+            # max_data_age_in_periods * resampling_period of data, and we one
+            # sample every input_sampling_period.
+            else (
+                config.resampling_period.total_seconds()
+                / input_sampling_period.total_seconds()
                 * config.max_data_age_in_periods
             )
+        )
 
-        new_buffer_len = max(1, math.ceil(new_buffer_len))
+        new_buffer_len = max(1, new_buffer_len)
         if new_buffer_len > config.max_buffer_len:
             _logger.error(
                 "The new buffer length (%s) for timeseries %s is too big, using %s instead",
@@ -657,13 +657,14 @@ class _ResamplingHelper:
         # To see which samples are relevant we need to consider if we are down
         # or upsampling.
         period = (
-            max(conf.resampling_period_s, props.sampling_period_s)
-            if props.sampling_period_s is not None
-            else conf.resampling_period_s
+            max(
+                conf.resampling_period,
+                props.sampling_period,
+            )
+            if props.sampling_period is not None
+            else conf.resampling_period
         )
-        minimum_relevant_timestamp = timestamp - timedelta(
-            seconds=period * conf.max_data_age_in_periods
-        )
+        minimum_relevant_timestamp = timestamp - period * conf.max_data_age_in_periods
 
         # We need to pass a dummy Sample to bisect because it only support
         # specifying a key extraction function in Python 3.10, so we need to

@@ -4,7 +4,7 @@
 """Frequenz Python SDK resampling example."""
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from frequenz.channels import Broadcast
 from frequenz.channels.util import Merge
@@ -43,7 +43,9 @@ async def _print_sample(sample: Sample) -> None:
 
 async def run() -> None:  # pylint: disable=too-many-locals
     """Run main functions that initializes and creates everything."""
-    await microgrid.initialize(HOST, PORT, ResamplerConfig(resampling_period_s=0.2))
+    await microgrid.initialize(
+        HOST, PORT, ResamplerConfig(resampling_period=timedelta(seconds=0.2))
+    )
 
     channel_registry = ChannelRegistry(name="data-registry")
 
@@ -66,7 +68,7 @@ async def run() -> None:  # pylint: disable=too-many-locals
         channel_registry=channel_registry,
         data_sourcing_request_sender=data_source_request_sender,
         resampling_request_receiver=resampling_request_receiver,
-        config=ResamplerConfig(resampling_period_s=1),
+        config=ResamplerConfig(resampling_period=timedelta(seconds=1)),
     )
 
     components = await connection_manager.get().api_client.components()
@@ -105,7 +107,9 @@ async def run() -> None:  # pylint: disable=too-many-locals
     # Create a channel to calculate an average for all the data
     average_chan = Broadcast[Sample]("average")
 
-    second_stage_resampler = Resampler(ResamplerConfig(resampling_period_s=3.0))
+    second_stage_resampler = Resampler(
+        ResamplerConfig(resampling_period=timedelta(seconds=3.0))
+    )
     second_stage_resampler.add_timeseries(
         "avg", average_chan.new_receiver(), _print_sample
     )

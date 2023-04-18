@@ -8,7 +8,7 @@ import asyncio
 import dataclasses
 import logging
 from dataclasses import dataclass, is_dataclass, replace
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, AsyncIterator, Generic, Iterator, TypeVar
 
 import async_solipsism
@@ -134,7 +134,9 @@ async def setup_all_batteries(mocker: MockerFixture) -> AsyncIterator[SetupArgs]
     min_update_interval: float = 0.2
     # pylint: disable=protected-access
     microgrid._data_pipeline._DATA_PIPELINE = None
-    microgrid._data_pipeline.initialize(ResamplerConfig(min_update_interval))
+    microgrid._data_pipeline.initialize(
+        ResamplerConfig(resampling_period=timedelta(seconds=min_update_interval))
+    )
     streamer = MockComponentDataStreamer(mock_microgrid)
 
     # We don't use status channel from the sdk interface to limit
@@ -184,7 +186,9 @@ async def setup_batteries_pool(mocker: MockerFixture) -> AsyncIterator[SetupArgs
     min_update_interval: float = 0.2
     # pylint: disable=protected-access
     microgrid._data_pipeline._DATA_PIPELINE = None
-    microgrid._data_pipeline.initialize(ResamplerConfig(min_update_interval))
+    microgrid._data_pipeline.initialize(
+        ResamplerConfig(resampling_period=timedelta(seconds=min_update_interval))
+    )
 
     # We don't use status channel from the sdk interface to limit
     # the scope of this tests. This tests should cover BatteryPool only.

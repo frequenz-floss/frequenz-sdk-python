@@ -113,9 +113,7 @@ async def test_resampling_window(fake_time: time_machine.Coordinates) -> None:
     window_size = timedelta(seconds=16)
     input_sampling = timedelta(seconds=1)
     output_sampling = timedelta(seconds=2)
-    resampler_config = ResamplerConfig(
-        resampling_period_s=output_sampling.total_seconds()
-    )
+    resampler_config = ResamplerConfig(resampling_period=output_sampling)
 
     window = MovingWindow(
         size=window_size,

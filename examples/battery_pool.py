@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from datetime import timedelta
 from typing import Any, Dict
 
 from frequenz.channels import Receiver
@@ -25,7 +26,9 @@ async def main() -> None:
         level=logging.DEBUG, format="%(asctime)s %(name)s %(levelname)s:%(message)s"
     )
     await microgrid.initialize(
-        host=HOST, port=PORT, resampler_config=ResamplerConfig(resampling_period_s=1.0)
+        host=HOST,
+        port=PORT,
+        resampler_config=ResamplerConfig(resampling_period=timedelta(seconds=1.0)),
     )
 
     battery_pool = microgrid.battery_pool()

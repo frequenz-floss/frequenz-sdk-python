@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from queue import Queue
 from typing import List, Optional, Set
 
@@ -159,7 +159,9 @@ async def run() -> None:
     logging.basicConfig(
         level=logging.DEBUG, format="%(asctime)s %(name)s %(levelname)s:%(message)s"
     )
-    await microgrid.initialize(HOST, PORT, ResamplerConfig(resampling_period_s=1.0))
+    await microgrid.initialize(
+        HOST, PORT, ResamplerConfig(resampling_period=timedelta(seconds=1.0))
+    )
 
     channel_registry = ChannelRegistry(name="Microgrid Channel Registry")
 
@@ -180,7 +182,7 @@ async def run() -> None:
         channel_registry=channel_registry,
         data_sourcing_request_sender=data_source_request_channel.new_sender(),
         resampling_request_receiver=resampling_actor_request_channel.new_receiver(),
-        config=ResamplerConfig(resampling_period_s=1.0),
+        config=ResamplerConfig(resampling_period=timedelta(seconds=1.0)),
     )
 
     logical_meter = LogicalMeter(
