@@ -31,6 +31,7 @@ from .. import Sample, Sample3Phase
 from ._formula_steps import (
     Adder,
     Averager,
+    Clipper,
     ConstantValue,
     Divider,
     FormulaStep,
@@ -489,6 +490,41 @@ class FormulaBuilder:
             value: The constant value to push.
         """
         self._steps.append(ConstantValue(value))
+
+    def push_clipper(self, min_value: float | None, max_value: float | None) -> None:
+        """Push a clipper step into the engine.
+
+        The clip will be applied on the last value available on the evaluation stack,
+        before the clip step is called.
+
+        So if an entire expression needs to be clipped, the expression should be
+        enclosed in parentheses, before the clip step is added.
+
+        For example, this clips the output of the entire expression:
+
+        ```python
+        builder.push_oper("(")
+        builder.push_metric("metric_1", receiver_1)
+        builder.push_oper("+")
+        builder.push_metric("metric_2", receiver_2)
+        builder.push_oper(")")
+        builder.push_clipper(min_value=0.0, max_value=None)
+        ```
+
+        And this clips the output of metric_2 only, and not the final result:
+
+        ```python
+        builder.push_metric("metric_1", receiver_1)
+        builder.push_oper("+")
+        builder.push_metric("metric_2", receiver_2)
+        builder.push_clipper(min_value=0.0, max_value=None)
+        ```
+
+        Args:
+            min_value: The minimum value to clip to.
+            max_value: The maximum value to clip to.
+        """
+        self._steps.append(Clipper(min_value, max_value))
 
     def push_average(self, metrics: List[Tuple[str, Receiver[Sample], bool]]) -> None:
         """Push an average calculator into the engine.

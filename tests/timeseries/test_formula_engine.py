@@ -658,3 +658,61 @@ class TestConstantValue:
         await sender_1.send(Sample(now, -10.0))
         await sender_2.send(Sample(now, 15.0))
         assert (await results_rx.receive()).value == -120.0
+
+
+class TestClipper:
+    """Tests for the clipper step."""
+
+    async def test_clipper(self) -> None:
+        """Test the usage of clipper in formulas."""
+        channel_1 = Broadcast[Sample]("channel_1")
+        channel_2 = Broadcast[Sample]("channel_2")
+
+        sender_1 = channel_1.new_sender()
+        sender_2 = channel_2.new_sender()
+
+        builder = FormulaBuilder("test_clipper")
+        builder.push_metric("channel_1", channel_1.new_receiver(), False)
+        builder.push_oper("+")
+        builder.push_metric("channel_2", channel_2.new_receiver(), False)
+        builder.push_clipper(0.0, 100.0)
+        engine = builder.build()
+
+        results_rx = engine.new_receiver()
+
+        now = datetime.now()
+        await sender_1.send(Sample(now, 10.0))
+        await sender_2.send(Sample(now, 150.0))
+        assert (await results_rx.receive()).value == 110.0
+
+        await sender_1.send(Sample(now, 200.0))
+        await sender_2.send(Sample(now, -10.0))
+        assert (await results_rx.receive()).value == 200.0
+
+        await sender_1.send(Sample(now, 200.0))
+        await sender_2.send(Sample(now, 10.0))
+        assert (await results_rx.receive()).value == 210.0
+
+        builder = FormulaBuilder("test_clipper")
+        builder.push_oper("(")
+        builder.push_metric("channel_1", channel_1.new_receiver(), False)
+        builder.push_oper("+")
+        builder.push_metric("channel_2", channel_2.new_receiver(), False)
+        builder.push_oper(")")
+        builder.push_clipper(0.0, 100.0)
+        engine = builder.build()
+
+        results_rx = engine.new_receiver()
+
+        now = datetime.now()
+        await sender_1.send(Sample(now, 10.0))
+        await sender_2.send(Sample(now, 150.0))
+        assert (await results_rx.receive()).value == 100.0
+
+        await sender_1.send(Sample(now, 200.0))
+        await sender_2.send(Sample(now, -10.0))
+        assert (await results_rx.receive()).value == 100.0
+
+        await sender_1.send(Sample(now, 25.0))
+        await sender_2.send(Sample(now, -10.0))
+        assert (await results_rx.receive()).value == 15.0

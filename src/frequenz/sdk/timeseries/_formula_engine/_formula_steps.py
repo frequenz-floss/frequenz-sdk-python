@@ -225,6 +225,41 @@ class ConstantValue(FormulaStep):
         eval_stack.append(self._value)
 
 
+class Clipper(FormulaStep):
+    """A formula step for clipping a value between a minimum and maximum."""
+
+    def __init__(self, min_val: float | None, max_val: float | None) -> None:
+        """Create a `Clipper` instance.
+
+        Args:
+            min_val: The minimum value.
+            max_val: The maximum value.
+        """
+        self._min_val = min_val
+        self._max_val = max_val
+
+    def __repr__(self) -> str:
+        """Return a string representation of the step.
+
+        Returns:
+            A string representation of the step.
+        """
+        return f"clip({self._min_val}, {self._max_val})"
+
+    def apply(self, eval_stack: List[float]) -> None:
+        """Clip the value at the top of the eval_stack.
+
+        Args:
+            eval_stack: An evaluation stack, to apply the formula step on.
+        """
+        val = eval_stack.pop()
+        if self._min_val is not None:
+            val = max(val, self._min_val)
+        if self._max_val is not None:
+            val = min(val, self._max_val)
+        eval_stack.append(val)
+
+
 class MetricFetcher(FormulaStep):
     """A formula step for fetching a value from a metric Receiver."""
 
