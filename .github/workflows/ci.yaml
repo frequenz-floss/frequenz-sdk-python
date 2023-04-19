@@ -75,7 +75,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Setup Git user and e-mail
-        uses: frequenz-floss/setup-git-user@v1
+        uses: frequenz-floss/setup-git-user@v2
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -151,7 +151,7 @@ jobs:
 
       - name: Setup Git user and e-mail
         if: steps.mike-metadata.outputs.version
-        uses: frequenz-floss/setup-git-user@v1
+        uses: frequenz-floss/setup-git-user@v2
 
       - name: Set up Python
         if: steps.mike-metadata.outputs.version
