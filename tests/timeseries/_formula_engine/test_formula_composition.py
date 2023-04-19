@@ -29,15 +29,17 @@ class TestFormulaComposition:
         await mockgrid.start(mocker)
         logical_meter = microgrid.logical_meter()
 
-        main_meter_recv = await get_resampled_stream(
+        main_meter_recv = get_resampled_stream(
             4,
             ComponentMetricId.ACTIVE_POWER,
         )
-        grid_power_recv = await logical_meter.grid_power()
-        battery_power_recv = await logical_meter.battery_power()
-        pv_power_recv = await logical_meter.pv_power()
+        grid_power_recv = logical_meter.grid_power.new_receiver()
+        battery_power_recv = logical_meter.battery_power.new_receiver()
+        pv_power_recv = logical_meter.pv_power.new_receiver()
 
-        engine = (pv_power_recv.clone() + battery_power_recv.clone()).build("inv_power")
+        engine = (logical_meter.pv_power + logical_meter.battery_power).build(
+            "inv_power"
+        )
         inv_calc_recv = engine.new_receiver()
 
         count = 0
@@ -69,9 +71,11 @@ class TestFormulaComposition:
         await mockgrid.start(mocker)
         logical_meter = microgrid.logical_meter()
 
-        battery_power_recv = await logical_meter.battery_power()
-        pv_power_recv = await logical_meter.pv_power()
-        engine = (pv_power_recv.clone() + battery_power_recv.clone()).build("inv_power")
+        battery_power_recv = logical_meter.battery_power.new_receiver()
+        pv_power_recv = logical_meter.pv_power.new_receiver()
+        engine = (logical_meter.pv_power + logical_meter.battery_power).build(
+            "inv_power"
+        )
         inv_calc_recv = engine.new_receiver()
 
         count = 0
@@ -96,9 +100,11 @@ class TestFormulaComposition:
         await mockgrid.start(mocker)
         logical_meter = microgrid.logical_meter()
 
-        battery_power_recv = await logical_meter.battery_power()
-        pv_power_recv = await logical_meter.pv_power()
-        engine = (pv_power_recv.clone() + battery_power_recv.clone()).build("inv_power")
+        battery_power_recv = logical_meter.battery_power.new_receiver()
+        pv_power_recv = logical_meter.pv_power.new_receiver()
+        engine = (logical_meter.pv_power + logical_meter.battery_power).build(
+            "inv_power"
+        )
         inv_calc_recv = engine.new_receiver()
 
         count = 0
@@ -125,12 +131,10 @@ class TestFormulaComposition:
         logical_meter = microgrid.logical_meter()
         ev_pool = microgrid.ev_charger_pool()
 
-        grid_current_recv = await logical_meter.grid_current()
-        ev_current_recv = await ev_pool.current()
+        grid_current_recv = logical_meter.grid_current.new_receiver()
+        ev_current_recv = ev_pool.current.new_receiver()
 
-        engine = (grid_current_recv.clone() - ev_current_recv.clone()).build(
-            "net_current"
-        )
+        engine = (logical_meter.grid_current - ev_pool.current).build("net_current")
         net_current_recv = engine.new_receiver()
 
         await synchronize_receivers(

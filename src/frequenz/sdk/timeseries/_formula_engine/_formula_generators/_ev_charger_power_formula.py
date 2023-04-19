@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class EVChargerPowerFormula(FormulaGenerator):
     """Create a formula engine from the component graph for calculating grid power."""
 
-    async def generate(self) -> FormulaEngine:
+    def generate(self) -> FormulaEngine:
         """Generate a formula for calculating total EV power for given component ids.
 
         Returns:
@@ -33,7 +33,7 @@ class EVChargerPowerFormula(FormulaGenerator):
             # If there are no EV Chargers, we have to send 0 values as the same
             # frequency as the other streams. So we subscribe with a non-existing
             # component id, just to get a `None` message at the resampling interval.
-            await builder.push_component_metric(
+            builder.push_component_metric(
                 NON_EXISTING_COMPONENT_ID, nones_are_zeros=True
             )
             return builder.build()
@@ -42,6 +42,6 @@ class EVChargerPowerFormula(FormulaGenerator):
             if idx > 0:
                 builder.push_oper("+")
 
-            await builder.push_component_metric(component_id, nones_are_zeros=True)
+            builder.push_component_metric(component_id, nones_are_zeros=True)
 
         return builder.build()

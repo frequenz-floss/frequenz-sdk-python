@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class PVPowerFormula(FormulaGenerator):
     """Creates a formula engine for calculating the PV power production."""
 
-    async def generate(self) -> FormulaEngine:
+    def generate(self) -> FormulaEngine:
         """Make a formula for the PV power production of a microgrid.
 
         Returns:
@@ -44,7 +44,7 @@ class PVPowerFormula(FormulaGenerator):
             # If there are no PV inverters, we have to send 0 values as the same
             # frequency as the other streams.  So we subscribe with a non-existing
             # component id, just to get a `None` message at the resampling interval.
-            await builder.push_component_metric(
+            builder.push_component_metric(
                 NON_EXISTING_COMPONENT_ID, nones_are_zeros=True
             )
             return builder.build()
@@ -53,6 +53,6 @@ class PVPowerFormula(FormulaGenerator):
             if idx > 0:
                 builder.push_oper("+")
 
-            await builder.push_component_metric(comp.component_id, nones_are_zeros=True)
+            builder.push_component_metric(comp.component_id, nones_are_zeros=True)
 
         return builder.build()

@@ -230,7 +230,7 @@ async def run() -> None:
 
     client_actor = DataCollectingActor(
         request_channel=power_dist_req_chan.new_sender(),
-        active_power_data=await logical_meter.grid_power(),
+        active_power_data=logical_meter.grid_power.new_receiver(),
     )
 
     await actor.run(service_actor, client_actor, power_distributor)

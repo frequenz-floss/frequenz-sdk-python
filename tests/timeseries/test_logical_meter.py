@@ -31,9 +31,9 @@ class TestLogicalMeter:
         await mockgrid.start(mocker)
         logical_meter = microgrid.logical_meter()
 
-        grid_power_recv = await logical_meter.grid_power()
+        grid_power_recv = logical_meter.grid_power.new_receiver()
 
-        main_meter_recv = await get_resampled_stream(
+        main_meter_recv = get_resampled_stream(
             mockgrid.main_meter_id,
             ComponentMetricId.ACTIVE_POWER,
         )
@@ -63,10 +63,10 @@ class TestLogicalMeter:
         await mockgrid.start(mocker)
         logical_meter = microgrid.logical_meter()
 
-        grid_power_recv = await logical_meter.grid_power()
+        grid_power_recv = logical_meter.grid_power.new_receiver()
 
         meter_receivers = [
-            await get_resampled_stream(
+            get_resampled_stream(
                 meter_id,
                 ComponentMetricId.ACTIVE_POWER,
             )
@@ -105,11 +105,11 @@ class TestLogicalMeter:
         await mockgrid.start(mocker)
         logical_meter = microgrid.logical_meter()
 
-        battery_power_recv = await logical_meter.battery_power()
-        pv_power_recv = await logical_meter.pv_power()
+        battery_power_recv = logical_meter.battery_power.new_receiver()
+        pv_power_recv = logical_meter.pv_power.new_receiver()
 
         bat_inv_receivers = [
-            await get_resampled_stream(
+            get_resampled_stream(
                 meter_id,
                 ComponentMetricId.ACTIVE_POWER,
             )
@@ -117,7 +117,7 @@ class TestLogicalMeter:
         ]
 
         pv_inv_receivers = [
-            await get_resampled_stream(
+            get_resampled_stream(
                 meter_id,
                 ComponentMetricId.ACTIVE_POWER,
             )
