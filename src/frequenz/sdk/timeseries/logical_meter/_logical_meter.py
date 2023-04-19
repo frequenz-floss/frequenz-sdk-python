@@ -13,6 +13,8 @@ from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid.component import ComponentMetricId
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase, FormulaEnginePool
 from .._formula_engine._formula_generators import (
+    FormulaGeneratorConfig,
+    FormulaType,
     GridCurrentFormula,
     GridPowerFormula,
     PVPowerFormula,
@@ -147,6 +149,48 @@ class LogicalMeter:
         engine = self._formula_pool.from_generator(
             "grid_power",
             GridPowerFormula,
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def grid_consumption_power(self) -> FormulaEngine:
+        """Fetch the grid consumption power for the microgrid.
+
+        If a formula engine to calculate grid consumption power is not already running,
+        it will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream grid consumption power.
+        """
+        engine = self._formula_pool.from_generator(
+            "grid_consumption_power",
+            GridPowerFormula,
+            FormulaGeneratorConfig(formula_type=FormulaType.CONSUMPTION),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def grid_production_power(self) -> FormulaEngine:
+        """Fetch the grid production power for the microgrid.
+
+        If a formula engine to calculate grid production power is not already running,
+        it will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream grid production power.
+        """
+        engine = self._formula_pool.from_generator(
+            "grid_production_power",
+            GridPowerFormula,
+            FormulaGeneratorConfig(formula_type=FormulaType.PRODUCTION),
         )
         assert isinstance(engine, FormulaEngine)
         return engine

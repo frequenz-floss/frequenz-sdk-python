@@ -6,7 +6,7 @@
 from ....microgrid import connection_manager
 from ....microgrid.component import ComponentCategory, ComponentMetricId
 from .._formula_engine import FormulaEngine
-from ._formula_generator import ComponentNotFound, FormulaGenerator
+from ._formula_generator import ComponentNotFound, FormulaGenerator, FormulaType
 
 
 class GridPowerFormula(FormulaGenerator):
@@ -42,7 +42,18 @@ class GridPowerFormula(FormulaGenerator):
         grid_successors = component_graph.successors(grid_component.component_id)
 
         # generate a formula that just adds values from all commponents that are
-        # directly connected to the grid.
+        # directly connected to the grid.  If the requested formula type is
+        # `PASSIVE_SIGN_CONVENTION`, there is nothing more to do.  If the requested
+        # formula type is `PRODUCTION`, the formula output is negated, then clipped to
+        # 0.  If the requested formula type is `CONSUMPTION`, the formula output is
+        # already positive, so it is just clipped to 0.
+        #
+        # So the formulas would look like:
+        #  - `PASSIVE_SIGN_CONVENTION`: `(grid-successor-1 + grid-successor-2 + ...)`
+        #  - `PRODUCTION`: `max(0, -(grid-successor-1 + grid-successor-2 + ...))`
+        #  - `CONSUMPTION`: `max(0, (grid-successor-1 + grid-successor-2 + ...))`
+        builder.push_oper("(")
+        builder.push_oper("(")
         for idx, comp in enumerate(grid_successors):
             if idx > 0:
                 builder.push_oper("+")
@@ -66,5 +77,14 @@ class GridPowerFormula(FormulaGenerator):
             builder.push_component_metric(
                 comp.component_id, nones_are_zeros=nones_are_zeros
             )
+        builder.push_oper(")")
+
+        if self._config.formula_type == FormulaType.PRODUCTION:
+            builder.push_oper("*")
+            builder.push_constant(-1)
+        builder.push_oper(")")
+
+        if self._config.formula_type != FormulaType.PASSIVE_SIGN_CONVENTION:
+            builder.push_clipper(0.0, None)
 
         return builder.build()

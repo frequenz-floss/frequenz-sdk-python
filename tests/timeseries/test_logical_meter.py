@@ -5,10 +5,15 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+from typing import Any
+
+from frequenz.channels import Broadcast, Receiver, Sender
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.microgrid.component import ComponentMetricId
+from frequenz.sdk.timeseries import Sample
 
 from ._formula_engine.utils import (
     equal_float_lists,
@@ -95,6 +100,58 @@ class TestLogicalMeter:
 
         assert len(results) == 10
         assert equal_float_lists(results, meter_sums)
+
+    async def test_grid_production_consumption_power(
+        self,
+        mocker: MockerFixture,
+    ) -> None:
+        """Test the grid production and consumption power formulas."""
+        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid.add_batteries(2)
+        mockgrid.add_solar_inverters(1)
+        await mockgrid.start(mocker)
+
+        channels: dict[int, Broadcast[Sample]] = {
+            meter_id: Broadcast(f"#{meter_id}") for meter_id in mockgrid.meter_ids
+        }
+        senders: list[Sender[Sample]] = [
+            channels[meter_id].new_sender() for meter_id in mockgrid.meter_ids
+        ]
+
+        async def send_resampled_data(
+            now: datetime,
+            meter_data: tuple[float | None, float | None, float | None, float | None],
+        ) -> None:
+            """Send resampled data to the channels."""
+            for sender, value in zip(senders, meter_data):
+                await sender.send(Sample(now, value))
+
+        def mock_resampled_receiver(
+            _1: Any, component_id: int, _2: ComponentMetricId
+        ) -> Receiver[Sample]:
+            return channels[component_id].new_receiver()
+
+        mocker.patch(
+            "frequenz.sdk.timeseries._formula_engine._resampled_formula_builder"
+            ".ResampledFormulaBuilder._get_resampled_receiver",
+            mock_resampled_receiver,
+        )
+
+        logical_meter = microgrid.logical_meter()
+        grid_recv = logical_meter.grid_power.new_receiver()
+        grid_production_recv = logical_meter.grid_production_power.new_receiver()
+        grid_consumption_recv = logical_meter.grid_consumption_power.new_receiver()
+
+        now = datetime.now()
+        await send_resampled_data(now, (1.0, 2.0, 3.0, 4.0))
+        assert (await grid_recv.receive()).value == 10.0
+        assert (await grid_production_recv.receive()).value == 0.0
+        assert (await grid_consumption_recv.receive()).value == 10.0
+
+        await send_resampled_data(now, (1.0, 2.0, -3.0, -4.0))
+        assert (await grid_recv.receive()).value == -4.0
+        assert (await grid_production_recv.receive()).value == 4.0
+        assert (await grid_consumption_recv.receive()).value == 0.0
 
     async def test_battery_and_pv_power(  # pylint: disable=too-many-locals
         self,
