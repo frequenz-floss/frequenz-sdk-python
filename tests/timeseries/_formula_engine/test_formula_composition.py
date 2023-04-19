@@ -3,13 +3,18 @@
 
 """Tests for formula composition."""
 
+from __future__ import annotations
 
+from datetime import datetime
 from math import isclose
+from typing import Any, Dict, List
 
+from frequenz.channels import Broadcast, Receiver, Sender
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.microgrid.component import ComponentMetricId
+from frequenz.sdk.timeseries import Sample
 
 from ..mock_microgrid import MockMicrogrid
 from .utils import get_resampled_stream, synchronize_receivers
@@ -29,6 +34,29 @@ class TestFormulaComposition:
         await mockgrid.start(mocker)
         logical_meter = microgrid.logical_meter()
 
+        channels: Dict[int, Broadcast[Sample]] = {
+            meter_id: Broadcast(f"#{meter_id}")
+            for meter_id in [
+                *mockgrid.meter_ids,
+                *mockgrid.battery_inverter_ids,
+                *mockgrid.pv_inverter_ids,
+            ]
+        }
+        senders: List[Sender[Sample]] = [
+            channel.new_sender() for channel in channels.values()
+        ]
+
+        async def mock_resampled_receiver(
+            _1: Any, component_id: int, _2: ComponentMetricId
+        ) -> Receiver[Sample]:
+            return channels[component_id].new_receiver()
+
+        mocker.patch(
+            "frequenz.sdk.timeseries._formula_engine._resampled_formula_builder"
+            ".ResampledFormulaBuilder._get_resampled_receiver",
+            mock_resampled_receiver,
+        )
+
         main_meter_recv = await get_resampled_stream(
             4,
             ComponentMetricId.ACTIVE_POWER,
@@ -42,6 +70,10 @@ class TestFormulaComposition:
 
         count = 0
         for _ in range(10):
+            now = datetime.now()
+            for sender in senders:
+                await sender.send(Sample(now, 100.0 * count + count))
+
             grid_pow = await grid_power_recv.receive()
             pv_pow = await pv_power_recv.receive()
             bat_pow = await battery_power_recv.receive()
