@@ -21,7 +21,7 @@ from . import Sample
 from ._resampling import Resampler, ResamplerConfig
 from ._ringbuffer import OrderedRingBuffer
 
-log = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class MovingWindow:
@@ -174,17 +174,17 @@ class MovingWindow:
         """
         try:
             async for sample in self._resampled_data_recv:
-                log.debug("Received new sample: %s", sample)
+                _logger.debug("Received new sample: %s", sample)
                 if self._resampler and self._resampler_sender:
                     await self._resampler_sender.send(sample)
                 else:
                     self._buffer.update(sample)
 
         except asyncio.CancelledError:
-            log.info("MovingWindow task has been cancelled.")
+            _logger.info("MovingWindow task has been cancelled.")
             raise
 
-        log.error("Channel has been closed")
+        _logger.error("Channel has been closed")
 
     async def stop(self) -> None:
         """Cancel the running tasks and stop the MovingWindow."""
@@ -264,7 +264,7 @@ class MovingWindow:
             an numpy array if the key is a slice.
         """
         if isinstance(key, slice):
-            log.debug("Returning slice for [%s:%s].", key.start, key.stop)
+            _logger.debug("Returning slice for [%s:%s].", key.start, key.stop)
             # we are doing runtime typechecks since there is no abstract slice type yet
             # see also (https://peps.python.org/pep-0696)
             if isinstance(key.start, datetime) and isinstance(key.stop, datetime):
@@ -272,7 +272,7 @@ class MovingWindow:
             if isinstance(key.start, int) and isinstance(key.stop, int):
                 return self._buffer[key]
         elif isinstance(key, datetime):
-            log.debug("Returning value at time %s ", key)
+            _logger.debug("Returning value at time %s ", key)
             return self._buffer[self._buffer.datetime_to_index(key)]
         elif isinstance(key, SupportsIndex):
             return self._buffer[key]

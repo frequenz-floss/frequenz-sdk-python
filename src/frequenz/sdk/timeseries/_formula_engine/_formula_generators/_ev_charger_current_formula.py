@@ -12,7 +12,7 @@ from ....microgrid.component import ComponentMetricId
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase
 from ._formula_generator import NON_EXISTING_COMPONENT_ID, FormulaGenerator
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class EVChargerCurrentFormula(FormulaGenerator):
@@ -27,7 +27,7 @@ class EVChargerCurrentFormula(FormulaGenerator):
         component_ids = self._config.component_ids
 
         if not component_ids:
-            logger.warning(
+            _logger.warning(
                 "No EV Charger component IDs specified. "
                 "Subscribing to the resampling actor with a non-existing "
                 "component id, so that `0` values are sent from the formula."

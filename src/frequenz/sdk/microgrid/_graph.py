@@ -32,7 +32,7 @@ import networkx as nx
 from .client import Connection, MicrogridApiClient
 from .component import Component, ComponentCategory
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class InvalidGraphError(Exception):
@@ -309,7 +309,7 @@ class _MicrogridComponentGraph(ComponentGraph):
             try:
                 _provisional.validate()
             except InvalidGraphError as err:
-                logger.warning("Attempting to fix invalid component data: %s", err)
+                _logger.warning("Attempting to fix invalid component data: %s", err)
                 correct_errors(_provisional)
 
         try:

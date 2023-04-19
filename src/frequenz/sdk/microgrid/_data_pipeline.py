@@ -20,7 +20,7 @@ from frequenz.channels import Bidirectional, Broadcast, Sender
 from . import connection_manager
 from .component import ComponentCategory
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 # A number of imports had to be done inside functions where they are used, to break
 # import cycles.
@@ -207,7 +207,7 @@ class _DataPipeline:
         if not component_graph.components(
             component_category={ComponentCategory.BATTERY}
         ):
-            logger.warning(
+            _logger.warning(
                 "No batteries found in the component graph. "
                 "The power distributing actor will not be started."
             )

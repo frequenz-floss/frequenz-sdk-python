@@ -16,7 +16,7 @@ from typing import Any, Generic, Optional, Type, TypeVar
 
 from frequenz.sdk._internal.asyncio import cancel_and_await
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 OT = TypeVar("OT")
 
@@ -201,25 +201,25 @@ def actor(cls: Type[Any]) -> Type[Any]:
             Raises:
                 asyncio.CancelledError: when the actor's task gets cancelled.
             """
-            logger.debug("Starting actor: %s", cls.__name__)
+            _logger.debug("Starting actor: %s", cls.__name__)
             number_of_restarts = 0
             while (
                 self.restart_limit is None or number_of_restarts <= self.restart_limit
             ):
                 if number_of_restarts > 0:
-                    logger.info("Restarting actor: %s", cls.__name__)
+                    _logger.info("Restarting actor: %s", cls.__name__)
 
                 try:
                     await super().run()
                 except asyncio.CancelledError:
-                    logger.debug("Cancelling actor: %s", cls.__name__)
+                    _logger.debug("Cancelling actor: %s", cls.__name__)
                     raise
                 except Exception:  # pylint: disable=broad-except
-                    logger.exception("Actor (%s) crashed", cls.__name__)
+                    _logger.exception("Actor (%s) crashed", cls.__name__)
                 finally:
                     number_of_restarts += 1
 
-            logger.info("Shutting down actor: %s", cls.__name__)
+            _logger.info("Shutting down actor: %s", cls.__name__)
 
         async def _stop(self) -> None:
             """Stop an running actor."""

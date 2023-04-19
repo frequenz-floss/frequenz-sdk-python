@@ -40,7 +40,7 @@ from ._formula_steps import (
 )
 from ._tokenizer import TokenType
 
-logger = logging.Logger(__name__)
+_logger = logging.Logger(__name__)
 
 _operator_precedence = {
     "(": 0,
@@ -301,10 +301,10 @@ class FormulaEngine(
             try:
                 msg = await evaluator.apply()
             except asyncio.CancelledError:
-                logger.exception("FormulaEngine task cancelled: %s", self._name)
+                _logger.exception("FormulaEngine task cancelled: %s", self._name)
                 raise
             except Exception as err:  # pylint: disable=broad-except
-                logger.warning(
+                _logger.warning(
                     "Formula application failed: %s. Error: %s", self._name, err
                 )
             else:
@@ -374,7 +374,7 @@ class FormulaEngine3Phase(
                     phase_3.value,
                 )
             except asyncio.CancelledError:
-                logger.exception("FormulaEngine task cancelled: %s", self._name)
+                _logger.exception("FormulaEngine task cancelled: %s", self._name)
                 break
             else:
                 await sender.send(msg)
