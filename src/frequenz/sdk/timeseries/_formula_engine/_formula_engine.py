@@ -31,6 +31,7 @@ from .. import Sample, Sample3Phase
 from ._formula_steps import (
     Adder,
     Averager,
+    ConstantValue,
     Divider,
     FormulaStep,
     MetricFetcher,
@@ -480,6 +481,14 @@ class FormulaBuilder:
             name, MetricFetcher(name, data_stream, nones_are_zeros)
         )
         self._steps.append(fetcher)
+
+    def push_constant(self, value: float) -> None:
+        """Push a constant value into the engine.
+
+        Args:
+            value: The constant value to push.
+        """
+        self._steps.append(ConstantValue(value))
 
     def push_average(self, metrics: List[Tuple[str, Receiver[Sample], bool]]) -> None:
         """Push an average calculator into the engine.

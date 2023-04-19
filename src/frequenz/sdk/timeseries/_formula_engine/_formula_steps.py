@@ -197,6 +197,34 @@ class Averager(FormulaStep):
         eval_stack.append(avg)
 
 
+class ConstantValue(FormulaStep):
+    """A formula step for inserting a constant value."""
+
+    def __init__(self, value: float) -> None:
+        """Create a `ConstantValue` instance.
+
+        Args:
+            value: The constant value.
+        """
+        self._value = value
+
+    def __repr__(self) -> str:
+        """Return a string representation of the step.
+
+        Returns:
+            A string representation of the step.
+        """
+        return str(self._value)
+
+    def apply(self, eval_stack: List[float]) -> None:
+        """Push the constant value to the eval_stack.
+
+        Args:
+            eval_stack: An evaluation stack, to append the constant value to.
+        """
+        eval_stack.append(self._value)
+
+
 class MetricFetcher(FormulaStep):
     """A formula step for fetching a value from a metric Receiver."""
 

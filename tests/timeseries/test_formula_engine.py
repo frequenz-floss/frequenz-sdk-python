@@ -603,3 +603,58 @@ class TestFormulaAverager:
                 ([None, None, None], 0.0),
             ],
         )
+
+
+class TestConstantValue:
+    """Tests for the constant value step."""
+
+    async def test_constant_value(self) -> None:
+        """Test using constant values in formulas."""
+
+        channel_1 = Broadcast[Sample]("channel_1")
+        channel_2 = Broadcast[Sample]("channel_2")
+
+        sender_1 = channel_1.new_sender()
+        sender_2 = channel_2.new_sender()
+
+        builder = FormulaBuilder("test_constant_value")
+        builder.push_metric("channel_1", channel_1.new_receiver(), False)
+        builder.push_oper("+")
+        builder.push_constant(2.0)
+        builder.push_oper("*")
+        builder.push_metric("channel_2", channel_2.new_receiver(), False)
+
+        engine = builder.build()
+
+        results_rx = engine.new_receiver()
+
+        now = datetime.now()
+        await sender_1.send(Sample(now, 10.0))
+        await sender_2.send(Sample(now, 15.0))
+        assert (await results_rx.receive()).value == 40.0
+
+        await sender_1.send(Sample(now, -10.0))
+        await sender_2.send(Sample(now, 15.0))
+        assert (await results_rx.receive()).value == 20.0
+
+        builder = FormulaBuilder("test_constant_value")
+        builder.push_oper("(")
+        builder.push_metric("channel_1", channel_1.new_receiver(), False)
+        builder.push_oper("+")
+        builder.push_constant(2.0)
+        builder.push_oper(")")
+        builder.push_oper("*")
+        builder.push_metric("channel_2", channel_2.new_receiver(), False)
+
+        engine = builder.build()
+
+        results_rx = engine.new_receiver()
+
+        now = datetime.now()
+        await sender_1.send(Sample(now, 10.0))
+        await sender_2.send(Sample(now, 15.0))
+        assert (await results_rx.receive()).value == 180.0
+
+        await sender_1.send(Sample(now, -10.0))
+        await sender_2.send(Sample(now, 15.0))
+        assert (await results_rx.receive()).value == -120.0
