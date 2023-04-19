@@ -38,18 +38,25 @@
   * The `PartialFailure.success_batteries` property was renamed to `succeeded_batteries`.
   * The `succeed_power` property was renamed to `succeeded_power` for both `Success` and `PartialFailure`.
 
-* Update `MovingWindow` to accept the `size` parameter as `timedelta` instead of `int` (#269).
-  This change allows users to define the time span of the moving window more intuitively, representing the duration over which samples will be stored.
-
-* Add a resampler in the `MovingWindow` to control the granularity of the samples to be stored in the underlying buffer (#269).
-  Notice that the parameter `sampling_period` has been renamed to `input_sampling_period`
-  to better distinguish it from the sampling period parameter in the resampler.
-
 * The serialization feature for the ringbuffer was made more flexible. The `dump` and `load` methods can now work directly with a ringbuffer instance.
 
-* The `ResamplerConfig` now takes the resampling period as a `timedelta`. The configuration was renamed from `resampling_period_s` to `resampling_period` accordingly.
+* `MovingWindow`
 
-* The `SourceProperties` of the resampler now uses a `timedelta` for the input sampling period. The attribute was renamed from `sampling_period_s` to `sampling_period` accordingly.
+  * Accept the `size` parameter as `timedelta` instead of `int` (#269).
+
+    This change allows users to define the time span of the moving window more intuitively, representing the duration over which samples will be stored.
+
+  * The input data will be resampled if a `resampler_config` is passed (#269).
+
+    This allows controlling the granularity of the samples to be stored in the underlying buffer.
+
+    Note that the parameter `sampling_period` has been renamed to `input_sampling_period` to better distinguish it from the sampling period parameter in the `resampler_config`.
+
+* `Resampler`
+
+  * The `ResamplerConfig` now takes the resampling period as a `timedelta`. The configuration was renamed from `resampling_period_s` to `resampling_period` accordingly.
+
+  * The `SourceProperties` of the resampler now uses a `timedelta` for the input sampling period. The attribute was renamed from `sampling_period_s` to `sampling_period` accordingly.
 
 ## New Features
 
