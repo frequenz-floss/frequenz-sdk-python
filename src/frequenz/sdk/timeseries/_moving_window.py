@@ -40,9 +40,10 @@ class MovingWindow:
     a fixed defined point in time. Since the moving nature of the window, the
     date of the first and the last element are constantly changing and therefore
     the point in time that defines the alignment can be outside of the time window.
-    Modulo arithmetic is used to move the `window_alignment` timestamp into the
-    latest window.
-    If for example the `window_alignment` parameter is set to
+    Modulo arithmetic is used to move the `align_to` timestamp into the latest
+    window.
+
+    If for example the `align_to` parameter is set to
     `datetime(1, 1, 1, tzinfo=timezone.utc)` and the window size is bigger than
     one day then the first element will always be aligned to the midnight.
     For further information see also the
@@ -107,7 +108,7 @@ class MovingWindow:
         resampled_data_recv: Receiver[Sample],
         input_sampling_period: timedelta,
         resampler_config: ResamplerConfig | None = None,
-        window_alignment: datetime = UNIX_EPOCH,
+        align_to: datetime = UNIX_EPOCH,
     ) -> None:
         """
         Initialize the MovingWindow.
@@ -122,7 +123,7 @@ class MovingWindow:
                 given sampling period.
             input_sampling_period: The time interval between consecutive input samples.
             resampler_config: The resampler configuration in case resampling is required.
-            window_alignment: A datetime object that defines a point in time to which
+            align_to: A datetime object that defines a point in time to which
                 the window is aligned to modulo window size. For further
                 information, consult the class level documentation.
 
@@ -156,7 +157,7 @@ class MovingWindow:
         self._buffer = OrderedRingBuffer(
             np.empty(shape=num_samples, dtype=float),
             sampling_period=sampling,
-            time_index_alignment=window_alignment,
+            align_to=align_to,
         )
 
         if self._resampler:

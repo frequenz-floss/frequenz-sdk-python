@@ -52,7 +52,7 @@
 
     Note that the parameter `sampling_period` has been renamed to `input_sampling_period` to better distinguish it from the sampling period parameter in the `resampler_config`.
 
-  * Use the `UNIX_EPOCH` as the default alignment.
+  * Rename the constructor argument `window_alignment` to `align_to` and change the default to `UNIX_EPOCH`. This is to make it more consistent with the `ResamplerConfig`.
 
 * `Resampler`
 
