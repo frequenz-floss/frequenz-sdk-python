@@ -147,10 +147,12 @@ class LogicalMeter:
         Returns:
             A FormulaEngine that will calculate and stream grid power.
         """
-        return self._formula_pool.from_generator(
+        engine = self._formula_pool.from_generator(
             "grid_power",
             GridPowerFormula,
-        )  # type: ignore[return-value]
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
 
     @property
     def grid_current(self) -> FormulaEngine3Phase:
@@ -165,10 +167,12 @@ class LogicalMeter:
         Returns:
             A FormulaEngine that will calculate and stream grid current.
         """
-        return self._formula_pool.from_generator(
+        engine = self._formula_pool.from_generator(
             "grid_current",
             GridCurrentFormula,
-        )  # type: ignore[return-value]
+        )
+        assert isinstance(engine, FormulaEngine3Phase)
+        return engine
 
     @property
     def pv_power(self) -> FormulaEngine:
@@ -183,7 +187,9 @@ class LogicalMeter:
         Returns:
             A FormulaEngine that will calculate and stream PV power production.
         """
-        return self._formula_pool.from_generator(
+        engine = self._formula_pool.from_generator(
             "pv_power",
             PVPowerFormula,
-        )  # type: ignore[return-value]
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine

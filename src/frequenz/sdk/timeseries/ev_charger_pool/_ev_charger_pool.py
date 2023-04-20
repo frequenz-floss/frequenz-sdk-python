@@ -118,11 +118,13 @@ class EVChargerPool:
             A FormulaEngine that will calculate and stream the total current of all EV
                 Chargers.
         """
-        return self._formula_pool.from_generator(
+        engine = self._formula_pool.from_generator(
             "ev_charger_total_current",
             EVChargerCurrentFormula,
             FormulaGeneratorConfig(component_ids=self._component_ids),
-        )  # type: ignore[return-value]
+        )
+        assert isinstance(engine, FormulaEngine3Phase)
+        return engine
 
     @property
     def power(self) -> FormulaEngine:
@@ -138,11 +140,13 @@ class EVChargerPool:
             A FormulaEngine that will calculate and stream the total power of all EV
                 Chargers.
         """
-        return self._formula_pool.from_generator(
+        engine = self._formula_pool.from_generator(
             "ev_charger_total_power",
             EVChargerPowerFormula,
             FormulaGeneratorConfig(component_ids=self._component_ids),
-        )  # type: ignore[return-value]
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
 
     def component_data(self, component_id: int) -> Receiver[EVChargerData]:
         """Stream 3-phase current values and state of an EV Charger.

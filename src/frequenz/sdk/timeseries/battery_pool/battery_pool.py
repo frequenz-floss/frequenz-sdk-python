@@ -115,11 +115,13 @@ class BatteryPool:
             A FormulaEngine that will calculate and stream the total power of all
                 batteries in the pool.
         """
-        return self._formula_pool.from_generator(
+        engine = self._formula_pool.from_generator(
             "battery_pool_power",
             BatteryPowerFormula,
             FormulaGeneratorConfig(component_ids=self._batteries),
-        )  # type: ignore[return-value]
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
 
     async def soc(
         self, maxsize: int | None = RECEIVER_MAX_SIZE
