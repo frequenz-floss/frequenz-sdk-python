@@ -4,6 +4,7 @@
 """Generators for formulas from component graphs."""
 
 from ._battery_power_formula import BatteryPowerFormula
+from ._chp_power_formula import CHPPowerFormula
 from ._ev_charger_current_formula import EVChargerCurrentFormula
 from ._ev_charger_power_formula import EVChargerPowerFormula
 from ._formula_generator import (
@@ -27,6 +28,7 @@ __all__ = [
     #
     # Power Formula generators
     #
+    "CHPPowerFormula",
     "GridPowerFormula",
     "BatteryPowerFormula",
     "EVChargerPowerFormula",

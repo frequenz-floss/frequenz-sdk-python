@@ -13,6 +13,7 @@ from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid.component import ComponentMetricId
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase, FormulaEnginePool
 from .._formula_engine._formula_generators import (
+    CHPPowerFormula,
     FormulaGeneratorConfig,
     FormulaType,
     GridCurrentFormula,
@@ -231,6 +232,73 @@ class LogicalMeter:
         engine = self._formula_pool.from_generator(
             "pv_power",
             PVPowerFormula,
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def chp_power(self) -> FormulaEngine:
+        """Fetch the CHP power production in the microgrid.
+
+        If a formula engine to calculate CHP power production is not already running, it
+        will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream CHP power production.
+        """
+        engine = self._formula_pool.from_generator(
+            "chp_power",
+            CHPPowerFormula,
+            FormulaGeneratorConfig(formula_type=FormulaType.PASSIVE_SIGN_CONVENTION),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def chp_production_power(self) -> FormulaEngine:
+        """Fetch the CHP power production in the microgrid.
+
+        If a formula engine to calculate CHP power production is not already running, it
+        will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream CHP power production.
+        """
+        engine = self._formula_pool.from_generator(
+            "chp_production_power",
+            CHPPowerFormula,
+            FormulaGeneratorConfig(
+                formula_type=FormulaType.PRODUCTION,
+            ),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def chp_consumption_power(self) -> FormulaEngine:
+        """Fetch the CHP power consumption in the microgrid.
+
+        If a formula engine to calculate CHP power consumption is not already running,
+        it will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream CHP power consumption.
+        """
+        engine = self._formula_pool.from_generator(
+            "chp_consumption_power",
+            CHPPowerFormula,
+            FormulaGeneratorConfig(
+                formula_type=FormulaType.CONSUMPTION,
+            ),
         )
         assert isinstance(engine, FormulaEngine)
         return engine

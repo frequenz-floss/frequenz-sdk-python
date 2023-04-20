@@ -40,6 +40,8 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
     grid_id = 1
     main_meter_id = 4
+
+    chp_id_suffix = 5
     evc_id_suffix = 6
     meter_id_suffix = 7
     inverter_id_suffix = 8
@@ -73,6 +75,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         if self._grid_side_meter:
             self._connect_to = self.main_meter_id
 
+        self.chp_ids: list[int] = []
         self.battery_inverter_ids: list[int] = []
         self.pv_inverter_ids: list[int] = []
         self.battery_ids: list[int] = []
@@ -193,6 +196,37 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                 ),
             ),
         )
+
+    def add_chps(self, count: int) -> None:
+        """Add CHPs with connected meters to the mock microgrid.
+
+        Args:
+            count: number of CHPs to add.
+        """
+        for _ in range(count):
+            meter_id = self._id_increment * 10 + self.meter_id_suffix
+            chp_id = self._id_increment * 10 + self.chp_id_suffix
+            self._id_increment += 1
+
+            self.meter_ids.append(meter_id)
+            self.chp_ids.append(chp_id)
+
+            self._components.add(
+                Component(
+                    meter_id,
+                    ComponentCategory.METER,
+                )
+            )
+            self._components.add(
+                Component(
+                    chp_id,
+                    ComponentCategory.CHP,
+                )
+            )
+
+            self._start_meter_streaming(meter_id)
+            self._connections.add(Connection(self._connect_to, meter_id))
+            self._connections.add(Connection(meter_id, chp_id))
 
     def add_batteries(self, count: int) -> None:
         """Add batteries with connected inverters and meters to the microgrid.
