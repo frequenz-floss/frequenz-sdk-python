@@ -6,8 +6,7 @@
 
 ## Upgrading
 
-+ Battery power is no longer available through the `LogicalMeter`, but
-  through the `BatteryPool` (#338)
+* Battery power is no longer available through the `LogicalMeter`, but through the `BatteryPool` (#338)
 
   ``` python
   battery_power_receiver = microgrid.battery_pool().power.new_receiver()
