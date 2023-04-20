@@ -9,7 +9,7 @@ import asyncio
 import logging
 import math
 from collections.abc import Sequence
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import SupportsIndex, overload
 
 import numpy as np
@@ -18,6 +18,7 @@ from numpy.typing import ArrayLike
 
 from .._internal.asyncio import cancel_and_await
 from . import Sample
+from ._base_types import UNIX_EPOCH
 from ._resampling import Resampler, ResamplerConfig
 from ._ringbuffer import OrderedRingBuffer
 
@@ -106,7 +107,7 @@ class MovingWindow:
         resampled_data_recv: Receiver[Sample],
         input_sampling_period: timedelta,
         resampler_config: ResamplerConfig | None = None,
-        window_alignment: datetime = datetime(1, 1, 1, tzinfo=timezone.utc),
+        window_alignment: datetime = UNIX_EPOCH,
     ) -> None:
         """
         Initialize the MovingWindow.
@@ -122,9 +123,8 @@ class MovingWindow:
             input_sampling_period: The time interval between consecutive input samples.
             resampler_config: The resampler configuration in case resampling is required.
             window_alignment: A datetime object that defines a point in time to which
-                the window is aligned to modulo window size.
-                (default is 0001-01-01T00:00:00+00:00)
-                For further information, consult the class level documentation.
+                the window is aligned to modulo window size. For further
+                information, consult the class level documentation.
 
         Raises:
             asyncio.CancelledError: when the task gets cancelled.

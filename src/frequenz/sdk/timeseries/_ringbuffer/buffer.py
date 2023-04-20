@@ -15,6 +15,7 @@ import numpy as np
 import numpy.typing as npt
 
 from .. import Sample
+from .._base_types import UNIX_EPOCH
 
 FloatArray = TypeVar("FloatArray", List[float], npt.NDArray[np.float64])
 
@@ -53,7 +54,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         self,
         buffer: FloatArray,
         sampling_period: timedelta,
-        time_index_alignment: datetime = datetime(1, 1, 1, tzinfo=timezone.utc),
+        time_index_alignment: datetime = UNIX_EPOCH,
     ) -> None:
         """Initialize the time aware ringbuffer.
 
