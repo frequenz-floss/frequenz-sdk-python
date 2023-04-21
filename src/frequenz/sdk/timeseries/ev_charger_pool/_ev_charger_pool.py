@@ -24,6 +24,7 @@ from .._formula_engine._formula_generators import (
     EVChargerCurrentFormula,
     EVChargerPowerFormula,
     FormulaGeneratorConfig,
+    FormulaType,
 )
 from ._set_current_bounds import BoundsSetter, ComponentCurrentLimit
 from ._state_tracker import EVChargerState, StateTracker
@@ -141,9 +142,62 @@ class EVChargerPool:
                 Chargers.
         """
         engine = self._formula_pool.from_generator(
-            "ev_charger_total_power",
+            "ev_charger_power",
             EVChargerPowerFormula,
-            FormulaGeneratorConfig(component_ids=self._component_ids),
+            FormulaGeneratorConfig(
+                component_ids=self._component_ids,
+                formula_type=FormulaType.PASSIVE_SIGN_CONVENTION,
+            ),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def production_power(self) -> FormulaEngine:
+        """Fetch the total power produced by the EV Chargers in the pool.
+
+        If a formula engine to calculate EV Charger power is not already running, it
+        will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream the production power of all
+                EV Chargers.
+        """
+        engine = self._formula_pool.from_generator(
+            "ev_charger_production_power",
+            EVChargerPowerFormula,
+            FormulaGeneratorConfig(
+                component_ids=self._component_ids,
+                formula_type=FormulaType.PRODUCTION,
+            ),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def consumption_power(self) -> FormulaEngine:
+        """Fetch the total power consumed by the EV Chargers in the pool.
+
+        If a formula engine to calculate EV Charger power is not already running, it
+        will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream the consumption power of all
+                EV Chargers.
+        """
+        engine = self._formula_pool.from_generator(
+            "ev_charger_consumption_power",
+            EVChargerPowerFormula,
+            FormulaGeneratorConfig(
+                component_ids=self._component_ids,
+                formula_type=FormulaType.CONSUMPTION,
+            ),
         )
         assert isinstance(engine, FormulaEngine)
         return engine
