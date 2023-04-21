@@ -17,6 +17,7 @@ from typing import AsyncIterator, Callable, Coroutine, Optional, Sequence
 
 from .._internal.asyncio import cancel_and_await
 from . import Sample
+from ._base_types import UNIX_EPOCH
 
 _logger = logging.getLogger(__name__)
 
@@ -191,6 +192,17 @@ class ResamplerConfig:
     It must be at bigger than `warn_buffer_len`.
     """
 
+    align_to: datetime | None = UNIX_EPOCH
+    """The time to align the resampling period to.
+
+    The resampling period will be aligned to this time, so the first resampled
+    sample will be at the first multiple of `resampling_period` starting from
+    `align_to`. It must be an aware datetime and can be in the future too.
+
+    If `align_to` is `None`, the resampling period will be aligned to the
+    time the resampler is created.
+    """
+
     def __post_init__(self) -> None:
         """Check that config values are valid.
 
@@ -230,6 +242,10 @@ class ResamplerConfig:
                 "initial_buffer_len (%s) is bigger than warn_buffer_len (%s)",
                 self.initial_buffer_len,
                 self.warn_buffer_len,
+            )
+        if self.align_to is not None and self.align_to.tzinfo is None:
+            raise ValueError(
+                f"align_to ({self.align_to}) should be a timezone aware datetime"
             )
 
 
@@ -348,9 +364,7 @@ class Resampler:
         self._resamplers: dict[Source, _StreamingHelper] = {}
         """A mapping between sources and the streaming helper handling that source."""
 
-        self._window_end: datetime = (
-            datetime.now(timezone.utc) + self._config.resampling_period
-        )
+        self._window_end: datetime = self._calculate_window_end()
         """The time in which the current window ends.
 
         This is used to make sure every resampling window is generated at
@@ -358,6 +372,9 @@ class Resampler:
         never fire at the exact requested time, so if we don't use a precise
         time for the end of the window, the resampling windows we produce will
         have different sizes.
+
+        The window end will also be aligned to the `config.align_to` time, so
+        the window end is deterministic.
         """
 
     @property
@@ -490,6 +507,29 @@ class Resampler:
                 timer_error,
                 self._config.resampling_period,
             )
+
+    def _calculate_window_end(self) -> datetime:
+        """Calculate the end of the current resampling window.
+
+        The calculated resampling window end is a multiple of
+        `self._config.resampling_period` starting at `self._config.align_to`.
+
+        if `self._config.align_to` is `None`, the current time is used.
+
+        Returns:
+            The end of the current resampling window aligned to
+                `self._config.align_to`.
+        """
+        now = datetime.now(timezone.utc)
+        period = self._config.resampling_period
+        align_to = self._config.align_to
+
+        if align_to is None:
+            return now + period
+
+        elapsed = (now - align_to) % period
+
+        return now + period - elapsed
 
 
 class _ResamplingHelper:

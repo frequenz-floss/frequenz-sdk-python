@@ -119,7 +119,14 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
         # pylint: disable=protected-access
         _data_pipeline._DATA_PIPELINE = _data_pipeline._DataPipeline(
-            ResamplerConfig(resampling_period=timedelta(seconds=self._sample_rate_s))
+            ResamplerConfig(
+                resampling_period=timedelta(seconds=self._sample_rate_s),
+                # Align to the time the resampler is created to avoid flakiness
+                # in the tests, it seems test using the mock microgrid assume
+                # that the resampling window is aligned to the start of the
+                # test.
+                align_to=None,
+            )
         )
         # pylint: enable=protected-access
 

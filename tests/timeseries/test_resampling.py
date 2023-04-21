@@ -34,7 +34,8 @@ from frequenz.sdk.timeseries._resampling import (
 
 from ..utils import a_sequence
 
-# pylint: disable=too-many-locals,redefined-outer-name
+# We relax some pylint checks as for tests they don't make a lot of sense.
+# pylint: disable=too-many-lines,disable=too-many-locals,redefined-outer-name
 
 
 # Setting 'autouse' has no effect as this method replaces the event loop for all tests in the file.
@@ -166,6 +167,78 @@ async def test_helper_buffer_too_big(
     )
     # pylint: disable=protected-access
     assert helper._buffer.maxlen == DEFAULT_BUFFER_LEN_MAX
+
+
+@pytest.mark.parametrize(
+    "resampling_period_s,now,align_to,result",
+    (
+        (
+            1.0,
+            datetime(2020, 1, 1, 2, 3, 5, 300000, tzinfo=timezone.utc),
+            datetime(2020, 1, 1, tzinfo=timezone.utc),
+            datetime(2020, 1, 1, 2, 3, 6, tzinfo=timezone.utc),
+        ),
+        (
+            3.0,
+            datetime(2020, 1, 1, 2, 3, 5, 300000, tzinfo=timezone.utc),
+            datetime(2020, 1, 1, 0, 0, 5, tzinfo=timezone.utc),
+            datetime(2020, 1, 1, 2, 3, 8, tzinfo=timezone.utc),
+        ),
+        (
+            10.0,
+            datetime(2020, 1, 1, 2, 3, 5, 300000, tzinfo=timezone.utc),
+            datetime(2020, 1, 1, 0, 0, 5, tzinfo=timezone.utc),
+            datetime(2020, 1, 1, 2, 3, 15, tzinfo=timezone.utc),
+        ),
+        # Future align_to
+        (
+            10.0,
+            datetime(2020, 1, 1, 2, 3, 5, 300000, tzinfo=timezone.utc),
+            datetime(2020, 1, 1, 2, 3, 18, tzinfo=timezone.utc),
+            datetime(2020, 1, 1, 2, 3, 8, tzinfo=timezone.utc),
+        ),
+    ),
+)
+def test_calculate_window_end_trivial_cases(
+    fake_time: time_machine.Coordinates,
+    resampling_period_s: float,
+    now: datetime,
+    align_to: datetime,
+    result: datetime,
+) -> None:
+    """Test the calculation of the resampling window end for simple cases."""
+    resampling_period = timedelta(seconds=resampling_period_s)
+    resampler = Resampler(
+        ResamplerConfig(
+            resampling_period=resampling_period,
+            align_to=align_to,
+        )
+    )
+    fake_time.move_to(now)
+    # pylint: disable=protected-access
+    assert resampler._calculate_window_end() == result
+
+    # Repeat the test with align_to=None, so the result should be align to now
+    # instead
+    resampler_now = Resampler(
+        ResamplerConfig(
+            resampling_period=resampling_period,
+            align_to=now,
+        )
+    )
+    resampler_none = Resampler(
+        ResamplerConfig(
+            resampling_period=resampling_period,
+            align_to=None,
+        )
+    )
+    fake_time.move_to(now)
+    # pylint: disable=protected-access
+    assert (
+        resampler_now._calculate_window_end() == resampler_none._calculate_window_end()
+    )
+    # pylint: disable=protected-access
+    assert resampler_none._calculate_window_end() == now + resampling_period
 
 
 async def test_resampling_window_size_is_constant(

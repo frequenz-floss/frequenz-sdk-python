@@ -7,8 +7,11 @@ from __future__ import annotations
 
 import functools
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Callable, Iterator, Optional, overload
+
+UNIX_EPOCH = datetime.fromtimestamp(0.0, tz=timezone.utc)
+"""The UNIX epoch (in UTC)."""
 
 
 # Ordering by timestamp is a bit arbitrary, and it is not always what might be
