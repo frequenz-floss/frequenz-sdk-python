@@ -6,6 +6,12 @@
 
 ## Upgrading
 
+* Battery power is no longer available through the `LogicalMeter`, but through the `BatteryPool` (#338)
+
+  ``` python
+  battery_power_receiver = microgrid.battery_pool().power.new_receiver()
+  ```
+
 + Formulas composition has changed (#327) -
   - receivers from formulas are no longer composable.
   - formula composition is now done by composing FormulaEngine instances.
@@ -18,7 +24,7 @@
 
   self._inverter_power = (
       microgrid.logical_meter().pv_power
-      + microgrid.logical_meter().battery_power
+      + microgrid.battery_pool().power
   ).build("inverter_power")
 
   inverter_power_receiver = self._inverter_power.new_receiver()

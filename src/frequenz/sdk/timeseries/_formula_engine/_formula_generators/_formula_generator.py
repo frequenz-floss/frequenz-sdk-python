@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import sys
 from abc import ABC, abstractmethod
+from collections import abc
 from dataclasses import dataclass
 
 from frequenz.channels import Sender
@@ -32,7 +33,7 @@ NON_EXISTING_COMPONENT_ID = sys.maxsize
 class FormulaGeneratorConfig:
     """Config for formula generators."""
 
-    component_ids: set[int] | None = None
+    component_ids: abc.Set[int] | None = None
 
 
 class FormulaGenerator(ABC):

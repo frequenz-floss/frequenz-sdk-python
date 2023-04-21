@@ -6,9 +6,13 @@
 import logging
 
 from ....microgrid import connection_manager
-from ....microgrid.component import ComponentCategory, ComponentMetricId, InverterType
+from ....microgrid.component import ComponentMetricId
 from ..._formula_engine import FormulaEngine
-from ._formula_generator import NON_EXISTING_COMPONENT_ID, FormulaGenerator
+from ._formula_generator import (
+    NON_EXISTING_COMPONENT_ID,
+    ComponentNotFound,
+    FormulaGenerator,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -37,27 +41,31 @@ class BatteryPowerFormula(FormulaGenerator):
                 in the component graph.
         """
         builder = self._get_builder("battery-power", ComponentMetricId.ACTIVE_POWER)
-        component_graph = connection_manager.get().component_graph
-        battery_inverters = list(
-            comp
-            for comp in component_graph.components()
-            if comp.category == ComponentCategory.INVERTER
-            and comp.type == InverterType.BATTERY
-        )
-
-        if not battery_inverters:
+        component_ids = self._config.component_ids
+        if not component_ids:
             logger.warning(
-                "Unable to find any battery inverters in the component graph. "
+                "No Battery component IDs specified. "
                 "Subscribing to the resampling actor with a non-existing "
                 "component id, so that `0` values are sent from the formula."
             )
-            # If there are no battery inverters, we have to send 0 values as the same
-            # frequency as the other streams.  So we subscribe with a non-existing
+            # If there are no Batteries, we have to send 0 values as the same
+            # frequency as the other streams. So we subscribe with a non-existing
             # component id, just to get a `None` message at the resampling interval.
             builder.push_component_metric(
                 NON_EXISTING_COMPONENT_ID, nones_are_zeros=True
             )
             return builder.build()
+
+        component_graph = connection_manager.get().component_graph
+
+        battery_inverters = list(
+            next(iter(component_graph.predecessors(bat_id))) for bat_id in component_ids
+        )
+
+        if len(component_ids) != len(battery_inverters):
+            raise ComponentNotFound(
+                "Can't find inverters for all batteries from the component graph."
+            )
 
         for idx, comp in enumerate(battery_inverters):
             if idx > 0:

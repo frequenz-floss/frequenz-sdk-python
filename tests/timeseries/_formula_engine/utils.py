@@ -18,6 +18,7 @@ from frequenz.sdk.timeseries._formula_engine import ResampledFormulaBuilder
 
 
 def get_resampled_stream(  # pylint: disable=too-many-arguments
+    namespace: str,
     comp_id: int,
     metric_id: ComponentMetricId,
 ) -> Receiver[Sample]:
@@ -27,7 +28,7 @@ def get_resampled_stream(  # pylint: disable=too-many-arguments
 
     # pylint: disable=protected-access
     builder = ResampledFormulaBuilder(
-        _data_pipeline._get().logical_meter()._namespace,
+        namespace,
         "",
         _data_pipeline._get()._channel_registry,
         _data_pipeline._get()._resampling_request_sender(),

@@ -34,6 +34,7 @@ class TestLogicalMeter:
         grid_power_recv = logical_meter.grid_power.new_receiver()
 
         main_meter_recv = get_resampled_stream(
+            logical_meter._namespace,  # pylint: disable=protected-access
             mockgrid.main_meter_id,
             ComponentMetricId.ACTIVE_POWER,
         )
@@ -67,6 +68,7 @@ class TestLogicalMeter:
 
         meter_receivers = [
             get_resampled_stream(
+                logical_meter._namespace,  # pylint: disable=protected-access
                 meter_id,
                 ComponentMetricId.ACTIVE_POWER,
             )
@@ -103,13 +105,15 @@ class TestLogicalMeter:
         mockgrid.add_batteries(3)
         mockgrid.add_solar_inverters(2)
         await mockgrid.start(mocker)
+        battery_pool = microgrid.battery_pool()
         logical_meter = microgrid.logical_meter()
 
-        battery_power_recv = logical_meter.battery_power.new_receiver()
+        battery_power_recv = battery_pool.power.new_receiver()
         pv_power_recv = logical_meter.pv_power.new_receiver()
 
         bat_inv_receivers = [
             get_resampled_stream(
+                battery_pool._namespace,  # pylint: disable=protected-access
                 meter_id,
                 ComponentMetricId.ACTIVE_POWER,
             )
@@ -118,6 +122,7 @@ class TestLogicalMeter:
 
         pv_inv_receivers = [
             get_resampled_stream(
+                logical_meter._namespace,  # pylint: disable=protected-access
                 meter_id,
                 ComponentMetricId.ACTIVE_POWER,
             )

@@ -28,18 +28,17 @@ class TestFormulaComposition:
         mockgrid.add_solar_inverters(2)
         await mockgrid.start(mocker)
         logical_meter = microgrid.logical_meter()
-
+        battery_pool = microgrid.battery_pool()
         main_meter_recv = get_resampled_stream(
+            logical_meter._namespace,  # pylint: disable=protected-access
             4,
             ComponentMetricId.ACTIVE_POWER,
         )
         grid_power_recv = logical_meter.grid_power.new_receiver()
-        battery_power_recv = logical_meter.battery_power.new_receiver()
+        battery_power_recv = battery_pool.power.new_receiver()
         pv_power_recv = logical_meter.pv_power.new_receiver()
 
-        engine = (logical_meter.pv_power + logical_meter.battery_power).build(
-            "inv_power"
-        )
+        engine = (logical_meter.pv_power + battery_pool.power).build("inv_power")
         inv_calc_recv = engine.new_receiver()
 
         count = 0
@@ -69,13 +68,12 @@ class TestFormulaComposition:
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(3)
         await mockgrid.start(mocker)
+        battery_pool = microgrid.battery_pool()
         logical_meter = microgrid.logical_meter()
 
-        battery_power_recv = logical_meter.battery_power.new_receiver()
+        battery_power_recv = battery_pool.power.new_receiver()
         pv_power_recv = logical_meter.pv_power.new_receiver()
-        engine = (logical_meter.pv_power + logical_meter.battery_power).build(
-            "inv_power"
-        )
+        engine = (logical_meter.pv_power + battery_pool.power).build("inv_power")
         inv_calc_recv = engine.new_receiver()
 
         count = 0
@@ -98,13 +96,12 @@ class TestFormulaComposition:
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_solar_inverters(2)
         await mockgrid.start(mocker)
+        battery_pool = microgrid.battery_pool()
         logical_meter = microgrid.logical_meter()
 
-        battery_power_recv = logical_meter.battery_power.new_receiver()
+        battery_power_recv = battery_pool.power.new_receiver()
         pv_power_recv = logical_meter.pv_power.new_receiver()
-        engine = (logical_meter.pv_power + logical_meter.battery_power).build(
-            "inv_power"
-        )
+        engine = (logical_meter.pv_power + battery_pool.power).build("inv_power")
         inv_calc_recv = engine.new_receiver()
 
         count = 0

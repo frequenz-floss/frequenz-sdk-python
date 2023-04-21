@@ -15,7 +15,6 @@ from ...microgrid import ComponentGraph
 from ...microgrid.component import ComponentMetricId
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase, FormulaEnginePool
 from .._formula_engine._formula_generators import (
-    BatteryPowerFormula,
     GridCurrentFormula,
     GridPowerFormula,
     PVPowerFormula,
@@ -174,24 +173,6 @@ class LogicalMeter:
         return self._formula_pool.from_generator(
             "grid_current",
             GridCurrentFormula,
-        )  # type: ignore[return-value]
-
-    @property
-    def battery_power(self) -> FormulaEngine:
-        """Fetch the cumulative battery power in the microgrid.
-
-        If a formula engine to calculate cumulative battery power is not already
-        running, it will be started.
-
-        A receiver from the formula engine can be created using the `new_receiver`
-        method.
-
-        Returns:
-            A FormulaEngine that will calculate and stream battery power.
-        """
-        return self._formula_pool.from_generator(
-            "battery_power",
-            BatteryPowerFormula,
         )  # type: ignore[return-value]
 
     @property
