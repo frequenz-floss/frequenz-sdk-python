@@ -38,8 +38,6 @@
   * The `PartialFailure.success_batteries` property was renamed to `succeeded_batteries`.
   * The `succeed_power` property was renamed to `succeeded_power` for both `Success` and `PartialFailure`.
 
-* The serialization feature for the ringbuffer was made more flexible. The `dump` and `load` methods can now work directly with a ringbuffer instance.
-
 * `MovingWindow`
 
   * Accept the `size` parameter as `timedelta` instead of `int` (#269).
@@ -90,4 +88,4 @@
 
 * Change `PowerDistributor` to use all batteries when none are working (#258)
 
-* Update the ordered ring buffer to fix the `len()` function so that it returns a value equal to or greater than zero, as expected (#274)
+* Update the ordered ring buffer used by the `MovingWindow` to fix the `len()` function so that it returns a value equal to or greater than zero, as expected (#274)
