@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional, TypeVar
 
 from pydantic import ValidationError, parse_raw_as
 
-log = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 

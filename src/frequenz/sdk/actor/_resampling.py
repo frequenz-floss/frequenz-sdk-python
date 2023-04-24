@@ -18,7 +18,7 @@ from ._channel_registry import ChannelRegistry
 from ._data_sourcing import ComponentMetricRequest
 from ._decorator import actor
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 @actor
@@ -139,12 +139,12 @@ class ComponentMetricsResamplingActor:
                     if not isinstance(error, ResamplingError):
                         raise error
                     for source, source_error in error.exceptions.items():
-                        logger.error(
+                        _logger.error(
                             "Error resampling source %s, removing source...", source
                         )
                         removed = self._resampler.remove_timeseries(source)
                         if not removed:
-                            logger.warning(
+                            _logger.warning(
                                 "Got an exception from an unknown source: "
                                 "source=%r, exception=%r",
                                 source,

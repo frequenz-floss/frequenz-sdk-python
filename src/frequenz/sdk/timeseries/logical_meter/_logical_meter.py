@@ -20,7 +20,7 @@ from .._formula_engine._formula_generators import (
     PVPowerFormula,
 )
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class LogicalMeter:

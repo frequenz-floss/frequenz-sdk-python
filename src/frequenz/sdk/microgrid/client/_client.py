@@ -55,7 +55,7 @@ _GenericComponentData = TypeVar(
     EVChargerData,
 )
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class MicrogridApiClient(ABC):
@@ -341,7 +341,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
         """
         retry_spec: RetryStrategy = self._retry_spec.copy()
         while True:
-            logger.debug(
+            _logger.debug(
                 "Making call to `GetComponentData`, for component_id=%d", component_id
             )
             try:
@@ -354,7 +354,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
                     await sender.send(transform(msg))
             except grpc.aio.AioRpcError as err:
                 api_details = f"Microgrid API: {self.target}."
-                logger.exception(
+                _logger.exception(
                     "`GetComponentData`, for component_id=%d: exception: %s api: %s",
                     component_id,
                     err,
@@ -362,7 +362,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
                 )
 
             if interval := retry_spec.next_interval():
-                logger.warning(
+                _logger.warning(
                     "`GetComponentData`, for component_id=%d: connection ended, "
                     "retrying %s in %0.3f seconds.",
                     component_id,
@@ -371,7 +371,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
                 )
                 await asyncio.sleep(interval)
             else:
-                logger.warning(
+                _logger.warning(
                     "`GetComponentData`, for component_id=%d: connection ended, "
                     "retry limit exceeded %s.",
                     component_id,
@@ -658,7 +658,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
                 ),
             )
         except grpc.aio.AioRpcError as err:
-            logger.error(
+            _logger.error(
                 "set_bounds write failed: %s, for message: %s, api: %s. Err: %s",
                 err,
                 next,

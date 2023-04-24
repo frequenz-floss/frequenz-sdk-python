@@ -16,7 +16,7 @@ from ..._internal.asyncio import cancel_and_await
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -87,7 +87,7 @@ class BoundsSetter:
         meters = graph.components(component_category={ComponentCategory.METER})
         if not meters:
             err = "No meters found in the component graph."
-            logger.error(err)
+            _logger.error(err)
             raise RuntimeError(err)
 
         meter_data = (

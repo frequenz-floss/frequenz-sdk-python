@@ -28,7 +28,7 @@ from .._formula_engine._formula_generators import (
 from ._set_current_bounds import BoundsSetter, ComponentCurrentLimit
 from ._state_tracker import EVChargerState, StateTracker
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class EVChargerPoolError(Exception):
@@ -158,7 +158,7 @@ class EVChargerPool:
             task, output_chan = recv
             if not task.done():
                 return output_chan.new_receiver()
-            logger.warning("Restarting component_status for id: %s", component_id)
+            _logger.warning("Restarting component_status for id: %s", component_id)
         else:
             output_chan = Broadcast[EVChargerData](
                 f"evpool-component_status-{component_id}"
@@ -263,7 +263,7 @@ class EVChargerPool:
                     await phase_3_rx.receive(),
                 )
             except ChannelClosedError:
-                logger.exception("Streams closed for component_id=%s.", component_id)
+                _logger.exception("Streams closed for component_id=%s.", component_id)
                 raise
 
             sample = Sample3Phase(

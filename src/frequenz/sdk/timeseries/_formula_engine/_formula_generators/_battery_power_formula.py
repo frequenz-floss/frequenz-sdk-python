@@ -14,7 +14,7 @@ from ._formula_generator import (
     FormulaGenerator,
 )
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class BatteryPowerFormula(FormulaGenerator):
@@ -43,7 +43,7 @@ class BatteryPowerFormula(FormulaGenerator):
         builder = self._get_builder("battery-power", ComponentMetricId.ACTIVE_POWER)
         component_ids = self._config.component_ids
         if not component_ids:
-            logger.warning(
+            _logger.warning(
                 "No Battery component IDs specified. "
                 "Subscribing to the resampling actor with a non-existing "
                 "component id, so that `0` values are sent from the formula."

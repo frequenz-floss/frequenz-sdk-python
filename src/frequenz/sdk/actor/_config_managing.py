@@ -14,7 +14,7 @@ from frequenz.channels.util import FileWatcher
 from ..actor._decorator import actor
 from ..config import Config
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 @actor
@@ -80,10 +80,10 @@ class ConfigManagingActor:
 
         async for path in self._file_watcher:
             if str(path) == self._conf_file:
-                logger.info(
+                _logger.info(
                     "Update configs, because file %s was modified.",
                     self._conf_file,
                 )
                 await self.send_config()
 
-        logger.debug("ConfigManager stopped.")
+        _logger.debug("ConfigManager stopped.")

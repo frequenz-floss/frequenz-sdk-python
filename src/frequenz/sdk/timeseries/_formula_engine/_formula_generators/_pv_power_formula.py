@@ -10,7 +10,7 @@ from ....microgrid.component import ComponentCategory, ComponentMetricId, Invert
 from .._formula_engine import FormulaEngine
 from ._formula_generator import NON_EXISTING_COMPONENT_ID, FormulaGenerator
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class PVPowerFormula(FormulaGenerator):
@@ -36,7 +36,7 @@ class PVPowerFormula(FormulaGenerator):
         )
 
         if not pv_inverters:
-            logger.warning(
+            _logger.warning(
                 "Unable to find any PV inverters in the component graph. "
                 "Subscribing to the resampling actor with a non-existing "
                 "component id, so that `0` values are sent from the formula."
