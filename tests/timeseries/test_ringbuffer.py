@@ -266,7 +266,7 @@ def test_len_ringbuffer_samples_fit_buffer_size() -> None:
         buffer = OrderedRingBuffer(
             np.empty(shape=len(test_samples), dtype=float),
             sampling_period=timedelta(seconds=1),
-            time_index_alignment=datetime(1, 1, 1, tzinfo=timezone.utc),
+            align_to=datetime(1, 1, 1, tzinfo=timezone.utc),
         )
 
         start_ts: datetime = datetime(2023, 1, 1, tzinfo=timezone.utc)
@@ -294,7 +294,7 @@ def test_len_ringbuffer_samples_overwrite_buffer() -> None:
         buffer = OrderedRingBuffer(
             np.empty(shape=half_buffer_size, dtype=float),
             sampling_period=timedelta(seconds=1),
-            time_index_alignment=datetime(1, 1, 1, tzinfo=timezone.utc),
+            align_to=datetime(1, 1, 1, tzinfo=timezone.utc),
         )
 
         start_ts: datetime = datetime(2023, 1, 1, tzinfo=timezone.utc)
@@ -316,10 +316,10 @@ def test_ringbuffer_empty_buffer() -> None:
         OrderedRingBuffer(
             empty_np_buffer,
             sampling_period=timedelta(seconds=1),
-            time_index_alignment=datetime(1, 1, 1),
+            align_to=datetime(1, 1, 1),
         )
         OrderedRingBuffer(
             empty_list_buffer,
             sampling_period=timedelta(seconds=1),
-            time_index_alignment=datetime(1, 1, 1),
+            align_to=datetime(1, 1, 1),
         )

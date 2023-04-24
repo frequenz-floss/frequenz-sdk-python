@@ -15,6 +15,7 @@ import numpy as np
 import numpy.typing as npt
 
 from .. import Sample
+from .._base_types import UNIX_EPOCH
 
 FloatArray = TypeVar("FloatArray", List[float], npt.NDArray[np.float64])
 
@@ -53,19 +54,19 @@ class OrderedRingBuffer(Generic[FloatArray]):
         self,
         buffer: FloatArray,
         sampling_period: timedelta,
-        time_index_alignment: datetime = datetime(1, 1, 1, tzinfo=timezone.utc),
+        align_to: datetime = UNIX_EPOCH,
     ) -> None:
         """Initialize the time aware ringbuffer.
 
         Args:
             buffer: Instance of a buffer container to use internally.
             sampling_period: Timedelta of the desired sampling period.
-            time_index_alignment: Arbitrary point in time used to align
+            align_to: Arbitrary point in time used to align
                 timestamped data with the index position in the buffer.
                 Used to make the data stored in the buffer align with the
                 beginning and end of the buffer borders.
 
-                For example, if the `time_index_alignment` is set to
+                For example, if the `align_to` is set to
                 "0001-01-01 12:00:00", and the `sampling_period` is set to
                 1 hour and the length of the buffer is 24, then the data
                 stored in the buffer could correspond to the time range from
@@ -76,7 +77,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
 
         self._buffer: FloatArray = buffer
         self._sampling_period: timedelta = sampling_period
-        self._time_index_alignment: datetime = time_index_alignment
+        self._time_index_alignment: datetime = align_to
 
         self._gaps: list[Gap] = []
         self._datetime_newest: datetime = self._DATETIME_MIN
@@ -200,7 +201,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         * The force_copy parameter was set to True (default False).
 
         The first case can be avoided by using the appropriate
-        time_index_alignment value in the constructor so that the data lines up
+        `align_to` value in the constructor so that the data lines up
         with the start/end of the buffer.
 
         This means, if the caller needs to modify the data to account for

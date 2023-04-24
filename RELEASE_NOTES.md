@@ -52,6 +52,8 @@
 
     Note that the parameter `sampling_period` has been renamed to `input_sampling_period` to better distinguish it from the sampling period parameter in the `resampler_config`.
 
+  * Rename the constructor argument `window_alignment` to `align_to` and change the default to `UNIX_EPOCH`. This is to make it more consistent with the `ResamplerConfig`.
+
 * `Resampler`
 
   * The `ResamplerConfig` now takes the resampling period as a `timedelta`. The configuration was renamed from `resampling_period_s` to `resampling_period` accordingly.
