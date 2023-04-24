@@ -30,7 +30,7 @@ from typing import Callable, Iterable, List, Optional, Set
 import networkx as nx
 
 from .client import Connection, MicrogridApiClient
-from .component import Component, ComponentCategory
+from .component import Component, ComponentCategory, InverterType
 
 _logger = logging.getLogger(__name__)
 
@@ -111,6 +111,159 @@ class ComponentGraph(ABC):
 
         Raises:
             KeyError: if the specified `component_id` is not in the graph
+        """
+
+    @abstractmethod
+    def is_pv_inverter(self, component: Component) -> bool:
+        """Check if the specified component is a PV inverter.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is a PV inverter.
+        """
+
+    @abstractmethod
+    def is_pv_meter(self, component: Component) -> bool:
+        """Check if the specified component is a PV meter.
+
+        This is done by checking if the component has only PV inverters as its
+        successors.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is a PV meter.
+        """
+
+    @abstractmethod
+    def is_pv_chain(self, component: Component) -> bool:
+        """Check if the specified component is part of a PV chain.
+
+        A component is part of a PV chain if it is a PV meter or a PV inverter.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is part of a PV chain.
+        """
+
+    @abstractmethod
+    def is_battery_inverter(self, component: Component) -> bool:
+        """Check if the specified component is a battery inverter.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is a battery inverter.
+        """
+
+    @abstractmethod
+    def is_battery_meter(self, component: Component) -> bool:
+        """Check if the specified component is a battery meter.
+
+        This is done by checking if the component has only battery inverters as its
+        predecessors.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is a battery meter.
+        """
+
+    @abstractmethod
+    def is_battery_chain(self, component: Component) -> bool:
+        """Check if the specified component is part of a battery chain.
+
+        A component is part of a battery chain if it is a battery meter or a battery
+        inverter.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is part of a battery chain.
+        """
+
+    @abstractmethod
+    def is_ev_charger(self, component: Component) -> bool:
+        """Check if the specified component is an EV charger.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is an EV charger.
+        """
+
+    @abstractmethod
+    def is_ev_charger_meter(self, component: Component) -> bool:
+        """Check if the specified component is an EV charger meter.
+
+        This is done by checking if the component has only EV chargers as its
+        successors.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is an EV charger meter.
+        """
+
+    @abstractmethod
+    def is_ev_charger_chain(self, component: Component) -> bool:
+        """Check if the specified component is part of an EV charger chain.
+
+        A component is part of an EV charger chain if it is an EV charger meter or an
+        EV charger.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is part of an EV charger chain.
+        """
+
+    @abstractmethod
+    def is_chp(self, component: Component) -> bool:
+        """Check if the specified component is a CHP.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is a CHP.
+        """
+
+    @abstractmethod
+    def is_chp_meter(self, component: Component) -> bool:
+        """Check if the specified component is a CHP meter.
+
+        This is done by checking if the component has only CHPs as its successors.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is a CHP meter.
+        """
+
+    @abstractmethod
+    def is_chp_chain(self, component: Component) -> bool:
+        """Check if the specified component is part of a CHP chain.
+
+        A component is part of a CHP chain if it is a CHP meter or a CHP.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is part of a CHP chain.
         """
 
 
@@ -351,6 +504,190 @@ class _MicrogridComponentGraph(ComponentGraph):
         self._validate_intermediary_components()
         self._validate_junctions()
         self._validate_leaf_components()
+
+    def is_pv_inverter(self, component: Component) -> bool:
+        """Check if the specified component is a PV inverter.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is a PV inverter.
+        """
+        return (
+            component.category == ComponentCategory.INVERTER
+            and component.type == InverterType.SOLAR
+        )
+
+    def is_pv_meter(self, component: Component) -> bool:
+        """Check if the specified component is a PV meter.
+
+        This is done by checking if the component has only PV inverters as its
+        successors.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is a PV meter.
+        """
+        successors = self.successors(component.component_id)
+        return (
+            component.category == ComponentCategory.METER
+            and len(successors) > 0
+            and all(
+                self.is_pv_inverter(successor)
+                for successor in self.successors(component.component_id)
+            )
+        )
+
+    def is_pv_chain(self, component: Component) -> bool:
+        """Check if the specified component is part of a PV chain.
+
+        A component is part of a PV chain if it is either a PV inverter or a PV
+        meter.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is part of a PV chain.
+        """
+        return self.is_pv_inverter(component) or self.is_pv_meter(component)
+
+    def is_ev_charger(self, component: Component) -> bool:
+        """Check if the specified component is an EV charger.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is an EV charger.
+        """
+        return component.category == ComponentCategory.EV_CHARGER
+
+    def is_ev_charger_meter(self, component: Component) -> bool:
+        """Check if the specified component is an EV charger meter.
+
+        This is done by checking if the component has only EV chargers as its
+        successors.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is an EV charger meter.
+        """
+        successors = self.successors(component.component_id)
+        return (
+            component.category == ComponentCategory.METER
+            and len(successors) > 0
+            and all(self.is_ev_charger(successor) for successor in successors)
+        )
+
+    def is_ev_charger_chain(self, component: Component) -> bool:
+        """Check if the specified component is part of an EV charger chain.
+
+        A component is part of an EV charger chain if it is either an EV charger or an
+        EV charger meter.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is part of an EV charger chain.
+        """
+        return self.is_ev_charger(component) or self.is_ev_charger_meter(component)
+
+    def is_battery_inverter(self, component: Component) -> bool:
+        """Check if the specified component is a battery inverter.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is a battery inverter.
+        """
+        return (
+            component.category == ComponentCategory.INVERTER
+            and component.type == InverterType.BATTERY
+        )
+
+    def is_battery_meter(self, component: Component) -> bool:
+        """Check if the specified component is a battery meter.
+
+        This is done by checking if the component has only battery inverters as
+        its successors.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is a battery meter.
+        """
+        successors = self.successors(component.component_id)
+        return (
+            component.category == ComponentCategory.METER
+            and len(successors) > 0
+            and all(self.is_battery_inverter(successor) for successor in successors)
+        )
+
+    def is_battery_chain(self, component: Component) -> bool:
+        """Check if the specified component is part of a battery chain.
+
+        A component is part of a battery chain if it is either a battery inverter or a
+        battery meter.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is part of a battery chain.
+        """
+        return self.is_battery_inverter(component) or self.is_battery_meter(component)
+
+    def is_chp(self, component: Component) -> bool:
+        """Check if the specified component is a CHP.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is a CHP.
+        """
+        return component.category == ComponentCategory.CHP
+
+    def is_chp_meter(self, component: Component) -> bool:
+        """Check if the specified component is a CHP meter.
+
+        This is done by checking if the component has only CHPs as its
+        successors.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is a CHP meter.
+        """
+        successors = self.successors(component.component_id)
+        return (
+            component.category == ComponentCategory.METER
+            and len(successors) > 0
+            and all(self.is_chp(successor) for successor in successors)
+        )
+
+    def is_chp_chain(self, component: Component) -> bool:
+        """Check if the specified component is part of a CHP chain.
+
+        A component is part of a CHP chain if it is either a CHP or a CHP meter.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is part of a CHP chain.
+        """
+        return self.is_chp(component) or self.is_chp_meter(component)
 
     def _validate_graph(self) -> None:
         """Check that the underlying graph data is valid.
