@@ -36,5 +36,13 @@ Example:
 """
 
 from ._base_types import UNIX_EPOCH, Sample, Sample3Phase
+from ._moving_window import MovingWindow
+from ._resampling import ResamplerConfig
 
-__all__ = ["Sample", "Sample3Phase", "UNIX_EPOCH"]
+__all__ = [
+    "MovingWindow",
+    "ResamplerConfig",
+    "Sample",
+    "Sample3Phase",
+    "UNIX_EPOCH",
+]

@@ -40,6 +40,8 @@
 
 * `MovingWindow`
 
+  * The class is now publicly available in the `frequenz.sdk.timeseries` package.
+
   * Accept the `size` parameter as `timedelta` instead of `int` (#269).
 
     This change allows users to define the time span of the moving window more intuitively, representing the duration over which samples will be stored.
@@ -53,6 +55,8 @@
   * Rename the constructor argument `window_alignment` to `align_to` and change the default to `UNIX_EPOCH`. This is to make it more consistent with the `ResamplerConfig`.
 
 * `Resampler`
+
+  * The `ResamplerConfig` class is now publicly available in the `frequenz.sdk.timeseries` package.
 
   * The `ResamplerConfig` now takes the resampling period as a `timedelta`. The configuration was renamed from `resampling_period_s` to `resampling_period` accordingly.
 
