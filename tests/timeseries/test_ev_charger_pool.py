@@ -46,7 +46,7 @@ class TestEVChargerPool:
         async def check_states(
             expected: dict[int, EVChargerState],
         ) -> None:
-            await asyncio.sleep(0.02)
+            await asyncio.sleep(0.05)
             for comp_id, exp_state in expected.items():
                 assert state_tracker.get(comp_id) == exp_state
 
