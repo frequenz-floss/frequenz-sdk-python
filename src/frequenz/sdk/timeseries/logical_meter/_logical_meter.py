@@ -14,6 +14,7 @@ from ...microgrid.component import ComponentMetricId
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase, FormulaEnginePool
 from .._formula_engine._formula_generators import (
     CHPPowerFormula,
+    ConsumerPowerFormula,
     FormulaGeneratorConfig,
     FormulaType,
     GridCurrentFormula,
@@ -214,6 +215,29 @@ class LogicalMeter:
             GridCurrentFormula,
         )
         assert isinstance(engine, FormulaEngine3Phase)
+        return engine
+
+    @property
+    def consumer_power(self) -> FormulaEngine:
+        """Fetch the consumer power for the microgrid.
+
+        Under normal circumstances this is expected to correspond to the gross
+        consumption of the site excluding active parts and battery.
+
+        If a formula engine to calculate consumer power is not already running, it will
+        be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream consumer power.
+        """
+        engine = self._formula_pool.from_generator(
+            "consumer_power",
+            ConsumerPowerFormula,
+        )
+        assert isinstance(engine, FormulaEngine)
         return engine
 
     @property
