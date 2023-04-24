@@ -1771,7 +1771,7 @@
             <span class="n">task</span><span class="p">,</span> <span class="n">output_chan</span> <span class="o">=</span> <span class="n">recv</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">task</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
                 <span class="k">return</span> <span class="n">output_chan</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Restarting component_status for id: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">component_id</span><span class="p">)</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Restarting component_status for id: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">component_id</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">output_chan</span> <span class="o">=</span> <span class="n">Broadcast</span><span class="p">[</span><span class="n">EVChargerData</span><span class="p">](</span>
                 <span class="sa">f</span><span class="s2">&quot;evpool-component_status-</span><span class="si">{</span><span class="n">component_id</span><span class="si">}</span><span class="s2">&quot;</span>
@@ -1876,7 +1876,7 @@
                     <span class="k">await</span> <span class="n">phase_3_rx</span><span class="o">.</span><span class="n">receive</span><span class="p">(),</span>
                 <span class="p">)</span>
             <span class="k">except</span> <span class="n">ChannelClosedError</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Streams closed for component_id=</span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">component_id</span><span class="p">)</span>
+                <span class="n">_logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Streams closed for component_id=</span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">component_id</span><span class="p">)</span>
                 <span class="k">raise</span>
 
             <span class="n">sample</span> <span class="o">=</span> <span class="n">Sample3Phase</span><span class="p">(</span>
@@ -2341,7 +2341,7 @@ an EV Charger.</p>
         <span class="n">task</span><span class="p">,</span> <span class="n">output_chan</span> <span class="o">=</span> <span class="n">recv</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">task</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
             <span class="k">return</span> <span class="n">output_chan</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Restarting component_status for id: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">component_id</span><span class="p">)</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Restarting component_status for id: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">component_id</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">output_chan</span> <span class="o">=</span> <span class="n">Broadcast</span><span class="p">[</span><span class="n">EVChargerData</span><span class="p">](</span>
             <span class="sa">f</span><span class="s2">&quot;evpool-component_status-</span><span class="si">{</span><span class="n">component_id</span><span class="si">}</span><span class="s2">&quot;</span>

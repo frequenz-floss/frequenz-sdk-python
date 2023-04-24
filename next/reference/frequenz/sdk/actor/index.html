@@ -2215,12 +2215,12 @@ identify the right channel from the ChannelRegistry.</p>
                     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">ResamplingError</span><span class="p">):</span>
                         <span class="k">raise</span> <span class="n">error</span>
                     <span class="k">for</span> <span class="n">source</span><span class="p">,</span> <span class="n">source_error</span> <span class="ow">in</span> <span class="n">error</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
                             <span class="s2">&quot;Error resampling source </span><span class="si">%s</span><span class="s2">, removing source...&quot;</span><span class="p">,</span> <span class="n">source</span>
                         <span class="p">)</span>
                         <span class="n">removed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resampler</span><span class="o">.</span><span class="n">remove_timeseries</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
                         <span class="k">if</span> <span class="ow">not</span> <span class="n">removed</span><span class="p">:</span>
-                            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                                 <span class="s2">&quot;Got an exception from an unknown source: &quot;</span>
                                 <span class="s2">&quot;source=</span><span class="si">%r</span><span class="s2">, exception=</span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span>
                                 <span class="n">source</span><span class="p">,</span>
@@ -2544,12 +2544,12 @@ handling requests.</p>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">ResamplingError</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="n">error</span>
                 <span class="k">for</span> <span class="n">source</span><span class="p">,</span> <span class="n">source_error</span> <span class="ow">in</span> <span class="n">error</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
                         <span class="s2">&quot;Error resampling source </span><span class="si">%s</span><span class="s2">, removing source...&quot;</span><span class="p">,</span> <span class="n">source</span>
                     <span class="p">)</span>
                     <span class="n">removed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resampler</span><span class="o">.</span><span class="n">remove_timeseries</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">removed</span><span class="p">:</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                             <span class="s2">&quot;Got an exception from an unknown source: &quot;</span>
                             <span class="s2">&quot;source=</span><span class="si">%r</span><span class="s2">, exception=</span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span>
                             <span class="n">source</span><span class="p">,</span>
@@ -2726,13 +2726,13 @@ If new file is read, then previous configs will be forgotten.</p>
 
         <span class="k">async</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_watcher</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conf_file</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                     <span class="s2">&quot;Update configs, because file </span><span class="si">%s</span><span class="s2"> was modified.&quot;</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_conf_file</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_config</span><span class="p">()</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;ConfigManager stopped.&quot;</span><span class="p">)</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;ConfigManager stopped.&quot;</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
         </details>
 
@@ -2912,13 +2912,13 @@ there hasn't been any change to the config file itself.</p>
 
     <span class="k">async</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_watcher</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conf_file</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s2">&quot;Update configs, because file </span><span class="si">%s</span><span class="s2"> was modified.&quot;</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_conf_file</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_config</span><span class="p">()</span>
 
-    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;ConfigManager stopped.&quot;</span><span class="p">)</span>
+    <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;ConfigManager stopped.&quot;</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
@@ -4284,25 +4284,25 @@ the examples below.</p>
 <span class="sd">            Raises:</span>
 <span class="sd">                asyncio.CancelledError: when the actor&#39;s task gets cancelled.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Starting actor: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Starting actor: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
             <span class="n">number_of_restarts</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">while</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">restart_limit</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">number_of_restarts</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">restart_limit</span>
             <span class="p">):</span>
                 <span class="k">if</span> <span class="n">number_of_restarts</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Restarting actor: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+                    <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Restarting actor: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
 
                 <span class="k">try</span><span class="p">:</span>
                     <span class="k">await</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
                 <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">CancelledError</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Cancelling actor: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+                    <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Cancelling actor: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
                     <span class="k">raise</span>
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-except</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Actor (</span><span class="si">%s</span><span class="s2">) crashed&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+                    <span class="n">_logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Actor (</span><span class="si">%s</span><span class="s2">) crashed&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
                 <span class="k">finally</span><span class="p">:</span>
                     <span class="n">number_of_restarts</span> <span class="o">+=</span> <span class="mi">1</span>
 
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Shutting down actor: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Shutting down actor: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
 
         <span class="k">async</span> <span class="k">def</span> <span class="nf">_stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;Stop an running actor.&quot;&quot;&quot;</span>
