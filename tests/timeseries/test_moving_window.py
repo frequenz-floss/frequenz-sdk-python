@@ -13,9 +13,7 @@ import pytest
 import time_machine
 from frequenz.channels import Broadcast, Sender
 
-from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._moving_window import MovingWindow
-from frequenz.sdk.timeseries._resampling import ResamplerConfig
+from frequenz.sdk.timeseries import UNIX_EPOCH, MovingWindow, ResamplerConfig, Sample
 
 
 # Setting 'autouse' has no effect as this method replaces the event loop for all tests in the file.
@@ -34,7 +32,9 @@ def fake_time() -> Iterator[time_machine.Coordinates]:
         yield traveller
 
 
-async def push_lm_data(sender: Sender[Sample], test_seq: Sequence[float]) -> None:
+async def push_logical_meter_data(
+    sender: Sender[Sample], test_seq: Sequence[float]
+) -> None:
     """
     Push data in the passed sender to mock `LogicalMeter` behaviour.
     Starting with the First of January 2023.
@@ -43,7 +43,7 @@ async def push_lm_data(sender: Sender[Sample], test_seq: Sequence[float]) -> Non
         sender: Sender for pushing resampled samples to the `MovingWindow`.
         test_seq: The Sequence that is pushed into the `MovingWindow`.
     """
-    start_ts: datetime = datetime(2023, 1, 1, tzinfo=timezone.utc)
+    start_ts: datetime = UNIX_EPOCH
     for i, j in zip(test_seq, range(0, len(test_seq))):
         timestamp = start_ts + timedelta(seconds=j)
         await sender.send(Sample(timestamp, float(i)))
@@ -70,29 +70,38 @@ def init_moving_window(size: timedelta) -> Tuple[MovingWindow, Sender[Sample]]:
 async def test_access_window_by_index() -> None:
     """Test indexing a window by integer index"""
     window, sender = init_moving_window(timedelta(seconds=1))
-    await push_lm_data(sender, [1])
+    await push_logical_meter_data(sender, [1])
     assert np.array_equal(window[0], 1.0)
 
 
 async def test_access_window_by_timestamp() -> None:
     """Test indexing a window by timestamp"""
     window, sender = init_moving_window(timedelta(seconds=1))
-    await push_lm_data(sender, [1])
-    assert np.array_equal(window[datetime(2023, 1, 1, tzinfo=timezone.utc)], 1.0)
+    await push_logical_meter_data(sender, [1])
+    assert np.array_equal(window[UNIX_EPOCH], 1.0)
 
 
 async def test_access_window_by_int_slice() -> None:
-    """Test accessing a subwindow with an integer slice"""
-    window, sender = init_moving_window(timedelta(seconds=5))
-    await push_lm_data(sender, range(0, 5))
+    """
+    Test accessing a subwindow with an integer slice
+
+    Note that the second test is overwriting the data of the first test.
+    since the push_lm_data function is starting with the same initial timestamp.
+    """
+    window, sender = init_moving_window(timedelta(seconds=14))
+    await push_logical_meter_data(sender, range(0, 5))
     assert np.array_equal(window[3:5], np.array([3.0, 4.0]))
+
+    data = [1, 2, 2.5, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1]
+    await push_logical_meter_data(sender, data)
+    assert np.array_equal(window[5:14], np.array(data[5:14]))
 
 
 async def test_access_window_by_ts_slice() -> None:
     """Test accessing a subwindow with a timestamp slice"""
     window, sender = init_moving_window(timedelta(seconds=5))
-    await push_lm_data(sender, range(0, 5))
-    time_start = datetime(2023, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=3)
+    await push_logical_meter_data(sender, range(0, 5))
+    time_start = UNIX_EPOCH + timedelta(seconds=3)
     time_end = time_start + timedelta(seconds=2)
     assert np.array_equal(window[time_start:time_end], np.array([3.0, 4.0]))  # type: ignore
 
@@ -100,7 +109,7 @@ async def test_access_window_by_ts_slice() -> None:
 async def test_window_size() -> None:
     """Test the size of the window."""
     window, sender = init_moving_window(timedelta(seconds=5))
-    await push_lm_data(sender, range(0, 20))
+    await push_logical_meter_data(sender, range(0, 20))
     assert len(window) == 5
 
 
