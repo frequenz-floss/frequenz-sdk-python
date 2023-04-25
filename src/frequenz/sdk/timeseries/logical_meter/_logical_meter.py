@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-import logging
 import uuid
 
 from frequenz.channels import Sender
@@ -18,8 +17,6 @@ from .._formula_engine._formula_generators import (
     GridPowerFormula,
     PVPowerFormula,
 )
-
-_logger = logging.getLogger(__name__)
 
 
 class LogicalMeter:
