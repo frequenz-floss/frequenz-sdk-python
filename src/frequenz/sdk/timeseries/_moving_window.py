@@ -17,8 +17,7 @@ from frequenz.channels import Broadcast, Receiver, Sender
 from numpy.typing import ArrayLike
 
 from .._internal.asyncio import cancel_and_await
-from . import Sample
-from ._base_types import UNIX_EPOCH
+from ._base_types import UNIX_EPOCH, Sample
 from ._resampling import Resampler, ResamplerConfig
 from ._ringbuffer import OrderedRingBuffer
 
