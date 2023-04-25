@@ -89,11 +89,13 @@ class PowerDistributingActor:
     printed.
 
     Example:
-        ``` python
+        ```python
         import grpc.aio as grpcaio
 
-        from frequenz.sdk.microgrid.graph import _MicrogridComponentGraph
+        from frequenz.sdk.microgrid._graph import _MicrogridComponentGraph
+        from frequenz.sdk import microgrid
         from frequenz.sdk.microgrid.component import ComponentCategory
+        from frequenz.sdk.actor import ResamplerConfig
         from frequenz.sdk.actor.power_distributing import (
             PowerDistributingActor,
             Request,
@@ -103,42 +105,60 @@ class PowerDistributingActor:
             PartialFailure,
             Ignored,
         )
+        from frequenz.channels import Bidirectional, Broadcast, Receiver, Sender
+        from datetime import timedelta
+        from frequenz.sdk import actor
 
+        HOST = "localhost"
+        PORT = 50051
 
-        target = f"{host}:{port}"
-        grpc_channel = grpcaio.insecure_channel(target)
-        api = MicrogridGrpcClient(grpc_channel, target)
+        async def main() -> None:
+            await microgrid.initialize(
+                HOST,
+                PORT,
+                ResamplerConfig(resampling_period=timedelta(seconds=1))
+            )
 
-        graph = _MicrogridComponentGraph()
-        await graph.refresh_from_api(api)
+            graph = microgrid.connection_manager.get().component_graph
 
-        batteries = graph.components(component_category={ComponentCategory.BATTERY})
-        batteries_ids = {c.component_id for c in batteries}
+            batteries = graph.components(component_category={ComponentCategory.BATTERY})
+            batteries_ids = {c.component_id for c in batteries}
 
-        channel = Bidirectional[Request, Result]("user1", "power_distributor")
-        power_distributor = PowerDistributingActor(
-            mock_api, component_graph, {"user1": channel.service_handle}
-        )
+            battery_status_channel = Broadcast[BatteryStatus]("battery-status")
 
-        client_handle = channel.client_handle
+            channel = Bidirectional[Request, Result]("user1", "power_distributor")
+            power_distributor = PowerDistributingActor(
+                users_channels={"user1": channel.service_handle},
+                battery_status_sender=battery_status_channel.new_sender(),
+            )
 
-        # Set power 1200W to given batteries.
-        request = Request(power=1200.0, batteries=batteries_ids, request_timeout_sec=10.0)
-        await client_handle.send(request)
+            # Start the actor
+            await actor.run(power_distributor)
 
-        # It is recommended to use timeout when waiting for the response!
-        result: Result = await asyncio.wait_for(client_handle.receive(), timeout=10)
+            client_handle = channel.client_handle
 
-        if isinstance(result, Success):
-            print("Command succeed")
-        elif isinstance(result, PartialFailure):
-            print(
-                f"Batteries {result.failed_batteries} failed, total failed power" \
-                    f"{result.failed_power}")
-        elif isinstance(result, Ignored):
-            print(f"Request was ignored, because of newer request")
-        elif isinstance(result, Error):
-            print(f"Request failed with error: {result.msg}")
+            # Set power 1200W to given batteries.
+            request = Request(power=1200.0, batteries=batteries_ids, request_timeout_sec=10.0)
+            await client_handle.send(request)
+
+            # Set power 1200W to given batteries.
+            request = Request(power=1200, batteries=batteries_ids, request_timeout_sec=10.0)
+            await client_handle.send(request)
+
+            # It is recommended to use timeout when waiting for the response!
+            result: Result = await asyncio.wait_for(client_handle.receive(), timeout=10)
+
+            if isinstance(result, Success):
+                print("Command succeed")
+            elif isinstance(result, PartialFailure):
+                print(
+                    f"Batteries {result.failed_batteries} failed, total failed power" \
+                    f"{result.failed_power}"
+                )
+            elif isinstance(result, Ignored):
+                print("Request was ignored, because of newer request")
+            elif isinstance(result, Error):
+                print(f"Request failed with error: {result.msg}")
         ```
     """
 

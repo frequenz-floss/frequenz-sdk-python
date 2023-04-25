@@ -409,10 +409,13 @@ class FormulaBuilder:
         following calls need to be made:
 
         ```python
-        builder = FormulaBuilder()
-        builder.push_metric("metric_1", receiver_1)
+        channel = Broadcast[Sample]("channel")
+        receiver_1 = channel.new_receiver("receiver_1")
+        receiver_2 = channel.new_receiver("receiver_2")
+        builder = FormulaBuilder("addition")
+        builder.push_metric("metric_1", receiver_1, nones_are_zeros=True)
         builder.push_oper("+")
-        builder.push_metric("metric_2", receiver_2)
+        builder.push_metric("metric_2", receiver_2, nones_are_zeros=True)
         engine = builder.build()
         ```
 

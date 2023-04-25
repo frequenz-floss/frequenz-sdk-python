@@ -76,7 +76,9 @@ def actor(cls: Type[Any]) -> Type[Any]:
         TypeError: when the class doesn't have a `run` method as per spec.
 
     Example (one actor receiving from two receivers):
-    ``` python
+    ```python
+    from frequenz.channels import Receiver, Sender, Broadcast
+    from frequenz.channels.util import Select
     @actor
     class EchoActor:
         def __init__(
@@ -101,25 +103,30 @@ def actor(cls: Type[Any]) -> Type[Any]:
                     await self._output.send(msg.inner)
 
 
-    input_chan_1: Broadcast[bool] = Broadcast("input_chan_1")
-    input_chan_2: Broadcast[bool] = Broadcast("input_chan_2")
+    async def main() -> None:
+        input_chan_1: Broadcast[bool] = Broadcast("input_chan_1")
+        input_chan_2: Broadcast[bool] = Broadcast("input_chan_2")
 
-    echo_chan: Broadcast[bool] = Broadcast("EchoChannel")
+        echo_chan: Broadcast[bool] = Broadcast("EchoChannel")
 
-    echo_actor = EchoActor(
-        "EchoActor",
-        recv1=input_chan_1.new_receiver(),
-        recv2=input_chan_2.new_receiver(),
-        output=echo_chan.new_sender(),
-    )
-    echo_rx = echo_chan.new_receiver()
+        echo_actor = EchoActor(
+            "EchoActor",
+            recv1=input_chan_1.new_receiver(),
+            recv2=input_chan_2.new_receiver(),
+            output=echo_chan.new_sender(),
+        )
+        echo_rx = echo_chan.new_receiver()
 
-    await input_chan_2.new_sender().send(True)
-    msg = await echo_rx.receive()
+        await input_chan_2.new_sender().send(True)
+        msg = await echo_rx.receive()
+
+    asyncio.run(main())
     ```
 
     Example (two Actors composed):
-    ``` python
+    ```python
+    from frequenz.channels import Receiver, Sender, Broadcast
+    from frequenz.channels.util import Select
     @actor
     class Actor1:
         def __init__(
@@ -154,24 +161,27 @@ def actor(cls: Type[Any]) -> Type[Any]:
                 await self._output.send(msg)
 
 
-    input_chan: Broadcast[bool] = Broadcast("Input to A1")
-    a1_chan: Broadcast[bool] = Broadcast["A1 stream"]
-    a2_chan: Broadcast[bool] = Broadcast["A2 stream"]
-    a1 = Actor1(
-        name="ActorOne",
-        recv=input_chan.new_receiver(),
-        output=a1_chan.new_sender(),
-    )
-    a2 = Actor2(
-        name="ActorTwo",
-        recv=a1_chan.new_receiver(),
-        output=a2_chan.new_sender(),
-    )
+    async def main() -> None:
+        input_chan: Broadcast[bool] = Broadcast("Input to A1")
+        a1_chan: Broadcast[bool] = Broadcast("A1 stream")
+        a2_chan: Broadcast[bool] = Broadcast("A2 stream")
+        a_1 = Actor1(
+            name="ActorOne",
+            recv=input_chan.new_receiver(),
+            output=a1_chan.new_sender(),
+        )
+        a_2 = Actor2(
+            name="ActorTwo",
+            recv=a1_chan.new_receiver(),
+            output=a2_chan.new_sender(),
+        )
 
-    a2_rx = a2_chan.new_receiver()
+        a2_rx = a2_chan.new_receiver()
 
-    await input_chan.new_sender().send(True)
-    msg = await a2_rx.receive()
+        await input_chan.new_sender().send(True)
+        msg = await a2_rx.receive()
+
+    asyncio.run(main())
     ```
 
     """
