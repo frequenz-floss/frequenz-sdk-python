@@ -17,8 +17,7 @@ from frequenz.channels import Broadcast, Receiver, Sender
 from numpy.typing import ArrayLike
 
 from .._internal.asyncio import cancel_and_await
-from . import Sample
-from ._base_types import UNIX_EPOCH
+from ._base_types import UNIX_EPOCH, Sample
 from ._resampling import Resampler, ResamplerConfig
 from ._ringbuffer import OrderedRingBuffer
 
@@ -36,7 +35,7 @@ class MovingWindow:
     Note that a numpy ndarray is returned and thus users can use
     numpys operations directly on a window.
 
-    The window uses an ringbuffer for storage and the first element is aligned to
+    The window uses a ring buffer for storage and the first element is aligned to
     a fixed defined point in time. Since the moving nature of the window, the
     date of the first and the last element are constantly changing and therefore
     the point in time that defines the alignment can be outside of the time window.
@@ -45,10 +44,7 @@ class MovingWindow:
 
     If for example the `align_to` parameter is set to
     `datetime(1, 1, 1, tzinfo=timezone.utc)` and the window size is bigger than
-    one day then the first element will always be aligned to the midnight.
-    For further information see also the
-    [`OrderedRingBuffer`][frequenz.sdk.timeseries._ringbuffer.OrderedRingBuffer]
-    documentation.
+    one day then the first element will always be aligned to midnight.
 
     Resampling might be required to reduce the number of samples to store, and
     it can be set by specifying the resampler config parameter so that the user
@@ -113,8 +109,8 @@ class MovingWindow:
         """
         Initialize the MovingWindow.
 
-        This method creates the underlying ringbuffer and starts a
-        new task that updates the ringbuffer with new incoming samples.
+        This method creates the underlying ring buffer and starts a
+        new task that updates the ring buffer with new incoming samples.
         The task stops running only if the channel receiver is closed.
 
         Args:
@@ -168,7 +164,7 @@ class MovingWindow:
         )
 
     async def _run_impl(self) -> None:
-        """Awaits samples from the receiver and updates the underlying ringbuffer.
+        """Awaits samples from the receiver and updates the underlying ring buffer.
 
         Raises:
             asyncio.CancelledError: if the MovingWindow task is cancelled.

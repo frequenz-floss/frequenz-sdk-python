@@ -16,8 +16,7 @@ from datetime import datetime, timedelta, timezone
 from typing import AsyncIterator, Callable, Coroutine, Optional, Sequence
 
 from .._internal.asyncio import cancel_and_await
-from . import Sample
-from ._base_types import UNIX_EPOCH
+from ._base_types import UNIX_EPOCH, Sample
 
 _logger = logging.getLogger(__name__)
 

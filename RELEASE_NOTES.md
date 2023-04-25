@@ -38,9 +38,9 @@
   * The `PartialFailure.success_batteries` property was renamed to `succeeded_batteries`.
   * The `succeed_power` property was renamed to `succeeded_power` for both `Success` and `PartialFailure`.
 
-* The serialization feature for the ringbuffer was made more flexible. The `dump` and `load` methods can now work directly with a ringbuffer instance.
-
 * `MovingWindow`
+
+  * The class is now publicly available in the `frequenz.sdk.timeseries` package.
 
   * Accept the `size` parameter as `timedelta` instead of `int` (#269).
 
@@ -55,6 +55,8 @@
   * Rename the constructor argument `window_alignment` to `align_to` and change the default to `UNIX_EPOCH`. This is to make it more consistent with the `ResamplerConfig`.
 
 * `Resampler`
+
+  * The `ResamplerConfig` class is now publicly available in the `frequenz.sdk.timeseries` package.
 
   * The `ResamplerConfig` now takes the resampling period as a `timedelta`. The configuration was renamed from `resampling_period_s` to `resampling_period` accordingly.
 
@@ -90,4 +92,4 @@
 
 * Change `PowerDistributor` to use all batteries when none are working (#258)
 
-* Update the ordered ring buffer to fix the `len()` function so that it returns a value equal to or greater than zero, as expected (#274)
+* Update the ordered ring buffer used by the `MovingWindow` to fix the `len()` function so that it returns a value equal to or greater than zero, as expected (#274)
