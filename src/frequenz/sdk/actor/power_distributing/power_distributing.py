@@ -551,24 +551,6 @@ class PowerDistributingActor:
 
         return bat_inv_map, inv_bat_map
 
-    def _get_working_batteries(self, batteries: Set[int]) -> Set[int]:
-        """Get subset with working batteries.
-
-        If none of the given batteries are working, then treat all of them
-        as working.
-
-        Args:
-            batteries: requested batteries
-
-        Returns:
-            Subset with working batteries or input set if none of the given batteries
-                are working.
-        """
-        working_batteries = self._all_battery_status.get_working_batteries(batteries)
-        if len(working_batteries) == 0:
-            return batteries
-        return working_batteries
-
     def _get_components_data(self, batteries: Set[int]) -> List[InvBatPair]:
         """Get data for the given batteries and adjacent inverters.
 
@@ -582,7 +564,9 @@ class PowerDistributingActor:
             Pairs of battery and adjacent inverter data.
         """
         pairs_data: List[InvBatPair] = []
-        working_batteries = self._get_working_batteries(batteries)
+        working_batteries = (
+            self._all_battery_status.get_working_batteries(batteries) or batteries
+        )
 
         for battery_id in working_batteries:
             if battery_id not in self._battery_receivers:
