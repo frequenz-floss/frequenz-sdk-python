@@ -1,6 +1,6 @@
 name: frequenz-sdk-python
 
-on: [pull_request, push, workflow_dispatch]
+on: [merge_group, pull_request, push, workflow_dispatch]
 
 jobs:
   test:
