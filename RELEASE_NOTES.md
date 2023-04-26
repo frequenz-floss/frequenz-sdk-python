@@ -24,6 +24,8 @@ This release drops support for Python versions older than 3.11.
   soc_rx = battery_pool.soc.new_receiver()    # new
   ```
 
+* A power request can now be forced by setting the `include_broken` attribute. This is especially helpful as a safety measure when components appear to be failing, such as when battery metrics are unavailable. Note that applications previously relying on automatic fallback to all batteries when none of them was working will now require the `include_broken` attribute to be explicitly set in the request.
+
 ## New Features
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->
