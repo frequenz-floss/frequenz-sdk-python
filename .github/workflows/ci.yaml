@@ -229,6 +229,10 @@ jobs:
   publish-to-pypi:
     needs: ["create-github-release"]
     runs-on: ubuntu-20.04
+    permissions:
+      # For trusted publishing. See:
+      # https://blog.pypi.org/posts/2023-04-20-introducing-trusted-publishers/
+      id-token: write
     steps:
       - name: Download dist files
         uses: actions/download-artifact@v3
@@ -238,6 +242,3 @@ jobs:
 
       - name: Publish the Python distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
-          skip_existing: true
