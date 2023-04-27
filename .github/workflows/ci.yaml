@@ -67,8 +67,8 @@ jobs:
           path: dist/
           if-no-files-found: error
 
-  generate-docs-pr:
-    if: github.event_name == 'pull_request'
+  test-generate-docs:
+    if: github.event_name != 'push'
     runs-on: ubuntu-20.04
     steps:
       - name: Fetch sources
@@ -89,7 +89,7 @@ jobs:
 
       - name: Generate the documentation
         env:
-          MIKE_VERSION: pr-${{ github.event.number }}
+          MIKE_VERSION: gh-${{ github.job }}
         run: |
           mike deploy $MIKE_VERSION
           mike set-default $MIKE_VERSION
