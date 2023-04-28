@@ -893,34 +893,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.timeseries.MovingWindow--create-a-window-that-stores-two-days-of-data" class="md-nav__link">
-    create a window that stores two days of data
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#frequenz.sdk.timeseries.MovingWindow--starting-at-1123-with-samplerate1" class="md-nav__link">
-    starting at 1.1.23 with samplerate=1
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#frequenz.sdk.timeseries.MovingWindow--wait-for-one-full-day-until-the-buffer-is-filled" class="md-nav__link">
-    wait for one full day until the buffer is filled
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#frequenz.sdk.timeseries.MovingWindow--create-a-polars-series-with-one-full-day-of-data" class="md-nav__link">
-    create a polars series with one full day of data
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#frequenz.sdk.timeseries.MovingWindow-functions" class="md-nav__link">
     Functions
   </a>
@@ -1330,43 +1302,48 @@ can control the granularity of the samples to be stored in the underlying
 buffer.</p>
 <p>If resampling is not required, the resampler config parameter can be
 set to None in which case the MovingWindow will not perform any resampling.</p>
-<p><strong>Example1</strong> (calculating the mean of a time interval):</p>
-<p><div class="highlight"><pre><span></span><code>window = MovingWindow(
-    size=timedelta(minutes=5),
-    resampled_data_recv=resampled_data_recv,
-    input_sampling_period=timedelta(seconds=1),
-)
 
-time_start = datetime.now(tz=timezone.utc)
-time_end = time_start + timedelta(minutes=5)
+<details class="example">
+  <summary>Calculate the mean of a time interval</summary>
+  <div class="highlight"><pre><span></span><code><span class="n">window</span> <span class="o">=</span> <span class="n">MovingWindow</span><span class="p">(</span>
+    <span class="n">size</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
+    <span class="n">resampled_data_recv</span><span class="o">=</span><span class="n">resampled_data_recv</span><span class="p">,</span>
+    <span class="n">input_sampling_period</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+<span class="p">)</span>
 
-# ... wait for 5 minutes until the buffer is filled
-await asyncio.sleep(5)
+<span class="n">time_start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+<span class="n">time_end</span> <span class="o">=</span> <span class="n">time_start</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 
-# return an numpy array from the window
-a = window[time_start:time_end]
-# and use it to for example calculate the mean
-mean = a.mean()
-&#39;&#39;&#39;
+<span class="c1"># ... wait for 5 minutes until the buffer is filled</span>
+<span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 
-**Example2** (create a polars data frame from a `MovingWindow`):
+<span class="c1"># return an numpy array from the window</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">window</span><span class="p">[</span><span class="n">time_start</span><span class="p">:</span><span class="n">time_end</span><span class="p">]</span>
+<span class="c1"># and use it to for example calculate the mean</span>
+<span class="n">mean</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
 </code></pre></div>
-import polars as pl</p>
-<h5 id="frequenz.sdk.timeseries.MovingWindow--create-a-window-that-stores-two-days-of-data">create a window that stores two days of data<a class="headerlink" href="#frequenz.sdk.timeseries.MovingWindow--create-a-window-that-stores-two-days-of-data" title="Permanent link">¤</a></h5>
-<h5 id="frequenz.sdk.timeseries.MovingWindow--starting-at-1123-with-samplerate1">starting at 1.1.23 with samplerate=1<a class="headerlink" href="#frequenz.sdk.timeseries.MovingWindow--starting-at-1123-with-samplerate1" title="Permanent link">¤</a></h5>
-<p>window = MovingWindow(
-    size=timedelta(days=2),
-    resampled_data_recv=sample_receiver,
-    input_sampling_period=timedelta(seconds=1),
-)</p>
-<h5 id="frequenz.sdk.timeseries.MovingWindow--wait-for-one-full-day-until-the-buffer-is-filled">wait for one full day until the buffer is filled<a class="headerlink" href="#frequenz.sdk.timeseries.MovingWindow--wait-for-one-full-day-until-the-buffer-is-filled" title="Permanent link">¤</a></h5>
-<p>asyncio.sleep(60<em>60</em>24)</p>
-<h5 id="frequenz.sdk.timeseries.MovingWindow--create-a-polars-series-with-one-full-day-of-data">create a polars series with one full day of data<a class="headerlink" href="#frequenz.sdk.timeseries.MovingWindow--create-a-polars-series-with-one-full-day-of-data" title="Permanent link">¤</a></h5>
-<p>time_start = datetime(2023, 1, 1, tzinfo=timezone.utc)
-time_end = datetime(2023, 1, 2, tzinfo=timezone.utc)
-s = pl.Series("Jan_1", mv[time_start:time_end])
-```</p>
+</details>
+<details class="example">
+  <summary>Create a polars data frame from a <code>MovingWindow</code></summary>
+  <div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">polars</span> <span class="k">as</span> <span class="nn">pl</span>
 
+<span class="c1"># create a window that stores two days of data</span>
+<span class="c1"># starting at 1.1.23 with samplerate=1</span>
+<span class="n">window</span> <span class="o">=</span> <span class="n">MovingWindow</span><span class="p">(</span>
+    <span class="n">size</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+    <span class="n">resampled_data_recv</span><span class="o">=</span><span class="n">sample_receiver</span><span class="p">,</span>
+    <span class="n">input_sampling_period</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># wait for one full day until the buffer is filled</span>
+<span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">60</span><span class="o">*</span><span class="mi">60</span><span class="o">*</span><span class="mi">24</span><span class="p">)</span>
+
+<span class="c1"># create a polars series with one full day of data</span>
+<span class="n">time_start</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2023</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+<span class="n">time_end</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2023</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="s2">&quot;Jan_1&quot;</span><span class="p">,</span> <span class="n">mv</span><span class="p">[</span><span class="n">time_start</span><span class="p">:</span><span class="n">time_end</span><span class="p">])</span>
+</code></pre></div>
+</details>
 
         <details class="quote">
           <summary>Source code in <code>/home/runner/.local/lib/python3.8/site-packages/frequenz/sdk/timeseries/_moving_window.py</code></summary>
@@ -1653,48 +1630,48 @@ s = pl.Series("Jan_1", mv[time_start:time_end])
 <span class="sd">    If resampling is not required, the resampler config parameter can be</span>
 <span class="sd">    set to None in which case the MovingWindow will not perform any resampling.</span>
 
-<span class="sd">    **Example1** (calculating the mean of a time interval):</span>
+<span class="sd">    Example: Calculate the mean of a time interval</span>
 
-<span class="sd">    ```</span>
-<span class="sd">    window = MovingWindow(</span>
-<span class="sd">        size=timedelta(minutes=5),</span>
-<span class="sd">        resampled_data_recv=resampled_data_recv,</span>
-<span class="sd">        input_sampling_period=timedelta(seconds=1),</span>
-<span class="sd">    )</span>
+<span class="sd">        ```python</span>
+<span class="sd">        window = MovingWindow(</span>
+<span class="sd">            size=timedelta(minutes=5),</span>
+<span class="sd">            resampled_data_recv=resampled_data_recv,</span>
+<span class="sd">            input_sampling_period=timedelta(seconds=1),</span>
+<span class="sd">        )</span>
 
-<span class="sd">    time_start = datetime.now(tz=timezone.utc)</span>
-<span class="sd">    time_end = time_start + timedelta(minutes=5)</span>
+<span class="sd">        time_start = datetime.now(tz=timezone.utc)</span>
+<span class="sd">        time_end = time_start + timedelta(minutes=5)</span>
 
-<span class="sd">    # ... wait for 5 minutes until the buffer is filled</span>
-<span class="sd">    await asyncio.sleep(5)</span>
+<span class="sd">        # ... wait for 5 minutes until the buffer is filled</span>
+<span class="sd">        await asyncio.sleep(5)</span>
 
-<span class="sd">    # return an numpy array from the window</span>
-<span class="sd">    a = window[time_start:time_end]</span>
-<span class="sd">    # and use it to for example calculate the mean</span>
-<span class="sd">    mean = a.mean()</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">        # return an numpy array from the window</span>
+<span class="sd">        a = window[time_start:time_end]</span>
+<span class="sd">        # and use it to for example calculate the mean</span>
+<span class="sd">        mean = a.mean()</span>
+<span class="sd">        ```</span>
 
-<span class="sd">    **Example2** (create a polars data frame from a `MovingWindow`):</span>
+<span class="sd">    Example: Create a polars data frame from a `MovingWindow`</span>
 
-<span class="sd">    ```</span>
-<span class="sd">    import polars as pl</span>
+<span class="sd">        ```python</span>
+<span class="sd">        import polars as pl</span>
 
-<span class="sd">    # create a window that stores two days of data</span>
-<span class="sd">    # starting at 1.1.23 with samplerate=1</span>
-<span class="sd">    window = MovingWindow(</span>
-<span class="sd">        size=timedelta(days=2),</span>
-<span class="sd">        resampled_data_recv=sample_receiver,</span>
-<span class="sd">        input_sampling_period=timedelta(seconds=1),</span>
-<span class="sd">    )</span>
+<span class="sd">        # create a window that stores two days of data</span>
+<span class="sd">        # starting at 1.1.23 with samplerate=1</span>
+<span class="sd">        window = MovingWindow(</span>
+<span class="sd">            size=timedelta(days=2),</span>
+<span class="sd">            resampled_data_recv=sample_receiver,</span>
+<span class="sd">            input_sampling_period=timedelta(seconds=1),</span>
+<span class="sd">        )</span>
 
-<span class="sd">    # wait for one full day until the buffer is filled</span>
-<span class="sd">    asyncio.sleep(60*60*24)</span>
+<span class="sd">        # wait for one full day until the buffer is filled</span>
+<span class="sd">        asyncio.sleep(60*60*24)</span>
 
-<span class="sd">    # create a polars series with one full day of data</span>
-<span class="sd">    time_start = datetime(2023, 1, 1, tzinfo=timezone.utc)</span>
-<span class="sd">    time_end = datetime(2023, 1, 2, tzinfo=timezone.utc)</span>
-<span class="sd">    s = pl.Series(&quot;Jan_1&quot;, mv[time_start:time_end])</span>
-<span class="sd">    ```</span>
+<span class="sd">        # create a polars series with one full day of data</span>
+<span class="sd">        time_start = datetime(2023, 1, 1, tzinfo=timezone.utc)</span>
+<span class="sd">        time_end = datetime(2023, 1, 2, tzinfo=timezone.utc)</span>
+<span class="sd">        s = pl.Series(&quot;Jan_1&quot;, mv[time_start:time_end])</span>
+<span class="sd">        ```</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>  <span class="c1"># pylint: disable=too-many-arguments</span>
