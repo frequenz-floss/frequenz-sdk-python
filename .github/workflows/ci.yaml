@@ -1,6 +1,16 @@
 name: frequenz-sdk-python
 
-on: [merge_group, pull_request, push, workflow_dispatch]
+on:
+  merge_group:
+  pull_request:
+  push:
+    branches-ignore:
+      # Ignore pushes to merge queues.
+      # We only want to test the merge commit (`merge_group` event), the hashes
+      # in the push were already tested by the PR checks
+      - 'gh-readonly-queue/**'
+  workflow_dispatch:
+
 
 jobs:
   test:
@@ -68,15 +78,9 @@ jobs:
           if-no-files-found: error
 
   test-generate-docs:
-    # This could be github.event_name != 'push', but that's not being triggered
-    # for merge_group for some reason
-    if: github.event_name == 'pull_request' || github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch'
+    if: github.event_name != 'push'
     runs-on: ubuntu-20.04
     steps:
-      - name: DEBUG INFO
-        env:
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
-        run: echo $GITHUB_EVENT_NAME
       - name: Fetch sources
         uses: actions/checkout@v3
 
@@ -109,8 +113,7 @@ jobs:
 
   publish-docs:
     needs: ["test", "build-dist"]
-      # We shouldn't need the reference name here, but `merge_group` is being executed as if it was `push`
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/v0.x.x' || startsWith(github.ref, 'refs/tags/'))
+    if: github.event_name == 'push'
     runs-on: ubuntu-20.04
     permissions:
       contents: write
