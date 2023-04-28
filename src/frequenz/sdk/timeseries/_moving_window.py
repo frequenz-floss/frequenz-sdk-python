@@ -73,7 +73,7 @@ class MovingWindow:
     a = window[time_start:time_end]
     # and use it to for example calculate the mean
     mean = a.mean()
-    '''
+    ```
 
     **Example2** (create a polars data frame from a `MovingWindow`):
 
