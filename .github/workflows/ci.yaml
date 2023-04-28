@@ -81,10 +81,6 @@ jobs:
     if: github.event_name != 'push'
     runs-on: ubuntu-20.04
     steps:
-      - name: DEBUG INFO
-        env:
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
-        run: echo $GITHUB_EVENT_NAME
       - name: Fetch sources
         uses: actions/checkout@v3
 
