@@ -56,7 +56,7 @@ class MovingWindow:
 
     **Example1** (calculating the mean of a time interval):
 
-    ```
+    ```python
     window = MovingWindow(
         size=timedelta(minutes=5),
         resampled_data_recv=resampled_data_recv,
@@ -77,7 +77,7 @@ class MovingWindow:
 
     **Example2** (create a polars data frame from a `MovingWindow`):
 
-    ```
+    ```python
     import polars as pl
 
     # create a window that stores two days of data
