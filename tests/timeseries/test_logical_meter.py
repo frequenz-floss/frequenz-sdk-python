@@ -279,6 +279,54 @@ class TestLogicalMeter:
         assert (await chp_production_power_receiver.receive()).value == 12.0
         assert (await chp_consumption_power_receiver.receive()).value == 0.0
 
+    async def test_pv_power(self, mocker: MockerFixture) -> None:
+        """Test the pv power formula."""
+        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid.add_solar_inverters(2)
+        await mockgrid.start(mocker)
+
+        assert len(mockgrid.pv_inverter_ids) == 2
+
+        channels: dict[int, Broadcast[Sample]] = {
+            inv_id: Broadcast(f"#{inv_id}") for inv_id in [*mockgrid.pv_inverter_ids]
+        }
+        senders: list[Sender[Sample]] = [
+            channels[component_id].new_sender()
+            for component_id in mockgrid.pv_inverter_ids
+        ]
+
+        async def send_resampled_data(
+            now: datetime,
+            meter_data: list[float | None],
+        ) -> None:
+            """Send resampled data to the channels."""
+            for sender, value in zip(senders, meter_data):
+                await sender.send(Sample(now, value))
+
+        def mock_resampled_receiver(
+            _1: Any, component_id: int, _2: ComponentMetricId
+        ) -> Receiver[Sample]:
+            return channels[component_id].new_receiver()
+
+        mocker.patch(
+            "frequenz.sdk.timeseries._formula_engine._resampled_formula_builder"
+            ".ResampledFormulaBuilder._get_resampled_receiver",
+            mock_resampled_receiver,
+        )
+
+        logical_meter = microgrid.logical_meter()
+        pv_power_receiver = logical_meter.pv_power.new_receiver()
+        pv_production_power_receiver = logical_meter.pv_production_power.new_receiver()
+        pv_consumption_power_receiver = (
+            logical_meter.pv_consumption_power.new_receiver()
+        )
+
+        now = datetime.now(tz=timezone.utc)
+        await send_resampled_data(now, [-1.0, -2.0])
+        assert (await pv_power_receiver.receive()).value == -3.0
+        assert (await pv_production_power_receiver.receive()).value == 3.0
+        assert (await pv_consumption_power_receiver.receive()).value == 0.0
+
     async def test_consumer_power_grid_meter(self, mocker: MockerFixture) -> None:
         """Test the consumer power formula with a grid meter."""
         mockgrid = MockMicrogrid(grid_side_meter=True)
