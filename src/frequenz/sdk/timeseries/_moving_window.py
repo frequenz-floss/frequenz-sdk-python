@@ -54,48 +54,48 @@ class MovingWindow:
     If resampling is not required, the resampler config parameter can be
     set to None in which case the MovingWindow will not perform any resampling.
 
-    **Example1** (calculating the mean of a time interval):
+    Example: Calculate the mean of a time interval
 
-    ```python
-    window = MovingWindow(
-        size=timedelta(minutes=5),
-        resampled_data_recv=resampled_data_recv,
-        input_sampling_period=timedelta(seconds=1),
-    )
+        ```python
+        window = MovingWindow(
+            size=timedelta(minutes=5),
+            resampled_data_recv=resampled_data_recv,
+            input_sampling_period=timedelta(seconds=1),
+        )
 
-    time_start = datetime.now(tz=timezone.utc)
-    time_end = time_start + timedelta(minutes=5)
+        time_start = datetime.now(tz=timezone.utc)
+        time_end = time_start + timedelta(minutes=5)
 
-    # ... wait for 5 minutes until the buffer is filled
-    await asyncio.sleep(5)
+        # ... wait for 5 minutes until the buffer is filled
+        await asyncio.sleep(5)
 
-    # return an numpy array from the window
-    a = window[time_start:time_end]
-    # and use it to for example calculate the mean
-    mean = a.mean()
-    ```
+        # return an numpy array from the window
+        a = window[time_start:time_end]
+        # and use it to for example calculate the mean
+        mean = a.mean()
+        ```
 
-    **Example2** (create a polars data frame from a `MovingWindow`):
+    Example: Create a polars data frame from a `MovingWindow`
 
-    ```python
-    import polars as pl
+        ```python
+        import polars as pl
 
-    # create a window that stores two days of data
-    # starting at 1.1.23 with samplerate=1
-    window = MovingWindow(
-        size=timedelta(days=2),
-        resampled_data_recv=sample_receiver,
-        input_sampling_period=timedelta(seconds=1),
-    )
+        # create a window that stores two days of data
+        # starting at 1.1.23 with samplerate=1
+        window = MovingWindow(
+            size=timedelta(days=2),
+            resampled_data_recv=sample_receiver,
+            input_sampling_period=timedelta(seconds=1),
+        )
 
-    # wait for one full day until the buffer is filled
-    asyncio.sleep(60*60*24)
+        # wait for one full day until the buffer is filled
+        asyncio.sleep(60*60*24)
 
-    # create a polars series with one full day of data
-    time_start = datetime(2023, 1, 1, tzinfo=timezone.utc)
-    time_end = datetime(2023, 1, 2, tzinfo=timezone.utc)
-    s = pl.Series("Jan_1", mv[time_start:time_end])
-    ```
+        # create a polars series with one full day of data
+        time_start = datetime(2023, 1, 1, tzinfo=timezone.utc)
+        time_end = datetime(2023, 1, 2, tzinfo=timezone.utc)
+        s = pl.Series("Jan_1", mv[time_start:time_end])
+        ```
     """
 
     def __init__(  # pylint: disable=too-many-arguments
