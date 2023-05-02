@@ -402,3 +402,7 @@ class LogicalMeter:
         )
         assert isinstance(engine, FormulaEngine)
         return engine
+
+    async def stop(self) -> None:
+        """Stop all formula engines."""
+        await self._formula_pool.stop()
