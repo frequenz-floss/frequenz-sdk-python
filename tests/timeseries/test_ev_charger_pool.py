@@ -99,7 +99,11 @@ class TestEVChargerPool:
 
     async def test_ev_component_data(self, mocker: MockerFixture) -> None:
         """Test the component_data method of EVChargerPool."""
-        mockgrid = MockMicrogrid(grid_side_meter=False, api_client_streaming=True)
+        mockgrid = MockMicrogrid(
+            grid_side_meter=False,
+            api_client_streaming=True,
+            sample_rate_s=0.05,
+        )
         mockgrid.add_ev_chargers(1)
 
         # The component_data method is a bit special because it uses both raw data
@@ -115,7 +119,7 @@ class TestEVChargerPool:
         recv = ev_pool.component_data(evc_id)
 
         await mockgrid.mock_data.send_evc_current([[2, 3, 5]])
-        await asyncio.sleep(0.02)
+        await asyncio.sleep(0.1)
         status = await recv.receive()
         assert (
             status.current.value_p1,
@@ -125,7 +129,7 @@ class TestEVChargerPool:
         assert status.state == EVChargerState.MISSING
 
         await mockgrid.mock_data.send_evc_current([[2, 3, None]])
-        await asyncio.sleep(0.02)
+        await asyncio.sleep(0.1)
         status = await recv.receive()
         assert (
             status.current.value_p1,
@@ -135,7 +139,7 @@ class TestEVChargerPool:
         assert status.state == EVChargerState.IDLE
 
         await mockgrid.mock_data.send_evc_current([[None, None, None]])
-        await asyncio.sleep(0.02)
+        await asyncio.sleep(0.1)
         status = await recv.receive()
         assert (
             status.current.value_p1,
@@ -146,7 +150,7 @@ class TestEVChargerPool:
 
         await mockgrid.mock_data.send_evc_current([[None, None, None]])
         mockgrid.evc_cable_states[evc_id] = EVChargerCableState.EV_PLUGGED
-        await asyncio.sleep(0.02)
+        await asyncio.sleep(0.1)
         status = await recv.receive()
         assert (
             status.current.value_p1,
@@ -156,7 +160,7 @@ class TestEVChargerPool:
         assert status.state == EVChargerState.MISSING
 
         await mockgrid.mock_data.send_evc_current([[4, None, None]])
-        await asyncio.sleep(0.02)
+        await asyncio.sleep(0.1)
         status = await recv.receive()
         assert (
             status.current.value_p1,
@@ -166,3 +170,4 @@ class TestEVChargerPool:
         assert status.state == EVChargerState.EV_PLUGGED
 
         await mockgrid.cleanup()
+        await ev_pool.stop()
