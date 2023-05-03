@@ -4,7 +4,7 @@
 """Tests for formula composition."""
 
 
-from math import isclose
+import math
 
 from pytest_mock import MockerFixture
 
@@ -12,7 +12,7 @@ from frequenz.sdk import microgrid
 from frequenz.sdk.microgrid.component import ComponentMetricId
 
 from ..mock_microgrid import MockMicrogrid
-from .utils import get_resampled_stream, synchronize_receivers
+from .utils import get_resampled_stream
 
 
 class TestFormulaComposition:
@@ -23,10 +23,11 @@ class TestFormulaComposition:
         mocker: MockerFixture,
     ) -> None:
         """Test the composition of formulas."""
-        mockgrid = MockMicrogrid(grid_side_meter=False, sample_rate_s=0.2)
+        mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(3)
         mockgrid.add_solar_inverters(2)
-        await mockgrid.start(mocker)
+        await mockgrid.start_mock_datapipeline(mocker)
+
         logical_meter = microgrid.logical_meter()
         battery_pool = microgrid.battery_pool()
         main_meter_recv = get_resampled_stream(
@@ -41,33 +42,56 @@ class TestFormulaComposition:
         engine = (logical_meter.pv_power + battery_pool.power).build("inv_power")
         inv_calc_recv = engine.new_receiver()
 
-        count = 0
-        for _ in range(10):
-            grid_pow = await grid_power_recv.receive()
-            pv_pow = await pv_power_recv.receive()
-            bat_pow = await battery_power_recv.receive()
-            main_pow = await main_meter_recv.receive()
-            inv_calc_pow = await inv_calc_recv.receive()
+        await mockgrid.mock_data.send_bat_inverter_power([10.0, 12.0, 14.0])
+        await mockgrid.mock_data.send_meter_power(
+            [100.0, 10.0, 12.0, 14.0, -100.0, -200.0]
+        )
 
-            assert grid_pow is not None and grid_pow.value is not None
-            assert inv_calc_pow is not None and inv_calc_pow.value is not None
-            assert bat_pow is not None and bat_pow.value is not None
-            assert pv_pow is not None and pv_pow.value is not None
-            assert main_pow is not None and main_pow.value is not None
-            assert isclose(inv_calc_pow.value, pv_pow.value + bat_pow.value)
-            assert isclose(grid_pow.value, inv_calc_pow.value + main_pow.value)
-            count += 1
+        grid_pow = await grid_power_recv.receive()
+        pv_pow = await pv_power_recv.receive()
+        bat_pow = await battery_power_recv.receive()
+        main_pow = await main_meter_recv.receive()
+        inv_calc_pow = await inv_calc_recv.receive()
+
+        assert (
+            grid_pow is not None
+            and grid_pow.value is not None
+            and math.isclose(grid_pow.value, -164.0)
+        )  # 100 + 10 + 12 + 14 + -100 + -200
+        assert (
+            bat_pow is not None
+            and bat_pow.value is not None
+            and math.isclose(bat_pow.value, 36.0)
+        )  # 10 + 12 + 14
+        assert (
+            pv_pow is not None
+            and pv_pow.value is not None
+            and math.isclose(pv_pow.value, -300.0)
+        )  # -100 + -200
+        assert (
+            inv_calc_pow is not None
+            and inv_calc_pow.value is not None
+            and math.isclose(inv_calc_pow.value, -264.0)  # -300 + 36
+        )
+        assert (
+            main_pow is not None
+            and main_pow.value is not None
+            and math.isclose(main_pow.value, 100.0)
+        )
+
+        assert math.isclose(inv_calc_pow.value, pv_pow.value + bat_pow.value)
+        assert math.isclose(grid_pow.value, inv_calc_pow.value + main_pow.value)
 
         await mockgrid.cleanup()
         await engine._stop()  # pylint: disable=protected-access
-
-        assert count == 10
+        await battery_pool.stop()
+        await logical_meter.stop()
 
     async def test_formula_composition_missing_pv(self, mocker: MockerFixture) -> None:
         """Test the composition of formulas with missing PV power data."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(3)
-        await mockgrid.start(mocker)
+        await mockgrid.start_mock_datapipeline(mocker)
         battery_pool = microgrid.battery_pool()
         logical_meter = microgrid.logical_meter()
 
@@ -78,6 +102,11 @@ class TestFormulaComposition:
 
         count = 0
         for _ in range(10):
+            await mockgrid.mock_data.send_bat_inverter_power(
+                [10.0 + count, 12.0 + count, 14.0 + count]
+            )
+            await mockgrid.mock_data.send_non_existing_component_value()
+
             bat_pow = await battery_power_recv.receive()
             pv_pow = await pv_power_recv.receive()
             inv_pow = await inv_calc_recv.receive()
@@ -88,6 +117,8 @@ class TestFormulaComposition:
 
         await mockgrid.cleanup()
         await engine._stop()  # pylint: disable=protected-access
+        await battery_pool.stop()
+        await logical_meter.stop()
 
         assert count == 10
 
@@ -95,7 +126,7 @@ class TestFormulaComposition:
         """Test the composition of formulas with missing battery power data."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_solar_inverters(2)
-        await mockgrid.start(mocker)
+        await mockgrid.start_mock_datapipeline(mocker)
         battery_pool = microgrid.battery_pool()
         logical_meter = microgrid.logical_meter()
 
@@ -106,6 +137,10 @@ class TestFormulaComposition:
 
         count = 0
         for _ in range(10):
+            await mockgrid.mock_data.send_meter_power(
+                [10.0 + count, 12.0 + count, 14.0 + count]
+            )
+            await mockgrid.mock_data.send_non_existing_component_value()
             bat_pow = await battery_power_recv.receive()
             pv_pow = await pv_power_recv.receive()
             inv_pow = await inv_calc_recv.receive()
@@ -116,15 +151,19 @@ class TestFormulaComposition:
 
         await mockgrid.cleanup()
         await engine._stop()  # pylint: disable=protected-access
+        await battery_pool.stop()
+        await logical_meter.stop()
 
         assert count == 10
 
     async def test_3_phase_formulas(self, mocker: MockerFixture) -> None:
         """Test 3 phase formulas current formulas and their composition."""
-        mockgrid = MockMicrogrid(grid_side_meter=False, sample_rate_s=0.05)
+        mockgrid = MockMicrogrid(
+            grid_side_meter=False, sample_rate_s=0.05, num_namespaces=2
+        )
         mockgrid.add_batteries(3)
         mockgrid.add_ev_chargers(1)
-        await mockgrid.start(mocker)
+        await mockgrid.start_mock_datapipeline(mocker)
         logical_meter = microgrid.logical_meter()
         ev_pool = microgrid.ev_charger_pool()
 
@@ -134,11 +173,21 @@ class TestFormulaComposition:
         engine = (logical_meter.grid_current - ev_pool.current).build("net_current")
         net_current_recv = engine.new_receiver()
 
-        await synchronize_receivers(
-            [grid_current_recv, ev_current_recv, net_current_recv]
-        )
+        count = 0
 
         for _ in range(10):
+            await mockgrid.mock_data.send_meter_current(
+                [
+                    [10.0, 12.0, 14.0],
+                    [10.0, 12.0, 14.0],
+                    [10.0, 12.0, 14.0],
+                    [10.0, 12.0, 14.0],
+                ]
+            )
+            await mockgrid.mock_data.send_evc_current(
+                [[10.0 + count, 12.0 + count, 14.0 + count]]
+            )
+
             grid_amps = await grid_current_recv.receive()
             ev_amps = await ev_current_recv.receive()
             net_amps = await net_current_recv.receive()
@@ -156,6 +205,11 @@ class TestFormulaComposition:
             assert net_amps.value_p1 == grid_amps.value_p1 - ev_amps.value_p1
             assert net_amps.value_p2 == grid_amps.value_p2 - ev_amps.value_p2
             assert net_amps.value_p3 == grid_amps.value_p3 - ev_amps.value_p3
+            count += 1
 
         await mockgrid.cleanup()
         await engine._stop()  # pylint: disable=protected-access
+        await logical_meter.stop()
+        await ev_pool.stop()
+
+        assert count == 10
