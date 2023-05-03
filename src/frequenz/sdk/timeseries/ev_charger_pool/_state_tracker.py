@@ -13,7 +13,7 @@ from frequenz.channels import Receiver
 from frequenz.channels.util import Merge
 
 from frequenz.sdk import microgrid
-from frequenz.sdk._internal.asyncio import cancel_and_await
+from frequenz.sdk._internal._asyncio import cancel_and_await
 
 from ...microgrid.component import (
     EVChargerCableState,

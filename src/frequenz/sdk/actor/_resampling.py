@@ -11,7 +11,7 @@ import logging
 
 from frequenz.channels import Receiver, Sender
 
-from .._internal.asyncio import cancel_and_await
+from .._internal._asyncio import cancel_and_await
 from ..timeseries import Sample
 from ..timeseries._resampling import Resampler, ResamplerConfig, ResamplingError
 from ._channel_registry import ChannelRegistry

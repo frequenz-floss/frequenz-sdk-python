@@ -32,7 +32,7 @@ import grpc
 from frequenz.channels import Bidirectional, Peekable, Receiver, Sender
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
-from ..._internal.asyncio import cancel_and_await
+from ..._internal._asyncio import cancel_and_await
 from ...actor._decorator import actor
 from ...microgrid import ComponentGraph, connection_manager
 from ...microgrid.client import MicrogridApiClient

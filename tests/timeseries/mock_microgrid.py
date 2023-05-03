@@ -13,7 +13,7 @@ from typing import Callable, Set
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
-from frequenz.sdk._internal.asyncio import cancel_and_await
+from frequenz.sdk._internal._asyncio import cancel_and_await
 from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.microgrid import _data_pipeline
 from frequenz.sdk.microgrid.client import Connection

@@ -3,7 +3,7 @@
 
 """Utility types and functions for internal use."""
 
-from .singleton_meta import SingletonMeta
+from ._singleton_meta import SingletonMeta
 
 # Explicitly declare the public API.
 __all__ = ["SingletonMeta"]
