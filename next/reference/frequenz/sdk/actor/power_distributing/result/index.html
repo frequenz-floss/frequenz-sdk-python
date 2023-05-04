@@ -1399,7 +1399,7 @@ batteries was received.</p>
 <span class="sd">    `adjust_power = False` and the requested power is not within the batteries bounds.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">bound</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">bound</span><span class="p">:</span> <span class="nb">float</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The total power bound for the requested batteries.</span>
 
 <span class="sd">    If the requested power negative, then this value is the lower bound.</span>
@@ -1423,7 +1423,7 @@ batteries was received.</p>
 
 
 <h6 id="frequenz.sdk.actor.power_distributing.result.OutOfBound.bound" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">bound</span><span class="p">:</span> <span class="nb">int</span></code>
+<code class="highlight language-python"><span class="n">bound</span><span class="p">:</span> <span class="nb">float</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
@@ -1488,7 +1488,7 @@ Otherwise it is upper bound.</p>
 <span class="k">class</span> <span class="nc">PartialFailure</span><span class="p">(</span><span class="n">_BaseSuccessMixin</span><span class="p">,</span> <span class="n">Result</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Result returned when any battery failed to perform the request.&quot;&quot;&quot;</span>
 
-    <span class="n">failed_power</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">failed_power</span><span class="p">:</span> <span class="nb">float</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The part of the requested power that failed to be set.&quot;&quot;&quot;</span>
 
     <span class="n">failed_batteries</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
@@ -1532,7 +1532,7 @@ Otherwise it is upper bound.</p>
 
 
 <h6 id="frequenz.sdk.actor.power_distributing.result.PartialFailure.failed_power" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">failed_power</span><span class="p">:</span> <span class="nb">int</span></code>
+<code class="highlight language-python"><span class="n">failed_power</span><span class="p">:</span> <span class="nb">float</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>

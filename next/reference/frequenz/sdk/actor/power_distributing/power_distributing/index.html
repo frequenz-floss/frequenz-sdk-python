@@ -1138,7 +1138,7 @@ printed.</li>
 <span class="n">client_handle</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">client_handle</span>
 
 <span class="c1"># Set power 1200W to given batteries.</span>
-<span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">power</span><span class="o">=</span><span class="mi">1200</span><span class="p">,</span> <span class="n">batteries</span><span class="o">=</span><span class="n">batteries_ids</span><span class="p">,</span> <span class="n">request_timeout_sec</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+<span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">power</span><span class="o">=</span><span class="mf">1200.0</span><span class="p">,</span> <span class="n">batteries</span><span class="o">=</span><span class="n">batteries_ids</span><span class="p">,</span> <span class="n">request_timeout_sec</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
 <span class="k">await</span> <span class="n">client_handle</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
 
 <span class="c1"># It is recommended to use timeout when waiting for the response!</span>
@@ -1849,9 +1849,7 @@ printed.</li>
 <span class="normal">753</span>
 <span class="normal">754</span>
 <span class="normal">755</span>
-<span class="normal">756</span>
-<span class="normal">757</span>
-<span class="normal">758</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
+<span class="normal">756</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
 <span class="k">class</span> <span class="nc">PowerDistributingActor</span><span class="p">:</span>
     <span class="c1"># pylint: disable=too-many-instance-attributes</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Actor to distribute the power between batteries in a microgrid.</span>
@@ -1912,7 +1910,7 @@ printed.</li>
 <span class="sd">        client_handle = channel.client_handle</span>
 
 <span class="sd">        # Set power 1200W to given batteries.</span>
-<span class="sd">        request = Request(power=1200, batteries=batteries_ids, request_timeout_sec=10.0)</span>
+<span class="sd">        request = Request(power=1200.0, batteries=batteries_ids, request_timeout_sec=10.0)</span>
 <span class="sd">        await client_handle.send(request)</span>
 
 <span class="sd">        # It is recommended to use timeout when waiting for the response!</span>
@@ -1997,7 +1995,7 @@ printed.</li>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">tasks</span>
 
-    <span class="k">def</span> <span class="nf">_get_upper_bound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batteries</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_get_upper_bound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batteries</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get total upper bound of power to be set for given batteries.</span>
 
 <span class="sd">        Note, output of that function doesn&#39;t guarantee that this bound will be</span>
@@ -2010,13 +2008,12 @@ printed.</li>
 <span class="sd">            Upper bound for `set_power` operation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">pairs_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">InvBatPair</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_components_data</span><span class="p">(</span><span class="n">batteries</span><span class="p">)</span>
-        <span class="n">bound</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span>
             <span class="nb">min</span><span class="p">(</span><span class="n">battery</span><span class="o">.</span><span class="n">power_upper_bound</span><span class="p">,</span> <span class="n">inverter</span><span class="o">.</span><span class="n">active_power_upper_bound</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">battery</span><span class="p">,</span> <span class="n">inverter</span> <span class="ow">in</span> <span class="n">pairs_data</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="n">floor</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_lower_bound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batteries</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_get_lower_bound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batteries</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get total lower bound of power to be set for given batteries.</span>
 
 <span class="sd">        Note, output of that function doesn&#39;t guarantee that this bound will be</span>
@@ -2029,11 +2026,10 @@ printed.</li>
 <span class="sd">            Lower bound for `set_power` operation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">pairs_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">InvBatPair</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_components_data</span><span class="p">(</span><span class="n">batteries</span><span class="p">)</span>
-        <span class="n">bound</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span>
             <span class="nb">max</span><span class="p">(</span><span class="n">battery</span><span class="o">.</span><span class="n">power_lower_bound</span><span class="p">,</span> <span class="n">inverter</span><span class="o">.</span><span class="n">active_power_lower_bound</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">battery</span><span class="p">,</span> <span class="n">inverter</span> <span class="ow">in</span> <span class="n">pairs_data</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="n">ceil</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Run actor main function.</span>
@@ -2127,7 +2123,7 @@ printed.</li>
         <span class="n">api</span><span class="p">:</span> <span class="n">MicrogridApiClient</span><span class="p">,</span>
         <span class="n">distribution</span><span class="p">:</span> <span class="n">DistributionResult</span><span class="p">,</span>
         <span class="n">timeout_sec</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Send distributed power to the inverters.</span>
 
 <span class="sd">        Args:</span>
@@ -2477,9 +2473,9 @@ printed.</li>
         <span class="bp">self</span><span class="p">,</span>
         <span class="c1"># type comment to quiet pylint and mypy `unused-import` error</span>
         <span class="n">tasks</span><span class="p">,</span>  <span class="c1"># type: Dict[int, asyncio.Task[Empty]]</span>
-        <span class="n">distribution</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+        <span class="n">distribution</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
         <span class="n">request_timeout_sec</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse the results of `set_power` requests.</span>
 
 <span class="sd">        Check if any task has failed and determine the reason for failure.</span>
@@ -2496,7 +2492,7 @@ printed.</li>
 <span class="sd">            A tuple where the first element is the total failed power, and the second element is</span>
 <span class="sd">            the set of batteries that failed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">failed_power</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">failed_power</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="n">failed_batteries</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">inverter_id</span><span class="p">,</span> <span class="n">aws</span> <span class="ow">in</span> <span class="n">tasks</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -2764,7 +2760,9 @@ as broken for some time.</p>
 
       <details class="quote">
         <summary>Source code in <code>/home/runner/.local/lib/python3.8/site-packages/frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">249</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
 <span class="normal">250</span>
 <span class="normal">251</span>
 <span class="normal">252</span>
@@ -2847,9 +2845,7 @@ as broken for some time.</p>
 <span class="normal">329</span>
 <span class="normal">330</span>
 <span class="normal">331</span>
-<span class="normal">332</span>
-<span class="normal">333</span>
-<span class="normal">334</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">332</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run actor main function.</span>
 
 <span class="sd">    It waits for new requests in task_queue and process it, and send</span>
