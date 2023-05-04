@@ -9,6 +9,7 @@ from typing import Set, Tuple, TypeVar
 from unittest.mock import AsyncMock, MagicMock
 
 from frequenz.channels import Bidirectional, Broadcast, Receiver, Sender
+from pytest import approx
 from pytest_mock import MockerFixture
 
 from frequenz.sdk.actor.power_distributing import (
@@ -147,7 +148,7 @@ class TestPowerDistributingActor:
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
 
         request = Request(
-            power=1200,
+            power=1200.0,
             batteries={106, 206},
             request_timeout_sec=SAFETY_TIMEOUT,
         )
@@ -179,8 +180,8 @@ class TestPowerDistributingActor:
 
         result: Result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeeded_power == 1000
-        assert result.excess_power == 200
+        assert result.succeeded_power == approx(1000.0)
+        assert result.excess_power == approx(200.0)
         assert result.request == request
 
     async def test_battery_soc_nan(self, mocker: MockerFixture) -> None:
@@ -200,7 +201,7 @@ class TestPowerDistributingActor:
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
 
         request = Request(
-            power=1200,
+            power=1200.0,
             batteries={106, 206},
             request_timeout_sec=SAFETY_TIMEOUT,
         )
@@ -239,8 +240,8 @@ class TestPowerDistributingActor:
         result: Result = done.pop().result()
         assert isinstance(result, Success)
         assert result.succeeded_batteries == {206}
-        assert result.succeeded_power == 500
-        assert result.excess_power == 700
+        assert result.succeeded_power == approx(500.0)
+        assert result.excess_power == approx(700.0)
         assert result.request == request
 
     async def test_battery_capacity_nan(self, mocker: MockerFixture) -> None:
@@ -260,7 +261,7 @@ class TestPowerDistributingActor:
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
 
         request = Request(
-            power=1200,
+            power=1200.0,
             batteries={106, 206},
             request_timeout_sec=SAFETY_TIMEOUT,
         )
@@ -292,8 +293,8 @@ class TestPowerDistributingActor:
         result: Result = done.pop().result()
         assert isinstance(result, Success)
         assert result.succeeded_batteries == {206}
-        assert result.succeeded_power == 500
-        assert result.excess_power == 700
+        assert result.succeeded_power == approx(500.0)
+        assert result.excess_power == approx(700.0)
         assert result.request == request
 
     async def test_battery_power_bounds_nan(self, mocker: MockerFixture) -> None:
@@ -329,7 +330,7 @@ class TestPowerDistributingActor:
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
 
         request = Request(
-            power=1200,
+            power=1200.0,
             batteries={106, 206},
             request_timeout_sec=SAFETY_TIMEOUT,
         )
@@ -361,8 +362,8 @@ class TestPowerDistributingActor:
         result: Result = done.pop().result()
         assert isinstance(result, Success)
         assert result.succeeded_batteries == {206}
-        assert result.succeeded_power == 1000
-        assert result.excess_power == 200
+        assert result.succeeded_power == approx(1000.0)
+        assert result.excess_power == approx(200.0)
         assert result.request == request
 
     async def test_power_distributor_two_users(self, mocker: MockerFixture) -> None:
@@ -394,14 +395,14 @@ class TestPowerDistributingActor:
         user1_handle = channel1.client_handle
         task1 = user1_handle.send(
             Request(
-                power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
+                power=1200.0, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
             )
         )
 
         user2_handle = channel2.client_handle
         task2 = user2_handle.send(
             Request(
-                power=1300, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
+                power=1300.0, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
             )
         )
 
@@ -435,7 +436,7 @@ class TestPowerDistributingActor:
         }
 
         request = Request(
-            power=1200, batteries={106, 208}, request_timeout_sec=SAFETY_TIMEOUT
+            power=1200.0, batteries={106, 208}, request_timeout_sec=SAFETY_TIMEOUT
         )
 
         attrs = {"get_working_batteries.return_value": request.batteries}
@@ -501,21 +502,21 @@ class TestPowerDistributingActor:
         user1_handle = channel1.client_handle
         task1 = user1_handle.send(
             Request(
-                power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
+                power=1200.0, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
             )
         )
 
         user2_handle = channel2.client_handle
         task2 = user2_handle.send(
             Request(
-                power=1200, batteries={106, 306}, request_timeout_sec=SAFETY_TIMEOUT
+                power=1200.0, batteries={106, 306}, request_timeout_sec=SAFETY_TIMEOUT
             )
         )
 
         user3_handle = channel3.client_handle
         task3 = user3_handle.send(
             Request(
-                power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
+                power=1200.0, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
             )
         )
 
@@ -559,7 +560,7 @@ class TestPowerDistributingActor:
         }
 
         request = Request(
-            power=1200,
+            power=1200.0,
             batteries={106, 206},
             request_timeout_sec=SAFETY_TIMEOUT,
             adjust_power=False,
@@ -610,7 +611,7 @@ class TestPowerDistributingActor:
         }
 
         request = Request(
-            power=-1200,
+            power=-1200.0,
             batteries={106, 206},
             request_timeout_sec=SAFETY_TIMEOUT,
             adjust_power=False,
@@ -661,7 +662,7 @@ class TestPowerDistributingActor:
         }
 
         request = Request(
-            power=1000,
+            power=1000.0,
             batteries={106, 206},
             request_timeout_sec=SAFETY_TIMEOUT,
             adjust_power=False,
@@ -695,8 +696,8 @@ class TestPowerDistributingActor:
 
         result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeeded_power == 1000
-        assert result.excess_power == 0
+        assert result.succeeded_power == approx(1000.0)
+        assert result.excess_power == approx(0.0)
         assert result.request == request
 
     async def test_not_all_batteries_are_working(self, mocker: MockerFixture) -> None:
@@ -707,7 +708,7 @@ class TestPowerDistributingActor:
         channel = Bidirectional[Request, Result]("user1", "power_distributor")
 
         request = Request(
-            power=1200, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
+            power=1200.0, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
         )
 
         attrs = {"get_working_batteries.return_value": request.batteries - {106}}
@@ -738,6 +739,6 @@ class TestPowerDistributingActor:
 
         result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.excess_power == 700
-        assert result.succeeded_power == 500
+        assert result.excess_power == approx(700.0)
+        assert result.succeeded_power == approx(500.0)
         assert result.request == request

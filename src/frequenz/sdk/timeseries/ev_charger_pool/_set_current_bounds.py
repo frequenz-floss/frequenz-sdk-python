@@ -12,7 +12,7 @@ from typing import Dict
 from frequenz.channels import Broadcast, Sender
 from frequenz.channels.util import Select, Timer
 
-from ..._internal.asyncio import cancel_and_await
+from ..._internal._asyncio import cancel_and_await
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory
 

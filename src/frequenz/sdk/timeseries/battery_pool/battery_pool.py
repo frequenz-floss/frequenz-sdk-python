@@ -13,8 +13,8 @@ from typing import Any
 
 from frequenz.channels import Receiver, Sender
 
+from ..._internal._asyncio import cancel_and_await
 from ..._internal._constants import RECEIVER_MAX_SIZE
-from ..._internal.asyncio import cancel_and_await
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...actor.power_distributing._battery_pool_status import BatteryStatus
 from ...microgrid import connection_manager

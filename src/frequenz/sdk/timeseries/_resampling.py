@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import AsyncIterator, Callable, Coroutine, Optional, Sequence
 
-from .._internal.asyncio import cancel_and_await
+from .._internal._asyncio import cancel_and_await
 from ._base_types import UNIX_EPOCH, Sample
 
 _logger = logging.getLogger(__name__)

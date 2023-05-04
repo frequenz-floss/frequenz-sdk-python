@@ -26,7 +26,7 @@ from typing import (
 
 from frequenz.channels import Broadcast, Receiver
 
-from ..._internal.asyncio import cancel_and_await
+from ..._internal._asyncio import cancel_and_await
 from .. import Sample, Sample3Phase
 from ._formula_steps import (
     Adder,

@@ -12,7 +12,7 @@ from typing import Dict, Set
 from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.channels.util import MergeNamed
 
-from ..._internal.asyncio import cancel_and_await
+from ..._internal._asyncio import cancel_and_await
 from ._battery_status import BatteryStatusTracker, SetPowerResult, Status
 
 _logger = logging.getLogger(__name__)

@@ -14,8 +14,8 @@ from typing import Any, Generic, Iterable, Optional, Set, TypeVar
 
 from frequenz.channels import ChannelClosedError, Receiver
 
+from ..._internal._asyncio import AsyncConstructible
 from ..._internal._constants import MAX_BATTERY_DATA_AGE_SEC
-from ..._internal.asyncio import AsyncConstructible
 from ...actor._data_sourcing.microgrid_api_source import (
     _BatteryDataMethods,
     _InverterDataMethods,

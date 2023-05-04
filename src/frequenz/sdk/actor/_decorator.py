@@ -14,7 +14,7 @@ import inspect
 import logging
 from typing import Any, Generic, Optional, Type, TypeVar
 
-from frequenz.sdk._internal.asyncio import cancel_and_await
+from frequenz.sdk._internal._asyncio import cancel_and_await
 
 _logger = logging.getLogger(__name__)
 

@@ -34,13 +34,13 @@ class Result(_BaseResultMixin):
 class _BaseSuccessMixin:
     """Result returned when setting the power succeed for all batteries."""
 
-    succeeded_power: int
+    succeeded_power: float
     """The part of the requested power that was successfully set."""
 
     succeeded_batteries: set[int]
     """The subset of batteries for which power was set successfully."""
 
-    excess_power: int
+    excess_power: float
     """The part of the requested power that could not be fulfilled.
 
     This happens when the requested power is outside the available power bounds.
@@ -62,7 +62,7 @@ class Success(_BaseSuccessMixin, Result):  # Order matters here. See above.
 class PartialFailure(_BaseSuccessMixin, Result):
     """Result returned when any battery failed to perform the request."""
 
-    failed_power: int
+    failed_power: float
     """The part of the requested power that failed to be set."""
 
     failed_batteries: set[int]
@@ -85,7 +85,7 @@ class OutOfBound(Result):
     `adjust_power = False` and the requested power is not within the batteries bounds.
     """
 
-    bound: int
+    bound: float
     """The total power bound for the requested batteries.
 
     If the requested power negative, then this value is the lower bound.

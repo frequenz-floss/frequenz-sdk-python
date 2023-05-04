@@ -17,7 +17,7 @@ import asyncio
 import logging
 from asyncio.tasks import ALL_COMPLETED
 from dataclasses import dataclass, replace
-from math import ceil, floor, isnan
+from math import isnan
 from typing import (  # pylint: disable=unused-import
     Any,
     Dict,
@@ -32,7 +32,7 @@ import grpc
 from frequenz.channels import Bidirectional, Peekable, Receiver, Sender
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
-from ..._internal.asyncio import cancel_and_await
+from ..._internal._asyncio import cancel_and_await
 from ...actor._decorator import actor
 from ...microgrid import ComponentGraph, connection_manager
 from ...microgrid.client import MicrogridApiClient
@@ -123,7 +123,7 @@ class PowerDistributingActor:
         client_handle = channel.client_handle
 
         # Set power 1200W to given batteries.
-        request = Request(power=1200, batteries=batteries_ids, request_timeout_sec=10.0)
+        request = Request(power=1200.0, batteries=batteries_ids, request_timeout_sec=10.0)
         await client_handle.send(request)
 
         # It is recommended to use timeout when waiting for the response!
@@ -208,7 +208,7 @@ class PowerDistributingActor:
             )
         return tasks
 
-    def _get_upper_bound(self, batteries: Set[int]) -> int:
+    def _get_upper_bound(self, batteries: Set[int]) -> float:
         """Get total upper bound of power to be set for given batteries.
 
         Note, output of that function doesn't guarantee that this bound will be
@@ -221,13 +221,12 @@ class PowerDistributingActor:
             Upper bound for `set_power` operation.
         """
         pairs_data: List[InvBatPair] = self._get_components_data(batteries)
-        bound = sum(
+        return sum(
             min(battery.power_upper_bound, inverter.active_power_upper_bound)
             for battery, inverter in pairs_data
         )
-        return floor(bound)
 
-    def _get_lower_bound(self, batteries: Set[int]) -> int:
+    def _get_lower_bound(self, batteries: Set[int]) -> float:
         """Get total lower bound of power to be set for given batteries.
 
         Note, output of that function doesn't guarantee that this bound will be
@@ -240,11 +239,10 @@ class PowerDistributingActor:
             Lower bound for `set_power` operation.
         """
         pairs_data: List[InvBatPair] = self._get_components_data(batteries)
-        bound = sum(
+        return sum(
             max(battery.power_lower_bound, inverter.active_power_lower_bound)
             for battery, inverter in pairs_data
         )
-        return ceil(bound)
 
     async def run(self) -> None:
         """Run actor main function.
@@ -338,7 +336,7 @@ class PowerDistributingActor:
         api: MicrogridApiClient,
         distribution: DistributionResult,
         timeout_sec: float,
-    ) -> Tuple[int, Set[int]]:
+    ) -> Tuple[float, Set[int]]:
         """Send distributed power to the inverters.
 
         Args:
@@ -688,9 +686,9 @@ class PowerDistributingActor:
         self,
         # type comment to quiet pylint and mypy `unused-import` error
         tasks,  # type: Dict[int, asyncio.Task[Empty]]
-        distribution: Dict[int, int],
+        distribution: Dict[int, float],
         request_timeout_sec: float,
-    ) -> Tuple[int, Set[int]]:
+    ) -> Tuple[float, Set[int]]:
         """Parse the results of `set_power` requests.
 
         Check if any task has failed and determine the reason for failure.
@@ -707,7 +705,7 @@ class PowerDistributingActor:
             A tuple where the first element is the total failed power, and the second element is
             the set of batteries that failed.
         """
-        failed_power: int = 0
+        failed_power: float = 0.0
         failed_batteries: Set[int] = set()
 
         for inverter_id, aws in tasks.items():

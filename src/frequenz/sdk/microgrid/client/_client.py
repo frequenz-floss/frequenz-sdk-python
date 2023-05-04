@@ -5,6 +5,7 @@
 
 import asyncio
 import logging
+import math
 from abc import ABC, abstractmethod
 from typing import (
     Any,
@@ -168,7 +169,7 @@ class MicrogridApiClient(ABC):
         """
 
     @abstractmethod
-    async def set_power(self, component_id: int, power_w: int) -> Empty:
+    async def set_power(self, component_id: int, power_w: float) -> Empty:
         """Send request to the Microgrid to set power for component.
 
         If power > 0, then component will be charged with this power.
@@ -566,7 +567,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
             EVChargerData.from_proto,
         ).new_receiver(maxsize=maxsize)
 
-    async def set_power(self, component_id: int, power_w: int) -> Empty:
+    async def set_power(self, component_id: int, power_w: float) -> Empty:
         """Send request to the Microgrid to set power for component.
 
         If power > 0, then component will be charged with this power.
@@ -591,7 +592,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
                 # async iterable, but it is
                 result: Empty = await self.api.Charge(
                     microgrid_pb.PowerLevelParam(
-                        component_id=component_id, power_w=power_w
+                        component_id=component_id, power_w=math.floor(power_w)
                     ),
                     timeout=DEFAULT_GRPC_CALL_TIMEOUT,  # type: ignore[arg-type]
                 )  # type: ignore[misc]
@@ -601,7 +602,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
                 power_w *= -1
                 result = await self.api.Discharge(
                     microgrid_pb.PowerLevelParam(
-                        component_id=component_id, power_w=power_w
+                        component_id=component_id, power_w=math.floor(power_w)
                     ),
                     timeout=DEFAULT_GRPC_CALL_TIMEOUT,  # type: ignore[arg-type]
                 )  # type: ignore[misc]

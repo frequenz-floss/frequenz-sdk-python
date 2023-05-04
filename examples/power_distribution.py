@@ -80,12 +80,13 @@ class DecisionMakingActor:
 
             avg_power = sum(request) / len(request)
             _logger.debug("Avg power %d", avg_power)
+            power_to_set: float
             if avg_power > 30000:
                 # Charge
-                power_to_set: int = 10000
+                power_to_set = 10000.0
             else:
                 # Discharge
-                power_to_set = -10000
+                power_to_set = -10000.0
 
             await self._power_distributor_handle.send(
                 Request(

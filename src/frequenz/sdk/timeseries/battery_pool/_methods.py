@@ -12,8 +12,8 @@ from typing import Generic, Optional
 
 from frequenz.channels import Broadcast, Receiver
 
+from ..._internal._asyncio import cancel_and_await
 from ..._internal._constants import WAIT_FOR_COMPONENT_DATA_SEC
-from ..._internal.asyncio import cancel_and_await
 from ._component_metric_fetcher import (
     ComponentMetricFetcher,
     LatestBatteryMetricsFetcher,
