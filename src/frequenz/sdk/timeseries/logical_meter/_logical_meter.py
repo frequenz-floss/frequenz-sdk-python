@@ -11,7 +11,6 @@ import uuid
 from frequenz.channels import Sender
 
 from ...actor import ChannelRegistry, ComponentMetricRequest
-from ...microgrid import ComponentGraph
 from ...microgrid.component import ComponentMetricId
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase, FormulaEnginePool
 from .._formula_engine._formula_generators import (
@@ -60,7 +59,6 @@ class LogicalMeter:
         logical_meter = LogicalMeter(
             channel_registry,
             resampling_request_sender,
-            microgrid.get().component_graph,
         )
 
         # Get a receiver for a builtin formula
@@ -87,7 +85,6 @@ class LogicalMeter:
         self,
         channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
-        component_graph: ComponentGraph,
     ) -> None:
         """Create a `LogicalMeter instance`.
 
@@ -96,7 +93,6 @@ class LogicalMeter:
                 actor.
             resampler_subscription_sender: A sender for sending metric requests to the
                 resampling actor.
-            component_graph: The component graph representing the microgrid.
         """
         self._channel_registry = channel_registry
         self._resampler_subscription_sender = resampler_subscription_sender
@@ -104,7 +100,6 @@ class LogicalMeter:
         # Use a randomly generated uuid to create a unique namespace name for the local
         # meter to use when communicating with the resampling actor.
         self._namespace = f"logical-meter-{uuid.uuid4()}"
-        self._component_graph = component_graph
         self._formula_pool = FormulaEnginePool(
             self._namespace,
             self._channel_registry,

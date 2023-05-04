@@ -189,7 +189,6 @@ async def run() -> None:
     logical_meter = LogicalMeter(
         channel_registry,
         resampling_actor_request_channel.new_sender(),
-        connection_manager.get().component_graph,
     )
     sending_actor_id: str = "SendingActor"
     # Bidirectional channel is used for one sender - one receiver communication
