@@ -246,7 +246,7 @@ class TestPowerDistributingActor:
 
     async def test_battery_capacity_nan(self, mocker: MockerFixture) -> None:
         # pylint: disable=too-many-locals
-        """Test if power distribution works with single user works."""
+        """Test battery with capacity set to NaN is not used."""
         mock_microgrid = await self.init_mock_microgrid(mocker)
 
         await mock_microgrid.send(
@@ -299,7 +299,7 @@ class TestPowerDistributingActor:
 
     async def test_battery_power_bounds_nan(self, mocker: MockerFixture) -> None:
         # pylint: disable=too-many-locals
-        """Check if missign"""
+        """Test battery with power bounds set to NaN is not used."""
         mock_microgrid = await self.init_mock_microgrid(mocker)
 
         # Battery 206 should work even if his inverter sends NaN
