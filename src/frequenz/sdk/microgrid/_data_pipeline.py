@@ -113,7 +113,6 @@ class _DataPipeline:
             self._logical_meter = LogicalMeter(
                 channel_registry=self._channel_registry,
                 resampler_subscription_sender=self._resampling_request_sender(),
-                component_graph=connection_manager.get().component_graph,
             )
         return self._logical_meter
 
