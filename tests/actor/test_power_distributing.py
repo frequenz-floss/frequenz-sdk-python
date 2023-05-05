@@ -745,3 +745,48 @@ class TestPowerDistributingActor:
         assert result.excess_power == approx(700.0)
         assert result.succeeded_power == approx(500.0)
         assert result.request == request
+
+    async def test_use_all_batteries_none_is_working(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test all batteries are used if none of them works."""
+        await self.init_mock_microgrid(mocker)
+
+        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+
+        attrs: dict[str, set[int]] = {"get_working_batteries.return_value": set()}
+        mocker.patch(
+            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+        )
+
+        channel = Bidirectional[Request, Result]("user1", "power_distributor")
+        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        distributor = PowerDistributingActor(
+            users_channels={"user1": channel.service_handle},
+            battery_status_sender=battery_status_channel.new_sender(),
+        )
+
+        request = Request(
+            power=1200.0,
+            batteries={106, 206},
+            request_timeout_sec=SAFETY_TIMEOUT,
+        )
+
+        await channel.client_handle.send(request)
+
+        done, pending = await asyncio.wait(
+            [asyncio.create_task(channel.client_handle.receive())],
+            timeout=SAFETY_TIMEOUT,
+        )
+
+        assert len(pending) == 0
+        assert len(done) == 1
+        result = done.pop().result()
+        assert isinstance(result, Success)
+        assert result.succeeded_batteries == {106, 206}
+        assert result.excess_power == approx(200.0)
+        assert result.succeeded_power == approx(1000.0)
+        assert result.request == request
+
+        await distributor._stop_actor()
