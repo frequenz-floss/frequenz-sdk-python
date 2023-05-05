@@ -1165,7 +1165,6 @@ normal <code>Receiver</code>s, but can also be composed to form higher-order for
 <span class="n">logical_meter</span> <span class="o">=</span> <span class="n">LogicalMeter</span><span class="p">(</span>
     <span class="n">channel_registry</span><span class="p">,</span>
     <span class="n">resampling_request_sender</span><span class="p">,</span>
-    <span class="n">microgrid</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">component_graph</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="c1"># Get a receiver for a builtin formula</span>
@@ -1190,7 +1189,8 @@ normal <code>Receiver</code>s, but can also be composed to form higher-order for
 
         <details class="quote">
           <summary>Source code in <code>/home/runner/.local/lib/python3.8/site-packages/frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 26</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 25</span>
+<span class="normal"> 26</span>
 <span class="normal"> 27</span>
 <span class="normal"> 28</span>
 <span class="normal"> 29</span>
@@ -1353,12 +1353,7 @@ normal <code>Receiver</code>s, but can also be composed to form higher-order for
 <span class="normal">186</span>
 <span class="normal">187</span>
 <span class="normal">188</span>
-<span class="normal">189</span>
-<span class="normal">190</span>
-<span class="normal">191</span>
-<span class="normal">192</span>
-<span class="normal">193</span>
-<span class="normal">194</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">LogicalMeter</span><span class="p">:</span>
+<span class="normal">189</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">LogicalMeter</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A logical meter for calculating high level metrics in a microgrid.</span>
 
 <span class="sd">    LogicalMeter provides methods for fetching power values from different points in the</span>
@@ -1395,7 +1390,6 @@ normal <code>Receiver</code>s, but can also be composed to form higher-order for
 <span class="sd">        logical_meter = LogicalMeter(</span>
 <span class="sd">            channel_registry,</span>
 <span class="sd">            resampling_request_sender,</span>
-<span class="sd">            microgrid.get().component_graph,</span>
 <span class="sd">        )</span>
 
 <span class="sd">        # Get a receiver for a builtin formula</span>
@@ -1422,7 +1416,6 @@ normal <code>Receiver</code>s, but can also be composed to form higher-order for
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">channel_registry</span><span class="p">:</span> <span class="n">ChannelRegistry</span><span class="p">,</span>
         <span class="n">resampler_subscription_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span><span class="n">ComponentMetricRequest</span><span class="p">],</span>
-        <span class="n">component_graph</span><span class="p">:</span> <span class="n">ComponentGraph</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a `LogicalMeter instance`.</span>
 
@@ -1431,7 +1424,6 @@ normal <code>Receiver</code>s, but can also be composed to form higher-order for
 <span class="sd">                actor.</span>
 <span class="sd">            resampler_subscription_sender: A sender for sending metric requests to the</span>
 <span class="sd">                resampling actor.</span>
-<span class="sd">            component_graph: The component graph representing the microgrid.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_channel_registry</span> <span class="o">=</span> <span class="n">channel_registry</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_resampler_subscription_sender</span> <span class="o">=</span> <span class="n">resampler_subscription_sender</span>
@@ -1439,7 +1431,6 @@ normal <code>Receiver</code>s, but can also be composed to form higher-order for
         <span class="c1"># Use a randomly generated uuid to create a unique namespace name for the local</span>
         <span class="c1"># meter to use when communicating with the resampling actor.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_namespace</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;logical-meter-</span><span class="si">{</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_component_graph</span> <span class="o">=</span> <span class="n">component_graph</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span> <span class="o">=</span> <span class="n">FormulaEnginePool</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_namespace</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_channel_registry</span><span class="p">,</span>
@@ -1685,7 +1676,7 @@ method.</p>
 
 
 <h6 id="frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">channel_registry</span><span class="p">,</span> <span class="n">resampler_subscription_sender</span><span class="p">,</span> <span class="n">component_graph</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">channel_registry</span><span class="p">,</span> <span class="n">resampler_subscription_sender</span><span class="p">)</span></code>
 
 <a href="#frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.__init__" class="headerlink" title="Permanent link">¤</a></h6>
 
@@ -1728,24 +1719,14 @@ resampling actor.</p>
             </p>
           </td>
         </tr>
-        <tr>
-          <td><code>component_graph</code></td>
-          <td class="doc-param-details">
-            <p>The component graph representing the microgrid.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.ComponentGraph" href="../../microgrid/#frequenz.sdk.microgrid.ComponentGraph">ComponentGraph</a></code>
-                </span>
-            </p>
-          </td>
-        </tr>
     </tbody>
   </table>
 
       <details class="quote">
         <summary>Source code in <code>/home/runner/.local/lib/python3.8/site-packages/frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 86</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
 <span class="normal"> 87</span>
 <span class="normal"> 88</span>
 <span class="normal"> 89</span>
@@ -1766,16 +1747,10 @@ resampling actor.</p>
 <span class="normal">104</span>
 <span class="normal">105</span>
 <span class="normal">106</span>
-<span class="normal">107</span>
-<span class="normal">108</span>
-<span class="normal">109</span>
-<span class="normal">110</span>
-<span class="normal">111</span>
-<span class="normal">112</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<span class="normal">107</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">channel_registry</span><span class="p">:</span> <span class="n">ChannelRegistry</span><span class="p">,</span>
     <span class="n">resampler_subscription_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span><span class="n">ComponentMetricRequest</span><span class="p">],</span>
-    <span class="n">component_graph</span><span class="p">:</span> <span class="n">ComponentGraph</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a `LogicalMeter instance`.</span>
 
@@ -1784,7 +1759,6 @@ resampling actor.</p>
 <span class="sd">            actor.</span>
 <span class="sd">        resampler_subscription_sender: A sender for sending metric requests to the</span>
 <span class="sd">            resampling actor.</span>
-<span class="sd">        component_graph: The component graph representing the microgrid.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_channel_registry</span> <span class="o">=</span> <span class="n">channel_registry</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_resampler_subscription_sender</span> <span class="o">=</span> <span class="n">resampler_subscription_sender</span>
@@ -1792,7 +1766,6 @@ resampling actor.</p>
     <span class="c1"># Use a randomly generated uuid to create a unique namespace name for the local</span>
     <span class="c1"># meter to use when communicating with the resampling actor.</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_namespace</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;logical-meter-</span><span class="si">{</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_component_graph</span> <span class="o">=</span> <span class="n">component_graph</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span> <span class="o">=</span> <span class="n">FormulaEnginePool</span><span class="p">(</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_namespace</span><span class="p">,</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_channel_registry</span><span class="p">,</span>
@@ -1898,7 +1871,12 @@ False, the returned value will be a None.</p>
 
       <details class="quote">
         <summary>Source code in <code>/home/runner/.local/lib/python3.8/site-packages/frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">114</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
 <span class="normal">115</span>
 <span class="normal">116</span>
 <span class="normal">117</span>
@@ -1919,12 +1897,7 @@ False, the returned value will be a None.</p>
 <span class="normal">132</span>
 <span class="normal">133</span>
 <span class="normal">134</span>
-<span class="normal">135</span>
-<span class="normal">136</span>
-<span class="normal">137</span>
-<span class="normal">138</span>
-<span class="normal">139</span>
-<span class="normal">140</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">start_formula</span><span class="p">(</span>
+<span class="normal">135</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">start_formula</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">formula</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">component_metric_id</span><span class="p">:</span> <span class="n">ComponentMetricId</span><span class="p">,</span>
