@@ -83,7 +83,7 @@ mypy = [
     "frequenz-sdk[docs-gen,nox,pytest]",
 ]
 pylint = [
-    "pylint == 2.17.3",
+    "pylint == 2.17.4",
     # For checking the noxfile, docs/ script, and tests
     "frequenz-sdk[docs-gen,nox,pytest]",
 ]
