@@ -1222,7 +1222,7 @@
 timestamp falls always at multiples of the period, starting at the <code>align_to</code>.</p>
 <p>This ensures that the data is predictable and consistent among restarts.</p>
 
-<details class="example">
+<details class="example" open>
   <summary>Example</summary>
   <p>If we have a period of 10 seconds, and are aligning to the UNIX
 epoch. Assuming the following timeline starts in 1970-01-01 00:00:00
@@ -1303,7 +1303,7 @@ buffer.</p>
 <p>If resampling is not required, the resampler config parameter can be
 set to None in which case the MovingWindow will not perform any resampling.</p>
 
-<details class="example">
+<details class="example" open>
   <summary>Calculate the mean of a time interval</summary>
   <div class="highlight"><pre><span></span><code><span class="n">window</span> <span class="o">=</span> <span class="n">MovingWindow</span><span class="p">(</span>
     <span class="n">size</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
@@ -1323,7 +1323,7 @@ set to None in which case the MovingWindow will not perform any resampling.</p>
 <span class="n">mean</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
 </code></pre></div>
 </details>
-<details class="example">
+<details class="example" open>
   <summary>Create a polars data frame from a <code>MovingWindow</code></summary>
   <div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">polars</span> <span class="k">as</span> <span class="nn">pl</span>
 
@@ -2143,7 +2143,7 @@ given sampling period.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._resampling.ResamplerConfig" href="#frequenz.sdk.timeseries.ResamplerConfig">ResamplerConfig</a> | None</code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._resampling.ResamplerConfig" href="../actor/#frequenz.sdk.actor.ResamplerConfig">ResamplerConfig</a> | None</code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
@@ -2727,8 +2727,8 @@ information, consult the class level documentation.</p>
 <code class="highlight language-python"><span class="n">align_to</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">UNIX_EPOCH</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.align_to" class="headerlink" title="Permanent link">¤</a></h6>
@@ -2754,8 +2754,8 @@ time the resampler is created.</p>
 <code class="highlight language-python"><span class="n">initial_buffer_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BUFFER_LEN_INIT</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.initial_buffer_len" class="headerlink" title="Permanent link">¤</a></h6>
@@ -2780,8 +2780,8 @@ can be stored.</p>
 <code class="highlight language-python"><span class="n">max_buffer_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BUFFER_LEN_MAX</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.max_buffer_len" class="headerlink" title="Permanent link">¤</a></h6>
@@ -2807,8 +2807,8 @@ value.</p>
 <code class="highlight language-python"><span class="n">max_data_age_in_periods</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.max_data_age_in_periods" class="headerlink" title="Permanent link">¤</a></h6>
@@ -2823,7 +2823,7 @@ the input sampling period if we are upsampling (input period bigger than
 the resampling period).</p>
 <p>It must be bigger than 1.0.</p>
 
-<details class="example">
+<details class="example" open>
   <summary>Example</summary>
   <p>If <code>resampling_period</code> is 3 seconds, the input sampling period is
 1 and <code>max_data_age_in_periods</code> is 2, then data older than 3*2
@@ -2845,8 +2845,8 @@ passed to the resampling function.</p>
 <code class="highlight language-python"><span class="n">resampling_function</span><span class="p">:</span> <span class="n">ResamplingFunction</span> <span class="o">=</span> <span class="n">average</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.resampling_function" class="headerlink" title="Permanent link">¤</a></h6>
@@ -2893,8 +2893,8 @@ value.</p>
 <code class="highlight language-python"><span class="n">warn_buffer_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BUFFER_LEN_WARN</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.warn_buffer_len" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3124,8 +3124,8 @@ coherent view on a group of component metrics for a particular timestamp.</p>
 <code class="highlight language-python"><span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">compare</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._base_types.Sample.timestamp" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3146,8 +3146,8 @@ coherent view on a group of component metrics for a particular timestamp.</p>
 <code class="highlight language-python"><span class="n">value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._base_types.Sample.value" class="headerlink" title="Permanent link">¤</a></h6>
