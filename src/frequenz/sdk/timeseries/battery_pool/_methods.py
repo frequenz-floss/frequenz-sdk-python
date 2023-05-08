@@ -13,7 +13,7 @@ from typing import Generic, Optional
 from frequenz.channels import Broadcast, Receiver
 
 from ..._internal._asyncio import cancel_and_await
-from ..._internal._constants import WAIT_FOR_COMPONENT_DATA_SEC
+from ..._internal._constants import RECEIVER_MAX_SIZE, WAIT_FOR_COMPONENT_DATA_SEC
 from ._component_metric_fetcher import (
     ComponentMetricFetcher,
     LatestBatteryMetricsFetcher,
@@ -37,7 +37,9 @@ class MetricAggregator(Generic[T], ABC):
         """
 
     @abstractmethod
-    def new_receiver(self, maxsize: int | None) -> Receiver[T | None]:
+    def new_receiver(
+        self, maxsize: int | None = RECEIVER_MAX_SIZE
+    ) -> Receiver[T | None]:
         """Return new receiver for the aggregated metric results.
 
         Args:
@@ -110,7 +112,9 @@ class SendOnUpdate(MetricAggregator[T]):
         """
         return "SendOnUpdate"
 
-    def new_receiver(self, maxsize: int | None) -> Receiver[T | None]:
+    def new_receiver(
+        self, maxsize: int | None = RECEIVER_MAX_SIZE
+    ) -> Receiver[T | None]:
         """Return new receiver for the aggregated metric results.
 
         Args:
