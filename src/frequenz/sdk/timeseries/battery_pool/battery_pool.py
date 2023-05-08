@@ -25,7 +25,7 @@ from .._formula_engine._formula_generators import (
     FormulaGeneratorConfig,
     FormulaType,
 )
-from ._methods import AggregateMethod, SendOnUpdate
+from ._methods import MetricAggregator, SendOnUpdate
 from ._metric_calculator import CapacityCalculator, PowerBoundsCalculator, SoCCalculator
 from ._result_types import CapacityMetrics, PowerMetrics, SoCMetrics
 
@@ -85,7 +85,7 @@ class BatteryPool:
             )
 
         self._min_update_interval = min_update_interval
-        self._active_methods: dict[str, AggregateMethod[Any]] = {}
+        self._active_methods: dict[str, MetricAggregator[Any]] = {}
 
         self._namespace: str = f"battery-pool-{self._batteries}-{uuid.uuid4()}"
         self._formula_pool: FormulaEnginePool = FormulaEnginePool(

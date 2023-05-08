@@ -25,7 +25,7 @@ from ._metric_calculator import MetricCalculator, T, battery_inverter_mapping
 _logger = logging.getLogger(__name__)
 
 
-class AggregateMethod(Generic[T], ABC):
+class MetricAggregator(Generic[T], ABC):
     """Interface to control how the component data should be aggregated and send."""
 
     @abstractmethod
@@ -61,7 +61,7 @@ class AggregateMethod(Generic[T], ABC):
         """
 
 
-class SendOnUpdate(AggregateMethod[T]):
+class SendOnUpdate(MetricAggregator[T]):
     """Wait for the change of the components metrics and send updated result.
 
     This method will cache the component metrics. When any metric change it will
