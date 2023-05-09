@@ -106,6 +106,8 @@ class BatteryPool:
     def power(self) -> FormulaEngine:
         """Fetch the total power of the batteries in the pool.
 
+        This formula produces values that are in the Passive Sign Convention (PSC).
+
         If a formula engine to calculate this metric is not already running, it will be
         started.
 
@@ -131,6 +133,8 @@ class BatteryPool:
     def production_power(self) -> FormulaEngine:
         """Fetch the total production power of the batteries in the pool.
 
+        This formula produces positive values when producing power and 0 otherwise.
+
         If a formula engine to calculate this metric is not already running, it will be
         started.
 
@@ -155,6 +159,8 @@ class BatteryPool:
     @property
     def consumption_power(self) -> FormulaEngine:
         """Fetch the total consumption power of the batteries in the pool.
+
+        This formula produces positive values when consuming power and 0 otherwise.
 
         If a formula engine to calculate this metric is not already running, it will be
         started.

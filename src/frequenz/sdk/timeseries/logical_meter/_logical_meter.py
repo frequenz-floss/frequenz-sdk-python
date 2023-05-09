@@ -139,6 +139,8 @@ class LogicalMeter:
     def grid_power(self) -> FormulaEngine:
         """Fetch the grid power for the microgrid.
 
+        This formula produces values that are in the Passive Sign Convention (PSC).
+
         If a formula engine to calculate grid power is not already running, it will be
         started.
 
@@ -158,6 +160,8 @@ class LogicalMeter:
     @property
     def grid_consumption_power(self) -> FormulaEngine:
         """Fetch the grid consumption power for the microgrid.
+
+        This formula produces positive values when consuming power and 0 otherwise.
 
         If a formula engine to calculate grid consumption power is not already running,
         it will be started.
@@ -180,6 +184,8 @@ class LogicalMeter:
     def grid_production_power(self) -> FormulaEngine:
         """Fetch the grid production power for the microgrid.
 
+        This formula produces positive values when producing power and 0 otherwise.
+
         If a formula engine to calculate grid production power is not already running,
         it will be started.
 
@@ -200,6 +206,8 @@ class LogicalMeter:
     @property
     def grid_current(self) -> FormulaEngine3Phase:
         """Fetch the grid power for the microgrid.
+
+        This formula produces values that are in the Passive Sign Convention (PSC).
 
         If a formula engine to calculate grid current is not already running, it will be
         started.
@@ -224,6 +232,8 @@ class LogicalMeter:
         Under normal circumstances this is expected to correspond to the gross
         consumption of the site excluding active parts and battery.
 
+        This formula produces values that are in the Passive Sign Convention (PSC).
+
         If a formula engine to calculate consumer power is not already running, it will
         be started.
 
@@ -243,6 +253,8 @@ class LogicalMeter:
     @property
     def pv_power(self) -> FormulaEngine:
         """Fetch the PV power in the microgrid.
+
+        This formula produces values that are in the Passive Sign Convention (PSC).
 
         If a formula engine to calculate PV power is not already running, it will be
         started.
@@ -265,6 +277,8 @@ class LogicalMeter:
     def pv_production_power(self) -> FormulaEngine:
         """Fetch the PV power production in the microgrid.
 
+        This formula produces positive values when producing power and 0 otherwise.
+
         If a formula engine to calculate PV power production is not already running, it
         will be started.
 
@@ -285,6 +299,8 @@ class LogicalMeter:
     @property
     def pv_consumption_power(self) -> FormulaEngine:
         """Fetch the PV power consumption in the microgrid.
+
+        This formula produces positive values when consuming power and 0 otherwise.
 
         If a formula engine to calculate PV power consumption is not already running, it
         will be started.
@@ -307,6 +323,8 @@ class LogicalMeter:
     def chp_power(self) -> FormulaEngine:
         """Fetch the CHP power production in the microgrid.
 
+        This formula produces values that are in the Passive Sign Convention (PSC).
+
         If a formula engine to calculate CHP power production is not already running, it
         will be started.
 
@@ -327,6 +345,8 @@ class LogicalMeter:
     @property
     def chp_production_power(self) -> FormulaEngine:
         """Fetch the CHP power production in the microgrid.
+
+        This formula produces positive values when producing power and 0 otherwise.
 
         If a formula engine to calculate CHP power production is not already running, it
         will be started.
@@ -350,6 +370,8 @@ class LogicalMeter:
     @property
     def chp_consumption_power(self) -> FormulaEngine:
         """Fetch the CHP power consumption in the microgrid.
+
+        This formula produces positive values when consuming power and 0 otherwise.
 
         If a formula engine to calculate CHP power consumption is not already running,
         it will be started.

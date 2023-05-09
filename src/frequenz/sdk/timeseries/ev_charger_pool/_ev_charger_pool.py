@@ -109,6 +109,8 @@ class EVChargerPool:
     def current(self) -> FormulaEngine3Phase:
         """Fetch the total current for the EV Chargers in the pool.
 
+        This formula produces values that are in the Passive Sign Convention (PSC).
+
         If a formula engine to calculate EV Charger current is not already running, it
         will be started.
 
@@ -130,6 +132,8 @@ class EVChargerPool:
     @property
     def power(self) -> FormulaEngine:
         """Fetch the total power for the EV Chargers in the pool.
+
+        This formula produces values that are in the Passive Sign Convention (PSC).
 
         If a formula engine to calculate EV Charger power is not already running, it
         will be started.
@@ -156,6 +160,8 @@ class EVChargerPool:
     def production_power(self) -> FormulaEngine:
         """Fetch the total power produced by the EV Chargers in the pool.
 
+        This formula produces positive values when producing power and 0 otherwise.
+
         If a formula engine to calculate EV Charger power is not already running, it
         will be started.
 
@@ -180,6 +186,8 @@ class EVChargerPool:
     @property
     def consumption_power(self) -> FormulaEngine:
         """Fetch the total power consumed by the EV Chargers in the pool.
+
+        This formula produces positive values when consuming power and 0 otherwise.
 
         If a formula engine to calculate EV Charger power is not already running, it
         will be started.
