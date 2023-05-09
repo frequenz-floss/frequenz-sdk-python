@@ -40,7 +40,7 @@ class DistributionResult:
 
 
 class DistributionAlgorithm:
-    r"""Distribute power between many components.
+    """Distribute power between many components.
 
     The purpose of this tool is to keep equal SoC level in the batteries.
     It takes total power that should be to be set for some subset of battery-inverter
@@ -269,7 +269,7 @@ class DistributionAlgorithm:
     def _compute_battery_availability_ratio(
         self, components: List[InvBatPair], available_soc: Dict[int, float]
     ) -> Tuple[List[Tuple[InvBatPair, float]], float]:
-        r"""Compute battery ratio and the total sum of all of them.
+        """Compute battery ratio and the total sum of all of them.
 
         battery_availability_ratio = capacity_ratio[i] * available_soc[i]
         Where:
