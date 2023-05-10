@@ -71,26 +71,26 @@ class DistributionAlgorithm:
 
     We would like our distribution to meet the equation:
 
-    ``` python
+    ```
     distribution[i] = power_w * capacity_ratio[i] * x[i]
     ```
 
     where:
 
-    ``` python
+    ```
     sum(capacity_ratio[i] * x[i] for i in range(N)) == 1
     ```
 
     Let `y` be our unknown, the proportion to discharge each battery would be
     (1):
 
-    ``` python
+    ```
     x[i] = available_soc[i]*y
     ```
 
     We can compute `y` from equation above (2):
 
-    ``` python
+    ```
     sum(capacity_ratio[i] * x[i] for i in range(N)) == 1
     # =>
     sum(capacity_ratio[i] * available_soc[i] * y for i in range(N)) == 1
@@ -100,7 +100,7 @@ class DistributionAlgorithm:
 
     Now we know everything and we can compute distribution:
 
-    ``` python
+    ```
     distribution[i] = power_w * capacity_ratio[i] * x[i]  # from (1)
     distribution[i] = \
             power_w * capacity_ratio[i] * available_soc[i] * y  # from (2)
@@ -110,13 +110,13 @@ class DistributionAlgorithm:
 
     Let:
 
-    ``` python
+    ```
     battery_availability_ratio[i] = capacity_ratio[i] * available_soc[i]
     total_battery_availability_ratio = sum(battery_availability_ratio)
     ```
 
     Then:
-    ``` python
+    ```
     distribution[i] = power_w * battery_availability_ratio[i] \
             / total_battery_availability_ratio
     ```
@@ -151,29 +151,33 @@ class DistributionAlgorithm:
             If `distribution_exponent` is:
 
             * `0`: distribution for each battery will be the equal.
-              ``` python
-              Bat1.distribution = 4000; Bat2.distribution = 4000
+              ```python
+              BAT1_DISTRIBUTION = 4000
+              BAT2_DISTRIBUTION = 4000
               ```
 
             * `1`: then `Bat2` will have 3x more power assigned then `Bat1`.
-              ``` python
-              10 * x + 30 * x = 8000
-              x = 200
-              Bat1.distribution = 2000; Bat2.distribution = 6000
+              ```python
+              # 10 * x + 30 * x = 8000
+              X = 200
+              BAT1_DISTRIBUTION = 2000
+              BAT2_DISTRIBUTION = 6000
               ```
 
             * `2`: then `Bat2` will have 9x more power assigned then `Bat1`.
-              ``` python
-              10^2 * x + 30^2 * x = 8000
-              x = 80
-              Bat1.distribution = 800; Bat2.distribution = 7200
+              ```python
+              # 10^2 * x + 30^2 * x = 8000
+              X = 80
+              BAT1_DISTRIBUTION = 800
+              BAT2_DISTRIBUTION = 7200
               ```
 
             * `3`: then `Bat2` will have 27x more power assigned then `Bat1`.
-              ``` python
-              10^3 * x + 30^3 * x = 8000
-              x = 0,285714286
-              Bat1.distribution = 285; Bat2.distribution = 7715
+              ```python
+              # 10^3 * x + 30^3 * x = 8000
+              X = 0.285714286
+              BAT1_DISTRIBUTION = 285
+              BAT2_DISTRIBUTION = 7715
               ```
 
             # Example 2
@@ -189,29 +193,33 @@ class DistributionAlgorithm:
             If `distribution_exponent` is:
 
             * `0`: distribution for each battery will be the same.
-              ``` python
-              Bat1.distribution = 4500; Bat2.distribution = 450
+              ```python
+              BAT1_DISTRIBUTION = 4500
+              BAT2_DISTRIBUTION = 450
               ```
 
             * `1`: then `Bat2` will have 2x more power assigned then `Bat1`.
-              ``` python
-              30 * x + 60 * x = 900
-              x = 100
-              Bat1.distribution = 300; Bat2.distribution = 600
+              ```python
+              # 30 * x + 60 * x = 900
+              X = 100
+              BAT1_DISTRIBUTION = 300
+              BAT2_DISTRIBUTION = 600
               ```
 
             * `2`: then `Bat2` will have 4x more power assigned then `Bat1`.
-              ``` python
-              30^2 * x + 60^2 * x = 900
-              x = 0.2
-              Bat1.distribution = 180; Bat2.distribution = 720
+              ```python
+              # 30^2 * x + 60^2 * x = 900
+              X = 0.2
+              BAT1_DISTRIBUTION = 180
+              BAT2_DISTRIBUTION = 720
               ```
 
             * `3`: then `Bat2` will have 8x more power assigned then `Bat1`.
-              ``` python
-              30^3 * x + 60^3 * x = 900
-              x = 0,003703704
-              Bat1.distribution = 100; Bat2.distribution = 800
+              ```python
+              # 30^3 * x + 60^3 * x = 900
+              X = 0.003703704
+              BAT1_DISTRIBUTION = 100
+              BAT2_DISTRIBUTION = 800
               ```
 
             # Example 3
@@ -226,15 +234,17 @@ class DistributionAlgorithm:
             If `distribution_exponent` is:
 
             * `0`: distribution for each battery will be the equal.
-              ``` python
-              Bat1.distribution = 450; Bat2.distribution = 450
+              ```python
+              BAT1_DISTRIBUTION = 450
+              BAT2_DISTRIBUTION = 450
               ```
 
             * `0.5`: then `Bat2` will have 6/4x more power assigned then `Bat1`.
-              ``` python
-              sqrt(36) * x + sqrt(16) * x = 900
-              x = 100
-              Bat1.distribution = 600; Bat2.distribution = 400
+              ```python
+              # sqrt(36) * x + sqrt(16) * x = 900
+              X = 100
+              BAT1_DISTRIBUTION = 600
+              BAT2_DISTRIBUTION = 400
               ```
 
         Raises:

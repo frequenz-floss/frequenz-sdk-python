@@ -57,6 +57,9 @@ class MovingWindow:
     Example: Calculate the mean of a time interval
 
         ```python
+        from datetime import datetime, timedelta, timezone
+        resampled_data_recv = Broadcast[Sample]("sample-data").new_receiver()
+
         window = MovingWindow(
             size=timedelta(minutes=5),
             resampled_data_recv=resampled_data_recv,
@@ -78,7 +81,11 @@ class MovingWindow:
     Example: Create a polars data frame from a `MovingWindow`
 
         ```python
+        # pylint: disable=import-error
         import polars as pl
+        from datetime import datetime, timedelta, timezone
+
+        sample_receiver = Broadcast[Sample]("sample-data").new_receiver()
 
         # create a window that stores two days of data
         # starting at 1.1.23 with samplerate=1
@@ -94,7 +101,7 @@ class MovingWindow:
         # create a polars series with one full day of data
         time_start = datetime(2023, 1, 1, tzinfo=timezone.utc)
         time_end = datetime(2023, 1, 2, tzinfo=timezone.utc)
-        s = pl.Series("Jan_1", mv[time_start:time_end])
+        s = pl.Series("Jan_1", window[time_start:time_end])
         ```
     """
 

@@ -411,10 +411,13 @@ class FormulaBuilder:
         following calls need to be made:
 
         ```python
-        builder = FormulaBuilder()
-        builder.push_metric("metric_1", receiver_1)
+        channel = Broadcast[Sample]("channel")
+        receiver_1 = channel.new_receiver("receiver_1")
+        receiver_2 = channel.new_receiver("receiver_2")
+        builder = FormulaBuilder("addition")
+        builder.push_metric("metric_1", receiver_1, nones_are_zeros=True)
         builder.push_oper("+")
-        builder.push_metric("metric_2", receiver_2)
+        builder.push_metric("metric_2", receiver_2, nones_are_zeros=True)
         engine = builder.build()
         ```
 
@@ -503,10 +506,15 @@ class FormulaBuilder:
         For example, this clips the output of the entire expression:
 
         ```python
+        builder = FormulaBuilder("example")
+        channel = Broadcast[Sample]("channel")
+        receiver_1 = channel.new_receiver("receiver_1")
+        receiver_2 = channel.new_receiver("receiver_2")
+
         builder.push_oper("(")
-        builder.push_metric("metric_1", receiver_1)
+        builder.push_metric("metric_1", receiver_1, nones_are_zeros=True)
         builder.push_oper("+")
-        builder.push_metric("metric_2", receiver_2)
+        builder.push_metric("metric_2", receiver_2, nones_are_zeros=True)
         builder.push_oper(")")
         builder.push_clipper(min_value=0.0, max_value=None)
         ```
@@ -514,9 +522,14 @@ class FormulaBuilder:
         And this clips the output of metric_2 only, and not the final result:
 
         ```python
-        builder.push_metric("metric_1", receiver_1)
+        builder = FormulaBuilder("example")
+        channel = Broadcast[Sample]("channel")
+        receiver_1 = channel.new_receiver("receiver_1")
+        receiver_2 = channel.new_receiver("receiver_2")
+
+        builder.push_metric("metric_1", receiver_1, nones_are_zeros=True)
         builder.push_oper("+")
-        builder.push_metric("metric_2", receiver_2)
+        builder.push_metric("metric_2", receiver_2, nones_are_zeros=True)
         builder.push_clipper(min_value=0.0, max_value=None)
         ```
 

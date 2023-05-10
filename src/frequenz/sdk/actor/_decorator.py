@@ -76,7 +76,9 @@ def actor(cls: Type[Any]) -> Type[Any]:
         TypeError: when the class doesn't have a `run` method as per spec.
 
     Example (one actor receiving from two receivers):
-    ``` python
+    ```python
+    from frequenz.channels import Broadcast, Receiver, Sender
+    from frequenz.channels.util import Select
     @actor
     class EchoActor:
         def __init__(
@@ -115,11 +117,12 @@ def actor(cls: Type[Any]) -> Type[Any]:
     echo_rx = echo_chan.new_receiver()
 
     await input_chan_2.new_sender().send(True)
-    msg = await echo_rx.receive()
+    received_msg = await echo_rx.receive()
     ```
 
     Example (two Actors composed):
-    ``` python
+    ```python
+    from frequenz.channels import Broadcast, Receiver, Sender
     @actor
     class Actor1:
         def __init__(
@@ -153,16 +156,15 @@ def actor(cls: Type[Any]) -> Type[Any]:
             async for msg in self._recv:
                 await self._output.send(msg)
 
-
     input_chan: Broadcast[bool] = Broadcast("Input to A1")
-    a1_chan: Broadcast[bool] = Broadcast["A1 stream"]
-    a2_chan: Broadcast[bool] = Broadcast["A2 stream"]
-    a1 = Actor1(
+    a1_chan: Broadcast[bool] = Broadcast("A1 stream")
+    a2_chan: Broadcast[bool] = Broadcast("A2 stream")
+    a_1 = Actor1(
         name="ActorOne",
         recv=input_chan.new_receiver(),
         output=a1_chan.new_sender(),
     )
-    a2 = Actor2(
+    a_2 = Actor2(
         name="ActorTwo",
         recv=a1_chan.new_receiver(),
         output=a2_chan.new_sender(),
@@ -171,7 +173,7 @@ def actor(cls: Type[Any]) -> Type[Any]:
     a2_rx = a2_chan.new_receiver()
 
     await input_chan.new_sender().send(True)
-    msg = await a2_rx.receive()
+    received_msg = await a2_rx.receive()
     ```
 
     """
