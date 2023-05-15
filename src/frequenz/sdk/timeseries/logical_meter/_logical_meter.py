@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-import logging
 import uuid
 
 from frequenz.channels import Sender
@@ -14,12 +13,14 @@ from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid.component import ComponentMetricId
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase, FormulaEnginePool
 from .._formula_engine._formula_generators import (
+    CHPPowerFormula,
+    ConsumerPowerFormula,
+    FormulaGeneratorConfig,
+    FormulaType,
     GridCurrentFormula,
     GridPowerFormula,
     PVPowerFormula,
 )
-
-_logger = logging.getLogger(__name__)
 
 
 class LogicalMeter:
@@ -138,6 +139,8 @@ class LogicalMeter:
     def grid_power(self) -> FormulaEngine:
         """Fetch the grid power for the microgrid.
 
+        This formula produces values that are in the Passive Sign Convention (PSC).
+
         If a formula engine to calculate grid power is not already running, it will be
         started.
 
@@ -147,14 +150,64 @@ class LogicalMeter:
         Returns:
             A FormulaEngine that will calculate and stream grid power.
         """
-        return self._formula_pool.from_generator(
+        engine = self._formula_pool.from_generator(
             "grid_power",
             GridPowerFormula,
-        )  # type: ignore[return-value]
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def grid_consumption_power(self) -> FormulaEngine:
+        """Fetch the grid consumption power for the microgrid.
+
+        This formula produces positive values when consuming power and 0 otherwise.
+
+        If a formula engine to calculate grid consumption power is not already running,
+        it will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream grid consumption power.
+        """
+        engine = self._formula_pool.from_generator(
+            "grid_consumption_power",
+            GridPowerFormula,
+            FormulaGeneratorConfig(formula_type=FormulaType.CONSUMPTION),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def grid_production_power(self) -> FormulaEngine:
+        """Fetch the grid production power for the microgrid.
+
+        This formula produces positive values when producing power and 0 otherwise.
+
+        If a formula engine to calculate grid production power is not already running,
+        it will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream grid production power.
+        """
+        engine = self._formula_pool.from_generator(
+            "grid_production_power",
+            GridPowerFormula,
+            FormulaGeneratorConfig(formula_type=FormulaType.PRODUCTION),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
 
     @property
     def grid_current(self) -> FormulaEngine3Phase:
         """Fetch the grid power for the microgrid.
+
+        This formula produces values that are in the Passive Sign Convention (PSC).
 
         If a formula engine to calculate grid current is not already running, it will be
         started.
@@ -165,14 +218,66 @@ class LogicalMeter:
         Returns:
             A FormulaEngine that will calculate and stream grid current.
         """
-        return self._formula_pool.from_generator(
+        engine = self._formula_pool.from_generator(
             "grid_current",
             GridCurrentFormula,
-        )  # type: ignore[return-value]
+        )
+        assert isinstance(engine, FormulaEngine3Phase)
+        return engine
+
+    @property
+    def consumer_power(self) -> FormulaEngine:
+        """Fetch the consumer power for the microgrid.
+
+        Under normal circumstances this is expected to correspond to the gross
+        consumption of the site excluding active parts and battery.
+
+        This formula produces values that are in the Passive Sign Convention (PSC).
+
+        If a formula engine to calculate consumer power is not already running, it will
+        be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream consumer power.
+        """
+        engine = self._formula_pool.from_generator(
+            "consumer_power",
+            ConsumerPowerFormula,
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
 
     @property
     def pv_power(self) -> FormulaEngine:
+        """Fetch the PV power in the microgrid.
+
+        This formula produces values that are in the Passive Sign Convention (PSC).
+
+        If a formula engine to calculate PV power is not already running, it will be
+        started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream PV total power.
+        """
+        engine = self._formula_pool.from_generator(
+            "pv_power",
+            PVPowerFormula,
+            FormulaGeneratorConfig(formula_type=FormulaType.PASSIVE_SIGN_CONVENTION),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def pv_production_power(self) -> FormulaEngine:
         """Fetch the PV power production in the microgrid.
+
+        This formula produces positive values when producing power and 0 otherwise.
 
         If a formula engine to calculate PV power production is not already running, it
         will be started.
@@ -183,7 +288,106 @@ class LogicalMeter:
         Returns:
             A FormulaEngine that will calculate and stream PV power production.
         """
-        return self._formula_pool.from_generator(
-            "pv_power",
+        engine = self._formula_pool.from_generator(
+            "pv_production_power",
             PVPowerFormula,
-        )  # type: ignore[return-value]
+            FormulaGeneratorConfig(formula_type=FormulaType.PRODUCTION),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def pv_consumption_power(self) -> FormulaEngine:
+        """Fetch the PV power consumption in the microgrid.
+
+        This formula produces positive values when consuming power and 0 otherwise.
+
+        If a formula engine to calculate PV power consumption is not already running, it
+        will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream PV power consumption.
+        """
+        engine = self._formula_pool.from_generator(
+            "pv_consumption_power",
+            PVPowerFormula,
+            FormulaGeneratorConfig(formula_type=FormulaType.CONSUMPTION),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def chp_power(self) -> FormulaEngine:
+        """Fetch the CHP power production in the microgrid.
+
+        This formula produces values that are in the Passive Sign Convention (PSC).
+
+        If a formula engine to calculate CHP power production is not already running, it
+        will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream CHP power production.
+        """
+        engine = self._formula_pool.from_generator(
+            "chp_power",
+            CHPPowerFormula,
+            FormulaGeneratorConfig(formula_type=FormulaType.PASSIVE_SIGN_CONVENTION),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def chp_production_power(self) -> FormulaEngine:
+        """Fetch the CHP power production in the microgrid.
+
+        This formula produces positive values when producing power and 0 otherwise.
+
+        If a formula engine to calculate CHP power production is not already running, it
+        will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream CHP power production.
+        """
+        engine = self._formula_pool.from_generator(
+            "chp_production_power",
+            CHPPowerFormula,
+            FormulaGeneratorConfig(
+                formula_type=FormulaType.PRODUCTION,
+            ),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def chp_consumption_power(self) -> FormulaEngine:
+        """Fetch the CHP power consumption in the microgrid.
+
+        This formula produces positive values when consuming power and 0 otherwise.
+
+        If a formula engine to calculate CHP power consumption is not already running,
+        it will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream CHP power consumption.
+        """
+        engine = self._formula_pool.from_generator(
+            "chp_consumption_power",
+            CHPPowerFormula,
+            FormulaGeneratorConfig(
+                formula_type=FormulaType.CONSUMPTION,
+            ),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine

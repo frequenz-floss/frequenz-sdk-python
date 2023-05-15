@@ -24,6 +24,7 @@ from .._formula_engine._formula_generators import (
     EVChargerCurrentFormula,
     EVChargerPowerFormula,
     FormulaGeneratorConfig,
+    FormulaType,
 )
 from ._set_current_bounds import BoundsSetter, ComponentCurrentLimit
 from ._state_tracker import EVChargerState, StateTracker
@@ -108,6 +109,8 @@ class EVChargerPool:
     def current(self) -> FormulaEngine3Phase:
         """Fetch the total current for the EV Chargers in the pool.
 
+        This formula produces values that are in the Passive Sign Convention (PSC).
+
         If a formula engine to calculate EV Charger current is not already running, it
         will be started.
 
@@ -118,15 +121,19 @@ class EVChargerPool:
             A FormulaEngine that will calculate and stream the total current of all EV
                 Chargers.
         """
-        return self._formula_pool.from_generator(
+        engine = self._formula_pool.from_generator(
             "ev_charger_total_current",
             EVChargerCurrentFormula,
             FormulaGeneratorConfig(component_ids=self._component_ids),
-        )  # type: ignore[return-value]
+        )
+        assert isinstance(engine, FormulaEngine3Phase)
+        return engine
 
     @property
     def power(self) -> FormulaEngine:
         """Fetch the total power for the EV Chargers in the pool.
+
+        This formula produces values that are in the Passive Sign Convention (PSC).
 
         If a formula engine to calculate EV Charger power is not already running, it
         will be started.
@@ -138,11 +145,70 @@ class EVChargerPool:
             A FormulaEngine that will calculate and stream the total power of all EV
                 Chargers.
         """
-        return self._formula_pool.from_generator(
-            "ev_charger_total_power",
+        engine = self._formula_pool.from_generator(
+            "ev_charger_power",
             EVChargerPowerFormula,
-            FormulaGeneratorConfig(component_ids=self._component_ids),
-        )  # type: ignore[return-value]
+            FormulaGeneratorConfig(
+                component_ids=self._component_ids,
+                formula_type=FormulaType.PASSIVE_SIGN_CONVENTION,
+            ),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def production_power(self) -> FormulaEngine:
+        """Fetch the total power produced by the EV Chargers in the pool.
+
+        This formula produces positive values when producing power and 0 otherwise.
+
+        If a formula engine to calculate EV Charger power is not already running, it
+        will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream the production power of all
+                EV Chargers.
+        """
+        engine = self._formula_pool.from_generator(
+            "ev_charger_production_power",
+            EVChargerPowerFormula,
+            FormulaGeneratorConfig(
+                component_ids=self._component_ids,
+                formula_type=FormulaType.PRODUCTION,
+            ),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def consumption_power(self) -> FormulaEngine:
+        """Fetch the total power consumed by the EV Chargers in the pool.
+
+        This formula produces positive values when consuming power and 0 otherwise.
+
+        If a formula engine to calculate EV Charger power is not already running, it
+        will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream the consumption power of all
+                EV Chargers.
+        """
+        engine = self._formula_pool.from_generator(
+            "ev_charger_consumption_power",
+            EVChargerPowerFormula,
+            FormulaGeneratorConfig(
+                component_ids=self._component_ids,
+                formula_type=FormulaType.CONSUMPTION,
+            ),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
 
     def component_data(self, component_id: int) -> Receiver[EVChargerData]:
         """Stream 3-phase current values and state of an EV Charger.

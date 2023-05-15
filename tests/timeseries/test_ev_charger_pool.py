@@ -6,11 +6,10 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime
-from math import isclose
+from datetime import datetime, timezone
 from typing import Any
 
-from frequenz.channels import Broadcast, Receiver
+from frequenz.channels import Broadcast, Receiver, Sender
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
@@ -23,10 +22,6 @@ from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries.ev_charger_pool._state_tracker import (
     EVChargerState,
     StateTracker,
-)
-from tests.timeseries._formula_engine.utils import (
-    get_resampled_stream,
-    synchronize_receivers,
 )
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
@@ -83,40 +78,55 @@ class TestEVChargerPool:
         self,
         mocker: MockerFixture,
     ) -> None:
-        """Test the battery power and pv power formulas."""
+        """Test the ev power formula."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
-        mockgrid.add_ev_chargers(5)
+        mockgrid.add_ev_chargers(3)
         await mockgrid.start(mocker)
 
-        logical_meter = microgrid.logical_meter()
+        channels: dict[int, Broadcast[Sample]] = {
+            meter_id: Broadcast(f"#{meter_id}")
+            for meter_id in [*mockgrid.meter_ids, *mockgrid.evc_ids]
+        }
+        senders: list[Sender[Sample]] = [
+            channels[component_id].new_sender() for component_id in mockgrid.evc_ids
+        ]
+
+        async def send_resampled_data(
+            now: datetime,
+            meter_data: list[float | None],
+        ) -> None:
+            """Send resampled data to the channels."""
+            for sender, value in zip(senders, meter_data):
+                await sender.send(Sample(now, value))
+
+        def mock_resampled_receiver(
+            _1: Any, component_id: int, _2: ComponentMetricId
+        ) -> Receiver[Sample]:
+            return channels[component_id].new_receiver()
+
+        mocker.patch(
+            "frequenz.sdk.timeseries._formula_engine._resampled_formula_builder"
+            ".ResampledFormulaBuilder._get_resampled_receiver",
+            mock_resampled_receiver,
+        )
 
         ev_pool = microgrid.ev_charger_pool()
+        power_receiver = ev_pool.power.new_receiver()
+        production_receiver = ev_pool.production_power.new_receiver()
+        consumption_receiver = ev_pool.consumption_power.new_receiver()
 
-        main_meter_recv = get_resampled_stream(
-            logical_meter._namespace,  # pylint: disable=protected-access
-            mockgrid.main_meter_id,
-            ComponentMetricId.ACTIVE_POWER,
-        )
-        grid_power_recv = logical_meter.grid_power.new_receiver()
-        ev_power_recv = ev_pool.power.new_receiver()
+        now = datetime.now(tz=timezone.utc)
+        await send_resampled_data(now, [2.0, 4.0, 10.0])
+        assert (await power_receiver.receive()).value == 16.0
+        assert (await production_receiver.receive()).value == 0.0
+        assert (await consumption_receiver.receive()).value == 16.0
 
-        await synchronize_receivers([grid_power_recv, main_meter_recv, ev_power_recv])
-
-        ev_results = []
-        for _ in range(10):
-            grid_pow = await grid_power_recv.receive()
-            ev_pow = await ev_power_recv.receive()
-            main_pow = await main_meter_recv.receive()
-
-            assert grid_pow is not None and grid_pow.value is not None
-            assert ev_pow is not None and ev_pow.value is not None
-            assert main_pow is not None and main_pow.value is not None
-            assert isclose(grid_pow.value, ev_pow.value + main_pow.value)
-
-            ev_results.append(ev_pow.value)
+        await send_resampled_data(now, [2.0, 4.0, -10.0])
+        assert (await power_receiver.receive()).value == -4.0
+        assert (await production_receiver.receive()).value == 4.0
+        assert (await consumption_receiver.receive()).value == 0.0
 
         await mockgrid.cleanup()
-        assert len(ev_results) == 10
 
     async def test_ev_component_data(self, mocker: MockerFixture) -> None:
         """Test the component_data method of EVChargerPool."""

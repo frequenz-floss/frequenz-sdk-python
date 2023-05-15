@@ -13,7 +13,7 @@ from typing import Any, AsyncIterator, Generic, Iterator, TypeVar
 
 import async_solipsism
 import pytest
-from frequenz.channels import Receiver, Sender
+from frequenz.channels import Broadcast, Receiver, Sender
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
@@ -23,7 +23,8 @@ from frequenz.sdk._internal._constants import (
 )
 from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.actor.power_distributing import BatteryStatus
-from frequenz.sdk.microgrid.component import ComponentCategory
+from frequenz.sdk.microgrid.component import ComponentCategory, ComponentMetricId
+from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries.battery_pool import (
     BatteryPool,
     Bound,
@@ -35,6 +36,7 @@ from frequenz.sdk.timeseries.battery_pool._metric_calculator import (
     battery_inverter_mapping,
 )
 
+from ...timeseries.mock_microgrid import MockMicrogrid
 from ...utils.component_data_streamer import MockComponentDataStreamer
 from ...utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
 from ...utils.component_graph_utils import (
@@ -437,6 +439,64 @@ async def run_test_battery_status_channel(  # pylint: disable=too-many-arguments
         battery_pool_metric_receiver.receive(), timeout=waiting_time_sec
     )
     compare_messages(msg, all_pool_result, waiting_time_sec)
+
+
+async def test_battery_pool_power(mocker: MockerFixture) -> None:
+    """Test `BatteryPool.{,production,consumption}_power` methods."""
+    mockgrid = MockMicrogrid(grid_side_meter=True)
+    mockgrid.add_batteries(2)
+    await mockgrid.start(mocker)
+
+    channels: dict[int, Broadcast[Sample]] = {
+        meter_id: Broadcast(f"#{meter_id}")
+        for meter_id in [*mockgrid.meter_ids, *mockgrid.battery_inverter_ids]
+    }
+    senders: list[Sender[Sample]] = [
+        channels[component_id].new_sender()
+        for component_id in mockgrid.battery_inverter_ids
+    ]
+
+    async def send_resampled_data(
+        now: datetime,
+        meter_data: list[float | None],
+    ) -> None:
+        """Send resampled data to the channels."""
+        for sender, value in zip(senders, meter_data):
+            await sender.send(Sample(now, value))
+
+    def mock_resampled_receiver(
+        _1: Any, component_id: int, _2: ComponentMetricId
+    ) -> Receiver[Sample]:
+        return channels[component_id].new_receiver()
+
+    mocker.patch(
+        "frequenz.sdk.timeseries._formula_engine._resampled_formula_builder"
+        ".ResampledFormulaBuilder._get_resampled_receiver",
+        mock_resampled_receiver,
+    )
+
+    battery_pool = microgrid.battery_pool()
+    power_receiver = battery_pool.power.new_receiver()
+    consumption_receiver = battery_pool.consumption_power.new_receiver()
+    production_receiver = battery_pool.production_power.new_receiver()
+
+    now = datetime.now(tz=timezone.utc)
+    await send_resampled_data(now, [2.0, 3.0])
+    assert (await power_receiver.receive()).value == 5.0
+    assert (await consumption_receiver.receive()).value == 5.0
+    assert (await production_receiver.receive()).value == 0.0
+
+    await send_resampled_data(now + timedelta(seconds=1), [-2.0, -5.0])
+    assert (await power_receiver.receive()).value == -7.0
+    assert (await consumption_receiver.receive()).value == 0.0
+    assert (await production_receiver.receive()).value == 7.0
+
+    await send_resampled_data(now + timedelta(seconds=3), [2.0, -5.0])
+    assert (await power_receiver.receive()).value == -3.0
+    assert (await consumption_receiver.receive()).value == 0.0
+    assert (await production_receiver.receive()).value == 3.0
+
+    await mockgrid.cleanup()
 
 
 async def run_capacity_test(setup_args: SetupArgs) -> None:

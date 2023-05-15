@@ -4,6 +4,8 @@
 """Generators for formulas from component graphs."""
 
 from ._battery_power_formula import BatteryPowerFormula
+from ._chp_power_formula import CHPPowerFormula
+from ._consumer_power_formula import ConsumerPowerFormula
 from ._ev_charger_current_formula import EVChargerCurrentFormula
 from ._ev_charger_power_formula import EVChargerPowerFormula
 from ._formula_generator import (
@@ -11,6 +13,7 @@ from ._formula_generator import (
     FormulaGenerationError,
     FormulaGenerator,
     FormulaGeneratorConfig,
+    FormulaType,
 )
 from ._grid_current_formula import GridCurrentFormula
 from ._grid_power_formula import GridPowerFormula
@@ -22,9 +25,12 @@ __all__ = [
     #
     "FormulaGenerator",
     "FormulaGeneratorConfig",
+    "FormulaType",
     #
     # Power Formula generators
     #
+    "CHPPowerFormula",
+    "ConsumerPowerFormula",
     "GridPowerFormula",
     "BatteryPowerFormula",
     "EVChargerPowerFormula",

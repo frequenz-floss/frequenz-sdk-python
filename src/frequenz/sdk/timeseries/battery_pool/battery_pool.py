@@ -23,6 +23,7 @@ from .._formula_engine import FormulaEngine, FormulaEnginePool
 from .._formula_engine._formula_generators import (
     BatteryPowerFormula,
     FormulaGeneratorConfig,
+    FormulaType,
 )
 from ._methods import AggregateMethod, SendOnUpdate
 from ._metric_calculator import CapacityCalculator, PowerBoundsCalculator, SoCCalculator
@@ -105,6 +106,8 @@ class BatteryPool:
     def power(self) -> FormulaEngine:
         """Fetch the total power of the batteries in the pool.
 
+        This formula produces values that are in the Passive Sign Convention (PSC).
+
         If a formula engine to calculate this metric is not already running, it will be
         started.
 
@@ -115,11 +118,70 @@ class BatteryPool:
             A FormulaEngine that will calculate and stream the total power of all
                 batteries in the pool.
         """
-        return self._formula_pool.from_generator(
+        engine = self._formula_pool.from_generator(
             "battery_pool_power",
             BatteryPowerFormula,
-            FormulaGeneratorConfig(component_ids=self._batteries),
-        )  # type: ignore[return-value]
+            FormulaGeneratorConfig(
+                component_ids=self._batteries,
+                formula_type=FormulaType.PASSIVE_SIGN_CONVENTION,
+            ),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def production_power(self) -> FormulaEngine:
+        """Fetch the total production power of the batteries in the pool.
+
+        This formula produces positive values when producing power and 0 otherwise.
+
+        If a formula engine to calculate this metric is not already running, it will be
+        started.
+
+        A receiver from the formula engine can be obtained by calling the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream the total production power of
+                all batteries in the pool.
+        """
+        engine = self._formula_pool.from_generator(
+            "battery_pool_production_power",
+            BatteryPowerFormula,
+            FormulaGeneratorConfig(
+                component_ids=self._batteries,
+                formula_type=FormulaType.PRODUCTION,
+            ),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def consumption_power(self) -> FormulaEngine:
+        """Fetch the total consumption power of the batteries in the pool.
+
+        This formula produces positive values when consuming power and 0 otherwise.
+
+        If a formula engine to calculate this metric is not already running, it will be
+        started.
+
+        A receiver from the formula engine can be obtained by calling the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream the total consumption power of
+                all batteries in the pool.
+        """
+        engine = self._formula_pool.from_generator(
+            "battery_pool_consumption_power",
+            BatteryPowerFormula,
+            FormulaGeneratorConfig(
+                component_ids=self._batteries,
+                formula_type=FormulaType.CONSUMPTION,
+            ),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
 
     async def soc(
         self, maxsize: int | None = RECEIVER_MAX_SIZE
