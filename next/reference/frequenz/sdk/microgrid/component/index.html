@@ -2626,11 +2626,11 @@ in percent (%).</p>
     <span class="n">BATTERY</span> <span class="o">=</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_BATTERY</span>
     <span class="n">EV_CHARGER</span> <span class="o">=</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_EV_CHARGER</span>
     <span class="n">LOAD</span> <span class="o">=</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_LOAD</span>
+    <span class="n">CHP</span> <span class="o">=</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_CHP</span>
 
     <span class="c1"># types not yet supported by the API but which can be inferred</span>
     <span class="c1"># from available graph info</span>
     <span class="n">PV_ARRAY</span> <span class="o">=</span> <span class="mi">1000001</span>
-    <span class="n">CHP</span> <span class="o">=</span> <span class="mi">1000002</span>  <span class="c1"># combined heat and power plant</span>
 </code></pre></div></td></tr></table></div>
         </details>
 
@@ -2841,8 +2841,8 @@ in percent (%).</p>
 <code class="highlight language-python"><span class="n">from_proto</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component._component_data.ComponentData.from_proto" class="headerlink" title="Permanent link">¤</a></h6>
