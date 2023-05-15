@@ -12,13 +12,11 @@ consider using several actors.
 import asyncio
 import inspect
 import logging
-from typing import Any, Generic, Optional, Type, TypeVar
+from typing import Any, Optional, Type, TypeVar
 
 from frequenz.sdk._internal._asyncio import cancel_and_await
 
 _logger = logging.getLogger(__name__)
-
-OT = TypeVar("OT")
 
 
 def _check_run_method_exists(cls: Type[Any]) -> None:
@@ -180,7 +178,7 @@ def actor(cls: Type[Any]) -> Type[Any]:
 
     _check_run_method_exists(cls)
 
-    class ActorClass(cls, BaseActor, Generic[OT]):  # type: ignore
+    class ActorClass(cls, BaseActor):  # type: ignore
         """A wrapper class to make an actor."""
 
         def __init__(self, *args: Any, **kwargs: Any) -> None:
