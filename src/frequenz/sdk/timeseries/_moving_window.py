@@ -138,6 +138,13 @@ class MovingWindow:
         self._resampler_sender: Sender[Sample] | None = None
         self._resampler_task: asyncio.Task[None] | None = None
 
+        self._wait_for_num_samples: int = 0
+        """The number of samples to wait for before the wait_for_num_samples channels
+        sends out an event."""
+        self._wait_for_samples_channel = Broadcast[None](
+            "Wait for number of samples channel."
+        )
+
         if resampler_config:
             assert (
                 resampler_config.resampling_period <= size
@@ -169,6 +176,9 @@ class MovingWindow:
         Raises:
             asyncio.CancelledError: if the MovingWindow task is cancelled.
         """
+        received_samples_count = 0
+        wait_for_samples_sender = self._wait_for_samples_channel.new_sender()
+
         try:
             async for sample in self._resampled_data_recv:
                 _logger.debug("Received new sample: %s", sample)
@@ -177,11 +187,47 @@ class MovingWindow:
                 else:
                     self._buffer.update(sample)
 
+                # count the number of samples and send out a trigger when it matches
+                # the number of samples to wait for.
+                received_samples_count += 1
+                if self._wait_for_num_samples != 0:
+                    if received_samples_count == self._wait_for_num_samples:
+                        received_samples_count = 0
+                        await wait_for_samples_sender.send(None)
+
         except asyncio.CancelledError:
             _logger.info("MovingWindow task has been cancelled.")
             raise
 
         _logger.error("Channel has been closed")
+
+    def set_sample_counter(self, num_samples: int) -> None:
+        """Set the number of samples to wait for until the sample counter triggers.
+
+        Args:
+            num_samples: The number of samples to wait for.
+
+        Raises:
+            ValueError: if the number of samples is less than or equal to zero.
+        """
+        if num_samples <= 0:
+            raise ValueError(
+                "The number of samples to wait for should be greater than zero."
+            )
+        self._wait_for_num_samples = num_samples
+
+    def new_sample_count_receiver(self) -> Receiver[None]:
+        """Wait until a given number of samples has been received.
+
+        The sample counter is updated irrespective of whether this
+        method is called or not. Thus this might trigger when
+        a smaller number of samples than the given number has been
+        updated.
+
+        Returns:
+            A receiver that triggers after a number of samples arrived.
+        """
+        return self._wait_for_samples_channel.new_receiver()
 
     async def stop(self) -> None:
         """Cancel the running tasks and stop the MovingWindow."""

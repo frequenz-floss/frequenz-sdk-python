@@ -104,6 +104,27 @@ async def test_window_size() -> None:
     assert len(window) == 5
 
 
+@pytest.mark.parametrize("samples_to_wait_for", [-1, 0, 1, 10])
+async def test_wait_for_samples(samples_to_wait_for: int) -> None:
+    """Test waiting for samples."""
+    window, sender = init_moving_window(timedelta(seconds=1))
+
+    if samples_to_wait_for <= 0:
+        with pytest.raises(ValueError):
+            window.set_sample_counter(samples_to_wait_for)
+        return
+    sample_count_recv = window.new_sample_count_receiver()
+
+    window.set_sample_counter(samples_to_wait_for)
+
+    # asyncio.create_task(push_data_delayed())
+    for i in range(0, samples_to_wait_for):
+        await sender.send(
+            Sample(datetime.now(tz=timezone.utc) + timedelta(seconds=i), 1.0)
+        )
+    await sample_count_recv.receive()
+
+
 # pylint: disable=redefined-outer-name
 async def test_resampling_window(fake_time: time_machine.Coordinates) -> None:
     """Test resampling in MovingWindow."""
