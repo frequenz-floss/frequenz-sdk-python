@@ -34,7 +34,6 @@ dependencies = [
     "numpy >= 1.24.2, < 2",
     "protobuf >= 4.21.6, < 5",
     "pydantic >= 1.9",
-    "sympy >= 1.10.1, < 2",
     "toml >= 0.10",
     "tqdm >= 4.38.0, < 5",
     "typing_extensions >= 4.4.0, < 5",
