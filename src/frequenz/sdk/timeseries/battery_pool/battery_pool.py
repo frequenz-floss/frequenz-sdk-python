@@ -287,8 +287,6 @@ class BatteryPool:
 
     async def _update_battery_status(self, receiver: Receiver[BatteryStatus]) -> None:
         async for status in receiver:
-            self._working_batteries = status.get_working_batteries(
-                self._batteries  # type: ignore[arg-type]
-            )
+            self._working_batteries = status.get_working_batteries(self._batteries)
             for item in self._active_methods.values():
                 item.update_working_batteries(self._working_batteries)

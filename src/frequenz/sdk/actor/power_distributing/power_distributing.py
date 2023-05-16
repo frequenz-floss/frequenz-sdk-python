@@ -17,6 +17,7 @@ import asyncio
 import logging
 import time
 from asyncio.tasks import ALL_COMPLETED
+from collections import abc
 from dataclasses import dataclass, replace
 from datetime import timedelta
 from math import isnan
@@ -256,7 +257,7 @@ class PowerDistributingActor:
             )
         return tasks
 
-    def _get_upper_bound(self, batteries: Set[int], include_broken: bool) -> float:
+    def _get_upper_bound(self, batteries: abc.Set[int], include_broken: bool) -> float:
         """Get total upper bound of power to be set for given batteries.
 
         Note, output of that function doesn't guarantee that this bound will be
@@ -278,7 +279,7 @@ class PowerDistributingActor:
             for battery, inverter in pairs_data
         )
 
-    def _get_lower_bound(self, batteries: Set[int], include_broken: bool) -> float:
+    def _get_lower_bound(self, batteries: abc.Set[int], include_broken: bool) -> float:
         """Get total lower bound of power to be set for given batteries.
 
         Note, output of that function doesn't guarantee that this bound will be
@@ -631,7 +632,7 @@ class PowerDistributingActor:
         return bat_inv_map, inv_bat_map
 
     def _get_components_data(
-        self, batteries: Set[int], include_broken: bool
+        self, batteries: abc.Set[int], include_broken: bool
     ) -> List[InvBatPair]:
         """Get data for the given batteries and adjacent inverters.
 

@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import dataclasses
+from collections import abc
 
 
 @dataclasses.dataclass
@@ -14,7 +15,7 @@ class Request:
     power: float
     """The requested power in watts."""
 
-    batteries: set[int]
+    batteries: abc.Set[int]
     """The component ids of the batteries to be used for this request."""
 
     request_timeout_sec: float = 5.0
