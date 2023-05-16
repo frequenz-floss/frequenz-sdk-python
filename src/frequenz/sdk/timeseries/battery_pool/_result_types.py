@@ -30,17 +30,17 @@ class CapacityMetrics:
     """Total batteries capacity.
 
     Calculated with the formula:
-    ```
+    ```python
     working_batteries: Set[BatteryData] # working batteries from the battery pool
     total_capacity = sum(battery.capacity for battery in working_batteries)
     ```
     """
     bound: Bound
     """Capacity bounds.
-    
+
     Bounds are calculated with the formula:
-    ```
-    working_batteries: Set[BatteryData] # working batteries from the battery 
+    ```python
+    working_batteries: Set[BatteryData] # working batteries from the battery
     bound.lower = sum(
         battery.capacity * battery.soc_lower_bound for battery in working_batteries)
 
@@ -62,7 +62,7 @@ class SoCMetrics:
     """Average soc.
 
     Average soc is calculated with the formula:
-    ```
+    ```python
     working_batteries: Set[BatteryData] # working batteries from the battery pool
 
     used_capacity = sum(battery.capacity * battery.soc for battery in working_batteries)
@@ -73,16 +73,16 @@ class SoCMetrics:
 
     bound: Bound
     """SoC bounds weighted by capacity.
-    
+
     Bounds are calculated with the formula:
     capacity_lower_bound = sum(
         battery.capacity * battery.soc_lower_bound for battery in working_batteries)
-    
+
     capacity_upper_bound = sum(
         battery.capacity * battery.soc_upper_bound for battery in working_batteries)
 
     total_capacity = sum(battery.capacity for battery in working_batteries)
-    
+
     bound.lower = capacity_lower_bound/total_capacity
     bound.upper = capacity_upper_bound/total_capacity
 
@@ -102,7 +102,7 @@ class PowerMetrics:
 
     Upper bound is always 0 and will be supported later.
     Lower bound is negative number calculated with with the formula:
-    ```
+    ```python
     working_pairs: Set[BatteryData, InverterData] # working batteries from the battery
         pool and adjacent inverters
 
@@ -120,7 +120,7 @@ class PowerMetrics:
 
     Lower bound is always 0 and will be supported later.
     Upper bound is positive number calculated with with the formula:
-    ```
+    ```python
     working_pairs: Set[BatteryData, InverterData] # working batteries from the battery
         pool and adjacent inverters
 

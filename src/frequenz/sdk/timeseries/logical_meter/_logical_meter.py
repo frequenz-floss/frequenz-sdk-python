@@ -31,7 +31,13 @@ class LogicalMeter:
     normal `Receiver`s, but can also be composed to form higher-order formula streams.
 
     Example:
-        ``` python
+        ```python
+        from frequenz.channels import Sender, Broadcast
+        from frequenz.sdk.actor import DataSourcingActor, ComponentMetricsResamplingActor
+        from frequenz.sdk.timeseries import ResamplerConfig
+        from frequenz.sdk.microgrid import initialize
+        from datetime import timedelta
+
         channel_registry = ChannelRegistry(name="data-registry")
 
         # Create a channels for sending/receiving subscription requests
@@ -53,7 +59,13 @@ class LogicalMeter:
             channel_registry=channel_registry,
             data_sourcing_request_sender=data_source_request_sender,
             resampling_request_receiver=resampling_request_receiver,
-            config=ResamplerConfig(resampling_period_s=1),
+            config=ResamplerConfig(resampling_period=timedelta(seconds=1)),
+        )
+
+        await initialize(
+            "127.0.0.1",
+            50051,
+            ResamplerConfig(resampling_period=timedelta(seconds=1))
         )
 
         # Create a logical meter instance
@@ -63,16 +75,15 @@ class LogicalMeter:
         )
 
         # Get a receiver for a builtin formula
-        grid_power_recv = logical_meter.grid_power()
+        grid_power_recv = logical_meter.grid_power.new_receiver()
         for grid_power_sample in grid_power_recv:
             print(grid_power_sample)
 
         # or compose formula receivers to create a new formula
         net_power_recv = (
             (
-                logical_meter.grid_power()
-                - logical_meter.battery_power()
-                - logical_meter.pv_power()
+                logical_meter.grid_power
+                - logical_meter.pv_power
             )
             .build("net_power")
             .new_receiver()
