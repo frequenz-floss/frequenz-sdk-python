@@ -2,10 +2,13 @@
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
 """Tests power distributor"""
+
+from __future__ import annotations
+
 import asyncio
 import re
 from dataclasses import dataclass
-from typing import Set, Tuple, TypeVar
+from typing import TypeVar
 from unittest.mock import AsyncMock, MagicMock
 
 from frequenz.channels import Bidirectional, Broadcast, Receiver, Sender
@@ -48,7 +51,7 @@ class TestPowerDistributingActor:
     # pylint: disable=protected-access
     """Test tool to distribute power"""
 
-    def component_graph(self) -> Tuple[Set[Component], Set[Connection]]:
+    def component_graph(self) -> tuple[set[Component], set[Connection]]:
         """Create graph components
 
         Returns:
