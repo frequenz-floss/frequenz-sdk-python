@@ -388,6 +388,9 @@ class PowerDistributingActor:
         Returns:
             Result for the user if the request is wrong, None otherwise.
         """
+        if len(request.batteries) == 0:
+            return Error(request=request, msg="Empty battery IDs in the request")
+
         for battery in request.batteries:
             if battery not in self._battery_receivers:
                 msg = (
