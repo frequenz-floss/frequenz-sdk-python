@@ -75,7 +75,7 @@ pytest = [
     "time-machine == 2.9.0",
     "async-solipsism == 0.5",
     # For checking docstring code examples
-    "sybil == 5.0.1",
+    "sybil == 5.0.2",
     "pylint == 2.17.4",
 ]
 mypy = [
