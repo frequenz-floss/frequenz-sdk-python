@@ -197,10 +197,12 @@ class BatteryStatusTracker:
             raise RuntimeError(f"Can't find inverter adjacent to battery: {battery_id}")
 
         self._battery: _ComponentStreamStatus = _ComponentStreamStatus(
-            battery_id, data_recv_timer=Timer(max_data_age_sec)
+            battery_id,
+            data_recv_timer=Timer.periodic(timedelta(seconds=max_data_age_sec)),
         )
         self._inverter: _ComponentStreamStatus = _ComponentStreamStatus(
-            inverter_id, data_recv_timer=Timer(max_data_age_sec)
+            inverter_id,
+            data_recv_timer=Timer.periodic(timedelta(seconds=max_data_age_sec)),
         )
 
         # Select needs receivers that can be get in async way only.

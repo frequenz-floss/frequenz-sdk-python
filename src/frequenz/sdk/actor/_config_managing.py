@@ -43,9 +43,13 @@ class ConfigManagingActor:
         """
         self._conf_file: str = conf_file
         self._conf_dir: str = os.path.dirname(conf_file)
-        self._file_watcher = FileWatcher(
-            paths=[self._conf_dir], event_types=event_types
-        )
+        self._file_watcher: FileWatcher
+        if event_types:
+            self._file_watcher = FileWatcher(
+                paths=[self._conf_dir], event_types=event_types
+            )
+        else:
+            self._file_watcher = FileWatcher(paths=[self._conf_dir])
         self._output = output
 
     def _read_config(self) -> Dict[str, Any]:
@@ -78,8 +82,11 @@ class ConfigManagingActor:
         """
         await self.send_config()
 
-        async for path in self._file_watcher:
-            if str(path) == self._conf_file:
+        async for event in self._file_watcher:
+            if (
+                event.type != FileWatcher.EventType.DELETE
+                and str(event.path) == self._conf_file
+            ):
                 _logger.info(
                     "Update configs, because file %s was modified.",
                     self._conf_file,

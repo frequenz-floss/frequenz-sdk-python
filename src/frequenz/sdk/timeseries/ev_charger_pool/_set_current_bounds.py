@@ -97,7 +97,7 @@ class BoundsSetter:
 
         select = Select(
             bound_chan=self._bounds_rx,
-            timer=Timer(self._repeat_interval.total_seconds()),
+            timer=Timer.periodic(self._repeat_interval),
         )
         while await select.ready():
             meter = meter_data.peek()
