@@ -3836,7 +3836,7 @@ the examples below.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" title="typing.Type" href="https://docs.python.org/3/library/typing.html#typing.Type">Type</a>[<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a>]</code>
+                    <code><a class="autorefs autorefs-external" title="typing.Callable" href="https://docs.python.org/3/library/typing.html#typing.Callable">Callable</a>[<span title="frequenz.sdk.actor._decorator._P">_P</span>, <span title="frequenz.sdk.actor._decorator._R">_R</span>]</code>
                 </span>
             </p>
           </td>
@@ -3855,7 +3855,7 @@ the examples below.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-external" title="typing.Type" href="https://docs.python.org/3/library/typing.html#typing.Type">Type</a>[<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a>]</code>
+                  <code><a class="autorefs autorefs-external" title="typing.Type" href="https://docs.python.org/3/library/typing.html#typing.Type">Type</a>[<span title="frequenz.sdk.actor._decorator._R">_R</span>]</code>
               </span>
           </td>
           <td class="doc-returns-details">
@@ -3985,11 +3985,7 @@ the examples below.</p>
 
       <details class="quote">
         <summary>Source code in <code>/home/runner/.local/lib/python3.8/site-packages/frequenz/sdk/actor/_decorator.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 60</span>
-<span class="normal"> 61</span>
-<span class="normal"> 62</span>
-<span class="normal"> 63</span>
-<span class="normal"> 64</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 64</span>
 <span class="normal"> 65</span>
 <span class="normal"> 66</span>
 <span class="normal"> 67</span>
@@ -4159,7 +4155,11 @@ the examples below.</p>
 <span class="normal">231</span>
 <span class="normal">232</span>
 <span class="normal">233</span>
-<span class="normal">234</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">actor</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">actor</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="n">_P</span><span class="p">,</span> <span class="n">_R</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">_R</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Decorate a class into a simple composable actor.</span>
 
 <span class="sd">    A actor using the `actor` decorator should define an `async def run(self)`</span>
@@ -4284,10 +4284,10 @@ the examples below.</p>
 
     <span class="n">_check_run_method_exists</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
 
-    <span class="k">class</span> <span class="nc">ActorClass</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">BaseActor</span><span class="p">,</span> <span class="n">Generic</span><span class="p">[</span><span class="n">OT</span><span class="p">]):</span>  <span class="c1"># type: ignore</span>
+    <span class="k">class</span> <span class="nc">ActorClass</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">BaseActor</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;A wrapper class to make an actor.&quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">_P</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">_P</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;Create an `ActorClass` instance.</span>
 
 <span class="sd">            Also call __init__ on `cls`.</span>
