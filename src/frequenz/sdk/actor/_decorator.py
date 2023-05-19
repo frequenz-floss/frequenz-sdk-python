@@ -12,13 +12,13 @@ consider using several actors.
 import asyncio
 import inspect
 import logging
-from typing import Any, Generic, Optional, Type, TypeVar
+from typing import Any, Callable, Optional, Type, TypeVar
+
+from typing_extensions import ParamSpec
 
 from frequenz.sdk._internal._asyncio import cancel_and_await
 
 _logger = logging.getLogger(__name__)
-
-OT = TypeVar("OT")
 
 
 def _check_run_method_exists(cls: Type[Any]) -> None:
@@ -57,7 +57,11 @@ class BaseActor:
     restart_limit: Optional[int] = None
 
 
-def actor(cls: Type[Any]) -> Type[Any]:
+_P = ParamSpec("_P")
+_R = TypeVar("_R")
+
+
+def actor(cls: Callable[_P, _R]) -> Type[_R]:
     """Decorate a class into a simple composable actor.
 
     A actor using the `actor` decorator should define an `async def run(self)`
@@ -182,10 +186,10 @@ def actor(cls: Type[Any]) -> Type[Any]:
 
     _check_run_method_exists(cls)
 
-    class ActorClass(cls, BaseActor, Generic[OT]):  # type: ignore
+    class ActorClass(cls, BaseActor):  # type: ignore
         """A wrapper class to make an actor."""
 
-        def __init__(self, *args: Any, **kwargs: Any) -> None:
+        def __init__(self, *args: _P.args, **kwargs: _P.kwargs) -> None:
             """Create an `ActorClass` instance.
 
             Also call __init__ on `cls`.
