@@ -11,6 +11,8 @@ on:
       - 'gh-readonly-queue/**'
   workflow_dispatch:
 
+env:
+  DEFAULT_PYTHON_VERSION: '3.11'
 
 jobs:
   test:
