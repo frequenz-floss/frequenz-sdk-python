@@ -14,6 +14,8 @@ This release drops support for Python versions older than 3.11.
 
 * The `LogicalMeter` no longer takes a `component_graph` parameter.
 
+* Now `frequenz.sdk.timeseries.Sample` uses a more sensible comparison.  Before this release `Sample`s were compared only based on the `timestamp`.  This was due to a limitation in Python versions earlier than 3.10.  Now that the minimum supported version is 3.11 this hack is not needed anymore and `Sample`s are compared using both `timestamp` and `value` as most people probably expects.
+
 ## New Features
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->

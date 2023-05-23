@@ -705,11 +705,12 @@ class _ResamplingHelper:
         )
         minimum_relevant_timestamp = timestamp - period * conf.max_data_age_in_periods
 
-        # We need to pass a dummy Sample to bisect because it only support
-        # specifying a key extraction function in Python 3.10, so we need to
-        # compare samples at the moment.
-        min_index = bisect(self._buffer, Sample(minimum_relevant_timestamp, None))
-        max_index = bisect(self._buffer, Sample(timestamp, None))
+        min_index = bisect(
+            self._buffer,
+            minimum_relevant_timestamp,
+            key=lambda s: s.timestamp,
+        )
+        max_index = bisect(self._buffer, timestamp, key=lambda s: s.timestamp)
         # Using itertools for slicing doesn't look very efficient, but
         # experiments with a custom (ring) buffer that can slice showed that
         # it is not that bad. See:
