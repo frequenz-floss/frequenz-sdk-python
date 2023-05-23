@@ -3,21 +3,15 @@
 
 """Timeseries basic types."""
 
-from __future__ import annotations
-
 import functools
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Callable, Iterator, Optional, overload
+from typing import Callable, Iterator, Self, overload
 
 UNIX_EPOCH = datetime.fromtimestamp(0.0, tz=timezone.utc)
 """The UNIX epoch (in UTC)."""
 
 
-# Ordering by timestamp is a bit arbitrary, and it is not always what might be
-# wanted. We are using this order now because usually we need to do binary
-# searches on sequences of samples, and the Python `bisect` module doesn't
-# support providing a key until Python 3.10.
 @dataclass(frozen=True, order=True)
 class Sample:
     """A measurement taken at a particular point in time.
@@ -27,10 +21,10 @@ class Sample:
     coherent view on a group of component metrics for a particular timestamp.
     """
 
-    timestamp: datetime = field(compare=True)
+    timestamp: datetime
     """The time when this sample was generated."""
 
-    value: Optional[float] = field(compare=False, default=None)
+    value: float | None = None
     """The value of this sample."""
 
 
@@ -46,13 +40,13 @@ class Sample3Phase:
 
     timestamp: datetime
     """The time when this sample was generated."""
-    value_p1: Optional[float]
+    value_p1: float | None
     """The value of the 1st phase in this sample."""
 
-    value_p2: Optional[float]
+    value_p2: float | None
     """The value of the 2nd phase in this sample."""
 
-    value_p3: Optional[float]
+    value_p3: float | None
     """The value of the 3rd phase in this sample."""
 
     def __iter__(self) -> Iterator[float | None]:
@@ -117,7 +111,7 @@ class Sample3Phase:
 
     def map(
         self, function: Callable[[float], float], default: float | None = None
-    ) -> Sample3Phase:
+    ) -> Self:
         """Apply the given function on each of the phase values and return the result.
 
         If a phase value is `None`, replace it with `default` instead.
@@ -127,10 +121,10 @@ class Sample3Phase:
             default: The value to apply if a phase value is `None`.
 
         Returns:
-            A new `Sample3Phase` instance, with the given function applied on values
-                for each of the phases.
+            A new instance, with the given function applied on values for each of the
+                phases.
         """
-        return Sample3Phase(
+        return self.__class__(
             timestamp=self.timestamp,
             value_p1=default if self.value_p1 is None else function(self.value_p1),
             value_p2=default if self.value_p2 is None else function(self.value_p2),
