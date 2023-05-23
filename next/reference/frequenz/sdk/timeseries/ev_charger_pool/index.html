@@ -1395,13 +1395,13 @@
 
         <details class="quote">
           <summary>Source code in <code>/home/runner/.local/lib/python3.8/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">39</span>
-<span class="normal">40</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">40</span>
 <span class="normal">41</span>
 <span class="normal">42</span>
 <span class="normal">43</span>
 <span class="normal">44</span>
-<span class="normal">45</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">45</span>
+<span class="normal">46</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">EVChargerData</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Data for an EV Charger, including the 3-phase current and the component state.&quot;&quot;&quot;</span>
 
@@ -1450,8 +1450,7 @@
 
         <details class="quote">
           <summary>Source code in <code>/home/runner/.local/lib/python3.8/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 48</span>
-<span class="normal"> 49</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 49</span>
 <span class="normal"> 50</span>
 <span class="normal"> 51</span>
 <span class="normal"> 52</span>
@@ -1759,7 +1758,13 @@
 <span class="normal">354</span>
 <span class="normal">355</span>
 <span class="normal">356</span>
-<span class="normal">357</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">EVChargerPool</span><span class="p">:</span>
+<span class="normal">357</span>
+<span class="normal">358</span>
+<span class="normal">359</span>
+<span class="normal">360</span>
+<span class="normal">361</span>
+<span class="normal">362</span>
+<span class="normal">363</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">EVChargerPool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Interactions with EV Chargers.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -1985,6 +1990,11 @@
             <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds_setter</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_tracker</span><span class="p">:</span>
             <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_tracker</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status_streams</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">task</span><span class="p">,</span> <span class="n">chan</span> <span class="o">=</span> <span class="n">stream</span>
+            <span class="k">await</span> <span class="n">chan</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">await</span> <span class="n">cancel_and_await</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_get_current_streams</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span>
@@ -2111,7 +2121,7 @@
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3/library/collections.abc.html#module-collections.abc">abc</a>.<a class="autorefs autorefs-external" title="collections.abc.Set" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Set">Set</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a>]</code>
+                  <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3/library/collections.abc.html#module-collections.abc">abc</a>.<span title="abc.Set">Set</span>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a>]</code>
               </span>
           </td>
           <td class="doc-returns-details">
@@ -2406,8 +2416,7 @@ microgrid API, if no new calls to <code>set_bounds</code> have been made.</p>
 
       <details class="quote">
         <summary>Source code in <code>/home/runner/.local/lib/python3.8/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">51</span>
-<span class="normal">52</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">52</span>
 <span class="normal">53</span>
 <span class="normal">54</span>
 <span class="normal">55</span>
@@ -2452,7 +2461,8 @@ microgrid API, if no new calls to <code>set_bounds</code> have been made.</p>
 <span class="normal">94</span>
 <span class="normal">95</span>
 <span class="normal">96</span>
-<span class="normal">97</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<span class="normal">97</span>
+<span class="normal">98</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">channel_registry</span><span class="p">:</span> <span class="n">ChannelRegistry</span><span class="p">,</span>
     <span class="n">resampler_subscription_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span><span class="n">ComponentMetricRequest</span><span class="p">],</span>
@@ -2566,8 +2576,7 @@ an EV Charger.</p>
 
       <details class="quote">
         <summary>Source code in <code>/home/runner/.local/lib/python3.8/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">213</span>
-<span class="normal">214</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">214</span>
 <span class="normal">215</span>
 <span class="normal">216</span>
 <span class="normal">217</span>
@@ -2592,7 +2601,8 @@ an EV Charger.</p>
 <span class="normal">236</span>
 <span class="normal">237</span>
 <span class="normal">238</span>
-<span class="normal">239</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">component_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">EVChargerData</span><span class="p">]:</span>
+<span class="normal">239</span>
+<span class="normal">240</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">component_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">EVChargerData</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Stream 3-phase current values and state of an EV Charger.</span>
 
 <span class="sd">    Args:</span>
@@ -2664,8 +2674,7 @@ value will be determined by the EV.</p>
 
       <details class="quote">
         <summary>Source code in <code>/home/runner/.local/lib/python3.8/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">255</span>
-<span class="normal">256</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">256</span>
 <span class="normal">257</span>
 <span class="normal">258</span>
 <span class="normal">259</span>
@@ -2675,7 +2684,8 @@ value will be determined by the EV.</p>
 <span class="normal">263</span>
 <span class="normal">264</span>
 <span class="normal">265</span>
-<span class="normal">266</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">new_bounds_sender</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sender</span><span class="p">[</span><span class="n">ComponentCurrentLimit</span><span class="p">]:</span>
+<span class="normal">266</span>
+<span class="normal">267</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">new_bounds_sender</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sender</span><span class="p">[</span><span class="n">ComponentCurrentLimit</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a `Sender` for setting EV Charger current bounds with.</span>
 
 <span class="sd">    Bounds are used to limit the max current drawn by an EV, although the exact</span>
@@ -2750,8 +2760,7 @@ value will be determined by the EV.</p>
 
       <details class="quote">
         <summary>Source code in <code>/home/runner/.local/lib/python3.8/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">241</span>
-<span class="normal">242</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">242</span>
 <span class="normal">243</span>
 <span class="normal">244</span>
 <span class="normal">245</span>
@@ -2762,7 +2771,8 @@ value will be determined by the EV.</p>
 <span class="normal">250</span>
 <span class="normal">251</span>
 <span class="normal">252</span>
-<span class="normal">253</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">set_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_amps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">253</span>
+<span class="normal">254</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">set_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_amps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Send given max current bound for the given EV Charger to the microgrid API.</span>
 
 <span class="sd">    Bounds are used to limit the max current drawn by an EV, although the exact</span>
@@ -2801,17 +2811,27 @@ value will be determined by the EV.</p>
 
       <details class="quote">
         <summary>Source code in <code>/home/runner/.local/lib/python3.8/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">268</span>
-<span class="normal">269</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">269</span>
 <span class="normal">270</span>
 <span class="normal">271</span>
 <span class="normal">272</span>
-<span class="normal">273</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Stop all tasks and channels owned by the EVChargerPool.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds_setter</span><span class="p">:</span>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds_setter</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_tracker</span><span class="p">:</span>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_tracker</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+    <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status_streams</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">task</span><span class="p">,</span> <span class="n">chan</span> <span class="o">=</span> <span class="n">stream</span>
+        <span class="k">await</span> <span class="n">chan</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">await</span> <span class="n">cancel_and_await</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
@@ -2847,8 +2867,8 @@ value will be determined by the EV.</p>
 
         <details class="quote">
           <summary>Source code in <code>/home/runner/.local/lib/python3.8/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">35</span>
-<span class="normal">36</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">EVChargerPoolError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">36</span>
+<span class="normal">37</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">EVChargerPoolError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;An error that occurred in any of the EVChargerPool methods.&quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
         </details>

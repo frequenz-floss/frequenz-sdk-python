@@ -939,6 +939,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.stop" class="md-nav__link">
+    stop()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1166,6 +1173,13 @@
           <li class="md-nav__item">
   <a href="#frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.start_formula" class="md-nav__link">
     start_formula()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.stop" class="md-nav__link">
+    stop()
   </a>
   
 </li>
@@ -1697,7 +1711,11 @@ normal <code>Receiver</code>s, but can also be composed to form higher-order for
 <span class="normal">401</span>
 <span class="normal">402</span>
 <span class="normal">403</span>
-<span class="normal">404</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">LogicalMeter</span><span class="p">:</span>
+<span class="normal">404</span>
+<span class="normal">405</span>
+<span class="normal">406</span>
+<span class="normal">407</span>
+<span class="normal">408</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">LogicalMeter</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A logical meter for calculating high level metrics in a microgrid.</span>
 
 <span class="sd">    LogicalMeter provides methods for fetching power values from different points in the</span>
@@ -2076,6 +2094,10 @@ normal <code>Receiver</code>s, but can also be composed to form higher-order for
         <span class="p">)</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">FormulaEngine</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">engine</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop all formula engines.&quot;&quot;&quot;</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
         </details>
 
@@ -2863,6 +2885,37 @@ False, the returned value will be a None.</p>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span>
         <span class="n">formula</span><span class="p">,</span> <span class="n">component_metric_id</span><span class="p">,</span> <span class="n">nones_are_zeros</span>
     <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h6 id="frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.stop" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">stop</span><span class="p">()</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.stop" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Stop all formula engines.</p>
+
+      <details class="quote">
+        <summary>Source code in <code>/home/runner/.local/lib/python3.8/site-packages/frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">406</span>
+<span class="normal">407</span>
+<span class="normal">408</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Stop all formula engines.&quot;&quot;&quot;</span>
+    <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
