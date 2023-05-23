@@ -15,6 +15,7 @@ from datetime import timedelta
 
 from frequenz.channels import Broadcast, ChannelClosedError, Receiver, Sender
 
+from ..._internal._asyncio import cancel_and_await
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory, ComponentMetricId
@@ -271,6 +272,11 @@ class EVChargerPool:
             await self._bounds_setter.stop()
         if self._state_tracker:
             await self._state_tracker.stop()
+        await self._formula_pool.stop()
+        for stream in self._status_streams.values():
+            task, chan = stream
+            await chan.close()
+            await cancel_and_await(task)
 
     async def _get_current_streams(
         self, component_id: int

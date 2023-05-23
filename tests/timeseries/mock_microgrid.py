@@ -25,14 +25,15 @@ from frequenz.sdk.microgrid.component import (
     EVChargerComponentState,
     InverterType,
 )
-from tests.utils import MockMicrogridClient
 
+from ..utils import MockMicrogridClient
 from ..utils.component_data_wrapper import (
     BatteryDataWrapper,
     EvChargerDataWrapper,
     InverterDataWrapper,
     MeterDataWrapper,
 )
+from .mock_datapipeline import MockDataPipeline
 
 
 class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
@@ -48,16 +49,28 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
     battery_id_suffix = 9
 
     _microgrid: MockMicrogridClient
+    mock_data: MockDataPipeline
 
-    def __init__(
-        self, grid_side_meter: bool, num_values: int = 2000, sample_rate_s: float = 0.01
+    def __init__(  # pylint: disable=too-many-arguments
+        self,
+        grid_side_meter: bool,
+        api_client_streaming: bool = False,
+        num_values: int = 2000,
+        sample_rate_s: float = 0.01,
+        num_namespaces: int = 1,
     ):
         """Create a new instance.
 
         Args:
             grid_side_meter: whether the main meter should be on the grid side or not.
+            api_client_streaming: whether the mock client should be configured to stream
+                raw data from the API client.
             num_values: number of values to generate for each component.
             sample_rate_s: sample rate in seconds.
+            num_namespaces: number of namespaces that each metric should be available
+                to.  Useful in tests where multiple namespaces (logical_meter,
+                battery_pool, etc) are used, and the same metric is used by formulas in
+                different namespaces.
         """
         self._components: Set[Component] = set(
             [
@@ -68,8 +81,10 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         self._connections: Set[Connection] = set([Connection(1, 4)])
         self._id_increment = 0
         self._grid_side_meter = grid_side_meter
+        self._api_client_streaming = api_client_streaming
         self._num_values = num_values
         self._sample_rate_s = sample_rate_s
+        self._namespaces = num_namespaces
 
         self._connect_to = self.grid_id
         if self._grid_side_meter:
@@ -90,10 +105,31 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         self._streaming_tasks: list[asyncio.Task[None]] = []
         self._start_meter_streaming(4)
 
+    async def start_mock_datapipeline(self, mocker: MockerFixture) -> None:
+        """Start the MockDataPipeline."""
+        self.init_mock_client(lambda mock_client: mock_client.initialize(mocker))
+        self.mock_data = MockDataPipeline(
+            mocker,
+            ResamplerConfig(timedelta(seconds=self._sample_rate_s)),
+            bat_inverter_ids=self.battery_inverter_ids,
+            pv_inverter_ids=self.pv_inverter_ids,
+            evc_ids=self.evc_ids,
+            meter_ids=self.meter_ids,
+            chp_ids=self.chp_ids,
+            namespaces=self._namespaces,
+        )
+
+    def init_mock_client(
+        self, initialize_cb: Callable[[MockMicrogridClient], None]
+    ) -> None:
+        """Set up the mock client. Does not start the streaming tasks."""
+        self._microgrid = MockMicrogridClient(self._components, self._connections)
+        initialize_cb(self._microgrid)
+
     def start_mock_client(
         self, initialize_cb: Callable[[MockMicrogridClient], None]
     ) -> MockMicrogridClient:
-        """Set up the mock client.
+        """Start the mock client.
 
         Creates the microgrid mock client, initializes it, and starts the streaming
         tasks.
@@ -106,10 +142,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         Returns:
             A MockMicrogridClient instance.
         """
-        self._microgrid = MockMicrogridClient(self._components, self._connections)
-
-        initialize_cb(self._microgrid)
-
+        self.init_mock_client(initialize_cb)
         self._streaming_tasks = [
             asyncio.create_task(coro) for coro in self._streaming_coros
         ]
@@ -150,6 +183,8 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         await self._microgrid.close_channel(comp_id)
 
     def _start_meter_streaming(self, meter_id: int) -> None:
+        if not self._api_client_streaming:
+            return
         self._streaming_coros.append(
             self._comp_data_send_task(
                 meter_id,
@@ -163,6 +198,8 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         )
 
     def _start_battery_streaming(self, bat_id: int) -> None:
+        if not self._api_client_streaming:
+            return
         self._streaming_coros.append(
             self._comp_data_send_task(
                 bat_id,
@@ -173,6 +210,8 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         )
 
     def _start_inverter_streaming(self, inv_id: int) -> None:
+        if not self._api_client_streaming:
+            return
         self._streaming_coros.append(
             self._comp_data_send_task(
                 inv_id,
@@ -183,6 +222,8 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         )
 
     def _start_ev_charger_streaming(self, evc_id: int) -> None:
+        if not self._api_client_streaming:
+            return
         self._streaming_coros.append(
             self._comp_data_send_task(
                 evc_id,

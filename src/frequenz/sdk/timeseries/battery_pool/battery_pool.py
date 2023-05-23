@@ -9,7 +9,7 @@ import asyncio
 import uuid
 from collections.abc import Set
 from datetime import timedelta
-from typing import Any
+from typing import Any, Awaitable
 
 from frequenz.channels import Receiver, Sender
 
@@ -78,6 +78,7 @@ class BatteryPool:
 
         self._working_batteries: set[int] = set()
 
+        self._update_battery_status_task: asyncio.Task[None] | None = None
         if self._batteries:
             self._update_battery_status_task = asyncio.create_task(
                 self._update_battery_status(batteries_status_receiver)
@@ -266,10 +267,13 @@ class BatteryPool:
 
     async def stop(self) -> None:
         """Stop all pending async tasks."""
-        await asyncio.gather(
-            *[method.stop() for method in self._active_methods.values()],
-            cancel_and_await(self._update_battery_status_task),
-        )
+        tasks_to_stop: list[Awaitable[Any]] = [
+            method.stop() for method in self._active_methods.values()
+        ]
+        tasks_to_stop.append(self._formula_pool.stop())
+        if self._update_battery_status_task:
+            tasks_to_stop.append(cancel_and_await(self._update_battery_status_task))
+        await asyncio.gather(*tasks_to_stop)
 
     def _get_all_batteries(self) -> Set[int]:
         """Get all batteries from the microgrid.

@@ -110,3 +110,8 @@ class FormulaEnginePool:
         ).generate()
         self._engines[channel_key] = engine
         return engine
+
+    async def stop(self) -> None:
+        """Stop all formula engines in the pool."""
+        for engine in self._engines.values():
+            await engine._stop()  # pylint: disable=protected-access
