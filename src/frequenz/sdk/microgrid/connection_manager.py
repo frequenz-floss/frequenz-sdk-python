@@ -8,6 +8,7 @@ purpose is to provide the connection the microgrid API client and the microgrid
 component graph.
 """
 
+import logging
 from abc import ABC, abstractmethod
 from typing import Optional
 
@@ -20,6 +21,8 @@ from .client._client import MicrogridGrpcClient
 # Not public default host and port
 _DEFAULT_MICROGRID_HOST = "[::1]"
 _DEFAULT_MICROGRID_PORT = 443
+
+_logger = logging.getLogger(__name__)
 
 
 class ConnectionManager(ABC):
@@ -156,6 +159,8 @@ async def initialize(host: str, port: int) -> None:
 
     if _CONNECTION_MANAGER is not None:
         raise AssertionError("MicrogridApi was already initialized.")
+
+    _logger.info("Connecting to microgrid at %s:%s", host, port)
 
     microgrid_api = _InsecureConnectionManager(host, port)
     await microgrid_api._initialize()  # pylint: disable=protected-access
