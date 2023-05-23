@@ -8,8 +8,7 @@ A development kit to interact with the Frequenz development platform.
 
 ## Supported Python versions
 
-* For x86_64 Python 3.8 - 3.11 are supported (tested).
-* For arm64 only Python 3.8 is supported (due to some dependencies that only support 3.8).
+* Only Python 3.11 is fully supported (tested).
 
 ## Contributing
 

@@ -2,9 +2,11 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
+This release drops support for Python versions older than 3.11.
 
 ## Upgrading
+
+* Now Python 3.11 is the minimum supported version.  All users must upgrade to Python 3.11 (including virtual environments used for development).
 
 * Now `float` is used everywhere for representing power (before power metrics were `float` but setting power was done using `int`).
   * `frequenz.sdk.actor.power_distributing`: the `power` attribute of the `Request` class has been updated from `int` to a `float`.
