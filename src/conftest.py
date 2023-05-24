@@ -122,6 +122,8 @@ class CustomPythonCodeBlockParser(CodeBlockParser):
         import_header.append(
             path_to_import_statement(Path(os.path.relpath(example.path)))
         )
+        # Add microgrid as default import
+        import_header.append("from frequenz.sdk import microgrid")
         imports_code = "\n".join(import_header)
 
         # Dedent the code example
