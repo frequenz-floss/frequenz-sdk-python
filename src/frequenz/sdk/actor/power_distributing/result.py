@@ -91,12 +91,3 @@ class OutOfBound(Result):
     If the requested power negative, then this value is the lower bound.
     Otherwise it is upper bound.
     """
-
-
-@dataclasses.dataclass
-class Ignored(Result):
-    """Result returned when the request was ignored.
-
-    The request can be ignored when a new request for the same subset of
-    batteries was received.
-    """

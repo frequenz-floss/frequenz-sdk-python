@@ -40,21 +40,9 @@ from ...microgrid.component import (
 from ...power import DistributionAlgorithm, DistributionResult, InvBatPair
 from ._battery_pool_status import BatteryPoolStatus, BatteryStatus
 from .request import Request
-from .result import Error, Ignored, OutOfBound, PartialFailure, Result, Success
+from .result import Error, OutOfBound, PartialFailure, Result, Success
 
 _logger = logging.getLogger(__name__)
-
-
-@dataclass
-class _User:
-    """User definitions."""
-
-    user_id: str
-    """The unique identifier for a user of the power distributing actor."""
-
-    # Channel for the communication
-    channel: Bidirectional.Handle[Result, Request]
-    """The bidirectional channel to communicate with the user."""
 
 
 @dataclass
@@ -217,22 +205,6 @@ class PowerDistributingActor:
         self._battery_receivers: Dict[int, Peekable[BatteryData]] = {}
         self._inverter_receivers: Dict[int, Peekable[InverterData]] = {}
 
-        # The components in different requests be for the same components, or for
-        # completely different components. They should not overlap.
-        # Otherwise the PowerDistributingActor has no way to decide what request is more
-        # important. It will execute both. And later request will override the previous
-        # one.
-        # That is why the queue of maxsize = total number of batteries should be enough.
-        self._request_queue: asyncio.Queue[Tuple[Request, _User]] = asyncio.Queue(
-            maxsize=len(self._bat_inv_map)
-        )
-
-        self._users_channels: Dict[
-            str, Bidirectional.Handle[Result, Request]
-        ] = users_channels
-        self._users_tasks = self._create_users_tasks()
-        self._started = asyncio.Event()
-
         self._all_battery_status = BatteryPoolStatus(
             battery_ids=set(self._bat_inv_map.keys()),
             battery_status_sender=battery_status_sender,
@@ -243,19 +215,6 @@ class PowerDistributingActor:
         self._cached_metrics: dict[int, _CacheEntry | None] = {
             bat_id: None for bat_id, _ in self._bat_inv_map.items()
         }
-
-    def _create_users_tasks(self) -> List[asyncio.Task[None]]:
-        """For each user create a task to wait for request.
-
-        Returns:
-            List with users tasks.
-        """
-        tasks = []
-        for user, handler in self._users_channels.items():
-            tasks.append(
-                asyncio.create_task(self._wait_for_request(_User(user, handler)))
-            )
-        return tasks
 
     def _get_upper_bound(self, batteries: abc.Set[int], include_broken: bool) -> float:
         """Get total upper bound of power to be set for given batteries.
@@ -491,107 +450,6 @@ class PowerDistributingActor:
                     return OutOfBound(request=request, bound=bound)
 
         return None
-
-    def _remove_duplicated_requests(
-        self, request: Request, user: _User
-    ) -> List[asyncio.Task[None]]:
-        """Remove duplicated requests from the queue.
-
-        Remove old requests in which set of batteries are the same as in new request.
-        If batteries in new request overlap with batteries in old request but are not
-        equal, then log error and process both messages.
-
-        Args:
-            request: request to check
-            user: User who sent the request.
-
-        Returns:
-            Tasks with result sent to the users which requests were duplicated.
-        """
-        batteries = request.batteries
-
-        good_requests: List[Tuple[Request, _User]] = []
-        to_ignore: List[asyncio.Task[None]] = []
-
-        while not self._request_queue.empty():
-            prev_request, prev_user = self._request_queue.get_nowait()
-            # Generators seems to be the fastest
-            if prev_request.batteries == batteries:
-                task = asyncio.create_task(
-                    prev_user.channel.send(Ignored(request=prev_request))
-                )
-                to_ignore.append(task)
-            # Use generators as generators seems to be the fastest.
-            elif any(battery_id in prev_request.batteries for battery_id in batteries):
-                # If that happen PowerDistributingActor has no way to distinguish what
-                # request is more important. This should not happen
-                _logger.error(
-                    "Batteries in two requests overlap! Actor: %s requested %s "
-                    "and Actor: %s requested %s",
-                    user.user_id,
-                    str(request),
-                    prev_user.user_id,
-                    str(prev_request),
-                )
-                good_requests.append((prev_request, prev_user))
-            else:
-                good_requests.append((prev_request, prev_user))
-
-        for good_request in good_requests:
-            self._request_queue.put_nowait(good_request)
-        return to_ignore
-
-    async def _wait_for_request(self, user: _User) -> None:
-        """Wait for the request from user.
-
-        Check if request is correct. If request is not correct send ERROR response
-        to the user. If request is correct, then add it to the main queue to be
-        process.
-
-        Already existing requests for the same subset of batteries will be
-        removed and their users will be notified with a Result.Status.IGNORED response.
-        Only new request will re processed.
-        If the sets of batteries are not the same but they have common elements,
-        then both batteries will be processed.
-
-        Args:
-            user: User that sends the requests.
-        """
-        while True:
-            request: Optional[Request] = await user.channel.receive()
-            if request is None:
-                _logger.info(
-                    "Send channel for user %s was closed. User will be unregistered.",
-                    user.user_id,
-                )
-
-                self._users_channels.pop(user.user_id)
-                if len(self._users_channels) == 0:
-                    _logger.error("No users in PowerDistributingActor!")
-                return
-
-            # Wait for PowerDistributingActor to start.
-            if not self._started.is_set():
-                await self._started.wait()
-
-            # We should discover as fast as possible that request is wrong.
-            error = self._check_request(request)
-            if error is not None:
-                await user.channel.send(error)
-                continue
-
-            tasks = self._remove_duplicated_requests(request, user)
-            if self._request_queue.full():
-                q_size = (self._request_queue.qsize(),)
-                msg = (
-                    f"Request queue is full {q_size}, can't process this request. "
-                    "Consider increasing size of the queue."
-                )
-                _logger.error(msg)
-                await user.channel.send(Error(request=request, msg=str(msg)))
-            else:
-                self._request_queue.put_nowait((request, user))
-                await asyncio.gather(*tasks)
 
     def _get_components_pairs(
         self, component_graph: ComponentGraph
@@ -851,6 +709,5 @@ class PowerDistributingActor:
 
     async def _stop_actor(self) -> None:
         """Stop all running async tasks."""
-        await asyncio.gather(*[cancel_and_await(t) for t in self._users_tasks])
         await self._all_battery_status.stop()
         await self._stop()  # type: ignore # pylint: disable=no-member
