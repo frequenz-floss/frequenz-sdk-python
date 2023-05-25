@@ -760,6 +760,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.power._distribution_algorithm.DistributionAlgorithm.distribute_power_equally" class="md-nav__link">
+    distribute_power_equally()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1120,6 +1127,13 @@
           <li class="md-nav__item">
   <a href="#frequenz.sdk.power._distribution_algorithm.DistributionAlgorithm.distribute_power" class="md-nav__link">
     distribute_power()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.power._distribution_algorithm.DistributionAlgorithm.distribute_power_equally" class="md-nav__link">
+    distribute_power_equally()
   </a>
   
 </li>
@@ -1834,7 +1848,28 @@ total_battery_availability_ratio = sum(battery_availability_ratio)
 <span class="normal">523</span>
 <span class="normal">524</span>
 <span class="normal">525</span>
-<span class="normal">526</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">DistributionAlgorithm</span><span class="p">:</span>
+<span class="normal">526</span>
+<span class="normal">527</span>
+<span class="normal">528</span>
+<span class="normal">529</span>
+<span class="normal">530</span>
+<span class="normal">531</span>
+<span class="normal">532</span>
+<span class="normal">533</span>
+<span class="normal">534</span>
+<span class="normal">535</span>
+<span class="normal">536</span>
+<span class="normal">537</span>
+<span class="normal">538</span>
+<span class="normal">539</span>
+<span class="normal">540</span>
+<span class="normal">541</span>
+<span class="normal">542</span>
+<span class="normal">543</span>
+<span class="normal">544</span>
+<span class="normal">545</span>
+<span class="normal">546</span>
+<span class="normal">547</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">DistributionAlgorithm</span><span class="p">:</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Distribute power between many components.</span>
 
 <span class="sd">    The purpose of this tool is to keep equal SoC level in the batteries.</span>
@@ -2217,6 +2252,27 @@ total_battery_availability_ratio = sum(battery_availability_ratio)
                 <span class="n">remaining_power</span> <span class="o">-=</span> <span class="n">to_add</span>
 
         <span class="k">return</span> <span class="n">DistributionResult</span><span class="p">(</span><span class="n">new_distribution</span><span class="p">,</span> <span class="n">remaining_power</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">distribute_power_equally</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">power</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">inverters</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DistributionResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Distribute the power equally between the inverters in the set.</span>
+
+<span class="sd">        This function is mainly useful to set the power for components that are</span>
+<span class="sd">        broken or have no metrics available.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            power: the power to distribute.</span>
+<span class="sd">            inverters: the inverters to set the power to.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            the power distribution result.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">power_per_inverter</span> <span class="o">=</span> <span class="n">power</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">inverters</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">DistributionResult</span><span class="p">(</span>
+            <span class="n">distribution</span><span class="o">=</span><span class="p">{</span><span class="nb">id</span><span class="p">:</span> <span class="n">power_per_inverter</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">inverters</span><span class="p">},</span>
+            <span class="n">remaining_power</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">distribute_power</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">power</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">InvBatPair</span><span class="p">]</span>
@@ -2859,22 +2915,22 @@ for battery and adjacent inverter.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/power/_distribution_algorithm.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">426</span>
-<span class="normal">427</span>
-<span class="normal">428</span>
-<span class="normal">429</span>
-<span class="normal">430</span>
-<span class="normal">431</span>
-<span class="normal">432</span>
-<span class="normal">433</span>
-<span class="normal">434</span>
-<span class="normal">435</span>
-<span class="normal">436</span>
-<span class="normal">437</span>
-<span class="normal">438</span>
-<span class="normal">439</span>
-<span class="normal">440</span>
-<span class="normal">441</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">distribute_power</span><span class="p">(</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">447</span>
+<span class="normal">448</span>
+<span class="normal">449</span>
+<span class="normal">450</span>
+<span class="normal">451</span>
+<span class="normal">452</span>
+<span class="normal">453</span>
+<span class="normal">454</span>
+<span class="normal">455</span>
+<span class="normal">456</span>
+<span class="normal">457</span>
+<span class="normal">458</span>
+<span class="normal">459</span>
+<span class="normal">460</span>
+<span class="normal">461</span>
+<span class="normal">462</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">distribute_power</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span> <span class="n">power</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">InvBatPair</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DistributionResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Distribute given power between given components.</span>
@@ -2890,6 +2946,125 @@ for battery and adjacent inverter.</p>
     <span class="k">if</span> <span class="n">power</span> <span class="o">&gt;=</span> <span class="mf">0.0</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_distribute_consume_power</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">components</span><span class="p">)</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_distribute_supply_power</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">components</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h6 id="frequenz.sdk.power._distribution_algorithm.DistributionAlgorithm.distribute_power_equally" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">distribute_power_equally</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">inverters</span><span class="p">)</span></code>
+
+<a href="#frequenz.sdk.power._distribution_algorithm.DistributionAlgorithm.distribute_power_equally" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Distribute the power equally between the inverters in the set.</p>
+<p>This function is mainly useful to set the power for components that are
+broken or have no metrics available.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>power</code></td>
+          <td class="doc-param-details">
+            <p>the power to distribute.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>inverters</code></td>
+          <td class="doc-param-details">
+            <p>the inverters to set the power to.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#set">set</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a>]</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-internal" title="frequenz.sdk.power._distribution_algorithm.DistributionResult" href="#frequenz.sdk.power.DistributionResult">DistributionResult</a></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>the power distribution result.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+      <details class="quote">
+        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/power/_distribution_algorithm.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">426</span>
+<span class="normal">427</span>
+<span class="normal">428</span>
+<span class="normal">429</span>
+<span class="normal">430</span>
+<span class="normal">431</span>
+<span class="normal">432</span>
+<span class="normal">433</span>
+<span class="normal">434</span>
+<span class="normal">435</span>
+<span class="normal">436</span>
+<span class="normal">437</span>
+<span class="normal">438</span>
+<span class="normal">439</span>
+<span class="normal">440</span>
+<span class="normal">441</span>
+<span class="normal">442</span>
+<span class="normal">443</span>
+<span class="normal">444</span>
+<span class="normal">445</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">distribute_power_equally</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span> <span class="n">power</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">inverters</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DistributionResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Distribute the power equally between the inverters in the set.</span>
+
+<span class="sd">    This function is mainly useful to set the power for components that are</span>
+<span class="sd">    broken or have no metrics available.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        power: the power to distribute.</span>
+<span class="sd">        inverters: the inverters to set the power to.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        the power distribution result.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">power_per_inverter</span> <span class="o">=</span> <span class="n">power</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">inverters</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">DistributionResult</span><span class="p">(</span>
+        <span class="n">distribution</span><span class="o">=</span><span class="p">{</span><span class="nb">id</span><span class="p">:</span> <span class="n">power_per_inverter</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">inverters</span><span class="p">},</span>
+        <span class="n">remaining_power</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>

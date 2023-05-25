@@ -599,6 +599,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.power_distributing.request.Request.include_broken" class="md-nav__link">
+    include_broken
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#frequenz.sdk.actor.power_distributing.request.Request.power" class="md-nav__link">
     power
   </a>
@@ -1007,6 +1014,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.power_distributing.request.Request.include_broken" class="md-nav__link">
+    include_broken
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#frequenz.sdk.actor.power_distributing.request.Request.power" class="md-nav__link">
     power
   </a>
@@ -1129,7 +1143,18 @@
 <span class="normal">28</span>
 <span class="normal">29</span>
 <span class="normal">30</span>
-<span class="normal">31</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span> <span class="nc">Request</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Request to set power to the `PowerDistributingActor`.&quot;&quot;&quot;</span>
 
@@ -1150,6 +1175,17 @@
 
 <span class="sd">    If `False` and the power is outside the batteries&#39; bounds, the request will</span>
 <span class="sd">    fail and be replied to with an `OutOfBound` result.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">include_broken</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Whether to use all batteries included in the batteries set regardless the status.</span>
+
+<span class="sd">    if `True`, the remaining power after distributing between working batteries</span>
+<span class="sd">    will be distributed equally between broken batteries. Also if all batteries</span>
+<span class="sd">    in the batteries set are broken then the power is distributed equally between</span>
+<span class="sd">    broken batteries.</span>
+
+<span class="sd">    if `False`, the power will be only distributed between the working batteries.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
         </details>
@@ -1207,6 +1243,33 @@ fail and be replied to with an <code>OutOfBound</code> result.</p>
   <div class="doc doc-contents ">
   
       <p>The component ids of the batteries to be used for this request.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.actor.power_distributing.request.Request.include_broken" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">include_broken</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.actor.power_distributing.request.Request.include_broken" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Whether to use all batteries included in the batteries set regardless the status.</p>
+<p>if <code>True</code>, the remaining power after distributing between working batteries
+will be distributed equally between broken batteries. Also if all batteries
+in the batteries set are broken then the power is distributed equally between
+broken batteries.</p>
+<p>if <code>False</code>, the power will be only distributed between the working batteries.</p>
   </div>
 
 </div>
