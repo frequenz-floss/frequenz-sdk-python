@@ -16,6 +16,14 @@ This release drops support for Python versions older than 3.11.
 
 * Now `frequenz.sdk.timeseries.Sample` uses a more sensible comparison.  Before this release `Sample`s were compared only based on the `timestamp`.  This was due to a limitation in Python versions earlier than 3.10.  Now that the minimum supported version is 3.11 this hack is not needed anymore and `Sample`s are compared using both `timestamp` and `value` as most people probably expects.
 
+* `BatteryPool` metric streaming interfaces have changed for `soc`, `capacity` and `power_bounds`:
+
+  ```python
+  soc_rx = battery_pool.soc()    # old
+
+  soc_rx = battery_pool.soc.new_receiver()    # new
+  ```
+
 ## New Features
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->
