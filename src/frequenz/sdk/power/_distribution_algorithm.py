@@ -423,6 +423,27 @@ class DistributionAlgorithm:
 
         return DistributionResult(new_distribution, remaining_power)
 
+    def distribute_power_equally(
+        self, power: float, inverters: set[int]
+    ) -> DistributionResult:
+        """Distribute the power equally between the inverters in the set.
+
+        This function is mainly useful to set the power for components that are
+        broken or have no metrics available.
+
+        Args:
+            power: the power to distribute.
+            inverters: the inverters to set the power to.
+
+        Returns:
+            the power distribution result.
+        """
+        power_per_inverter = power / len(inverters)
+        return DistributionResult(
+            distribution={id: power_per_inverter for id in inverters},
+            remaining_power=0.0,
+        )
+
     def distribute_power(
         self, power: float, components: List[InvBatPair]
     ) -> DistributionResult:

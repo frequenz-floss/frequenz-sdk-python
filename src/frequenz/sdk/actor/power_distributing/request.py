@@ -29,3 +29,14 @@ class Request:
     If `False` and the power is outside the batteries' bounds, the request will
     fail and be replied to with an `OutOfBound` result.
     """
+
+    include_broken: bool = False
+    """Whether to use all batteries included in the batteries set regardless the status.
+
+    if `True`, the remaining power after distributing between working batteries
+    will be distributed equally between broken batteries. Also if all batteries
+    in the batteries set are broken then the power is distributed equally between
+    broken batteries.
+
+    if `False`, the power will be only distributed between the working batteries.
+    """

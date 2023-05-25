@@ -2,10 +2,13 @@
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
 """Tests power distributor"""
+
+from __future__ import annotations
+
 import asyncio
 import re
 from dataclasses import dataclass
-from typing import Set, Tuple, TypeVar
+from typing import TypeVar
 from unittest.mock import AsyncMock, MagicMock
 
 from frequenz.channels import Bidirectional, Broadcast, Receiver, Sender
@@ -48,7 +51,7 @@ class TestPowerDistributingActor:
     # pylint: disable=protected-access
     """Test tool to distribute power"""
 
-    def component_graph(self) -> Tuple[Set[Component], Set[Connection]]:
+    def component_graph(self) -> tuple[set[Component], set[Connection]]:
         """Create graph components
 
         Returns:
@@ -246,7 +249,7 @@ class TestPowerDistributingActor:
 
     async def test_battery_capacity_nan(self, mocker: MockerFixture) -> None:
         # pylint: disable=too-many-locals
-        """Test if power distribution works with single user works."""
+        """Test battery with capacity set to NaN is not used."""
         mock_microgrid = await self.init_mock_microgrid(mocker)
 
         await mock_microgrid.send(
@@ -299,7 +302,7 @@ class TestPowerDistributingActor:
 
     async def test_battery_power_bounds_nan(self, mocker: MockerFixture) -> None:
         # pylint: disable=too-many-locals
-        """Check if missign"""
+        """Test battery with power bounds set to NaN is not used."""
         mock_microgrid = await self.init_mock_microgrid(mocker)
 
         # Battery 206 should work even if his inverter sends NaN
@@ -701,44 +704,283 @@ class TestPowerDistributingActor:
         assert result.request == request
 
     async def test_not_all_batteries_are_working(self, mocker: MockerFixture) -> None:
-        # pylint: disable=too-many-locals
         """Test if power distribution works if not all batteries are working."""
         await self.init_mock_microgrid(mocker)
 
-        channel = Bidirectional[Request, Result]("user1", "power_distributor")
+        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-        request = Request(
-            power=1200.0, batteries={106, 206}, request_timeout_sec=SAFETY_TIMEOUT
-        )
+        batteries = {106, 206}
 
-        attrs = {"get_working_batteries.return_value": request.batteries - {106}}
+        attrs = {"get_working_batteries.return_value": batteries - {106}}
         mocker.patch(
             "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
             return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
         )
 
-        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-
+        channel = Bidirectional[Request, Result]("user1", "power_distributor")
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
         distributor = PowerDistributingActor(
             users_channels={"user1": channel.service_handle},
             battery_status_sender=battery_status_channel.new_sender(),
         )
 
-        client_handle = channel.client_handle
-        await client_handle.send(request)
+        request = Request(
+            power=1200.0, batteries=batteries, request_timeout_sec=SAFETY_TIMEOUT
+        )
+
+        await channel.client_handle.send(request)
 
         done, pending = await asyncio.wait(
-            [asyncio.create_task(client_handle.receive())],
+            [asyncio.create_task(channel.client_handle.receive())],
             timeout=SAFETY_TIMEOUT,
         )
-        await distributor._stop_actor()
 
         assert len(pending) == 0
         assert len(done) == 1
-
         result = done.pop().result()
         assert isinstance(result, Success)
+        assert result.succeeded_batteries == {206}
         assert result.excess_power == approx(700.0)
         assert result.succeeded_power == approx(500.0)
         assert result.request == request
+
+        await distributor._stop_actor()
+
+    async def test_use_all_batteries_none_is_working(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test all batteries are used if none of them works."""
+        await self.init_mock_microgrid(mocker)
+
+        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+
+        attrs: dict[str, set[int]] = {"get_working_batteries.return_value": set()}
+        mocker.patch(
+            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+        )
+
+        channel = Bidirectional[Request, Result]("user1", "power_distributor")
+        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        distributor = PowerDistributingActor(
+            users_channels={"user1": channel.service_handle},
+            battery_status_sender=battery_status_channel.new_sender(),
+        )
+
+        request = Request(
+            power=1200.0,
+            batteries={106, 206},
+            request_timeout_sec=SAFETY_TIMEOUT,
+            include_broken=True,
+        )
+
+        await channel.client_handle.send(request)
+
+        done, pending = await asyncio.wait(
+            [asyncio.create_task(channel.client_handle.receive())],
+            timeout=SAFETY_TIMEOUT,
+        )
+
+        assert len(pending) == 0
+        assert len(done) == 1
+        result = done.pop().result()
+        assert isinstance(result, Success)
+        assert result.succeeded_batteries == {106, 206}
+        assert result.excess_power == approx(200.0)
+        assert result.succeeded_power == approx(1000.0)
+        assert result.request == request
+
+        await distributor._stop_actor()
+
+    async def test_force_request_a_battery_is_not_working(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test force request when a battery is not working."""
+        await self.init_mock_microgrid(mocker)
+
+        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+
+        batteries = {106, 206}
+
+        attrs = {"get_working_batteries.return_value": batteries - {106}}
+        mocker.patch(
+            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+        )
+
+        channel = Bidirectional[Request, Result]("user1", "power_distributor")
+        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        distributor = PowerDistributingActor(
+            {"user1": channel.service_handle},
+            battery_status_sender=battery_status_channel.new_sender(),
+        )
+
+        request = Request(
+            power=1200.0,
+            batteries=batteries,
+            request_timeout_sec=SAFETY_TIMEOUT,
+            include_broken=True,
+        )
+
+        await channel.client_handle.send(request)
+
+        done, pending = await asyncio.wait(
+            [asyncio.create_task(channel.client_handle.receive())],
+            timeout=SAFETY_TIMEOUT,
+        )
+
+        assert len(pending) == 0
+        assert len(done) == 1
+        result = done.pop().result()
+        assert isinstance(result, Success)
+        assert result.succeeded_batteries == {106, 206}
+        assert result.excess_power == approx(200.0)
+        assert result.succeeded_power == approx(1000.0)
+        assert result.request == request
+
+        await distributor._stop_actor()
+
+    async def test_force_request_battery_nan_value_non_cached(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test battery with NaN in SoC, capacity or power is used if request is forced."""
+        mock_microgrid = await self.init_mock_microgrid(mocker)
+
+        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+
+        batteries = {106, 206}
+
+        attrs = {"get_working_batteries.return_value": batteries}
+        mocker.patch(
+            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+        )
+
+        channel = Bidirectional[Request, Result]("user1", "power_distributor")
+        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        distributor = PowerDistributingActor(
+            {"user1": channel.service_handle},
+            battery_status_sender=battery_status_channel.new_sender(),
+        )
+
+        request = Request(
+            power=1200.0,
+            batteries=batteries,
+            request_timeout_sec=SAFETY_TIMEOUT,
+            include_broken=True,
+        )
+
+        batteries_data = (
+            battery_msg(
+                106,
+                soc=Metric(float("NaN"), Bound(20, 80)),
+                capacity=Metric(float("NaN")),
+                power=Bound(-1000, 1000),
+            ),
+            battery_msg(
+                206,
+                soc=Metric(40, Bound(20, 80)),
+                capacity=Metric(float("NaN")),
+                power=Bound(-1000, 1000),
+            ),
+        )
+
+        for battery in batteries_data:
+            await mock_microgrid.send(battery)
+
+        await channel.client_handle.send(request)
+
+        done, pending = await asyncio.wait(
+            [asyncio.create_task(channel.client_handle.receive())],
+            timeout=SAFETY_TIMEOUT,
+        )
+
+        assert len(pending) == 0
+        assert len(done) == 1
+        result: Result = done.pop().result()
+        assert isinstance(result, Success)
+        assert result.succeeded_batteries == batteries
+        assert result.succeeded_power == approx(1199.9999)
+        assert result.excess_power == approx(0.0)
+        assert result.request == request
+
+        await distributor._stop_actor()
+
+    async def test_force_request_batteries_nan_values_cached(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test battery with NaN in SoC, capacity or power is used if request is forced."""
+        mock_microgrid = await self.init_mock_microgrid(mocker)
+
+        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+
+        batteries = {106, 206, 306}
+
+        attrs = {"get_working_batteries.return_value": batteries}
+        mocker.patch(
+            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+        )
+
+        channel = Bidirectional[Request, Result]("user1", "power_distributor")
+        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        distributor = PowerDistributingActor(
+            {"user1": channel.service_handle},
+            battery_status_sender=battery_status_channel.new_sender(),
+        )
+
+        request = Request(
+            power=1200.0,
+            batteries=batteries,
+            request_timeout_sec=SAFETY_TIMEOUT,
+            include_broken=True,
+        )
+
+        async def test_result() -> None:
+            done, pending = await asyncio.wait(
+                [asyncio.create_task(channel.client_handle.receive())],
+                timeout=SAFETY_TIMEOUT,
+            )
+            assert len(pending) == 0
+            assert len(done) == 1
+            result: Result = done.pop().result()
+            assert isinstance(result, Success)
+            assert result.succeeded_batteries == batteries
+            assert result.succeeded_power == approx(1199.9999)
+            assert result.excess_power == approx(0.0)
+            assert result.request == request
+
+        batteries_data = (
+            battery_msg(
+                106,
+                soc=Metric(float("NaN"), Bound(20, 80)),
+                capacity=Metric(98000),
+                power=Bound(-1000, 1000),
+            ),
+            battery_msg(
+                206,
+                soc=Metric(40, Bound(20, 80)),
+                capacity=Metric(float("NaN")),
+                power=Bound(-1000, 1000),
+            ),
+            battery_msg(
+                306,
+                soc=Metric(40, Bound(20, 80)),
+                capacity=Metric(float(98000)),
+                power=Bound(float("NaN"), float("NaN")),
+            ),
+        )
+
+        # This request is needed to set the battery metrics cache to have valid
+        # metrics so that the distribution algorithm can be used in the next
+        # request where the batteries report NaN in the metrics.
+        await channel.client_handle.send(request)
+        await test_result()
+
+        for battery in batteries_data:
+            await mock_microgrid.send(battery)
+
+        await channel.client_handle.send(request)
+        await test_result()
+
+        await distributor._stop_actor()
