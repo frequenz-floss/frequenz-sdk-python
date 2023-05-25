@@ -33,9 +33,9 @@ async def main() -> None:
 
     battery_pool = microgrid.battery_pool()
     receivers: Dict[str, Receiver[Any]] = {
-        "soc": await battery_pool.soc(maxsize=1),
-        "capacity": await battery_pool.capacity(maxsize=1),
-        "power_bounds": await battery_pool.power_bounds(maxsize=1),
+        "soc": battery_pool.soc.new_receiver(maxsize=1),
+        "capacity": battery_pool.capacity.new_receiver(maxsize=1),
+        "power_bounds": battery_pool.power_bounds.new_receiver(maxsize=1),
     }
 
     merged_channel = MergeNamed[Any](**receivers)

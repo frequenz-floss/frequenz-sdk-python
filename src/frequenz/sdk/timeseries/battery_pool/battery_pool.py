@@ -14,7 +14,6 @@ from typing import Any, Awaitable
 from frequenz.channels import Receiver, Sender
 
 from ..._internal._asyncio import cancel_and_await
-from ..._internal._constants import RECEIVER_MAX_SIZE
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...actor.power_distributing._battery_pool_status import BatteryStatus
 from ...microgrid import connection_manager
@@ -25,7 +24,7 @@ from .._formula_engine._formula_generators import (
     FormulaGeneratorConfig,
     FormulaType,
 )
-from ._methods import AggregateMethod, SendOnUpdate
+from ._methods import MetricAggregator, SendOnUpdate
 from ._metric_calculator import CapacityCalculator, PowerBoundsCalculator, SoCCalculator
 from ._result_types import CapacityMetrics, PowerMetrics, SoCMetrics
 
@@ -85,7 +84,7 @@ class BatteryPool:
             )
 
         self._min_update_interval = min_update_interval
-        self._active_methods: dict[str, AggregateMethod[Any]] = {}
+        self._active_methods: dict[str, MetricAggregator[Any]] = {}
 
         self._namespace: str = f"battery-pool-{self._batteries}-{uuid.uuid4()}"
         self._formula_pool: FormulaEnginePool = FormulaEnginePool(
@@ -184,19 +183,19 @@ class BatteryPool:
         assert isinstance(engine, FormulaEngine)
         return engine
 
-    async def soc(
-        self, maxsize: int | None = RECEIVER_MAX_SIZE
-    ) -> Receiver[SoCMetrics | None]:
+    @property
+    def soc(self) -> MetricAggregator[SoCMetrics]:
         """Get receiver to receive new soc metrics when they change.
 
-        Soc formulas are described in the receiver return type.
-        None will be send if there is no component to calculate metric.
+        Soc formulas are described in the receiver return type.  None will be send if
+        there is no component to calculate metric.
 
-        Args:
-            maxsize: Maxsize of the receiver channel.
+        A receiver from the MetricAggregator can be obtained by calling the
+        `new_receiver` method.
 
         Returns:
-            Receiver for this metric.
+            A MetricAggregator that will calculate and stream the aggregate soc of
+                all batteries in the pool.
         """
         method_name = SendOnUpdate.name() + "_" + SoCCalculator.name()
 
@@ -208,22 +207,21 @@ class BatteryPool:
                 min_update_interval=self._min_update_interval,
             )
 
-        running_method = self._active_methods[method_name]
-        return running_method.new_receiver(maxsize)
+        return self._active_methods[method_name]
 
-    async def capacity(
-        self, maxsize: int | None = RECEIVER_MAX_SIZE
-    ) -> Receiver[CapacityMetrics | None]:
+    @property
+    def capacity(self) -> MetricAggregator[CapacityMetrics]:
         """Get receiver to receive new capacity metrics when they change.
 
-        Capacity formulas are described in the receiver return type.
-        None will be send if there is no component to calculate metrics.
+        Capacity formulas are described in the receiver return type.  None will be send
+        if there is no component to calculate metrics.
 
-        Args:
-            maxsize: Maxsize of the receiver channel.
+        A receiver from the MetricAggregator can be obtained by calling the
+        `new_receiver` method.
 
         Returns:
-            Receiver for this metric.
+            A MetricAggregator that will calculate and stream the capacity of all
+                batteries in the pool.
         """
         method_name = SendOnUpdate.name() + "_" + CapacityCalculator.name()
 
@@ -235,22 +233,21 @@ class BatteryPool:
                 min_update_interval=self._min_update_interval,
             )
 
-        running_method = self._active_methods[method_name]
-        return running_method.new_receiver(maxsize)
+        return self._active_methods[method_name]
 
-    async def power_bounds(
-        self, maxsize: int | None = RECEIVER_MAX_SIZE
-    ) -> Receiver[PowerMetrics | None]:
+    @property
+    def power_bounds(self) -> MetricAggregator[PowerMetrics]:
         """Get receiver to receive new power bounds when they change.
 
         Power bounds formulas are described in the receiver return type.
         None will be send if there is no component to calculate metrics.
 
-        Args:
-            maxsize: Maxsize of the receivers channel.
+        A receiver from the MetricAggregator can be obtained by calling the
+        `new_receiver` method.
 
         Returns:
-            Receiver for this metric.
+            A MetricAggregator that will calculate and stream the power bounds
+                of all batteries in the pool.
         """
         method_name = SendOnUpdate.name() + "_" + PowerBoundsCalculator.name()
 
@@ -262,8 +259,7 @@ class BatteryPool:
                 min_update_interval=self._min_update_interval,
             )
 
-        running_method = self._active_methods[method_name]
-        return running_method.new_receiver(maxsize)
+        return self._active_methods[method_name]
 
     async def stop(self) -> None:
         """Stop all pending async tasks."""

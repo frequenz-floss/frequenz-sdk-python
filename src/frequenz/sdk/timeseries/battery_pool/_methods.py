@@ -13,7 +13,7 @@ from typing import Generic, Optional
 from frequenz.channels import Broadcast, Receiver
 
 from ..._internal._asyncio import cancel_and_await
-from ..._internal._constants import WAIT_FOR_COMPONENT_DATA_SEC
+from ..._internal._constants import RECEIVER_MAX_SIZE, WAIT_FOR_COMPONENT_DATA_SEC
 from ._component_metric_fetcher import (
     ComponentMetricFetcher,
     LatestBatteryMetricsFetcher,
@@ -25,7 +25,7 @@ from ._metric_calculator import MetricCalculator, T, battery_inverter_mapping
 _logger = logging.getLogger(__name__)
 
 
-class AggregateMethod(Generic[T], ABC):
+class MetricAggregator(Generic[T], ABC):
     """Interface to control how the component data should be aggregated and send."""
 
     @abstractmethod
@@ -37,7 +37,9 @@ class AggregateMethod(Generic[T], ABC):
         """
 
     @abstractmethod
-    def new_receiver(self, maxsize: int | None) -> Receiver[T | None]:
+    def new_receiver(
+        self, maxsize: int | None = RECEIVER_MAX_SIZE
+    ) -> Receiver[T | None]:
         """Return new receiver for the aggregated metric results.
 
         Args:
@@ -61,7 +63,7 @@ class AggregateMethod(Generic[T], ABC):
         """
 
 
-class SendOnUpdate(AggregateMethod[T]):
+class SendOnUpdate(MetricAggregator[T]):
     """Wait for the change of the components metrics and send updated result.
 
     This method will cache the component metrics. When any metric change it will
@@ -110,7 +112,9 @@ class SendOnUpdate(AggregateMethod[T]):
         """
         return "SendOnUpdate"
 
-    def new_receiver(self, maxsize: int | None) -> Receiver[T | None]:
+    def new_receiver(
+        self, maxsize: int | None = RECEIVER_MAX_SIZE
+    ) -> Receiver[T | None]:
         """Return new receiver for the aggregated metric results.
 
         Args:

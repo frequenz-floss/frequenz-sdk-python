@@ -500,7 +500,7 @@ async def run_capacity_test(setup_args: SetupArgs) -> None:
             sampling_rate=0.05,
         )
 
-    capacity_receiver = await battery_pool.capacity(maxsize=50)
+    capacity_receiver = battery_pool.capacity.new_receiver(maxsize=50)
 
     # First metrics delivers slower because of the startup delay in the pool.
     msg = await asyncio.wait_for(
@@ -633,7 +633,7 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
             sampling_rate=0.05,
         )
 
-    receiver = await battery_pool.soc(maxsize=50)
+    receiver = battery_pool.soc.new_receiver(maxsize=50)
 
     # First metrics delivers slower because of the startup delay in the pool.
     msg = await asyncio.wait_for(
@@ -775,7 +775,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
             sampling_rate=0.1,
         )
 
-    receiver = await battery_pool.power_bounds(maxsize=50)
+    receiver = battery_pool.power_bounds.new_receiver(maxsize=50)
 
     # First metrics delivers slower because of the startup delay in the pool.
     msg = await asyncio.wait_for(
