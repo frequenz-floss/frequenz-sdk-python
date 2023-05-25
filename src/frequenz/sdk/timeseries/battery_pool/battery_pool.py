@@ -13,8 +13,11 @@ from typing import Any, Awaitable
 
 from frequenz.channels import Receiver, Sender
 
+from frequenz.sdk.actor.power_distributing.result import Result
+
 from ..._internal._asyncio import cancel_and_await
 from ...actor import ChannelRegistry, ComponentMetricRequest
+from ...actor.power_distributing import Request
 from ...actor.power_distributing._battery_pool_status import BatteryStatus
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory
@@ -41,6 +44,7 @@ class BatteryPool:
         channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         batteries_status_receiver: Receiver[BatteryStatus],
+        power_distributing_sender: Sender[Request],
         min_update_interval: timedelta,
         batteries_id: Set[int] | None = None,
     ) -> None:
@@ -57,6 +61,8 @@ class BatteryPool:
                 It should send information when any battery changed status.
                 Battery status should include status of the inverter adjacent to this
                 battery.
+            power_distributing_sender: A Channel sender for sending power requests to
+                the power distributing actor.
             min_update_interval: Some metrics in BatteryPool are send only when they
                 change. For these metrics min_update_interval is the minimum time
                 interval between the following messages.
@@ -84,14 +90,143 @@ class BatteryPool:
             )
 
         self._min_update_interval = min_update_interval
+
+        self._power_distributing_sender = power_distributing_sender
         self._active_methods: dict[str, MetricAggregator[Any]] = {}
 
         self._namespace: str = f"battery-pool-{self._batteries}-{uuid.uuid4()}"
+        self._power_distributing_namespace: str = f"power-distributor-{self._namespace}"
+        self._channel_registry: ChannelRegistry = channel_registry
         self._formula_pool: FormulaEnginePool = FormulaEnginePool(
             self._namespace,
             channel_registry,
             resampler_subscription_sender,
         )
+
+    async def set_power(
+        self,
+        power: float,
+        *,
+        adjust_power: bool = True,
+        request_timeout: timedelta = timedelta(seconds=5.0),
+        include_broken_batteries: bool = False,
+    ) -> None:
+        """Set the given power for the batteries in the pool.
+
+        Power values need to follow the Passive Sign Convention (PSC). That is, positive
+        values indicate charge power and negative values indicate discharge power.
+
+        When not using the Passive Sign Convention, the `charge` and `discharge` methods
+        might be more convenient.
+
+        Args:
+            power: The power to set for the batteries in the pool.
+            adjust_power: If True, the power will be adjusted to fit the power bounds,
+                if necessary. If False, then power requests outside the bounds will be
+                rejected.
+            request_timeout: The timeout for the request.
+            include_broken_batteries: if True, the power will be set for all batteries
+                in the pool, including the broken ones. If False, then the power will be
+                set only for the working batteries.  This is not a guarantee that the
+                power will be set for all working batteries, as the microgrid API may
+                still reject the request.
+        """
+        await self._power_distributing_sender.send(
+            Request(
+                namespace=self._power_distributing_namespace,
+                power=power,
+                batteries=self._batteries,
+                adjust_power=adjust_power,
+                request_timeout_sec=request_timeout.total_seconds(),
+                include_broken_batteries=include_broken_batteries,
+            )
+        )
+
+    async def charge(
+        self,
+        power: float,
+        *,
+        adjust_power: bool = True,
+        request_timeout: timedelta = timedelta(seconds=5.0),
+        include_broken_batteries: bool = False,
+    ) -> None:
+        """Set the given charge power for the batteries in the pool.
+
+        Power values need to be positive values, indicating charge power.
+
+        When using the Passive Sign Convention, the `set_power` method might be more
+        convenient.
+
+        Args:
+            power: Unsigned charge power to set for the batteries in the pool.
+            adjust_power: If True, the power will be adjusted to fit the power bounds,
+                if necessary. If False, then power requests outside the bounds will be
+                rejected.
+            request_timeout: The timeout for the request.
+            include_broken_batteries: if True, the power will be set for all batteries
+                in the pool, including the broken ones. If False, then the power will be
+                set only for the working batteries.  This is not a guarantee that the
+                power will be set for all working batteries, as the microgrid API may
+                still reject the request.
+
+        Raises:
+            ValueError: If the given power is negative.
+        """
+        if power < 0.0:
+            raise ValueError("Charge power must be positive.")
+        await self.set_power(
+            power,
+            adjust_power=adjust_power,
+            request_timeout=request_timeout,
+            include_broken_batteries=include_broken_batteries,
+        )
+
+    async def discharge(
+        self,
+        power: float,
+        *,
+        adjust_power: bool = True,
+        request_timeout: timedelta = timedelta(seconds=5.0),
+        include_broken_batteries: bool = False,
+    ) -> None:
+        """Set the given discharge power for the batteries in the pool.
+
+        Power values need to be positive values, indicating discharge power.
+
+        When using the Passive Sign Convention, the `set_power` method might be more
+        convenient.
+
+        Args:
+            power: Unsigned discharge power to set for the batteries in the pool.
+            adjust_power: If True, the power will be adjusted to fit the power bounds,
+                if necessary. If False, then power requests outside the bounds will be
+                rejected.
+            request_timeout: The timeout for the request.
+            include_broken_batteries: if True, the power will be set for all batteries
+                in the pool, including the broken ones. If False, then the power will be
+                set only for the working batteries.  This is not a guarantee that the
+                power will be set for all working batteries, as the microgrid API may
+                still reject the request.
+
+        Raises:
+            ValueError: If the given power is negative.
+        """
+        if power < 0.0:
+            raise ValueError("Discharge power must be positive.")
+        await self.set_power(
+            -power,
+            adjust_power=adjust_power,
+            request_timeout=request_timeout,
+            include_broken_batteries=include_broken_batteries,
+        )
+
+    def power_distribution_results(self) -> Receiver[Result]:
+        """Return a receiver for the power distribution results.
+
+        Returns:
+            A receiver for the power distribution results.
+        """
+        return self._channel_registry.new_receiver(self._power_distributing_namespace)
 
     @property
     def battery_ids(self) -> Set[int]:
