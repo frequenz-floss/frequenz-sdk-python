@@ -7,14 +7,13 @@ import asyncio
 import csv
 import random
 import timeit
-from dataclasses import dataclass
 from datetime import timedelta
 from typing import Any, Coroutine, Dict, List, Set  # pylint: disable=unused-import
 
-from frequenz.channels import Bidirectional, Broadcast
+from frequenz.channels import Broadcast
 
 from frequenz.sdk import microgrid
-from frequenz.sdk.actor import ResamplerConfig
+from frequenz.sdk.actor import ChannelRegistry, ResamplerConfig
 from frequenz.sdk.actor.power_distributing import (
     BatteryStatus,
     Error,
@@ -32,15 +31,7 @@ HOST = "microgrid.sandbox.api.frequenz.io"
 PORT = 61060
 
 
-@dataclass
-class User:
-    """User definition."""
-
-    user_id: str
-    channel: Bidirectional.Handle[Request, Result]
-
-
-async def run_user(user: User, batteries: Set[int], request_num: int) -> List[Result]:
+async def send_requests(batteries: Set[int], request_num: int) -> List[Result]:
     """Send requests to the PowerDistributingActor and wait for the response.
 
     Args:
@@ -54,15 +45,15 @@ async def run_user(user: User, batteries: Set[int], request_num: int) -> List[Re
     Returns:
         List of the results from the PowerDistributingActor.
     """
+    battery_pool = microgrid.battery_pool(batteries)
+    results_rx = battery_pool.power_distribution_results()
     result: List[Result] = []
     for _ in range(request_num):
-        await user.channel.send(
-            Request(power=float(random.randrange(100000, 1000000)), batteries=batteries)
-        )
+        await battery_pool.set_power(float(random.randrange(100000, 1000000)))
         try:
-            output = await asyncio.wait_for(user.channel.receive(), timeout=3)
+            output = await asyncio.wait_for(results_rx.receive(), timeout=3)
             if output is None:
-                raise SystemError(f"Channel for {user.user_id} closed!")
+                raise SystemError(f"Power response channel for {battery_pool} closed!")
             result.append(output)
         except asyncio.exceptions.TimeoutError:
             print("TIMEOUT ERROR")
@@ -99,15 +90,13 @@ def parse_result(result: List[List[Result]]) -> Dict[str, float]:
 
 
 async def run_test(  # pylint: disable=too-many-locals
-    users_num: int,
-    requests_per_user: int,
+    num_requests: int,
     batteries: Set[int],
 ) -> Dict[str, Any]:
     """Run test.
 
     Args:
-        users_num: Number of users to register
-        requests_per_user: How many request user should send.
+        num_requests: Number of requests to send.
         batteries: Set of batteries for each request.
 
     Returns:
@@ -115,25 +104,17 @@ async def run_test(  # pylint: disable=too-many-locals
     """
     start = timeit.default_timer()
 
-    channels: Dict[str, Bidirectional[Request, Result]] = {
-        str(user_id): Bidirectional[Request, Result](str(user_id), "power_distributor")
-        for user_id in range(users_num)
-    }
-
-    service_channels = {
-        user_id: channel.service_handle for user_id, channel in channels.items()
-    }
-
+    power_request_channel = Broadcast[Request]("power-request")
     battery_status_channel = Broadcast[BatteryStatus]("battery-status")
-
+    channel_registry = ChannelRegistry(name="power_distributor")
     distributor = PowerDistributingActor(
-        service_channels, battery_status_sender=battery_status_channel.new_sender()
+        channel_registry=channel_registry,
+        requests_receiver=power_request_channel.new_receiver(),
+        battery_status_sender=battery_status_channel.new_sender(),
     )
 
     tasks: List[Coroutine[Any, Any, List[Result]]] = []
-    for user_id, channel in channels.items():
-        user = User(user_id, channel.client_handle)
-        tasks.append(run_user(user, batteries, requests_per_user))
+    tasks.append(send_requests(batteries, num_requests))
 
     result = await asyncio.gather(*tasks)
     exec_time = timeit.default_timer() - start
@@ -141,8 +122,7 @@ async def run_test(  # pylint: disable=too-many-locals
     await distributor._stop()  # type: ignore # pylint: disable=no-member, protected-access
 
     summary = parse_result(result)
-    summary["users_num"] = users_num
-    summary["requests_per_user"] = requests_per_user
+    summary["num_requests"] = num_requests
     summary["batteries_num"] = len(batteries)
     summary["exec_time"] = exec_time
     return summary
@@ -163,12 +143,11 @@ async def run() -> None:
     # Take some time to get data from components
     await asyncio.sleep(4)
     with open("/dev/stdout", "w", encoding="utf-8") as csvfile:
-        fields = await run_test(0, 0, batteries_ids)
+        fields = await run_test(0, batteries_ids)
         out = csv.DictWriter(csvfile, fields.keys())
         out.writeheader()
-        out.writerow(await run_test(1, 1, batteries_ids))
-        out.writerow(await run_test(1, 10, batteries_ids))
-        out.writerow(await run_test(10, 10, batteries_ids))
+        out.writerow(await run_test(1, batteries_ids))
+        out.writerow(await run_test(10, batteries_ids))
 
 
 async def main() -> None:
