@@ -7,14 +7,14 @@ from __future__ import annotations
 
 import asyncio
 import re
-from dataclasses import dataclass
 from typing import TypeVar
 from unittest.mock import AsyncMock, MagicMock
 
-from frequenz.channels import Bidirectional, Broadcast, Receiver, Sender
+from frequenz.channels import Broadcast
 from pytest import approx
 from pytest_mock import MockerFixture
 
+from frequenz.sdk.actor import ChannelRegistry
 from frequenz.sdk.actor.power_distributing import (
     BatteryStatus,
     PowerDistributingActor,
@@ -23,7 +23,6 @@ from frequenz.sdk.actor.power_distributing import (
 from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
 from frequenz.sdk.actor.power_distributing.result import (
     Error,
-    Ignored,
     OutOfBound,
     Result,
     Success,
@@ -38,18 +37,11 @@ from ..utils.mock_microgrid_client import MockMicrogridClient
 T = TypeVar("T")  # Declare type variable
 
 
-@dataclass
-class User:
-    """User definition."""
-
-    user_id: str
-    sender: Sender[Request]
-    receiver: Receiver[Result]
-
-
 class TestPowerDistributingActor:
     # pylint: disable=protected-access
     """Test tool to distribute power"""
+
+    _namespace = "power_distributor"
 
     def component_graph(self) -> tuple[set[Component], set[Connection]]:
         """Create graph components
@@ -100,10 +92,12 @@ class TestPowerDistributingActor:
             return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
         )
 
-        channel = Bidirectional[Request, Result]("user1", "power_distributor")
+        channel = Broadcast[Request]("power_distributor")
+        channel_registry = ChannelRegistry(name="power_distributor")
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
         distributor = PowerDistributingActor(
-            {"user1": channel.service_handle},
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
         )
 
@@ -148,9 +142,11 @@ class TestPowerDistributingActor:
         """Test if power distribution works with single user works."""
         await self.init_mock_microgrid(mocker)
 
-        channel = Bidirectional[Request, Result]("user1", "power_distributor")
+        channel = Broadcast[Request]("power_distributor")
+        channel_registry = ChannelRegistry(name="power_distributor")
 
         request = Request(
+            namespace=self._namespace,
             power=1200.0,
             batteries={106, 206},
             request_timeout_sec=SAFETY_TIMEOUT,
@@ -165,15 +161,16 @@ class TestPowerDistributingActor:
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
         distributor = PowerDistributingActor(
-            {"user1": channel.service_handle},
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
         )
 
-        client_handle = channel.client_handle
-        await client_handle.send(request)
+        await channel.new_sender().send(request)
+        result_rx = channel_registry.new_receiver(self._namespace)
 
         done, pending = await asyncio.wait(
-            [asyncio.create_task(client_handle.receive())],
+            [asyncio.create_task(result_rx.receive())],
             timeout=SAFETY_TIMEOUT,
         )
         await distributor._stop_actor()
@@ -201,9 +198,11 @@ class TestPowerDistributingActor:
             )
         )
 
-        channel = Bidirectional[Request, Result]("user1", "power_distributor")
+        channel = Broadcast[Request]("power_distributor")
+        channel_registry = ChannelRegistry(name="power_distributor")
 
         request = Request(
+            namespace=self._namespace,
             power=1200.0,
             batteries={106, 206},
             request_timeout_sec=SAFETY_TIMEOUT,
@@ -218,7 +217,8 @@ class TestPowerDistributingActor:
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
         distributor = PowerDistributingActor(
-            {"user1": channel.service_handle},
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
         )
 
@@ -228,11 +228,11 @@ class TestPowerDistributingActor:
             return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
         )
 
-        client_handle = channel.client_handle
-        await client_handle.send(request)
+        await channel.new_sender().send(request)
+        result_rx = channel_registry.new_receiver(self._namespace)
 
         done, pending = await asyncio.wait(
-            [asyncio.create_task(client_handle.receive())],
+            [asyncio.create_task(result_rx.receive())],
             timeout=SAFETY_TIMEOUT,
         )
         await distributor._stop_actor()
@@ -261,9 +261,11 @@ class TestPowerDistributingActor:
             )
         )
 
-        channel = Bidirectional[Request, Result]("user1", "power_distributor")
+        channel = Broadcast[Request]("power_distributor")
+        channel_registry = ChannelRegistry(name="power_distributor")
 
         request = Request(
+            namespace=self._namespace,
             power=1200.0,
             batteries={106, 206},
             request_timeout_sec=SAFETY_TIMEOUT,
@@ -277,15 +279,16 @@ class TestPowerDistributingActor:
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
         distributor = PowerDistributingActor(
-            {"user1": channel.service_handle},
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
         )
 
-        client_handle = channel.client_handle
-        await client_handle.send(request)
+        await channel.new_sender().send(request)
+        result_rx = channel_registry.new_receiver(self._namespace)
 
         done, pending = await asyncio.wait(
-            [asyncio.create_task(client_handle.receive())],
+            [asyncio.create_task(result_rx.receive())],
             timeout=SAFETY_TIMEOUT,
         )
         await distributor._stop_actor()
@@ -330,9 +333,11 @@ class TestPowerDistributingActor:
             )
         )
 
-        channel = Bidirectional[Request, Result]("user1", "power_distributor")
+        channel = Broadcast[Request]("power_distributor")
+        channel_registry = ChannelRegistry(name="power_distributor")
 
         request = Request(
+            namespace=self._namespace,
             power=1200.0,
             batteries={106, 206},
             request_timeout_sec=SAFETY_TIMEOUT,
@@ -346,15 +351,16 @@ class TestPowerDistributingActor:
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
         distributor = PowerDistributingActor(
-            {"user1": channel.service_handle},
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
         )
 
-        client_handle = channel.client_handle
-        await client_handle.send(request)
+        await channel.new_sender().send(request)
+        result_rx = channel_registry.new_receiver(self._namespace)
 
         done, pending = await asyncio.wait(
-            [asyncio.create_task(client_handle.receive())],
+            [asyncio.create_task(result_rx.receive())],
             timeout=SAFETY_TIMEOUT,
         )
         await distributor._stop_actor()
@@ -376,13 +382,13 @@ class TestPowerDistributingActor:
         """Test if power distribution raises error if any battery id is invalid."""
         await self.init_mock_microgrid(mocker)
 
-        channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
-        service_channels = {
-            "user1": channel1.service_handle,
-        }
-
+        channel = Broadcast[Request]("power_distributor")
+        channel_registry = ChannelRegistry(name="power_distributor")
         request = Request(
-            power=1200.0, batteries={106, 208}, request_timeout_sec=SAFETY_TIMEOUT
+            namespace=self._namespace,
+            power=1200.0,
+            batteries={106, 208},
+            request_timeout_sec=SAFETY_TIMEOUT,
         )
 
         attrs = {"get_working_batteries.return_value": request.batteries}
@@ -394,15 +400,16 @@ class TestPowerDistributingActor:
 
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
         distributor = PowerDistributingActor(
-            users_channels=service_channels,
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
         )
 
-        user1_handle = channel1.client_handle
-        await user1_handle.send(request)
+        await channel.new_sender().send(request)
+        result_rx = channel_registry.new_receiver(self._namespace)
 
         done, _ = await asyncio.wait(
-            [asyncio.create_task(user1_handle.receive())],
+            [asyncio.create_task(result_rx.receive())],
             timeout=SAFETY_TIMEOUT,
         )
         await distributor._stop_actor()
@@ -421,12 +428,11 @@ class TestPowerDistributingActor:
         """Test if power distribution works with single user works."""
         await self.init_mock_microgrid(mocker)
 
-        channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
-        service_channels = {
-            "user1": channel1.service_handle,
-        }
+        channel = Broadcast[Request]("power_distributor")
+        channel_registry = ChannelRegistry(name="power_distributor")
 
         request = Request(
+            namespace=self._namespace,
             power=1200.0,
             batteries={106, 206},
             request_timeout_sec=SAFETY_TIMEOUT,
@@ -443,15 +449,16 @@ class TestPowerDistributingActor:
 
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
         distributor = PowerDistributingActor(
-            users_channels=service_channels,
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
         )
 
-        user1_handle = channel1.client_handle
-        await user1_handle.send(request)
+        await channel.new_sender().send(request)
+        result_rx = channel_registry.new_receiver(self._namespace)
 
         done, pending = await asyncio.wait(
-            [asyncio.create_task(user1_handle.receive())],
+            [asyncio.create_task(result_rx.receive())],
             timeout=SAFETY_TIMEOUT,
         )
         await distributor._stop_actor()
@@ -472,12 +479,11 @@ class TestPowerDistributingActor:
         """Test if power distribution works with single user works."""
         await self.init_mock_microgrid(mocker)
 
-        channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
-        service_channels = {
-            "user1": channel1.service_handle,
-        }
+        channel = Broadcast[Request]("power_distributor")
+        channel_registry = ChannelRegistry(name="power_distributor")
 
         request = Request(
+            namespace=self._namespace,
             power=-1200.0,
             batteries={106, 206},
             request_timeout_sec=SAFETY_TIMEOUT,
@@ -494,15 +500,16 @@ class TestPowerDistributingActor:
 
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
         distributor = PowerDistributingActor(
-            users_channels=service_channels,
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
         )
 
-        user1_handle = channel1.client_handle
-        await user1_handle.send(request)
+        await channel.new_sender().send(request)
+        result_rx = channel_registry.new_receiver(self._namespace)
 
         done, pending = await asyncio.wait(
-            [asyncio.create_task(user1_handle.receive())],
+            [asyncio.create_task(result_rx.receive())],
             timeout=SAFETY_TIMEOUT,
         )
         await distributor._stop_actor()
@@ -523,12 +530,11 @@ class TestPowerDistributingActor:
         """Test if power distribution works with single user works."""
         await self.init_mock_microgrid(mocker)
 
-        channel1 = Bidirectional[Request, Result]("user1", "power_distributor")
-        service_channels = {
-            "user1": channel1.service_handle,
-        }
+        channel = Broadcast[Request]("power_distributor")
+        channel_registry = ChannelRegistry(name="power_distributor")
 
         request = Request(
+            namespace=self._namespace,
             power=1000.0,
             batteries={106, 206},
             request_timeout_sec=SAFETY_TIMEOUT,
@@ -545,15 +551,16 @@ class TestPowerDistributingActor:
 
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
         distributor = PowerDistributingActor(
-            users_channels=service_channels,
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
         )
 
-        user1_handle = channel1.client_handle
-        await user1_handle.send(request)
+        await channel.new_sender().send(request)
+        result_rx = channel_registry.new_receiver(self._namespace)
 
         done, pending = await asyncio.wait(
-            [asyncio.create_task(user1_handle.receive())],
+            [asyncio.create_task(result_rx.receive())],
             timeout=SAFETY_TIMEOUT,
         )
         await distributor._stop_actor()
@@ -581,21 +588,27 @@ class TestPowerDistributingActor:
             return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
         )
 
-        channel = Bidirectional[Request, Result]("user1", "power_distributor")
+        channel = Broadcast[Request]("power_distributor")
+        channel_registry = ChannelRegistry(name="power_distributor")
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
         distributor = PowerDistributingActor(
-            users_channels={"user1": channel.service_handle},
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
         )
 
         request = Request(
-            power=1200.0, batteries=batteries, request_timeout_sec=SAFETY_TIMEOUT
+            namespace=self._namespace,
+            power=1200.0,
+            batteries=batteries,
+            request_timeout_sec=SAFETY_TIMEOUT,
         )
 
-        await channel.client_handle.send(request)
+        await channel.new_sender().send(request)
+        result_rx = channel_registry.new_receiver(self._namespace)
 
         done, pending = await asyncio.wait(
-            [asyncio.create_task(channel.client_handle.receive())],
+            [asyncio.create_task(result_rx.receive())],
             timeout=SAFETY_TIMEOUT,
         )
 
@@ -624,24 +637,28 @@ class TestPowerDistributingActor:
             return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
         )
 
-        channel = Bidirectional[Request, Result]("user1", "power_distributor")
+        channel = Broadcast[Request]("power_distributor")
+        channel_registry = ChannelRegistry(name="power_distributor")
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
         distributor = PowerDistributingActor(
-            users_channels={"user1": channel.service_handle},
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
         )
 
         request = Request(
+            namespace=self._namespace,
             power=1200.0,
             batteries={106, 206},
             request_timeout_sec=SAFETY_TIMEOUT,
-            include_broken=True,
+            include_broken_batteries=True,
         )
 
-        await channel.client_handle.send(request)
+        await channel.new_sender().send(request)
+        result_rx = channel_registry.new_receiver(self._namespace)
 
         done, pending = await asyncio.wait(
-            [asyncio.create_task(channel.client_handle.receive())],
+            [asyncio.create_task(result_rx.receive())],
             timeout=SAFETY_TIMEOUT,
         )
 
@@ -672,24 +689,28 @@ class TestPowerDistributingActor:
             return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
         )
 
-        channel = Bidirectional[Request, Result]("user1", "power_distributor")
+        channel = Broadcast[Request]("power_distributor")
+        channel_registry = ChannelRegistry(name="power_distributor")
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
         distributor = PowerDistributingActor(
-            {"user1": channel.service_handle},
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
         )
 
         request = Request(
+            namespace=self._namespace,
             power=1200.0,
             batteries=batteries,
             request_timeout_sec=SAFETY_TIMEOUT,
-            include_broken=True,
+            include_broken_batteries=True,
         )
 
-        await channel.client_handle.send(request)
+        await channel.new_sender().send(request)
+        result_rx = channel_registry.new_receiver(self._namespace)
 
         done, pending = await asyncio.wait(
-            [asyncio.create_task(channel.client_handle.receive())],
+            [asyncio.create_task(result_rx.receive())],
             timeout=SAFETY_TIMEOUT,
         )
 
@@ -704,6 +725,7 @@ class TestPowerDistributingActor:
 
         await distributor._stop_actor()
 
+    # pylint: disable=too-many-locals
     async def test_force_request_battery_nan_value_non_cached(
         self, mocker: MockerFixture
     ) -> None:
@@ -720,18 +742,21 @@ class TestPowerDistributingActor:
             return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
         )
 
-        channel = Bidirectional[Request, Result]("user1", "power_distributor")
+        channel = Broadcast[Request]("power_distributor")
+        channel_registry = ChannelRegistry(name="power_distributor")
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
         distributor = PowerDistributingActor(
-            {"user1": channel.service_handle},
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
         )
 
         request = Request(
+            namespace=self._namespace,
             power=1200.0,
             batteries=batteries,
             request_timeout_sec=SAFETY_TIMEOUT,
-            include_broken=True,
+            include_broken_batteries=True,
         )
 
         batteries_data = (
@@ -752,10 +777,11 @@ class TestPowerDistributingActor:
         for battery in batteries_data:
             await mock_microgrid.send(battery)
 
-        await channel.client_handle.send(request)
+        await channel.new_sender().send(request)
+        result_rx = channel_registry.new_receiver(self._namespace)
 
         done, pending = await asyncio.wait(
-            [asyncio.create_task(channel.client_handle.receive())],
+            [asyncio.create_task(result_rx.receive())],
             timeout=SAFETY_TIMEOUT,
         )
 
@@ -786,23 +812,28 @@ class TestPowerDistributingActor:
             return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
         )
 
-        channel = Bidirectional[Request, Result]("user1", "power_distributor")
+        channel = Broadcast[Request]("power_distributor")
+        channel_registry = ChannelRegistry(name="power_distributor")
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
         distributor = PowerDistributingActor(
-            {"user1": channel.service_handle},
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
         )
 
         request = Request(
+            namespace=self._namespace,
             power=1200.0,
             batteries=batteries,
             request_timeout_sec=SAFETY_TIMEOUT,
-            include_broken=True,
+            include_broken_batteries=True,
         )
+
+        result_rx = channel_registry.new_receiver(self._namespace)
 
         async def test_result() -> None:
             done, pending = await asyncio.wait(
-                [asyncio.create_task(channel.client_handle.receive())],
+                [asyncio.create_task(result_rx.receive())],
                 timeout=SAFETY_TIMEOUT,
             )
             assert len(pending) == 0
@@ -838,13 +869,13 @@ class TestPowerDistributingActor:
         # This request is needed to set the battery metrics cache to have valid
         # metrics so that the distribution algorithm can be used in the next
         # request where the batteries report NaN in the metrics.
-        await channel.client_handle.send(request)
+        await channel.new_sender().send(request)
         await test_result()
 
         for battery in batteries_data:
             await mock_microgrid.send(battery)
 
-        await channel.client_handle.send(request)
+        await channel.new_sender().send(request)
         await test_result()
 
         await distributor._stop_actor()
