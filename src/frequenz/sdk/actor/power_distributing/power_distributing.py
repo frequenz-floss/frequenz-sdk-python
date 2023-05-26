@@ -139,27 +139,28 @@ class PowerDistributingActor:
 
         battery_status_channel = Broadcast[BatteryStatus]("battery-status")
 
-        channel = Bidirectional[Request, Result]("user1", "power_distributor")
+        channel = Broadcast[Request]("power_distributor")
+        channel_registry = ChannelRegistry(name="power_distributor")
         power_distributor = PowerDistributingActor(
-            users_channels={"user1": channel.service_handle},
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
         )
 
-        # Start the actor
-        await actor.run(power_distributor)
-
-        client_handle = channel.client_handle
-
+        sender = channel.new_sender()
+        namespace: str = "namespace"
         # Set power 1200W to given batteries.
-        request = Request(power=1200.0, batteries=batteries_ids, request_timeout_sec=10.0)
-        await client_handle.send(request)
-
-        # Set power 1200W to given batteries.
-        request = Request(power=1200, batteries=batteries_ids, request_timeout_sec=10.0)
-        await client_handle.send(request)
+        request = Request(
+            namespace=namespace,
+            power=1200.0,
+            batteries=batteries_ids,
+            request_timeout_sec=10.0
+        )
+        await sender.send(request)
+        result_rx = channel_registry.new_receiver(namespace)
 
         # It is recommended to use timeout when waiting for the response!
-        result: Result = await asyncio.wait_for(client_handle.receive(), timeout=10)
+        result: Result = await asyncio.wait_for(result_rx.receive(), timeout=10)
 
         if isinstance(result, Success):
             print("Command succeed")
