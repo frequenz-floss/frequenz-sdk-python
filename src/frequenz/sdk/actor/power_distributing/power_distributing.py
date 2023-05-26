@@ -24,10 +24,10 @@ from math import isnan
 from typing import Any, Dict, Iterable, List, Optional, Self, Set, Tuple
 
 import grpc
-from frequenz.channels import Bidirectional, Peekable, Receiver, Sender
+from frequenz.channels import Peekable, Receiver, Sender
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
-from ..._internal._asyncio import cancel_and_await
+from ...actor import ChannelRegistry
 from ...actor._decorator import actor
 from ...microgrid import ComponentGraph, connection_manager
 from ...microgrid.client import MicrogridApiClient
@@ -119,7 +119,7 @@ class PowerDistributingActor:
             PartialFailure,
             Ignored,
         )
-        from frequenz.channels import Bidirectional, Broadcast, Receiver, Sender
+        from frequenz.channels import Broadcast, Receiver, Sender
         from datetime import timedelta
         from frequenz.sdk import actor
 
@@ -177,21 +177,31 @@ class PowerDistributingActor:
 
     def __init__(
         self,
-        users_channels: Dict[str, Bidirectional.Handle[Result, Request]],
+        requests_receiver: Receiver[Request],
+        channel_registry: ChannelRegistry,
         battery_status_sender: Sender[BatteryStatus],
         wait_for_data_sec: float = 2,
     ) -> None:
         """Create class instance.
 
         Args:
-            users_channels: BidirectionalHandle for each user. Key should be
-                user id and value should be BidirectionalHandle.
+            requests_receiver: Receiver for receiving power requests from other actors.
+            channel_registry: Channel registry for creating result channels dynamically
+                for each request namespace.
             battery_status_sender: Channel for sending information which batteries are
                 working.
             wait_for_data_sec: How long actor should wait before processing first
                 request. It is a time needed to collect first components data.
         """
+        self._requests_receiver = requests_receiver
+        self._channel_registry = channel_registry
         self._wait_for_data_sec = wait_for_data_sec
+        self._result_senders: Dict[str, Sender[Result]] = {}
+        """Dictionary of result senders for each request namespace.
+
+        They are for channels owned by the channel registry, we just hold a reference
+        to their senders, for fast access.
+        """
 
         # NOTE: power_distributor_exponent should be received from ConfigManager
         self.power_distributor_exponent: float = 1.0
@@ -260,6 +270,20 @@ class PowerDistributingActor:
             for battery, inverter in pairs_data
         )
 
+    async def _send_result(self, namespace: str, result: Result) -> None:
+        """Send result to the user.
+
+        Args:
+            namespace: namespace of the sender, to identify the result channel with.
+            result: Result to send out.
+        """
+        if not namespace in self._result_senders:
+            self._result_senders[namespace] = self._channel_registry.new_sender(
+                namespace
+            )
+
+        await self._result_senders[namespace].send(result)
+
     async def run(self) -> None:
         """Run actor main function.
 
@@ -276,28 +300,36 @@ class PowerDistributingActor:
         # Wait few seconds to get data from the channels created above.
         await asyncio.sleep(self._wait_for_data_sec)
 
-        self._started.set()
-        while True:
-            request, user = await self._request_queue.get()
+        async for request in self._requests_receiver:
+            error = self._check_request(request)
+            if error:
+                await self._send_result(request.namespace, error)
+                continue
 
             try:
                 pairs_data: List[InvBatPair] = self._get_components_data(
                     request.batteries, request.include_broken_batteries
                 )
             except KeyError as err:
-                await user.channel.send(Error(request=request, msg=str(err)))
+                await self._send_result(
+                    request.namespace, Error(request=request, msg=str(err))
+                )
                 continue
 
             if not pairs_data and not request.include_broken_batteries:
                 error_msg = f"No data for the given batteries {str(request.batteries)}"
-                await user.channel.send(Error(request=request, msg=str(error_msg)))
+                await self._send_result(
+                    request.namespace, Error(request=request, msg=str(error_msg))
+                )
                 continue
 
             try:
                 distribution = self._get_power_distribution(request, pairs_data)
             except ValueError as err:
                 error_msg = f"Couldn't distribute power, error: {str(err)}"
-                await user.channel.send(Error(request=request, msg=str(error_msg)))
+                await self._send_result(
+                    request.namespace, Error(request=request, msg=str(error_msg))
+                )
                 continue
 
             distributed_power_value = request.power - distribution.remaining_power
@@ -306,8 +338,7 @@ class PowerDistributingActor:
                 for bat_id, dist in distribution.distribution.items()
             }
             _logger.debug(
-                "%s: Distributing power %d between the batteries %s",
-                user.user_id,
+                "Distributing power %d between the batteries %s",
                 distributed_power_value,
                 str(battery_distribution),
             )
@@ -341,7 +372,7 @@ class PowerDistributingActor:
                     self._all_battery_status.update_status(
                         succeed_batteries, failed_batteries
                     ),
-                    user.channel.send(response),
+                    self._send_result(request.namespace, response),
                 ]
             )
 
