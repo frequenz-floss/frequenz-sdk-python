@@ -25,7 +25,6 @@ from typing import Any, Dict, Iterable, List, Optional, Self, Set, Tuple
 
 import grpc
 from frequenz.channels import Peekable, Receiver, Sender
-from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
 from ...actor import ChannelRegistry
 from ...actor._decorator import actor
@@ -674,8 +673,7 @@ class PowerDistributingActor:
 
     def _parse_result(
         self,
-        # type comment to quiet pylint and mypy `unused-import` error
-        tasks,  # type: Dict[int, asyncio.Task[Empty]]
+        tasks: Dict[int, asyncio.Task[None]],
         distribution: Dict[int, float],
         request_timeout_sec: float,
     ) -> Tuple[float, Set[int]]:

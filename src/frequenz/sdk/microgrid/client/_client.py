@@ -169,7 +169,7 @@ class MicrogridApiClient(ABC):
         """
 
     @abstractmethod
-    async def set_power(self, component_id: int, power_w: float) -> Empty:
+    async def set_power(self, component_id: int, power_w: float) -> None:
         """Send request to the Microgrid to set power for component.
 
         If power > 0, then component will be charged with this power.
@@ -180,9 +180,6 @@ class MicrogridApiClient(ABC):
         Args:
             component_id: id of the component to set power.
             power_w: power to set for the component.
-
-        Returns:
-            Empty response.
         """
 
     @abstractmethod
@@ -567,7 +564,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
             EVChargerData.from_proto,
         ).new_receiver(maxsize=maxsize)
 
-    async def set_power(self, component_id: int, power_w: float) -> Empty:
+    async def set_power(self, component_id: int, power_w: float) -> None:
         """Send request to the Microgrid to set power for component.
 
         If power > 0, then component will be charged with this power.
@@ -579,9 +576,6 @@ class MicrogridGrpcClient(MicrogridApiClient):
             component_id: id of the component to set power.
             power_w: power to set for the component.
 
-        Returns:
-            Empty response.
-
         Raises:
             AioRpcError: if connection to Microgrid API cannot be established or
                 when the api call exceeded timeout
@@ -590,7 +584,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
             if power_w >= 0:
                 # grpc.aio is missing types and mypy thinks this is not
                 # async iterable, but it is
-                result: Empty = await self.api.Charge(
+                await self.api.Charge(
                     microgrid_pb.PowerLevelParam(
                         component_id=component_id, power_w=math.floor(power_w)
                     ),
@@ -600,7 +594,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
                 # grpc.aio is missing types and mypy thinks this is not
                 # async iterable, but it is
                 power_w *= -1
-                result = await self.api.Discharge(
+                await self.api.Discharge(
                     microgrid_pb.PowerLevelParam(
                         component_id=component_id, power_w=math.floor(power_w)
                     ),
@@ -615,7 +609,6 @@ class MicrogridGrpcClient(MicrogridApiClient):
                 details=msg,
                 debug_error_string=err.debug_error_string(),
             )
-        return result
 
     async def set_bounds(
         self,
