@@ -130,16 +130,43 @@ class BatteryData(ComponentData):
     capacity: float
     """The capacity of the battery in Wh (Watt-hour)."""
 
-    power_lower_bound: float
-    """The maximum discharge power, in watts, represented in the passive sign
-        convention. this will be a negative number, or zero if no discharging is
-        possible.
+    # pylint: disable=line-too-long
+    power_inclusion_lower_bound: float
+    """Lower inclusion bound for battery power in watts.
+
+    This is the lower limit of the range within which power requests are allowed for the
+    battery.
+
+    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
     """
 
-    power_upper_bound: float
-    """The maximum charge power, in Watts, represented in the passive sign convention.
-        This will be a positive number, or zero if no charging is possible.
+    power_exclusion_lower_bound: float
+    """Lower exclusion bound for battery power in watts.
+
+    This is the lower limit of the range within which power requests are not allowed for
+    the battery.
+
+    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
     """
+
+    power_inclusion_upper_bound: float
+    """Upper inclusion bound for battery power in watts.
+
+    This is the upper limit of the range within which power requests are allowed for the
+    battery.
+
+    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
+    """
+
+    power_exclusion_upper_bound: float
+    """Upper exclusion bound for battery power in watts.
+
+    This is the upper limit of the range within which power requests are not allowed for
+    the battery.
+
+    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
+    """
+    # pylint: enable=line-too-long
 
     temperature: float
     """The (average) temperature reported by the battery, in Celcius (°C)."""
@@ -163,15 +190,18 @@ class BatteryData(ComponentData):
         Returns:
             Instance of BatteryData created from the protobuf message.
         """
+        raw_power = raw.battery.data.dc.power
         battery_data = cls(
             component_id=raw.id,
             timestamp=raw.ts.ToDatetime(tzinfo=timezone.utc),
             soc=raw.battery.data.soc.avg,
-            soc_lower_bound=raw.battery.data.soc.system_bounds.lower,
-            soc_upper_bound=raw.battery.data.soc.system_bounds.upper,
+            soc_lower_bound=raw.battery.data.soc.system_inclusion_bounds.lower,
+            soc_upper_bound=raw.battery.data.soc.system_inclusion_bounds.upper,
             capacity=raw.battery.properties.capacity,
-            power_lower_bound=raw.battery.data.dc.power.system_bounds.lower,
-            power_upper_bound=raw.battery.data.dc.power.system_bounds.upper,
+            power_inclusion_lower_bound=raw_power.system_inclusion_bounds.lower,
+            power_exclusion_lower_bound=raw_power.system_exclusion_bounds.lower,
+            power_inclusion_upper_bound=raw_power.system_inclusion_bounds.upper,
+            power_exclusion_upper_bound=raw_power.system_exclusion_bounds.upper,
             temperature=raw.battery.data.temperature.avg,
             _relay_state=raw.battery.state.relay_state,
             _component_state=raw.battery.state.component_state,
@@ -191,16 +221,43 @@ class InverterData(ComponentData):
             -ve current means supply into the grid.
     """
 
-    active_power_lower_bound: float
-    """The maximum discharge power, in Watts, represented in the passive sign
-        convention. This will be a negative number, or zero if no discharging is
-        possible.
+    # pylint: disable=line-too-long
+    active_power_inclusion_lower_bound: float
+    """Lower inclusion bound for inverter power in watts.
+
+    This is the lower limit of the range within which power requests are allowed for the
+    inverter.
+
+    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
     """
 
-    active_power_upper_bound: float
-    """The maximum charge power, in Watts, represented in the passive sign convention.
-        This will be a positive number, or zero if no charging is possible.
+    active_power_exclusion_lower_bound: float
+    """Lower exclusion bound for inverter power in watts.
+
+    This is the lower limit of the range within which power requests are not allowed for
+    the inverter.
+
+    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
     """
+
+    active_power_inclusion_upper_bound: float
+    """Upper inclusion bound for inverter power in watts.
+
+    This is the upper limit of the range within which power requests are allowed for the
+    inverter.
+
+    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
+    """
+
+    active_power_exclusion_upper_bound: float
+    """Upper exclusion bound for inverter power in watts.
+
+    This is the upper limit of the range within which power requests are not allowed for
+    the inverter.
+
+    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
+    """
+    # pylint: enable=line-too-long
 
     _component_state: inverter_pb.ComponentState.ValueType
     """State of the inverter."""
@@ -218,12 +275,15 @@ class InverterData(ComponentData):
         Returns:
             Instance of InverterData created from the protobuf message.
         """
+        raw_power = raw.inverter.data.ac.power_active
         inverter_data = cls(
             component_id=raw.id,
             timestamp=raw.ts.ToDatetime(tzinfo=timezone.utc),
             active_power=raw.inverter.data.ac.power_active.value,
-            active_power_lower_bound=raw.inverter.data.ac.power_active.system_bounds.lower,
-            active_power_upper_bound=raw.inverter.data.ac.power_active.system_bounds.upper,
+            active_power_inclusion_lower_bound=raw_power.system_inclusion_bounds.lower,
+            active_power_exclusion_lower_bound=raw_power.system_exclusion_bounds.lower,
+            active_power_inclusion_upper_bound=raw_power.system_inclusion_bounds.upper,
+            active_power_exclusion_upper_bound=raw_power.system_exclusion_bounds.upper,
             _component_state=raw.inverter.state.component_state,
             _errors=list(raw.inverter.errors),
         )
