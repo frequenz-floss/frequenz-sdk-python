@@ -31,7 +31,7 @@ class InverterType(ComponentType):
 
 def _component_type_from_protobuf(
     component_category: components_pb.ComponentCategory.ValueType,
-    component_type: inverter_pb.Type.ValueType,
+    component_metadata: inverter_pb.Metadata,
 ) -> Optional[ComponentType]:
     """Convert a protobuf InverterType message to Component enum.
 
@@ -39,7 +39,7 @@ def _component_type_from_protobuf(
 
     Args:
         component_category: category the type belongs to.
-        component_type: protobuf enum to convert.
+        component_metadata: protobuf metadata to fetch type from.
 
     Returns:
         Enum value corresponding to the protobuf message.
@@ -51,10 +51,14 @@ def _component_type_from_protobuf(
         component_category
         == components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
     ):
-        if not any(t.value == component_type for t in InverterType):
+        # mypy 1.4.1 crashes at this line, maybe it doesn't like the name of the "type"
+        # attribute in this context.  Hence the "# type: ignore".
+        if not any(
+            t.value == component_metadata.type for t in InverterType  # type: ignore
+        ):
             return None
 
-        return InverterType(component_type)
+        return InverterType(component_metadata.type)
 
     return None
 

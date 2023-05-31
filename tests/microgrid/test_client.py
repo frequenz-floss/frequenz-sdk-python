@@ -126,6 +126,25 @@ class TestMicrogridGrpcClient:
                 Component(107, ComponentCategory.EV_CHARGER),
             }
 
+            servicer.set_components(
+                [
+                    (9, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER),
+                    (666, components_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR),
+                    (999, components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY),
+                ]
+            )
+            servicer.add_component(
+                99,
+                components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER,
+                components_pb.InverterType.INVERTER_TYPE_BATTERY,
+            )
+
+            assert set(await microgrid.components()) == {
+                Component(9, ComponentCategory.METER),
+                Component(99, ComponentCategory.INVERTER, InverterType.BATTERY),
+                Component(999, ComponentCategory.BATTERY),
+            }
+
         finally:
             assert await server.graceful_shutdown()
 
