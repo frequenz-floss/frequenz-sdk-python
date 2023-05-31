@@ -9,8 +9,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
+import frequenz.api.common.components_pb2 as components_pb
 import frequenz.api.microgrid.inverter_pb2 as inverter_pb
-import frequenz.api.microgrid.microgrid_pb2 as microgrid_pb
 
 
 class ComponentType(Enum):
@@ -27,7 +27,7 @@ class InverterType(ComponentType):
 
 
 def _component_type_from_protobuf(
-    component_category: microgrid_pb.ComponentCategory.ValueType,
+    component_category: components_pb.ComponentCategory.ValueType,
     component_type: inverter_pb.Type.ValueType,
 ) -> Optional[ComponentType]:
     """Convert a protobuf InverterType message to Component enum.
@@ -44,7 +44,10 @@ def _component_type_from_protobuf(
     # ComponentType values in the protobuf definition are not unique across categories
     # as of v0.11.0, so we need to check the component category first, before doing any
     # component type checks.
-    if component_category == microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER:
+    if (
+        component_category
+        == components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
+    ):
         if not any(t.value == component_type for t in InverterType):
             return None
 
@@ -56,13 +59,13 @@ def _component_type_from_protobuf(
 class ComponentCategory(Enum):
     """Possible types of microgrid component."""
 
-    NONE = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_UNSPECIFIED
-    GRID = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_GRID
-    METER = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_METER
-    INVERTER = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
-    BATTERY = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
-    EV_CHARGER = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER
-    CHP = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_CHP
+    NONE = components_pb.ComponentCategory.COMPONENT_CATEGORY_UNSPECIFIED
+    GRID = components_pb.ComponentCategory.COMPONENT_CATEGORY_GRID
+    METER = components_pb.ComponentCategory.COMPONENT_CATEGORY_METER
+    INVERTER = components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
+    BATTERY = components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
+    EV_CHARGER = components_pb.ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER
+    CHP = components_pb.ComponentCategory.COMPONENT_CATEGORY_CHP
 
     # types not yet supported by the API but which can be inferred
     # from available graph info
@@ -70,7 +73,7 @@ class ComponentCategory(Enum):
 
 
 def _component_category_from_protobuf(
-    component_category: microgrid_pb.ComponentCategory.ValueType,
+    component_category: components_pb.ComponentCategory.ValueType,
 ) -> ComponentCategory:
     """Convert a protobuf ComponentCategory message to ComponentCategory enum.
 
@@ -87,7 +90,7 @@ def _component_category_from_protobuf(
             a valid component category as it does not form part of the
             microgrid itself)
     """
-    if component_category == microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR:
+    if component_category == components_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR:
         raise ValueError("Cannot create a component from a sensor!")
 
     if not any(t.value == component_category for t in ComponentCategory):

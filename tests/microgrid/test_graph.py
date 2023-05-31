@@ -12,7 +12,7 @@ Tests for the microgrid component graph.
 from dataclasses import asdict
 from typing import Dict, Set
 
-import frequenz.api.microgrid.microgrid_pb2 as microgrid_pb
+import frequenz.api.common.components_pb2 as components_pb
 import grpc
 import pytest
 
@@ -674,7 +674,7 @@ class Test_MicrogridComponentGraph:
             graph.validate()
 
         servicer.set_components(
-            [(1, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_GRID)]
+            [(1, components_pb.ComponentCategory.COMPONENT_CATEGORY_GRID)]
         )
         servicer.set_connections([])
         with pytest.raises(gr.InvalidGraphError):
@@ -698,9 +698,9 @@ class Test_MicrogridComponentGraph:
         # valid graph with meter, and EV charger
         servicer.set_components(
             [
-                (101, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_GRID),
-                (111, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_METER),
-                (131, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER),
+                (101, components_pb.ComponentCategory.COMPONENT_CATEGORY_GRID),
+                (111, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER),
+                (131, components_pb.ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER),
             ]
         )
         servicer.set_connections([(101, 111), (111, 131)])
@@ -723,11 +723,11 @@ class Test_MicrogridComponentGraph:
         # contents will be overwritten
         servicer.set_components(
             [
-                (707, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_GRID),
-                (717, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_METER),
-                (727, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER),
-                (737, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY),
-                (747, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_METER),
+                (707, components_pb.ComponentCategory.COMPONENT_CATEGORY_GRID),
+                (717, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER),
+                (727, components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER),
+                (737, components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY),
+                (747, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER),
             ]
         )
         servicer.set_connections([(707, 717), (717, 727), (727, 737), (717, 747)])

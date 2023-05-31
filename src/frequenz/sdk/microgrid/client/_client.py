@@ -21,6 +21,7 @@ from typing import (
 
 import grpc
 from frequenz.api.microgrid import common_pb2 as common_pb
+from frequenz.api.common import components_pb2 as components_pb
 from frequenz.api.microgrid import microgrid_pb2 as microgrid_pb
 from frequenz.api.microgrid.microgrid_pb2_grpc import MicrogridStub
 from frequenz.channels import Broadcast, Receiver, Sender
@@ -244,7 +245,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
             )
         components_only = filter(
             lambda c: c.category
-            is not microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR,
+            is not components_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR,
             component_list.components,
         )
         result: Iterable[Component] = map(

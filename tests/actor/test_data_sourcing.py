@@ -5,7 +5,7 @@
 Tests for the DataSourcingActor.
 """
 
-from frequenz.api.microgrid import microgrid_pb2
+from frequenz.api.common import components_pb2 as components_pb
 from frequenz.channels import Broadcast
 
 from frequenz.sdk.actor import (
@@ -28,19 +28,19 @@ class TestDataSourcingActor:
         await server.start()
 
         servicer.add_component(
-            1, microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_GRID
+            1, components_pb.ComponentCategory.COMPONENT_CATEGORY_GRID
         )
         servicer.add_component(
-            4, microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_METER
+            4, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER
         )
         servicer.add_component(
-            7, microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_METER
+            7, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER
         )
         servicer.add_component(
-            8, microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_INVERTER
+            8, components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
         )
         servicer.add_component(
-            9, microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_BATTERY
+            9, components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
         )
 
         servicer.add_connection(1, 4)
