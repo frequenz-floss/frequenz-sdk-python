@@ -9,8 +9,8 @@ import asyncio
 
 import grpc
 import pytest
-from frequenz.api.microgrid import common_pb2 as common_pb
 from frequenz.api.common import components_pb2 as components_pb
+from frequenz.api.common import metrics_pb2 as metrics_pb
 from frequenz.api.microgrid import microgrid_pb2 as microgrid_pb
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
@@ -546,7 +546,7 @@ class TestMicrogridGrpcClient:
                 microgrid_pb.SetBoundsParam(
                     component_id=comp_id,
                     target_metric=target_metric.TARGET_METRIC_POWER_ACTIVE,
-                    bounds=common_pb.Bounds(lower=-10, upper=2),
+                    bounds=metrics_pb.Bounds(lower=-10, upper=2),
                 )
                 for comp_id in range(num_calls)
             ]
