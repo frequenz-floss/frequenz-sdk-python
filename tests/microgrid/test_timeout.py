@@ -98,8 +98,7 @@ async def test_set_power_timeout(mocker: MockerFixture) -> None:
         time.sleep(GRPC_SERVER_DELAY)
         return Empty()
 
-    mocker.patch.object(servicer, "Charge", mock_set_power)
-    mocker.patch.object(servicer, "Discharge", mock_set_power)
+    mocker.patch.object(servicer, "SetPowerActive", mock_set_power)
     server = MockGrpcServer(servicer, port=57809)
     await server.start()
 
