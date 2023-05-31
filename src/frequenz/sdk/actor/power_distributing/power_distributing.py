@@ -323,13 +323,13 @@ class PowerDistributingActor:
 
             try:
                 pairs_data: List[InvBatPair] = self._get_components_data(
-                    request.batteries, request.include_broken
+                    request.batteries, request.include_broken_batteries
                 )
             except KeyError as err:
                 await user.channel.send(Error(request=request, msg=str(err)))
                 continue
 
-            if not pairs_data and not request.include_broken:
+            if not pairs_data and not request.include_broken_batteries:
                 error_msg = f"No data for the given batteries {str(request.batteries)}"
                 await user.channel.send(Error(request=request, msg=str(error_msg)))
                 continue
@@ -436,7 +436,7 @@ class PowerDistributingActor:
             self._bat_inv_map[battery_id] for battery_id in unavailable_bat_ids
         }
 
-        if request.include_broken and not available_bat_ids:
+        if request.include_broken_batteries and not available_bat_ids:
             return self.distribution_algorithm.distribute_power_equally(
                 request.power, unavailable_inv_ids
             )
@@ -445,7 +445,7 @@ class PowerDistributingActor:
             request.power, inv_bat_pairs
         )
 
-        if request.include_broken and unavailable_inv_ids:
+        if request.include_broken_batteries and unavailable_inv_ids:
             additional_result = self.distribution_algorithm.distribute_power_equally(
                 result.remaining_power, unavailable_inv_ids
             )
@@ -478,11 +478,15 @@ class PowerDistributingActor:
 
         if not request.adjust_power:
             if request.power < 0:
-                bound = self._get_lower_bound(request.batteries, request.include_broken)
+                bound = self._get_lower_bound(
+                    request.batteries, request.include_broken_batteries
+                )
                 if request.power < bound:
                     return OutOfBound(request=request, bound=bound)
             else:
-                bound = self._get_upper_bound(request.batteries, request.include_broken)
+                bound = self._get_upper_bound(
+                    request.batteries, request.include_broken_batteries
+                )
                 if request.power > bound:
                     return OutOfBound(request=request, bound=bound)
 
