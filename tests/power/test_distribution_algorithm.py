@@ -67,8 +67,8 @@ def battery_msg(  # pylint: disable=too-many-arguments
         soc=soc.now if soc.now is not None else math.nan,
         soc_lower_bound=soc.bound.lower if soc.bound is not None else math.nan,
         soc_upper_bound=soc.bound.upper if soc.bound is not None else math.nan,
-        power_lower_bound=power.lower,
-        power_upper_bound=power.upper,
+        power_inclusion_lower_bound=power.lower,
+        power_inclusion_upper_bound=power.upper,
         timestamp=timestamp,
     )
 
@@ -92,8 +92,8 @@ def inverter_msg(
     return InverterDataWrapper(
         component_id=component_id,
         timestamp=timestamp,
-        active_power_lower_bound=power.lower,
-        active_power_upper_bound=power.upper,
+        active_power_inclusion_lower_bound=power.lower,
+        active_power_inclusion_upper_bound=power.upper,
     )
 
 

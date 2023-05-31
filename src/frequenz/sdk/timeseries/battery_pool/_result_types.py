@@ -37,7 +37,7 @@ class PowerMetrics:
 
     supply_bound.lower = sum(
         max(
-            battery.power_lower_bound, inverter.active_power_lower_bound)
+            battery.power_inclusion_lower_bound, inverter.active_power_inclusion_lower_bound)
             for each working battery in battery pool
             )
         )
@@ -55,7 +55,7 @@ class PowerMetrics:
 
     consume_bound.upper = sum(
         min(
-            battery.power_upper_bound, inverter.active_power_upper_bound)
+            battery.power_inclusion_upper_bound, inverter.active_power_inclusion_upper_bound)
             for each working battery in battery pool
             )
         )

@@ -490,8 +490,8 @@ class DistributionAlgorithm:
         bounds: Dict[int, float] = {}
         for battery, inverter in components:
             # We can supply/consume with int only
-            inverter_bound = inverter.active_power_upper_bound
-            battery_bound = battery.power_upper_bound
+            inverter_bound = inverter.active_power_inclusion_upper_bound
+            battery_bound = battery.power_inclusion_upper_bound
             bounds[inverter.component_id] = min(inverter_bound, battery_bound)
 
         result: DistributionResult = self._distribute_power(
@@ -528,8 +528,8 @@ class DistributionAlgorithm:
         bounds: Dict[int, float] = {}
         for battery, inverter in components:
             # We can consume with int only
-            inverter_bound = inverter.active_power_lower_bound
-            battery_bound = battery.power_lower_bound
+            inverter_bound = inverter.active_power_inclusion_lower_bound
+            battery_bound = battery.power_inclusion_lower_bound
             bounds[inverter.component_id] = -1 * max(inverter_bound, battery_bound)
 
         result: DistributionResult = self._distribute_power(

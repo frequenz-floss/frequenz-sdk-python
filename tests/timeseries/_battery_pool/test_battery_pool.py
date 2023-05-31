@@ -829,8 +829,8 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
             BatteryDataWrapper(
                 component_id=battery_id,
                 timestamp=datetime.now(tz=timezone.utc),
-                power_lower_bound=-1000,
-                power_upper_bound=5000,
+                power_inclusion_lower_bound=-1000,
+                power_inclusion_upper_bound=5000,
             ),
             sampling_rate=0.05,
         )
@@ -838,8 +838,8 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
             InverterDataWrapper(
                 component_id=inverter_id,
                 timestamp=datetime.now(tz=timezone.utc),
-                active_power_lower_bound=-900,
-                active_power_upper_bound=6000,
+                active_power_inclusion_lower_bound=-900,
+                active_power_inclusion_upper_bound=6000,
             ),
             sampling_rate=0.1,
         )
@@ -862,24 +862,24 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
     scenarios: list[Scenario[PowerMetrics]] = [
         Scenario(
             bat_inv_map[batteries_in_pool[0]],
-            {"active_power_lower_bound": -100},
+            {"active_power_inclusion_lower_bound": -100},
             PowerMetrics(now, Bound(-1000, 0), Bound(0, 10000)),
         ),
         # Inverter bound changed, but metric result should not change.
         Scenario(
             component_id=bat_inv_map[batteries_in_pool[0]],
-            new_metrics={"active_power_upper_bound": 9000},
+            new_metrics={"active_power_inclusion_upper_bound": 9000},
             expected_result=None,
             wait_for_result=False,
         ),
         Scenario(
             batteries_in_pool[0],
-            {"power_lower_bound": 0, "power_upper_bound": 4000},
+            {"power_inclusion_lower_bound": 0, "power_inclusion_upper_bound": 4000},
             PowerMetrics(now, Bound(-900, 0), Bound(0, 9000)),
         ),
         Scenario(
             batteries_in_pool[1],
-            {"power_lower_bound": -10, "power_upper_bound": 200},
+            {"power_inclusion_lower_bound": -10, "power_inclusion_upper_bound": 200},
             PowerMetrics(now, Bound(-10, 0), Bound(0, 4200)),
         ),
         # Test 2 things:
@@ -888,35 +888,38 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
         # Setting upper bound to NaN should not influence lower bound
         Scenario(
             batteries_in_pool[0],
-            {"power_lower_bound": -50, "power_upper_bound": math.nan},
+            {
+                "power_inclusion_lower_bound": -50,
+                "power_inclusion_upper_bound": math.nan,
+            },
             PowerMetrics(now, Bound(-60, 0), Bound(0, 9200)),
         ),
         Scenario(
             bat_inv_map[batteries_in_pool[0]],
             {
-                "active_power_lower_bound": math.nan,
-                "active_power_upper_bound": math.nan,
+                "active_power_inclusion_lower_bound": math.nan,
+                "active_power_inclusion_upper_bound": math.nan,
             },
             PowerMetrics(now, Bound(-60, 0), Bound(0, 200)),
         ),
         Scenario(
             batteries_in_pool[0],
-            {"power_lower_bound": math.nan},
+            {"power_inclusion_lower_bound": math.nan},
             PowerMetrics(now, Bound(-10, 0), Bound(0, 200)),
         ),
         Scenario(
             batteries_in_pool[1],
             {
-                "power_lower_bound": -100,
-                "power_upper_bound": math.nan,
+                "power_inclusion_lower_bound": -100,
+                "power_inclusion_upper_bound": math.nan,
             },
             PowerMetrics(now, Bound(-100, 0), Bound(0, 6000)),
         ),
         Scenario(
             bat_inv_map[batteries_in_pool[1]],
             {
-                "active_power_lower_bound": math.nan,
-                "active_power_upper_bound": math.nan,
+                "active_power_inclusion_lower_bound": math.nan,
+                "active_power_inclusion_upper_bound": math.nan,
             },
             PowerMetrics(now, Bound(-100, 0), Bound(0, 0)),
         ),
@@ -924,37 +927,37 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
         Scenario(
             batteries_in_pool[1],
             {
-                "power_lower_bound": math.nan,
-                "power_upper_bound": math.nan,
+                "power_inclusion_lower_bound": math.nan,
+                "power_inclusion_upper_bound": math.nan,
             },
             None,
         ),
         Scenario(
             batteries_in_pool[0],
-            {"power_lower_bound": -100, "power_upper_bound": 100},
+            {"power_inclusion_lower_bound": -100, "power_inclusion_upper_bound": 100},
             PowerMetrics(now, Bound(-100, 0), Bound(0, 100)),
         ),
         Scenario(
             bat_inv_map[batteries_in_pool[1]],
             {
-                "active_power_lower_bound": -400,
-                "active_power_upper_bound": 400,
+                "active_power_inclusion_lower_bound": -400,
+                "active_power_inclusion_upper_bound": 400,
             },
             PowerMetrics(now, Bound(-500, 0), Bound(0, 500)),
         ),
         Scenario(
             batteries_in_pool[1],
             {
-                "power_lower_bound": -300,
-                "power_upper_bound": 700,
+                "power_inclusion_lower_bound": -300,
+                "power_inclusion_upper_bound": 700,
             },
             PowerMetrics(now, Bound(-400, 0), Bound(0, 500)),
         ),
         Scenario(
             bat_inv_map[batteries_in_pool[0]],
             {
-                "active_power_lower_bound": -200,
-                "active_power_upper_bound": 50,
+                "active_power_inclusion_lower_bound": -200,
+                "active_power_inclusion_upper_bound": 50,
             },
             PowerMetrics(now, Bound(-400, 0), Bound(0, 450)),
         ),

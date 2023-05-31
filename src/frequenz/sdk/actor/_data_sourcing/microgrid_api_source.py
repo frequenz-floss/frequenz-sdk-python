@@ -82,15 +82,23 @@ _BatteryDataMethods: Dict[ComponentMetricId, Callable[[BatteryData], float]] = {
     ComponentMetricId.SOC_LOWER_BOUND: lambda msg: msg.soc_lower_bound,
     ComponentMetricId.SOC_UPPER_BOUND: lambda msg: msg.soc_upper_bound,
     ComponentMetricId.CAPACITY: lambda msg: msg.capacity,
-    ComponentMetricId.POWER_LOWER_BOUND: lambda msg: msg.power_lower_bound,
-    ComponentMetricId.POWER_UPPER_BOUND: lambda msg: msg.power_upper_bound,
+    ComponentMetricId.POWER_INCLUSION_LOWER_BOUND: lambda msg: (
+        msg.power_inclusion_lower_bound
+    ),
+    ComponentMetricId.POWER_INCLUSION_UPPER_BOUND: lambda msg: (
+        msg.power_inclusion_upper_bound
+    ),
     ComponentMetricId.TEMPERATURE: lambda msg: msg.temperature,
 }
 
 _InverterDataMethods: Dict[ComponentMetricId, Callable[[InverterData], float]] = {
     ComponentMetricId.ACTIVE_POWER: lambda msg: msg.active_power,
-    ComponentMetricId.ACTIVE_POWER_LOWER_BOUND: lambda msg: msg.active_power_lower_bound,
-    ComponentMetricId.ACTIVE_POWER_UPPER_BOUND: lambda msg: msg.active_power_upper_bound,
+    ComponentMetricId.ACTIVE_POWER_INCLUSION_LOWER_BOUND: lambda msg: (
+        msg.active_power_inclusion_lower_bound
+    ),
+    ComponentMetricId.ACTIVE_POWER_INCLUSION_UPPER_BOUND: lambda msg: (
+        msg.active_power_inclusion_upper_bound
+    ),
 }
 
 _EVChargerDataMethods: Dict[ComponentMetricId, Callable[[EVChargerData], float]] = {

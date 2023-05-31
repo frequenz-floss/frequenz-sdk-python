@@ -134,10 +134,10 @@ class ComponentMetricId(Enum):
     SOC_UPPER_BOUND = "soc_upper_bound"
     CAPACITY = "capacity"
 
-    POWER_LOWER_BOUND = "power_lower_bound"
-    POWER_UPPER_BOUND = "power_upper_bound"
+    POWER_INCLUSION_LOWER_BOUND = "power_inclusion_lower_bound"
+    POWER_INCLUSION_UPPER_BOUND = "power_inclusion_upper_bound"
 
-    ACTIVE_POWER_LOWER_BOUND = "active_power_lower_bound"
-    ACTIVE_POWER_UPPER_BOUND = "active_power_upper_bound"
+    ACTIVE_POWER_INCLUSION_LOWER_BOUND = "active_power_inclusion_lower_bound"
+    ACTIVE_POWER_INCLUSION_UPPER_BOUND = "active_power_inclusion_upper_bound"
 
     TEMPERATURE = "temperature"

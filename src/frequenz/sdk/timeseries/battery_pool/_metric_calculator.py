@@ -478,13 +478,13 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
 
         super().__init__(used_batteries)
         self._battery_metrics = [
-            ComponentMetricId.POWER_LOWER_BOUND,
-            ComponentMetricId.POWER_UPPER_BOUND,
+            ComponentMetricId.POWER_INCLUSION_LOWER_BOUND,
+            ComponentMetricId.POWER_INCLUSION_UPPER_BOUND,
         ]
 
         self._inverter_metrics = [
-            ComponentMetricId.ACTIVE_POWER_LOWER_BOUND,
-            ComponentMetricId.ACTIVE_POWER_UPPER_BOUND,
+            ComponentMetricId.ACTIVE_POWER_INCLUSION_LOWER_BOUND,
+            ComponentMetricId.ACTIVE_POWER_INCLUSION_UPPER_BOUND,
         ]
 
     @classmethod
@@ -550,12 +550,12 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
 
                 # Consume and supply bounds are not related.
                 # If one is missing, then we can still use the other.
-                value = data.get(ComponentMetricId.POWER_UPPER_BOUND)
+                value = data.get(ComponentMetricId.POWER_INCLUSION_UPPER_BOUND)
                 if value is not None:
                     result.timestamp = max(result.timestamp, data.timestamp)
                     consume_upper_bounds.append(value)
 
-                value = data.get(ComponentMetricId.POWER_LOWER_BOUND)
+                value = data.get(ComponentMetricId.POWER_INCLUSION_LOWER_BOUND)
                 if value is not None:
                     result.timestamp = max(result.timestamp, data.timestamp)
                     supply_upper_bounds.append(value)
@@ -564,12 +564,12 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
             if inverter_id in metrics_data:
                 data = metrics_data[inverter_id]
 
-                value = data.get(ComponentMetricId.ACTIVE_POWER_UPPER_BOUND)
+                value = data.get(ComponentMetricId.ACTIVE_POWER_INCLUSION_UPPER_BOUND)
                 if value is not None:
                     result.timestamp = max(data.timestamp, result.timestamp)
                     consume_upper_bounds.append(value)
 
-                value = data.get(ComponentMetricId.ACTIVE_POWER_LOWER_BOUND)
+                value = data.get(ComponentMetricId.ACTIVE_POWER_INCLUSION_LOWER_BOUND)
                 if value is not None:
                     result.timestamp = max(data.timestamp, result.timestamp)
                     supply_upper_bounds.append(value)
