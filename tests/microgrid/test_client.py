@@ -498,9 +498,9 @@ class TestMicrogridGrpcClient:
 
             await microgrid.set_power(component_id=83, power_w=12)
 
-            assert servicer.latest_charge is not None
-            assert servicer.latest_charge.component_id == 83
-            assert servicer.latest_charge.power_w == 12
+            assert servicer.latest_power is not None
+            assert servicer.latest_power.component_id == 83
+            assert servicer.latest_power.power == 12
 
         finally:
             assert await server.graceful_shutdown()
@@ -521,9 +521,9 @@ class TestMicrogridGrpcClient:
 
             await microgrid.set_power(component_id=73, power_w=-15)
 
-            assert servicer.latest_discharge is not None
-            assert servicer.latest_discharge.component_id == 73
-            assert servicer.latest_discharge.power_w == 15
+            assert servicer.latest_power is not None
+            assert servicer.latest_power.component_id == 73
+            assert servicer.latest_power.power == -15
         finally:
             assert await server.graceful_shutdown()
 
