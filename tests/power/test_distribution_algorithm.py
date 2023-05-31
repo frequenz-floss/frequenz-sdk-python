@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
-from frequenz.api.common.metrics_pb2 import Bounds
+from frequenz.api.common.metrics_pb2 import Bounds  # pylint: disable=no-name-in-module
 from pytest import approx, raises
 
 from frequenz.sdk.microgrid.component import BatteryData, InverterData

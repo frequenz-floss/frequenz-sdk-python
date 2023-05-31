@@ -17,6 +17,8 @@ from frequenz.sdk.microgrid import connection_manager
 from frequenz.sdk.microgrid.component import ComponentMetricId
 from tests.microgrid import mock_api
 
+# pylint: disable=no-member
+
 
 class TestDataSourcingActor:
     """Tests for the DataSourcingActor."""

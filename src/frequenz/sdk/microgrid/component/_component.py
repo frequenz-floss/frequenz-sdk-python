@@ -17,6 +17,9 @@ class ComponentType(Enum):
     """A base class from which individual component types are derived."""
 
 
+# pylint: disable=no-member
+
+
 class InverterType(ComponentType):
     """Enum representing inverter types."""
 

@@ -29,6 +29,8 @@ from frequenz.sdk.microgrid.component import (
     MeterData,
 )
 
+# pylint: disable=no-member
+
 
 class BatteryDataWrapper(BatteryData):
     """Wrapper for the BatteryData with default arguments."""

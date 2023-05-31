@@ -10,6 +10,8 @@ import pytest
 
 import frequenz.sdk.microgrid.component._component as cp
 
+# pylint:disable=no-member
+
 
 # pylint: disable=protected-access
 def test_component_category_from_protobuf() -> None:

@@ -8,6 +8,8 @@ from unittest.mock import patch
 
 import grpc
 import pytest
+
+# pylint: disable=no-name-in-module
 from frequenz.api.microgrid.microgrid_pb2 import (
     ComponentFilter,
     ComponentList,
@@ -15,7 +17,9 @@ from frequenz.api.microgrid.microgrid_pb2 import (
     ConnectionList,
     PowerLevelParam,
 )
-from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
+from google.protobuf.empty_pb2 import Empty
+
+# pylint: enable=no-name-in-module
 from pytest_mock import MockerFixture
 
 from frequenz.sdk.microgrid.client import MicrogridGrpcClient

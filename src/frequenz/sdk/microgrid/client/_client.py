@@ -192,6 +192,9 @@ class MicrogridApiClient(ABC):
         """
 
 
+# pylint: disable=no-member
+
+
 class MicrogridGrpcClient(MicrogridApiClient):
     """Microgrid API client implementation using gRPC as the underlying protocol."""
 
