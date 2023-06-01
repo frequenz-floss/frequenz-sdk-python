@@ -58,24 +58,37 @@ class MovingWindow:
 
         ```python
         from datetime import datetime, timedelta, timezone
-        resampled_data_recv = Broadcast[Sample]("sample-data").new_receiver()
 
-        window = MovingWindow(
-            size=timedelta(minutes=5),
-            resampled_data_recv=resampled_data_recv,
-            input_sampling_period=timedelta(seconds=1),
-        )
+        async def send_mock_data(sender: Sender[Sample]) -> None:
+            while True:
+                await sender.send(Sample(datetime.now(tz=timezone.utc), 10.0))
+                await asyncio.sleep(1.0)
 
-        time_start = datetime.now(tz=timezone.utc)
-        time_end = time_start + timedelta(minutes=5)
+        async def run() -> None:
+            resampled_data_channel = Broadcast[Sample]("sample-data")
+            resampled_data_receiver = resampled_data_channel.new_receiver()
+            resampled_data_sender = resampled_data_channel.new_sender()
 
-        # ... wait for 5 minutes until the buffer is filled
-        await asyncio.sleep(5)
+            send_task = asyncio.create_task(send_mock_data(resampled_data_sender))
 
-        # return an numpy array from the window
-        a = window[time_start:time_end]
-        # and use it to for example calculate the mean
-        mean = a.mean()
+            window = MovingWindow(
+                size=timedelta(minutes=5),
+                resampled_data_recv=resampled_data_receiver,
+                input_sampling_period=timedelta(seconds=1),
+            )
+
+            time_start = datetime.now(tz=timezone.utc)
+            time_end = time_start + timedelta(minutes=5)
+
+            # ... wait for 5 minutes until the buffer is filled
+            await asyncio.sleep(5)
+
+            # return an numpy array from the window
+            array = window[time_start:time_end]
+            # and use it to for example calculate the mean
+            mean = array.mean()
+
+        asyncio.run(run())
         ```
 
     Example: Create a polars data frame from a `MovingWindow`
@@ -84,23 +97,35 @@ class MovingWindow:
         import polars as pl
         from datetime import datetime, timedelta, timezone
 
-        sample_receiver = Broadcast[Sample]("sample-data").new_receiver()
+        async def send_mock_data(sender: Sender[Sample]) -> None:
+            while True:
+                await sender.send(Sample(datetime.now(tz=timezone.utc), 10.0))
+                await asyncio.sleep(1.0)
 
-        # create a window that stores two days of data
-        # starting at 1.1.23 with samplerate=1
-        window = MovingWindow(
-            size=timedelta(days=2),
-            resampled_data_recv=sample_receiver,
-            input_sampling_period=timedelta(seconds=1),
-        )
+        async def run() -> None:
+            resampled_data_channel = Broadcast[Sample]("sample-data")
+            resampled_data_receiver = resampled_data_channel.new_receiver()
+            resampled_data_sender = resampled_data_channel.new_sender()
 
-        # wait for one full day until the buffer is filled
-        asyncio.sleep(60*60*24)
+            send_task = asyncio.create_task(send_mock_data(resampled_data_sender))
 
-        # create a polars series with one full day of data
-        time_start = datetime(2023, 1, 1, tzinfo=timezone.utc)
-        time_end = datetime(2023, 1, 2, tzinfo=timezone.utc)
-        s = pl.Series("Jan_1", window[time_start:time_end])
+            # create a window that stores two days of data
+            # starting at 1.1.23 with samplerate=1
+            window = MovingWindow(
+                size=timedelta(days=2),
+                resampled_data_recv=resampled_data_receiver,
+                input_sampling_period=timedelta(seconds=1),
+            )
+
+            # wait for one full day until the buffer is filled
+            asyncio.sleep(60*60*24)
+
+            # create a polars series with one full day of data
+            time_start = datetime(2023, 1, 1, tzinfo=timezone.utc)
+            time_end = datetime(2023, 1, 2, tzinfo=timezone.utc)
+            series = pl.Series("Jan_1", window[time_start:time_end])
+
+        asyncio.run(run())
         ```
     """
 
