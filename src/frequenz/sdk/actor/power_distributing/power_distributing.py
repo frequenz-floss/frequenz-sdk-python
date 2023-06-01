@@ -17,16 +17,17 @@ import asyncio
 import logging
 import time
 from asyncio.tasks import ALL_COMPLETED
+from collections import abc
 from dataclasses import dataclass, replace
 from datetime import timedelta
 from math import isnan
 from typing import Any, Dict, Iterable, List, Optional, Self, Set, Tuple
 
 import grpc
-from frequenz.channels import Bidirectional, Peekable, Receiver, Sender
+from frequenz.channels import Peekable, Receiver, Sender
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
-from ..._internal._asyncio import cancel_and_await
+from ...actor import ChannelRegistry
 from ...actor._decorator import actor
 from ...microgrid import ComponentGraph, connection_manager
 from ...microgrid.client import MicrogridApiClient
@@ -39,21 +40,9 @@ from ...microgrid.component import (
 from ...power import DistributionAlgorithm, DistributionResult, InvBatPair
 from ._battery_pool_status import BatteryPoolStatus, BatteryStatus
 from .request import Request
-from .result import Error, Ignored, OutOfBound, PartialFailure, Result, Success
+from .result import Error, OutOfBound, PartialFailure, Result, Success
 
 _logger = logging.getLogger(__name__)
-
-
-@dataclass
-class _User:
-    """User definitions."""
-
-    user_id: str
-    """The unique identifier for a user of the power distributing actor."""
-
-    # Channel for the communication
-    channel: Bidirectional.Handle[Result, Request]
-    """The bidirectional channel to communicate with the user."""
 
 
 @dataclass
@@ -130,7 +119,7 @@ class PowerDistributingActor:
             PartialFailure,
             Ignored,
         )
-        from frequenz.channels import Bidirectional, Broadcast, Receiver, Sender
+        from frequenz.channels import Broadcast, Receiver, Sender
         from datetime import timedelta
         from frequenz.sdk import actor
 
@@ -150,27 +139,28 @@ class PowerDistributingActor:
 
         battery_status_channel = Broadcast[BatteryStatus]("battery-status")
 
-        channel = Bidirectional[Request, Result]("user1", "power_distributor")
+        channel = Broadcast[Request]("power_distributor")
+        channel_registry = ChannelRegistry(name="power_distributor")
         power_distributor = PowerDistributingActor(
-            users_channels={"user1": channel.service_handle},
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
         )
 
-        # Start the actor
-        await actor.run(power_distributor)
-
-        client_handle = channel.client_handle
-
+        sender = channel.new_sender()
+        namespace: str = "namespace"
         # Set power 1200W to given batteries.
-        request = Request(power=1200.0, batteries=batteries_ids, request_timeout_sec=10.0)
-        await client_handle.send(request)
-
-        # Set power 1200W to given batteries.
-        request = Request(power=1200, batteries=batteries_ids, request_timeout_sec=10.0)
-        await client_handle.send(request)
+        request = Request(
+            namespace=namespace,
+            power=1200.0,
+            batteries=batteries_ids,
+            request_timeout_sec=10.0
+        )
+        await sender.send(request)
+        result_rx = channel_registry.new_receiver(namespace)
 
         # It is recommended to use timeout when waiting for the response!
-        result: Result = await asyncio.wait_for(client_handle.receive(), timeout=10)
+        result: Result = await asyncio.wait_for(result_rx.receive(), timeout=10)
 
         if isinstance(result, Success):
             print("Command succeed")
@@ -188,21 +178,31 @@ class PowerDistributingActor:
 
     def __init__(
         self,
-        users_channels: Dict[str, Bidirectional.Handle[Result, Request]],
+        requests_receiver: Receiver[Request],
+        channel_registry: ChannelRegistry,
         battery_status_sender: Sender[BatteryStatus],
         wait_for_data_sec: float = 2,
     ) -> None:
         """Create class instance.
 
         Args:
-            users_channels: BidirectionalHandle for each user. Key should be
-                user id and value should be BidirectionalHandle.
+            requests_receiver: Receiver for receiving power requests from other actors.
+            channel_registry: Channel registry for creating result channels dynamically
+                for each request namespace.
             battery_status_sender: Channel for sending information which batteries are
                 working.
             wait_for_data_sec: How long actor should wait before processing first
                 request. It is a time needed to collect first components data.
         """
+        self._requests_receiver = requests_receiver
+        self._channel_registry = channel_registry
         self._wait_for_data_sec = wait_for_data_sec
+        self._result_senders: Dict[str, Sender[Result]] = {}
+        """Dictionary of result senders for each request namespace.
+
+        They are for channels owned by the channel registry, we just hold a reference
+        to their senders, for fast access.
+        """
 
         # NOTE: power_distributor_exponent should be received from ConfigManager
         self.power_distributor_exponent: float = 1.0
@@ -216,22 +216,6 @@ class PowerDistributingActor:
         self._battery_receivers: Dict[int, Peekable[BatteryData]] = {}
         self._inverter_receivers: Dict[int, Peekable[InverterData]] = {}
 
-        # The components in different requests be for the same components, or for
-        # completely different components. They should not overlap.
-        # Otherwise the PowerDistributingActor has no way to decide what request is more
-        # important. It will execute both. And later request will override the previous
-        # one.
-        # That is why the queue of maxsize = total number of batteries should be enough.
-        self._request_queue: asyncio.Queue[Tuple[Request, _User]] = asyncio.Queue(
-            maxsize=len(self._bat_inv_map)
-        )
-
-        self._users_channels: Dict[
-            str, Bidirectional.Handle[Result, Request]
-        ] = users_channels
-        self._users_tasks = self._create_users_tasks()
-        self._started = asyncio.Event()
-
         self._all_battery_status = BatteryPoolStatus(
             battery_ids=set(self._bat_inv_map.keys()),
             battery_status_sender=battery_status_sender,
@@ -243,20 +227,7 @@ class PowerDistributingActor:
             bat_id: None for bat_id, _ in self._bat_inv_map.items()
         }
 
-    def _create_users_tasks(self) -> List[asyncio.Task[None]]:
-        """For each user create a task to wait for request.
-
-        Returns:
-            List with users tasks.
-        """
-        tasks = []
-        for user, handler in self._users_channels.items():
-            tasks.append(
-                asyncio.create_task(self._wait_for_request(_User(user, handler)))
-            )
-        return tasks
-
-    def _get_upper_bound(self, batteries: Set[int], include_broken: bool) -> float:
+    def _get_upper_bound(self, batteries: abc.Set[int], include_broken: bool) -> float:
         """Get total upper bound of power to be set for given batteries.
 
         Note, output of that function doesn't guarantee that this bound will be
@@ -278,7 +249,7 @@ class PowerDistributingActor:
             for battery, inverter in pairs_data
         )
 
-    def _get_lower_bound(self, batteries: Set[int], include_broken: bool) -> float:
+    def _get_lower_bound(self, batteries: abc.Set[int], include_broken: bool) -> float:
         """Get total lower bound of power to be set for given batteries.
 
         Note, output of that function doesn't guarantee that this bound will be
@@ -300,6 +271,20 @@ class PowerDistributingActor:
             for battery, inverter in pairs_data
         )
 
+    async def _send_result(self, namespace: str, result: Result) -> None:
+        """Send result to the user.
+
+        Args:
+            namespace: namespace of the sender, to identify the result channel with.
+            result: Result to send out.
+        """
+        if not namespace in self._result_senders:
+            self._result_senders[namespace] = self._channel_registry.new_sender(
+                namespace
+            )
+
+        await self._result_senders[namespace].send(result)
+
     async def run(self) -> None:
         """Run actor main function.
 
@@ -316,28 +301,36 @@ class PowerDistributingActor:
         # Wait few seconds to get data from the channels created above.
         await asyncio.sleep(self._wait_for_data_sec)
 
-        self._started.set()
-        while True:
-            request, user = await self._request_queue.get()
+        async for request in self._requests_receiver:
+            error = self._check_request(request)
+            if error:
+                await self._send_result(request.namespace, error)
+                continue
 
             try:
                 pairs_data: List[InvBatPair] = self._get_components_data(
-                    request.batteries, request.include_broken
+                    request.batteries, request.include_broken_batteries
                 )
             except KeyError as err:
-                await user.channel.send(Error(request=request, msg=str(err)))
+                await self._send_result(
+                    request.namespace, Error(request=request, msg=str(err))
+                )
                 continue
 
-            if not pairs_data and not request.include_broken:
+            if not pairs_data and not request.include_broken_batteries:
                 error_msg = f"No data for the given batteries {str(request.batteries)}"
-                await user.channel.send(Error(request=request, msg=str(error_msg)))
+                await self._send_result(
+                    request.namespace, Error(request=request, msg=str(error_msg))
+                )
                 continue
 
             try:
                 distribution = self._get_power_distribution(request, pairs_data)
             except ValueError as err:
                 error_msg = f"Couldn't distribute power, error: {str(err)}"
-                await user.channel.send(Error(request=request, msg=str(error_msg)))
+                await self._send_result(
+                    request.namespace, Error(request=request, msg=str(error_msg))
+                )
                 continue
 
             distributed_power_value = request.power - distribution.remaining_power
@@ -346,8 +339,7 @@ class PowerDistributingActor:
                 for bat_id, dist in distribution.distribution.items()
             }
             _logger.debug(
-                "%s: Distributing power %d between the batteries %s",
-                user.user_id,
+                "Distributing power %d between the batteries %s",
                 distributed_power_value,
                 str(battery_distribution),
             )
@@ -381,7 +373,7 @@ class PowerDistributingActor:
                     self._all_battery_status.update_status(
                         succeed_batteries, failed_batteries
                     ),
-                    user.channel.send(response),
+                    self._send_result(request.namespace, response),
                 ]
             )
 
@@ -435,7 +427,7 @@ class PowerDistributingActor:
             self._bat_inv_map[battery_id] for battery_id in unavailable_bat_ids
         }
 
-        if request.include_broken and not available_bat_ids:
+        if request.include_broken_batteries and not available_bat_ids:
             return self.distribution_algorithm.distribute_power_equally(
                 request.power, unavailable_inv_ids
             )
@@ -444,7 +436,7 @@ class PowerDistributingActor:
             request.power, inv_bat_pairs
         )
 
-        if request.include_broken and unavailable_inv_ids:
+        if request.include_broken_batteries and unavailable_inv_ids:
             additional_result = self.distribution_algorithm.distribute_power_equally(
                 result.remaining_power, unavailable_inv_ids
             )
@@ -477,116 +469,19 @@ class PowerDistributingActor:
 
         if not request.adjust_power:
             if request.power < 0:
-                bound = self._get_lower_bound(request.batteries, request.include_broken)
+                bound = self._get_lower_bound(
+                    request.batteries, request.include_broken_batteries
+                )
                 if request.power < bound:
                     return OutOfBound(request=request, bound=bound)
             else:
-                bound = self._get_upper_bound(request.batteries, request.include_broken)
+                bound = self._get_upper_bound(
+                    request.batteries, request.include_broken_batteries
+                )
                 if request.power > bound:
                     return OutOfBound(request=request, bound=bound)
 
         return None
-
-    def _remove_duplicated_requests(
-        self, request: Request, user: _User
-    ) -> List[asyncio.Task[None]]:
-        """Remove duplicated requests from the queue.
-
-        Remove old requests in which set of batteries are the same as in new request.
-        If batteries in new request overlap with batteries in old request but are not
-        equal, then log error and process both messages.
-
-        Args:
-            request: request to check
-            user: User who sent the request.
-
-        Returns:
-            Tasks with result sent to the users which requests were duplicated.
-        """
-        batteries = request.batteries
-
-        good_requests: List[Tuple[Request, _User]] = []
-        to_ignore: List[asyncio.Task[None]] = []
-
-        while not self._request_queue.empty():
-            prev_request, prev_user = self._request_queue.get_nowait()
-            # Generators seems to be the fastest
-            if prev_request.batteries == batteries:
-                task = asyncio.create_task(
-                    prev_user.channel.send(Ignored(request=prev_request))
-                )
-                to_ignore.append(task)
-            # Use generators as generators seems to be the fastest.
-            elif any(battery_id in prev_request.batteries for battery_id in batteries):
-                # If that happen PowerDistributingActor has no way to distinguish what
-                # request is more important. This should not happen
-                _logger.error(
-                    "Batteries in two requests overlap! Actor: %s requested %s "
-                    "and Actor: %s requested %s",
-                    user.user_id,
-                    str(request),
-                    prev_user.user_id,
-                    str(prev_request),
-                )
-                good_requests.append((prev_request, prev_user))
-            else:
-                good_requests.append((prev_request, prev_user))
-
-        for good_request in good_requests:
-            self._request_queue.put_nowait(good_request)
-        return to_ignore
-
-    async def _wait_for_request(self, user: _User) -> None:
-        """Wait for the request from user.
-
-        Check if request is correct. If request is not correct send ERROR response
-        to the user. If request is correct, then add it to the main queue to be
-        process.
-
-        Already existing requests for the same subset of batteries will be
-        removed and their users will be notified with a Result.Status.IGNORED response.
-        Only new request will re processed.
-        If the sets of batteries are not the same but they have common elements,
-        then both batteries will be processed.
-
-        Args:
-            user: User that sends the requests.
-        """
-        while True:
-            request: Optional[Request] = await user.channel.receive()
-            if request is None:
-                _logger.info(
-                    "Send channel for user %s was closed. User will be unregistered.",
-                    user.user_id,
-                )
-
-                self._users_channels.pop(user.user_id)
-                if len(self._users_channels) == 0:
-                    _logger.error("No users in PowerDistributingActor!")
-                return
-
-            # Wait for PowerDistributingActor to start.
-            if not self._started.is_set():
-                await self._started.wait()
-
-            # We should discover as fast as possible that request is wrong.
-            error = self._check_request(request)
-            if error is not None:
-                await user.channel.send(error)
-                continue
-
-            tasks = self._remove_duplicated_requests(request, user)
-            if self._request_queue.full():
-                q_size = (self._request_queue.qsize(),)
-                msg = (
-                    f"Request queue is full {q_size}, can't process this request. "
-                    "Consider increasing size of the queue."
-                )
-                _logger.error(msg)
-                await user.channel.send(Error(request=request, msg=str(msg)))
-            else:
-                self._request_queue.put_nowait((request, user))
-                await asyncio.gather(*tasks)
 
     def _get_components_pairs(
         self, component_graph: ComponentGraph
@@ -631,7 +526,7 @@ class PowerDistributingActor:
         return bat_inv_map, inv_bat_map
 
     def _get_components_data(
-        self, batteries: Set[int], include_broken: bool
+        self, batteries: abc.Set[int], include_broken: bool
     ) -> List[InvBatPair]:
         """Get data for the given batteries and adjacent inverters.
 
@@ -846,6 +741,5 @@ class PowerDistributingActor:
 
     async def _stop_actor(self) -> None:
         """Stop all running async tasks."""
-        await asyncio.gather(*[cancel_and_await(t) for t in self._users_tasks])
         await self._all_battery_status.stop()
         await self._stop()  # type: ignore # pylint: disable=no-member

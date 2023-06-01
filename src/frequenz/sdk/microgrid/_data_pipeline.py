@@ -15,7 +15,7 @@ import typing
 from collections import abc
 from dataclasses import dataclass
 
-from frequenz.channels import Bidirectional, Broadcast, Sender
+from frequenz.channels import Broadcast, Sender
 
 from . import connection_manager
 from .component import ComponentCategory
@@ -37,7 +37,6 @@ if typing.TYPE_CHECKING:
         BatteryStatus,
         PowerDistributingActor,
         Request,
-        Result,
     )
     from ..timeseries.battery_pool import BatteryPool
     from ..timeseries.ev_charger_pool import EVChargerPool
@@ -89,8 +88,8 @@ class _DataPipeline:
         self._battery_status_channel = Broadcast["BatteryStatus"](
             "battery-status", resend_latest=True
         )
-        self._power_distribution_channel = Bidirectional["Request", "Result"](
-            "Default", "Power Distributing Actor"
+        self._power_distribution_channel = Broadcast["Request"](
+            "Power Distributing Actor, Broadcast Channel"
         )
 
         self._power_distributing_actor: "PowerDistributingActor" | None = None
@@ -180,22 +179,12 @@ class _DataPipeline:
                 batteries_status_receiver=self._battery_status_channel.new_receiver(
                     maxsize=1
                 ),
+                power_distributing_sender=self._power_distribution_channel.new_sender(),
                 min_update_interval=self._resampler_config.resampling_period,
                 batteries_id=battery_ids,
             )
 
         return self._battery_pools[key]
-
-    def power_distributing_handle(self) -> Bidirectional.Handle[Request, Result]:
-        """Return the handle to the power distributing actor.
-
-        Returns:
-            A Bidirectional handle to communicate with the power distributing actor.
-        """
-        if not self._power_distributing_actor:
-            self._start_power_distributing_actor()
-
-        return self._power_distribution_channel.client_handle
 
     def _start_power_distributing_actor(self) -> None:
         """Start the power distributing actor if it is not already running."""
@@ -218,7 +207,8 @@ class _DataPipeline:
         # Until the PowerManager is implemented, support for multiple use-case actors
         # will not be available in the high level interface.
         self._power_distributing_actor = PowerDistributingActor(
-            users_channels={"default": self._power_distribution_channel.service_handle},
+            requests_receiver=self._power_distribution_channel.new_receiver(),
+            channel_registry=self._channel_registry,
             battery_status_sender=self._battery_status_channel.new_sender(),
         )
 
@@ -342,15 +332,6 @@ def battery_pool(battery_ids: abc.Set[int] | None = None) -> BatteryPool:
         A BatteryPool instance.
     """
     return _get().battery_pool(battery_ids)
-
-
-def power_distributing_handle() -> Bidirectional.Handle[Request, Result]:
-    """Return the handle to the power distributing actor.
-
-    Returns:
-        A Bidirectional handle to communicate with the power distributing actor.
-    """
-    return _get().power_distributing_handle()
 
 
 def _get() -> _DataPipeline:

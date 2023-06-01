@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections import abc
 from dataclasses import dataclass
 from typing import Dict, Set
 
@@ -28,7 +29,7 @@ class BatteryStatus:
     uncertain: Set[int]
     """Set of batteries that should be used only if there are no working batteries."""
 
-    def get_working_batteries(self, batteries: Set[int]) -> Set[int]:
+    def get_working_batteries(self, batteries: abc.Set[int]) -> Set[int]:
         """From the given set of batteries return working batteries.
 
         Args:
@@ -203,7 +204,7 @@ class BatteryPoolStatus:
             SetPowerResult(succeed_batteries, failed_batteries)
         )
 
-    def get_working_batteries(self, batteries: Set[int]) -> Set[int]:
+    def get_working_batteries(self, batteries: abc.Set[int]) -> Set[int]:
         """From the given set of batteries get working.
 
         Args:

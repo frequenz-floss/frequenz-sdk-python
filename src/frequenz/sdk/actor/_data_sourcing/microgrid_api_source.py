@@ -60,7 +60,10 @@ class ComponentMetricRequest:
         Returns:
             A string denoting a channel name.
         """
-        return f"{self.component_id}::{self.metric_id.name}::{self.start_time}::{self.namespace}"
+        return (
+            f"component-stream::{self.component_id}::{self.metric_id.name}::"
+            f"{self.start_time}::{self.namespace}"
+        )
 
 
 _MeterDataMethods: Dict[ComponentMetricId, Callable[[MeterData], float]] = {
