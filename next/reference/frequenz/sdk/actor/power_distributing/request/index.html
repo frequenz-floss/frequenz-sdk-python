@@ -599,8 +599,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.actor.power_distributing.request.Request.include_broken" class="md-nav__link">
-    include_broken
+  <a href="#frequenz.sdk.actor.power_distributing.request.Request.include_broken_batteries" class="md-nav__link">
+    include_broken_batteries
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.power_distributing.request.Request.namespace" class="md-nav__link">
+    namespace
   </a>
   
 </li>
@@ -1014,8 +1021,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.actor.power_distributing.request.Request.include_broken" class="md-nav__link">
-    include_broken
+  <a href="#frequenz.sdk.actor.power_distributing.request.Request.include_broken_batteries" class="md-nav__link">
+    include_broken_batteries
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.power_distributing.request.Request.namespace" class="md-nav__link">
+    namespace
   </a>
   
 </li>
@@ -1122,8 +1136,7 @@
 
         <details class="quote">
           <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/request.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">10</span>
-<span class="normal">11</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">11</span>
 <span class="normal">12</span>
 <span class="normal">13</span>
 <span class="normal">14</span>
@@ -1154,14 +1167,32 @@
 <span class="normal">39</span>
 <span class="normal">40</span>
 <span class="normal">41</span>
-<span class="normal">42</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span> <span class="nc">Request</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Request to set power to the `PowerDistributingActor`.&quot;&quot;&quot;</span>
+
+    <span class="n">namespace</span><span class="p">:</span> <span class="nb">str</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The namespace of the request.</span>
+
+<span class="sd">    This will be used to identify the channel for sending the response into, in the</span>
+<span class="sd">    channel registry.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">power</span><span class="p">:</span> <span class="nb">float</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The requested power in watts.&quot;&quot;&quot;</span>
 
-    <span class="n">batteries</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="n">batteries</span><span class="p">:</span> <span class="n">abc</span><span class="o">.</span><span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The component ids of the batteries to be used for this request.&quot;&quot;&quot;</span>
 
     <span class="n">request_timeout_sec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span>
@@ -1177,15 +1208,18 @@
 <span class="sd">    fail and be replied to with an `OutOfBound` result.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">include_broken</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">include_broken_batteries</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Whether to use all batteries included in the batteries set regardless the status.</span>
 
-<span class="sd">    if `True`, the remaining power after distributing between working batteries</span>
-<span class="sd">    will be distributed equally between broken batteries. Also if all batteries</span>
-<span class="sd">    in the batteries set are broken then the power is distributed equally between</span>
-<span class="sd">    broken batteries.</span>
+<span class="sd">    If set to `True`, the power distribution algorithm will consider all batteries,</span>
+<span class="sd">    including the broken ones, when distributing power.  In such cases, any remaining</span>
+<span class="sd">    power after distributing among the available batteries will be distributed equally</span>
+<span class="sd">    among the unavailable (broken) batteries.  If all batteries in the set are</span>
+<span class="sd">    unavailable, the power will be equally distributed among all the unavailable</span>
+<span class="sd">    batteries in the request.</span>
 
-<span class="sd">    if `False`, the power will be only distributed between the working batteries.</span>
+<span class="sd">    If set to `False`, the power distribution will only take into account the available</span>
+<span class="sd">    batteries, excluding any broken ones.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
         </details>
@@ -1208,8 +1242,8 @@
 <code class="highlight language-python"><span class="n">adjust_power</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.request.Request.adjust_power" class="headerlink" title="Permanent link">¤</a></h6>
@@ -1231,7 +1265,7 @@ fail and be replied to with an <code>OutOfBound</code> result.</p>
 
 
 <h6 id="frequenz.sdk.actor.power_distributing.request.Request.batteries" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">batteries</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
+<code class="highlight language-python"><span class="n">batteries</span><span class="p">:</span> <span class="n">abc</span><span class="o">.</span><span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
@@ -1251,25 +1285,51 @@ fail and be replied to with an <code>OutOfBound</code> result.</p>
 
 
 
-<h6 id="frequenz.sdk.actor.power_distributing.request.Request.include_broken" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">include_broken</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span></code>
+<h6 id="frequenz.sdk.actor.power_distributing.request.Request.include_broken_batteries" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">include_broken_batteries</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
-<a href="#frequenz.sdk.actor.power_distributing.request.Request.include_broken" class="headerlink" title="Permanent link">¤</a></h6>
+<a href="#frequenz.sdk.actor.power_distributing.request.Request.include_broken_batteries" class="headerlink" title="Permanent link">¤</a></h6>
 
 
   <div class="doc doc-contents ">
   
       <p>Whether to use all batteries included in the batteries set regardless the status.</p>
-<p>if <code>True</code>, the remaining power after distributing between working batteries
-will be distributed equally between broken batteries. Also if all batteries
-in the batteries set are broken then the power is distributed equally between
-broken batteries.</p>
-<p>if <code>False</code>, the power will be only distributed between the working batteries.</p>
+<p>If set to <code>True</code>, the power distribution algorithm will consider all batteries,
+including the broken ones, when distributing power.  In such cases, any remaining
+power after distributing among the available batteries will be distributed equally
+among the unavailable (broken) batteries.  If all batteries in the set are
+unavailable, the power will be equally distributed among all the unavailable
+batteries in the request.</p>
+<p>If set to <code>False</code>, the power distribution will only take into account the available
+batteries, excluding any broken ones.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.actor.power_distributing.request.Request.namespace" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">namespace</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.actor.power_distributing.request.Request.namespace" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The namespace of the request.</p>
+<p>This will be used to identify the channel for sending the response into, in the
+channel registry.</p>
   </div>
 
 </div>
@@ -1303,8 +1363,8 @@ broken batteries.</p>
 <code class="highlight language-python"><span class="n">request_timeout_sec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.request.Request.request_timeout_sec" class="headerlink" title="Permanent link">¤</a></h6>
