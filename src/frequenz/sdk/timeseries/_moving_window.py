@@ -118,7 +118,7 @@ class MovingWindow:
             )
 
             # wait for one full day until the buffer is filled
-            asyncio.sleep(60*60*24)
+            await asyncio.sleep(60*60*24)
 
             # create a polars series with one full day of data
             time_start = datetime(2023, 1, 1, tzinfo=timezone.utc)
