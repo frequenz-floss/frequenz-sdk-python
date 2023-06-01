@@ -81,7 +81,6 @@ class MovingWindow:
     Example: Create a polars data frame from a `MovingWindow`
 
         ```python
-        # pylint: disable=import-error
         import polars as pl
         from datetime import datetime, timedelta, timezone
 
