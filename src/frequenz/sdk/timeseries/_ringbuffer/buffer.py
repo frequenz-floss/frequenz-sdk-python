@@ -130,7 +130,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
             IndexError: When the timestamp to be added is too old.
         """
         # adjust timestamp to be exactly on the sample period time point
-        timestamp = self._normalize_timestamp(sample.timestamp)
+        timestamp = self.normalize_timestamp(sample.timestamp)
 
         # Don't add outdated entries
         if (
@@ -152,6 +152,26 @@ class OrderedRingBuffer(Generic[FloatArray]):
 
         self._update_gaps(timestamp, prev_newest, sample.value is None)
 
+    @property
+    def time_bound_oldest(self) -> datetime:
+        """
+        Return the time bounds of the ring buffer.
+
+        Returns:
+            The timestamp of the oldest sample of the ring buffer.
+        """
+        return self._datetime_oldest
+
+    @property
+    def time_bound_newest(self) -> datetime:
+        """
+        Return the time bounds of the ring buffer.
+
+        Returns:
+            The timestamp of the newest sample of the ring buffer.
+        """
+        return self._datetime_newest
+
     def datetime_to_index(
         self, timestamp: datetime, allow_outside_range: bool = False
     ) -> int:
@@ -168,7 +188,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         Returns:
             Index where the value for the given timestamp can be found.
         """
-        timestamp = self._normalize_timestamp(timestamp)
+        timestamp = self.normalize_timestamp(timestamp)
 
         if not allow_outside_range and (
             self._datetime_newest + self._sampling_period < timestamp
@@ -179,7 +199,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
                 f"outside the range [{self._datetime_oldest} - {self._datetime_newest}]"
             )
 
-        return self._wrap(
+        return self.wrap(
             round(
                 (timestamp - self._time_index_alignment).total_seconds()
                 / self._sampling_period.total_seconds()
@@ -356,7 +376,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
             new_gap.start = timestamp + self._sampling_period
             self._gaps.append(new_gap)
 
-    def _normalize_timestamp(self, timestamp: datetime) -> datetime:
+    def normalize_timestamp(self, timestamp: datetime) -> datetime:
         """Normalize the given timestamp to fall exactly on the resampling period.
 
         Args:
@@ -384,7 +404,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
 
         return normalized_timestamp
 
-    def _wrap(self, index: int) -> int:
+    def wrap(self, index: int) -> int:
         """Normalize the given index to fit in the buffer by wrapping it around.
 
         Args:

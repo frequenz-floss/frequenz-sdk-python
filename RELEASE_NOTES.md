@@ -28,7 +28,13 @@ This release drops support for Python versions older than 3.11.
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+* The `MovingWindow` as well as the OrderedRingBuffer are having new public methods that are returning the oldest and newest timestamp of all stored samples.
+
+* The `PeriodicFeatureExtractor` has been added.
+
+  This is a tool to create certain profiles out of periodic reoccurring windows inside a `MovingWindow`.
+
+  As an example one can create a daily profile of specific weekdays which will be returned as numpy arrays.
 
 ## Bug Fixes
 
