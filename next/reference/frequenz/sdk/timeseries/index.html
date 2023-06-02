@@ -1432,7 +1432,7 @@ set to None in which case the MovingWindow will not perform any resampling.</p>
     <span class="p">)</span>
 
     <span class="c1"># wait for one full day until the buffer is filled</span>
-    <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">60</span><span class="o">*</span><span class="mi">60</span><span class="o">*</span><span class="mi">24</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">60</span><span class="o">*</span><span class="mi">60</span><span class="o">*</span><span class="mi">24</span><span class="p">)</span>
 
     <span class="c1"># create a polars series with one full day of data</span>
     <span class="n">time_start</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2023</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
@@ -1846,7 +1846,7 @@ set to None in which case the MovingWindow will not perform any resampling.</p>
 <span class="sd">            )</span>
 
 <span class="sd">            # wait for one full day until the buffer is filled</span>
-<span class="sd">            asyncio.sleep(60*60*24)</span>
+<span class="sd">            await asyncio.sleep(60*60*24)</span>
 
 <span class="sd">            # create a polars series with one full day of data</span>
 <span class="sd">            time_start = datetime(2023, 1, 1, tzinfo=timezone.utc)</span>
