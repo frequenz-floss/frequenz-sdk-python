@@ -5,7 +5,7 @@
 
 import pytest
 
-from frequenz.sdk.timeseries._quantities import Current, Power, Quantity
+from frequenz.sdk.timeseries._quantities import Current, Power, Quantity, Voltage
 
 
 class Fz1(
@@ -176,3 +176,20 @@ def test_current() -> None:
     assert current == Current.from_milliamperes(6000.0)
     assert current == Current.from_amperes(6.0)
     assert current != Current.from_amperes(5.0)
+
+
+def test_voltage() -> None:
+    """Test the voltage class."""
+    voltage = Voltage.from_millivolts(0.0000002)
+    assert f"{voltage:.9}" == "0.0000002 mV"
+    voltage = Voltage.from_kilovolts(600000.0)
+    assert f"{voltage}" == "600000 kV"
+
+    voltage = Voltage.from_volts(6.0)
+    assert voltage.as_volts() == 6.0
+    assert voltage.as_millivolts() == 6000.0
+    assert voltage.as_kilovolts() == 0.006
+    assert voltage == Voltage.from_millivolts(6000.0)
+    assert voltage == Voltage.from_kilovolts(0.006)
+    assert voltage == Voltage.from_volts(6.0)
+    assert voltage != Voltage.from_volts(5.0)

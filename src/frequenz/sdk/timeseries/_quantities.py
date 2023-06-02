@@ -402,3 +402,67 @@ class Current(
             The current in milliamperes.
         """
         return self._base_value * 1e3
+
+
+class Voltage(Quantity, exponent_unit_map={0: "V", -3: "mV", 3: "kV"}):
+    """A voltage quantity."""
+
+    @classmethod
+    def from_volts(cls, volts: float) -> Self:
+        """Initialize a new voltage quantity.
+
+        Args:
+            volts: The voltage in volts.
+
+        Returns:
+            A new voltage quantity.
+        """
+        return cls(value=volts, exponent=0)
+
+    @classmethod
+    def from_millivolts(cls, millivolts: float) -> Self:
+        """Initialize a new voltage quantity.
+
+        Args:
+            millivolts: The voltage in millivolts.
+
+        Returns:
+            A new voltage quantity.
+        """
+        return cls(value=millivolts, exponent=-3)
+
+    @classmethod
+    def from_kilovolts(cls, kilovolts: float) -> Self:
+        """Initialize a new voltage quantity.
+
+        Args:
+            kilovolts: The voltage in kilovolts.
+
+        Returns:
+            A new voltage quantity.
+        """
+        return cls(value=kilovolts, exponent=3)
+
+    def as_volts(self) -> float:
+        """Return the voltage in volts.
+
+        Returns:
+            The voltage in volts.
+        """
+        return self._base_value
+
+    def as_millivolts(self) -> float:
+        """Return the voltage in millivolts.
+
+        Returns:
+            The voltage in millivolts.
+        """
+        return self._base_value * 1e3
+
+    def as_kilovolts(self) -> float:
+        """Return the voltage in kilovolts.
+
+        Returns:
+            The voltage in kilovolts.
+        """
+        return self._base_value / 1e3
