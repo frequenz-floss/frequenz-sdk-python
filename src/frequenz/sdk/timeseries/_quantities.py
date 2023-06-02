@@ -352,3 +352,53 @@ class Power(
             The power in megawatts.
         """
         return self._base_value / 1e6
+
+
+class Current(
+    Quantity,
+    exponent_unit_map={
+        -3: "mA",
+        0: "A",
+    },
+):
+    """A current quantity."""
+
+    @classmethod
+    def from_amperes(cls, amperes: float) -> Self:
+        """Initialize a new current quantity.
+
+        Args:
+            amperes: The current in amperes.
+
+        Returns:
+            A new current quantity.
+        """
+        return cls(value=amperes, exponent=0)
+
+    @classmethod
+    def from_milliamperes(cls, milliamperes: float) -> Self:
+        """Initialize a new current quantity.
+
+        Args:
+            milliamperes: The current in milliamperes.
+
+        Returns:
+            A new current quantity.
+        """
+        return cls(value=milliamperes, exponent=-3)
+
+    def as_amperes(self) -> float:
+        """Return the current in amperes.
+
+        Returns:
+            The current in amperes.
+        """
+        return self._base_value
+
+    def as_milliamperes(self) -> float:
+        """Return the current in milliamperes.
+
+        Returns:
+            The current in milliamperes.
+        """
+        return self._base_value * 1e3

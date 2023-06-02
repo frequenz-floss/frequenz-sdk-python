@@ -5,7 +5,7 @@
 
 import pytest
 
-from frequenz.sdk.timeseries._quantities import Power, Quantity
+from frequenz.sdk.timeseries._quantities import Current, Power, Quantity
 
 
 class Fz1(
@@ -161,3 +161,18 @@ def test_power() -> None:
     assert power == Power.from_milliwatts(1200000.0)
     assert power == Power.from_megawatts(0.0012)
     assert power != Power.from_watts(1000.0)
+
+
+def test_current() -> None:
+    """Test the current class."""
+    current = Current.from_milliamperes(0.0000002)
+    assert f"{current:.9}" == "0.0000002 mA"
+    current = Current.from_amperes(600000.0)
+    assert f"{current}" == "600000 A"
+
+    current = Current.from_amperes(6.0)
+    assert current.as_amperes() == 6.0
+    assert current.as_milliamperes() == 6000.0
+    assert current == Current.from_milliamperes(6000.0)
+    assert current == Current.from_amperes(6.0)
+    assert current != Current.from_amperes(5.0)
