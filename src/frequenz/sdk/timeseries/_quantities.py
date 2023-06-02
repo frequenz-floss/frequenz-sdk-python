@@ -3,8 +3,11 @@
 
 """Types for holding quantities with units."""
 
+from __future__ import annotations
+
 import math
-from typing import Self
+from datetime import timedelta
+from typing import Self, overload
 
 
 class Quantity:
@@ -353,6 +356,53 @@ class Power(
         """
         return self._base_value / 1e6
 
+    def __mul__(self, duration: timedelta) -> Energy:
+        """Return an energy from multiplying this power by the given duration.
+
+        Args:
+            duration: The duration to multiply by.
+
+        Returns:
+            An energy from multiplying this power by the given duration.
+        """
+        return Energy(self._base_value * duration.total_seconds() / 3600.0, exponent=0)
+
+    @overload
+    def __truediv__(self, other: Current) -> Voltage:
+        """Return a voltage from dividing this power by the given current.
+
+        Args:
+            other: The current to divide by.
+        """
+
+    @overload
+    def __truediv__(self, other: Voltage) -> Current:
+        """Return a current from dividing this power by the given voltage.
+
+        Args:
+            other: The voltage to divide by.
+        """
+
+    def __truediv__(self, other: Current | Voltage) -> Voltage | Current:
+        """Return a current or voltage from dividing this power by the given value.
+
+        Args:
+            other: The current or voltage to divide by.
+
+        Returns:
+            A current or voltage from dividing this power by the given value.
+
+        Raises:
+            TypeError: If the given value is not a current or voltage.
+        """
+        if isinstance(other, Current):
+            return Voltage(self._base_value / other._base_value, exponent=0)
+        if isinstance(other, Voltage):
+            return Current(self._base_value / other._base_value, exponent=0)
+        raise TypeError(
+            f"unsupported operand type(s) for /: '{type(self)}' and '{type(other)}'"
+        )
+
 
 class Current(
     Quantity,
@@ -402,6 +452,17 @@ class Current(
             The current in milliamperes.
         """
         return self._base_value * 1e3
+
+    def __mul__(self, voltage: Voltage) -> Power:
+        """Multiply the current by a voltage to get a power.
+
+        Args:
+            voltage: The voltage.
+
+        Returns:
+            The power.
+        """
+        return Power(self._base_value * voltage._base_value, exponent=0)
 
 
 class Voltage(Quantity, exponent_unit_map={0: "V", -3: "mV", 3: "kV"}):
@@ -466,6 +527,17 @@ class Voltage(Quantity, exponent_unit_map={0: "V", -3: "mV", 3: "kV"}):
             The voltage in kilovolts.
         """
         return self._base_value / 1e3
+
+    def __mul__(self, current: Current) -> Power:
+        """Multiply the voltage by the current to get the power.
+
+        Args:
+            current: The current to multiply the voltage with.
+
+        Returns:
+            The calculated power.
+        """
+        return Power(self._base_value * current._base_value, exponent=0)
 
 
 class Energy(
@@ -537,3 +609,41 @@ class Energy(
             The energy in megawatt hours.
         """
         return self._base_value / 1e6
+
+    @overload
+    def __truediv__(self, other: timedelta) -> Power:
+        """Return a power from dividing this energy by the given duration.
+
+        Args:
+            other: The duration to divide by.
+        """
+
+    @overload
+    def __truediv__(self, other: Power) -> timedelta:
+        """Return a duration from dividing this energy by the given power.
+
+        Args:
+            other: The power to divide by.
+        """
+
+    def __truediv__(self, other: timedelta | Power) -> Power | timedelta:
+        """Return a power or duration from dividing this energy by the given value.
+
+        Args:
+            other: The power or duration to divide by.
+
+        Returns:
+            A power or duration from dividing this energy by the given value.
+
+        Raises:
+            TypeError: If the given value is not a power or duration.
+        """
+        if isinstance(other, timedelta):
+            return Power(
+                self._base_value / (other.total_seconds() / 3600.0), exponent=0
+            )
+        if isinstance(other, Power):
+            return timedelta(seconds=(self._base_value / other._base_value) * 3600.0)
+        raise TypeError(
+            f"unsupported operand type(s) for /: '{type(self)}' and '{type(other)}'"
+        )

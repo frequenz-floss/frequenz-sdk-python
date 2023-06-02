@@ -3,6 +3,8 @@
 
 """Tests for quantity types."""
 
+from datetime import timedelta
+
 import pytest
 
 from frequenz.sdk.timeseries._quantities import (
@@ -215,3 +217,19 @@ def test_energy() -> None:
     assert energy == Energy.from_megawatt_hours(0.006)
     assert energy == Energy.from_kilowatt_hours(6.0)
     assert energy != Energy.from_kilowatt_hours(5.0)
+
+
+def test_quantity_compositions() -> None:
+    """Test the composition of quantities."""
+    power = Power.from_watts(1000.0)
+    voltage = Voltage.from_volts(230.0)
+    current = Current.from_amperes(4.3478260869565215)
+    energy = Energy.from_kilowatt_hours(6.2)
+
+    assert power / voltage == current
+    assert power / current == voltage
+    assert power == voltage * current
+
+    assert energy / power == timedelta(hours=6.2)
+    assert energy / timedelta(hours=6.2) == power
+    assert energy == power * timedelta(hours=6.2)
