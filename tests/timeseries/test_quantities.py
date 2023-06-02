@@ -5,7 +5,13 @@
 
 import pytest
 
-from frequenz.sdk.timeseries._quantities import Current, Power, Quantity, Voltage
+from frequenz.sdk.timeseries._quantities import (
+    Current,
+    Energy,
+    Power,
+    Quantity,
+    Voltage,
+)
 
 
 class Fz1(
@@ -193,3 +199,19 @@ def test_voltage() -> None:
     assert voltage == Voltage.from_kilovolts(0.006)
     assert voltage == Voltage.from_volts(6.0)
     assert voltage != Voltage.from_volts(5.0)
+
+
+def test_energy() -> None:
+    """Test the energy class."""
+    energy = Energy.from_watt_hours(0.0000002)
+    assert f"{energy:.9}" == "0.0000002 Wh"
+    energy = Energy.from_megawatt_hours(600000.0)
+    assert f"{energy}" == "600000 MWh"
+
+    energy = Energy.from_kilowatt_hours(6.0)
+    assert energy.as_watt_hours() == 6000.0
+    assert energy.as_kilowatt_hours() == 6.0
+    assert energy.as_megawatt_hours() == 0.006
+    assert energy == Energy.from_megawatt_hours(0.006)
+    assert energy == Energy.from_kilowatt_hours(6.0)
+    assert energy != Energy.from_kilowatt_hours(5.0)

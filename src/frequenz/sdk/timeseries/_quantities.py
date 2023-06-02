@@ -466,3 +466,74 @@ class Voltage(Quantity, exponent_unit_map={0: "V", -3: "mV", 3: "kV"}):
             The voltage in kilovolts.
         """
         return self._base_value / 1e3
+
+
+class Energy(
+    Quantity,
+    exponent_unit_map={
+        0: "Wh",
+        3: "kWh",
+        6: "MWh",
+    },
+):
+    """An energy quantity."""
+
+    @classmethod
+    def from_watt_hours(cls, watt_hours: float) -> Self:
+        """Initialize a new energy quantity.
+
+        Args:
+            watt_hours: The energy in watt hours.
+
+        Returns:
+            A new energy quantity.
+        """
+        return cls(value=watt_hours, exponent=0)
+
+    @classmethod
+    def from_kilowatt_hours(cls, kilowatt_hours: float) -> Self:
+        """Initialize a new energy quantity.
+
+        Args:
+            kilowatt_hours: The energy in kilowatt hours.
+
+        Returns:
+            A new energy quantity.
+        """
+        return cls(value=kilowatt_hours, exponent=3)
+
+    @classmethod
+    def from_megawatt_hours(cls, megawatt_hours: float) -> Self:
+        """Initialize a new energy quantity.
+
+        Args:
+            megawatt_hours: The energy in megawatt hours.
+
+        Returns:
+            A new energy quantity.
+        """
+        return cls(value=megawatt_hours, exponent=6)
+
+    def as_watt_hours(self) -> float:
+        """Return the energy in watt hours.
+
+        Returns:
+            The energy in watt hours.
+        """
+        return self._base_value
+
+    def as_kilowatt_hours(self) -> float:
+        """Return the energy in kilowatt hours.
+
+        Returns:
+            The energy in kilowatt hours.
+        """
+        return self._base_value / 1e3
+
+    def as_megawatt_hours(self) -> float:
+        """Return the energy in megawatt hours.
+
+        Returns:
+            The energy in megawatt hours.
+        """
+        return self._base_value / 1e6
