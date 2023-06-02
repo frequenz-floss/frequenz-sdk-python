@@ -900,6 +900,26 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries.MovingWindow-attributes" class="md-nav__link">
+    Attributes
+  </a>
+  
+    <nav class="md-nav" aria-label="Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries._moving_window.MovingWindow.sampling_period" class="md-nav__link">
+    sampling_period
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#frequenz.sdk.timeseries.MovingWindow-functions" class="md-nav__link">
     Functions
   </a>
@@ -931,6 +951,46 @@
           <li class="md-nav__item">
   <a href="#frequenz.sdk.timeseries._moving_window.MovingWindow.stop" class="md-nav__link">
     stop()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries.PeriodicFeatureExtractor" class="md-nav__link">
+    PeriodicFeatureExtractor
+  </a>
+  
+    <nav class="md-nav" aria-label="PeriodicFeatureExtractor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries.PeriodicFeatureExtractor-functions" class="md-nav__link">
+    Functions
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries._periodic_feature_extractor.PeriodicFeatureExtractor.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries._periodic_feature_extractor.PeriodicFeatureExtractor.avg" class="md-nav__link">
+    avg()
   </a>
   
 </li>
@@ -1669,7 +1729,30 @@ set to None in which case the MovingWindow will not perform any resampling.</p>
 <span class="normal">308</span>
 <span class="normal">309</span>
 <span class="normal">310</span>
-<span class="normal">311</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">MovingWindow</span><span class="p">:</span>
+<span class="normal">311</span>
+<span class="normal">312</span>
+<span class="normal">313</span>
+<span class="normal">314</span>
+<span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span>
+<span class="normal">318</span>
+<span class="normal">319</span>
+<span class="normal">320</span>
+<span class="normal">321</span>
+<span class="normal">322</span>
+<span class="normal">323</span>
+<span class="normal">324</span>
+<span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
+<span class="normal">331</span>
+<span class="normal">332</span>
+<span class="normal">333</span>
+<span class="normal">334</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">MovingWindow</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A data window that moves with the latest datapoints of a data stream.</span>
 
@@ -1809,7 +1892,8 @@ set to None in which case the MovingWindow will not perform any resampling.</p>
             <span class="n">input_sampling_period</span> <span class="o">&lt;=</span> <span class="n">size</span>
         <span class="p">),</span> <span class="s2">&quot;The input sampling period should be equal to or lower than the window size.&quot;</span>
 
-        <span class="n">sampling</span> <span class="o">=</span> <span class="n">input_sampling_period</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_period</span> <span class="o">=</span> <span class="n">input_sampling_period</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_resampler</span><span class="p">:</span> <span class="n">Resampler</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_resampler_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span><span class="n">Sample</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_resampler_task</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1820,15 +1904,17 @@ set to None in which case the MovingWindow will not perform any resampling.</p>
             <span class="p">),</span> <span class="s2">&quot;The resampling period should be equal to or lower than the window size.&quot;</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">_resampler</span> <span class="o">=</span> <span class="n">Resampler</span><span class="p">(</span><span class="n">resampler_config</span><span class="p">)</span>
-            <span class="n">sampling</span> <span class="o">=</span> <span class="n">resampler_config</span><span class="o">.</span><span class="n">resampling_period</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_period</span> <span class="o">=</span> <span class="n">resampler_config</span><span class="o">.</span><span class="n">resampling_period</span>
 
         <span class="c1"># Sampling period might not fit perfectly into the window size.</span>
-        <span class="n">num_samples</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">size</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="n">sampling</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">())</span>
+        <span class="n">num_samples</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span>
+            <span class="n">size</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_period</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
+        <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_resampled_data_recv</span> <span class="o">=</span> <span class="n">resampled_data_recv</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span> <span class="o">=</span> <span class="n">OrderedRingBuffer</span><span class="p">(</span>
             <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
-            <span class="n">sampling_period</span><span class="o">=</span><span class="n">sampling</span><span class="p">,</span>
+            <span class="n">sampling_period</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sampling_period</span><span class="p">,</span>
             <span class="n">align_to</span><span class="o">=</span><span class="n">align_to</span><span class="p">,</span>
         <span class="p">)</span>
 
@@ -1838,6 +1924,16 @@ set to None in which case the MovingWindow will not perform any resampling.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_window_task</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_run_impl</span><span class="p">()</span>
         <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sampling_period</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">timedelta</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the sampling period of the MovingWindow.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The sampling period of the MovingWindow.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_period</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_run_impl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Awaits samples from the receiver and updates the underlying ring buffer.</span>
@@ -1937,7 +2033,17 @@ set to None in which case the MovingWindow will not perform any resampling.</p>
 <span class="sd">            an numpy array if the key is a slice.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">key</span><span class="o">.</span><span class="n">stop</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">key</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="fm">__len__</span><span class="p">()))</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">datetime</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">datetime</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">key</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">time_bound_oldest</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">stop</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">key</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">time_bound_newest</span><span class="p">)</span>
+
             <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Returning slice for [</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span>
+
             <span class="c1"># we are doing runtime typechecks since there is no abstract slice type yet</span>
             <span class="c1"># see also (https://peps.python.org/pep-0696)</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">datetime</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">datetime</span><span class="p">):</span>
@@ -1965,7 +2071,49 @@ set to None in which case the MovingWindow will not perform any resampling.</p>
 
 
 
+<h5 id="frequenz.sdk.timeseries.MovingWindow-attributes">Attributes<a href="#frequenz.sdk.timeseries.MovingWindow-attributes" class="headerlink" title="Permanent link">¤</a></h5>
 
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.timeseries._moving_window.MovingWindow.sampling_period" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">sampling_period</span><span class="p">:</span> <span class="n">timedelta</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries._moving_window.MovingWindow.sampling_period" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Return the sampling period of the MovingWindow.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3/library/datetime.html#datetime.timedelta">timedelta</a></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>The sampling period of the MovingWindow.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
 
 <h5 id="frequenz.sdk.timeseries.MovingWindow-functions">Functions<a href="#frequenz.sdk.timeseries.MovingWindow-functions" class="headerlink" title="Permanent link">¤</a></h5>
 
@@ -2081,20 +2229,7 @@ or by a slice of timestamps or integers.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_moving_window.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">268</span>
-<span class="normal">269</span>
-<span class="normal">270</span>
-<span class="normal">271</span>
-<span class="normal">272</span>
-<span class="normal">273</span>
-<span class="normal">274</span>
-<span class="normal">275</span>
-<span class="normal">276</span>
-<span class="normal">277</span>
-<span class="normal">278</span>
-<span class="normal">279</span>
-<span class="normal">280</span>
-<span class="normal">281</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">281</span>
 <span class="normal">282</span>
 <span class="normal">283</span>
 <span class="normal">284</span>
@@ -2124,7 +2259,30 @@ or by a slice of timestamps or integers.</p>
 <span class="normal">308</span>
 <span class="normal">309</span>
 <span class="normal">310</span>
-<span class="normal">311</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">SupportsIndex</span> <span class="o">|</span> <span class="n">datetime</span> <span class="o">|</span> <span class="nb">slice</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">ArrayLike</span><span class="p">:</span>
+<span class="normal">311</span>
+<span class="normal">312</span>
+<span class="normal">313</span>
+<span class="normal">314</span>
+<span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span>
+<span class="normal">318</span>
+<span class="normal">319</span>
+<span class="normal">320</span>
+<span class="normal">321</span>
+<span class="normal">322</span>
+<span class="normal">323</span>
+<span class="normal">324</span>
+<span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
+<span class="normal">331</span>
+<span class="normal">332</span>
+<span class="normal">333</span>
+<span class="normal">334</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">SupportsIndex</span> <span class="o">|</span> <span class="n">datetime</span> <span class="o">|</span> <span class="nb">slice</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">ArrayLike</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return a sub window of the `MovingWindow`.</span>
 
@@ -2151,7 +2309,17 @@ or by a slice of timestamps or integers.</p>
 <span class="sd">        an numpy array if the key is a slice.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">key</span><span class="o">.</span><span class="n">stop</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="fm">__len__</span><span class="p">()))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">datetime</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">datetime</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">time_bound_oldest</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">stop</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">time_bound_newest</span><span class="p">)</span>
+
         <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Returning slice for [</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span>
+
         <span class="c1"># we are doing runtime typechecks since there is no abstract slice type yet</span>
         <span class="c1"># see also (https://peps.python.org/pep-0696)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">datetime</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">datetime</span><span class="p">):</span>
@@ -2359,7 +2527,10 @@ information, consult the class level documentation.</p>
 <span class="normal">192</span>
 <span class="normal">193</span>
 <span class="normal">194</span>
-<span class="normal">195</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>  <span class="c1"># pylint: disable=too-many-arguments</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>  <span class="c1"># pylint: disable=too-many-arguments</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">size</span><span class="p">:</span> <span class="n">timedelta</span><span class="p">,</span>
     <span class="n">resampled_data_recv</span><span class="p">:</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Sample</span><span class="p">],</span>
@@ -2394,7 +2565,8 @@ information, consult the class level documentation.</p>
         <span class="n">input_sampling_period</span> <span class="o">&lt;=</span> <span class="n">size</span>
     <span class="p">),</span> <span class="s2">&quot;The input sampling period should be equal to or lower than the window size.&quot;</span>
 
-    <span class="n">sampling</span> <span class="o">=</span> <span class="n">input_sampling_period</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_period</span> <span class="o">=</span> <span class="n">input_sampling_period</span>
+
     <span class="bp">self</span><span class="o">.</span><span class="n">_resampler</span><span class="p">:</span> <span class="n">Resampler</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_resampler_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span><span class="n">Sample</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_resampler_task</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
@@ -2405,15 +2577,17 @@ information, consult the class level documentation.</p>
         <span class="p">),</span> <span class="s2">&quot;The resampling period should be equal to or lower than the window size.&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_resampler</span> <span class="o">=</span> <span class="n">Resampler</span><span class="p">(</span><span class="n">resampler_config</span><span class="p">)</span>
-        <span class="n">sampling</span> <span class="o">=</span> <span class="n">resampler_config</span><span class="o">.</span><span class="n">resampling_period</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_period</span> <span class="o">=</span> <span class="n">resampler_config</span><span class="o">.</span><span class="n">resampling_period</span>
 
     <span class="c1"># Sampling period might not fit perfectly into the window size.</span>
-    <span class="n">num_samples</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">size</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="n">sampling</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">())</span>
+    <span class="n">num_samples</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span>
+        <span class="n">size</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_period</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
+    <span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_resampled_data_recv</span> <span class="o">=</span> <span class="n">resampled_data_recv</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span> <span class="o">=</span> <span class="n">OrderedRingBuffer</span><span class="p">(</span>
         <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
-        <span class="n">sampling_period</span><span class="o">=</span><span class="n">sampling</span><span class="p">,</span>
+        <span class="n">sampling_period</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sampling_period</span><span class="p">,</span>
         <span class="n">align_to</span><span class="o">=</span><span class="n">align_to</span><span class="p">,</span>
     <span class="p">)</span>
 
@@ -2466,14 +2640,14 @@ information, consult the class level documentation.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_moving_window.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">238</span>
-<span class="normal">239</span>
-<span class="normal">240</span>
-<span class="normal">241</span>
-<span class="normal">242</span>
-<span class="normal">243</span>
-<span class="normal">244</span>
-<span class="normal">245</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return the size of the `MovingWindow`s underlying buffer.</span>
 
@@ -2507,15 +2681,1136 @@ information, consult the class level documentation.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_moving_window.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">217</span>
-<span class="normal">218</span>
-<span class="normal">219</span>
-<span class="normal">220</span>
-<span class="normal">221</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Cancel the running tasks and stop the MovingWindow.&quot;&quot;&quot;</span>
     <span class="k">await</span> <span class="n">cancel_and_await</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_update_window_task</span><span class="p">)</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resampler_task</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">cancel_and_await</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_resampler_task</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="frequenz.sdk.timeseries.PeriodicFeatureExtractor" class="doc doc-heading">
+        <code>frequenz.sdk.timeseries.PeriodicFeatureExtractor</code>
+
+
+<a href="#frequenz.sdk.timeseries.PeriodicFeatureExtractor" class="headerlink" title="Permanent link">¤</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>A feature extractor for historical timeseries data.</p>
+<p>This class is creating a profile from periodically occurring windows in a
+buffer of historical data.</p>
+<p>The profile is created out of all windows that are fully contained in the
+underlying buffer with the same start and end time modulo a fixed period.</p>
+<p>Consider for example a timeseries $T$ of historical data and sub-series
+$S_i$ of $T$ all having the same size $l$ and the same fixed distance $p$
+called period, where period of two sub-windows is defined as the distance
+of two points at the same position within the sub-windows.</p>
+<p>This class calculates a statistical profile $S$ over all $S_i$, i.e. the
+value of $S$ at position $i$ is calculated by performing a certain
+calculation, e.g. an average, over all values of $S_i$ at position $i$.</p>
+
+<details class="note" open>
+  <summary>Note</summary>
+  <p>The oldest window or the window that is currently overwritten in the
+<code>MovingWindow</code> is not considered in the profile.</p>
+</details>
+<details class="note" open>
+  <summary>Note</summary>
+  <p>When constructing a <code>PeriodicFeatureExtractor</code> object the
+<code>MovingWindow</code> size has to be a integer multiple of the period.</p>
+</details>
+<details class="example" open>
+  <summary>Example</summary>
+  <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
+
+<span class="n">moving_window</span> <span class="o">=</span> <span class="n">MovingWindow</span><span class="p">(</span>
+    <span class="n">size</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">35</span><span class="p">),</span>
+    <span class="n">resampled_data_recv</span><span class="o">=</span><span class="n">microgrid</span><span class="o">.</span><span class="n">logical_meter</span><span class="p">()</span><span class="o">.</span><span class="n">grid_power</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">(),</span>
+    <span class="n">input_sampling_period</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">feature_extractor</span> <span class="o">=</span> <span class="n">PeriodicFeatureExtractor</span><span class="p">(</span>
+    <span class="n">moving_window</span> <span class="o">=</span> <span class="n">moving_window</span><span class="p">,</span>
+    <span class="n">period</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">7</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+
+<span class="c1"># create a daily weighted average for the next 24h</span>
+<span class="n">avg_24h</span> <span class="o">=</span> <span class="n">feature_extractor</span><span class="o">.</span><span class="n">avg</span><span class="p">(</span>
+    <span class="n">now</span><span class="p">,</span>
+    <span class="n">now</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">24</span><span class="p">),</span>
+    <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># create a daily average for Thursday March 23 2023</span>
+<span class="n">th_avg_24h</span> <span class="o">=</span> <span class="n">feature_extractor</span><span class="o">.</span><span class="n">avg</span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2023</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">23</span><span class="p">),</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2023</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">24</span><span class="p">))</span>
+</code></pre></div>
+</details>
+
+        <details class="quote">
+          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_periodic_feature_extractor.py</code></summary>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span>
+<span class="normal">299</span>
+<span class="normal">300</span>
+<span class="normal">301</span>
+<span class="normal">302</span>
+<span class="normal">303</span>
+<span class="normal">304</span>
+<span class="normal">305</span>
+<span class="normal">306</span>
+<span class="normal">307</span>
+<span class="normal">308</span>
+<span class="normal">309</span>
+<span class="normal">310</span>
+<span class="normal">311</span>
+<span class="normal">312</span>
+<span class="normal">313</span>
+<span class="normal">314</span>
+<span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span>
+<span class="normal">318</span>
+<span class="normal">319</span>
+<span class="normal">320</span>
+<span class="normal">321</span>
+<span class="normal">322</span>
+<span class="normal">323</span>
+<span class="normal">324</span>
+<span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
+<span class="normal">331</span>
+<span class="normal">332</span>
+<span class="normal">333</span>
+<span class="normal">334</span>
+<span class="normal">335</span>
+<span class="normal">336</span>
+<span class="normal">337</span>
+<span class="normal">338</span>
+<span class="normal">339</span>
+<span class="normal">340</span>
+<span class="normal">341</span>
+<span class="normal">342</span>
+<span class="normal">343</span>
+<span class="normal">344</span>
+<span class="normal">345</span>
+<span class="normal">346</span>
+<span class="normal">347</span>
+<span class="normal">348</span>
+<span class="normal">349</span>
+<span class="normal">350</span>
+<span class="normal">351</span>
+<span class="normal">352</span>
+<span class="normal">353</span>
+<span class="normal">354</span>
+<span class="normal">355</span>
+<span class="normal">356</span>
+<span class="normal">357</span>
+<span class="normal">358</span>
+<span class="normal">359</span>
+<span class="normal">360</span>
+<span class="normal">361</span>
+<span class="normal">362</span>
+<span class="normal">363</span>
+<span class="normal">364</span>
+<span class="normal">365</span>
+<span class="normal">366</span>
+<span class="normal">367</span>
+<span class="normal">368</span>
+<span class="normal">369</span>
+<span class="normal">370</span>
+<span class="normal">371</span>
+<span class="normal">372</span>
+<span class="normal">373</span>
+<span class="normal">374</span>
+<span class="normal">375</span>
+<span class="normal">376</span>
+<span class="normal">377</span>
+<span class="normal">378</span>
+<span class="normal">379</span>
+<span class="normal">380</span>
+<span class="normal">381</span>
+<span class="normal">382</span>
+<span class="normal">383</span>
+<span class="normal">384</span>
+<span class="normal">385</span>
+<span class="normal">386</span>
+<span class="normal">387</span>
+<span class="normal">388</span>
+<span class="normal">389</span>
+<span class="normal">390</span>
+<span class="normal">391</span>
+<span class="normal">392</span>
+<span class="normal">393</span>
+<span class="normal">394</span>
+<span class="normal">395</span>
+<span class="normal">396</span>
+<span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span>
+<span class="normal">403</span>
+<span class="normal">404</span>
+<span class="normal">405</span>
+<span class="normal">406</span>
+<span class="normal">407</span>
+<span class="normal">408</span>
+<span class="normal">409</span>
+<span class="normal">410</span>
+<span class="normal">411</span>
+<span class="normal">412</span>
+<span class="normal">413</span>
+<span class="normal">414</span>
+<span class="normal">415</span>
+<span class="normal">416</span>
+<span class="normal">417</span>
+<span class="normal">418</span>
+<span class="normal">419</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">PeriodicFeatureExtractor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A feature extractor for historical timeseries data.</span>
+
+<span class="sd">    This class is creating a profile from periodically occurring windows in a</span>
+<span class="sd">    buffer of historical data.</span>
+
+<span class="sd">    The profile is created out of all windows that are fully contained in the</span>
+<span class="sd">    underlying buffer with the same start and end time modulo a fixed period.</span>
+
+<span class="sd">    Consider for example a timeseries $T$ of historical data and sub-series</span>
+<span class="sd">    $S_i$ of $T$ all having the same size $l$ and the same fixed distance $p$</span>
+<span class="sd">    called period, where period of two sub-windows is defined as the distance</span>
+<span class="sd">    of two points at the same position within the sub-windows.</span>
+
+<span class="sd">    This class calculates a statistical profile $S$ over all $S_i$, i.e. the</span>
+<span class="sd">    value of $S$ at position $i$ is calculated by performing a certain</span>
+<span class="sd">    calculation, e.g. an average, over all values of $S_i$ at position $i$.</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        The oldest window or the window that is currently overwritten in the</span>
+<span class="sd">        `MovingWindow` is not considered in the profile.</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        When constructing a `PeriodicFeatureExtractor` object the</span>
+<span class="sd">        `MovingWindow` size has to be a integer multiple of the period.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        ```python</span>
+<span class="sd">        from datetime import datetime, timedelta, timezone</span>
+
+<span class="sd">        moving_window = MovingWindow(</span>
+<span class="sd">            size=timedelta(days=35),</span>
+<span class="sd">            resampled_data_recv=microgrid.logical_meter().grid_power.new_receiver(),</span>
+<span class="sd">            input_sampling_period=timedelta(seconds=1),</span>
+<span class="sd">        )</span>
+
+<span class="sd">        feature_extractor = PeriodicFeatureExtractor(</span>
+<span class="sd">            moving_window = moving_window,</span>
+<span class="sd">            period=timedelta(days=7),</span>
+<span class="sd">        )</span>
+
+<span class="sd">        now = datetime.now(timezone.utc)</span>
+
+<span class="sd">        # create a daily weighted average for the next 24h</span>
+<span class="sd">        avg_24h = feature_extractor.avg(</span>
+<span class="sd">            now,</span>
+<span class="sd">            now + timedelta(hours=24),</span>
+<span class="sd">            weights=[0.1, 0.2, 0.3, 0.4]</span>
+<span class="sd">        )</span>
+
+<span class="sd">        # create a daily average for Thursday March 23 2023</span>
+<span class="sd">        th_avg_24h = feature_extractor.avg(datetime(2023, 3, 23), datetime(2023, 3, 24))</span>
+<span class="sd">        ```</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">moving_window</span><span class="p">:</span> <span class="n">MovingWindow</span><span class="p">,</span>
+        <span class="n">period</span><span class="p">:</span> <span class="n">timedelta</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a PeriodicFeatureExtractor object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            moving_window: The MovingWindow that is used for the average calculation.</span>
+<span class="sd">            period: The distance between two succeeding intervals.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the MovingWindow size is not a integer multiple of the period.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_moving_window</span> <span class="o">=</span> <span class="n">moving_window</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_period</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_moving_window</span><span class="o">.</span><span class="n">sampling_period</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The sampling_period as float to use it for indexing of samples.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_period</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">period</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_period</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Distance between two succeeding intervals in samples.&quot;&quot;&quot;</span>
+
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Initializing PeriodicFeatureExtractor!&quot;</span><span class="p">)</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;MovingWindow size: </span><span class="si">%i</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_moving_window</span><span class="p">))</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s2">&quot;Period between two succeeding intervals (in samples): </span><span class="si">%i</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_period</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_moving_window</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_period</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;The MovingWindow size is not a integer multiple of the period.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_close_to_zero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_period</span> <span class="o">-</span> <span class="n">period</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_period</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;The period is not a multiple of the sampling period. &quot;</span>
+                <span class="s2">&quot;This might result in unexpected behaviour.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_buffer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OrderedRingBuffer</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_moving_window</span><span class="o">.</span><span class="n">_buffer</span>  <span class="c1"># pylint: disable=protected-access</span>
+
+    <span class="k">def</span> <span class="nf">_timestamp_to_rel_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the index of a timestamp relative to the oldest sample in the MovingWindow.</span>
+
+<span class="sd">        In other word consider an integer axis where the zero is defined as the</span>
+<span class="sd">        oldest element in the MovingWindow. This function returns the index of</span>
+<span class="sd">        the given timestamp an this axis.</span>
+
+<span class="sd">        This method can return negative values.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            timestamp: A timestamp that we want to shift into the window.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The index of the timestamp shifted into the MovingWindow.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># align timestamp to the sampling period</span>
+        <span class="n">timestamp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">normalize_timestamp</span><span class="p">(</span><span class="n">timestamp</span><span class="p">)</span>
+
+        <span class="c1"># distance between the input ts and the ts of oldest known samples (in samples)</span>
+        <span class="n">dist_to_oldest</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">timestamp</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">time_bound_oldest</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_period</span>
+        <span class="p">)</span>
+
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Shifting ts: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">)</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Oldest timestamp in buffer: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">time_bound_oldest</span><span class="p">)</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Distance to the oldest sample: </span><span class="si">%i</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">dist_to_oldest</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dist_to_oldest</span>
+
+    <span class="k">def</span> <span class="nf">_reshape_np_array</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">array</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">],</span> <span class="n">window_size</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reshape a numpy array to a 2D array where each row represents a window.</span>
+
+<span class="sd">        There are three cases to consider</span>
+
+<span class="sd">        1. The array size is a multiple of window_size + period,</span>
+<span class="sd">           i.e. num_windows is integer and we can simply reshape.</span>
+<span class="sd">        2. The array size is NOT a multiple of window_size + period and</span>
+<span class="sd">           it has length n * period + m, where m &lt; window_size.</span>
+<span class="sd">        3. The array size is NOT a multiple of window_size + period and</span>
+<span class="sd">           it has length n * period + m, where m &gt;= window_size.</span>
+
+<span class="sd">        Note that in the current implementation of this class we have the restriction</span>
+<span class="sd">        that period is a multiple integer of the size of the MovingWindow and hence</span>
+<span class="sd">        only case 1 can occur.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            array: The numpy array to reshape.</span>
+<span class="sd">            window_size: The size of the window in samples.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The reshaped 2D array.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the array is smaller or equal to the given period.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Not using the num_windows function here because we want to</span>
+        <span class="c1"># differentiate between the three cases.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_period</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The array (length:</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">)</span><span class="si">}</span><span class="s2">) is too small to be reshaped.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">num_windows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">)</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">_period</span>
+
+        <span class="c1"># Case 1:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">)</span> <span class="o">-</span> <span class="n">num_windows</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_period</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">resized_array</span> <span class="o">=</span> <span class="n">array</span>
+        <span class="c1"># Case 2</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">)</span> <span class="o">-</span> <span class="n">num_windows</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_period</span> <span class="o">&lt;</span> <span class="n">window_size</span><span class="p">:</span>
+            <span class="n">resized_array</span> <span class="o">=</span> <span class="n">array</span><span class="p">[:</span> <span class="n">num_windows</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_period</span><span class="p">]</span>
+        <span class="c1"># Case 3</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">num_windows</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">resized_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">num_windows</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_period</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">resized_array</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">num_windows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_period</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_relative_positions</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">window_size</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RelativePositions</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return relative positions of the MovingWindow.</span>
+
+<span class="sd">        This method calculates the shifted relative positions of the start</span>
+<span class="sd">        timestamp, the end timestamps as well as the next position that is</span>
+<span class="sd">        overwritten in the ringbuffer.</span>
+<span class="sd">        Shifted in that context means that the positions are moved as close</span>
+<span class="sd">        assume possible to the oldest sample in the MovingWindow.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            start: The start timestamp of the window.</span>
+<span class="sd">            window_size: The size of the window in samples.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The relative positions of the start, end and next samples.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the start timestamp is after the end timestamp.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># The number of usable windows can change, when the current position of</span>
+        <span class="c1"># the ringbuffer is inside one of the windows inside the MovingWindow.</span>
+        <span class="c1"># Since this is possible, we assume that one window is always not used</span>
+        <span class="c1"># for the average calculation.</span>
+        <span class="c1">#</span>
+        <span class="c1"># We are ignoring either the window that is currently overwritten if</span>
+        <span class="c1"># the current position is inside that window or the window that would</span>
+        <span class="c1"># be overwritten next.</span>
+        <span class="c1">#</span>
+        <span class="c1"># Move the window to its first appereance in the MovingWindow relative</span>
+        <span class="c1"># to the oldest sample stored in the MovingWindow.</span>
+        <span class="c1">#</span>
+        <span class="c1"># In other words the oldest stored sample is considered to have index 0.</span>
+        <span class="c1">#</span>
+        <span class="c1"># Note that the returned value is a index not a timestamp</span>
+        <span class="n">rel_start_sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timestamp_to_rel_index</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_period</span>
+        <span class="n">rel_end_sample</span> <span class="o">=</span> <span class="n">rel_start_sample</span> <span class="o">+</span> <span class="n">window_size</span>
+
+        <span class="c1"># check if the newest time bound, i.e. the sample that is currently written,</span>
+        <span class="c1"># is inside the interval</span>
+        <span class="n">rb_current_position</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">time_bound_newest</span>
+        <span class="n">rel_next_position</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_timestamp_to_rel_index</span><span class="p">(</span><span class="n">rb_current_position</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_period</span>
+        <span class="c1"># fix the rel_next_position if modulo period the next position</span>
+        <span class="c1"># is smaller then the start sample position</span>
+        <span class="k">if</span> <span class="n">rel_next_position</span> <span class="o">&lt;</span> <span class="n">rel_start_sample</span><span class="p">:</span>
+            <span class="n">rel_next_position</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_period</span>
+
+        <span class="n">rel_next_position</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_period</span> <span class="o">*</span> <span class="p">(</span><span class="n">window_size</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">_period</span><span class="p">)</span>
+
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;current position of the ringbuffer: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">rb_current_position</span><span class="p">)</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;relative start_sample: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">rel_start_sample</span><span class="p">)</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;relative end_sample: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">rel_end_sample</span><span class="p">)</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;relative next_position: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">rel_next_position</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">RelativePositions</span><span class="p">(</span><span class="n">rel_start_sample</span><span class="p">,</span> <span class="n">rel_end_sample</span><span class="p">,</span> <span class="n">rel_next_position</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_buffer_bounds</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the bounds of the ringbuffer used for further operations.</span>
+
+<span class="sd">        This method uses the given start and end timestamps to calculate the</span>
+<span class="sd">        part of the ringbuffer that can be used for further operations, like</span>
+<span class="sd">        average or min/max.</span>
+
+<span class="sd">        Here we cut out the oldest window or the window that is currently</span>
+<span class="sd">        overwritten in the MovingWindow such that it is not considered in any</span>
+<span class="sd">        further operation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            start: The start timestamp of the window.</span>
+<span class="sd">            end: The end timestamp of the window.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The bounds of the to be used buffer and the window size.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the start timestamp is after the end timestamp.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">window_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timestamp_to_rel_index</span><span class="p">(</span><span class="n">end</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timestamp_to_rel_index</span><span class="p">(</span>
+            <span class="n">start</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">window_size</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Start timestamp must be before end timestamp&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">window_size</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_period</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;The window size must be smaller or equal than the period.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">rel_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_relative_positions</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">window_size</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">window_size</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_moving_window</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;The window size must be smaller than the size of the `MovingWindow`&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># shifted distance between the next incoming sample and the start of the window</span>
+        <span class="n">dist_to_start</span> <span class="o">=</span> <span class="n">rel_pos</span><span class="o">.</span><span class="n">next</span> <span class="o">-</span> <span class="n">rel_pos</span><span class="o">.</span><span class="n">start</span>
+
+        <span class="c1"># get the start and end position inside the ringbuffer</span>
+        <span class="n">end_pos</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_timestamp_to_rel_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">time_bound_newest</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="p">)</span> <span class="o">-</span> <span class="n">dist_to_start</span>
+
+        <span class="c1"># Note that these check is working since we are using the positions</span>
+        <span class="c1"># relative to the oldest sample stored in the MovingWindow.</span>
+        <span class="k">if</span> <span class="n">rel_pos</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;=</span> <span class="n">rel_pos</span><span class="o">.</span><span class="n">next</span> <span class="o">&lt;</span> <span class="n">rel_pos</span><span class="o">.</span><span class="n">end</span><span class="p">:</span>
+            <span class="c1"># end position is start_position of the window that is currently written</span>
+            <span class="c1"># that&#39;s how end_pos is currently set</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Next sample will be inside the window time interval!&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Next sample will be outside the window time interval!&quot;</span><span class="p">)</span>
+            <span class="c1"># end position is start_position of the window that</span>
+            <span class="c1"># is overwritten next, hence we adding period.</span>
+            <span class="n">end_pos</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_period</span>
+
+        <span class="c1"># add the offset to the oldest sample in the ringbuffer and wrap around</span>
+        <span class="c1"># to get the start and end positions in the ringbuffer</span>
+        <span class="n">rb_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">datetime_to_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">time_bound_oldest</span><span class="p">)</span>
+        <span class="n">start_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">end_pos</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_period</span> <span class="o">+</span> <span class="n">rb_offset</span><span class="p">)</span>
+        <span class="n">end_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">end_pos</span> <span class="o">+</span> <span class="n">rb_offset</span><span class="p">)</span>
+
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;start_pos in ringbuffer: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">start_pos</span><span class="p">)</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;end_pos in ringbuffer: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">end_pos</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">start_pos</span><span class="p">,</span> <span class="n">end_pos</span><span class="p">,</span> <span class="n">window_size</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_reshaped_np_array</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a reshaped numpy array from the MovingWindow.</span>
+
+<span class="sd">        The reshaped array is a two dimemsional array, where one dimension is</span>
+<span class="sd">        the window_size and the other the number of windows returned by the</span>
+<span class="sd">        `_get_buffer_bounds` method.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            start: The start timestamp of the window.</span>
+<span class="sd">            end: The end timestamp of the window.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A tuple containing the reshaped numpy array and the window size.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">(</span><span class="n">start_pos</span><span class="p">,</span> <span class="n">end_pos</span><span class="p">,</span> <span class="n">window_size</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_buffer_bounds</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">start_pos</span> <span class="o">&gt;=</span> <span class="n">end_pos</span><span class="p">:</span>
+            <span class="n">window_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">[</span><span class="n">start_pos</span> <span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_moving_window</span><span class="p">)]</span>
+            <span class="n">window_end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">end_pos</span><span class="p">]</span>
+            <span class="c1"># make the linter happy</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">window_start</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">window_end</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+            <span class="n">window_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">window_start</span><span class="p">,</span> <span class="n">window_end</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">window_array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">[</span><span class="n">start_pos</span><span class="p">:</span><span class="n">end_pos</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_reshape_np_array</span><span class="p">(</span><span class="n">window_array</span><span class="p">,</span> <span class="n">window_size</span><span class="p">),</span> <span class="n">window_size</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">avg</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">weights</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create the average window out of the window defined by `start` and `end`.</span>
+
+<span class="sd">        This method calculates the average of a window by averaging over all</span>
+<span class="sd">        windows fully inside the MovingWindow having the period</span>
+<span class="sd">        `self.period`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            start: The start of the window to average over.</span>
+<span class="sd">            end: The end of the window to average over.</span>
+<span class="sd">            weights: The weights to use for the average calculation (oldest first).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The averaged timeseries window.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">(</span><span class="n">reshaped</span><span class="p">,</span> <span class="n">window_size</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_reshaped_np_array</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span>  <span class="c1"># type: ignore[no-any-return]</span>
+            <span class="n">reshaped</span><span class="p">[:,</span> <span class="p">:</span><span class="n">window_size</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span>
+        <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+        </details>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<h5 id="frequenz.sdk.timeseries.PeriodicFeatureExtractor-functions">Functions<a href="#frequenz.sdk.timeseries.PeriodicFeatureExtractor-functions" class="headerlink" title="Permanent link">¤</a></h5>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h6 id="frequenz.sdk.timeseries._periodic_feature_extractor.PeriodicFeatureExtractor.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">moving_window</span><span class="p">,</span> <span class="n">period</span><span class="p">)</span></code>
+
+<a href="#frequenz.sdk.timeseries._periodic_feature_extractor.PeriodicFeatureExtractor.__init__" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Initialize a PeriodicFeatureExtractor object.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>moving_window</code></td>
+          <td class="doc-param-details">
+            <p>The MovingWindow that is used for the average calculation.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._moving_window.MovingWindow" href="#frequenz.sdk.timeseries.MovingWindow">MovingWindow</a></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>period</code></td>
+          <td class="doc-param-details">
+            <p>The distance between two succeeding intervals.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3/library/datetime.html#datetime.timedelta">timedelta</a></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#ValueError">ValueError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If the MovingWindow size is not a integer multiple of the period.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+      <details class="quote">
+        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_periodic_feature_extractor.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">moving_window</span><span class="p">:</span> <span class="n">MovingWindow</span><span class="p">,</span>
+    <span class="n">period</span><span class="p">:</span> <span class="n">timedelta</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize a PeriodicFeatureExtractor object.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        moving_window: The MovingWindow that is used for the average calculation.</span>
+<span class="sd">        period: The distance between two succeeding intervals.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If the MovingWindow size is not a integer multiple of the period.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_moving_window</span> <span class="o">=</span> <span class="n">moving_window</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_period</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_moving_window</span><span class="o">.</span><span class="n">sampling_period</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The sampling_period as float to use it for indexing of samples.&quot;&quot;&quot;</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_period</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">period</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_period</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Distance between two succeeding intervals in samples.&quot;&quot;&quot;</span>
+
+    <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Initializing PeriodicFeatureExtractor!&quot;</span><span class="p">)</span>
+    <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;MovingWindow size: </span><span class="si">%i</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_moving_window</span><span class="p">))</span>
+    <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+        <span class="s2">&quot;Period between two succeeding intervals (in samples): </span><span class="si">%i</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_period</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_moving_window</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_period</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;The MovingWindow size is not a integer multiple of the period.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_close_to_zero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_period</span> <span class="o">-</span> <span class="n">period</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_period</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;The period is not a multiple of the sampling period. &quot;</span>
+            <span class="s2">&quot;This might result in unexpected behaviour.&quot;</span>
+        <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h6 id="frequenz.sdk.timeseries._periodic_feature_extractor.PeriodicFeatureExtractor.avg" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">avg</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#frequenz.sdk.timeseries._periodic_feature_extractor.PeriodicFeatureExtractor.avg" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Create the average window out of the window defined by <code>start</code> and <code>end</code>.</p>
+<p>This method calculates the average of a window by averaging over all
+windows fully inside the MovingWindow having the period
+<code>self.period</code>.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>start</code></td>
+          <td class="doc-param-details">
+            <p>The start of the window to average over.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" title="datetime.datetime" href="https://docs.python.org/3/library/datetime.html#datetime.datetime">datetime</a></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>end</code></td>
+          <td class="doc-param-details">
+            <p>The end of the window to average over.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" title="datetime.datetime" href="https://docs.python.org/3/library/datetime.html#datetime.datetime">datetime</a></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>weights</code></td>
+          <td class="doc-param-details">
+            <p>The weights to use for the average calculation (oldest first).</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" title="typing.List" href="https://docs.python.org/3/library/typing.html#typing.List">List</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a>] | None</code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>None</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><span title="numpy.typing.NDArray">NDArray</span>[<span title="numpy">np</span>.<span title="numpy.float_">float_</span>]</code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>The averaged timeseries window.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+      <details class="quote">
+        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_periodic_feature_extractor.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span>
+<span class="normal">403</span>
+<span class="normal">404</span>
+<span class="normal">405</span>
+<span class="normal">406</span>
+<span class="normal">407</span>
+<span class="normal">408</span>
+<span class="normal">409</span>
+<span class="normal">410</span>
+<span class="normal">411</span>
+<span class="normal">412</span>
+<span class="normal">413</span>
+<span class="normal">414</span>
+<span class="normal">415</span>
+<span class="normal">416</span>
+<span class="normal">417</span>
+<span class="normal">418</span>
+<span class="normal">419</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">avg</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">weights</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create the average window out of the window defined by `start` and `end`.</span>
+
+<span class="sd">    This method calculates the average of a window by averaging over all</span>
+<span class="sd">    windows fully inside the MovingWindow having the period</span>
+<span class="sd">    `self.period`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        start: The start of the window to average over.</span>
+<span class="sd">        end: The end of the window to average over.</span>
+<span class="sd">        weights: The weights to use for the average calculation (oldest first).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The averaged timeseries window.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="p">(</span><span class="n">reshaped</span><span class="p">,</span> <span class="n">window_size</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_reshaped_np_array</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span>  <span class="c1"># type: ignore[no-any-return]</span>
+        <span class="n">reshaped</span><span class="p">[:,</span> <span class="p">:</span><span class="n">window_size</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span>
+    <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
