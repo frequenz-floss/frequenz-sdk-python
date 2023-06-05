@@ -2,7 +2,7 @@
 
 ## Summary
 
-This release drops support for Python versions older than 3.11.
+This release main introduces the new `PeriodicFeatureExtractor`, the control interface to the `BatteryPool`, and a new naming scheme for retrieving `LogicalMeter` and `BatteryPool` metrics. It also drops support for Python versions older than 3.11.
 
 ## Upgrading
 
