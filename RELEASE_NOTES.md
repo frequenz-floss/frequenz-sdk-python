@@ -42,7 +42,7 @@ This release drops support for Python versions older than 3.11.
 
 ## New Features
 
-* The `MovingWindow` as well as the OrderedRingBuffer are having new public methods that are returning the oldest and newest timestamp of all stored samples.
+* The `MovingWindow` has new public methods that return the oldest and newest timestamp of all stored samples.
 
 * The `PeriodicFeatureExtractor` has been added.
 
