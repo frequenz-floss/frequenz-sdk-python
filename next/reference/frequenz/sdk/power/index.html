@@ -2415,12 +2415,14 @@ total_battery_availability_ratio = sum(battery_availability_ratio)
         <tr>
           <td><code>distributor_exponent</code></td>
           <td class="doc-param-details">
-            <p>How fast the batteries should strive to the
+            <div class="doc-md-description">
+              <p>How fast the batteries should strive to the
 equal SoC level. Should be float &gt;= 0. Defaults=1.
 For example for distributor_exponent equal:
     * 1 - means that proportion will be linear from SoC.
     * 2 - means proportion would be like squared from SoC
     * 3 - means proportion would be like x^3 from SoC.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2563,7 +2565,9 @@ except SoC are equal. SoC bounds for each battery is <code>lower = 20</code>,
             </span>
           </td>
           <td class="doc-raises-details">
-            <p>If distributor_exponent &lt; 0</p>
+            <div class="doc-md-description">
+              <p>If distributor_exponent &lt; 0</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2867,7 +2871,9 @@ except SoC are equal. SoC bounds for each battery is <code>lower = 20</code>,
         <tr>
           <td><code>power</code></td>
           <td class="doc-param-details">
-            <p>Power to distribute</p>
+            <div class="doc-md-description">
+              <p>Power to distribute</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2879,8 +2885,10 @@ except SoC are equal. SoC bounds for each battery is <code>lower = 20</code>,
         <tr>
           <td><code>components</code></td>
           <td class="doc-param-details">
-            <p>InvBatPaired components data. Each pair should have data
+            <div class="doc-md-description">
+              <p>InvBatPaired components data. Each pair should have data
 for battery and adjacent inverter.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2907,7 +2915,9 @@ for battery and adjacent inverter.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Distribution result</p>
+            <div class="doc-md-description">
+              <p>Distribution result</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2979,7 +2989,9 @@ broken or have no metrics available.</p>
         <tr>
           <td><code>power</code></td>
           <td class="doc-param-details">
-            <p>the power to distribute.</p>
+            <div class="doc-md-description">
+              <p>the power to distribute.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2991,7 +3003,9 @@ broken or have no metrics available.</p>
         <tr>
           <td><code>inverters</code></td>
           <td class="doc-param-details">
-            <p>the inverters to set the power to.</p>
+            <div class="doc-md-description">
+              <p>the inverters to set the power to.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3018,7 +3032,9 @@ broken or have no metrics available.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>the power distribution result.</p>
+            <div class="doc-md-description">
+              <p>the power distribution result.</p>
+            </div>
           </td>
         </tr>
     </tbody>

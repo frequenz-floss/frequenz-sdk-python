@@ -1462,7 +1462,9 @@ between each other.  Channels are identified by string names.</p>
         <tr>
           <td><code>name</code></td>
           <td class="doc-param-details">
-            <p>A unique name for the registry.</p>
+            <div class="doc-md-description">
+              <p>A unique name for the registry.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1522,7 +1524,9 @@ between each other.  Channels are identified by string names.</p>
         <tr>
           <td><code>key</code></td>
           <td class="doc-param-details">
-            <p>A key to identify the channel.</p>
+            <div class="doc-md-description">
+              <p>A key to identify the channel.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1549,7 +1553,9 @@ between each other.  Channels are identified by string names.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A receiver for a dynamically created channel with the given key.</p>
+            <div class="doc-md-description">
+              <p>A receiver for a dynamically created channel with the given key.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -1611,7 +1617,9 @@ between each other.  Channels are identified by string names.</p>
         <tr>
           <td><code>key</code></td>
           <td class="doc-param-details">
-            <p>A key to identify the channel.</p>
+            <div class="doc-md-description">
+              <p>A key to identify the channel.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1638,7 +1646,9 @@ between each other.  Channels are identified by string names.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A sender to a dynamically created channel with the given key.</p>
+            <div class="doc-md-description">
+              <p>A sender to a dynamically created channel with the given key.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -1921,7 +1931,9 @@ identify the right channel from the ChannelRegistry.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A string denoting a channel name.</p>
+            <div class="doc-md-description">
+              <p>A string denoting a channel name.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2290,8 +2302,10 @@ identify the right channel from the ChannelRegistry.</p>
         <tr>
           <td><code>channel_registry</code></td>
           <td class="doc-param-details">
-            <p>The channel registry used to get senders and
+            <div class="doc-md-description">
+              <p>The channel registry used to get senders and
 receivers for data sourcing subscriptions.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2303,9 +2317,11 @@ receivers for data sourcing subscriptions.</p>
         <tr>
           <td><code>data_sourcing_request_sender</code></td>
           <td class="doc-param-details">
-            <p>The sender used to send requests to
+            <div class="doc-md-description">
+              <p>The sender used to send requests to
 the <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.DataSourcingActor"><code>DataSourcingActor</code></a>
 to subscribe to component metrics.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2317,8 +2333,10 @@ to subscribe to component metrics.</p>
         <tr>
           <td><code>resampling_request_receiver</code></td>
           <td class="doc-param-details">
-            <p>The receiver to use to receive new
+            <div class="doc-md-description">
+              <p>The receiver to use to receive new
 resampmling subscription requests.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2330,11 +2348,13 @@ resampmling subscription requests.</p>
         <tr>
           <td><code>config</code></td>
           <td class="doc-param-details">
-            <p>The configuration for the resampler.</p>
+            <div class="doc-md-description">
+              <p>The configuration for the resampler.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._resampling.ResamplerConfig" href="#frequenz.sdk.actor.ResamplerConfig">ResamplerConfig</a></code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._resampling.ResamplerConfig" href="../timeseries/#frequenz.sdk.timeseries.ResamplerConfig">ResamplerConfig</a></code>
                 </span>
             </p>
           </td>
@@ -2444,8 +2464,10 @@ restarted).</p>
             </span>
           </td>
           <td class="doc-raises-details">
-            <p>If there is some unexpected error while resampling or
+            <div class="doc-md-description">
+              <p>If there is some unexpected error while resampling or
 handling requests.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2794,7 +2816,9 @@ If new file is read, then previous configs will be forgotten.</p>
         <tr>
           <td><code>conf_file</code></td>
           <td class="doc-param-details">
-            <p>Path to file with config variables.</p>
+            <div class="doc-md-description">
+              <p>Path to file with config variables.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2806,7 +2830,9 @@ If new file is read, then previous configs will be forgotten.</p>
         <tr>
           <td><code>output</code></td>
           <td class="doc-param-details">
-            <p>Channel to publish updates to.</p>
+            <div class="doc-md-description">
+              <p>Channel to publish updates to.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2818,8 +2844,10 @@ If new file is read, then previous configs will be forgotten.</p>
         <tr>
           <td><code>event_types</code></td>
           <td class="doc-param-details">
-            <p>Which types of events should update the config and
+            <div class="doc-md-description">
+              <p>Which types of events should update the config and
 trigger a notification.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3093,7 +3121,9 @@ there hasn't been any change to the config file itself.</p>
         <tr>
           <td><code>request_receiver</code></td>
           <td class="doc-param-details">
-            <p>A channel receiver to accept metric requests from.</p>
+            <div class="doc-md-description">
+              <p>A channel receiver to accept metric requests from.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3105,8 +3135,10 @@ there hasn't been any change to the config file itself.</p>
         <tr>
           <td><code>registry</code></td>
           <td class="doc-param-details">
-            <p>A channel registry.  To be replaced by a singleton
+            <div class="doc-md-description">
+              <p>A channel registry.  To be replaced by a singleton
 instance.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3491,8 +3523,8 @@ instance.</p>
 <code class="highlight language-python"><span class="n">align_to</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">UNIX_EPOCH</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.align_to" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3518,8 +3550,8 @@ time the resampler is created.</p>
 <code class="highlight language-python"><span class="n">initial_buffer_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BUFFER_LEN_INIT</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.initial_buffer_len" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3544,8 +3576,8 @@ can be stored.</p>
 <code class="highlight language-python"><span class="n">max_buffer_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BUFFER_LEN_MAX</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.max_buffer_len" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3571,8 +3603,8 @@ value.</p>
 <code class="highlight language-python"><span class="n">max_data_age_in_periods</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.max_data_age_in_periods" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3609,8 +3641,8 @@ passed to the resampling function.</p>
 <code class="highlight language-python"><span class="n">resampling_function</span><span class="p">:</span> <span class="n">ResamplingFunction</span> <span class="o">=</span> <span class="n">average</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.resampling_function" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3657,8 +3689,8 @@ value.</p>
 <code class="highlight language-python"><span class="n">warn_buffer_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BUFFER_LEN_WARN</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.warn_buffer_len" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3705,7 +3737,9 @@ logs, so buffers don't grow too big inadvertently.</p>
             </span>
           </td>
           <td class="doc-raises-details">
-            <p>If any value is out of range.</p>
+            <div class="doc-md-description">
+              <p>If any value is out of range.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -3844,7 +3878,9 @@ the examples below.</p>
         <tr>
           <td><code>cls</code></td>
           <td class="doc-param-details">
-            <p>the class to decorate.</p>
+            <div class="doc-md-description">
+              <p>the class to decorate.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3871,7 +3907,9 @@ the examples below.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>The decorated class.</p>
+            <div class="doc-md-description">
+              <p>The decorated class.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -3892,7 +3930,9 @@ the examples below.</p>
             </span>
           </td>
           <td class="doc-raises-details">
-            <p>when the class doesn't have a <code>run</code> method as per spec.</p>
+            <div class="doc-md-description">
+              <p>when the class doesn't have a <code>run</code> method as per spec.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -4381,7 +4421,9 @@ the examples below.</p>
         <tr>
           <td><code>actors</code></td>
           <td class="doc-param-details">
-            <p>the actors to be awaited.</p>
+            <div class="doc-md-description">
+              <p>the actors to be awaited.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -4412,7 +4454,9 @@ the examples below.</p>
             </span>
           </td>
           <td class="doc-raises-details">
-            <p>if any of the actors is not an instance of BaseActor.</p>
+            <div class="doc-md-description">
+              <p>if any of the actors is not an instance of BaseActor.</p>
+            </div>
           </td>
         </tr>
     </tbody>

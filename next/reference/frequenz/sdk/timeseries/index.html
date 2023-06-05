@@ -2106,7 +2106,9 @@ set to None in which case the MovingWindow will not perform any resampling.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>The sampling period of the MovingWindow.</p>
+            <div class="doc-md-description">
+              <p>The sampling period of the MovingWindow.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2153,7 +2155,9 @@ or by a slice of timestamps or integers.</p>
         <tr>
           <td><code>key</code></td>
           <td class="doc-param-details">
-            <p>Either an integer or a timestamp or a slice of timestamps or integers.</p>
+            <div class="doc-md-description">
+              <p>Either an integer or a timestamp or a slice of timestamps or integers.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2180,7 +2184,9 @@ or by a slice of timestamps or integers.</p>
             </span>
           </td>
           <td class="doc-raises-details">
-            <p>when requesting an out of range timestamp or index</p>
+            <div class="doc-md-description">
+              <p>when requesting an out of range timestamp or index</p>
+            </div>
           </td>
         </tr>
         <tr>
@@ -2190,7 +2196,9 @@ or by a slice of timestamps or integers.</p>
             </span>
           </td>
           <td class="doc-raises-details">
-            <p>when the key is not a datetime or slice object.</p>
+            <div class="doc-md-description">
+              <p>when the key is not a datetime or slice object.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2211,7 +2219,9 @@ or by a slice of timestamps or integers.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A float if the key is a number or a timestamp.</p>
+            <div class="doc-md-description">
+              <p>A float if the key is a number or a timestamp.</p>
+            </div>
           </td>
         </tr>
         <tr>
@@ -2221,7 +2231,9 @@ or by a slice of timestamps or integers.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>an numpy array if the key is a slice.</p>
+            <div class="doc-md-description">
+              <p>an numpy array if the key is a slice.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2370,7 +2382,9 @@ The task stops running only if the channel receiver is closed.</p>
         <tr>
           <td><code>size</code></td>
           <td class="doc-param-details">
-            <p>The time span of the moving window over which samples will be stored.</p>
+            <div class="doc-md-description">
+              <p>The time span of the moving window over which samples will be stored.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2382,8 +2396,10 @@ The task stops running only if the channel receiver is closed.</p>
         <tr>
           <td><code>resampled_data_recv</code></td>
           <td class="doc-param-details">
-            <p>A receiver that delivers samples with a
+            <div class="doc-md-description">
+              <p>A receiver that delivers samples with a
 given sampling period.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2395,7 +2411,9 @@ given sampling period.</p>
         <tr>
           <td><code>input_sampling_period</code></td>
           <td class="doc-param-details">
-            <p>The time interval between consecutive input samples.</p>
+            <div class="doc-md-description">
+              <p>The time interval between consecutive input samples.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2407,11 +2425,13 @@ given sampling period.</p>
         <tr>
           <td><code>resampler_config</code></td>
           <td class="doc-param-details">
-            <p>The resampler configuration in case resampling is required.</p>
+            <div class="doc-md-description">
+              <p>The resampler configuration in case resampling is required.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._resampling.ResamplerConfig" href="../actor/#frequenz.sdk.actor.ResamplerConfig">ResamplerConfig</a> | None</code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._resampling.ResamplerConfig" href="#frequenz.sdk.timeseries.ResamplerConfig">ResamplerConfig</a> | None</code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
@@ -2423,9 +2443,11 @@ given sampling period.</p>
         <tr>
           <td><code>align_to</code></td>
           <td class="doc-param-details">
-            <p>A datetime object that defines a point in time to which
+            <div class="doc-md-description">
+              <p>A datetime object that defines a point in time to which
 the window is aligned to modulo window size. For further
 information, consult the class level documentation.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2456,7 +2478,9 @@ information, consult the class level documentation.</p>
             </span>
           </td>
           <td class="doc-raises-details">
-            <p>when the task gets cancelled.</p>
+            <div class="doc-md-description">
+              <p>when the task gets cancelled.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2632,7 +2656,9 @@ information, consult the class level documentation.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>The size of the <code>MovingWindow</code>.</p>
+            <div class="doc-md-description">
+              <p>The size of the <code>MovingWindow</code>.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -3545,7 +3571,9 @@ calculation, e.g. an average, over all values of $S_i$ at position $i$.</p>
         <tr>
           <td><code>moving_window</code></td>
           <td class="doc-param-details">
-            <p>The MovingWindow that is used for the average calculation.</p>
+            <div class="doc-md-description">
+              <p>The MovingWindow that is used for the average calculation.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3557,7 +3585,9 @@ calculation, e.g. an average, over all values of $S_i$ at position $i$.</p>
         <tr>
           <td><code>period</code></td>
           <td class="doc-param-details">
-            <p>The distance between two succeeding intervals.</p>
+            <div class="doc-md-description">
+              <p>The distance between two succeeding intervals.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3584,7 +3614,9 @@ calculation, e.g. an average, over all values of $S_i$ at position $i$.</p>
             </span>
           </td>
           <td class="doc-raises-details">
-            <p>If the MovingWindow size is not a integer multiple of the period.</p>
+            <div class="doc-md-description">
+              <p>If the MovingWindow size is not a integer multiple of the period.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -3705,7 +3737,9 @@ windows fully inside the MovingWindow having the period
         <tr>
           <td><code>start</code></td>
           <td class="doc-param-details">
-            <p>The start of the window to average over.</p>
+            <div class="doc-md-description">
+              <p>The start of the window to average over.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3717,7 +3751,9 @@ windows fully inside the MovingWindow having the period
         <tr>
           <td><code>end</code></td>
           <td class="doc-param-details">
-            <p>The end of the window to average over.</p>
+            <div class="doc-md-description">
+              <p>The end of the window to average over.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3729,7 +3765,9 @@ windows fully inside the MovingWindow having the period
         <tr>
           <td><code>weights</code></td>
           <td class="doc-param-details">
-            <p>The weights to use for the average calculation (oldest first).</p>
+            <div class="doc-md-description">
+              <p>The weights to use for the average calculation (oldest first).</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3760,7 +3798,9 @@ windows fully inside the MovingWindow having the period
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>The averaged timeseries window.</p>
+            <div class="doc-md-description">
+              <p>The averaged timeseries window.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -4122,8 +4162,8 @@ windows fully inside the MovingWindow having the period
 <code class="highlight language-python"><span class="n">align_to</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">UNIX_EPOCH</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.align_to" class="headerlink" title="Permanent link">¤</a></h6>
@@ -4149,8 +4189,8 @@ time the resampler is created.</p>
 <code class="highlight language-python"><span class="n">initial_buffer_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BUFFER_LEN_INIT</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.initial_buffer_len" class="headerlink" title="Permanent link">¤</a></h6>
@@ -4175,8 +4215,8 @@ can be stored.</p>
 <code class="highlight language-python"><span class="n">max_buffer_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BUFFER_LEN_MAX</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.max_buffer_len" class="headerlink" title="Permanent link">¤</a></h6>
@@ -4202,8 +4242,8 @@ value.</p>
 <code class="highlight language-python"><span class="n">max_data_age_in_periods</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.max_data_age_in_periods" class="headerlink" title="Permanent link">¤</a></h6>
@@ -4240,8 +4280,8 @@ passed to the resampling function.</p>
 <code class="highlight language-python"><span class="n">resampling_function</span><span class="p">:</span> <span class="n">ResamplingFunction</span> <span class="o">=</span> <span class="n">average</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.resampling_function" class="headerlink" title="Permanent link">¤</a></h6>
@@ -4288,8 +4328,8 @@ value.</p>
 <code class="highlight language-python"><span class="n">warn_buffer_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BUFFER_LEN_WARN</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.warn_buffer_len" class="headerlink" title="Permanent link">¤</a></h6>
@@ -4336,7 +4376,9 @@ logs, so buffers don't grow too big inadvertently.</p>
             </span>
           </td>
           <td class="doc-raises-details">
-            <p>If any value is out of range.</p>
+            <div class="doc-md-description">
+              <p>If any value is out of range.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -4540,8 +4582,8 @@ coherent view on a group of component metrics for a particular timestamp.</p>
 <code class="highlight language-python"><span class="n">value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._base_types.Sample.value" class="headerlink" title="Permanent link">¤</a></h6>
@@ -4922,7 +4964,9 @@ timestamp.</p>
               </span>
           </td>
           <td class="doc-yields-details">
-            <p>Per-phase measurements one-by-one.</p>
+            <div class="doc-md-description">
+              <p>Per-phase measurements one-by-one.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -4979,7 +5023,9 @@ timestamp.</p>
         <tr>
           <td><code>function</code></td>
           <td class="doc-param-details">
-            <p>The function to apply on each of the phase values.</p>
+            <div class="doc-md-description">
+              <p>The function to apply on each of the phase values.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -4991,7 +5037,9 @@ timestamp.</p>
         <tr>
           <td><code>default</code></td>
           <td class="doc-param-details">
-            <p>The value to apply if a phase value is <code>None</code>.</p>
+            <div class="doc-md-description">
+              <p>The value to apply if a phase value is <code>None</code>.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -5022,8 +5070,10 @@ timestamp.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A new instance, with the given function applied on values for each of the
+            <div class="doc-md-description">
+              <p>A new instance, with the given function applied on values for each of the
 phases.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -5103,7 +5153,9 @@ phases.</p>
         <tr>
           <td><code>default</code></td>
           <td class="doc-param-details">
-            <p>value to return if all phases are <code>None</code>.</p>
+            <div class="doc-md-description">
+              <p>value to return if all phases are <code>None</code>.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -5134,7 +5186,9 @@ phases.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Max value among all phases, if available, default value otherwise.</p>
+            <div class="doc-md-description">
+              <p>Max value among all phases, if available, default value otherwise.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -5204,7 +5258,9 @@ phases.</p>
         <tr>
           <td><code>default</code></td>
           <td class="doc-param-details">
-            <p>value to return if all phases are <code>None</code>.</p>
+            <div class="doc-md-description">
+              <p>value to return if all phases are <code>None</code>.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -5235,7 +5291,9 @@ phases.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Min value among all phases, if available, default value otherwise.</p>
+            <div class="doc-md-description">
+              <p>Min value among all phases, if available, default value otherwise.</p>
+            </div>
           </td>
         </tr>
     </tbody>

@@ -2103,7 +2103,9 @@ fetching high level metrics for this subset.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Ids of the batteries in the pool</p>
+            <div class="doc-md-description">
+              <p>Ids of the batteries in the pool</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2149,8 +2151,10 @@ if there is no component to calculate metrics.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A MetricAggregator that will calculate and stream the capacity of all
+            <div class="doc-md-description">
+              <p>A MetricAggregator that will calculate and stream the capacity of all
 batteries in the pool.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2197,8 +2201,10 @@ method.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A FormulaEngine that will calculate and stream the total consumption power of
+            <div class="doc-md-description">
+              <p>A FormulaEngine that will calculate and stream the total consumption power of
 all batteries in the pool.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2245,8 +2251,10 @@ method.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A FormulaEngine that will calculate and stream the total power of all
+            <div class="doc-md-description">
+              <p>A FormulaEngine that will calculate and stream the total power of all
 batteries in the pool.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2292,8 +2300,10 @@ None will be send if there is no component to calculate metrics.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A MetricAggregator that will calculate and stream the power bounds
+            <div class="doc-md-description">
+              <p>A MetricAggregator that will calculate and stream the power bounds
 of all batteries in the pool.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2340,8 +2350,10 @@ method.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A FormulaEngine that will calculate and stream the total production power of
+            <div class="doc-md-description">
+              <p>A FormulaEngine that will calculate and stream the total production power of
 all batteries in the pool.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2387,8 +2399,10 @@ there is no component to calculate metric.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A MetricAggregator that will calculate and stream the aggregate soc of
+            <div class="doc-md-description">
+              <p>A MetricAggregator that will calculate and stream the aggregate soc of
 all batteries in the pool.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2424,8 +2438,10 @@ all batteries in the pool.</p>
         <tr>
           <td><code>channel_registry</code></td>
           <td class="doc-param-details">
-            <p>A channel registry instance shared with the resampling
+            <div class="doc-md-description">
+              <p>A channel registry instance shared with the resampling
 actor.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2437,8 +2453,10 @@ actor.</p>
         <tr>
           <td><code>resampler_subscription_sender</code></td>
           <td class="doc-param-details">
-            <p>A sender for sending metric requests to the
+            <div class="doc-md-description">
+              <p>A sender for sending metric requests to the
 resampling actor.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2450,12 +2468,14 @@ resampling actor.</p>
         <tr>
           <td><code>batteries_status_receiver</code></td>
           <td class="doc-param-details">
-            <p>Receiver to receive status of the batteries.
+            <div class="doc-md-description">
+              <p>Receiver to receive status of the batteries.
 Receivers should has maxsize = 1 to fetch only the latest status.
 Battery status channel should has resend_latest = True.
 It should send information when any battery changed status.
 Battery status should include status of the inverter adjacent to this
 battery.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2467,8 +2487,10 @@ battery.</p>
         <tr>
           <td><code>power_distributing_sender</code></td>
           <td class="doc-param-details">
-            <p>A Channel sender for sending power requests to
+            <div class="doc-md-description">
+              <p>A Channel sender for sending power requests to
 the power distributing actor.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2480,7 +2502,8 @@ the power distributing actor.</p>
         <tr>
           <td><code>min_update_interval</code></td>
           <td class="doc-param-details">
-            <p>Some metrics in BatteryPool are send only when they
+            <div class="doc-md-description">
+              <p>Some metrics in BatteryPool are send only when they
 change. For these metrics min_update_interval is the minimum time
 interval between the following messages.
 Note that this argument is similar to the resampling period
@@ -2489,6 +2512,7 @@ ResamplingActor, timestamp returned in the resulting message will be
 the timestamp of the last received component data.
 It is currently impossible to use resampling actor for these metrics,
 because we can't specify resampling function for them.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2500,9 +2524,11 @@ because we can't specify resampling function for them.</p>
         <tr>
           <td><code>batteries_id</code></td>
           <td class="doc-param-details">
-            <p>Subset of the batteries that should be included in the
+            <div class="doc-md-description">
+              <p>Subset of the batteries that should be included in the
 battery pool. If None or empty, then all batteries from the microgrid
 will be used.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2683,7 +2709,9 @@ convenient.</p>
         <tr>
           <td><code>power</code></td>
           <td class="doc-param-details">
-            <p>Unsigned charge power to set for the batteries in the pool.</p>
+            <div class="doc-md-description">
+              <p>Unsigned charge power to set for the batteries in the pool.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2695,9 +2723,11 @@ convenient.</p>
         <tr>
           <td><code>adjust_power</code></td>
           <td class="doc-param-details">
-            <p>If True, the power will be adjusted to fit the power bounds,
+            <div class="doc-md-description">
+              <p>If True, the power will be adjusted to fit the power bounds,
 if necessary. If False, then power requests outside the bounds will be
 rejected.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2713,7 +2743,9 @@ rejected.</p>
         <tr>
           <td><code>request_timeout</code></td>
           <td class="doc-param-details">
-            <p>The timeout for the request.</p>
+            <div class="doc-md-description">
+              <p>The timeout for the request.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2729,11 +2761,13 @@ rejected.</p>
         <tr>
           <td><code>include_broken_batteries</code></td>
           <td class="doc-param-details">
-            <p>if True, the power will be set for all batteries
+            <div class="doc-md-description">
+              <p>if True, the power will be set for all batteries
 in the pool, including the broken ones. If False, then the power will be
 set only for the working batteries.  This is not a guarantee that the
 power will be set for all working batteries, as the microgrid API may
 still reject the request.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2764,7 +2798,9 @@ still reject the request.</p>
             </span>
           </td>
           <td class="doc-raises-details">
-            <p>If the given power is negative.</p>
+            <div class="doc-md-description">
+              <p>If the given power is negative.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2885,7 +2921,9 @@ convenient.</p>
         <tr>
           <td><code>power</code></td>
           <td class="doc-param-details">
-            <p>Unsigned discharge power to set for the batteries in the pool.</p>
+            <div class="doc-md-description">
+              <p>Unsigned discharge power to set for the batteries in the pool.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2897,9 +2935,11 @@ convenient.</p>
         <tr>
           <td><code>adjust_power</code></td>
           <td class="doc-param-details">
-            <p>If True, the power will be adjusted to fit the power bounds,
+            <div class="doc-md-description">
+              <p>If True, the power will be adjusted to fit the power bounds,
 if necessary. If False, then power requests outside the bounds will be
 rejected.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2915,7 +2955,9 @@ rejected.</p>
         <tr>
           <td><code>request_timeout</code></td>
           <td class="doc-param-details">
-            <p>The timeout for the request.</p>
+            <div class="doc-md-description">
+              <p>The timeout for the request.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2931,11 +2973,13 @@ rejected.</p>
         <tr>
           <td><code>include_broken_batteries</code></td>
           <td class="doc-param-details">
-            <p>if True, the power will be set for all batteries
+            <div class="doc-md-description">
+              <p>if True, the power will be set for all batteries
 in the pool, including the broken ones. If False, then the power will be
 set only for the working batteries.  This is not a guarantee that the
 power will be set for all working batteries, as the microgrid API may
 still reject the request.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2966,7 +3010,9 @@ still reject the request.</p>
             </span>
           </td>
           <td class="doc-raises-details">
-            <p>If the given power is negative.</p>
+            <div class="doc-md-description">
+              <p>If the given power is negative.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -3084,7 +3130,9 @@ still reject the request.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A receiver for the power distribution results.</p>
+            <div class="doc-md-description">
+              <p>A receiver for the power distribution results.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -3144,7 +3192,9 @@ might be more convenient.</p>
         <tr>
           <td><code>power</code></td>
           <td class="doc-param-details">
-            <p>The power to set for the batteries in the pool.</p>
+            <div class="doc-md-description">
+              <p>The power to set for the batteries in the pool.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3156,9 +3206,11 @@ might be more convenient.</p>
         <tr>
           <td><code>adjust_power</code></td>
           <td class="doc-param-details">
-            <p>If True, the power will be adjusted to fit the power bounds,
+            <div class="doc-md-description">
+              <p>If True, the power will be adjusted to fit the power bounds,
 if necessary. If False, then power requests outside the bounds will be
 rejected.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3174,7 +3226,9 @@ rejected.</p>
         <tr>
           <td><code>request_timeout</code></td>
           <td class="doc-param-details">
-            <p>The timeout for the request.</p>
+            <div class="doc-md-description">
+              <p>The timeout for the request.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3190,11 +3244,13 @@ rejected.</p>
         <tr>
           <td><code>include_broken_batteries</code></td>
           <td class="doc-param-details">
-            <p>if True, the power will be set for all batteries
+            <div class="doc-md-description">
+              <p>if True, the power will be set for all batteries
 in the pool, including the broken ones. If False, then the power will be
 set only for the working batteries.  This is not a guarantee that the
 power will be set for all working batteries, as the microgrid API may
 still reject the request.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>

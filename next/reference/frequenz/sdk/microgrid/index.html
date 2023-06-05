@@ -1616,7 +1616,9 @@ for monitoring and adjusting the state of a microgrid.</p>
         <tr>
           <td><code>component_id</code></td>
           <td class="doc-param-details">
-            <p>filter out any components not matching one of the provided IDs</p>
+            <div class="doc-md-description">
+              <p>filter out any components not matching one of the provided IDs</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1632,8 +1634,10 @@ for monitoring and adjusting the state of a microgrid.</p>
         <tr>
           <td><code>component_category</code></td>
           <td class="doc-param-details">
-            <p>filter out any components not matching one of the
+            <div class="doc-md-description">
+              <p>filter out any components not matching one of the
 provided types</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1664,8 +1668,10 @@ provided types</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Set of the components currently connected to the microgrid, filtered by
+            <div class="doc-md-description">
+              <p>Set of the components currently connected to the microgrid, filtered by
 the provided <code>component_id</code> and <code>component_category</code> values.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -1741,8 +1747,10 @@ the provided <code>component_id</code> and <code>component_category</code> value
         <tr>
           <td><code>start</code></td>
           <td class="doc-param-details">
-            <p>filter out any connections whose <code>start</code> does not match one of these
+            <div class="doc-md-description">
+              <p>filter out any connections whose <code>start</code> does not match one of these
 component IDs</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1758,8 +1766,10 @@ component IDs</p>
         <tr>
           <td><code>end</code></td>
           <td class="doc-param-details">
-            <p>filter out any connections whose <code>end</code> does not match one of these
+            <div class="doc-md-description">
+              <p>filter out any connections whose <code>end</code> does not match one of these
 component IDs</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1790,8 +1800,10 @@ component IDs</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Set of the connections between components in the microgrid, filtered by
+            <div class="doc-md-description">
+              <p>Set of the connections between components in the microgrid, filtered by
 the provided <code>start</code>/<code>end</code> choices.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -1871,7 +1883,9 @@ inverter.</p>
         <tr>
           <td><code>component</code></td>
           <td class="doc-param-details">
-            <p>component to check.</p>
+            <div class="doc-md-description">
+              <p>component to check.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1898,7 +1912,9 @@ inverter.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Whether the specified component is part of a battery chain.</p>
+            <div class="doc-md-description">
+              <p>Whether the specified component is part of a battery chain.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -1966,7 +1982,9 @@ inverter.</p>
         <tr>
           <td><code>component</code></td>
           <td class="doc-param-details">
-            <p>component to check.</p>
+            <div class="doc-md-description">
+              <p>component to check.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1993,7 +2011,9 @@ inverter.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Whether the specified component is a battery inverter.</p>
+            <div class="doc-md-description">
+              <p>Whether the specified component is a battery inverter.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2057,7 +2077,9 @@ predecessors.</p>
         <tr>
           <td><code>component</code></td>
           <td class="doc-param-details">
-            <p>component to check.</p>
+            <div class="doc-md-description">
+              <p>component to check.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2084,7 +2106,9 @@ predecessors.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Whether the specified component is a battery meter.</p>
+            <div class="doc-md-description">
+              <p>Whether the specified component is a battery meter.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2152,7 +2176,9 @@ predecessors.</p>
         <tr>
           <td><code>component</code></td>
           <td class="doc-param-details">
-            <p>component to check.</p>
+            <div class="doc-md-description">
+              <p>component to check.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2179,7 +2205,9 @@ predecessors.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Whether the specified component is a CHP.</p>
+            <div class="doc-md-description">
+              <p>Whether the specified component is a CHP.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2242,7 +2270,9 @@ predecessors.</p>
         <tr>
           <td><code>component</code></td>
           <td class="doc-param-details">
-            <p>component to check.</p>
+            <div class="doc-md-description">
+              <p>component to check.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2269,7 +2299,9 @@ predecessors.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Whether the specified component is part of a CHP chain.</p>
+            <div class="doc-md-description">
+              <p>Whether the specified component is part of a CHP chain.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2336,7 +2368,9 @@ predecessors.</p>
         <tr>
           <td><code>component</code></td>
           <td class="doc-param-details">
-            <p>component to check.</p>
+            <div class="doc-md-description">
+              <p>component to check.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2363,7 +2397,9 @@ predecessors.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Whether the specified component is a CHP meter.</p>
+            <div class="doc-md-description">
+              <p>Whether the specified component is a CHP meter.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2429,7 +2465,9 @@ predecessors.</p>
         <tr>
           <td><code>component</code></td>
           <td class="doc-param-details">
-            <p>component to check.</p>
+            <div class="doc-md-description">
+              <p>component to check.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2456,7 +2494,9 @@ predecessors.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Whether the specified component is an EV charger.</p>
+            <div class="doc-md-description">
+              <p>Whether the specified component is an EV charger.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2520,7 +2560,9 @@ EV charger.</p>
         <tr>
           <td><code>component</code></td>
           <td class="doc-param-details">
-            <p>component to check.</p>
+            <div class="doc-md-description">
+              <p>component to check.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2547,7 +2589,9 @@ EV charger.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Whether the specified component is part of an EV charger chain.</p>
+            <div class="doc-md-description">
+              <p>Whether the specified component is part of an EV charger chain.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2617,7 +2661,9 @@ successors.</p>
         <tr>
           <td><code>component</code></td>
           <td class="doc-param-details">
-            <p>component to check.</p>
+            <div class="doc-md-description">
+              <p>component to check.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2644,7 +2690,9 @@ successors.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Whether the specified component is an EV charger meter.</p>
+            <div class="doc-md-description">
+              <p>Whether the specified component is an EV charger meter.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2713,7 +2761,9 @@ successors.</p>
         <tr>
           <td><code>component</code></td>
           <td class="doc-param-details">
-            <p>component to check.</p>
+            <div class="doc-md-description">
+              <p>component to check.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2740,7 +2790,9 @@ successors.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Whether the specified component is part of a PV chain.</p>
+            <div class="doc-md-description">
+              <p>Whether the specified component is part of a PV chain.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2806,7 +2858,9 @@ successors.</p>
         <tr>
           <td><code>component</code></td>
           <td class="doc-param-details">
-            <p>component to check.</p>
+            <div class="doc-md-description">
+              <p>component to check.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2833,7 +2887,9 @@ successors.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Whether the specified component is a PV inverter.</p>
+            <div class="doc-md-description">
+              <p>Whether the specified component is a PV inverter.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2897,7 +2953,9 @@ successors.</p>
         <tr>
           <td><code>component</code></td>
           <td class="doc-param-details">
-            <p>component to check.</p>
+            <div class="doc-md-description">
+              <p>component to check.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2924,7 +2982,9 @@ successors.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Whether the specified component is a PV meter.</p>
+            <div class="doc-md-description">
+              <p>Whether the specified component is a PV meter.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2992,8 +3052,10 @@ successors.</p>
         <tr>
           <td><code>component_id</code></td>
           <td class="doc-param-details">
-            <p>numerical ID of the component whose predecessors should be
+            <div class="doc-md-description">
+              <p>numerical ID of the component whose predecessors should be
 fetched</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3020,9 +3082,11 @@ fetched</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Set of IDs of the components that are predecessors of <code>component_id</code>,
+            <div class="doc-md-description">
+              <p>Set of IDs of the components that are predecessors of <code>component_id</code>,
 i.e. for which there is a connection from each of these components to
 <code>component_id</code>.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -3043,7 +3107,9 @@ i.e. for which there is a connection from each of these components to
             </span>
           </td>
           <td class="doc-raises-details">
-            <p>if the specified <code>component_id</code> is not in the graph</p>
+            <div class="doc-md-description">
+              <p>if the specified <code>component_id</code> is not in the graph</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -3117,8 +3183,10 @@ i.e. for which there is a connection from each of these components to
         <tr>
           <td><code>component_id</code></td>
           <td class="doc-param-details">
-            <p>numerical ID of the component whose successors should be
+            <div class="doc-md-description">
+              <p>numerical ID of the component whose successors should be
 fetched</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3145,9 +3213,11 @@ fetched</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Set of IDs of the components that are successors of <code>component_id</code>,
+            <div class="doc-md-description">
+              <p>Set of IDs of the components that are successors of <code>component_id</code>,
 i.e. for which there is a connection from <code>component_id</code> to each of
 these components.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -3168,7 +3238,9 @@ these components.</p>
             </span>
           </td>
           <td class="doc-raises-details">
-            <p>if the specified <code>component_id</code> is not in the graph</p>
+            <div class="doc-md-description">
+              <p>if the specified <code>component_id</code> is not in the graph</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -3249,9 +3321,11 @@ created and returned.</p>
         <tr>
           <td><code>battery_ids</code></td>
           <td class="doc-param-details">
-            <p>Optional set of IDs of batteries to be managed by the
+            <div class="doc-md-description">
+              <p>Optional set of IDs of batteries to be managed by the
 BatteryPool.  If not specified, all batteries available in the
 component graph are used.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3282,7 +3356,9 @@ component graph are used.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A BatteryPool instance.</p>
+            <div class="doc-md-description">
+              <p>A BatteryPool instance.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -3352,9 +3428,11 @@ created and returned.</p>
         <tr>
           <td><code>ev_charger_ids</code></td>
           <td class="doc-param-details">
-            <p>Optional set of IDs of EV Chargers to be managed by the
+            <div class="doc-md-description">
+              <p>Optional set of IDs of EV Chargers to be managed by the
 EVChargerPool.  If not specified, all EV Chargers available in the
 component graph are used.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3385,7 +3463,9 @@ component graph are used.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>An EVChargerPool instance.</p>
+            <div class="doc-md-description">
+              <p>An EVChargerPool instance.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -3457,7 +3537,9 @@ component graph are used.</p>
         <tr>
           <td><code>host</code></td>
           <td class="doc-param-details">
-            <p>Host to connect to, to reach the microgrid API.</p>
+            <div class="doc-md-description">
+              <p>Host to connect to, to reach the microgrid API.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3469,7 +3551,9 @@ component graph are used.</p>
         <tr>
           <td><code>port</code></td>
           <td class="doc-param-details">
-            <p>port to connect to.</p>
+            <div class="doc-md-description">
+              <p>port to connect to.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3481,7 +3565,9 @@ component graph are used.</p>
         <tr>
           <td><code>resampler_config</code></td>
           <td class="doc-param-details">
-            <p>Configuration for the resampling actor.</p>
+            <div class="doc-md-description">
+              <p>Configuration for the resampling actor.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3550,7 +3636,9 @@ component graph are used.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A logical meter instance.</p>
+            <div class="doc-md-description">
+              <p>A logical meter instance.</p>
+            </div>
           </td>
         </tr>
     </tbody>

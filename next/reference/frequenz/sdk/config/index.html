@@ -1462,7 +1462,9 @@ If new file is read, then previous configs will be forgotten.</p>
         <tr>
           <td><code>key</code></td>
           <td class="doc-param-details">
-            <p>Config variable name.</p>
+            <div class="doc-md-description">
+              <p>Config variable name.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1489,7 +1491,9 @@ If new file is read, then previous configs will be forgotten.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>True if key is in the storage, otherwise returns False.</p>
+            <div class="doc-md-description">
+              <p>True if key is in the storage, otherwise returns False.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -1548,7 +1552,9 @@ If new file is read, then previous configs will be forgotten.</p>
         <tr>
           <td><code>key</code></td>
           <td class="doc-param-details">
-            <p>key to be searched.</p>
+            <div class="doc-md-description">
+              <p>key to be searched.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1575,7 +1581,9 @@ If new file is read, then previous configs will be forgotten.</p>
             </span>
           </td>
           <td class="doc-raises-details">
-            <p>If key is not in found.</p>
+            <div class="doc-md-description">
+              <p>If key is not in found.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -1596,8 +1604,10 @@ If new file is read, then previous configs will be forgotten.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Dictionary if the corresponding value is a subsection in the .toml
+            <div class="doc-md-description">
+              <p>Dictionary if the corresponding value is a subsection in the .toml
 file or a primitive type it is a simple value.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -1675,7 +1685,9 @@ file or a primitive type it is a simple value.</p>
         <tr>
           <td><code>conf_vars</code></td>
           <td class="doc-param-details">
-            <p>Dict containing configuration variables</p>
+            <div class="doc-md-description">
+              <p>Dict containing configuration variables</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1734,7 +1746,9 @@ file or a primitive type it is a simple value.</p>
         <tr>
           <td><code>key</code></td>
           <td class="doc-param-details">
-            <p>Key to be searched.</p>
+            <div class="doc-md-description">
+              <p>Key to be searched.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1746,8 +1760,10 @@ file or a primitive type it is a simple value.</p>
         <tr>
           <td><code>default</code></td>
           <td class="doc-param-details">
-            <p>Value to be returned if the key is not found.  Defaults to
+            <div class="doc-md-description">
+              <p>Value to be returned if the key is not found.  Defaults to
 None.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1778,7 +1794,9 @@ None.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>value in str format or default.</p>
+            <div class="doc-md-description">
+              <p>value in str format or default.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -1853,7 +1871,9 @@ return converted value.  Otherwise Raise ValueError.</p>
         <tr>
           <td><code>key</code></td>
           <td class="doc-param-details">
-            <p>Key to be search</p>
+            <div class="doc-md-description">
+              <p>Key to be search</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1865,7 +1885,9 @@ return converted value.  Otherwise Raise ValueError.</p>
         <tr>
           <td><code>expected_type</code></td>
           <td class="doc-param-details">
-            <p>type for the value</p>
+            <div class="doc-md-description">
+              <p>type for the value</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1892,7 +1914,9 @@ return converted value.  Otherwise Raise ValueError.</p>
             </span>
           </td>
           <td class="doc-raises-details">
-            <p>If can't convert value to the expected type.</p>
+            <div class="doc-md-description">
+              <p>If can't convert value to the expected type.</p>
+            </div>
           </td>
         </tr>
         <tr>
@@ -1902,7 +1926,9 @@ return converted value.  Otherwise Raise ValueError.</p>
             </span>
           </td>
           <td class="doc-raises-details">
-            <p>If specified key is not in config.</p>
+            <div class="doc-md-description">
+              <p>If specified key is not in config.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -1923,7 +1949,9 @@ return converted value.  Otherwise Raise ValueError.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Value for the specified key, converted to specified type.</p>
+            <div class="doc-md-description">
+              <p>Value for the specified key, converted to specified type.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2076,8 +2104,10 @@ return converted value.  Otherwise Raise ValueError.</p>
         <tr>
           <td><code>key_prefix</code></td>
           <td class="doc-param-details">
-            <p>Only get configuration variables starting with this
+            <div class="doc-md-description">
+              <p>Only get configuration variables starting with this
 prefix.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2089,8 +2119,10 @@ prefix.</p>
         <tr>
           <td><code>expected_values_type</code></td>
           <td class="doc-param-details">
-            <p>If provided, the value will be validated against
+            <div class="doc-md-description">
+              <p>If provided, the value will be validated against
 this type.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2117,8 +2149,10 @@ this type.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A dictionary containing the keys prefixed with <code>key_prefix</code> as keys
+            <div class="doc-md-description">
+              <p>A dictionary containing the keys prefixed with <code>key_prefix</code> as keys
 (but with the prefix removed) and the values as values.</p>
+            </div>
           </td>
         </tr>
     </tbody>

@@ -1364,7 +1364,9 @@ PowerDistributingActor and send requests for charging or discharging power.</p>
         <tr>
           <td><code>batteries</code></td>
           <td class="doc-param-details">
-            <p>Set of batteries</p>
+            <div class="doc-md-description">
+              <p>Set of batteries</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1391,7 +1393,9 @@ PowerDistributingActor and send requests for charging or discharging power.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Subset with working batteries.</p>
+            <div class="doc-md-description">
+              <p>Subset with working batteries.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -3198,7 +3202,9 @@ printed.</li>
         <tr>
           <td><code>requests_receiver</code></td>
           <td class="doc-param-details">
-            <p>Receiver for receiving power requests from other actors.</p>
+            <div class="doc-md-description">
+              <p>Receiver for receiving power requests from other actors.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3210,8 +3216,10 @@ printed.</li>
         <tr>
           <td><code>channel_registry</code></td>
           <td class="doc-param-details">
-            <p>Channel registry for creating result channels dynamically
+            <div class="doc-md-description">
+              <p>Channel registry for creating result channels dynamically
 for each request namespace.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3223,8 +3231,10 @@ for each request namespace.</p>
         <tr>
           <td><code>battery_status_sender</code></td>
           <td class="doc-param-details">
-            <p>Channel for sending information which batteries are
+            <div class="doc-md-description">
+              <p>Channel for sending information which batteries are
 working.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3236,8 +3246,10 @@ working.</p>
         <tr>
           <td><code>wait_for_data_sec</code></td>
           <td class="doc-param-details">
-            <p>How long actor should wait before processing first
+            <div class="doc-md-description">
+              <p>How long actor should wait before processing first
 request. It is a time needed to collect first components data.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3709,8 +3721,8 @@ as broken for some time.</p>
 <code class="highlight language-python"><span class="n">adjust_power</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.request.Request.adjust_power" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3756,8 +3768,8 @@ fail and be replied to with an <code>OutOfBound</code> result.</p>
 <code class="highlight language-python"><span class="n">include_broken_batteries</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.request.Request.include_broken_batteries" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3830,8 +3842,8 @@ channel registry.</p>
 <code class="highlight language-python"><span class="n">request_timeout_sec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.request.Request.request_timeout_sec" class="headerlink" title="Permanent link">¤</a></h6>

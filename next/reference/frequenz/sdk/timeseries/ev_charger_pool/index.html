@@ -2125,7 +2125,9 @@
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Set of managed component IDs.</p>
+            <div class="doc-md-description">
+              <p>Set of managed component IDs.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2172,8 +2174,10 @@ method.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A FormulaEngine that will calculate and stream the consumption power of all
+            <div class="doc-md-description">
+              <p>A FormulaEngine that will calculate and stream the consumption power of all
 EV Chargers.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2220,8 +2224,10 @@ method.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A FormulaEngine that will calculate and stream the total current of all EV
+            <div class="doc-md-description">
+              <p>A FormulaEngine that will calculate and stream the total current of all EV
 Chargers.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2268,8 +2274,10 @@ method.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A FormulaEngine that will calculate and stream the total power of all EV
+            <div class="doc-md-description">
+              <p>A FormulaEngine that will calculate and stream the total power of all EV
 Chargers.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2316,8 +2324,10 @@ method.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A FormulaEngine that will calculate and stream the production power of all
+            <div class="doc-md-description">
+              <p>A FormulaEngine that will calculate and stream the production power of all
 EV Chargers.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2353,8 +2363,10 @@ EV Chargers.</p>
         <tr>
           <td><code>channel_registry</code></td>
           <td class="doc-param-details">
-            <p>A channel registry instance shared with the resampling
+            <div class="doc-md-description">
+              <p>A channel registry instance shared with the resampling
 actor.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2366,8 +2378,10 @@ actor.</p>
         <tr>
           <td><code>resampler_subscription_sender</code></td>
           <td class="doc-param-details">
-            <p>A sender for sending metric requests to the
+            <div class="doc-md-description">
+              <p>A sender for sending metric requests to the
 resampling actor.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2379,9 +2393,11 @@ resampling actor.</p>
         <tr>
           <td><code>component_ids</code></td>
           <td class="doc-param-details">
-            <p>An optional list of component_ids belonging to this pool.  If
+            <div class="doc-md-description">
+              <p>An optional list of component_ids belonging to this pool.  If
 not specified, IDs of all EV Chargers in the microgrid will be fetched
 from the component graph.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2397,8 +2413,10 @@ from the component graph.</p>
         <tr>
           <td><code>repeat_interval</code></td>
           <td class="doc-param-details">
-            <p>Interval after which to repeat the last set bounds to the
+            <div class="doc-md-description">
+              <p>Interval after which to repeat the last set bounds to the
 microgrid API, if no new calls to <code>set_bounds</code> have been made.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2540,7 +2558,9 @@ microgrid API, if no new calls to <code>set_bounds</code> have been made.</p>
         <tr>
           <td><code>component_id</code></td>
           <td class="doc-param-details">
-            <p>id of the EV Charger for which data is requested.</p>
+            <div class="doc-md-description">
+              <p>id of the EV Charger for which data is requested.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2567,8 +2587,10 @@ microgrid API, if no new calls to <code>set_bounds</code> have been made.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A receiver that streams objects containing 3-phase current and state of
+            <div class="doc-md-description">
+              <p>A receiver that streams objects containing 3-phase current and state of
 an EV Charger.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2666,7 +2688,9 @@ value will be determined by the EV.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A new <code>Sender</code>.</p>
+            <div class="doc-md-description">
+              <p>A new <code>Sender</code>.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -2734,7 +2758,9 @@ value will be determined by the EV.</p>
         <tr>
           <td><code>component_id</code></td>
           <td class="doc-param-details">
-            <p>ID of EV Charger to set the current bounds to.</p>
+            <div class="doc-md-description">
+              <p>ID of EV Charger to set the current bounds to.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2746,7 +2772,9 @@ value will be determined by the EV.</p>
         <tr>
           <td><code>max_amps</code></td>
           <td class="doc-param-details">
-            <p>maximum current in amps, that an EV can draw from this EV Charger.</p>
+            <div class="doc-md-description">
+              <p>maximum current in amps, that an EV can draw from this EV Charger.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3029,7 +3057,9 @@ value will be determined by the EV.</p>
         <tr>
           <td><code>data</code></td>
           <td class="doc-param-details">
-            <p>ev charger data coming from microgrid.</p>
+            <div class="doc-md-description">
+              <p>ev charger data coming from microgrid.</p>
+            </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3056,7 +3086,9 @@ value will be determined by the EV.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>An <code>EVChargerState</code> instance.</p>
+            <div class="doc-md-description">
+              <p>An <code>EVChargerState</code> instance.</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -3148,7 +3180,9 @@ value will be determined by the EV.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Whether an EV is connected to the charger.</p>
+            <div class="doc-md-description">
+              <p>Whether an EV is connected to the charger.</p>
+            </div>
           </td>
         </tr>
     </tbody>
