@@ -6,11 +6,14 @@
 
 from __future__ import annotations
 
+from typing import Type
+
 from frequenz.channels import Receiver, Sender
 
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid.component import ComponentMetricId
 from .. import Sample
+from .._quantities import Quantity
 from ._formula_engine import FormulaBuilder, FormulaEngine
 from ._tokenizer import Tokenizer, TokenType
 
@@ -25,6 +28,7 @@ class ResampledFormulaBuilder(FormulaBuilder):
         channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         metric_id: ComponentMetricId,
+        output_type: Type[Quantity],
     ) -> None:
         """Create a `ResampledFormulaBuilder` instance.
 
@@ -37,13 +41,16 @@ class ResampledFormulaBuilder(FormulaBuilder):
             resampler_subscription_sender: A sender to send metric requests to the
                 resampling actor.
             metric_id: A metric ID to fetch for all components in this formula.
+            output_type: A type object to generate the output `Sample` with.  If the
+                formula is for generating power values, this would be `Power`, for
+                example.
         """
         self._channel_registry = channel_registry
         self._resampler_subscription_sender = resampler_subscription_sender
         self._namespace = namespace
         self._metric_id = metric_id
         self._resampler_requests: list[ComponentMetricRequest] = []
-        super().__init__(formula_name)
+        super().__init__(formula_name, output_type)
 
     def _get_resampled_receiver(
         self, component_id: int, metric_id: ComponentMetricId

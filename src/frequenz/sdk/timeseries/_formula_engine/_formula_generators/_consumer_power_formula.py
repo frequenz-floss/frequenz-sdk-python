@@ -9,6 +9,7 @@ from collections import abc
 
 from ....microgrid import connection_manager
 from ....microgrid.component import Component, ComponentCategory, ComponentMetricId
+from ..._quantities import Power
 from .._formula_engine import FormulaEngine
 from .._resampled_formula_builder import ResampledFormulaBuilder
 from ._formula_generator import ComponentNotFound, FormulaGenerator
@@ -33,7 +34,9 @@ class ConsumerPowerFormula(FormulaGenerator):
             RuntimeError: If the grid component has a single successor that is not a
                 meter.
         """
-        builder = self._get_builder("consumer-power", ComponentMetricId.ACTIVE_POWER)
+        builder = self._get_builder(
+            "consumer-power", ComponentMetricId.ACTIVE_POWER, Power
+        )
         component_graph = connection_manager.get().component_graph
         grid_component = next(
             (

@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from math import isinf, isnan
 from typing import List, Optional
 
 from frequenz.channels import Receiver
@@ -188,7 +187,7 @@ class Averager(FormulaStep):
             if next_val.value is None:
                 continue
             value_count += 1
-            total += next_val.value
+            total += next_val.value.base_value
         if value_count == 0:
             avg = 0.0
         else:
@@ -319,10 +318,10 @@ class MetricFetcher(FormulaStep):
             raise RuntimeError("No next value available to append.")
 
         next_value = self._next_value.value
-        if next_value is None or isnan(next_value) or isinf(next_value):
+        if next_value is None or next_value.isnan() or next_value.isinf():
             if self._nones_are_zeros:
                 eval_stack.append(0.0)
             else:
                 eval_stack.append(float("NaN"))
         else:
-            eval_stack.append(next_value)
+            eval_stack.append(next_value.base_value)

@@ -18,6 +18,7 @@ from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._formula_engine._formula_generators._formula_generator import (
     NON_EXISTING_COMPONENT_ID,
 )
+from frequenz.sdk.timeseries._quantities import Quantity
 
 # pylint: disable=too-many-instance-attributes
 
@@ -141,21 +142,21 @@ class MockDataPipeline:
         """Send the given values as resampler output for meter power."""
         assert len(values) == len(self._meter_power_senders)
         for chan, value in zip(self._meter_power_senders, values):
-            sample = Sample(self._next_ts, value)
+            sample = Sample(self._next_ts, None if not value else Quantity(value))
             await chan.send(sample)
 
     async def send_evc_power(self, values: list[float | None]) -> None:
         """Send the given values as resampler output for EV Charger power."""
         assert len(values) == len(self._ev_power_senders)
         for chan, value in zip(self._ev_power_senders, values):
-            sample = Sample(self._next_ts, value)
+            sample = Sample(self._next_ts, None if not value else Quantity(value))
             await chan.send(sample)
 
     async def send_bat_inverter_power(self, values: list[float | None]) -> None:
         """Send the given values as resampler output for battery inverter power."""
         assert len(values) == len(self._bat_inverter_power_senders)
         for chan, value in zip(self._bat_inverter_power_senders, values):
-            sample = Sample(self._next_ts, value)
+            sample = Sample(self._next_ts, None if not value else Quantity(value))
             await chan.send(sample)
 
     async def send_non_existing_component_value(self) -> None:
@@ -169,7 +170,7 @@ class MockDataPipeline:
         for chan, evc_values in zip(self._ev_current_senders, values):
             assert len(evc_values) == 3  # 3 values for phases
             for phase, value in enumerate(evc_values):
-                sample = Sample(self._next_ts, value)
+                sample = Sample(self._next_ts, None if not value else Quantity(value))
                 await chan[phase].send(sample)
 
     async def send_bat_inverter_current(self, values: list[list[float | None]]) -> None:
@@ -178,7 +179,7 @@ class MockDataPipeline:
         for chan, bat_values in zip(self._bat_inverter_current_senders, values):
             assert len(bat_values) == 3  # 3 values for phases
             for phase, value in enumerate(bat_values):
-                sample = Sample(self._next_ts, value)
+                sample = Sample(self._next_ts, None if not value else Quantity(value))
                 await chan[phase].send(sample)
 
     async def send_meter_current(self, values: list[list[float | None]]) -> None:
@@ -187,5 +188,5 @@ class MockDataPipeline:
         for chan, meter_values in zip(self._meter_current_senders, values):
             assert len(meter_values) == 3  # 3 values for phases
             for phase, value in enumerate(meter_values):
-                sample = Sample(self._next_ts, value)
+                sample = Sample(self._next_ts, None if not value else Quantity(value))
                 await chan[phase].send(sample)

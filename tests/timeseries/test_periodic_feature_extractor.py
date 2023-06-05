@@ -16,6 +16,7 @@ from frequenz.sdk.timeseries import (
     PeriodicFeatureExtractor,
     Sample,
 )
+from frequenz.sdk.timeseries._quantities import Quantity
 from tests.timeseries.test_moving_window import (
     init_moving_window,
     push_logical_meter_data,
@@ -57,7 +58,7 @@ async def init_feature_extractor_no_data(period: int) -> PeriodicFeatureExtracto
         timedelta(seconds=1), lm_chan.new_receiver(), timedelta(seconds=1)
     )
 
-    await lm_chan.new_sender().send(Sample(datetime.now(tz=timezone.utc), 0))
+    await lm_chan.new_sender().send(Sample(datetime.now(tz=timezone.utc), Quantity(0)))
 
     # Initialize the PeriodicFeatureExtractor class with a period of period seconds.
     # This works since the sampling period is set to 1 second.

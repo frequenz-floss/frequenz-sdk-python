@@ -17,6 +17,7 @@ from typing import AsyncIterator, Callable, Coroutine, Optional, Sequence
 
 from .._internal._asyncio import cancel_and_await
 from ._base_types import UNIX_EPOCH, Sample
+from ._quantities import Quantity
 
 _logger = logging.getLogger(__name__)
 
@@ -115,7 +116,9 @@ def average(
         The average of all `samples` values.
     """
     assert len(samples) > 0, "Average cannot be given an empty list of samples"
-    values = list(sample.value for sample in samples if sample.value is not None)
+    values = list(
+        sample.value.base_value for sample in samples if sample.value is not None
+    )
     return sum(values) / len(values)
 
 
@@ -723,7 +726,7 @@ class _ResamplingHelper:
             if relevant_samples
             else None
         )
-        return Sample(timestamp, value)
+        return Sample(timestamp, None if not value else Quantity(value))
 
 
 class _StreamingHelper:
@@ -769,7 +772,7 @@ class _StreamingHelper:
         error).
         """
         async for sample in self._source:
-            if sample.value is not None and not math.isnan(sample.value):
+            if sample.value is not None and not sample.value.isnan():
                 self._helper.add_sample(sample)
 
     async def resample(self, timestamp: datetime) -> None:

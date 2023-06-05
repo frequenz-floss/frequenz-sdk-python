@@ -126,7 +126,9 @@ class DataCollectingActor:
                 if (datetime.now(timezone.utc) - time_data).total_seconds() > 30:
                     _logger.error("Active power data are stale")
                     continue
-                queue.put_nowait(active_power.value)
+                queue.put_nowait(
+                    None if not active_power.value else active_power.value.base_value
+                )
 
             await self._request_channel.send(list(queue.queue))
 

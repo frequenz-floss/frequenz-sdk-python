@@ -6,6 +6,7 @@
 import logging
 
 from ....microgrid.component import ComponentMetricId
+from ..._quantities import Power
 from .._formula_engine import FormulaEngine
 from ._formula_generator import NON_EXISTING_COMPONENT_ID, FormulaGenerator, FormulaType
 
@@ -21,7 +22,7 @@ class EVChargerPowerFormula(FormulaGenerator):
         Returns:
             A formula engine that calculates total EV Charger power values.
         """
-        builder = self._get_builder("ev-power", ComponentMetricId.ACTIVE_POWER)
+        builder = self._get_builder("ev-power", ComponentMetricId.ACTIVE_POWER, Power)
 
         component_ids = self._config.component_ids
         if not component_ids:

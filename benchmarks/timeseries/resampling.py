@@ -8,6 +8,7 @@ from timeit import timeit
 from typing import Sequence
 
 from frequenz.sdk.timeseries import Sample
+from frequenz.sdk.timeseries._quantities import Quantity
 from frequenz.sdk.timeseries._resampling import (
     ResamplerConfig,
     SourceProperties,
@@ -44,7 +45,7 @@ def _benchmark_resampling_helper(resamples: int, samples: int) -> None:
         for _n_resample in range(resamples):
             for _n_sample in range(samples):
                 now = now + timedelta(seconds=1 / samples)
-                helper.add_sample(Sample(now, 0.0))
+                helper.add_sample(Sample(now, Quantity(0.0)))
             helper.resample(now)
 
     print(timeit(_do_work, number=5))

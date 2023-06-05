@@ -147,7 +147,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         self._datetime_oldest = self._datetime_newest - self._time_range
 
         # Update data
-        value: float = np.nan if sample.value is None else sample.value
+        value: float = np.nan if sample.value is None else sample.value.base_value
         self._buffer[self.datetime_to_index(timestamp)] = value
 
         self._update_gaps(timestamp, prev_newest, sample.value is None)

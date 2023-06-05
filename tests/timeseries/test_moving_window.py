@@ -13,7 +13,10 @@ import pytest
 import time_machine
 from frequenz.channels import Broadcast, Sender
 
-from frequenz.sdk.timeseries import UNIX_EPOCH, MovingWindow, ResamplerConfig, Sample
+from frequenz.sdk.timeseries import UNIX_EPOCH, Sample
+from frequenz.sdk.timeseries._moving_window import MovingWindow
+from frequenz.sdk.timeseries._quantities import Quantity
+from frequenz.sdk.timeseries._resampling import ResamplerConfig
 
 
 # Setting 'autouse' has no effect as this method replaces the event loop for all tests in the file.
@@ -46,7 +49,7 @@ async def push_logical_meter_data(
     start_ts: datetime = UNIX_EPOCH
     for i, j in zip(test_seq, range(0, len(test_seq))):
         timestamp = start_ts + timedelta(seconds=j)
-        await sender.send(Sample(timestamp, float(i)))
+        await sender.send(Sample(timestamp, Quantity(float(i))))
 
     await asyncio.sleep(0.0)
 
@@ -134,7 +137,7 @@ async def test_resampling_window(fake_time: time_machine.Coordinates) -> None:
     stream_values = [4.0, 8.0, 2.0, 6.0, 5.0] * 100
     for value in stream_values:
         timestamp = datetime.now(tz=timezone.utc)
-        sample = Sample(timestamp, float(value))
+        sample = Sample(timestamp, Quantity(float(value)))
         await sender.send(sample)
         await asyncio.sleep(0.1)
         fake_time.shift(0.1)

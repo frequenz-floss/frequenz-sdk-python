@@ -10,6 +10,7 @@ from collections import abc
 
 from ....microgrid import connection_manager
 from ....microgrid.component import ComponentCategory, ComponentMetricId, InverterType
+from ..._quantities import Power
 from .._formula_engine import FormulaEngine
 from ._formula_generator import (
     NON_EXISTING_COMPONENT_ID,
@@ -33,7 +34,7 @@ class PVPowerFormula(FormulaGenerator):
         Raises:
             ComponentNotFound: if there are no PV inverters in the component graph.
         """
-        builder = self._get_builder("pv-power", ComponentMetricId.ACTIVE_POWER)
+        builder = self._get_builder("pv-power", ComponentMetricId.ACTIVE_POWER, Power)
 
         pv_meters = self._get_pv_meters()
         if not pv_meters:

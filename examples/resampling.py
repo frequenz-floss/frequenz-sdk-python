@@ -19,6 +19,7 @@ from frequenz.sdk.actor import (
 from frequenz.sdk.microgrid import connection_manager
 from frequenz.sdk.microgrid.component import ComponentCategory, ComponentMetricId
 from frequenz.sdk.timeseries import Sample
+from frequenz.sdk.timeseries._quantities import Quantity
 from frequenz.sdk.timeseries._resampling import Resampler, ResamplerConfig, Sink, Source
 
 HOST = "microgrid.sandbox.api.frequenz.io"
@@ -33,8 +34,8 @@ async def _calculate_average(source: Source, sink: Sink) -> None:
         count += 1
         if sample.value is None:
             continue
-        avg = avg * (count - 1) / count + sample.value / count
-        await sink(Sample(datetime.now(timezone.utc), avg))
+        avg = avg * (count - 1) / count + sample.value.base_value / count
+        await sink(Sample(datetime.now(timezone.utc), Quantity(avg)))
 
 
 async def _print_sample(sample: Sample) -> None:

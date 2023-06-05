@@ -10,11 +10,13 @@ from abc import ABC, abstractmethod
 from collections import abc
 from dataclasses import dataclass
 from enum import Enum
+from typing import Type
 
 from frequenz.channels import Sender
 
 from ....actor import ChannelRegistry, ComponentMetricRequest
 from ....microgrid.component import ComponentMetricId
+from ..._quantities import Quantity
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase
 from .._resampled_formula_builder import ResampledFormulaBuilder
 
@@ -83,7 +85,10 @@ class FormulaGenerator(ABC):
         self._config = config
 
     def _get_builder(
-        self, name: str, component_metric_id: ComponentMetricId
+        self,
+        name: str,
+        component_metric_id: ComponentMetricId,
+        output_type: Type[Quantity],
     ) -> ResampledFormulaBuilder:
         builder = ResampledFormulaBuilder(
             self._namespace,
@@ -91,6 +96,7 @@ class FormulaGenerator(ABC):
             self._channel_registry,
             self._resampler_subscription_sender,
             component_metric_id,
+            output_type,
         )
         return builder
 

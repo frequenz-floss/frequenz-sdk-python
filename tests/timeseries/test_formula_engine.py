@@ -20,6 +20,7 @@ from frequenz.sdk.timeseries._formula_engine._tokenizer import (
     Tokenizer,
     TokenType,
 )
+from frequenz.sdk.timeseries._quantities import Quantity
 
 
 class TestTokenizer:
@@ -56,7 +57,7 @@ class TestFormulaEngine:
     ) -> None:
         """Run a formula test."""
         channels: Dict[str, Broadcast[Sample]] = {}
-        builder = FormulaBuilder("test_formula")
+        builder = FormulaBuilder("test_formula", Quantity)
         for token in Tokenizer(formula):
             if token.type == TokenType.COMPONENT_METRIC:
                 if token.value not in channels:
@@ -79,12 +80,20 @@ class TestFormulaEngine:
             io_input, io_output = io_pair
             await asyncio.gather(
                 *[
-                    chan.new_sender().send(Sample(now, value))
+                    chan.new_sender().send(
+                        Sample(now, None if not value else Quantity(value))
+                    )
                     for chan, value in zip(channels.values(), io_input)
                 ]
             )
             next_val = await results_rx.receive()
-            assert (next_val).value == io_output
+            if io_output is None:
+                assert next_val.value is None
+            else:
+                assert (
+                    next_val.value is not None
+                    and next_val.value.base_value == io_output
+                )
             tests_passed += 1
         await engine._stop()  # pylint: disable=protected-access
         assert tests_passed == len(io_pairs)
@@ -294,13 +303,13 @@ class TestFormulaEngineComposition:
     def make_engine(self, stream_id: int, data: Receiver[Sample]) -> FormulaEngine:
         """Make a basic FormulaEngine."""
         name = f"#{stream_id}"
-        builder = FormulaBuilder(name)
+        builder = FormulaBuilder(name, output_type=Quantity)
         builder.push_metric(
             name,
             data,
             nones_are_zeros=False,
         )
-        return FormulaEngine(builder)
+        return FormulaEngine(builder, output_type=Quantity)
 
     async def run_test(  # pylint: disable=too-many-locals
         self,
@@ -334,12 +343,20 @@ class TestFormulaEngineComposition:
             io_input, io_output = io_pair
             await asyncio.gather(
                 *[
-                    chan.new_sender().send(Sample(now, value))
+                    chan.new_sender().send(
+                        Sample(now, None if not value else Quantity(value))
+                    )
                     for chan, value in zip(channels, io_input)
                 ]
             )
             next_val = await result_chan.receive()
-            assert next_val.value == io_output
+            if io_output is None:
+                assert next_val.value is None
+            else:
+                assert (
+                    next_val.value is not None
+                    and next_val.value.base_value == io_output
+                )
             tests_passed += 1
         await engine._stop()  # pylint: disable=protected-access
         assert tests_passed == len(io_pairs)
@@ -554,7 +571,7 @@ class TestFormulaAverager:
         """Run a formula test."""
         channels: Dict[str, Broadcast[Sample]] = {}
         streams: List[Tuple[str, Receiver[Sample], bool]] = []
-        builder = FormulaBuilder("test_averager")
+        builder = FormulaBuilder("test_averager", output_type=Quantity)
         for comp_id in components:
             if comp_id not in channels:
                 channels[comp_id] = Broadcast(comp_id)
@@ -569,12 +586,17 @@ class TestFormulaAverager:
             io_input, io_output = io_pair
             await asyncio.gather(
                 *[
-                    chan.new_sender().send(Sample(now, value))
+                    chan.new_sender().send(
+                        Sample(now, None if not value else Quantity(value))
+                    )
                     for chan, value in zip(channels.values(), io_input)
                 ]
             )
             next_val = await results_rx.receive()
-            assert (next_val).value == io_output
+            if io_output is None:
+                assert next_val.value is None
+            else:
+                assert next_val.value and next_val.value.base_value == io_output
             tests_passed += 1
         await engine._stop()  # pylint: disable=protected-access
         assert tests_passed == len(io_pairs)
@@ -617,7 +639,7 @@ class TestConstantValue:
         sender_1 = channel_1.new_sender()
         sender_2 = channel_2.new_sender()
 
-        builder = FormulaBuilder("test_constant_value")
+        builder = FormulaBuilder("test_constant_value", output_type=Quantity)
         builder.push_metric("channel_1", channel_1.new_receiver(), False)
         builder.push_oper("+")
         builder.push_constant(2.0)
@@ -629,15 +651,15 @@ class TestConstantValue:
         results_rx = engine.new_receiver()
 
         now = datetime.now()
-        await sender_1.send(Sample(now, 10.0))
-        await sender_2.send(Sample(now, 15.0))
-        assert (await results_rx.receive()).value == 40.0
+        await sender_1.send(Sample(now, Quantity(10.0)))
+        await sender_2.send(Sample(now, Quantity(15.0)))
+        assert (await results_rx.receive()).value == Quantity(40.0)
 
-        await sender_1.send(Sample(now, -10.0))
-        await sender_2.send(Sample(now, 15.0))
-        assert (await results_rx.receive()).value == 20.0
+        await sender_1.send(Sample(now, Quantity(-10.0)))
+        await sender_2.send(Sample(now, Quantity(15.0)))
+        assert (await results_rx.receive()).value == Quantity(20.0)
 
-        builder = FormulaBuilder("test_constant_value")
+        builder = FormulaBuilder("test_constant_value", output_type=Quantity)
         builder.push_oper("(")
         builder.push_metric("channel_1", channel_1.new_receiver(), False)
         builder.push_oper("+")
@@ -651,13 +673,13 @@ class TestConstantValue:
         results_rx = engine.new_receiver()
 
         now = datetime.now()
-        await sender_1.send(Sample(now, 10.0))
-        await sender_2.send(Sample(now, 15.0))
-        assert (await results_rx.receive()).value == 180.0
+        await sender_1.send(Sample(now, Quantity(10.0)))
+        await sender_2.send(Sample(now, Quantity(15.0)))
+        assert (await results_rx.receive()).value == Quantity(180.0)
 
-        await sender_1.send(Sample(now, -10.0))
-        await sender_2.send(Sample(now, 15.0))
-        assert (await results_rx.receive()).value == -120.0
+        await sender_1.send(Sample(now, Quantity(-10.0)))
+        await sender_2.send(Sample(now, Quantity(15.0)))
+        assert (await results_rx.receive()).value == Quantity(-120.0)
 
 
 class TestClipper:
@@ -671,7 +693,7 @@ class TestClipper:
         sender_1 = channel_1.new_sender()
         sender_2 = channel_2.new_sender()
 
-        builder = FormulaBuilder("test_clipper")
+        builder = FormulaBuilder("test_clipper", output_type=Quantity)
         builder.push_metric("channel_1", channel_1.new_receiver(), False)
         builder.push_oper("+")
         builder.push_metric("channel_2", channel_2.new_receiver(), False)
@@ -681,19 +703,19 @@ class TestClipper:
         results_rx = engine.new_receiver()
 
         now = datetime.now()
-        await sender_1.send(Sample(now, 10.0))
-        await sender_2.send(Sample(now, 150.0))
-        assert (await results_rx.receive()).value == 110.0
+        await sender_1.send(Sample(now, Quantity(10.0)))
+        await sender_2.send(Sample(now, Quantity(150.0)))
+        assert (await results_rx.receive()).value == Quantity(110.0)
 
-        await sender_1.send(Sample(now, 200.0))
-        await sender_2.send(Sample(now, -10.0))
-        assert (await results_rx.receive()).value == 200.0
+        await sender_1.send(Sample(now, Quantity(200.0)))
+        await sender_2.send(Sample(now, Quantity(-10.0)))
+        assert (await results_rx.receive()).value == Quantity(200.0)
 
-        await sender_1.send(Sample(now, 200.0))
-        await sender_2.send(Sample(now, 10.0))
-        assert (await results_rx.receive()).value == 210.0
+        await sender_1.send(Sample(now, Quantity(200.0)))
+        await sender_2.send(Sample(now, Quantity(10.0)))
+        assert (await results_rx.receive()).value == Quantity(210.0)
 
-        builder = FormulaBuilder("test_clipper")
+        builder = FormulaBuilder("test_clipper", output_type=Quantity)
         builder.push_oper("(")
         builder.push_metric("channel_1", channel_1.new_receiver(), False)
         builder.push_oper("+")
@@ -705,14 +727,14 @@ class TestClipper:
         results_rx = engine.new_receiver()
 
         now = datetime.now()
-        await sender_1.send(Sample(now, 10.0))
-        await sender_2.send(Sample(now, 150.0))
-        assert (await results_rx.receive()).value == 100.0
+        await sender_1.send(Sample(now, Quantity(10.0)))
+        await sender_2.send(Sample(now, Quantity(150.0)))
+        assert (await results_rx.receive()).value == Quantity(100.0)
 
-        await sender_1.send(Sample(now, 200.0))
-        await sender_2.send(Sample(now, -10.0))
-        assert (await results_rx.receive()).value == 100.0
+        await sender_1.send(Sample(now, Quantity(200.0)))
+        await sender_2.send(Sample(now, Quantity(-10.0)))
+        assert (await results_rx.receive()).value == Quantity(100.0)
 
-        await sender_1.send(Sample(now, 25.0))
-        await sender_2.send(Sample(now, -10.0))
-        assert (await results_rx.receive()).value == 15.0
+        await sender_1.send(Sample(now, Quantity(25.0)))
+        await sender_2.send(Sample(now, Quantity(-10.0)))
+        assert (await results_rx.receive()).value == Quantity(15.0)

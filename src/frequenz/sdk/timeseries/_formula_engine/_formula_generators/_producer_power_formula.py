@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from ....microgrid import connection_manager
 from ....microgrid.component import ComponentCategory, ComponentMetricId
+from ..._quantities import Power
 from .._formula_engine import FormulaEngine
 from ._formula_generator import (
     NON_EXISTING_COMPONENT_ID,
@@ -34,7 +35,9 @@ class ProducerPowerFormula(FormulaGenerator):
             RuntimeError: If the grid component has a single successor that is not a
                 meter.
         """
-        builder = self._get_builder("producer_power", ComponentMetricId.ACTIVE_POWER)
+        builder = self._get_builder(
+            "producer_power", ComponentMetricId.ACTIVE_POWER, Power
+        )
         component_graph = connection_manager.get().component_graph
         grid_component = next(
             iter(

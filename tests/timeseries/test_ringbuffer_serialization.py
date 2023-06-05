@@ -14,6 +14,7 @@ import pytest
 
 import frequenz.sdk.timeseries._ringbuffer as rb
 from frequenz.sdk.timeseries import Sample
+from frequenz.sdk.timeseries._quantities import Quantity
 
 FIVE_MINUTES = timedelta(minutes=5)
 _29_DAYS = 60 * 24 * 29
@@ -38,7 +39,7 @@ def load_dump_test(dumped: rb.OrderedRingBuffer[Any], path: str) -> None:
                 datetime.fromtimestamp(
                     200 + i * FIVE_MINUTES.total_seconds(), tz=timezone.utc
                 ),
-                i,
+                Quantity(i),
             )
         )
 

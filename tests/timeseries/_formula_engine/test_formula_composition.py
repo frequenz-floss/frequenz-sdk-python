@@ -10,6 +10,7 @@ from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.microgrid.component import ComponentMetricId
+from frequenz.sdk.timeseries._quantities import Power
 
 from ..mock_microgrid import MockMicrogrid
 from .utils import get_resampled_stream
@@ -34,6 +35,7 @@ class TestFormulaComposition:
             logical_meter._namespace,  # pylint: disable=protected-access
             4,
             ComponentMetricId.ACTIVE_POWER,
+            Power,
         )
         grid_power_recv = logical_meter.grid_power.new_receiver()
         battery_power_recv = battery_pool.power.new_receiver()
@@ -56,31 +58,37 @@ class TestFormulaComposition:
         assert (
             grid_pow is not None
             and grid_pow.value is not None
-            and math.isclose(grid_pow.value, -164.0)
+            and math.isclose(grid_pow.value.base_value, -164.0)
         )  # 100 + 10 + 12 + 14 + -100 + -200
         assert (
             bat_pow is not None
             and bat_pow.value is not None
-            and math.isclose(bat_pow.value, 36.0)
+            and math.isclose(bat_pow.value.base_value, 36.0)
         )  # 10 + 12 + 14
         assert (
             pv_pow is not None
             and pv_pow.value is not None
-            and math.isclose(pv_pow.value, -300.0)
+            and math.isclose(pv_pow.value.base_value, -300.0)
         )  # -100 + -200
         assert (
             inv_calc_pow is not None
             and inv_calc_pow.value is not None
-            and math.isclose(inv_calc_pow.value, -264.0)  # -300 + 36
+            and math.isclose(inv_calc_pow.value.base_value, -264.0)  # -300 + 36
         )
         assert (
             main_pow is not None
             and main_pow.value is not None
-            and math.isclose(main_pow.value, 100.0)
+            and math.isclose(main_pow.value.base_value, 100.0)
         )
 
-        assert math.isclose(inv_calc_pow.value, pv_pow.value + bat_pow.value)
-        assert math.isclose(grid_pow.value, inv_calc_pow.value + main_pow.value)
+        assert math.isclose(
+            inv_calc_pow.value.base_value,
+            pv_pow.value.base_value + bat_pow.value.base_value,
+        )
+        assert math.isclose(
+            grid_pow.value.base_value,
+            inv_calc_pow.value.base_value + main_pow.value.base_value,
+        )
 
         await mockgrid.cleanup()
         await engine._stop()  # pylint: disable=protected-access
@@ -112,7 +120,7 @@ class TestFormulaComposition:
             inv_pow = await inv_calc_recv.receive()
 
             assert inv_pow == bat_pow
-            assert pv_pow.timestamp == inv_pow.timestamp and pv_pow.value == 0.0
+            assert pv_pow.timestamp == inv_pow.timestamp and pv_pow.value == Power(0.0)
             count += 1
 
         await mockgrid.cleanup()
@@ -146,7 +154,9 @@ class TestFormulaComposition:
             inv_pow = await inv_calc_recv.receive()
 
             assert inv_pow == pv_pow
-            assert bat_pow.timestamp == inv_pow.timestamp and bat_pow.value == 0.0
+            assert bat_pow.timestamp == inv_pow.timestamp and bat_pow.value == Power(
+                0.0
+            )
             count += 1
 
         await mockgrid.cleanup()
@@ -192,19 +202,34 @@ class TestFormulaComposition:
             ev_amps = await ev_current_recv.receive()
             net_amps = await net_current_recv.receive()
 
-            assert grid_amps.value_p1 is not None and grid_amps.value_p1 > 0.0
-            assert grid_amps.value_p2 is not None and grid_amps.value_p2 > 0.0
-            assert grid_amps.value_p3 is not None and grid_amps.value_p3 > 0.0
-            assert ev_amps.value_p1 is not None and ev_amps.value_p1 > 0.0
-            assert ev_amps.value_p2 is not None and ev_amps.value_p2 > 0.0
-            assert ev_amps.value_p3 is not None and ev_amps.value_p3 > 0.0
-            assert net_amps.value_p1 is not None and net_amps.value_p1 > 0.0
-            assert net_amps.value_p2 is not None and net_amps.value_p2 > 0.0
-            assert net_amps.value_p3 is not None and net_amps.value_p3 > 0.0
+            assert (
+                grid_amps.value_p1 is not None and grid_amps.value_p1.base_value > 0.0
+            )
+            assert (
+                grid_amps.value_p2 is not None and grid_amps.value_p2.base_value > 0.0
+            )
+            assert (
+                grid_amps.value_p3 is not None and grid_amps.value_p3.base_value > 0.0
+            )
+            assert ev_amps.value_p1 is not None and ev_amps.value_p1.base_value > 0.0
+            assert ev_amps.value_p2 is not None and ev_amps.value_p2.base_value > 0.0
+            assert ev_amps.value_p3 is not None and ev_amps.value_p3.base_value > 0.0
+            assert net_amps.value_p1 is not None and net_amps.value_p1.base_value > 0.0
+            assert net_amps.value_p2 is not None and net_amps.value_p2.base_value > 0.0
+            assert net_amps.value_p3 is not None and net_amps.value_p3.base_value > 0.0
 
-            assert net_amps.value_p1 == grid_amps.value_p1 - ev_amps.value_p1
-            assert net_amps.value_p2 == grid_amps.value_p2 - ev_amps.value_p2
-            assert net_amps.value_p3 == grid_amps.value_p3 - ev_amps.value_p3
+            assert (
+                net_amps.value_p1.base_value
+                == grid_amps.value_p1.base_value - ev_amps.value_p1.base_value
+            )
+            assert (
+                net_amps.value_p2.base_value
+                == grid_amps.value_p2.base_value - ev_amps.value_p2.base_value
+            )
+            assert (
+                net_amps.value_p3.base_value
+                == grid_amps.value_p3.base_value - ev_amps.value_p3.base_value
+            )
             count += 1
 
         await mockgrid.cleanup()

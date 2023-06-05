@@ -7,6 +7,7 @@ from typing import Set
 
 from ....microgrid import connection_manager
 from ....microgrid.component import Component, ComponentCategory, ComponentMetricId
+from ..._quantities import Current
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase
 from ._formula_generator import ComponentNotFound, FormulaGenerator
 
@@ -42,6 +43,7 @@ class GridCurrentFormula(FormulaGenerator):
 
         return FormulaEngine3Phase(
             "grid-current",
+            Current,
             (
                 self._gen_phase_formula(
                     grid_successors, ComponentMetricId.CURRENT_PHASE_1
@@ -60,7 +62,7 @@ class GridCurrentFormula(FormulaGenerator):
         grid_successors: Set[Component],
         metric_id: ComponentMetricId,
     ) -> FormulaEngine:
-        builder = self._get_builder("grid-current", metric_id)
+        builder = self._get_builder("grid-current", metric_id, Current)
 
         # generate a formula that just adds values from all components that are
         # directly connected to the grid.

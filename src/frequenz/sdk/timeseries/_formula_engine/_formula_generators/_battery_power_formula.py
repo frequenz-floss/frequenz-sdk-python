@@ -8,6 +8,7 @@ import logging
 from ....microgrid import connection_manager
 from ....microgrid.component import ComponentMetricId
 from ..._formula_engine import FormulaEngine
+from ..._quantities import Power
 from ._formula_generator import (
     NON_EXISTING_COMPONENT_ID,
     ComponentNotFound,
@@ -41,7 +42,9 @@ class BatteryPowerFormula(FormulaGenerator):
             FormulaGenerationError: If a battery has a non-inverter predecessor
                 in the component graph.
         """
-        builder = self._get_builder("battery-power", ComponentMetricId.ACTIVE_POWER)
+        builder = self._get_builder(
+            "battery-power", ComponentMetricId.ACTIVE_POWER, Power
+        )
         component_ids = self._config.component_ids
         if not component_ids:
             _logger.warning(

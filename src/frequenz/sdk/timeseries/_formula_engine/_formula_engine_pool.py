@@ -11,6 +11,7 @@ from frequenz.channels import Sender
 
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid.component import ComponentMetricId
+from .._quantities import Quantity
 from ._formula_generators._formula_generator import (
     FormulaGenerator,
     FormulaGeneratorConfig,
@@ -76,6 +77,7 @@ class FormulaEnginePool:
             self._channel_registry,
             self._resampler_subscription_sender,
             component_metric_id,
+            Quantity,
         )
         formula_engine = builder.from_string(formula, nones_are_zeros)
         self._engines[channel_key] = formula_engine

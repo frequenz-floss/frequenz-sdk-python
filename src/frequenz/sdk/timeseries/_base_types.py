@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Callable, Iterator, Self, overload
 
+from ._quantities import Quantity
+
 UNIX_EPOCH = datetime.fromtimestamp(0.0, tz=timezone.utc)
 """The UNIX epoch (in UTC)."""
 
@@ -24,7 +26,7 @@ class Sample:
     timestamp: datetime
     """The time when this sample was generated."""
 
-    value: float | None = None
+    value: Quantity | None = None
     """The value of this sample."""
 
 
@@ -40,16 +42,16 @@ class Sample3Phase:
 
     timestamp: datetime
     """The time when this sample was generated."""
-    value_p1: float | None
+    value_p1: Quantity | None
     """The value of the 1st phase in this sample."""
 
-    value_p2: float | None
+    value_p2: Quantity | None
     """The value of the 2nd phase in this sample."""
 
-    value_p3: float | None
+    value_p3: Quantity | None
     """The value of the 3rd phase in this sample."""
 
-    def __iter__(self) -> Iterator[float | None]:
+    def __iter__(self) -> Iterator[Quantity | None]:
         """Return an iterator that yields values from each of the phases.
 
         Yields:
@@ -60,14 +62,14 @@ class Sample3Phase:
         yield self.value_p3
 
     @overload
-    def max(self, default: float) -> float:
+    def max(self, default: Quantity) -> Quantity:
         ...
 
     @overload
-    def max(self, default: None = None) -> float | None:
+    def max(self, default: None = None) -> Quantity | None:
         ...
 
-    def max(self, default: float | None = None) -> float | None:
+    def max(self, default: Quantity | None = None) -> Quantity | None:
         """Return the max value among all phases, or default if they are all `None`.
 
         Args:
@@ -78,21 +80,21 @@ class Sample3Phase:
         """
         if not any(self):
             return default
-        value: float = functools.reduce(
+        value: Quantity = functools.reduce(
             lambda x, y: x if x > y else y,
             filter(None, self),
         )
         return value
 
     @overload
-    def min(self, default: float) -> float:
+    def min(self, default: Quantity) -> Quantity:
         ...
 
     @overload
-    def min(self, default: None = None) -> float | None:
+    def min(self, default: None = None) -> Quantity | None:
         ...
 
-    def min(self, default: float | None = None) -> float | None:
+    def min(self, default: Quantity | None = None) -> Quantity | None:
         """Return the min value among all phases, or default if they are all `None`.
 
         Args:
@@ -103,14 +105,16 @@ class Sample3Phase:
         """
         if not any(self):
             return default
-        value: float = functools.reduce(
+        value: Quantity = functools.reduce(
             lambda x, y: x if x < y else y,
             filter(None, self),
         )
         return value
 
     def map(
-        self, function: Callable[[float], float], default: float | None = None
+        self,
+        function: Callable[[Quantity], Quantity],
+        default: Quantity | None = None,
     ) -> Self:
         """Apply the given function on each of the phase values and return the result.
 
