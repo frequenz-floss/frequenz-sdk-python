@@ -52,4 +52,4 @@ This release main introduces the new `PeriodicFeatureExtractor`, the control int
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+* Fixed many exapmles in the documentation.
