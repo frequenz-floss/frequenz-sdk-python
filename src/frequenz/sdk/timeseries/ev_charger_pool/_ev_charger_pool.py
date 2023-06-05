@@ -123,7 +123,7 @@ class EVChargerPool:
             A FormulaEngine that will calculate and stream the total current of all EV
                 Chargers.
         """
-        engine = self._formula_pool.from_generator(
+        engine = self._formula_pool.from_3_phase_current_formula_generator(
             "ev_charger_total_current",
             EVChargerCurrentFormula,
             FormulaGeneratorConfig(component_ids=self._component_ids),
@@ -147,7 +147,7 @@ class EVChargerPool:
             A FormulaEngine that will calculate and stream the total power of all EV
                 Chargers.
         """
-        engine = self._formula_pool.from_generator(
+        engine = self._formula_pool.from_power_formula_generator(
             "ev_charger_power",
             EVChargerPowerFormula,
             FormulaGeneratorConfig(
@@ -174,7 +174,7 @@ class EVChargerPool:
             A FormulaEngine that will calculate and stream the production power of all
                 EV Chargers.
         """
-        engine = self._formula_pool.from_generator(
+        engine = self._formula_pool.from_power_formula_generator(
             "ev_charger_production_power",
             EVChargerPowerFormula,
             FormulaGeneratorConfig(
@@ -201,7 +201,7 @@ class EVChargerPool:
             A FormulaEngine that will calculate and stream the consumption power of all
                 EV Chargers.
         """
-        engine = self._formula_pool.from_generator(
+        engine = self._formula_pool.from_power_formula_generator(
             "ev_charger_consumption_power",
             EVChargerPowerFormula,
             FormulaGeneratorConfig(

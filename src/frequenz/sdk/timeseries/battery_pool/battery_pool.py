@@ -253,7 +253,7 @@ class BatteryPool:
             A FormulaEngine that will calculate and stream the total power of all
                 batteries in the pool.
         """
-        engine = self._formula_pool.from_generator(
+        engine = self._formula_pool.from_power_formula_generator(
             "battery_pool_power",
             BatteryPowerFormula,
             FormulaGeneratorConfig(
@@ -280,7 +280,7 @@ class BatteryPool:
             A FormulaEngine that will calculate and stream the total production power of
                 all batteries in the pool.
         """
-        engine = self._formula_pool.from_generator(
+        engine = self._formula_pool.from_power_formula_generator(
             "battery_pool_production_power",
             BatteryPowerFormula,
             FormulaGeneratorConfig(
@@ -304,10 +304,10 @@ class BatteryPool:
         method.
 
         Returns:
-            A FormulaEngine that will calculate and stream the total consumption power of
-                all batteries in the pool.
+            A FormulaEngine that will calculate and stream the total consumption
+                power of all batteries in the pool.
         """
-        engine = self._formula_pool.from_generator(
+        engine = self._formula_pool.from_power_formula_generator(
             "battery_pool_consumption_power",
             BatteryPowerFormula,
             FormulaGeneratorConfig(

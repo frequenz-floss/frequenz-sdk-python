@@ -5,13 +5,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Type
+from typing import TYPE_CHECKING, Type
 
 from frequenz.channels import Sender
 
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid.component import ComponentMetricId
-from .._quantities import Quantity
+from .._quantities import Current, Power, Quantity
 from ._formula_generators._formula_generator import (
     FormulaGenerator,
     FormulaGeneratorConfig,
@@ -47,7 +47,9 @@ class FormulaEnginePool:
         self._namespace = namespace
         self._channel_registry = channel_registry
         self._resampler_subscription_sender = resampler_subscription_sender
-        self._engines: dict[str, "FormulaEngine[Any]|FormulaEngine3Phase[Any]"] = {}
+        self._string_engines: dict[str, FormulaEngine[Quantity]] = {}
+        self._power_engines: dict[str, FormulaEngine[Power]] = {}
+        self._current_engines: dict[str, FormulaEngine3Phase[Current]] = {}
 
     def from_string(
         self,
@@ -68,8 +70,8 @@ class FormulaEnginePool:
             A FormulaReceiver that streams values with the formulas applied.
         """
         channel_key = formula + component_metric_id.value
-        if channel_key in self._engines:
-            return self._engines[channel_key]  # type: ignore
+        if channel_key in self._string_engines:
+            return self._string_engines[channel_key]
 
         builder = ResampledFormulaBuilder(
             self._namespace,
@@ -80,16 +82,16 @@ class FormulaEnginePool:
             Quantity,
         )
         formula_engine = builder.from_string(formula, nones_are_zeros)
-        self._engines[channel_key] = formula_engine
+        self._string_engines[channel_key] = formula_engine
 
         return formula_engine
 
-    def from_generator(
+    def from_power_formula_generator(
         self,
         channel_key: str,
-        generator: "Type[FormulaGenerator[Any]]",
+        generator: Type[FormulaGenerator[Power]],
         config: FormulaGeneratorConfig = FormulaGeneratorConfig(),
-    ) -> FormulaEngine[Any] | FormulaEngine3Phase[Any]:
+    ) -> FormulaEngine[Power]:
         """Get a receiver for a formula from a generator.
 
         Args:
@@ -101,8 +103,12 @@ class FormulaEnginePool:
             A FormulaReceiver or a FormulaReceiver3Phase instance based on what the
                 FormulaGenerator returns.
         """
-        if channel_key in self._engines:
-            return self._engines[channel_key]
+        from ._formula_engine import (  # pylint: disable=import-outside-toplevel
+            FormulaEngine,
+        )
+
+        if channel_key in self._power_engines:
+            return self._power_engines[channel_key]
 
         engine = generator(
             self._namespace,
@@ -110,10 +116,49 @@ class FormulaEnginePool:
             self._resampler_subscription_sender,
             config,
         ).generate()
-        self._engines[channel_key] = engine
+        assert isinstance(engine, FormulaEngine)
+        self._power_engines[channel_key] = engine
+        return engine
+
+    def from_3_phase_current_formula_generator(
+        self,
+        channel_key: str,
+        generator: "Type[FormulaGenerator[Current]]",
+        config: FormulaGeneratorConfig = FormulaGeneratorConfig(),
+    ) -> FormulaEngine3Phase[Current]:
+        """Get a receiver for a formula from a generator.
+
+        Args:
+            channel_key: A string to uniquely identify the formula.
+            generator: A formula generator.
+            config: config to initialize the formula generator with.
+
+        Returns:
+            A FormulaReceiver or a FormulaReceiver3Phase instance based on what the
+                FormulaGenerator returns.
+        """
+        from ._formula_engine import (  # pylint: disable=import-outside-toplevel
+            FormulaEngine3Phase,
+        )
+
+        if channel_key in self._current_engines:
+            return self._current_engines[channel_key]
+
+        engine = generator(
+            self._namespace,
+            self._channel_registry,
+            self._resampler_subscription_sender,
+            config,
+        ).generate()
+        assert isinstance(engine, FormulaEngine3Phase)
+        self._current_engines[channel_key] = engine
         return engine
 
     async def stop(self) -> None:
         """Stop all formula engines in the pool."""
-        for engine in self._engines.values():
-            await engine._stop()  # pylint: disable=protected-access
+        for string_engine in self._string_engines.values():
+            await string_engine._stop()  # pylint: disable=protected-access
+        for power_engine in self._power_engines.values():
+            await power_engine._stop()  # pylint: disable=protected-access
+        for current_engine in self._current_engines.values():
+            await current_engine._stop()  # pylint: disable=protected-access

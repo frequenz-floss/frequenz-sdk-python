@@ -163,7 +163,7 @@ class LogicalMeter:
         Returns:
             A FormulaEngine that will calculate and stream grid power.
         """
-        engine = self._formula_pool.from_generator(
+        engine = self._formula_pool.from_power_formula_generator(
             "grid_power",
             GridPowerFormula,
         )
@@ -185,7 +185,7 @@ class LogicalMeter:
         Returns:
             A FormulaEngine that will calculate and stream grid consumption power.
         """
-        engine = self._formula_pool.from_generator(
+        engine = self._formula_pool.from_power_formula_generator(
             "grid_consumption_power",
             GridPowerFormula,
             FormulaGeneratorConfig(formula_type=FormulaType.CONSUMPTION),
@@ -208,7 +208,7 @@ class LogicalMeter:
         Returns:
             A FormulaEngine that will calculate and stream grid production power.
         """
-        engine = self._formula_pool.from_generator(
+        engine = self._formula_pool.from_power_formula_generator(
             "grid_production_power",
             GridPowerFormula,
             FormulaGeneratorConfig(formula_type=FormulaType.PRODUCTION),
@@ -231,7 +231,7 @@ class LogicalMeter:
         Returns:
             A FormulaEngine that will calculate and stream grid current.
         """
-        engine = self._formula_pool.from_generator(
+        engine = self._formula_pool.from_3_phase_current_formula_generator(
             "grid_current",
             GridCurrentFormula,
         )
@@ -256,7 +256,7 @@ class LogicalMeter:
         Returns:
             A FormulaEngine that will calculate and stream consumer power.
         """
-        engine = self._formula_pool.from_generator(
+        engine = self._formula_pool.from_power_formula_generator(
             "consumer_power",
             ConsumerPowerFormula,
         )
@@ -281,7 +281,7 @@ class LogicalMeter:
         Returns:
             A FormulaEngine that will calculate and stream producer power.
         """
-        engine = self._formula_pool.from_generator(
+        engine = self._formula_pool.from_power_formula_generator(
             "producer_power",
             ProducerPowerFormula,
         )
@@ -303,7 +303,7 @@ class LogicalMeter:
         Returns:
             A FormulaEngine that will calculate and stream PV total power.
         """
-        engine = self._formula_pool.from_generator(
+        engine = self._formula_pool.from_power_formula_generator(
             "pv_power",
             PVPowerFormula,
             FormulaGeneratorConfig(formula_type=FormulaType.PASSIVE_SIGN_CONVENTION),
@@ -326,7 +326,7 @@ class LogicalMeter:
         Returns:
             A FormulaEngine that will calculate and stream PV power production.
         """
-        engine = self._formula_pool.from_generator(
+        engine = self._formula_pool.from_power_formula_generator(
             "pv_production_power",
             PVPowerFormula,
             FormulaGeneratorConfig(formula_type=FormulaType.PRODUCTION),
@@ -349,7 +349,7 @@ class LogicalMeter:
         Returns:
             A FormulaEngine that will calculate and stream PV power consumption.
         """
-        engine = self._formula_pool.from_generator(
+        engine = self._formula_pool.from_power_formula_generator(
             "pv_consumption_power",
             PVPowerFormula,
             FormulaGeneratorConfig(formula_type=FormulaType.CONSUMPTION),
@@ -372,7 +372,7 @@ class LogicalMeter:
         Returns:
             A FormulaEngine that will calculate and stream CHP power production.
         """
-        engine = self._formula_pool.from_generator(
+        engine = self._formula_pool.from_power_formula_generator(
             "chp_power",
             CHPPowerFormula,
             FormulaGeneratorConfig(formula_type=FormulaType.PASSIVE_SIGN_CONVENTION),
@@ -395,7 +395,7 @@ class LogicalMeter:
         Returns:
             A FormulaEngine that will calculate and stream CHP power production.
         """
-        engine = self._formula_pool.from_generator(
+        engine = self._formula_pool.from_power_formula_generator(
             "chp_production_power",
             CHPPowerFormula,
             FormulaGeneratorConfig(
@@ -420,7 +420,7 @@ class LogicalMeter:
         Returns:
             A FormulaEngine that will calculate and stream CHP power consumption.
         """
-        engine = self._formula_pool.from_generator(
+        engine = self._formula_pool.from_power_formula_generator(
             "chp_consumption_power",
             CHPPowerFormula,
             FormulaGeneratorConfig(
