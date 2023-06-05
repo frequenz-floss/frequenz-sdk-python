@@ -17,7 +17,7 @@ from frequenz.sdk.timeseries._resampling import (
 
 
 def nop(  # pylint: disable=unused-argument
-    samples: Sequence[Sample],
+    samples: Sequence[Sample[Quantity]],
     resampler_config: ResamplerConfig,
     source_properties: SourceProperties,
 ) -> float:

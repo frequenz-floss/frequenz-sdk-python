@@ -11,6 +11,7 @@ from typing import List, Optional
 from frequenz.channels import Receiver
 
 from .. import Sample
+from .._quantities import Quantity
 from ._exceptions import FormulaEngineError
 
 
@@ -263,7 +264,7 @@ class MetricFetcher(FormulaStep):
     """A formula step for fetching a value from a metric Receiver."""
 
     def __init__(
-        self, name: str, stream: Receiver[Sample], nones_are_zeros: bool
+        self, name: str, stream: Receiver[Sample[Quantity]], nones_are_zeros: bool
     ) -> None:
         """Create a `MetricFetcher` instance.
 
@@ -274,10 +275,10 @@ class MetricFetcher(FormulaStep):
         """
         self._name = name
         self._stream = stream
-        self._next_value: Optional[Sample] = None
+        self._next_value: Optional[Sample[Quantity]] = None
         self._nones_are_zeros = nones_are_zeros
 
-    async def fetch_next(self) -> Optional[Sample]:
+    async def fetch_next(self) -> Optional[Sample[Quantity]]:
         """Fetch the next value from the stream.
 
         To be called before each call to `apply`.
@@ -289,7 +290,7 @@ class MetricFetcher(FormulaStep):
         return self._next_value
 
     @property
-    def value(self) -> Optional[Sample]:
+    def value(self) -> Optional[Sample[Quantity]]:
         """Get the next value in the stream.
 
         Returns:

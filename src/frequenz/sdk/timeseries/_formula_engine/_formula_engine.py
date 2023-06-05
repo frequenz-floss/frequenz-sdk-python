@@ -82,7 +82,7 @@ class FormulaEvaluator:
         self._output_type = output_type
 
     async def _synchronize_metric_timestamps(
-        self, metrics: Set[asyncio.Task[Optional[Sample]]]
+        self, metrics: Set[asyncio.Task[Optional[Sample[Quantity]]]]
     ) -> datetime:
         """Synchronize the metric streams.
 
@@ -129,7 +129,7 @@ class FormulaEvaluator:
         self._first_run = False
         return latest_ts
 
-    async def apply(self) -> Sample:
+    async def apply(self) -> Sample[Quantity]:
         """Fetch the latest metrics, apply the formula once and return the result.
 
         Returns:
@@ -304,7 +304,7 @@ class FormulaEngine(
         self._name: str = builder.name
         self._builder = builder
         self._output_type = output_type
-        self._channel = Broadcast[Sample](self._name)
+        self._channel = Broadcast[Sample[Quantity]](self._name)
 
     async def _run(self) -> None:
         await self._builder.subscribe()
@@ -328,7 +328,7 @@ class FormulaEngine(
 
     def new_receiver(
         self, name: Optional[str] = None, max_size: int = 50
-    ) -> Receiver[Sample]:
+    ) -> Receiver[Sample[Quantity]]:
         """Create a new receiver that streams the output of the formula engine.
 
         Args:
@@ -371,7 +371,7 @@ class FormulaEngine3Phase(
         self._higher_order_builder = HigherOrderFormulaBuilder3Phase
         self._name: str = name
         self._output_type = output_type
-        self._channel = Broadcast[Sample3Phase](self._name)
+        self._channel = Broadcast[Sample3Phase[Quantity]](self._name)
         self._task: asyncio.Task[None] | None = None
         self._streams: tuple[
             FormulaEngine, FormulaEngine, FormulaEngine
@@ -402,7 +402,7 @@ class FormulaEngine3Phase(
 
     def new_receiver(
         self, name: Optional[str] = None, max_size: int = 50
-    ) -> Receiver[Sample3Phase]:
+    ) -> Receiver[Sample3Phase[Quantity]]:
         """Create a new receiver that streams the output of the formula engine.
 
         Args:
@@ -493,7 +493,7 @@ class FormulaBuilder:
     def push_metric(
         self,
         name: str,
-        data_stream: Receiver[Sample],
+        data_stream: Receiver[Sample[Quantity]],
         nones_are_zeros: bool,
     ) -> None:
         """Push a metric receiver into the engine.
@@ -562,7 +562,9 @@ class FormulaBuilder:
         """
         self._steps.append(Clipper(min_value, max_value))
 
-    def push_average(self, metrics: List[Tuple[str, Receiver[Sample], bool]]) -> None:
+    def push_average(
+        self, metrics: List[Tuple[str, Receiver[Sample[Quantity]], bool]]
+    ) -> None:
         """Push an average calculator into the engine.
 
         Args:

@@ -56,7 +56,7 @@ class TestFormulaEngine:
         nones_are_zeros: bool = False,
     ) -> None:
         """Run a formula test."""
-        channels: Dict[str, Broadcast[Sample]] = {}
+        channels: Dict[str, Broadcast[Sample[Quantity]]] = {}
         builder = FormulaBuilder("test_formula", Quantity)
         for token in Tokenizer(formula):
             if token.type == TokenType.COMPONENT_METRIC:
@@ -300,7 +300,9 @@ class TestFormulaEngine:
 class TestFormulaEngineComposition:
     """Tests for formula channels."""
 
-    def make_engine(self, stream_id: int, data: Receiver[Sample]) -> FormulaEngine:
+    def make_engine(
+        self, stream_id: int, data: Receiver[Sample[Quantity]]
+    ) -> FormulaEngine:
         """Make a basic FormulaEngine."""
         name = f"#{stream_id}"
         builder = FormulaBuilder(name, output_type=Quantity)
@@ -328,7 +330,7 @@ class TestFormulaEngineComposition:
         nones_are_zeros: bool = False,
     ) -> None:
         """Run a test with the specs provided."""
-        channels = [Broadcast[Sample](str(ctr)) for ctr in range(num_items)]
+        channels = [Broadcast[Sample[Quantity]](str(ctr)) for ctr in range(num_items)]
         l1_engines = [
             self.make_engine(ctr, channels[ctr].new_receiver())
             for ctr in range(num_items)
@@ -569,8 +571,8 @@ class TestFormulaAverager:
         io_pairs: List[Tuple[List[Optional[float]], Optional[float]]],
     ) -> None:
         """Run a formula test."""
-        channels: Dict[str, Broadcast[Sample]] = {}
-        streams: List[Tuple[str, Receiver[Sample], bool]] = []
+        channels: Dict[str, Broadcast[Sample[Quantity]]] = {}
+        streams: List[Tuple[str, Receiver[Sample[Quantity]], bool]] = []
         builder = FormulaBuilder("test_averager", output_type=Quantity)
         for comp_id in components:
             if comp_id not in channels:
@@ -633,8 +635,8 @@ class TestConstantValue:
     async def test_constant_value(self) -> None:
         """Test using constant values in formulas."""
 
-        channel_1 = Broadcast[Sample]("channel_1")
-        channel_2 = Broadcast[Sample]("channel_2")
+        channel_1 = Broadcast[Sample[Quantity]]("channel_1")
+        channel_2 = Broadcast[Sample[Quantity]]("channel_2")
 
         sender_1 = channel_1.new_sender()
         sender_2 = channel_2.new_sender()
@@ -687,8 +689,8 @@ class TestClipper:
 
     async def test_clipper(self) -> None:
         """Test the usage of clipper in formulas."""
-        channel_1 = Broadcast[Sample]("channel_1")
-        channel_2 = Broadcast[Sample]("channel_2")
+        channel_1 = Broadcast[Sample[Quantity]]("channel_1")
+        channel_2 = Broadcast[Sample[Quantity]]("channel_2")
 
         sender_1 = channel_1.new_sender()
         sender_2 = channel_2.new_sender()

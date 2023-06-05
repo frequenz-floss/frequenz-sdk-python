@@ -36,7 +36,7 @@ def fake_time() -> Iterator[time_machine.Coordinates]:
 
 
 async def push_logical_meter_data(
-    sender: Sender[Sample], test_seq: Sequence[float]
+    sender: Sender[Sample[Quantity]], test_seq: Sequence[float]
 ) -> None:
     """
     Push data in the passed sender to mock `LogicalMeter` behaviour.
@@ -54,7 +54,9 @@ async def push_logical_meter_data(
     await asyncio.sleep(0.0)
 
 
-def init_moving_window(size: timedelta) -> Tuple[MovingWindow, Sender[Sample]]:
+def init_moving_window(
+    size: timedelta,
+) -> Tuple[MovingWindow, Sender[Sample[Quantity]]]:
     """
     Initialize the moving window with given shape
 
@@ -64,7 +66,7 @@ def init_moving_window(size: timedelta) -> Tuple[MovingWindow, Sender[Sample]]:
     Returns:
         tuple[MovingWindow, Sender[Sample]]: A pair of sender and `MovingWindow`.
     """
-    lm_chan = Broadcast[Sample]("lm_net_power")
+    lm_chan = Broadcast[Sample[Quantity]]("lm_net_power")
     lm_tx = lm_chan.new_sender()
     window = MovingWindow(size, lm_chan.new_receiver(), timedelta(seconds=1))
     return window, lm_tx
@@ -119,7 +121,7 @@ async def test_window_size() -> None:
 # pylint: disable=redefined-outer-name
 async def test_resampling_window(fake_time: time_machine.Coordinates) -> None:
     """Test resampling in MovingWindow."""
-    channel = Broadcast[Sample]("net_power")
+    channel = Broadcast[Sample[Quantity]]("net_power")
     sender = channel.new_sender()
 
     window_size = timedelta(seconds=16)

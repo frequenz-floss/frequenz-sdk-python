@@ -18,6 +18,7 @@ from numpy.typing import ArrayLike
 
 from .._internal._asyncio import cancel_and_await
 from ._base_types import UNIX_EPOCH, Sample
+from ._quantities import Quantity
 from ._resampling import Resampler, ResamplerConfig
 from ._ringbuffer import OrderedRingBuffer
 
@@ -132,7 +133,7 @@ class MovingWindow:
     def __init__(  # pylint: disable=too-many-arguments
         self,
         size: timedelta,
-        resampled_data_recv: Receiver[Sample],
+        resampled_data_recv: Receiver[Sample[Quantity]],
         input_sampling_period: timedelta,
         resampler_config: ResamplerConfig | None = None,
         align_to: datetime = UNIX_EPOCH,
@@ -167,7 +168,7 @@ class MovingWindow:
         self._sampling_period = input_sampling_period
 
         self._resampler: Resampler | None = None
-        self._resampler_sender: Sender[Sample] | None = None
+        self._resampler_sender: Sender[Sample[Quantity]] | None = None
         self._resampler_task: asyncio.Task[None] | None = None
 
         if resampler_config:
@@ -237,11 +238,11 @@ class MovingWindow:
         """Configure the components needed to run the resampler."""
         assert self._resampler is not None
 
-        async def sink_buffer(sample: Sample) -> None:
+        async def sink_buffer(sample: Sample[Quantity]) -> None:
             if sample.value is not None:
                 self._buffer.update(sample)
 
-        resampler_channel = Broadcast[Sample]("average")
+        resampler_channel = Broadcast[Sample[Quantity]]("average")
         self._resampler_sender = resampler_channel.new_sender()
         self._resampler.add_timeseries(
             "avg", resampler_channel.new_receiver(), sink_buffer

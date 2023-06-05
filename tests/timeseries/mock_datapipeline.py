@@ -44,12 +44,12 @@ class MockDataPipeline:
         self._resampler_request_channel = Broadcast[ComponentMetricRequest](
             "resampler-request"
         )
-        self._basic_receivers: dict[str, list[Receiver[Sample]]] = {}
+        self._basic_receivers: dict[str, list[Receiver[Sample[Quantity]]]] = {}
 
         def power_senders(
             comp_ids: list[int],
-        ) -> list[Sender[Sample]]:
-            senders: list[Sender[Sample]] = []
+        ) -> list[Sender[Sample[Quantity]]]:
+            senders: list[Sender[Sample[Quantity]]] = []
             for comp_id in comp_ids:
                 name = f"{comp_id}:{ComponentMetricId.ACTIVE_POWER}"
                 senders.append(self._channel_registry.new_sender(name))
@@ -67,8 +67,8 @@ class MockDataPipeline:
             [NON_EXISTING_COMPONENT_ID]
         )[0]
 
-        def current_senders(ids: list[int]) -> list[list[Sender[Sample]]]:
-            senders: list[list[Sender[Sample]]] = []
+        def current_senders(ids: list[int]) -> list[list[Sender[Sample[Quantity]]]]:
+            senders: list[list[Sender[Sample[Quantity]]]] = []
             for comp_id in ids:
                 p1_name = f"{comp_id}:{ComponentMetricId.CURRENT_PHASE_1}"
                 p2_name = f"{comp_id}:{ComponentMetricId.CURRENT_PHASE_2}"
@@ -119,7 +119,7 @@ class MockDataPipeline:
         return self._resampler_request_channel.new_sender()
 
     async def _channel_forward_messages(
-        self, receiver: Receiver[Sample], sender: Sender[Sample]
+        self, receiver: Receiver[Sample[Quantity]], sender: Sender[Sample[Quantity]]
     ) -> None:
         async for sample in receiver:
             await sender.send(sample)
@@ -161,7 +161,7 @@ class MockDataPipeline:
 
     async def send_non_existing_component_value(self) -> None:
         """Send a value for a non existing component."""
-        sample = Sample(self._next_ts, None)
+        sample = Sample[Quantity](self._next_ts, None)
         await self._non_existing_component_sender.send(sample)
 
     async def send_evc_current(self, values: list[list[float | None]]) -> None:

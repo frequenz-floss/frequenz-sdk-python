@@ -305,7 +305,7 @@ class MicrogridApiSource:
         self,
         category: ComponentCategory,
         requests: Dict[ComponentMetricId, List[ComponentMetricRequest]],
-    ) -> List[Tuple[Callable[[Any], float], List[Sender[Sample]]]]:
+    ) -> List[Tuple[Callable[[Any], float], List[Sender[Sample[Quantity]]]]]:
         """Get channel senders from the channel registry for each requested metric.
 
         Args:

@@ -56,9 +56,9 @@ def fake_time() -> Iterator[time_machine.Coordinates]:
 
 
 @pytest.fixture
-async def source_chan() -> AsyncIterator[Broadcast[Sample]]:
+async def source_chan() -> AsyncIterator[Broadcast[Sample[Quantity]]]:
     """Create a broadcast channel of samples."""
-    chan = Broadcast[Sample]("test")
+    chan = Broadcast[Sample[Quantity]]("test")
     yield chan
     await chan.close()
 
@@ -243,7 +243,7 @@ def test_calculate_window_end_trivial_cases(
 
 
 async def test_resampling_window_size_is_constant(
-    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample]
+    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample[Quantity]]
 ) -> None:
     """Test resampling window size is consistent."""
     timestamp = datetime.now(timezone.utc)
@@ -327,7 +327,7 @@ async def test_resampling_window_size_is_constant(
 
 async def test_timer_errors_are_logged(
     fake_time: time_machine.Coordinates,
-    source_chan: Broadcast[Sample],
+    source_chan: Broadcast[Sample[Quantity]],
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test that big differences between the expected window end and the fired timer are logged."""
@@ -427,7 +427,7 @@ async def test_timer_errors_are_logged(
 
 
 async def test_future_samples_not_included(
-    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample]
+    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample[Quantity]]
 ) -> None:
     """Test resampling window size is consistent."""
     timestamp = datetime.now(timezone.utc)
@@ -513,7 +513,7 @@ async def test_future_samples_not_included(
 
 
 async def test_resampling_with_one_window(
-    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample]
+    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample[Quantity]]
 ) -> None:
     """Test resampling with one resampling window (saving samples of the last period only)."""
     timestamp = datetime.now(timezone.utc)
@@ -627,7 +627,7 @@ async def test_resampling_with_one_window(
 # too many statements because it makes following failures in tests more easy
 # when the code is very flat.
 async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-many-statements
-    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample]
+    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample[Quantity]]
 ) -> None:
     """Test resampling with 1.5 resampling windows."""
     timestamp = datetime.now(timezone.utc)
@@ -789,7 +789,7 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
 # too many statements because it makes following failures in tests more easy
 # when the code is very flat.
 async def test_resampling_with_two_windows(  # pylint: disable=too-many-statements
-    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample]
+    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample[Quantity]]
 ) -> None:
     """Test resampling with 2 resampling windows."""
     timestamp = datetime.now(timezone.utc)
@@ -943,7 +943,7 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
 
 
 async def test_receiving_stopped_resampling_error(
-    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample]
+    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample[Quantity]]
 ) -> None:
     """Test resampling errors if a receiver stops."""
     timestamp = datetime.now(timezone.utc)

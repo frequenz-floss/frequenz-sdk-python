@@ -27,6 +27,7 @@ from .._formula_engine._formula_generators import (
     FormulaGeneratorConfig,
     FormulaType,
 )
+from .._quantities import Quantity
 from ._set_current_bounds import BoundsSetter, ComponentCurrentLimit
 from ._state_tracker import EVChargerState, StateTracker
 
@@ -42,7 +43,7 @@ class EVChargerData:
     """Data for an EV Charger, including the 3-phase current and the component state."""
 
     component_id: int
-    current: Sample3Phase
+    current: Sample3Phase[Quantity]
     state: EVChargerState
 
 
@@ -280,7 +281,11 @@ class EVChargerPool:
 
     async def _get_current_streams(
         self, component_id: int
-    ) -> tuple[Receiver[Sample], Receiver[Sample], Receiver[Sample]]:
+    ) -> tuple[
+        Receiver[Sample[Quantity]],
+        Receiver[Sample[Quantity]],
+        Receiver[Sample[Quantity]],
+    ]:
         """Fetch current streams from the resampler for each phase.
 
         Args:
@@ -291,7 +296,9 @@ class EVChargerPool:
                 component id, one for each phase.
         """
 
-        async def resampler_subscribe(metric_id: ComponentMetricId) -> Receiver[Sample]:
+        async def resampler_subscribe(
+            metric_id: ComponentMetricId,
+        ) -> Receiver[Sample[Quantity]]:
             request = ComponentMetricRequest(
                 namespace="ev-pool",
                 component_id=component_id,

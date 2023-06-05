@@ -22,6 +22,7 @@ from frequenz.sdk import actor, microgrid
 from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.actor.power_distributing import Result, Success
 from frequenz.sdk.timeseries import Sample
+from frequenz.sdk.timeseries._quantities import Quantity
 
 _logger = logging.getLogger(__name__)
 HOST = "microgrid.sandbox.api.frequenz.io"  # it should be the host name.
@@ -97,7 +98,7 @@ class DataCollectingActor:
     def __init__(
         self,
         request_channel: Sender[List[float]],
-        active_power_data: Receiver[Sample],
+        active_power_data: Receiver[Sample[Quantity]],
     ) -> None:
         """Create actor instance.
 

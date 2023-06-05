@@ -38,7 +38,7 @@ async def _calculate_average(source: Source, sink: Sink) -> None:
         await sink(Sample(datetime.now(timezone.utc), Quantity(avg)))
 
 
-async def _print_sample(sample: Sample) -> None:
+async def _print_sample(sample: Sample[Quantity]) -> None:
     print(f"\nResampled average at {sample.timestamp}: {sample.value}\n")
 
 
@@ -106,7 +106,7 @@ async def run() -> None:  # pylint: disable=too-many-locals
     )
 
     # Create a channel to calculate an average for all the data
-    average_chan = Broadcast[Sample]("average")
+    average_chan = Broadcast[Sample[Quantity]]("average")
 
     second_stage_resampler = Resampler(
         ResamplerConfig(resampling_period=timedelta(seconds=3.0))
@@ -118,7 +118,7 @@ async def run() -> None:  # pylint: disable=too-many-locals
     average_sender = average_chan.new_sender()
 
     # Needed until channels Senders raises exceptions on errors
-    async def sink_adapter(sample: Sample) -> None:
+    async def sink_adapter(sample: Sample[Quantity]) -> None:
         await average_sender.send(sample)
 
     print("Starting...")

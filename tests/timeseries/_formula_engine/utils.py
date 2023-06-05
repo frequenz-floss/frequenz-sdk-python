@@ -22,7 +22,7 @@ def get_resampled_stream(  # pylint: disable=too-many-arguments
     comp_id: int,
     metric_id: ComponentMetricId,
     output_type: Type[Quantity],
-) -> Receiver[Sample]:
+) -> Receiver[Sample[Quantity]]:
     """Return the resampled data stream for the given component."""
     # Create a `FormulaBuilder` instance, just in order to reuse its
     # `_get_resampled_receiver` function implementation.

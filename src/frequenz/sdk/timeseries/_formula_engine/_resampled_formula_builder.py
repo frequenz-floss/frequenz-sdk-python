@@ -54,7 +54,7 @@ class ResampledFormulaBuilder(FormulaBuilder):
 
     def _get_resampled_receiver(
         self, component_id: int, metric_id: ComponentMetricId
-    ) -> Receiver[Sample]:
+    ) -> Receiver[Sample[Quantity]]:
         """Get a receiver with the resampled data for the given component id.
 
         Args:
