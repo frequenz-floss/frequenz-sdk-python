@@ -20,7 +20,7 @@ from frequenz.sdk.timeseries._formula_engine._tokenizer import (
     Tokenizer,
     TokenType,
 )
-from frequenz.sdk.timeseries._quantities import Quantity
+from frequenz.sdk.timeseries._quantities import Power, Quantity
 
 
 class TestTokenizer:
@@ -302,7 +302,7 @@ class TestFormulaEngineComposition:
 
     def make_engine(
         self, stream_id: int, data: Receiver[Sample[Quantity]]
-    ) -> FormulaEngine:
+    ) -> FormulaEngine[Quantity]:
         """Make a basic FormulaEngine."""
         name = f"#{stream_id}"
         builder = FormulaBuilder(name, output_type=Quantity)
@@ -318,12 +318,21 @@ class TestFormulaEngineComposition:
         num_items: int,
         make_builder: Union[
             Callable[
-                [FormulaEngine, FormulaEngine, FormulaEngine],
-                HigherOrderFormulaBuilder,
+                [
+                    FormulaEngine[Quantity],
+                    FormulaEngine[Quantity],
+                    FormulaEngine[Quantity],
+                ],
+                HigherOrderFormulaBuilder[Quantity],
             ],
             Callable[
-                [FormulaEngine, FormulaEngine, FormulaEngine, FormulaEngine],
-                HigherOrderFormulaBuilder,
+                [
+                    FormulaEngine[Quantity],
+                    FormulaEngine[Quantity],
+                    FormulaEngine[Quantity],
+                    FormulaEngine[Quantity],
+                ],
+                HigherOrderFormulaBuilder[Quantity],
             ],
         ],
         io_pairs: List[Tuple[List[Optional[float]], Optional[float]]],
@@ -740,3 +749,30 @@ class TestClipper:
         await sender_1.send(Sample(now, Quantity(25.0)))
         await sender_2.send(Sample(now, Quantity(-10.0)))
         assert (await results_rx.receive()).value == Quantity(15.0)
+
+
+class TestFormulaOutputTyping:
+    """Tests for the typing of the output of formulas."""
+
+    async def test_types(self) -> None:
+        """Test the typing of the output of formulas."""
+        channel_1 = Broadcast[Sample[Power]]("channel_1")
+        channel_2 = Broadcast[Sample[Power]]("channel_2")
+
+        sender_1 = channel_1.new_sender()
+        sender_2 = channel_2.new_sender()
+
+        builder = FormulaBuilder("test_typing", output_type=Power)
+        builder.push_metric("channel_1", channel_1.new_receiver(), False)
+        builder.push_oper("+")
+        builder.push_metric("channel_2", channel_2.new_receiver(), False)
+        engine = builder.build()
+
+        results_rx = engine.new_receiver()
+
+        now = datetime.now()
+        await sender_1.send(Sample(now, Power(10.0)))
+        await sender_2.send(Sample(now, Power(150.0)))
+        result = await results_rx.receive()
+        assert result is not None and result.value is not None
+        assert result.value.as_watts() == 160.0

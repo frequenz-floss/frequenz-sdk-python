@@ -13,12 +13,11 @@ from typing import Any, Awaitable
 
 from frequenz.channels import Receiver, Sender
 
-from frequenz.sdk.actor.power_distributing.result import Result
-
 from ..._internal._asyncio import cancel_and_await
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...actor.power_distributing import Request
 from ...actor.power_distributing._battery_pool_status import BatteryStatus
+from ...actor.power_distributing.result import Result
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory
 from .._formula_engine import FormulaEngine, FormulaEnginePool
@@ -27,6 +26,7 @@ from .._formula_engine._formula_generators import (
     FormulaGeneratorConfig,
     FormulaType,
 )
+from .._quantities import Power
 from ._methods import MetricAggregator, SendOnUpdate
 from ._metric_calculator import CapacityCalculator, PowerBoundsCalculator, SoCCalculator
 from ._result_types import CapacityMetrics, PowerMetrics, SoCMetrics
@@ -238,7 +238,7 @@ class BatteryPool:
         return self._batteries
 
     @property
-    def power(self) -> FormulaEngine:
+    def power(self) -> FormulaEngine[Power]:
         """Fetch the total power of the batteries in the pool.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
@@ -265,7 +265,7 @@ class BatteryPool:
         return engine
 
     @property
-    def production_power(self) -> FormulaEngine:
+    def production_power(self) -> FormulaEngine[Power]:
         """Fetch the total production power of the batteries in the pool.
 
         This formula produces positive values when producing power and 0 otherwise.
@@ -292,7 +292,7 @@ class BatteryPool:
         return engine
 
     @property
-    def consumption_power(self) -> FormulaEngine:
+    def consumption_power(self) -> FormulaEngine[Power]:
         """Fetch the total consumption power of the batteries in the pool.
 
         This formula produces positive values when consuming power and 0 otherwise.

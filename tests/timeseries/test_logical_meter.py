@@ -45,7 +45,7 @@ class TestLogicalMeter:
             assert (
                 val is not None
                 and val.value is not None
-                and val.value.base_value != 0.0
+                and val.value.as_watts() != 0.0
             )
             main_meter_data.append(val.value)
 
@@ -78,8 +78,8 @@ class TestLogicalMeter:
             for meter_id in mockgrid.meter_ids
         ]
 
-        results = []
-        meter_sums = []
+        results: list[Quantity] = []
+        meter_sums: list[Quantity] = []
         for count in range(10):
             await mockgrid.mock_data.send_meter_power([20.0 + count, 12.0, -13.0, -5.0])
             meter_sum = 0.0
@@ -88,9 +88,9 @@ class TestLogicalMeter:
                 assert (
                     val is not None
                     and val.value is not None
-                    and val.value.base_value != 0.0
+                    and val.value.as_watts() != 0.0
                 )
-                meter_sum += val.value.base_value
+                meter_sum += val.value.as_watts()
 
             val = await grid_power_recv.receive()
             assert val is not None and val.value is not None

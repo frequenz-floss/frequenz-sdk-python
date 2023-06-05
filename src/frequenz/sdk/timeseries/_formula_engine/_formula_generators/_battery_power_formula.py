@@ -19,12 +19,12 @@ from ._formula_generator import (
 _logger = logging.getLogger(__name__)
 
 
-class BatteryPowerFormula(FormulaGenerator):
+class BatteryPowerFormula(FormulaGenerator[Power]):
     """Creates a formula engine from the component graph for calculating grid power."""
 
     def generate(
         self,
-    ) -> FormulaEngine:
+    ) -> FormulaEngine[Power]:
         """Make a formula for the cumulative AC battery power of a microgrid.
 
         The calculation is performed by adding the Active Powers of all the inverters

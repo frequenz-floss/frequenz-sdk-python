@@ -22,6 +22,7 @@ from .._formula_engine._formula_generators import (
     ProducerPowerFormula,
     PVPowerFormula,
 )
+from .._quantities import Current, Power, Quantity
 
 
 class LogicalMeter:
@@ -124,7 +125,7 @@ class LogicalMeter:
         formula: str,
         component_metric_id: ComponentMetricId,
         nones_are_zeros: bool = False,
-    ) -> FormulaEngine:
+    ) -> FormulaEngine[Quantity]:
         """Start execution of the given formula.
 
         Formulas can have Component IDs that are preceeded by a pound symbol("#"), and
@@ -148,7 +149,7 @@ class LogicalMeter:
         )
 
     @property
-    def grid_power(self) -> FormulaEngine:
+    def grid_power(self) -> FormulaEngine[Power]:
         """Fetch the grid power for the microgrid.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
@@ -170,7 +171,7 @@ class LogicalMeter:
         return engine
 
     @property
-    def grid_consumption_power(self) -> FormulaEngine:
+    def grid_consumption_power(self) -> FormulaEngine[Power]:
         """Fetch the grid consumption power for the microgrid.
 
         This formula produces positive values when consuming power and 0 otherwise.
@@ -193,7 +194,7 @@ class LogicalMeter:
         return engine
 
     @property
-    def grid_production_power(self) -> FormulaEngine:
+    def grid_production_power(self) -> FormulaEngine[Power]:
         """Fetch the grid production power for the microgrid.
 
         This formula produces positive values when producing power and 0 otherwise.
@@ -216,7 +217,7 @@ class LogicalMeter:
         return engine
 
     @property
-    def grid_current(self) -> FormulaEngine3Phase:
+    def grid_current(self) -> FormulaEngine3Phase[Current]:
         """Fetch the grid power for the microgrid.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
@@ -238,7 +239,7 @@ class LogicalMeter:
         return engine
 
     @property
-    def consumer_power(self) -> FormulaEngine:
+    def consumer_power(self) -> FormulaEngine[Power]:
         """Fetch the consumer power for the microgrid.
 
         Under normal circumstances this is expected to correspond to the gross
@@ -263,7 +264,7 @@ class LogicalMeter:
         return engine
 
     @property
-    def producer_power(self) -> FormulaEngine:
+    def producer_power(self) -> FormulaEngine[Power]:
         """Fetch the producer power for the microgrid.
 
         Under normal circumstances this is expected to correspond to the production
@@ -288,7 +289,7 @@ class LogicalMeter:
         return engine
 
     @property
-    def pv_power(self) -> FormulaEngine:
+    def pv_power(self) -> FormulaEngine[Power]:
         """Fetch the PV power in the microgrid.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
@@ -311,7 +312,7 @@ class LogicalMeter:
         return engine
 
     @property
-    def pv_production_power(self) -> FormulaEngine:
+    def pv_production_power(self) -> FormulaEngine[Power]:
         """Fetch the PV power production in the microgrid.
 
         This formula produces positive values when producing power and 0 otherwise.
@@ -334,7 +335,7 @@ class LogicalMeter:
         return engine
 
     @property
-    def pv_consumption_power(self) -> FormulaEngine:
+    def pv_consumption_power(self) -> FormulaEngine[Power]:
         """Fetch the PV power consumption in the microgrid.
 
         This formula produces positive values when consuming power and 0 otherwise.
@@ -357,7 +358,7 @@ class LogicalMeter:
         return engine
 
     @property
-    def chp_power(self) -> FormulaEngine:
+    def chp_power(self) -> FormulaEngine[Power]:
         """Fetch the CHP power production in the microgrid.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
@@ -380,7 +381,7 @@ class LogicalMeter:
         return engine
 
     @property
-    def chp_production_power(self) -> FormulaEngine:
+    def chp_production_power(self) -> FormulaEngine[Power]:
         """Fetch the CHP power production in the microgrid.
 
         This formula produces positive values when producing power and 0 otherwise.
@@ -405,7 +406,7 @@ class LogicalMeter:
         return engine
 
     @property
-    def chp_consumption_power(self) -> FormulaEngine:
+    def chp_consumption_power(self) -> FormulaEngine[Power]:
         """Fetch the CHP power consumption in the microgrid.
 
         This formula produces positive values when consuming power and 0 otherwise.

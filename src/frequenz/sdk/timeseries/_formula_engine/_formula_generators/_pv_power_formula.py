@@ -22,10 +22,10 @@ from ._formula_generator import (
 _logger = logging.getLogger(__name__)
 
 
-class PVPowerFormula(FormulaGenerator):
+class PVPowerFormula(FormulaGenerator[Power]):
     """Creates a formula engine for calculating the PV power production."""
 
-    def generate(self) -> FormulaEngine:
+    def generate(self) -> FormulaEngine[Power]:
         """Make a formula for the PV power production of a microgrid.
 
         Returns:

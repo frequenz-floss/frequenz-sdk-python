@@ -16,10 +16,10 @@ from ._formula_generator import NON_EXISTING_COMPONENT_ID, FormulaGenerator
 _logger = logging.getLogger(__name__)
 
 
-class EVChargerCurrentFormula(FormulaGenerator):
+class EVChargerCurrentFormula(FormulaGenerator[Current]):
     """Create a formula engine from the component graph for calculating grid current."""
 
-    def generate(self) -> FormulaEngine3Phase:
+    def generate(self) -> FormulaEngine3Phase[Current]:
         """Generate a formula for calculating total EV current for given component ids.
 
         Returns:
@@ -75,7 +75,7 @@ class EVChargerCurrentFormula(FormulaGenerator):
         self,
         component_ids: abc.Set[int],
         metric_id: ComponentMetricId,
-    ) -> FormulaEngine:
+    ) -> FormulaEngine[Current]:
         builder = self._get_builder("ev-current", metric_id, Current)
 
         # generate a formula that just adds values from all EV Chargers.

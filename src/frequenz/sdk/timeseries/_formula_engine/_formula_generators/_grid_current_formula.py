@@ -12,10 +12,10 @@ from .._formula_engine import FormulaEngine, FormulaEngine3Phase
 from ._formula_generator import ComponentNotFound, FormulaGenerator
 
 
-class GridCurrentFormula(FormulaGenerator):
+class GridCurrentFormula(FormulaGenerator[Current]):
     """Create a formula engine from the component graph for calculating grid current."""
 
-    def generate(self) -> FormulaEngine3Phase:
+    def generate(self) -> FormulaEngine3Phase[Current]:
         """Generate a formula for calculating grid current from the component graph.
 
         Returns:
@@ -61,7 +61,7 @@ class GridCurrentFormula(FormulaGenerator):
         self,
         grid_successors: Set[Component],
         metric_id: ComponentMetricId,
-    ) -> FormulaEngine:
+    ) -> FormulaEngine[Current]:
         builder = self._get_builder("grid-current", metric_id, Current)
 
         # generate a formula that just adds values from all components that are

@@ -6,19 +6,19 @@
 
 from __future__ import annotations
 
-from typing import Type
+from typing import Generic, Type
 
 from frequenz.channels import Receiver, Sender
 
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid.component import ComponentMetricId
 from .. import Sample
-from .._quantities import Quantity
+from .._quantities import QuantityT
 from ._formula_engine import FormulaBuilder, FormulaEngine
 from ._tokenizer import Tokenizer, TokenType
 
 
-class ResampledFormulaBuilder(FormulaBuilder):
+class ResampledFormulaBuilder(Generic[QuantityT], FormulaBuilder[QuantityT]):
     """Provides a way to build a FormulaEngine from resampled data streams."""
 
     def __init__(  # pylint: disable=too-many-arguments
@@ -28,7 +28,7 @@ class ResampledFormulaBuilder(FormulaBuilder):
         channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         metric_id: ComponentMetricId,
-        output_type: Type[Quantity],
+        output_type: Type[QuantityT],
     ) -> None:
         """Create a `ResampledFormulaBuilder` instance.
 
@@ -50,11 +50,11 @@ class ResampledFormulaBuilder(FormulaBuilder):
         self._namespace = namespace
         self._metric_id = metric_id
         self._resampler_requests: list[ComponentMetricRequest] = []
-        super().__init__(formula_name, output_type)
+        super().__init__(formula_name, output_type)  # type: ignore[arg-type]
 
     def _get_resampled_receiver(
         self, component_id: int, metric_id: ComponentMetricId
-    ) -> Receiver[Sample[Quantity]]:
+    ) -> Receiver[Sample[QuantityT]]:
         """Get a receiver with the resampled data for the given component id.
 
         Args:
@@ -90,7 +90,7 @@ class ResampledFormulaBuilder(FormulaBuilder):
         self,
         formula: str,
         nones_are_zeros: bool,
-    ) -> FormulaEngine:
+    ) -> FormulaEngine[QuantityT]:
         """Construct a `FormulaEngine` from the given formula string.
 
         Formulas can have Component IDs that are preceeded by a pound symbol("#"), and

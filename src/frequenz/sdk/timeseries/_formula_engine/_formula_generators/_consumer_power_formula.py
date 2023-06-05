@@ -15,14 +15,14 @@ from .._resampled_formula_builder import ResampledFormulaBuilder
 from ._formula_generator import ComponentNotFound, FormulaGenerator
 
 
-class ConsumerPowerFormula(FormulaGenerator):
+class ConsumerPowerFormula(FormulaGenerator[Power]):
     """Formula generator from component graph for calculating the Consumer Power.
 
     The consumer power is calculated by summing up the power of all components that
     are not part of a battery, CHP, PV or EV charger chain.
     """
 
-    def generate(self) -> FormulaEngine:
+    def generate(self) -> FormulaEngine[Power]:
         """Generate formula for calculating consumer power from the component graph.
 
         Returns:
@@ -65,9 +65,9 @@ class ConsumerPowerFormula(FormulaGenerator):
 
     def _gen_with_grid_meter(
         self,
-        builder: ResampledFormulaBuilder,
+        builder: ResampledFormulaBuilder[Power],
         grid_meter: Component,
-    ) -> FormulaEngine:
+    ) -> FormulaEngine[Power]:
         """Generate formula for calculating consumer power with grid meter.
 
         Args:
@@ -103,9 +103,9 @@ class ConsumerPowerFormula(FormulaGenerator):
 
     def _gen_without_grid_meter(
         self,
-        builder: ResampledFormulaBuilder,
+        builder: ResampledFormulaBuilder[Power],
         grid_successors: abc.Iterable[Component],
-    ) -> FormulaEngine:
+    ) -> FormulaEngine[Power]:
         """Generate formula for calculating consumer power without a grid meter.
 
         Args:

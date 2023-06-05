@@ -16,14 +16,14 @@ from ._formula_generator import (
 )
 
 
-class ProducerPowerFormula(FormulaGenerator):
+class ProducerPowerFormula(FormulaGenerator[Power]):
     """Formula generator from component graph for calculating the Producer Power.
 
     The producer power is calculated by summing up the power of all power producers,
     which are CHP and PV.
     """
 
-    def generate(self) -> FormulaEngine:
+    def generate(self) -> FormulaEngine[Power]:
         """Generate formula for calculating producer power from the component graph.
 
         Returns:

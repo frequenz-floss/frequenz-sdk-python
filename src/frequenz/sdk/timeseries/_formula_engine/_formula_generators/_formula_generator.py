@@ -10,13 +10,13 @@ from abc import ABC, abstractmethod
 from collections import abc
 from dataclasses import dataclass
 from enum import Enum
-from typing import Type
+from typing import Generic, Type
 
 from frequenz.channels import Sender
 
 from ....actor import ChannelRegistry, ComponentMetricRequest
 from ....microgrid.component import ComponentMetricId
-from ..._quantities import Quantity
+from ..._quantities import QuantityT
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase
 from .._resampled_formula_builder import ResampledFormulaBuilder
 
@@ -59,7 +59,7 @@ class FormulaGeneratorConfig:
     formula_type: FormulaType = FormulaType.PASSIVE_SIGN_CONVENTION
 
 
-class FormulaGenerator(ABC):
+class FormulaGenerator(ABC, Generic[QuantityT]):
     """A class for generating formulas from the component graph."""
 
     def __init__(
@@ -88,8 +88,8 @@ class FormulaGenerator(ABC):
         self,
         name: str,
         component_metric_id: ComponentMetricId,
-        output_type: Type[Quantity],
-    ) -> ResampledFormulaBuilder:
+        output_type: Type[QuantityT],
+    ) -> ResampledFormulaBuilder[QuantityT]:
         builder = ResampledFormulaBuilder(
             self._namespace,
             name,
@@ -101,5 +101,7 @@ class FormulaGenerator(ABC):
         return builder
 
     @abstractmethod
-    def generate(self) -> FormulaEngine | FormulaEngine3Phase:
+    def generate(
+        self,
+    ) -> FormulaEngine[QuantityT] | FormulaEngine3Phase[QuantityT]:
         """Generate a formula engine, based on the component graph."""

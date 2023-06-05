@@ -10,12 +10,12 @@ from .._formula_engine import FormulaEngine
 from ._formula_generator import ComponentNotFound, FormulaGenerator, FormulaType
 
 
-class GridPowerFormula(FormulaGenerator):
+class GridPowerFormula(FormulaGenerator[Power]):
     """Creates a formula engine from the component graph for calculating grid power."""
 
     def generate(
         self,
-    ) -> FormulaEngine:
+    ) -> FormulaEngine[Power]:
         """Generate a formula for calculating grid power from the component graph.
 
         Returns:

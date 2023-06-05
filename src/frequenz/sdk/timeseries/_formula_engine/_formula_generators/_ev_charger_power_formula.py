@@ -13,10 +13,10 @@ from ._formula_generator import NON_EXISTING_COMPONENT_ID, FormulaGenerator, For
 _logger = logging.getLogger(__name__)
 
 
-class EVChargerPowerFormula(FormulaGenerator):
+class EVChargerPowerFormula(FormulaGenerator[Power]):
     """Create a formula engine from the component graph for calculating grid power."""
 
-    def generate(self) -> FormulaEngine:
+    def generate(self) -> FormulaEngine[Power]:
         """Generate a formula for calculating total EV power for given component ids.
 
         Returns:

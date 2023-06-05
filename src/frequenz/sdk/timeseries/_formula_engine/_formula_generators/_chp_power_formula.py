@@ -22,10 +22,10 @@ from ._formula_generator import (
 _logger = logging.getLogger(__name__)
 
 
-class CHPPowerFormula(FormulaGenerator):
+class CHPPowerFormula(FormulaGenerator[Power]):
     """Formula generator for CHP Power."""
 
-    def generate(self) -> FormulaEngine:
+    def generate(self) -> FormulaEngine[Power]:
         """Make a formula for the cumulative CHP power of a microgrid.
 
         The calculation is performed by adding the active power measurements from

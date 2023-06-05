@@ -27,7 +27,7 @@ from .._formula_engine._formula_generators import (
     FormulaGeneratorConfig,
     FormulaType,
 )
-from .._quantities import Quantity
+from .._quantities import Current, Power, Quantity
 from ._set_current_bounds import BoundsSetter, ComponentCurrentLimit
 from ._state_tracker import EVChargerState, StateTracker
 
@@ -43,7 +43,7 @@ class EVChargerData:
     """Data for an EV Charger, including the 3-phase current and the component state."""
 
     component_id: int
-    current: Sample3Phase[Quantity]
+    current: Sample3Phase[Current]
     state: EVChargerState
 
 
@@ -108,7 +108,7 @@ class EVChargerPool:
         return self._component_ids
 
     @property
-    def current(self) -> FormulaEngine3Phase:
+    def current(self) -> FormulaEngine3Phase[Current]:
         """Fetch the total current for the EV Chargers in the pool.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
@@ -132,7 +132,7 @@ class EVChargerPool:
         return engine
 
     @property
-    def power(self) -> FormulaEngine:
+    def power(self) -> FormulaEngine[Power]:
         """Fetch the total power for the EV Chargers in the pool.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
@@ -159,7 +159,7 @@ class EVChargerPool:
         return engine
 
     @property
-    def production_power(self) -> FormulaEngine:
+    def production_power(self) -> FormulaEngine[Power]:
         """Fetch the total power produced by the EV Chargers in the pool.
 
         This formula produces positive values when producing power and 0 otherwise.
@@ -186,7 +186,7 @@ class EVChargerPool:
         return engine
 
     @property
-    def consumption_power(self) -> FormulaEngine:
+    def consumption_power(self) -> FormulaEngine[Power]:
         """Fetch the total power consumed by the EV Chargers in the pool.
 
         This formula produces positive values when consuming power and 0 otherwise.
@@ -347,9 +347,15 @@ class EVChargerPool:
 
             sample = Sample3Phase(
                 timestamp=phase_1.timestamp,
-                value_p1=phase_1.value,
-                value_p2=phase_2.value,
-                value_p3=phase_3.value,
+                value_p1=None
+                if phase_1.value is None
+                else Current(phase_1.value.base_value),
+                value_p2=None
+                if phase_2.value is None
+                else Current(phase_2.value.base_value),
+                value_p3=None
+                if phase_3.value is None
+                else Current(phase_3.value.base_value),
             )
 
             if (

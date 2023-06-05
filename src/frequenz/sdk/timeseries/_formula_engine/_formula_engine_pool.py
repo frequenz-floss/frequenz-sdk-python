@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Type
+from typing import TYPE_CHECKING, Any, Type
 
 from frequenz.channels import Sender
 
@@ -47,14 +47,14 @@ class FormulaEnginePool:
         self._namespace = namespace
         self._channel_registry = channel_registry
         self._resampler_subscription_sender = resampler_subscription_sender
-        self._engines: dict[str, "FormulaEngine|FormulaEngine3Phase"] = {}
+        self._engines: dict[str, "FormulaEngine[Any]|FormulaEngine3Phase[Any]"] = {}
 
     def from_string(
         self,
         formula: str,
         component_metric_id: ComponentMetricId,
         nones_are_zeros: bool = False,
-    ) -> FormulaEngine:
+    ) -> FormulaEngine[Quantity]:
         """Get a receiver for a manual formula.
 
         Args:
@@ -87,9 +87,9 @@ class FormulaEnginePool:
     def from_generator(
         self,
         channel_key: str,
-        generator: "Type[FormulaGenerator]",
+        generator: "Type[FormulaGenerator[Any]]",
         config: FormulaGeneratorConfig = FormulaGeneratorConfig(),
-    ) -> FormulaEngine | FormulaEngine3Phase:
+    ) -> FormulaEngine[Any] | FormulaEngine3Phase[Any]:
         """Get a receiver for a formula from a generator.
 
         Args:
