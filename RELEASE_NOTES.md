@@ -18,15 +18,16 @@ This release main introduces the new `PeriodicFeatureExtractor`, the control int
 
 * Formulas now follow the new naming scheme.
 
-  - `BatteryPool.{production_power, consumption_power}`
-  - `EVChargerPool.{production_power, consumption_power}`
+  - `BatteryPool.{power, production_power, consumption_power}`
+  - `EVChargerPool.{power, production_power, consumption_power}`
   - `LogicalMeter`:
     - `consumer_power`
+    - `grid_power`
     - `grid_production_power`
     - `grid_consumption_power`
     - `chp_power`
     - `chp_production_power`
-  - `chp_consumption_power`
+    - `chp_consumption_power`
 
 * A power request can now be forced by setting the `include_broken` attribute. This is especially helpful as a safety measure when components appear to be failing, such as when battery metrics are unavailable. Note that applications previously relying on automatic fallback to all batteries when none of them was working will now require the `include_broken` attribute to be explicitly set in the request.
 
@@ -54,4 +55,4 @@ This release main introduces the new `PeriodicFeatureExtractor`, the control int
 
 ## Bug Fixes
 
-* Fixed many exapmles in the documentation.
+* Fixed many examples in the documentation.
