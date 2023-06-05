@@ -50,6 +50,8 @@ This release main introduces the new `PeriodicFeatureExtractor`, the control int
 
   As an example one can create a daily profile of specific weekdays which will be returned as numpy arrays.
 
+* The `BatteryPool` can now be used to control the batteries in it via the new methods `charge()`, `discharge()`, and `set_power()`.
+
 ## Bug Fixes
 
 * Fixed many exapmles in the documentation.
