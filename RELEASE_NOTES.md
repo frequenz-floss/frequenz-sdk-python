@@ -38,6 +38,8 @@ This release drops support for Python versions older than 3.11.
 
 * A power request can now be forced by setting the `include_broken` attribute. This is especially helpful as a safety measure when components appear to be failing, such as when battery metrics are unavailable. Note that applications previously relying on automatic fallback to all batteries when none of them was working will now require the `include_broken` attribute to be explicitly set in the request.
 
+* The dependency to `sympy` was unused and thus removed from the SDK.  If you used it indirectly without declaring the dependency in your project you should do it now.
+
 ## New Features
 
 * The `MovingWindow` as well as the OrderedRingBuffer are having new public methods that are returning the oldest and newest timestamp of all stored samples.
