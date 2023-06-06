@@ -4,6 +4,8 @@ on:
   merge_group:
   pull_request:
   push:
+    tags:
+      - '*'
     branches-ignore:
       # Ignore pushes to merge queues.
       # We only want to test the merge commit (`merge_group` event), the hashes
@@ -193,7 +195,7 @@ jobs:
   create-github-release:
     needs: ["publish-docs"]
     # Create a release only on tags creation
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     permissions:
       # We need write permissions on contents to create GitHub releases and on
       # discussions to create the release announcement in the discussion forums
