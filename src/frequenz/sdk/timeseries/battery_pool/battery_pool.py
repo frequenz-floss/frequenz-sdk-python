@@ -374,6 +374,9 @@ class BatteryPool:
     def power_bounds(self) -> MetricAggregator[PowerMetrics]:
         """Get receiver to receive new power bounds when they change.
 
+        Power bounds refer to the min and max power that a battery can
+        discharge or charge at and is also denoted as SoP.
+
         Power bounds formulas are described in the receiver return type.
         None will be send if there is no component to calculate metrics.
 
