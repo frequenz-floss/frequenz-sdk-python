@@ -7,7 +7,9 @@ from __future__ import annotations
 
 import math
 from datetime import timedelta
-from typing import Self, overload
+from typing import Self, TypeVar, overload
+
+QuantityT = TypeVar("QuantityT", "Quantity", "Power", "Current", "Voltage", "Energy")
 
 
 class Quantity:
