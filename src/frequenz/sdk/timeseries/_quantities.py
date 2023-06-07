@@ -268,3 +268,87 @@ class Quantity:
         # doesn't help mypy identify the type of other,  so the below line is necessary.
         assert isinstance(other, self.__class__)
         return self._base_value == other._base_value
+
+
+class Power(
+    Quantity,
+    exponent_unit_map={
+        -3: "mW",
+        0: "W",
+        3: "kW",
+        6: "MW",
+    },
+):
+    """A power quantity."""
+
+    @classmethod
+    def from_watts(cls, watts: float) -> Self:
+        """Initialize a new power quantity.
+
+        Args:
+            watts: The power in watts.
+
+        Returns:
+            A new power quantity.
+        """
+        return cls(value=watts, exponent=0)
+
+    @classmethod
+    def from_milliwatts(cls, milliwatts: float) -> Self:
+        """Initialize a new power quantity.
+
+        Args:
+            milliwatts: The power in milliwatts.
+
+        Returns:
+            A new power quantity.
+        """
+        return cls(value=milliwatts, exponent=-3)
+
+    @classmethod
+    def from_kilowatts(cls, kilowatts: float) -> Self:
+        """Initialize a new power quantity.
+
+        Args:
+            kilowatts: The power in kilowatts.
+
+        Returns:
+            A new power quantity.
+        """
+        return cls(value=kilowatts, exponent=3)
+
+    @classmethod
+    def from_megawatts(cls, megawatts: float) -> Self:
+        """Initialize a new power quantity.
+
+        Args:
+            megawatts: The power in megawatts.
+
+        Returns:
+            A new power quantity.
+        """
+        return cls(value=megawatts, exponent=6)
+
+    def as_watts(self) -> float:
+        """Return the power in watts.
+
+        Returns:
+            The power in watts.
+        """
+        return self._base_value
+
+    def as_kilowatts(self) -> float:
+        """Return the power in kilowatts.
+
+        Returns:
+            The power in kilowatts.
+        """
+        return self._base_value / 1e3
+
+    def as_megawatts(self) -> float:
+        """Return the power in megawatts.
+
+        Returns:
+            The power in megawatts.
+        """
+        return self._base_value / 1e6

@@ -5,7 +5,7 @@
 
 import pytest
 
-from frequenz.sdk.timeseries._quantities import Quantity
+from frequenz.sdk.timeseries._quantities import Power, Quantity
 
 
 class Fz1(
@@ -146,3 +146,18 @@ def test_comparison() -> None:
         excinfo.value.args[0]
         == "'>=' not supported between instances of 'Fz1' and 'Fz2'"
     )
+
+
+def test_power() -> None:
+    """Test the power class."""
+    power = Power.from_milliwatts(0.0000002)
+    assert f"{power:.9}" == "0.0000002 mW"
+    power = Power.from_kilowatts(10000000.2)
+    assert f"{power}" == "10000 MW"
+
+    power = Power.from_kilowatts(1.2)
+    assert power.as_watts() == 1200.0
+    assert power.as_megawatts() == 0.0012
+    assert power == Power.from_milliwatts(1200000.0)
+    assert power == Power.from_megawatts(0.0012)
+    assert power != Power.from_watts(1000.0)
