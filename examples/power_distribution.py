@@ -62,13 +62,13 @@ class DecisionMakingActor:
 
             avg_power = sum(request) / len(request)
             _logger.debug("Avg power %d", avg_power)
-            power_to_set: float
+            power_to_set: Power
             if avg_power > 30000:
                 # Charge
-                power_to_set = 10000.0
+                power_to_set = Power(10000.0)
             else:
                 # Discharge
-                power_to_set = -10000.0
+                power_to_set = Power(-10000.0)
 
             await battery_pool.set_power(power_to_set)
             try:

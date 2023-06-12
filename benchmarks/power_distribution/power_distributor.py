@@ -26,6 +26,7 @@ from frequenz.sdk.actor.power_distributing import (
 )
 from frequenz.sdk.microgrid import connection_manager
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
+from frequenz.sdk.timeseries._quantities import Power
 
 HOST = "microgrid.sandbox.api.frequenz.io"
 PORT = 61060
@@ -49,7 +50,7 @@ async def send_requests(batteries: Set[int], request_num: int) -> List[Result]:
     results_rx = battery_pool.power_distribution_results()
     result: List[Result] = []
     for _ in range(request_num):
-        await battery_pool.set_power(float(random.randrange(100000, 1000000)))
+        await battery_pool.set_power(Power(float(random.randrange(100000, 1000000))))
         try:
             output = await asyncio.wait_for(results_rx.receive(), timeout=3)
             if output is None:

@@ -105,7 +105,7 @@ class BatteryPool:
 
     async def set_power(
         self,
-        power: float,
+        power: Power,
         *,
         adjust_power: bool = True,
         request_timeout: timedelta = timedelta(seconds=5.0),
@@ -134,7 +134,7 @@ class BatteryPool:
         await self._power_distributing_sender.send(
             Request(
                 namespace=self._power_distributing_namespace,
-                power=power,
+                power=power.as_watts(),
                 batteries=self._batteries,
                 adjust_power=adjust_power,
                 request_timeout_sec=request_timeout.total_seconds(),
@@ -144,7 +144,7 @@ class BatteryPool:
 
     async def charge(
         self,
-        power: float,
+        power: Power,
         *,
         adjust_power: bool = True,
         request_timeout: timedelta = timedelta(seconds=5.0),
@@ -172,18 +172,23 @@ class BatteryPool:
         Raises:
             ValueError: If the given power is negative.
         """
-        if power < 0.0:
+        as_watts = power.as_watts()
+        if as_watts < 0.0:
             raise ValueError("Charge power must be positive.")
-        await self.set_power(
-            power,
-            adjust_power=adjust_power,
-            request_timeout=request_timeout,
-            include_broken_batteries=include_broken_batteries,
+        await self._power_distributing_sender.send(
+            Request(
+                namespace=self._power_distributing_namespace,
+                power=as_watts,
+                batteries=self._batteries,
+                adjust_power=adjust_power,
+                request_timeout_sec=request_timeout.total_seconds(),
+                include_broken_batteries=include_broken_batteries,
+            )
         )
 
     async def discharge(
         self,
-        power: float,
+        power: Power,
         *,
         adjust_power: bool = True,
         request_timeout: timedelta = timedelta(seconds=5.0),
@@ -211,13 +216,18 @@ class BatteryPool:
         Raises:
             ValueError: If the given power is negative.
         """
-        if power < 0.0:
+        as_watts = power.as_watts()
+        if as_watts < 0.0:
             raise ValueError("Discharge power must be positive.")
-        await self.set_power(
-            -power,
-            adjust_power=adjust_power,
-            request_timeout=request_timeout,
-            include_broken_batteries=include_broken_batteries,
+        await self._power_distributing_sender.send(
+            Request(
+                namespace=self._power_distributing_namespace,
+                power=-as_watts,
+                batteries=self._batteries,
+                adjust_power=adjust_power,
+                request_timeout_sec=request_timeout.total_seconds(),
+                include_broken_batteries=include_broken_batteries,
+            )
         )
 
     def power_distribution_results(self) -> Receiver[Result]:
