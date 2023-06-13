@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from typing import List
 
 import numpy as np
+import pytest
 from frequenz.channels import Broadcast
 
 from frequenz.sdk.timeseries import (
@@ -102,7 +103,7 @@ async def test_interval_shifting() -> None:
     assert index_shifted == 1
 
 
-async def test_feature_extractor() -> None:
+async def test_feature_extractor() -> None:  # pylint: disable=too-many-statements
     """Test the feature extractor with a moving window that contains data."""
     start = UNIX_EPOCH + timedelta(seconds=1)
     end = start + timedelta(seconds=2)
@@ -119,6 +120,113 @@ async def test_feature_extractor() -> None:
 
     feature_extractor = await init_feature_extractor(data, timedelta(seconds=5))
     assert np.allclose(feature_extractor.avg(start, end), [1.5, 1.5])
+
+    async def _test_fun(  # pylint: disable=too-many-arguments
+        data: List[float],
+        period: int,
+        start: int,
+        end: int,
+        expected: List[float],
+        weights: List[float] | None = None,
+    ) -> None:
+        feature_extractor = await init_feature_extractor(
+            data, timedelta(seconds=period)
+        )
+        ret = feature_extractor.avg(
+            UNIX_EPOCH + timedelta(seconds=start),
+            UNIX_EPOCH + timedelta(seconds=end),
+            weights=weights,
+        )
+        assert np.allclose(ret, expected)
+
+    async def test_09(
+        period: int,
+        start: int,
+        end: int,
+        expected: List[float],
+        weights: List[float] | None = None,
+    ) -> None:
+        data: List[float] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        await _test_fun(data, period, start, end, expected, weights)
+
+    async def test_011(
+        period: int,
+        start: int,
+        end: int,
+        expected: List[float],
+        weights: List[float] | None = None,
+    ) -> None:
+        data: List[float] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        await _test_fun(data, period, start, end, expected, weights)
+
+    # empty time period
+    with pytest.raises(ValueError):
+        await test_09(period=5, start=1, end=1, expected=[4711])
+
+    # moving window not multiple of period
+    with pytest.raises(ValueError):
+        await test_09(period=3, start=1, end=1, expected=[4711])
+
+    # time period in moving window
+    await test_09(period=2, start=0, end=1, expected=[5])
+    await test_09(period=2, start=0, end=2, expected=[5, 6])
+    await test_09(period=2, start=5, end=7, expected=[4, 5])
+    await test_09(period=2, start=8, end=10, expected=[5, 6])
+    await test_09(period=5, start=0, end=1, expected=[5])
+    await test_09(period=5, start=5, end=6, expected=[5])
+
+    # time period outside of moving window in future
+    await test_09(period=5, start=10, end=11, expected=[5])
+    # time period outside of moving window in past
+    await test_09(period=5, start=-5, end=-4, expected=[5])
+
+    await test_09(period=5, start=0, end=2, expected=[5, 6])
+    await test_09(period=5, start=0, end=3, expected=[5, 6, 7])
+    await test_09(period=5, start=0, end=4, expected=[5, 6, 7, 8])
+    await test_09(period=5, start=1, end=5, expected=[6, 7, 8, 9])
+
+    # No full time period in moving window, expect to throw
+    await test_09(period=5, start=0, end=5, expected=[5, 6, 7, 8, 9])
+    with pytest.raises(Exception):
+        await test_09(period=5, start=0, end=6, expected=[5])
+    with pytest.raises(Exception):
+        await test_09(period=5, start=0, end=7, expected=[5, 6])
+    with pytest.raises(Exception):
+        await test_09(period=5, start=0, end=8, expected=[5, 6, 7])
+    with pytest.raises(Exception):
+        await test_09(period=5, start=0, end=9, expected=[5, 6, 7, 8])
+    with pytest.raises(Exception):
+        await test_09(period=5, start=0, end=10, expected=[4711])
+    with pytest.raises(Exception):
+        await test_09(period=5, start=0, end=11, expected=[5])
+    with pytest.raises(Exception):
+        await test_09(period=5, start=0, end=12, expected=[5, 6])
+
+    # time period outside window but more matches
+    await test_09(
+        period=5, start=8, end=11, expected=[3, 4, 5]
+    )  # First occurence [-2, -1, 0] partly inside window
+
+    # time period larger than period
+    with pytest.raises(Exception):
+        await test_09(period=2, start=8, end=11, expected=[5])
+    with pytest.raises(Exception):
+        await test_09(period=2, start=0, end=3, expected=[5])
+
+    # Weights
+    await test_011(period=4, start=0, end=2, expected=[6, 7])
+    await test_011(period=4, start=0, end=2, expected=[6, 7], weights=None)
+    await test_011(period=4, start=0, end=2, expected=[6, 7], weights=[1, 1])
+    await test_011(
+        period=4, start=0, end=2, expected=[4, 5], weights=[1, 0]
+    )  # oldest weight first
+    await test_011(period=4, start=0, end=2, expected=[6, 7], weights=[1, 1])
+    with pytest.raises(ValueError):
+        await test_011(
+            period=4, start=0, end=2, expected=[4711, 4711], weights=[1, 1, 1]
+        )
+    with pytest.raises(ValueError):
+        await test_011(period=4, start=0, end=2, expected=[4711, 4711], weights=[1])
 
 
 async def test_profiler_calculate_np() -> None:
