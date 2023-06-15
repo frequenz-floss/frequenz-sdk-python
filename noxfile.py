@@ -162,7 +162,7 @@ def formatting(session: nox.Session, install_deps: bool = True) -> None:
 
     paths = _source_file_paths(session)
     session.run("black", "--check", *paths)
-    session.run("isort", "--check", *paths)
+    session.run("isort", "--diff", "--check", *paths)
 
 
 @nox.session
