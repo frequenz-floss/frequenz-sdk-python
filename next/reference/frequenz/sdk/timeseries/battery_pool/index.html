@@ -1645,7 +1645,10 @@ fetching high level metrics for this subset.</p>
 <span class="normal">424</span>
 <span class="normal">425</span>
 <span class="normal">426</span>
-<span class="normal">427</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">BatteryPool</span><span class="p">:</span>
+<span class="normal">427</span>
+<span class="normal">428</span>
+<span class="normal">429</span>
+<span class="normal">430</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">BatteryPool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate high level metrics for a pool of the batteries.</span>
 
 <span class="sd">    BatterPool accepts subset of the battery ids and provides methods methods for</span>
@@ -1987,6 +1990,9 @@ fetching high level metrics for this subset.</p>
     <span class="k">def</span> <span class="nf">power_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricAggregator</span><span class="p">[</span><span class="n">PowerMetrics</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get receiver to receive new power bounds when they change.</span>
 
+<span class="sd">        Power bounds refer to the min and max power that a battery can</span>
+<span class="sd">        discharge or charge at and is also denoted as SoP.</span>
+
 <span class="sd">        Power bounds formulas are described in the receiver return type.</span>
 <span class="sd">        None will be send if there is no component to calculate metrics.</span>
 
@@ -2261,6 +2267,8 @@ batteries in the pool.</p>
   <div class="doc doc-contents ">
   
       <p>Get receiver to receive new power bounds when they change.</p>
+<p>Power bounds refer to the min and max power that a battery can
+discharge or charge at and is also denoted as SoP.</p>
 <p>Power bounds formulas are described in the receiver return type.
 None will be send if there is no component to calculate metrics.</p>
 <p>A receiver from the MetricAggregator can be obtained by calling the
@@ -3350,15 +3358,15 @@ still reject the request.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">399</span>
-<span class="normal">400</span>
-<span class="normal">401</span>
-<span class="normal">402</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">402</span>
 <span class="normal">403</span>
 <span class="normal">404</span>
 <span class="normal">405</span>
 <span class="normal">406</span>
-<span class="normal">407</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">407</span>
+<span class="normal">408</span>
+<span class="normal">409</span>
+<span class="normal">410</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Stop all pending async tasks.&quot;&quot;&quot;</span>
     <span class="n">tasks_to_stop</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">method</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span> <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_methods</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
