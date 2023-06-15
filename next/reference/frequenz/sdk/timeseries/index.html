@@ -1387,15 +1387,15 @@ set to None in which case the MovingWindow will not perform any resampling.</p>
     <span class="n">send_task</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">send_mock_data</span><span class="p">(</span><span class="n">resampled_data_sender</span><span class="p">))</span>
 
     <span class="n">window</span> <span class="o">=</span> <span class="n">MovingWindow</span><span class="p">(</span>
-        <span class="n">size</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
+        <span class="n">size</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
         <span class="n">resampled_data_recv</span><span class="o">=</span><span class="n">resampled_data_receiver</span><span class="p">,</span>
         <span class="n">input_sampling_period</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
     <span class="p">)</span>
 
     <span class="n">time_start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
-    <span class="n">time_end</span> <span class="o">=</span> <span class="n">time_start</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">time_end</span> <span class="o">=</span> <span class="n">time_start</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 
-    <span class="c1"># ... wait for 5 minutes until the buffer is filled</span>
+    <span class="c1"># ... wait for 5 seconds until the buffer is filled</span>
     <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 
     <span class="c1"># return an numpy array from the window</span>
@@ -1444,7 +1444,7 @@ set to None in which case the MovingWindow will not perform any resampling.</p>
 </details>
 
         <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_moving_window.py</code></summary>
+          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_moving_window.py</code></summary>
           <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 27</span>
 <span class="normal"> 28</span>
 <span class="normal"> 29</span>
@@ -1800,15 +1800,15 @@ set to None in which case the MovingWindow will not perform any resampling.</p>
 <span class="sd">            send_task = asyncio.create_task(send_mock_data(resampled_data_sender))</span>
 
 <span class="sd">            window = MovingWindow(</span>
-<span class="sd">                size=timedelta(minutes=5),</span>
+<span class="sd">                size=timedelta(seconds=5),</span>
 <span class="sd">                resampled_data_recv=resampled_data_receiver,</span>
 <span class="sd">                input_sampling_period=timedelta(seconds=1),</span>
 <span class="sd">            )</span>
 
 <span class="sd">            time_start = datetime.now(tz=timezone.utc)</span>
-<span class="sd">            time_end = time_start + timedelta(minutes=5)</span>
+<span class="sd">            time_end = time_start + timedelta(seconds=5)</span>
 
-<span class="sd">            # ... wait for 5 minutes until the buffer is filled</span>
+<span class="sd">            # ... wait for 5 seconds until the buffer is filled</span>
 <span class="sd">            await asyncio.sleep(5)</span>
 
 <span class="sd">            # return an numpy array from the window</span>
@@ -2240,7 +2240,7 @@ or by a slice of timestamps or integers.</p>
   </table>
 
       <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_moving_window.py</code></summary>
+        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_moving_window.py</code></summary>
         <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">281</span>
 <span class="normal">282</span>
 <span class="normal">283</span>
@@ -2487,7 +2487,7 @@ information, consult the class level documentation.</p>
   </table>
 
       <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_moving_window.py</code></summary>
+        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_moving_window.py</code></summary>
         <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">132</span>
 <span class="normal">133</span>
 <span class="normal">134</span>
@@ -2665,7 +2665,7 @@ information, consult the class level documentation.</p>
   </table>
 
       <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_moving_window.py</code></summary>
+        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_moving_window.py</code></summary>
         <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">251</span>
 <span class="normal">252</span>
 <span class="normal">253</span>
@@ -2706,7 +2706,7 @@ information, consult the class level documentation.</p>
       <p>Cancel the running tasks and stop the MovingWindow.</p>
 
       <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_moving_window.py</code></summary>
+        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_moving_window.py</code></summary>
         <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">230</span>
 <span class="normal">231</span>
 <span class="normal">232</span>
@@ -2797,7 +2797,7 @@ calculation, e.g. an average, over all values of $S_i$ at position $i$.</p>
 </details>
 
         <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_periodic_feature_extractor.py</code></summary>
+          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_periodic_feature_extractor.py</code></summary>
           <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 53</span>
 <span class="normal"> 54</span>
 <span class="normal"> 55</span>
@@ -3623,7 +3623,7 @@ calculation, e.g. an average, over all values of $S_i$ at position $i$.</p>
   </table>
 
       <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_periodic_feature_extractor.py</code></summary>
+        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_periodic_feature_extractor.py</code></summary>
         <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">109</span>
 <span class="normal">110</span>
 <span class="normal">111</span>
@@ -3807,7 +3807,7 @@ windows fully inside the MovingWindow having the period
   </table>
 
       <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_periodic_feature_extractor.py</code></summary>
+        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_periodic_feature_extractor.py</code></summary>
         <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">398</span>
 <span class="normal">399</span>
 <span class="normal">400</span>
@@ -3887,7 +3887,7 @@ windows fully inside the MovingWindow having the period
 
 
         <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_resampling.py</code></summary>
+          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_resampling.py</code></summary>
           <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">122</span>
 <span class="normal">123</span>
 <span class="normal">124</span>
@@ -4385,7 +4385,7 @@ logs, so buffers don't grow too big inadvertently.</p>
   </table>
 
       <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_resampling.py</code></summary>
+        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_resampling.py</code></summary>
         <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">205</span>
 <span class="normal">206</span>
 <span class="normal">207</span>
@@ -4512,7 +4512,7 @@ coherent view on a group of component metrics for a particular timestamp.</p>
 
 
         <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_base_types.py</code></summary>
+          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_base_types.py</code></summary>
           <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">15</span>
 <span class="normal">16</span>
 <span class="normal">17</span>
@@ -4632,7 +4632,7 @@ timestamp.</p>
 
 
         <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_base_types.py</code></summary>
+          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_base_types.py</code></summary>
           <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 31</span>
 <span class="normal"> 32</span>
 <span class="normal"> 33</span>
@@ -4973,7 +4973,7 @@ timestamp.</p>
   </table>
 
       <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_base_types.py</code></summary>
+        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_base_types.py</code></summary>
         <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">52</span>
 <span class="normal">53</span>
 <span class="normal">54</span>
@@ -5080,7 +5080,7 @@ phases.</p>
   </table>
 
       <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_base_types.py</code></summary>
+        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_base_types.py</code></summary>
         <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">112</span>
 <span class="normal">113</span>
 <span class="normal">114</span>
@@ -5195,7 +5195,7 @@ phases.</p>
   </table>
 
       <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_base_types.py</code></summary>
+        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_base_types.py</code></summary>
         <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">70</span>
 <span class="normal">71</span>
 <span class="normal">72</span>
@@ -5300,7 +5300,7 @@ phases.</p>
   </table>
 
       <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.3/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_base_types.py</code></summary>
+        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_base_types.py</code></summary>
         <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 95</span>
 <span class="normal"> 96</span>
 <span class="normal"> 97</span>
