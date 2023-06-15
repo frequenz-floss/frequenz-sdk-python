@@ -19,6 +19,7 @@ from .._formula_engine._formula_generators import (
     FormulaType,
     GridCurrentFormula,
     GridPowerFormula,
+    ProducerPowerFormula,
     PVPowerFormula,
 )
 
@@ -257,6 +258,31 @@ class LogicalMeter:
         engine = self._formula_pool.from_generator(
             "consumer_power",
             ConsumerPowerFormula,
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def producer_power(self) -> FormulaEngine:
+        """Fetch the producer power for the microgrid.
+
+        Under normal circumstances this is expected to correspond to the production
+        of the sites active parts excluding ev chargers and batteries.
+
+        This formula produces values that are in the Passive Sign Convention (PSC).
+
+        If a formula engine to calculate producer power is not already running, it will
+        be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream producer power.
+        """
+        engine = self._formula_pool.from_generator(
+            "producer_power",
+            ProducerPowerFormula,
         )
         assert isinstance(engine, FormulaEngine)
         return engine
