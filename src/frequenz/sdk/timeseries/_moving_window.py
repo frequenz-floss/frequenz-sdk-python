@@ -72,15 +72,15 @@ class MovingWindow:
             send_task = asyncio.create_task(send_mock_data(resampled_data_sender))
 
             window = MovingWindow(
-                size=timedelta(minutes=5),
+                size=timedelta(seconds=5),
                 resampled_data_recv=resampled_data_receiver,
                 input_sampling_period=timedelta(seconds=1),
             )
 
             time_start = datetime.now(tz=timezone.utc)
-            time_end = time_start + timedelta(minutes=5)
+            time_end = time_start + timedelta(seconds=5)
 
-            # ... wait for 5 minutes until the buffer is filled
+            # ... wait for 5 seconds until the buffer is filled
             await asyncio.sleep(5)
 
             # return an numpy array from the window
