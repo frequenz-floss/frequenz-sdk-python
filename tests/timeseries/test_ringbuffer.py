@@ -195,14 +195,14 @@ def test_timestamp_ringbuffer_missing_parameter(
 @pytest.mark.parametrize(
     "buffer",
     [
-        OrderedRingBuffer([0.0] * 24 * int(ONE_MINUTE.total_seconds()), ONE_MINUTE),
+        OrderedRingBuffer([0.0] * 10 * int(ONE_MINUTE.total_seconds()), ONE_MINUTE),
         OrderedRingBuffer(
-            np.empty(shape=(24 * int(ONE_MINUTE.total_seconds()),), dtype=np.float64),
+            np.empty(shape=(12 * int(ONE_MINUTE.total_seconds()),), dtype=np.float64),
             ONE_MINUTE,
         ),
-        OrderedRingBuffer([0.0] * 24 * int(FIVE_MINUTES.total_seconds()), FIVE_MINUTES),
+        OrderedRingBuffer([0.0] * 5 * int(FIVE_MINUTES.total_seconds()), FIVE_MINUTES),
         OrderedRingBuffer(
-            np.empty(shape=(24 * int(FIVE_MINUTES.total_seconds())), dtype=np.float64),
+            np.empty(shape=(5 * int(FIVE_MINUTES.total_seconds())), dtype=np.float64),
             FIVE_MINUTES,
         ),
     ],
