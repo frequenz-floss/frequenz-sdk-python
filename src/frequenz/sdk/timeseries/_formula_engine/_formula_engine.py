@@ -192,6 +192,12 @@ _CompositionType3Phase = Union[
     "HigherOrderFormulaBuilder3Phase",
 ]
 
+# The `FormulaEngine*` and `HigherOrderFormulaBuilder*` classes are generic, but
+# `TypeVar`s can't be defined on generic types, so we need to use `# type: ignore` to
+# avoid mypy errors, and they get treated as `FormulaEngine[Any]`, etc.
+#
+# This is not ideal, but it's the best we can do until mypy supports generic types with
+# `TypeVar`s.
 _GenericEngine = TypeVar(
     "_GenericEngine",
     "FormulaEngine",  # type: ignore
@@ -204,6 +210,9 @@ _GenericHigherOrderBuilder = TypeVar(
 )
 
 
+# This class has multiple generic type parameters that should also restrict each other,
+# but mypy doesn't support that, so we need to use `# type: ignore` in several places in
+# this, and subsequent classes, to avoid mypy errors.
 class _ComposableFormulaEngine(
     ABC, Generic[_GenericEngine, _GenericHigherOrderBuilder, QuantityT]
 ):
