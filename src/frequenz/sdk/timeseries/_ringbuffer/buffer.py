@@ -281,19 +281,18 @@ class OrderedRingBuffer(Generic[FloatArray]):
         return any(map(lambda gap: gap.contains(timestamp), self._gaps))
 
     def _update_gaps(
-        self, timestamp: datetime, newest: datetime, new_missing: bool
+        self, timestamp: datetime, newest: datetime, record_as_missing: bool
     ) -> None:
         """Update gap list with new timestamp.
 
         Args:
             timestamp: Timestamp of the new value.
             newest: Timestamp of the newest value before the current update.
-            new_missing: if true, the given timestamp will be recorded as missing.
-
+            record_as_missing: if `True`, the given timestamp will be recorded as missing.
         """
-        currently_missing = self.is_missing(timestamp)
+        found_in_gaps = self.is_missing(timestamp)
 
-        if not new_missing:
+        if not record_as_missing:
             # Replace all gaps with one if we went far into then future
             if self._datetime_newest - newest >= self._full_time_range:
                 self._gaps = [
@@ -301,19 +300,20 @@ class OrderedRingBuffer(Generic[FloatArray]):
                 ]
                 return
 
-            if not currently_missing and timestamp > newest + self._sampling_period:
+            # Check if we created a gap with the addition of the new value
+            if not found_in_gaps and timestamp > newest + self._sampling_period:
                 self._gaps.append(
                     Gap(start=newest + self._sampling_period, end=timestamp)
                 )
 
         # New missing entry that is not already in a gap?
-        if new_missing:
-            if not currently_missing:
+        if record_as_missing:
+            if not found_in_gaps:
                 self._gaps.append(
                     Gap(start=timestamp, end=timestamp + self._sampling_period)
                 )
         elif len(self._gaps) > 0:
-            if currently_missing:
+            if found_in_gaps:
                 self._remove_gap(timestamp)
 
         self._cleanup_gaps()
