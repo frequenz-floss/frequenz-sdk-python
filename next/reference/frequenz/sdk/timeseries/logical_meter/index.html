@@ -892,6 +892,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.producer_power" class="md-nav__link">
+    producer_power
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.pv_consumption_power" class="md-nav__link">
     pv_consumption_power
   </a>
@@ -1130,6 +1137,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.producer_power" class="md-nav__link">
+    producer_power
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.pv_consumption_power" class="md-nav__link">
     pv_consumption_power
   </a>
@@ -1333,8 +1347,7 @@ normal <code>Receiver</code>s, but can also be composed to form higher-order for
 
         <details class="quote">
           <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 26</span>
-<span class="normal"> 27</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 27</span>
 <span class="normal"> 28</span>
 <span class="normal"> 29</span>
 <span class="normal"> 30</span>
@@ -1715,7 +1728,33 @@ normal <code>Receiver</code>s, but can also be composed to form higher-order for
 <span class="normal">405</span>
 <span class="normal">406</span>
 <span class="normal">407</span>
-<span class="normal">408</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">LogicalMeter</span><span class="p">:</span>
+<span class="normal">408</span>
+<span class="normal">409</span>
+<span class="normal">410</span>
+<span class="normal">411</span>
+<span class="normal">412</span>
+<span class="normal">413</span>
+<span class="normal">414</span>
+<span class="normal">415</span>
+<span class="normal">416</span>
+<span class="normal">417</span>
+<span class="normal">418</span>
+<span class="normal">419</span>
+<span class="normal">420</span>
+<span class="normal">421</span>
+<span class="normal">422</span>
+<span class="normal">423</span>
+<span class="normal">424</span>
+<span class="normal">425</span>
+<span class="normal">426</span>
+<span class="normal">427</span>
+<span class="normal">428</span>
+<span class="normal">429</span>
+<span class="normal">430</span>
+<span class="normal">431</span>
+<span class="normal">432</span>
+<span class="normal">433</span>
+<span class="normal">434</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">LogicalMeter</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A logical meter for calculating high level metrics in a microgrid.</span>
 
 <span class="sd">    LogicalMeter provides methods for fetching power values from different points in the</span>
@@ -1949,6 +1988,31 @@ normal <code>Receiver</code>s, but can also be composed to form higher-order for
         <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">from_generator</span><span class="p">(</span>
             <span class="s2">&quot;consumer_power&quot;</span><span class="p">,</span>
             <span class="n">ConsumerPowerFormula</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">FormulaEngine</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">engine</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">producer_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaEngine</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch the producer power for the microgrid.</span>
+
+<span class="sd">        Under normal circumstances this is expected to correspond to the production</span>
+<span class="sd">        of the sites active parts excluding ev chargers and batteries.</span>
+
+<span class="sd">        This formula produces values that are in the Passive Sign Convention (PSC).</span>
+
+<span class="sd">        If a formula engine to calculate producer power is not already running, it will</span>
+<span class="sd">        be started.</span>
+
+<span class="sd">        A receiver from the formula engine can be created using the `new_receiver`</span>
+<span class="sd">        method.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A FormulaEngine that will calculate and stream producer power.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">from_generator</span><span class="p">(</span>
+            <span class="s2">&quot;producer_power&quot;</span><span class="p">,</span>
+            <span class="n">ProducerPowerFormula</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">FormulaEngine</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">engine</span>
@@ -2509,6 +2573,57 @@ method.</p>
 
 
 
+<h6 id="frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.producer_power" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">producer_power</span><span class="p">:</span> <span class="n">FormulaEngine</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.producer_power" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Fetch the producer power for the microgrid.</p>
+<p>Under normal circumstances this is expected to correspond to the production
+of the sites active parts excluding ev chargers and batteries.</p>
+<p>This formula produces values that are in the Passive Sign Convention (PSC).</p>
+<p>If a formula engine to calculate producer power is not already running, it will
+be started.</p>
+<p>A receiver from the formula engine can be created using the <code>new_receiver</code>
+method.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><span title="frequenz.sdk.timeseries._formula_engine.FormulaEngine">FormulaEngine</span></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <div class="doc-md-description">
+              <p>A FormulaEngine that will calculate and stream producer power.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
 <h6 id="frequenz.sdk.timeseries.logical_meter._logical_meter.LogicalMeter.pv_consumption_power" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">pv_consumption_power</span><span class="p">:</span> <span class="n">FormulaEngine</span></code>
   
@@ -2711,8 +2826,7 @@ resampling actor.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 96</span>
-<span class="normal"> 97</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 97</span>
 <span class="normal"> 98</span>
 <span class="normal"> 99</span>
 <span class="normal">100</span>
@@ -2734,7 +2848,8 @@ resampling actor.</p>
 <span class="normal">116</span>
 <span class="normal">117</span>
 <span class="normal">118</span>
-<span class="normal">119</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<span class="normal">119</span>
+<span class="normal">120</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">channel_registry</span><span class="p">:</span> <span class="n">ChannelRegistry</span><span class="p">,</span>
     <span class="n">resampler_subscription_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span><span class="n">ComponentMetricRequest</span><span class="p">],</span>
@@ -2866,8 +2981,7 @@ False, the returned value will be a None.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">121</span>
-<span class="normal">122</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">122</span>
 <span class="normal">123</span>
 <span class="normal">124</span>
 <span class="normal">125</span>
@@ -2892,7 +3006,8 @@ False, the returned value will be a None.</p>
 <span class="normal">144</span>
 <span class="normal">145</span>
 <span class="normal">146</span>
-<span class="normal">147</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">start_formula</span><span class="p">(</span>
+<span class="normal">147</span>
+<span class="normal">148</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">start_formula</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">formula</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">component_metric_id</span><span class="p">:</span> <span class="n">ComponentMetricId</span><span class="p">,</span>
@@ -2945,9 +3060,9 @@ False, the returned value will be a None.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">406</span>
-<span class="normal">407</span>
-<span class="normal">408</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">432</span>
+<span class="normal">433</span>
+<span class="normal">434</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Stop all formula engines.&quot;&quot;&quot;</span>
     <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
