@@ -289,6 +289,21 @@ def test_len_ringbuffer_samples_fit_buffer_size() -> None:
         assert len(buffer) == len(test_samples)
 
 
+def test_len_with_gaps() -> None:
+    """Test the length when there are gaps in the buffer."""
+    buffer = OrderedRingBuffer(
+        np.empty(shape=10, dtype=float),
+        sampling_period=timedelta(seconds=1),
+        align_to=datetime(1, 1, 1, tzinfo=timezone.utc),
+    )
+
+    for i in range(10):
+        buffer.update(
+            Sample(datetime(2, 2, 2, 0, 0, i, tzinfo=timezone.utc), Quantity(float(i)))
+        )
+        assert len(buffer) == i + 1
+
+
 def test_len_ringbuffer_samples_overwrite_buffer() -> None:
     """Test the length of ordered ring buffer.
 

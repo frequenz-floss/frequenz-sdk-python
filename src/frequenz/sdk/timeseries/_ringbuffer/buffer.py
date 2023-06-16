@@ -517,10 +517,24 @@ class OrderedRingBuffer(Generic[FloatArray]):
         if self._datetime_newest == self._DATETIME_MIN:
             return 0
 
+        # Sum of all elements in the gap ranges
+        sum_missing_entries = max(
+            0,
+            sum(
+                (
+                    gap.end
+                    # Don't look further back than oldest timestamp
+                    - max(gap.start, self._datetime_oldest)
+                )
+                // self._sampling_period
+                for gap in self._gaps
+            ),
+        )
+
         start_index = self.datetime_to_index(self._datetime_oldest)
         end_index = self.datetime_to_index(self._datetime_newest)
 
         if end_index < start_index:
-            return len(self._buffer) - start_index + end_index + 1
+            return len(self._buffer) - start_index + end_index + 1 - sum_missing_entries
 
-        return end_index + 1 - start_index
+        return end_index + 1 - start_index - sum_missing_entries
