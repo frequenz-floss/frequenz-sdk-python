@@ -10,6 +10,8 @@
 
 ## New Features
 
+- The logical meter has a new method that returns producer power, that is the sum of all energy producers.
+
 <!-- Here goes the main new features and examples or instructions on how to use them -->
 
 ## Bug Fixes
