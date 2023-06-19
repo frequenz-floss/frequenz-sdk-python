@@ -62,7 +62,7 @@ examples = [ "polars == 0.18.3" ]
 pytest = [
   "pytest == 7.3.2",
   "pytest-cov == 4.1.0",
-  "pytest-mock == 3.10.0",
+  "pytest-mock == 3.11.1",
   "pytest-asyncio == 0.21.0",
   "time-machine == 2.10.0",
   "async-solipsism == 0.5",
