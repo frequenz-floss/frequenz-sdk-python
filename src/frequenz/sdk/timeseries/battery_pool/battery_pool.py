@@ -330,10 +330,11 @@ class BatteryPool:
 
     @property
     def soc(self) -> MetricAggregator[SoCMetrics]:
-        """Get receiver to receive new soc metrics when they change.
+        """Fetch the normalized average weighted-by-capacity SoC values for the pool.
 
-        Soc formulas are described in the receiver return type.  None will be send if
-        there is no component to calculate metric.
+        The formulas for calculating this metric are described
+        [here][frequenz.sdk.timeseries.battery_pool.SoCMetrics].  `None` values will be
+        sent if there are no components to calculate the metric with.
 
         A receiver from the MetricAggregator can be obtained by calling the
         `new_receiver` method.

@@ -299,9 +299,9 @@ class SoCCalculator(MetricCalculator[SoCMetrics]):
             Return None if there are no component metrics.
         """
         timestamp = _MIN_TIMESTAMP
-        used_capacity: float = 0
-        total_capacity: float = 0
-        capacity_bound = Bound(0, 0)
+        usable_capacity_x100: float = 0
+        used_capacity_x100: float = 0
+        total_capacity_x100: float = 0
 
         for battery_id in working_batteries:
             if battery_id not in metrics_data:
@@ -323,29 +323,35 @@ class SoCCalculator(MetricCalculator[SoCMetrics]):
             ):
                 continue
 
+            # The SoC bounds are in the 0-100 range, so to get the actual usable
+            # capacity, we need to divide by 100.
+            #
+            # We only want to calculate the SoC, and the usable capacity calculation is
+            # just an intermediate step, so don't have to divide by 100 here, because it
+            # gets cancelled out later.
+            #
+            # Therefore, the variables are named with a `_x100` suffix.
+            usable_capacity_x100 = capacity * (soc_upper_bound - soc_lower_bound)
+            soc_scaled = (
+                (soc - soc_lower_bound) / (soc_upper_bound - soc_lower_bound) * 100
+            )
+            soc_scaled = max(soc_scaled, 0)
             timestamp = max(timestamp, metrics.timestamp)
-            used_capacity += capacity * soc
-            total_capacity += capacity
-            capacity_bound.upper += capacity * soc_upper_bound
-            capacity_bound.lower += capacity * soc_lower_bound
+            used_capacity_x100 += usable_capacity_x100 * soc_scaled
+            total_capacity_x100 += usable_capacity_x100
 
         if timestamp == _MIN_TIMESTAMP:
             return None
 
         # To avoid zero division error
-        if total_capacity == 0:
+        if total_capacity_x100 == 0:
             return SoCMetrics(
                 timestamp=timestamp,
                 average_soc=0,
-                bound=Bound(0, 0),
             )
         return SoCMetrics(
             timestamp=timestamp,
-            average_soc=used_capacity / total_capacity,
-            bound=Bound(
-                lower=capacity_bound.lower / total_capacity,
-                upper=capacity_bound.upper / total_capacity,
-            ),
+            average_soc=used_capacity_x100 / total_capacity_x100,
         )
 
 

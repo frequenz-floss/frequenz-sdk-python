@@ -59,33 +59,25 @@ class SoCMetrics:
     """Timestamp of the metrics."""
 
     average_soc: float
-    """Average soc.
+    """Average SoC of working batteries in the pool, weighted by usable capacity.
+
+    The values are normalized to the 0-100% range.
 
     Average soc is calculated with the formula:
     ```python
     working_batteries: Set[BatteryData] # working batteries from the battery pool
 
-    used_capacity = sum(battery.capacity * battery.soc for battery in working_batteries)
-    total_capacity = sum(battery.capacity for battery in working_batteries)
+    battery.soc_scaled = max(
+        0,
+        (soc - soc_lower_bound) / (soc_upper_bound - soc_lower_bound) * 100,
+    )
+    used_capacity = sum(
+        battery.usable_capacity * battery.soc_scaled
+        for battery in working_batteries
+    )
+    total_capacity = sum(battery.usable_capacity for battery in working_batteries)
     average_soc = used_capacity/total_capacity
     ```
-    """
-
-    bound: Bound
-    """SoC bounds weighted by capacity.
-
-    Bounds are calculated with the formula:
-    capacity_lower_bound = sum(
-        battery.capacity * battery.soc_lower_bound for battery in working_batteries)
-
-    capacity_upper_bound = sum(
-        battery.capacity * battery.soc_upper_bound for battery in working_batteries)
-
-    total_capacity = sum(battery.capacity for battery in working_batteries)
-
-    bound.lower = capacity_lower_bound/total_capacity
-    bound.upper = capacity_upper_bound/total_capacity
-
     """
 
 
