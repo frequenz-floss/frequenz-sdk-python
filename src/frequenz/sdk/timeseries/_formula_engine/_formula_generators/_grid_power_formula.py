@@ -5,16 +5,17 @@
 
 from ....microgrid import connection_manager
 from ....microgrid.component import ComponentCategory, ComponentMetricId
+from ..._quantities import Power
 from .._formula_engine import FormulaEngine
 from ._formula_generator import ComponentNotFound, FormulaGenerator, FormulaType
 
 
-class GridPowerFormula(FormulaGenerator):
+class GridPowerFormula(FormulaGenerator[Power]):
     """Creates a formula engine from the component graph for calculating grid power."""
 
     def generate(
         self,
-    ) -> FormulaEngine:
+    ) -> FormulaEngine[Power]:
         """Generate a formula for calculating grid power from the component graph.
 
         Returns:
@@ -23,7 +24,7 @@ class GridPowerFormula(FormulaGenerator):
         Raises:
             ComponentNotFound: when the component graph doesn't have a `GRID` component.
         """
-        builder = self._get_builder("grid-power", ComponentMetricId.ACTIVE_POWER)
+        builder = self._get_builder("grid-power", ComponentMetricId.ACTIVE_POWER, Power)
         component_graph = connection_manager.get().component_graph
         grid_component = next(
             (

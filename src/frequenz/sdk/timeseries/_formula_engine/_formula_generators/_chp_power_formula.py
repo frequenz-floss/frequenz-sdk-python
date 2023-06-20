@@ -11,6 +11,7 @@ from collections import abc
 from ....microgrid import connection_manager
 from ....microgrid.component import ComponentCategory, ComponentMetricId
 from ..._formula_engine import FormulaEngine
+from ..._quantities import Power
 from ._formula_generator import (
     NON_EXISTING_COMPONENT_ID,
     FormulaGenerationError,
@@ -21,10 +22,10 @@ from ._formula_generator import (
 _logger = logging.getLogger(__name__)
 
 
-class CHPPowerFormula(FormulaGenerator):
+class CHPPowerFormula(FormulaGenerator[Power]):
     """Formula generator for CHP Power."""
 
-    def generate(self) -> FormulaEngine:
+    def generate(self) -> FormulaEngine[Power]:
         """Make a formula for the cumulative CHP power of a microgrid.
 
         The calculation is performed by adding the active power measurements from
@@ -37,7 +38,7 @@ class CHPPowerFormula(FormulaGenerator):
             FormulaGenerationError: If there's no dedicated meter attached to every CHP.
 
         """
-        builder = self._get_builder("chp-power", ComponentMetricId.ACTIVE_POWER)
+        builder = self._get_builder("chp-power", ComponentMetricId.ACTIVE_POWER, Power)
 
         chp_meter_ids = self._get_chp_meters()
         if not chp_meter_ids:

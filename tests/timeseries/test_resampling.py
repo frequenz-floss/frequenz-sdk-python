@@ -18,6 +18,7 @@ import time_machine
 from frequenz.channels import Broadcast, SenderError
 
 from frequenz.sdk.timeseries import Sample
+from frequenz.sdk.timeseries._quantities import Quantity
 from frequenz.sdk.timeseries._resampling import (
     DEFAULT_BUFFER_LEN_MAX,
     DEFAULT_BUFFER_LEN_WARN,
@@ -55,9 +56,9 @@ def fake_time() -> Iterator[time_machine.Coordinates]:
 
 
 @pytest.fixture
-async def source_chan() -> AsyncIterator[Broadcast[Sample]]:
+async def source_chan() -> AsyncIterator[Broadcast[Sample[Quantity]]]:
     """Create a broadcast channel of samples."""
-    chan = Broadcast[Sample]("test")
+    chan = Broadcast[Sample[Quantity]]("test")
     yield chan
     await chan.close()
 
@@ -151,7 +152,7 @@ async def test_helper_buffer_too_big(
     helper = _ResamplingHelper("test", config)
 
     for i in range(DEFAULT_BUFFER_LEN_MAX + 1):
-        sample = Sample(datetime.now(timezone.utc), i)
+        sample = Sample(datetime.now(timezone.utc), Quantity(i))
         helper.add_sample(sample)
         fake_time.shift(1)
 
@@ -242,7 +243,7 @@ def test_calculate_window_end_trivial_cases(
 
 
 async def test_resampling_window_size_is_constant(
-    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample]
+    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample[Quantity]]
 ) -> None:
     """Test resampling window size is consistent."""
     timestamp = datetime.now(timezone.utc)
@@ -278,8 +279,8 @@ async def test_resampling_window_size_is_constant(
     # R = resampling is done
 
     # Send a few samples and run a resample tick, advancing the fake time by one period
-    sample0s = Sample(timestamp, value=5.0)
-    sample1s = Sample(timestamp + timedelta(seconds=1), value=12.0)
+    sample0s = Sample(timestamp, value=Quantity(5.0))
+    sample1s = Sample(timestamp + timedelta(seconds=1), value=Quantity(12.0))
     await source_sender.send(sample0s)
     await source_sender.send(sample1s)
     fake_time.shift(resampling_period_s)  # timer matches resampling period
@@ -288,7 +289,8 @@ async def test_resampling_window_size_is_constant(
     assert datetime.now(timezone.utc).timestamp() == 2
     sink_mock.assert_called_once_with(
         Sample(
-            timestamp + timedelta(seconds=resampling_period_s), expected_resampled_value
+            timestamp + timedelta(seconds=resampling_period_s),
+            Quantity(expected_resampled_value),
         )
     )
     resampling_fun_mock.assert_called_once_with(
@@ -298,9 +300,9 @@ async def test_resampling_window_size_is_constant(
     resampling_fun_mock.reset_mock()
 
     # Second resampling run
-    sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=2.0)
-    sample3s = Sample(timestamp + timedelta(seconds=3), value=4.0)
-    sample4s = Sample(timestamp + timedelta(seconds=4), value=5.0)
+    sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=Quantity(2.0))
+    sample3s = Sample(timestamp + timedelta(seconds=3), value=Quantity(4.0))
+    sample4s = Sample(timestamp + timedelta(seconds=4), value=Quantity(5.0))
     await source_sender.send(sample2_5s)
     await source_sender.send(sample3s)
     await source_sender.send(sample4s)
@@ -313,7 +315,7 @@ async def test_resampling_window_size_is_constant(
             # But the sample still gets 4s as timestamp, because we are keeping
             # the window size constant, not dependent on when the timer fired
             timestamp + timedelta(seconds=resampling_period_s * 2),
-            expected_resampled_value,
+            Quantity(expected_resampled_value),
         )
     )
     resampling_fun_mock.assert_called_once_with(
@@ -325,7 +327,7 @@ async def test_resampling_window_size_is_constant(
 
 async def test_timer_errors_are_logged(
     fake_time: time_machine.Coordinates,
-    source_chan: Broadcast[Sample],
+    source_chan: Broadcast[Sample[Quantity]],
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test that big differences between the expected window end and the fired timer are logged."""
@@ -362,8 +364,8 @@ async def test_timer_errors_are_logged(
     # R = resampling is done
 
     # Send a few samples and run a resample tick, advancing the fake time by one period
-    sample0s = Sample(timestamp, value=5.0)
-    sample1s = Sample(timestamp + timedelta(seconds=1.0), value=12.0)
+    sample0s = Sample(timestamp, value=Quantity(5.0))
+    sample1s = Sample(timestamp + timedelta(seconds=1.0), value=Quantity(12.0))
     await source_sender.send(sample0s)
     await source_sender.send(sample1s)
     fake_time.shift(resampling_period_s * 1.0999)  # Timer is delayed 9.99%
@@ -372,7 +374,8 @@ async def test_timer_errors_are_logged(
     assert datetime.now(timezone.utc).timestamp() == pytest.approx(2.1998)
     sink_mock.assert_called_once_with(
         Sample(
-            timestamp + timedelta(seconds=resampling_period_s), expected_resampled_value
+            timestamp + timedelta(seconds=resampling_period_s),
+            Quantity(expected_resampled_value),
         )
     )
     resampling_fun_mock.assert_called_once_with(
@@ -388,9 +391,9 @@ async def test_timer_errors_are_logged(
     resampling_fun_mock.reset_mock()
 
     # Second resampling run, now with 10% delay
-    sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=2.0)
-    sample3s = Sample(timestamp + timedelta(seconds=3), value=4.0)
-    sample4s = Sample(timestamp + timedelta(seconds=4), value=5.0)
+    sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=Quantity(2.0))
+    sample3s = Sample(timestamp + timedelta(seconds=3), value=Quantity(4.0))
+    sample4s = Sample(timestamp + timedelta(seconds=4), value=Quantity(5.0))
     await source_sender.send(sample2_5s)
     await source_sender.send(sample3s)
     await source_sender.send(sample4s)
@@ -403,7 +406,7 @@ async def test_timer_errors_are_logged(
             # But the sample still gets 4s as timestamp, because we are keeping
             # the window size constant, not dependent on when the timer fired
             timestamp + timedelta(seconds=resampling_period_s * 2),
-            expected_resampled_value,
+            Quantity(expected_resampled_value),
         )
     )
     resampling_fun_mock.assert_called_once_with(
@@ -424,7 +427,7 @@ async def test_timer_errors_are_logged(
 
 
 async def test_future_samples_not_included(
-    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample]
+    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample[Quantity]]
 ) -> None:
     """Test resampling window size is consistent."""
     timestamp = datetime.now(timezone.utc)
@@ -461,9 +464,9 @@ async def test_future_samples_not_included(
     # R = resampling is done
 
     # Send a few samples and run a resample tick, advancing the fake time by one period
-    sample0s = Sample(timestamp, value=5.0)
-    sample1s = Sample(timestamp + timedelta(seconds=1), value=12.0)
-    sample2_1s = Sample(timestamp + timedelta(seconds=2.1), value=7.0)
+    sample0s = Sample(timestamp, value=Quantity(5.0))
+    sample1s = Sample(timestamp + timedelta(seconds=1), value=Quantity(12.0))
+    sample2_1s = Sample(timestamp + timedelta(seconds=2.1), value=Quantity(7.0))
     await source_sender.send(sample0s)
     await source_sender.send(sample1s)
     await source_sender.send(sample2_1s)
@@ -473,7 +476,8 @@ async def test_future_samples_not_included(
     assert datetime.now(timezone.utc).timestamp() == 2
     sink_mock.assert_called_once_with(
         Sample(
-            timestamp + timedelta(seconds=resampling_period_s), expected_resampled_value
+            timestamp + timedelta(seconds=resampling_period_s),
+            Quantity(expected_resampled_value),
         )
     )
     resampling_fun_mock.assert_called_once_with(
@@ -487,8 +491,8 @@ async def test_future_samples_not_included(
     resampling_fun_mock.reset_mock()
 
     # Second resampling run
-    sample3s = Sample(timestamp + timedelta(seconds=3), value=4.0)
-    sample4_1s = Sample(timestamp + timedelta(seconds=4.1), value=3.0)
+    sample3s = Sample(timestamp + timedelta(seconds=3), value=Quantity(4.0))
+    sample4_1s = Sample(timestamp + timedelta(seconds=4.1), value=Quantity(3.0))
     await source_sender.send(sample3s)
     await source_sender.send(sample4_1s)
     fake_time.shift(resampling_period_s + 0.2)
@@ -498,7 +502,7 @@ async def test_future_samples_not_included(
     sink_mock.assert_called_once_with(
         Sample(
             timestamp + timedelta(seconds=resampling_period_s * 2),
-            expected_resampled_value,
+            Quantity(expected_resampled_value),
         )
     )
     resampling_fun_mock.assert_called_once_with(
@@ -509,7 +513,7 @@ async def test_future_samples_not_included(
 
 
 async def test_resampling_with_one_window(
-    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample]
+    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample[Quantity]]
 ) -> None:
     """Test resampling with one resampling window (saving samples of the last period only)."""
     timestamp = datetime.now(timezone.utc)
@@ -545,8 +549,8 @@ async def test_resampling_with_one_window(
     # R = resampling is done
 
     # Send a few samples and run a resample tick, advancing the fake time by one period
-    sample0s = Sample(timestamp, value=5.0)
-    sample1s = Sample(timestamp + timedelta(seconds=1), value=12.0)
+    sample0s = Sample(timestamp, value=Quantity(5.0))
+    sample1s = Sample(timestamp + timedelta(seconds=1), value=Quantity(12.0))
     await source_sendr.send(sample0s)
     await source_sendr.send(sample1s)
     fake_time.shift(resampling_period_s)
@@ -555,7 +559,8 @@ async def test_resampling_with_one_window(
     assert datetime.now(timezone.utc).timestamp() == 2
     sink_mock.assert_called_once_with(
         Sample(
-            timestamp + timedelta(seconds=resampling_period_s), expected_resampled_value
+            timestamp + timedelta(seconds=resampling_period_s),
+            Quantity(expected_resampled_value),
         )
     )
     resampling_fun_mock.assert_called_once_with(
@@ -569,9 +574,9 @@ async def test_resampling_with_one_window(
     resampling_fun_mock.reset_mock()
 
     # Second resampling run
-    sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=2.0)
-    sample3s = Sample(timestamp + timedelta(seconds=3), value=4.0)
-    sample4s = Sample(timestamp + timedelta(seconds=4), value=5.0)
+    sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=Quantity(2.0))
+    sample3s = Sample(timestamp + timedelta(seconds=3), value=Quantity(4.0))
+    sample4s = Sample(timestamp + timedelta(seconds=4), value=Quantity(5.0))
     await source_sendr.send(sample2_5s)
     await source_sendr.send(sample3s)
     await source_sendr.send(sample4s)
@@ -582,7 +587,7 @@ async def test_resampling_with_one_window(
     sink_mock.assert_called_once_with(
         Sample(
             timestamp + timedelta(seconds=resampling_period_s * 2),
-            expected_resampled_value,
+            Quantity(expected_resampled_value),
         )
     )
     resampling_fun_mock.assert_called_once_with(
@@ -622,7 +627,7 @@ async def test_resampling_with_one_window(
 # too many statements because it makes following failures in tests more easy
 # when the code is very flat.
 async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-many-statements
-    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample]
+    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample[Quantity]]
 ) -> None:
     """Test resampling with 1.5 resampling windows."""
     timestamp = datetime.now(timezone.utc)
@@ -658,8 +663,8 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     # R = resampling is done
 
     # Send a few samples and run a resample tick, advancing the fake time by one period
-    sample0s = Sample(timestamp, value=5.0)
-    sample1s = Sample(timestamp + timedelta(seconds=1), value=12.0)
+    sample0s = Sample(timestamp, value=Quantity(5.0))
+    sample1s = Sample(timestamp + timedelta(seconds=1), value=Quantity(12.0))
     await source_sendr.send(sample0s)
     await source_sendr.send(sample1s)
     fake_time.shift(resampling_period_s)
@@ -668,7 +673,8 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     assert datetime.now(timezone.utc).timestamp() == 2
     sink_mock.assert_called_once_with(
         Sample(
-            timestamp + timedelta(seconds=resampling_period_s), expected_resampled_value
+            timestamp + timedelta(seconds=resampling_period_s),
+            Quantity(expected_resampled_value),
         )
     )
     resampling_fun_mock.assert_called_once_with(
@@ -682,9 +688,9 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     resampling_fun_mock.reset_mock()
 
     # Second resampling run
-    sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=2.0)
-    sample3s = Sample(timestamp + timedelta(seconds=3), value=4.0)
-    sample4s = Sample(timestamp + timedelta(seconds=4), value=5.0)
+    sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=Quantity(2.0))
+    sample3s = Sample(timestamp + timedelta(seconds=3), value=Quantity(4.0))
+    sample4s = Sample(timestamp + timedelta(seconds=4), value=Quantity(5.0))
     await source_sendr.send(sample2_5s)
     await source_sendr.send(sample3s)
     await source_sendr.send(sample4s)
@@ -695,7 +701,7 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     sink_mock.assert_called_once_with(
         Sample(
             timestamp + timedelta(seconds=resampling_period_s * 2),
-            expected_resampled_value,
+            Quantity(expected_resampled_value),
         )
     )
     # It should include samples in the interval (1, 4] seconds
@@ -710,8 +716,8 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     resampling_fun_mock.reset_mock()
 
     # Third resampling run
-    sample5s = Sample(timestamp + timedelta(seconds=5), value=1.0)
-    sample6s = Sample(timestamp + timedelta(seconds=6), value=3.0)
+    sample5s = Sample(timestamp + timedelta(seconds=5), value=Quantity(1.0))
+    sample6s = Sample(timestamp + timedelta(seconds=6), value=Quantity(3.0))
     await source_sendr.send(sample5s)
     await source_sendr.send(sample6s)
     fake_time.shift(resampling_period_s)
@@ -721,7 +727,7 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     sink_mock.assert_called_once_with(
         Sample(
             timestamp + timedelta(seconds=resampling_period_s * 3),
-            expected_resampled_value,
+            Quantity(expected_resampled_value),
         )
     )
     # It should include samples in the interval (3, 6] seconds
@@ -750,7 +756,7 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     sink_mock.assert_called_once_with(
         Sample(
             timestamp + timedelta(seconds=resampling_period_s * 4),
-            expected_resampled_value,
+            Quantity(expected_resampled_value),
         )
     )
     # It should include samples in the interval (5, 8] seconds
@@ -783,7 +789,7 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
 # too many statements because it makes following failures in tests more easy
 # when the code is very flat.
 async def test_resampling_with_two_windows(  # pylint: disable=too-many-statements
-    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample]
+    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample[Quantity]]
 ) -> None:
     """Test resampling with 2 resampling windows."""
     timestamp = datetime.now(timezone.utc)
@@ -819,8 +825,8 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     # R = resampling is done
 
     # Send a few samples and run a resample tick, advancing the fake time by one period
-    sample0s = Sample(timestamp, value=5.0)
-    sample1s = Sample(timestamp + timedelta(seconds=1), value=12.0)
+    sample0s = Sample(timestamp, value=Quantity(5.0))
+    sample1s = Sample(timestamp + timedelta(seconds=1), value=Quantity(12.0))
     await source_sendr.send(sample0s)
     await source_sendr.send(sample1s)
     fake_time.shift(resampling_period_s)
@@ -829,7 +835,8 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     assert datetime.now(timezone.utc).timestamp() == 2
     sink_mock.assert_called_once_with(
         Sample(
-            timestamp + timedelta(seconds=resampling_period_s), expected_resampled_value
+            timestamp + timedelta(seconds=resampling_period_s),
+            Quantity(expected_resampled_value),
         )
     )
     resampling_fun_mock.assert_called_once_with(
@@ -843,9 +850,9 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     resampling_fun_mock.reset_mock()
 
     # Second resampling run
-    sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=2.0)
-    sample3s = Sample(timestamp + timedelta(seconds=3), value=4.0)
-    sample4s = Sample(timestamp + timedelta(seconds=4), value=5.0)
+    sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=Quantity(2.0))
+    sample3s = Sample(timestamp + timedelta(seconds=3), value=Quantity(4.0))
+    sample4s = Sample(timestamp + timedelta(seconds=4), value=Quantity(5.0))
     await source_sendr.send(sample2_5s)
     await source_sendr.send(sample3s)
     await source_sendr.send(sample4s)
@@ -856,7 +863,7 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     sink_mock.assert_called_once_with(
         Sample(
             timestamp + timedelta(seconds=resampling_period_s * 2),
-            expected_resampled_value,
+            Quantity(expected_resampled_value),
         )
     )
     # It should include samples in the interval (0, 4] seconds
@@ -871,8 +878,8 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     resampling_fun_mock.reset_mock()
 
     # Third resampling run
-    sample5s = Sample(timestamp + timedelta(seconds=5), value=1.0)
-    sample6s = Sample(timestamp + timedelta(seconds=6), value=3.0)
+    sample5s = Sample(timestamp + timedelta(seconds=5), value=Quantity(1.0))
+    sample6s = Sample(timestamp + timedelta(seconds=6), value=Quantity(3.0))
     await source_sendr.send(sample5s)
     await source_sendr.send(sample6s)
     fake_time.shift(resampling_period_s)
@@ -882,7 +889,7 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     sink_mock.assert_called_once_with(
         Sample(
             timestamp + timedelta(seconds=resampling_period_s * 3),
-            expected_resampled_value,
+            Quantity(expected_resampled_value),
         )
     )
     # It should include samples in the interval (2, 6] seconds
@@ -906,7 +913,7 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     sink_mock.assert_called_once_with(
         Sample(
             timestamp + timedelta(seconds=resampling_period_s * 4),
-            expected_resampled_value,
+            Quantity(expected_resampled_value),
         )
     )
     # It should include samples in the interval (4, 8] seconds
@@ -936,7 +943,7 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
 
 
 async def test_receiving_stopped_resampling_error(
-    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample]
+    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample[Quantity]]
 ) -> None:
     """Test resampling errors if a receiver stops."""
     timestamp = datetime.now(timezone.utc)
@@ -963,7 +970,7 @@ async def test_receiving_stopped_resampling_error(
     source_props = resampler.get_source_properties(source_recvr)
 
     # Send a sample and run a resample tick, advancing the fake time by one period
-    sample0s = Sample(timestamp, value=5.0)
+    sample0s = Sample(timestamp, value=Quantity(5.0))
     await source_sendr.send(sample0s)
     fake_time.shift(resampling_period_s)
     await resampler.resample(one_shot=True)
@@ -971,7 +978,8 @@ async def test_receiving_stopped_resampling_error(
     assert datetime.now(timezone.utc).timestamp() == 2
     sink_mock.assert_called_once_with(
         Sample(
-            timestamp + timedelta(seconds=resampling_period_s), expected_resampled_value
+            timestamp + timedelta(seconds=resampling_period_s),
+            Quantity(expected_resampled_value),
         )
     )
     resampling_fun_mock.assert_called_once_with(
@@ -1018,7 +1026,7 @@ async def test_receiving_resampling_error(fake_time: time_machine.Coordinates) -
     class TestException(Exception):
         """Test exception."""
 
-    sample0s = Sample(timestamp, value=5.0)
+    sample0s = Sample(timestamp, value=Quantity(5.0))
 
     async def make_fake_source() -> Source:
         yield sample0s

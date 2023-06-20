@@ -24,6 +24,7 @@ from frequenz.sdk._internal._constants import (
 from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.actor.power_distributing import BatteryStatus
 from frequenz.sdk.microgrid.component import ComponentCategory
+from frequenz.sdk.timeseries._quantities import Power
 from frequenz.sdk.timeseries.battery_pool import (
     BatteryPool,
     Bound,
@@ -452,19 +453,19 @@ async def test_battery_pool_power(mocker: MockerFixture) -> None:
     production_receiver = battery_pool.production_power.new_receiver()
 
     await mockgrid.mock_data.send_bat_inverter_power([2.0, 3.0])
-    assert (await power_receiver.receive()).value == 5.0
-    assert (await consumption_receiver.receive()).value == 5.0
-    assert (await production_receiver.receive()).value == 0.0
+    assert (await power_receiver.receive()).value == Power(5.0)
+    assert (await consumption_receiver.receive()).value == Power(5.0)
+    assert (await production_receiver.receive()).value == Power(0.0)
 
     await mockgrid.mock_data.send_bat_inverter_power([-2.0, -5.0])
-    assert (await power_receiver.receive()).value == -7.0
-    assert (await consumption_receiver.receive()).value == 0.0
-    assert (await production_receiver.receive()).value == 7.0
+    assert (await power_receiver.receive()).value == Power(-7.0)
+    assert (await consumption_receiver.receive()).value == Power(0.0)
+    assert (await production_receiver.receive()).value == Power(7.0)
 
     await mockgrid.mock_data.send_bat_inverter_power([2.0, -5.0])
-    assert (await power_receiver.receive()).value == -3.0
-    assert (await consumption_receiver.receive()).value == 0.0
-    assert (await production_receiver.receive()).value == 3.0
+    assert (await power_receiver.receive()).value == Power(-3.0)
+    assert (await consumption_receiver.receive()).value == Power(0.0)
+    assert (await production_receiver.receive()).value == Power(3.0)
 
     await mockgrid.cleanup()
 

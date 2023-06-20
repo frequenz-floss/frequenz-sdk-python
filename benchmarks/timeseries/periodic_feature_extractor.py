@@ -24,17 +24,18 @@ from numpy.random import default_rng
 from numpy.typing import NDArray
 
 from frequenz.sdk.timeseries import MovingWindow, PeriodicFeatureExtractor, Sample
+from frequenz.sdk.timeseries._quantities import Quantity
 
 
 async def init_feature_extractor(period: int) -> PeriodicFeatureExtractor:
     """Initialize the PeriodicFeatureExtractor class."""
     # We only need the moving window to initialize the PeriodicFeatureExtractor class.
-    lm_chan = Broadcast[Sample]("lm_net_power")
+    lm_chan = Broadcast[Sample[Quantity]]("lm_net_power")
     moving_window = MovingWindow(
         timedelta(seconds=1), lm_chan.new_receiver(), timedelta(seconds=1)
     )
 
-    await lm_chan.new_sender().send(Sample(datetime.now(tz=timezone.utc), 0))
+    await lm_chan.new_sender().send(Sample(datetime.now(tz=timezone.utc), Quantity(0)))
 
     # Initialize the PeriodicFeatureExtractor class with a period of period seconds.
     # This works since the sampling period is set to 1 second.

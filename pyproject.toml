@@ -113,6 +113,9 @@ disable = [
   # disabled because it conflicts with isort
   "wrong-import-order",
   "ungrouped-imports",
+  # pylint's unsubscriptable check is buggy and is not needed because
+  # it is a type-check, for which we already have mypy.
+  "unsubscriptable-object",
 ]
 
 [tool.pylint.design]

@@ -12,6 +12,7 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 
 from frequenz.sdk.timeseries import Sample
+from frequenz.sdk.timeseries._quantities import Quantity
 from frequenz.sdk.timeseries._ringbuffer import OrderedRingBuffer
 
 FIVE_MINUTES = timedelta(minutes=5)
@@ -75,7 +76,7 @@ def main(ringbuffer_len: int, iterations: int, gap_size: int) -> None:
                 datetime.fromtimestamp(
                     200 + i * FIVE_MINUTES.total_seconds(), tz=timezone.utc
                 ),
-                i,
+                Quantity(i),
             )
         )
 

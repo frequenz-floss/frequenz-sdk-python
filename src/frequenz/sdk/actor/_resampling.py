@@ -13,6 +13,7 @@ from frequenz.channels import Receiver, Sender
 
 from .._internal._asyncio import cancel_and_await
 from ..timeseries import Sample
+from ..timeseries._quantities import Quantity
 from ..timeseries._resampling import Resampler, ResamplerConfig, ResamplingError
 from ._channel_registry import ChannelRegistry
 from ._data_sourcing import ComponentMetricRequest
@@ -80,7 +81,7 @@ class ComponentMetricsResamplingActor:
         # exceptions to report errors.
         sender = self._channel_registry.new_sender(request.get_channel_name())
 
-        async def sink_adapter(sample: Sample) -> None:
+        async def sink_adapter(sample: Sample[Quantity]) -> None:
             await sender.send(sample)
 
         self._resampler.add_timeseries(request_channel_name, receiver, sink_adapter)

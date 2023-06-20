@@ -22,6 +22,7 @@ from frequenz.sdk import actor, microgrid
 from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.actor.power_distributing import Result, Success
 from frequenz.sdk.timeseries import Sample
+from frequenz.sdk.timeseries._quantities import Power
 
 _logger = logging.getLogger(__name__)
 HOST = "microgrid.sandbox.api.frequenz.io"  # it should be the host name.
@@ -61,13 +62,13 @@ class DecisionMakingActor:
 
             avg_power = sum(request) / len(request)
             _logger.debug("Avg power %d", avg_power)
-            power_to_set: float
+            power_to_set: Power
             if avg_power > 30000:
                 # Charge
-                power_to_set = 10000.0
+                power_to_set = Power(10000.0)
             else:
                 # Discharge
-                power_to_set = -10000.0
+                power_to_set = Power(-10000.0)
 
             await battery_pool.set_power(power_to_set)
             try:
@@ -97,7 +98,7 @@ class DataCollectingActor:
     def __init__(
         self,
         request_channel: Sender[List[float]],
-        active_power_data: Receiver[Sample],
+        active_power_data: Receiver[Sample[Power]],
     ) -> None:
         """Create actor instance.
 
@@ -126,7 +127,9 @@ class DataCollectingActor:
                 if (datetime.now(timezone.utc) - time_data).total_seconds() > 30:
                     _logger.error("Active power data are stale")
                     continue
-                queue.put_nowait(active_power.value)
+                queue.put_nowait(
+                    None if not active_power.value else active_power.value.base_value
+                )
 
             await self._request_channel.send(list(queue.queue))
 

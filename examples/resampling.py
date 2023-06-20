@@ -19,6 +19,7 @@ from frequenz.sdk.actor import (
 from frequenz.sdk.microgrid import connection_manager
 from frequenz.sdk.microgrid.component import ComponentCategory, ComponentMetricId
 from frequenz.sdk.timeseries import Sample
+from frequenz.sdk.timeseries._quantities import Quantity
 from frequenz.sdk.timeseries._resampling import Resampler, ResamplerConfig, Sink, Source
 
 HOST = "microgrid.sandbox.api.frequenz.io"
@@ -33,11 +34,11 @@ async def _calculate_average(source: Source, sink: Sink) -> None:
         count += 1
         if sample.value is None:
             continue
-        avg = avg * (count - 1) / count + sample.value / count
-        await sink(Sample(datetime.now(timezone.utc), avg))
+        avg = avg * (count - 1) / count + sample.value.base_value / count
+        await sink(Sample(datetime.now(timezone.utc), Quantity(avg)))
 
 
-async def _print_sample(sample: Sample) -> None:
+async def _print_sample(sample: Sample[Quantity]) -> None:
     print(f"\nResampled average at {sample.timestamp}: {sample.value}\n")
 
 
@@ -105,7 +106,7 @@ async def run() -> None:  # pylint: disable=too-many-locals
     )
 
     # Create a channel to calculate an average for all the data
-    average_chan = Broadcast[Sample]("average")
+    average_chan = Broadcast[Sample[Quantity]]("average")
 
     second_stage_resampler = Resampler(
         ResamplerConfig(resampling_period=timedelta(seconds=3.0))
@@ -117,7 +118,7 @@ async def run() -> None:  # pylint: disable=too-many-locals
     average_sender = average_chan.new_sender()
 
     # Needed until channels Senders raises exceptions on errors
-    async def sink_adapter(sample: Sample) -> None:
+    async def sink_adapter(sample: Sample[Quantity]) -> None:
         await average_sender.send(sample)
 
     print("Starting...")

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from ....microgrid import connection_manager
 from ....microgrid.component import ComponentCategory, ComponentMetricId
+from ..._quantities import Power
 from .._formula_engine import FormulaEngine
 from ._formula_generator import (
     NON_EXISTING_COMPONENT_ID,
@@ -15,14 +16,14 @@ from ._formula_generator import (
 )
 
 
-class ProducerPowerFormula(FormulaGenerator):
+class ProducerPowerFormula(FormulaGenerator[Power]):
     """Formula generator from component graph for calculating the Producer Power.
 
     The producer power is calculated by summing up the power of all power producers,
     which are CHP and PV.
     """
 
-    def generate(self) -> FormulaEngine:
+    def generate(self) -> FormulaEngine[Power]:
         """Generate formula for calculating producer power from the component graph.
 
         Returns:
@@ -34,7 +35,9 @@ class ProducerPowerFormula(FormulaGenerator):
             RuntimeError: If the grid component has a single successor that is not a
                 meter.
         """
-        builder = self._get_builder("producer_power", ComponentMetricId.ACTIVE_POWER)
+        builder = self._get_builder(
+            "producer_power", ComponentMetricId.ACTIVE_POWER, Power
+        )
         component_graph = connection_manager.get().component_graph
         grid_component = next(
             iter(

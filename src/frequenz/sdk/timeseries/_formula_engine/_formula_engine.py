@@ -28,6 +28,7 @@ from frequenz.channels import Broadcast, Receiver
 
 from ..._internal._asyncio import cancel_and_await
 from .. import Sample, Sample3Phase
+from .._quantities import QuantityT
 from ._formula_steps import (
     Adder,
     Averager,
@@ -54,14 +55,15 @@ _operator_precedence = {
 }
 
 
-class FormulaEvaluator:
+class FormulaEvaluator(Generic[QuantityT]):
     """A post-fix formula evaluator that operates on `Sample` receivers."""
 
     def __init__(
         self,
         name: str,
         steps: List[FormulaStep],
-        metric_fetchers: Dict[str, MetricFetcher],
+        metric_fetchers: Dict[str, MetricFetcher[QuantityT]],
+        output_type: Type[QuantityT],
     ) -> None:
         """Create a `FormulaEngine` instance.
 
@@ -69,14 +71,18 @@ class FormulaEvaluator:
             name: A name for the formula.
             steps: Steps for the engine to execute, in post-fix order.
             metric_fetchers: Fetchers for each metric stream the formula depends on.
+            output_type: A type object to generate the output `Sample` with.  If the
+                formula is for generating power values, this would be `Power`, for
+                example.
         """
         self._name = name
         self._steps = steps
-        self._metric_fetchers = metric_fetchers
+        self._metric_fetchers: Dict[str, MetricFetcher[QuantityT]] = metric_fetchers
         self._first_run = True
+        self._output_type: type[QuantityT] = output_type
 
     async def _synchronize_metric_timestamps(
-        self, metrics: Set[asyncio.Task[Optional[Sample]]]
+        self, metrics: Set[asyncio.Task[Optional[Sample[QuantityT]]]]
     ) -> datetime:
         """Synchronize the metric streams.
 
@@ -123,7 +129,7 @@ class FormulaEvaluator:
         self._first_run = False
         return latest_ts
 
-    async def apply(self) -> Sample:
+    async def apply(self) -> Sample[QuantityT]:
         """Fetch the latest metrics, apply the formula once and return the result.
 
         Returns:
@@ -166,7 +172,7 @@ class FormulaEvaluator:
         if isnan(res) or isinf(res):
             return Sample(metric_ts, None)
 
-        return Sample(metric_ts, res)
+        return Sample(metric_ts, self._output_type(res))
 
 
 _CompositionType = Union[
@@ -186,19 +192,33 @@ _CompositionType3Phase = Union[
     "HigherOrderFormulaBuilder3Phase",
 ]
 
-_GenericEngine = TypeVar("_GenericEngine", "FormulaEngine", "FormulaEngine3Phase")
+# The `FormulaEngine*` and `HigherOrderFormulaBuilder*` classes are generic, but
+# `TypeVar`s can't be defined on generic types, so we need to use `# type: ignore` to
+# avoid mypy errors, and they get treated as `FormulaEngine[Any]`, etc.
+#
+# This is not ideal, but it's the best we can do until mypy supports generic types with
+# `TypeVar`s.
+_GenericEngine = TypeVar(
+    "_GenericEngine",
+    "FormulaEngine",  # type: ignore
+    "FormulaEngine3Phase",  # type: ignore
+)
 _GenericHigherOrderBuilder = TypeVar(
     "_GenericHigherOrderBuilder",
-    "HigherOrderFormulaBuilder",
-    "HigherOrderFormulaBuilder3Phase",
+    "HigherOrderFormulaBuilder",  # type: ignore
+    "HigherOrderFormulaBuilder3Phase",  # type: ignore
 )
 
 
+# This class has multiple generic type parameters that should also restrict each other,
+# but mypy doesn't support that, so we need to use `# type: ignore` in several places in
+# this, and subsequent classes, to avoid mypy errors.
 class _ComposableFormulaEngine(
-    ABC, Generic[_GenericEngine, _GenericHigherOrderBuilder]
+    ABC, Generic[_GenericEngine, _GenericHigherOrderBuilder, QuantityT]
 ):
     """A base class for formula engines."""
 
+    _output_type: Type[QuantityT]
     _higher_order_builder: Type[_GenericHigherOrderBuilder]
     _task: asyncio.Task[None] | None = None
 
@@ -222,7 +242,7 @@ class _ComposableFormulaEngine(
             A formula builder that can take further expressions, or can be built
                 into a formula engine.
         """
-        return self._higher_order_builder(self) + other  # type: ignore
+        return self._higher_order_builder(self, self._output_type) + other  # type: ignore
 
     def __sub__(
         self, other: _GenericEngine | _GenericHigherOrderBuilder
@@ -237,7 +257,7 @@ class _ComposableFormulaEngine(
             A formula builder that can take further expressions, or can be built
                 into a formula engine.
         """
-        return self._higher_order_builder(self) - other  # type: ignore
+        return self._higher_order_builder(self, self._output_type) - other  # type: ignore
 
     def __mul__(
         self, other: _GenericEngine | _GenericHigherOrderBuilder
@@ -252,7 +272,7 @@ class _ComposableFormulaEngine(
             A formula builder that can take further expressions, or can be built
                 into a formula engine.
         """
-        return self._higher_order_builder(self) * other  # type: ignore
+        return self._higher_order_builder(self, self._output_type) * other  # type: ignore
 
     def __truediv__(
         self, other: _GenericEngine | _GenericHigherOrderBuilder
@@ -267,11 +287,16 @@ class _ComposableFormulaEngine(
             A formula builder that can take further expressions, or can be built
                 into a formula engine.
         """
-        return self._higher_order_builder(self) / other  # type: ignore
+        return self._higher_order_builder(self, self._output_type) / other  # type: ignore
 
 
 class FormulaEngine(
-    _ComposableFormulaEngine["FormulaEngine", "HigherOrderFormulaBuilder"]
+    Generic[QuantityT],
+    _ComposableFormulaEngine[
+        "FormulaEngine",  # type: ignore[type-arg]
+        "HigherOrderFormulaBuilder",  # type: ignore[type-arg]
+        QuantityT,
+    ],
 ):
     """
     The FormulaEngine evaluates formulas and streams the results.
@@ -281,23 +306,30 @@ class FormulaEngine(
 
     def __init__(
         self,
-        builder: FormulaBuilder,
+        builder: FormulaBuilder[QuantityT],
+        output_type: Type[QuantityT],
     ) -> None:
         """Create a `FormulaEngine` instance.
 
         Args:
             builder: A `FormulaBuilder` instance to get the formula steps and metric
                 fetchers from.
+            output_type: A type object to generate the output `Sample` with.  If the
+                formula is for generating power values, this would be `Power`, for
+                example.
         """
         self._higher_order_builder = HigherOrderFormulaBuilder
         self._name: str = builder.name
-        self._builder = builder
-        self._channel = Broadcast[Sample](self._name)
+        self._builder: FormulaBuilder[QuantityT] = builder
+        self._output_type: Type[QuantityT] = output_type  # type: ignore
+        self._channel: Broadcast[Sample[QuantityT]] = Broadcast(self._name)
 
     async def _run(self) -> None:
         await self._builder.subscribe()
         steps, metric_fetchers = self._builder.finalize()
-        evaluator = FormulaEvaluator(self._name, steps, metric_fetchers)
+        evaluator = FormulaEvaluator[QuantityT](
+            self._name, steps, metric_fetchers, self._output_type
+        )
         sender = self._channel.new_sender()
         while True:
             try:
@@ -314,7 +346,7 @@ class FormulaEngine(
 
     def new_receiver(
         self, name: Optional[str] = None, max_size: int = 50
-    ) -> Receiver[Sample]:
+    ) -> Receiver[Sample[QuantityT]]:
         """Create a new receiver that streams the output of the formula engine.
 
         Args:
@@ -331,7 +363,11 @@ class FormulaEngine(
 
 
 class FormulaEngine3Phase(
-    _ComposableFormulaEngine["FormulaEngine3Phase", "HigherOrderFormulaBuilder3Phase"]
+    _ComposableFormulaEngine[
+        "FormulaEngine3Phase",  # type: ignore[type-arg]
+        "HigherOrderFormulaBuilder3Phase",  # type: ignore[type-arg]
+        QuantityT,
+    ]
 ):
     """
     The FormulaEngine evaluates formulas and streams the results.
@@ -342,20 +378,31 @@ class FormulaEngine3Phase(
     def __init__(
         self,
         name: str,
-        phase_streams: Tuple[FormulaEngine, FormulaEngine, FormulaEngine],
+        output_type: Type[QuantityT],
+        phase_streams: Tuple[
+            FormulaEngine[QuantityT],
+            FormulaEngine[QuantityT],
+            FormulaEngine[QuantityT],
+        ],
     ) -> None:
         """Create a `FormulaEngine3Phase` instance.
 
         Args:
             name: A name for the formula.
+            output_type: A type object to generate the output `Sample` with.  If the
+                formula is for generating power values, this would be `Power`, for
+                example.
             phase_streams: output streams of formula engines running per-phase formulas.
         """
         self._higher_order_builder = HigherOrderFormulaBuilder3Phase
         self._name: str = name
-        self._channel = Broadcast[Sample3Phase](self._name)
+        self._output_type = output_type
+        self._channel: Broadcast[Sample3Phase[QuantityT]] = Broadcast(self._name)
         self._task: asyncio.Task[None] | None = None
         self._streams: tuple[
-            FormulaEngine, FormulaEngine, FormulaEngine
+            FormulaEngine[QuantityT],
+            FormulaEngine[QuantityT],
+            FormulaEngine[QuantityT],
         ] = phase_streams
 
     async def _run(self) -> None:
@@ -383,7 +430,7 @@ class FormulaEngine3Phase(
 
     def new_receiver(
         self, name: Optional[str] = None, max_size: int = 50
-    ) -> Receiver[Sample3Phase]:
+    ) -> Receiver[Sample3Phase[QuantityT]]:
         """Create a new receiver that streams the output of the formula engine.
 
         Args:
@@ -399,7 +446,7 @@ class FormulaEngine3Phase(
         return self._channel.new_receiver(name, max_size)
 
 
-class FormulaBuilder:
+class FormulaBuilder(Generic[QuantityT]):
     """Builds a post-fix formula engine that operates on `Sample` receivers.
 
     Operators and metrics need to be pushed in in-fix order, and they get rearranged
@@ -411,10 +458,12 @@ class FormulaBuilder:
         following calls need to be made:
 
         ```python
-        channel = Broadcast[Sample]("channel")
+        from frequenz.sdk.timeseries import Power
+
+        channel = Broadcast[Sample[Power]]("channel")
         receiver_1 = channel.new_receiver("receiver_1")
         receiver_2 = channel.new_receiver("receiver_2")
-        builder = FormulaBuilder("addition")
+        builder = FormulaBuilder("addition", Power)
         builder.push_metric("metric_1", receiver_1, nones_are_zeros=True)
         builder.push_oper("+")
         builder.push_metric("metric_2", receiver_2, nones_are_zeros=True)
@@ -425,16 +474,20 @@ class FormulaBuilder:
         add the values and return the result.
     """
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, output_type: Type[QuantityT]) -> None:
         """Create a `FormulaBuilder` instance.
 
         Args:
             name: A name for the formula being built.
+            output_type: A type object to generate the output `Sample` with.  If the
+                formula is for generating power values, this would be `Power`, for
+                example.
         """
         self._name = name
+        self._output_type: Type[QuantityT] = output_type
         self._build_stack: List[FormulaStep] = []
         self._steps: List[FormulaStep] = []
-        self._metric_fetchers: Dict[str, MetricFetcher] = {}
+        self._metric_fetchers: Dict[str, MetricFetcher[QuantityT]] = {}
 
     def push_oper(self, oper: str) -> None:
         """Push an operator into the engine.
@@ -470,7 +523,7 @@ class FormulaBuilder:
     def push_metric(
         self,
         name: str,
-        data_stream: Receiver[Sample],
+        data_stream: Receiver[Sample[QuantityT]],
         nones_are_zeros: bool,
     ) -> None:
         """Push a metric receiver into the engine.
@@ -506,8 +559,10 @@ class FormulaBuilder:
         For example, this clips the output of the entire expression:
 
         ```python
-        builder = FormulaBuilder("example")
-        channel = Broadcast[Sample]("channel")
+        from frequenz.sdk.timeseries import Power
+
+        builder = FormulaBuilder("example", Power)
+        channel = Broadcast[Sample[Power]]("channel")
         receiver_1 = channel.new_receiver("receiver_1")
         receiver_2 = channel.new_receiver("receiver_2")
 
@@ -522,8 +577,10 @@ class FormulaBuilder:
         And this clips the output of metric_2 only, and not the final result:
 
         ```python
-        builder = FormulaBuilder("example")
-        channel = Broadcast[Sample]("channel")
+        from frequenz.sdk.timeseries import Power
+
+        builder = FormulaBuilder("example", Power)
+        channel = Broadcast[Sample[Power]]("channel")
         receiver_1 = channel.new_receiver("receiver_1")
         receiver_2 = channel.new_receiver("receiver_2")
 
@@ -539,13 +596,15 @@ class FormulaBuilder:
         """
         self._steps.append(Clipper(min_value, max_value))
 
-    def push_average(self, metrics: List[Tuple[str, Receiver[Sample], bool]]) -> None:
+    def push_average(
+        self, metrics: List[Tuple[str, Receiver[Sample[QuantityT]], bool]]
+    ) -> None:
         """Push an average calculator into the engine.
 
         Args:
             metrics: list of arguments to pass to each `MetricFetcher`.
         """
-        fetchers: List[MetricFetcher] = []
+        fetchers: List[MetricFetcher[QuantityT]] = []
         for metric in metrics:
             fetcher = self._metric_fetchers.setdefault(
                 metric[0], MetricFetcher(*metric)
@@ -569,7 +628,9 @@ class FormulaBuilder:
         `ResampledFormulaBuilder` class.
         """
 
-    def finalize(self) -> tuple[list[FormulaStep], dict[str, MetricFetcher]]:
+    def finalize(
+        self,
+    ) -> tuple[list[FormulaStep], dict[str, MetricFetcher[QuantityT]]]:
         """Finalize and return the steps and fetchers for the formula.
 
         Returns:
@@ -580,46 +641,60 @@ class FormulaBuilder:
 
         return self._steps, self._metric_fetchers
 
-    def build(self) -> FormulaEngine:
+    def build(self) -> FormulaEngine[QuantityT]:
         """Create a formula engine with the steps and fetchers that have been pushed.
 
         Returns:
             A `FormulaEngine` instance.
         """
         self.finalize()
-        return FormulaEngine(self)
+        return FormulaEngine(self, output_type=self._output_type)
 
 
-class _BaseHOFormulaBuilder(ABC):
+class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
     """Provides a way to build formulas from the outputs of other formulas."""
 
-    def __init__(self, engine: FormulaEngine | FormulaEngine3Phase) -> None:
+    def __init__(
+        self,
+        engine: FormulaEngine[QuantityT] | FormulaEngine3Phase[QuantityT],
+        output_type: Type[QuantityT],
+    ) -> None:
         """Create a `GenericHigherOrderFormulaBuilder` instance.
 
         Args:
             engine: A first input stream to create a builder with, so that python
                 operators `+, -, *, /` can be used directly on newly created instances.
+            output_type: A type object to generate the output `Sample` with.  If the
+                formula is for generating power values, this would be `Power`, for
+                example.
         """
         self._steps: deque[
-            tuple[TokenType, FormulaEngine | FormulaEngine3Phase | str]
+            tuple[
+                TokenType,
+                FormulaEngine[QuantityT] | FormulaEngine3Phase[QuantityT] | str,
+            ]
         ] = deque()
         self._steps.append((TokenType.COMPONENT_METRIC, engine))
+        self._output_type: Type[QuantityT] = output_type
 
     @overload
     def _push(
         self, oper: str, other: _CompositionType1Phase
-    ) -> HigherOrderFormulaBuilder:
+    ) -> HigherOrderFormulaBuilder[QuantityT]:
         ...
 
     @overload
     def _push(
         self, oper: str, other: _CompositionType3Phase
-    ) -> HigherOrderFormulaBuilder3Phase:
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
         ...
 
     def _push(
         self, oper: str, other: _CompositionType
-    ) -> HigherOrderFormulaBuilder | HigherOrderFormulaBuilder3Phase:
+    ) -> (
+        HigherOrderFormulaBuilder[QuantityT]
+        | HigherOrderFormulaBuilder3Phase[QuantityT]
+    ):
         self._steps.appendleft((TokenType.OPER, "("))
         self._steps.append((TokenType.OPER, ")"))
         self._steps.append((TokenType.OPER, oper))
@@ -640,16 +715,23 @@ class _BaseHOFormulaBuilder(ABC):
         return self
 
     @overload
-    def __add__(self, other: _CompositionType1Phase) -> HigherOrderFormulaBuilder:
+    def __add__(
+        self, other: _CompositionType1Phase
+    ) -> HigherOrderFormulaBuilder[QuantityT]:
         ...
 
     @overload
-    def __add__(self, other: _CompositionType3Phase) -> HigherOrderFormulaBuilder3Phase:
+    def __add__(
+        self, other: _CompositionType3Phase
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
         ...
 
     def __add__(
         self, other: _CompositionType
-    ) -> HigherOrderFormulaBuilder | HigherOrderFormulaBuilder3Phase:
+    ) -> (
+        HigherOrderFormulaBuilder[QuantityT]
+        | HigherOrderFormulaBuilder3Phase[QuantityT]
+    ):
         """Return a formula builder that adds (data in) `other` to `self`.
 
         Args:
@@ -663,17 +745,24 @@ class _BaseHOFormulaBuilder(ABC):
         return self._push("+", other)
 
     @overload
-    def __sub__(self, other: _CompositionType1Phase) -> HigherOrderFormulaBuilder:
+    def __sub__(
+        self, other: _CompositionType1Phase
+    ) -> HigherOrderFormulaBuilder[QuantityT]:
         ...
 
     @overload
-    def __sub__(self, other: _CompositionType3Phase) -> HigherOrderFormulaBuilder3Phase:
+    def __sub__(
+        self, other: _CompositionType3Phase
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
         ...
 
     def __sub__(
         self,
         other: _CompositionType,
-    ) -> HigherOrderFormulaBuilder | HigherOrderFormulaBuilder3Phase:
+    ) -> (
+        HigherOrderFormulaBuilder[QuantityT]
+        | HigherOrderFormulaBuilder3Phase[QuantityT]
+    ):
         """Return a formula builder that subtracts (data in) `other` from `self`.
 
         Args:
@@ -687,17 +776,24 @@ class _BaseHOFormulaBuilder(ABC):
         return self._push("-", other)
 
     @overload
-    def __mul__(self, other: _CompositionType1Phase) -> HigherOrderFormulaBuilder:
+    def __mul__(
+        self, other: _CompositionType1Phase
+    ) -> HigherOrderFormulaBuilder[QuantityT]:
         ...
 
     @overload
-    def __mul__(self, other: _CompositionType3Phase) -> HigherOrderFormulaBuilder3Phase:
+    def __mul__(
+        self, other: _CompositionType3Phase
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
         ...
 
     def __mul__(
         self,
         other: _CompositionType,
-    ) -> HigherOrderFormulaBuilder | HigherOrderFormulaBuilder3Phase:
+    ) -> (
+        HigherOrderFormulaBuilder[QuantityT]
+        | HigherOrderFormulaBuilder3Phase[QuantityT]
+    ):
         """Return a formula builder that multiplies (data in) `self` with `other`.
 
         Args:
@@ -711,19 +807,24 @@ class _BaseHOFormulaBuilder(ABC):
         return self._push("*", other)
 
     @overload
-    def __truediv__(self, other: _CompositionType1Phase) -> HigherOrderFormulaBuilder:
+    def __truediv__(
+        self, other: _CompositionType1Phase
+    ) -> HigherOrderFormulaBuilder[QuantityT]:
         ...
 
     @overload
     def __truediv__(
         self, other: _CompositionType3Phase
-    ) -> HigherOrderFormulaBuilder3Phase:
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
         ...
 
     def __truediv__(
         self,
         other: _CompositionType,
-    ) -> HigherOrderFormulaBuilder | HigherOrderFormulaBuilder3Phase:
+    ) -> (
+        HigherOrderFormulaBuilder[QuantityT]
+        | HigherOrderFormulaBuilder3Phase[QuantityT]
+    ):
         """Return a formula builder that divides (data in) `self` by `other`.
 
         Args:
@@ -737,10 +838,12 @@ class _BaseHOFormulaBuilder(ABC):
         return self._push("/", other)
 
 
-class HigherOrderFormulaBuilder(_BaseHOFormulaBuilder):
+class HigherOrderFormulaBuilder(Generic[QuantityT], _BaseHOFormulaBuilder[QuantityT]):
     """A specialization of the _BaseHOFormulaBuilder for `FormulaReceiver`."""
 
-    def build(self, name: str, nones_are_zeros: bool = False) -> FormulaEngine:
+    def build(
+        self, name: str, nones_are_zeros: bool = False
+    ) -> FormulaEngine[QuantityT]:
         """Build a `FormulaEngine` instance from the builder.
 
         Args:
@@ -751,7 +854,7 @@ class HigherOrderFormulaBuilder(_BaseHOFormulaBuilder):
         Returns:
             A `FormulaEngine` instance.
         """
-        builder = FormulaBuilder(name)
+        builder = FormulaBuilder(name, self._output_type)
         for typ, value in self._steps:
             if typ == TokenType.COMPONENT_METRIC:
                 assert isinstance(value, FormulaEngine)
@@ -766,10 +869,14 @@ class HigherOrderFormulaBuilder(_BaseHOFormulaBuilder):
         return builder.build()
 
 
-class HigherOrderFormulaBuilder3Phase(_BaseHOFormulaBuilder):
+class HigherOrderFormulaBuilder3Phase(
+    Generic[QuantityT], _BaseHOFormulaBuilder[QuantityT]
+):
     """A specialization of the _BaseHOFormulaBuilder for `FormulaReceiver3Phase`."""
 
-    def build(self, name: str, nones_are_zeros: bool = False) -> FormulaEngine3Phase:
+    def build(
+        self, name: str, nones_are_zeros: bool = False
+    ) -> FormulaEngine3Phase[QuantityT]:
         """Build a `FormulaEngine3Phase` instance from the builder.
 
         Args:
@@ -780,7 +887,11 @@ class HigherOrderFormulaBuilder3Phase(_BaseHOFormulaBuilder):
         Returns:
             A `FormulaEngine3Phase` instance.
         """
-        builders = [FormulaBuilder(name), FormulaBuilder(name), FormulaBuilder(name)]
+        builders = [
+            FormulaBuilder(name, self._output_type),
+            FormulaBuilder(name, self._output_type),
+            FormulaBuilder(name, self._output_type),
+        ]
         for typ, value in self._steps:
             if typ == TokenType.COMPONENT_METRIC:
                 assert isinstance(value, FormulaEngine3Phase)
@@ -798,6 +909,7 @@ class HigherOrderFormulaBuilder3Phase(_BaseHOFormulaBuilder):
                     builders[phase].push_oper(value)
         return FormulaEngine3Phase(
             name,
+            self._output_type,
             (
                 builders[0].build(),
                 builders[1].build(),

@@ -6,14 +6,16 @@
 import functools
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Callable, Iterator, Self, overload
+from typing import Callable, Generic, Iterator, Self, overload
+
+from ._quantities import QuantityT
 
 UNIX_EPOCH = datetime.fromtimestamp(0.0, tz=timezone.utc)
 """The UNIX epoch (in UTC)."""
 
 
 @dataclass(frozen=True, order=True)
-class Sample:
+class Sample(Generic[QuantityT]):
     """A measurement taken at a particular point in time.
 
     The `value` could be `None` if a component is malfunctioning or data is
@@ -24,12 +26,12 @@ class Sample:
     timestamp: datetime
     """The time when this sample was generated."""
 
-    value: float | None = None
+    value: QuantityT | None = None
     """The value of this sample."""
 
 
 @dataclass(frozen=True)
-class Sample3Phase:
+class Sample3Phase(Generic[QuantityT]):
     """A 3-phase measurement made at a particular point in time.
 
     Each of the `value` fields could be `None` if a component is malfunctioning
@@ -40,16 +42,16 @@ class Sample3Phase:
 
     timestamp: datetime
     """The time when this sample was generated."""
-    value_p1: float | None
+    value_p1: QuantityT | None
     """The value of the 1st phase in this sample."""
 
-    value_p2: float | None
+    value_p2: QuantityT | None
     """The value of the 2nd phase in this sample."""
 
-    value_p3: float | None
+    value_p3: QuantityT | None
     """The value of the 3rd phase in this sample."""
 
-    def __iter__(self) -> Iterator[float | None]:
+    def __iter__(self) -> Iterator[QuantityT | None]:
         """Return an iterator that yields values from each of the phases.
 
         Yields:
@@ -60,14 +62,14 @@ class Sample3Phase:
         yield self.value_p3
 
     @overload
-    def max(self, default: float) -> float:
+    def max(self, default: QuantityT) -> QuantityT:
         ...
 
     @overload
-    def max(self, default: None = None) -> float | None:
+    def max(self, default: None = None) -> QuantityT | None:
         ...
 
-    def max(self, default: float | None = None) -> float | None:
+    def max(self, default: QuantityT | None = None) -> QuantityT | None:
         """Return the max value among all phases, or default if they are all `None`.
 
         Args:
@@ -78,21 +80,21 @@ class Sample3Phase:
         """
         if not any(self):
             return default
-        value: float = functools.reduce(
+        value: QuantityT = functools.reduce(
             lambda x, y: x if x > y else y,
             filter(None, self),
         )
         return value
 
     @overload
-    def min(self, default: float) -> float:
+    def min(self, default: QuantityT) -> QuantityT:
         ...
 
     @overload
-    def min(self, default: None = None) -> float | None:
+    def min(self, default: None = None) -> QuantityT | None:
         ...
 
-    def min(self, default: float | None = None) -> float | None:
+    def min(self, default: QuantityT | None = None) -> QuantityT | None:
         """Return the min value among all phases, or default if they are all `None`.
 
         Args:
@@ -103,14 +105,16 @@ class Sample3Phase:
         """
         if not any(self):
             return default
-        value: float = functools.reduce(
+        value: QuantityT = functools.reduce(
             lambda x, y: x if x < y else y,
             filter(None, self),
         )
         return value
 
     def map(
-        self, function: Callable[[float], float], default: float | None = None
+        self,
+        function: Callable[[QuantityT], QuantityT],
+        default: QuantityT | None = None,
     ) -> Self:
         """Apply the given function on each of the phase values and return the result.
 

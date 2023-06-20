@@ -15,6 +15,7 @@ import numpy as np
 
 import frequenz.sdk.timeseries._ringbuffer as rb
 from frequenz.sdk.timeseries import Sample
+from frequenz.sdk.timeseries._quantities import Quantity
 
 FILE_NAME = "ringbuffer.pkl"
 FIVE_MINUTES = timedelta(minutes=5)
@@ -72,7 +73,7 @@ def main() -> None:
                 datetime.fromtimestamp(
                     200 + i * FIVE_MINUTES.total_seconds(), tz=timezone.utc
                 ),
-                i,
+                Quantity(i),
             )
         )
 

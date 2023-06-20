@@ -8,6 +8,7 @@ import logging
 from ....microgrid import connection_manager
 from ....microgrid.component import ComponentMetricId
 from ..._formula_engine import FormulaEngine
+from ..._quantities import Power
 from ._formula_generator import (
     NON_EXISTING_COMPONENT_ID,
     ComponentNotFound,
@@ -18,12 +19,12 @@ from ._formula_generator import (
 _logger = logging.getLogger(__name__)
 
 
-class BatteryPowerFormula(FormulaGenerator):
+class BatteryPowerFormula(FormulaGenerator[Power]):
     """Creates a formula engine from the component graph for calculating grid power."""
 
     def generate(
         self,
-    ) -> FormulaEngine:
+    ) -> FormulaEngine[Power]:
         """Make a formula for the cumulative AC battery power of a microgrid.
 
         The calculation is performed by adding the Active Powers of all the inverters
@@ -41,7 +42,9 @@ class BatteryPowerFormula(FormulaGenerator):
             FormulaGenerationError: If a battery has a non-inverter predecessor
                 in the component graph.
         """
-        builder = self._get_builder("battery-power", ComponentMetricId.ACTIVE_POWER)
+        builder = self._get_builder(
+            "battery-power", ComponentMetricId.ACTIVE_POWER, Power
+        )
         component_ids = self._config.component_ids
         if not component_ids:
             _logger.warning(

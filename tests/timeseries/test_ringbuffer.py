@@ -14,6 +14,7 @@ import numpy as np
 import pytest
 
 from frequenz.sdk.timeseries import Sample
+from frequenz.sdk.timeseries._quantities import Quantity
 from frequenz.sdk.timeseries._ringbuffer import Gap, OrderedRingBuffer
 
 FIVE_MINUTES = timedelta(minutes=5)
@@ -49,7 +50,10 @@ def test_timestamp_ringbuffer(buffer: OrderedRingBuffer[Any]) -> None:
     # for i in random.sample(range(size), size):
     for i in range(size):
         buffer.update(
-            Sample(datetime.fromtimestamp(200 + i * resolution, tz=timezone.utc), i)
+            Sample(
+                datetime.fromtimestamp(200 + i * resolution, tz=timezone.utc),
+                Quantity(i),
+            )
         )
 
     # Check all possible window sizes and start positions
@@ -78,11 +82,15 @@ def test_timestamp_ringbuffer_overwrite(buffer: OrderedRingBuffer[Any]) -> None:
 
     # Push in random order
     for i in random.sample(range(size), size):
-        buffer.update(Sample(datetime.fromtimestamp(200 + i, tz=timezone.utc), i))
+        buffer.update(
+            Sample(datetime.fromtimestamp(200 + i, tz=timezone.utc), Quantity(i))
+        )
 
     # Push the same amount twice
     for i in random.sample(range(size), size):
-        buffer.update(Sample(datetime.fromtimestamp(200 + i, tz=timezone.utc), i * 2))
+        buffer.update(
+            Sample(datetime.fromtimestamp(200 + i, tz=timezone.utc), Quantity(i * 2))
+        )
 
     # Check all possible window sizes and start positions
     for i in range(size):
@@ -114,7 +122,9 @@ def test_timestamp_ringbuffer_gaps(
 
     # Add initial data
     for i in random.sample(range(size), size):
-        buffer.update(Sample(datetime.fromtimestamp(200 + i, tz=timezone.utc), i))
+        buffer.update(
+            Sample(datetime.fromtimestamp(200 + i, tz=timezone.utc), Quantity(i))
+        )
 
     # Request window of the data
     buffer.window(
@@ -123,7 +133,9 @@ def test_timestamp_ringbuffer_gaps(
     )
 
     # Add entry far in the future
-    buffer.update(Sample(datetime.fromtimestamp(500 + size, tz=timezone.utc), 9999))
+    buffer.update(
+        Sample(datetime.fromtimestamp(500 + size, tz=timezone.utc), Quantity(9999))
+    )
 
     # Expect exception for the same window
     with pytest.raises(IndexError):
@@ -153,7 +165,7 @@ def test_timestamp_ringbuffer_missing_parameter(
     buffer: OrderedRingBuffer[Any],
 ) -> None:
     """Test ordered ring buffer."""
-    buffer.update(Sample(datetime(2, 2, 2, 0, 0, tzinfo=timezone.utc), 0))
+    buffer.update(Sample(datetime(2, 2, 2, 0, 0, tzinfo=timezone.utc), Quantity(0)))
 
     # pylint: disable=protected-access
     assert buffer.normalize_timestamp(buffer.gaps[0].start) == buffer.gaps[0].start
@@ -168,7 +180,7 @@ def test_timestamp_ringbuffer_missing_parameter(
     assert buffer.normalize_timestamp(
         datetime(2, 2, 2, 0, 7, 31, tzinfo=timezone.utc)
     ) == datetime(2, 2, 2, 0, 10, tzinfo=timezone.utc)
-    buffer.update(Sample(datetime(2, 2, 2, 0, 7, 31, tzinfo=timezone.utc), 0))
+    buffer.update(Sample(datetime(2, 2, 2, 0, 7, 31, tzinfo=timezone.utc), Quantity(0)))
 
     assert buffer.datetime_to_index(
         datetime(2, 2, 2, 0, 7, 31, tzinfo=timezone.utc)
@@ -176,7 +188,7 @@ def test_timestamp_ringbuffer_missing_parameter(
     assert len(buffer.gaps) == 2
 
     # import pdb; pdb.set_trace()
-    buffer.update(Sample(datetime(2, 2, 2, 0, 5, tzinfo=timezone.utc), 0))
+    buffer.update(Sample(datetime(2, 2, 2, 0, 5, tzinfo=timezone.utc), Quantity(0)))
     assert len(buffer.gaps) == 1
 
 
@@ -220,7 +232,7 @@ def test_timestamp_ringbuffer_missing_parameter_smoke(
                         200 + j * buffer.sampling_period.total_seconds(),
                         tz=timezone.utc,
                     ),
-                    None if missing else j,
+                    None if missing else Quantity(j),
                 )
             )
 
@@ -272,7 +284,7 @@ def test_len_ringbuffer_samples_fit_buffer_size() -> None:
         start_ts: datetime = datetime(2023, 1, 1, tzinfo=timezone.utc)
         for index, sample_value in enumerate(test_samples):
             timestamp = start_ts + timedelta(seconds=index)
-            buffer.update(Sample(timestamp, float(sample_value)))
+            buffer.update(Sample(timestamp, Quantity(float(sample_value))))
 
         assert len(buffer) == len(test_samples)
 
@@ -300,7 +312,7 @@ def test_len_ringbuffer_samples_overwrite_buffer() -> None:
         start_ts: datetime = datetime(2023, 1, 1, tzinfo=timezone.utc)
         for index, sample_value in enumerate(test_samples):
             timestamp = start_ts + timedelta(seconds=index)
-            buffer.update(Sample(timestamp, float(sample_value)))
+            buffer.update(Sample(timestamp, Quantity(float(sample_value))))
 
         assert len(buffer) == half_buffer_size
 

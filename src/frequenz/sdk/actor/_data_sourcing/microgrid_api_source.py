@@ -21,6 +21,7 @@ from ...microgrid.component import (
     MeterData,
 )
 from ...timeseries import Sample
+from ...timeseries._quantities import Quantity
 from .._channel_registry import ChannelRegistry
 
 
@@ -304,7 +305,7 @@ class MicrogridApiSource:
         self,
         category: ComponentCategory,
         requests: Dict[ComponentMetricId, List[ComponentMetricRequest]],
-    ) -> List[Tuple[Callable[[Any], float], List[Sender[Sample]]]]:
+    ) -> List[Tuple[Callable[[Any], float], List[Sender[Sample[Quantity]]]]]:
         """Get channel senders from the channel registry for each requested metric.
 
         Args:
@@ -355,7 +356,9 @@ class MicrogridApiSource:
             tasks = []
             for extractor, senders in stream_senders:
                 for sender in senders:
-                    tasks.append(sender.send(Sample(data.timestamp, extractor(data))))
+                    tasks.append(
+                        sender.send(Sample(data.timestamp, Quantity(extractor(data))))
+                    )
             asyncio.gather(*tasks)
             nonlocal pending_messages
             pending_messages -= 1

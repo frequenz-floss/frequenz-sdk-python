@@ -38,6 +38,7 @@ Example:
 from ._base_types import UNIX_EPOCH, Sample, Sample3Phase
 from ._moving_window import MovingWindow
 from ._periodic_feature_extractor import PeriodicFeatureExtractor
+from ._quantities import Current, Energy, Power, Quantity, QuantityT, Voltage
 from ._resampling import ResamplerConfig
 
 __all__ = [
@@ -47,4 +48,12 @@ __all__ = [
     "Sample",
     "Sample3Phase",
     "UNIX_EPOCH",
+    #
+    # Quantities
+    #
+    "Quantity",
+    "Current",
+    "Energy",
+    "Power",
+    "Voltage",
 ]

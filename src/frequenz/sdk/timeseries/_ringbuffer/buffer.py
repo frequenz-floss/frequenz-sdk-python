@@ -15,6 +15,7 @@ import numpy as np
 import numpy.typing as npt
 
 from .._base_types import UNIX_EPOCH, Sample
+from .._quantities import QuantityT
 
 FloatArray = TypeVar("FloatArray", List[float], npt.NDArray[np.float64])
 
@@ -112,7 +113,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         """
         return len(self._buffer)
 
-    def update(self, sample: Sample) -> None:
+    def update(self, sample: Sample[QuantityT]) -> None:
         """Update the buffer with a new value for the given timestamp.
 
         Missing values are written as NaN. Be advised that when
@@ -147,7 +148,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         self._datetime_oldest = self._datetime_newest - self._time_range
 
         # Update data
-        value: float = np.nan if sample.value is None else sample.value
+        value: float = np.nan if sample.value is None else sample.value.base_value
         self._buffer[self.datetime_to_index(timestamp)] = value
 
         self._update_gaps(timestamp, prev_newest, sample.value is None)

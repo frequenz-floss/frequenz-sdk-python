@@ -6,22 +6,23 @@
 import logging
 
 from ....microgrid.component import ComponentMetricId
+from ..._quantities import Power
 from .._formula_engine import FormulaEngine
 from ._formula_generator import NON_EXISTING_COMPONENT_ID, FormulaGenerator, FormulaType
 
 _logger = logging.getLogger(__name__)
 
 
-class EVChargerPowerFormula(FormulaGenerator):
+class EVChargerPowerFormula(FormulaGenerator[Power]):
     """Create a formula engine from the component graph for calculating grid power."""
 
-    def generate(self) -> FormulaEngine:
+    def generate(self) -> FormulaEngine[Power]:
         """Generate a formula for calculating total EV power for given component ids.
 
         Returns:
             A formula engine that calculates total EV Charger power values.
         """
-        builder = self._get_builder("ev-power", ComponentMetricId.ACTIVE_POWER)
+        builder = self._get_builder("ev-power", ComponentMetricId.ACTIVE_POWER, Power)
 
         component_ids = self._config.component_ids
         if not component_ids:
