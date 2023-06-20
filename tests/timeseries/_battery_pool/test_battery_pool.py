@@ -495,8 +495,8 @@ async def run_capacity_test(setup_args: SetupArgs) -> None:
                 component_id=battery_id,
                 timestamp=datetime.now(tz=timezone.utc),
                 capacity=50,
-                soc_lower_bound=20,
-                soc_upper_bound=80,
+                soc_lower_bound=25,
+                soc_upper_bound=75,
             ),
             sampling_rate=0.05,
         )
@@ -510,8 +510,7 @@ async def run_capacity_test(setup_args: SetupArgs) -> None:
     now = datetime.now(tz=timezone.utc)
     expected = CapacityMetrics(
         timestamp=now,
-        total_capacity=100,
-        bound=Bound(lower=2000, upper=8000),
+        total_capacity=50.0,  # 50% of 50 kWh + 50% of 50 kWh = 25 + 25 = 50 kWh
     )
     compare_messages(msg, expected, WAIT_FOR_COMPONENT_DATA_SEC + 0.2)
 
@@ -519,54 +518,84 @@ async def run_capacity_test(setup_args: SetupArgs) -> None:
     scenarios: list[Scenario[CapacityMetrics]] = [
         Scenario(
             batteries_in_pool[0],
-            {"capacity": 90},
-            CapacityMetrics(now, 140, Bound(2800, 11200)),
+            {"capacity": 90.0},
+            CapacityMetrics(
+                now,
+                70.0,  # 50% of 90 kWh + 50% of 50 kWh = 45 + 25 = 70 kWh
+            ),
         ),
         Scenario(
             batteries_in_pool[1],
-            {"soc_lower_bound": 0, "soc_upper_bound": 90},
-            CapacityMetrics(now, 140, Bound(1800, 11700)),
+            {"soc_lower_bound": 0.0, "soc_upper_bound": 90.0},
+            CapacityMetrics(
+                now,
+                90.0,  # 50% of 90 kWh + 90% of 50 kWh = 45 + 45 = 90 kWh
+            ),
         ),
         Scenario(
             batteries_in_pool[0],
-            {"capacity": 0, "soc_lower_bound": 0},
-            CapacityMetrics(now, 50, Bound(0, 4500)),
+            {"capacity": 0.0, "soc_lower_bound": 0.0},
+            CapacityMetrics(
+                now,
+                45.0,  # 75% of 0 kWh + 90% of 50 kWh = 0 + 45 = 45 kWh
+            ),
         ),
         # Test zero division error
         Scenario(
             batteries_in_pool[1],
-            {"capacity": 0},
-            CapacityMetrics(now, 0, Bound(0, 0)),
+            {"capacity": 0.0},
+            CapacityMetrics(
+                now,
+                0.0,  # 75% of 0 kWh + 90% of 0 kWh = 0 + 0 = 0 kWh
+            ),
         ),
         Scenario(
             batteries_in_pool[1],
-            {"capacity": 50},
-            CapacityMetrics(now, 50, Bound(0, 4500)),
+            {"capacity": 50.0},
+            CapacityMetrics(
+                now,
+                45.0,  # 75% of 0 kWh + 90% of 50 kWh = 0 + 45 = 45 kWh
+            ),
         ),
         Scenario(
             batteries_in_pool[1],
             {"soc_upper_bound": float("NaN")},
-            CapacityMetrics(now, 0, Bound(0, 0)),
+            CapacityMetrics(
+                now,
+                0.0,  # 75% of 0 kWh + 90% of 0 kWh = 0 + 0 = 0 kWh
+            ),
         ),
         Scenario(
             batteries_in_pool[0],
-            {"capacity": 30, "soc_lower_bound": 20, "soc_upper_bound": 90},
-            CapacityMetrics(now, 30, Bound(600, 2700)),
+            {"capacity": 30.0, "soc_lower_bound": 20.0, "soc_upper_bound": 90.0},
+            CapacityMetrics(
+                now,
+                21.0,  # 70% of 30 kWh + 90% of 0 kWh = 21 + 0 = 21 kWh
+            ),
         ),
         Scenario(
             batteries_in_pool[1],
-            {"capacity": 200, "soc_lower_bound": 20, "soc_upper_bound": 90},
-            CapacityMetrics(now, 230, Bound(4600, 20700)),
+            {"capacity": 200.0, "soc_lower_bound": 20.0, "soc_upper_bound": 90.0},
+            CapacityMetrics(
+                now,
+                161.0,  # 70% of 30 kWh + 70% of 200 kWh = 21 + 140 = 161 kWh
+            ),
         ),
         Scenario(
             batteries_in_pool[1],
             {"capacity": float("NaN")},
-            CapacityMetrics(now, 30, Bound(600, 2700)),
+            CapacityMetrics(
+                now,
+                21.0,  # 70% of 30 kWh + 70% of 0 kWh = 21 + 0 = 21 kWh
+            ),
         ),
         Scenario(
             batteries_in_pool[1],
-            {"capacity": 200},
-            CapacityMetrics(now, 230, Bound(4600, 20700)),
+            {"capacity": 200.0},
+            CapacityMetrics(
+                now,
+                161.0,  # 70% of 30 kWh + 70% of 200 kWh = 21 + 140 = 161 kWh
+            ),
         ),
     ]
 
@@ -579,15 +608,15 @@ async def run_capacity_test(setup_args: SetupArgs) -> None:
         all_batteries=all_batteries,
         batteries_in_pool=batteries_in_pool,
         waiting_time_sec=waiting_time_sec,
-        all_pool_result=CapacityMetrics(now, 230, Bound(4600, 20700)),
-        only_first_battery_result=CapacityMetrics(now, 30, Bound(600, 2700)),
+        all_pool_result=CapacityMetrics(now, 161.0),
+        only_first_battery_result=CapacityMetrics(now, 21.0),
     )
 
     # One battery stopped sending data.
     await streamer.stop_streaming(batteries_in_pool[1])
     await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.2)
     msg = await asyncio.wait_for(capacity_receiver.receive(), timeout=waiting_time_sec)
-    compare_messages(msg, CapacityMetrics(now, 30, Bound(600, 2700)), 0.2)
+    compare_messages(msg, CapacityMetrics(now, 21.0), 0.2)
 
     # All batteries stopped sending data.
     await streamer.stop_streaming(batteries_in_pool[0])
@@ -599,7 +628,7 @@ async def run_capacity_test(setup_args: SetupArgs) -> None:
     latest_data = streamer.get_current_component_data(batteries_in_pool[0])
     streamer.start_streaming(latest_data, sampling_rate=0.1)
     msg = await asyncio.wait_for(capacity_receiver.receive(), timeout=waiting_time_sec)
-    compare_messages(msg, CapacityMetrics(now, 30, Bound(600, 2700)), 0.2)
+    compare_messages(msg, CapacityMetrics(now, 21.0), 0.2)
 
 
 async def run_soc_test(setup_args: SetupArgs) -> None:

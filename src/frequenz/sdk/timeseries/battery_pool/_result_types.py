@@ -35,19 +35,6 @@ class CapacityMetrics:
     total_capacity = sum(battery.capacity for battery in working_batteries)
     ```
     """
-    bound: Bound
-    """Capacity bounds.
-
-    Bounds are calculated with the formula:
-    ```python
-    working_batteries: Set[BatteryData] # working batteries from the battery
-    bound.lower = sum(
-        battery.capacity * battery.soc_lower_bound for battery in working_batteries)
-
-    bound.upper = sum(
-        battery.capacity * battery.soc_upper_bound for battery in working_batteries)
-    ```
-    """
 
 
 @dataclass

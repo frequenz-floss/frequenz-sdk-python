@@ -206,9 +206,7 @@ class CapacityCalculator(MetricCalculator[CapacityMetrics]):
             High level metric calculated from the given metrics.
             Return None if there are no component metrics.
         """
-        result = CapacityMetrics(
-            timestamp=_MIN_TIMESTAMP, total_capacity=0, bound=Bound(lower=0, upper=0)
-        )
+        result = CapacityMetrics(timestamp=_MIN_TIMESTAMP, total_capacity=0)
 
         for battery_id in working_batteries:
             if battery_id not in metrics_data:
@@ -223,11 +221,9 @@ class CapacityCalculator(MetricCalculator[CapacityMetrics]):
             # All metrics are related so if any is missing then we skip the component.
             if capacity is None or soc_lower_bound is None or soc_upper_bound is None:
                 continue
-
+            usable_capacity = capacity * (soc_upper_bound - soc_lower_bound) / 100
             result.timestamp = max(result.timestamp, metrics.timestamp)
-            result.total_capacity += capacity
-            result.bound.upper += capacity * soc_upper_bound
-            result.bound.lower += capacity * soc_lower_bound
+            result.total_capacity += usable_capacity
 
         return None if result.timestamp == _MIN_TIMESTAMP else result
 
