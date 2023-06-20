@@ -1395,18 +1395,18 @@
 
         <details class="quote">
           <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">40</span>
-<span class="normal">41</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">41</span>
 <span class="normal">42</span>
 <span class="normal">43</span>
 <span class="normal">44</span>
 <span class="normal">45</span>
-<span class="normal">46</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">46</span>
+<span class="normal">47</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">EVChargerData</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Data for an EV Charger, including the 3-phase current and the component state.&quot;&quot;&quot;</span>
 
     <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">current</span><span class="p">:</span> <span class="n">Sample3Phase</span>
+    <span class="n">current</span><span class="p">:</span> <span class="n">Sample3Phase</span><span class="p">[</span><span class="n">Current</span><span class="p">]</span>
     <span class="n">state</span><span class="p">:</span> <span class="n">EVChargerState</span>
 </code></pre></div></td></tr></table></div>
         </details>
@@ -1450,8 +1450,7 @@
 
         <details class="quote">
           <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 49</span>
-<span class="normal"> 50</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 50</span>
 <span class="normal"> 51</span>
 <span class="normal"> 52</span>
 <span class="normal"> 53</span>
@@ -1764,7 +1763,20 @@
 <span class="normal">360</span>
 <span class="normal">361</span>
 <span class="normal">362</span>
-<span class="normal">363</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">EVChargerPool</span><span class="p">:</span>
+<span class="normal">363</span>
+<span class="normal">364</span>
+<span class="normal">365</span>
+<span class="normal">366</span>
+<span class="normal">367</span>
+<span class="normal">368</span>
+<span class="normal">369</span>
+<span class="normal">370</span>
+<span class="normal">371</span>
+<span class="normal">372</span>
+<span class="normal">373</span>
+<span class="normal">374</span>
+<span class="normal">375</span>
+<span class="normal">376</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">EVChargerPool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Interactions with EV Chargers.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -1825,7 +1837,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_component_ids</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">current</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaEngine3Phase</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">current</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaEngine3Phase</span><span class="p">[</span><span class="n">Current</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch the total current for the EV Chargers in the pool.</span>
 
 <span class="sd">        This formula produces values that are in the Passive Sign Convention (PSC).</span>
@@ -1840,7 +1852,7 @@
 <span class="sd">            A FormulaEngine that will calculate and stream the total current of all EV</span>
 <span class="sd">                Chargers.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">from_generator</span><span class="p">(</span>
+        <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">from_3_phase_current_formula_generator</span><span class="p">(</span>
             <span class="s2">&quot;ev_charger_total_current&quot;</span><span class="p">,</span>
             <span class="n">EVChargerCurrentFormula</span><span class="p">,</span>
             <span class="n">FormulaGeneratorConfig</span><span class="p">(</span><span class="n">component_ids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_component_ids</span><span class="p">),</span>
@@ -1849,7 +1861,7 @@
         <span class="k">return</span> <span class="n">engine</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaEngine</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaEngine</span><span class="p">[</span><span class="n">Power</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch the total power for the EV Chargers in the pool.</span>
 
 <span class="sd">        This formula produces values that are in the Passive Sign Convention (PSC).</span>
@@ -1864,7 +1876,7 @@
 <span class="sd">            A FormulaEngine that will calculate and stream the total power of all EV</span>
 <span class="sd">                Chargers.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">from_generator</span><span class="p">(</span>
+        <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">from_power_formula_generator</span><span class="p">(</span>
             <span class="s2">&quot;ev_charger_power&quot;</span><span class="p">,</span>
             <span class="n">EVChargerPowerFormula</span><span class="p">,</span>
             <span class="n">FormulaGeneratorConfig</span><span class="p">(</span>
@@ -1876,7 +1888,7 @@
         <span class="k">return</span> <span class="n">engine</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">production_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaEngine</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">production_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaEngine</span><span class="p">[</span><span class="n">Power</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch the total power produced by the EV Chargers in the pool.</span>
 
 <span class="sd">        This formula produces positive values when producing power and 0 otherwise.</span>
@@ -1891,7 +1903,7 @@
 <span class="sd">            A FormulaEngine that will calculate and stream the production power of all</span>
 <span class="sd">                EV Chargers.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">from_generator</span><span class="p">(</span>
+        <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">from_power_formula_generator</span><span class="p">(</span>
             <span class="s2">&quot;ev_charger_production_power&quot;</span><span class="p">,</span>
             <span class="n">EVChargerPowerFormula</span><span class="p">,</span>
             <span class="n">FormulaGeneratorConfig</span><span class="p">(</span>
@@ -1903,7 +1915,7 @@
         <span class="k">return</span> <span class="n">engine</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">consumption_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaEngine</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">consumption_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaEngine</span><span class="p">[</span><span class="n">Power</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch the total power consumed by the EV Chargers in the pool.</span>
 
 <span class="sd">        This formula produces positive values when consuming power and 0 otherwise.</span>
@@ -1918,7 +1930,7 @@
 <span class="sd">            A FormulaEngine that will calculate and stream the consumption power of all</span>
 <span class="sd">                EV Chargers.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">from_generator</span><span class="p">(</span>
+        <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">from_power_formula_generator</span><span class="p">(</span>
             <span class="s2">&quot;ev_charger_consumption_power&quot;</span><span class="p">,</span>
             <span class="n">EVChargerPowerFormula</span><span class="p">,</span>
             <span class="n">FormulaGeneratorConfig</span><span class="p">(</span>
@@ -1998,7 +2010,11 @@
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_get_current_streams</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Receiver</span><span class="p">[</span><span class="n">Sample</span><span class="p">],</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Sample</span><span class="p">],</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Sample</span><span class="p">]]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span>
+        <span class="n">Receiver</span><span class="p">[</span><span class="n">Sample</span><span class="p">[</span><span class="n">Quantity</span><span class="p">]],</span>
+        <span class="n">Receiver</span><span class="p">[</span><span class="n">Sample</span><span class="p">[</span><span class="n">Quantity</span><span class="p">]],</span>
+        <span class="n">Receiver</span><span class="p">[</span><span class="n">Sample</span><span class="p">[</span><span class="n">Quantity</span><span class="p">]],</span>
+    <span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch current streams from the resampler for each phase.</span>
 
 <span class="sd">        Args:</span>
@@ -2009,7 +2025,9 @@
 <span class="sd">                component id, one for each phase.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">async</span> <span class="k">def</span> <span class="nf">resampler_subscribe</span><span class="p">(</span><span class="n">metric_id</span><span class="p">:</span> <span class="n">ComponentMetricId</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Sample</span><span class="p">]:</span>
+        <span class="k">async</span> <span class="k">def</span> <span class="nf">resampler_subscribe</span><span class="p">(</span>
+            <span class="n">metric_id</span><span class="p">:</span> <span class="n">ComponentMetricId</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Sample</span><span class="p">[</span><span class="n">Quantity</span><span class="p">]]:</span>
             <span class="n">request</span> <span class="o">=</span> <span class="n">ComponentMetricRequest</span><span class="p">(</span>
                 <span class="n">namespace</span><span class="o">=</span><span class="s2">&quot;ev-pool&quot;</span><span class="p">,</span>
                 <span class="n">component_id</span><span class="o">=</span><span class="n">component_id</span><span class="p">,</span>
@@ -2058,9 +2076,15 @@
 
             <span class="n">sample</span> <span class="o">=</span> <span class="n">Sample3Phase</span><span class="p">(</span>
                 <span class="n">timestamp</span><span class="o">=</span><span class="n">phase_1</span><span class="o">.</span><span class="n">timestamp</span><span class="p">,</span>
-                <span class="n">value_p1</span><span class="o">=</span><span class="n">phase_1</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
-                <span class="n">value_p2</span><span class="o">=</span><span class="n">phase_2</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
-                <span class="n">value_p3</span><span class="o">=</span><span class="n">phase_3</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                <span class="n">value_p1</span><span class="o">=</span><span class="kc">None</span>
+                <span class="k">if</span> <span class="n">phase_1</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="n">Current</span><span class="p">(</span><span class="n">phase_1</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">base_value</span><span class="p">),</span>
+                <span class="n">value_p2</span><span class="o">=</span><span class="kc">None</span>
+                <span class="k">if</span> <span class="n">phase_2</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="n">Current</span><span class="p">(</span><span class="n">phase_2</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">base_value</span><span class="p">),</span>
+                <span class="n">value_p3</span><span class="o">=</span><span class="kc">None</span>
+                <span class="k">if</span> <span class="n">phase_3</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="n">Current</span><span class="p">(</span><span class="n">phase_3</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">base_value</span><span class="p">),</span>
             <span class="p">)</span>
 
             <span class="k">if</span> <span class="p">(</span>
@@ -2141,7 +2165,7 @@
 
 
 <h6 id="frequenz.sdk.timeseries.ev_charger_pool._ev_charger_pool.EVChargerPool.consumption_power" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">consumption_power</span><span class="p">:</span> <span class="n">FormulaEngine</span></code>
+<code class="highlight language-python"><span class="n">consumption_power</span><span class="p">:</span> <span class="n">FormulaEngine</span><span class="p">[</span><span class="n">Power</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -2170,7 +2194,7 @@ method.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><span title="frequenz.sdk.timeseries._formula_engine.FormulaEngine">FormulaEngine</span></code>
+                  <code><span title="frequenz.sdk.timeseries._formula_engine.FormulaEngine">FormulaEngine</span>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../#frequenz.sdk.timeseries.Power">Power</a>]</code>
               </span>
           </td>
           <td class="doc-returns-details">
@@ -2191,7 +2215,7 @@ EV Chargers.</p>
 
 
 <h6 id="frequenz.sdk.timeseries.ev_charger_pool._ev_charger_pool.EVChargerPool.current" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">current</span><span class="p">:</span> <span class="n">FormulaEngine3Phase</span></code>
+<code class="highlight language-python"><span class="n">current</span><span class="p">:</span> <span class="n">FormulaEngine3Phase</span><span class="p">[</span><span class="n">Current</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -2220,7 +2244,7 @@ method.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><span title="frequenz.sdk.timeseries._formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</span></code>
+                  <code><span title="frequenz.sdk.timeseries._formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</span>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Current" href="../#frequenz.sdk.timeseries.Current">Current</a>]</code>
               </span>
           </td>
           <td class="doc-returns-details">
@@ -2241,7 +2265,7 @@ Chargers.</p>
 
 
 <h6 id="frequenz.sdk.timeseries.ev_charger_pool._ev_charger_pool.EVChargerPool.power" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">power</span><span class="p">:</span> <span class="n">FormulaEngine</span></code>
+<code class="highlight language-python"><span class="n">power</span><span class="p">:</span> <span class="n">FormulaEngine</span><span class="p">[</span><span class="n">Power</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -2270,7 +2294,7 @@ method.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><span title="frequenz.sdk.timeseries._formula_engine.FormulaEngine">FormulaEngine</span></code>
+                  <code><span title="frequenz.sdk.timeseries._formula_engine.FormulaEngine">FormulaEngine</span>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../#frequenz.sdk.timeseries.Power">Power</a>]</code>
               </span>
           </td>
           <td class="doc-returns-details">
@@ -2291,7 +2315,7 @@ Chargers.</p>
 
 
 <h6 id="frequenz.sdk.timeseries.ev_charger_pool._ev_charger_pool.EVChargerPool.production_power" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">production_power</span><span class="p">:</span> <span class="n">FormulaEngine</span></code>
+<code class="highlight language-python"><span class="n">production_power</span><span class="p">:</span> <span class="n">FormulaEngine</span><span class="p">[</span><span class="n">Power</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -2320,7 +2344,7 @@ method.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><span title="frequenz.sdk.timeseries._formula_engine.FormulaEngine">FormulaEngine</span></code>
+                  <code><span title="frequenz.sdk.timeseries._formula_engine.FormulaEngine">FormulaEngine</span>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../#frequenz.sdk.timeseries.Power">Power</a>]</code>
               </span>
           </td>
           <td class="doc-returns-details">
@@ -2434,8 +2458,7 @@ microgrid API, if no new calls to <code>set_bounds</code> have been made.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">52</span>
-<span class="normal">53</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">53</span>
 <span class="normal">54</span>
 <span class="normal">55</span>
 <span class="normal">56</span>
@@ -2480,7 +2503,8 @@ microgrid API, if no new calls to <code>set_bounds</code> have been made.</p>
 <span class="normal">95</span>
 <span class="normal">96</span>
 <span class="normal">97</span>
-<span class="normal">98</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<span class="normal">98</span>
+<span class="normal">99</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">channel_registry</span><span class="p">:</span> <span class="n">ChannelRegistry</span><span class="p">,</span>
     <span class="n">resampler_subscription_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span><span class="n">ComponentMetricRequest</span><span class="p">],</span>
@@ -2598,8 +2622,7 @@ an EV Charger.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">214</span>
-<span class="normal">215</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">215</span>
 <span class="normal">216</span>
 <span class="normal">217</span>
 <span class="normal">218</span>
@@ -2624,7 +2647,8 @@ an EV Charger.</p>
 <span class="normal">237</span>
 <span class="normal">238</span>
 <span class="normal">239</span>
-<span class="normal">240</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">component_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">EVChargerData</span><span class="p">]:</span>
+<span class="normal">240</span>
+<span class="normal">241</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">component_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">EVChargerData</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Stream 3-phase current values and state of an EV Charger.</span>
 
 <span class="sd">    Args:</span>
@@ -2698,8 +2722,7 @@ value will be determined by the EV.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">256</span>
-<span class="normal">257</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">257</span>
 <span class="normal">258</span>
 <span class="normal">259</span>
 <span class="normal">260</span>
@@ -2709,7 +2732,8 @@ value will be determined by the EV.</p>
 <span class="normal">264</span>
 <span class="normal">265</span>
 <span class="normal">266</span>
-<span class="normal">267</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">new_bounds_sender</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sender</span><span class="p">[</span><span class="n">ComponentCurrentLimit</span><span class="p">]:</span>
+<span class="normal">267</span>
+<span class="normal">268</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">new_bounds_sender</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sender</span><span class="p">[</span><span class="n">ComponentCurrentLimit</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a `Sender` for setting EV Charger current bounds with.</span>
 
 <span class="sd">    Bounds are used to limit the max current drawn by an EV, although the exact</span>
@@ -2788,8 +2812,7 @@ value will be determined by the EV.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">242</span>
-<span class="normal">243</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">243</span>
 <span class="normal">244</span>
 <span class="normal">245</span>
 <span class="normal">246</span>
@@ -2800,7 +2823,8 @@ value will be determined by the EV.</p>
 <span class="normal">251</span>
 <span class="normal">252</span>
 <span class="normal">253</span>
-<span class="normal">254</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">set_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_amps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">254</span>
+<span class="normal">255</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">set_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_amps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Send given max current bound for the given EV Charger to the microgrid API.</span>
 
 <span class="sd">    Bounds are used to limit the max current drawn by an EV, although the exact</span>
@@ -2839,8 +2863,7 @@ value will be determined by the EV.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">269</span>
-<span class="normal">270</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">270</span>
 <span class="normal">271</span>
 <span class="normal">272</span>
 <span class="normal">273</span>
@@ -2849,7 +2872,8 @@ value will be determined by the EV.</p>
 <span class="normal">276</span>
 <span class="normal">277</span>
 <span class="normal">278</span>
-<span class="normal">279</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">279</span>
+<span class="normal">280</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Stop all tasks and channels owned by the EVChargerPool.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds_setter</span><span class="p">:</span>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds_setter</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
@@ -2895,8 +2919,8 @@ value will be determined by the EV.</p>
 
         <details class="quote">
           <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">36</span>
-<span class="normal">37</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">EVChargerPoolError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">37</span>
+<span class="normal">38</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">EVChargerPoolError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;An error that occurred in any of the EVChargerPool methods.&quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
         </details>

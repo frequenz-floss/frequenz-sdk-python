@@ -1716,8 +1716,7 @@ between each other.  Channels are identified by string names.</p>
 
         <details class="quote">
           <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/_data_sourcing/microgrid_api_source.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">27</span>
-<span class="normal">28</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">28</span>
 <span class="normal">29</span>
 <span class="normal">30</span>
 <span class="normal">31</span>
@@ -1755,7 +1754,8 @@ between each other.  Channels are identified by string names.</p>
 <span class="normal">63</span>
 <span class="normal">64</span>
 <span class="normal">65</span>
-<span class="normal">66</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="normal">66</span>
+<span class="normal">67</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">ComponentMetricRequest</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A request object to start streaming a metric for a component.&quot;&quot;&quot;</span>
 
@@ -1941,8 +1941,7 @@ identify the right channel from the ChannelRegistry.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/_data_sourcing/microgrid_api_source.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">54</span>
-<span class="normal">55</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">55</span>
 <span class="normal">56</span>
 <span class="normal">57</span>
 <span class="normal">58</span>
@@ -1953,7 +1952,8 @@ identify the right channel from the ChannelRegistry.</p>
 <span class="normal">63</span>
 <span class="normal">64</span>
 <span class="normal">65</span>
-<span class="normal">66</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_channel_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="normal">66</span>
+<span class="normal">67</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_channel_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a channel name constructed from Self.</span>
 
 <span class="sd">    This channel name can be used by the sending side and receiving sides to</span>
@@ -1999,8 +1999,7 @@ identify the right channel from the ChannelRegistry.</p>
 
         <details class="quote">
           <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/_resampling.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 24</span>
-<span class="normal"> 25</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 25</span>
 <span class="normal"> 26</span>
 <span class="normal"> 27</span>
 <span class="normal"> 28</span>
@@ -2130,7 +2129,8 @@ identify the right channel from the ChannelRegistry.</p>
 <span class="normal">152</span>
 <span class="normal">153</span>
 <span class="normal">154</span>
-<span class="normal">155</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
+<span class="normal">155</span>
+<span class="normal">156</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
 <span class="k">class</span> <span class="nc">ComponentMetricsResamplingActor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;An actor to resample microgrid component metrics.&quot;&quot;&quot;</span>
 
@@ -2189,7 +2189,7 @@ identify the right channel from the ChannelRegistry.</p>
         <span class="c1"># exceptions to report errors.</span>
         <span class="n">sender</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel_registry</span><span class="o">.</span><span class="n">new_sender</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">get_channel_name</span><span class="p">())</span>
 
-        <span class="k">async</span> <span class="k">def</span> <span class="nf">sink_adapter</span><span class="p">(</span><span class="n">sample</span><span class="p">:</span> <span class="n">Sample</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">async</span> <span class="k">def</span> <span class="nf">sink_adapter</span><span class="p">(</span><span class="n">sample</span><span class="p">:</span> <span class="n">Sample</span><span class="p">[</span><span class="n">Quantity</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">await</span> <span class="n">sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_resampler</span><span class="o">.</span><span class="n">add_timeseries</span><span class="p">(</span><span class="n">request_channel_name</span><span class="p">,</span> <span class="n">receiver</span><span class="p">,</span> <span class="n">sink_adapter</span><span class="p">)</span>
@@ -2354,7 +2354,7 @@ resampmling subscription requests.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._resampling.ResamplerConfig" href="../timeseries/#frequenz.sdk.timeseries.ResamplerConfig">ResamplerConfig</a></code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._resampling.ResamplerConfig" href="#frequenz.sdk.actor.ResamplerConfig">ResamplerConfig</a></code>
                 </span>
             </p>
           </td>
@@ -2364,8 +2364,7 @@ resampmling subscription requests.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/_resampling.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">28</span>
-<span class="normal">29</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">29</span>
 <span class="normal">30</span>
 <span class="normal">31</span>
 <span class="normal">32</span>
@@ -2392,7 +2391,8 @@ resampmling subscription requests.</p>
 <span class="normal">53</span>
 <span class="normal">54</span>
 <span class="normal">55</span>
-<span class="normal">56</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>  <span class="c1"># pylint: disable=too-many-arguments</span>
+<span class="normal">56</span>
+<span class="normal">57</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>  <span class="c1"># pylint: disable=too-many-arguments</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">channel_registry</span><span class="p">:</span> <span class="n">ChannelRegistry</span><span class="p">,</span>
@@ -2476,8 +2476,7 @@ handling requests.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/_resampling.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 93</span>
-<span class="normal"> 94</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 94</span>
 <span class="normal"> 95</span>
 <span class="normal"> 96</span>
 <span class="normal"> 97</span>
@@ -2538,7 +2537,8 @@ handling requests.</p>
 <span class="normal">152</span>
 <span class="normal">153</span>
 <span class="normal">154</span>
-<span class="normal">155</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">155</span>
+<span class="normal">156</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Resample known component metrics and process resampling requests.</span>
 
 <span class="sd">    If there is a resampling error while resampling some component metric,</span>
@@ -3249,10 +3249,7 @@ instance.</p>
 
         <details class="quote">
           <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_resampling.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">122</span>
-<span class="normal">123</span>
-<span class="normal">124</span>
-<span class="normal">125</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">125</span>
 <span class="normal">126</span>
 <span class="normal">127</span>
 <span class="normal">128</span>
@@ -3375,7 +3372,10 @@ instance.</p>
 <span class="normal">245</span>
 <span class="normal">246</span>
 <span class="normal">247</span>
-<span class="normal">248</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">ResamplerConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Resampler configuration.&quot;&quot;&quot;</span>
 
@@ -3523,8 +3523,8 @@ instance.</p>
 <code class="highlight language-python"><span class="n">align_to</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">UNIX_EPOCH</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.align_to" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3550,8 +3550,8 @@ time the resampler is created.</p>
 <code class="highlight language-python"><span class="n">initial_buffer_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BUFFER_LEN_INIT</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.initial_buffer_len" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3576,8 +3576,8 @@ can be stored.</p>
 <code class="highlight language-python"><span class="n">max_buffer_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BUFFER_LEN_MAX</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.max_buffer_len" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3603,8 +3603,8 @@ value.</p>
 <code class="highlight language-python"><span class="n">max_data_age_in_periods</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.max_data_age_in_periods" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3641,8 +3641,8 @@ passed to the resampling function.</p>
 <code class="highlight language-python"><span class="n">resampling_function</span><span class="p">:</span> <span class="n">ResamplingFunction</span> <span class="o">=</span> <span class="n">average</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.resampling_function" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3689,8 +3689,8 @@ value.</p>
 <code class="highlight language-python"><span class="n">warn_buffer_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BUFFER_LEN_WARN</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries._resampling.ResamplerConfig.warn_buffer_len" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3747,10 +3747,7 @@ logs, so buffers don't grow too big inadvertently.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/_resampling.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">205</span>
-<span class="normal">206</span>
-<span class="normal">207</span>
-<span class="normal">208</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">208</span>
 <span class="normal">209</span>
 <span class="normal">210</span>
 <span class="normal">211</span>
@@ -3790,7 +3787,10 @@ logs, so buffers don't grow too big inadvertently.</p>
 <span class="normal">245</span>
 <span class="normal">246</span>
 <span class="normal">247</span>
-<span class="normal">248</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Check that config values are valid.</span>
 
 <span class="sd">    Raises:</span>

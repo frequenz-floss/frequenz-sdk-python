@@ -1667,7 +1667,17 @@ fetching high level metrics for this subset.</p>
 <span class="normal">427</span>
 <span class="normal">428</span>
 <span class="normal">429</span>
-<span class="normal">430</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">BatteryPool</span><span class="p">:</span>
+<span class="normal">430</span>
+<span class="normal">431</span>
+<span class="normal">432</span>
+<span class="normal">433</span>
+<span class="normal">434</span>
+<span class="normal">435</span>
+<span class="normal">436</span>
+<span class="normal">437</span>
+<span class="normal">438</span>
+<span class="normal">439</span>
+<span class="normal">440</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">BatteryPool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate high level metrics for a pool of the batteries.</span>
 
 <span class="sd">    BatterPool accepts subset of the battery ids and provides methods methods for</span>
@@ -1740,7 +1750,7 @@ fetching high level metrics for this subset.</p>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">set_power</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">power</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">power</span><span class="p">:</span> <span class="n">Power</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">adjust_power</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">request_timeout</span><span class="p">:</span> <span class="n">timedelta</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mf">5.0</span><span class="p">),</span>
@@ -1769,7 +1779,7 @@ fetching high level metrics for this subset.</p>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_distributing_sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span>
             <span class="n">Request</span><span class="p">(</span>
                 <span class="n">namespace</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_power_distributing_namespace</span><span class="p">,</span>
-                <span class="n">power</span><span class="o">=</span><span class="n">power</span><span class="p">,</span>
+                <span class="n">power</span><span class="o">=</span><span class="n">power</span><span class="o">.</span><span class="n">as_watts</span><span class="p">(),</span>
                 <span class="n">batteries</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_batteries</span><span class="p">,</span>
                 <span class="n">adjust_power</span><span class="o">=</span><span class="n">adjust_power</span><span class="p">,</span>
                 <span class="n">request_timeout_sec</span><span class="o">=</span><span class="n">request_timeout</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">(),</span>
@@ -1779,7 +1789,7 @@ fetching high level metrics for this subset.</p>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">charge</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">power</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">power</span><span class="p">:</span> <span class="n">Power</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">adjust_power</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">request_timeout</span><span class="p">:</span> <span class="n">timedelta</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mf">5.0</span><span class="p">),</span>
@@ -1807,18 +1817,23 @@ fetching high level metrics for this subset.</p>
 <span class="sd">        Raises:</span>
 <span class="sd">            ValueError: If the given power is negative.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">power</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">as_watts</span> <span class="o">=</span> <span class="n">power</span><span class="o">.</span><span class="n">as_watts</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">as_watts</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Charge power must be positive.&quot;</span><span class="p">)</span>
-        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_power</span><span class="p">(</span>
-            <span class="n">power</span><span class="p">,</span>
-            <span class="n">adjust_power</span><span class="o">=</span><span class="n">adjust_power</span><span class="p">,</span>
-            <span class="n">request_timeout</span><span class="o">=</span><span class="n">request_timeout</span><span class="p">,</span>
-            <span class="n">include_broken_batteries</span><span class="o">=</span><span class="n">include_broken_batteries</span><span class="p">,</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_distributing_sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span>
+            <span class="n">Request</span><span class="p">(</span>
+                <span class="n">namespace</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_power_distributing_namespace</span><span class="p">,</span>
+                <span class="n">power</span><span class="o">=</span><span class="n">as_watts</span><span class="p">,</span>
+                <span class="n">batteries</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_batteries</span><span class="p">,</span>
+                <span class="n">adjust_power</span><span class="o">=</span><span class="n">adjust_power</span><span class="p">,</span>
+                <span class="n">request_timeout_sec</span><span class="o">=</span><span class="n">request_timeout</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">(),</span>
+                <span class="n">include_broken_batteries</span><span class="o">=</span><span class="n">include_broken_batteries</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="p">)</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">discharge</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">power</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">power</span><span class="p">:</span> <span class="n">Power</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">adjust_power</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">request_timeout</span><span class="p">:</span> <span class="n">timedelta</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mf">5.0</span><span class="p">),</span>
@@ -1846,13 +1861,18 @@ fetching high level metrics for this subset.</p>
 <span class="sd">        Raises:</span>
 <span class="sd">            ValueError: If the given power is negative.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">power</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">as_watts</span> <span class="o">=</span> <span class="n">power</span><span class="o">.</span><span class="n">as_watts</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">as_watts</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Discharge power must be positive.&quot;</span><span class="p">)</span>
-        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_power</span><span class="p">(</span>
-            <span class="o">-</span><span class="n">power</span><span class="p">,</span>
-            <span class="n">adjust_power</span><span class="o">=</span><span class="n">adjust_power</span><span class="p">,</span>
-            <span class="n">request_timeout</span><span class="o">=</span><span class="n">request_timeout</span><span class="p">,</span>
-            <span class="n">include_broken_batteries</span><span class="o">=</span><span class="n">include_broken_batteries</span><span class="p">,</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_distributing_sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span>
+            <span class="n">Request</span><span class="p">(</span>
+                <span class="n">namespace</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_power_distributing_namespace</span><span class="p">,</span>
+                <span class="n">power</span><span class="o">=-</span><span class="n">as_watts</span><span class="p">,</span>
+                <span class="n">batteries</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_batteries</span><span class="p">,</span>
+                <span class="n">adjust_power</span><span class="o">=</span><span class="n">adjust_power</span><span class="p">,</span>
+                <span class="n">request_timeout_sec</span><span class="o">=</span><span class="n">request_timeout</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">(),</span>
+                <span class="n">include_broken_batteries</span><span class="o">=</span><span class="n">include_broken_batteries</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">power_distribution_results</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span>
@@ -1873,7 +1893,7 @@ fetching high level metrics for this subset.</p>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batteries</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaEngine</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaEngine</span><span class="p">[</span><span class="n">Power</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch the total power of the batteries in the pool.</span>
 
 <span class="sd">        This formula produces values that are in the Passive Sign Convention (PSC).</span>
@@ -1888,7 +1908,7 @@ fetching high level metrics for this subset.</p>
 <span class="sd">            A FormulaEngine that will calculate and stream the total power of all</span>
 <span class="sd">                batteries in the pool.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">from_generator</span><span class="p">(</span>
+        <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">from_power_formula_generator</span><span class="p">(</span>
             <span class="s2">&quot;battery_pool_power&quot;</span><span class="p">,</span>
             <span class="n">BatteryPowerFormula</span><span class="p">,</span>
             <span class="n">FormulaGeneratorConfig</span><span class="p">(</span>
@@ -1900,7 +1920,7 @@ fetching high level metrics for this subset.</p>
         <span class="k">return</span> <span class="n">engine</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">production_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaEngine</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">production_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaEngine</span><span class="p">[</span><span class="n">Power</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch the total production power of the batteries in the pool.</span>
 
 <span class="sd">        This formula produces positive values when producing power and 0 otherwise.</span>
@@ -1915,7 +1935,7 @@ fetching high level metrics for this subset.</p>
 <span class="sd">            A FormulaEngine that will calculate and stream the total production power of</span>
 <span class="sd">                all batteries in the pool.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">from_generator</span><span class="p">(</span>
+        <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">from_power_formula_generator</span><span class="p">(</span>
             <span class="s2">&quot;battery_pool_production_power&quot;</span><span class="p">,</span>
             <span class="n">BatteryPowerFormula</span><span class="p">,</span>
             <span class="n">FormulaGeneratorConfig</span><span class="p">(</span>
@@ -1927,7 +1947,7 @@ fetching high level metrics for this subset.</p>
         <span class="k">return</span> <span class="n">engine</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">consumption_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaEngine</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">consumption_power</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FormulaEngine</span><span class="p">[</span><span class="n">Power</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch the total consumption power of the batteries in the pool.</span>
 
 <span class="sd">        This formula produces positive values when consuming power and 0 otherwise.</span>
@@ -1939,10 +1959,10 @@ fetching high level metrics for this subset.</p>
 <span class="sd">        method.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            A FormulaEngine that will calculate and stream the total consumption power of</span>
-<span class="sd">                all batteries in the pool.</span>
+<span class="sd">            A FormulaEngine that will calculate and stream the total consumption</span>
+<span class="sd">                power of all batteries in the pool.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">from_generator</span><span class="p">(</span>
+        <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">from_power_formula_generator</span><span class="p">(</span>
             <span class="s2">&quot;battery_pool_consumption_power&quot;</span><span class="p">,</span>
             <span class="n">BatteryPowerFormula</span><span class="p">,</span>
             <span class="n">FormulaGeneratorConfig</span><span class="p">(</span>
@@ -2174,7 +2194,7 @@ batteries in the pool.</p>
 
 
 <h6 id="frequenz.sdk.timeseries.battery_pool.battery_pool.BatteryPool.consumption_power" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">consumption_power</span><span class="p">:</span> <span class="n">FormulaEngine</span></code>
+<code class="highlight language-python"><span class="n">consumption_power</span><span class="p">:</span> <span class="n">FormulaEngine</span><span class="p">[</span><span class="n">Power</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -2203,13 +2223,13 @@ method.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><span title="frequenz.sdk.timeseries._formula_engine.FormulaEngine">FormulaEngine</span></code>
+                  <code><span title="frequenz.sdk.timeseries._formula_engine.FormulaEngine">FormulaEngine</span>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../#frequenz.sdk.timeseries.Power">Power</a>]</code>
               </span>
           </td>
           <td class="doc-returns-details">
             <div class="doc-md-description">
-              <p>A FormulaEngine that will calculate and stream the total consumption power of
-all batteries in the pool.</p>
+              <p>A FormulaEngine that will calculate and stream the total consumption
+power of all batteries in the pool.</p>
             </div>
           </td>
         </tr>
@@ -2224,7 +2244,7 @@ all batteries in the pool.</p>
 
 
 <h6 id="frequenz.sdk.timeseries.battery_pool.battery_pool.BatteryPool.power" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">power</span><span class="p">:</span> <span class="n">FormulaEngine</span></code>
+<code class="highlight language-python"><span class="n">power</span><span class="p">:</span> <span class="n">FormulaEngine</span><span class="p">[</span><span class="n">Power</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -2253,7 +2273,7 @@ method.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><span title="frequenz.sdk.timeseries._formula_engine.FormulaEngine">FormulaEngine</span></code>
+                  <code><span title="frequenz.sdk.timeseries._formula_engine.FormulaEngine">FormulaEngine</span>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../#frequenz.sdk.timeseries.Power">Power</a>]</code>
               </span>
           </td>
           <td class="doc-returns-details">
@@ -2325,7 +2345,7 @@ of all batteries in the pool.</p>
 
 
 <h6 id="frequenz.sdk.timeseries.battery_pool.battery_pool.BatteryPool.production_power" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">production_power</span><span class="p">:</span> <span class="n">FormulaEngine</span></code>
+<code class="highlight language-python"><span class="n">production_power</span><span class="p">:</span> <span class="n">FormulaEngine</span><span class="p">[</span><span class="n">Power</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -2354,7 +2374,7 @@ method.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><span title="frequenz.sdk.timeseries._formula_engine.FormulaEngine">FormulaEngine</span></code>
+                  <code><span title="frequenz.sdk.timeseries._formula_engine.FormulaEngine">FormulaEngine</span>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../#frequenz.sdk.timeseries.Power">Power</a>]</code>
               </span>
           </td>
           <td class="doc-returns-details">
@@ -2723,7 +2743,7 @@ convenient.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../#frequenz.sdk.timeseries.Power">Power</a></code>
                 </span>
             </p>
           </td>
@@ -2853,9 +2873,14 @@ still reject the request.</p>
 <span class="normal">179</span>
 <span class="normal">180</span>
 <span class="normal">181</span>
-<span class="normal">182</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">charge</span><span class="p">(</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">charge</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
-    <span class="n">power</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">power</span><span class="p">:</span> <span class="n">Power</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">adjust_power</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">request_timeout</span><span class="p">:</span> <span class="n">timedelta</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mf">5.0</span><span class="p">),</span>
@@ -2883,13 +2908,18 @@ still reject the request.</p>
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If the given power is negative.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">power</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+    <span class="n">as_watts</span> <span class="o">=</span> <span class="n">power</span><span class="o">.</span><span class="n">as_watts</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">as_watts</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Charge power must be positive.&quot;</span><span class="p">)</span>
-    <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_power</span><span class="p">(</span>
-        <span class="n">power</span><span class="p">,</span>
-        <span class="n">adjust_power</span><span class="o">=</span><span class="n">adjust_power</span><span class="p">,</span>
-        <span class="n">request_timeout</span><span class="o">=</span><span class="n">request_timeout</span><span class="p">,</span>
-        <span class="n">include_broken_batteries</span><span class="o">=</span><span class="n">include_broken_batteries</span><span class="p">,</span>
+    <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_distributing_sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span>
+        <span class="n">Request</span><span class="p">(</span>
+            <span class="n">namespace</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_power_distributing_namespace</span><span class="p">,</span>
+            <span class="n">power</span><span class="o">=</span><span class="n">as_watts</span><span class="p">,</span>
+            <span class="n">batteries</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_batteries</span><span class="p">,</span>
+            <span class="n">adjust_power</span><span class="o">=</span><span class="n">adjust_power</span><span class="p">,</span>
+            <span class="n">request_timeout_sec</span><span class="o">=</span><span class="n">request_timeout</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">(),</span>
+            <span class="n">include_broken_batteries</span><span class="o">=</span><span class="n">include_broken_batteries</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
       </details>
@@ -2935,7 +2965,7 @@ convenient.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../#frequenz.sdk.timeseries.Power">Power</a></code>
                 </span>
             </p>
           </td>
@@ -3028,12 +3058,7 @@ still reject the request.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">184</span>
-<span class="normal">185</span>
-<span class="normal">186</span>
-<span class="normal">187</span>
-<span class="normal">188</span>
-<span class="normal">189</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">189</span>
 <span class="normal">190</span>
 <span class="normal">191</span>
 <span class="normal">192</span>
@@ -3065,9 +3090,19 @@ still reject the request.</p>
 <span class="normal">218</span>
 <span class="normal">219</span>
 <span class="normal">220</span>
-<span class="normal">221</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">discharge</span><span class="p">(</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">discharge</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
-    <span class="n">power</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">power</span><span class="p">:</span> <span class="n">Power</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">adjust_power</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">request_timeout</span><span class="p">:</span> <span class="n">timedelta</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mf">5.0</span><span class="p">),</span>
@@ -3095,13 +3130,18 @@ still reject the request.</p>
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If the given power is negative.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">power</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+    <span class="n">as_watts</span> <span class="o">=</span> <span class="n">power</span><span class="o">.</span><span class="n">as_watts</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">as_watts</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Discharge power must be positive.&quot;</span><span class="p">)</span>
-    <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_power</span><span class="p">(</span>
-        <span class="o">-</span><span class="n">power</span><span class="p">,</span>
-        <span class="n">adjust_power</span><span class="o">=</span><span class="n">adjust_power</span><span class="p">,</span>
-        <span class="n">request_timeout</span><span class="o">=</span><span class="n">request_timeout</span><span class="p">,</span>
-        <span class="n">include_broken_batteries</span><span class="o">=</span><span class="n">include_broken_batteries</span><span class="p">,</span>
+    <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_distributing_sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span>
+        <span class="n">Request</span><span class="p">(</span>
+            <span class="n">namespace</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_power_distributing_namespace</span><span class="p">,</span>
+            <span class="n">power</span><span class="o">=-</span><span class="n">as_watts</span><span class="p">,</span>
+            <span class="n">batteries</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_batteries</span><span class="p">,</span>
+            <span class="n">adjust_power</span><span class="o">=</span><span class="n">adjust_power</span><span class="p">,</span>
+            <span class="n">request_timeout_sec</span><span class="o">=</span><span class="n">request_timeout</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">(),</span>
+            <span class="n">include_broken_batteries</span><span class="o">=</span><span class="n">include_broken_batteries</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
       </details>
@@ -3148,13 +3188,13 @@ still reject the request.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">223</span>
-<span class="normal">224</span>
-<span class="normal">225</span>
-<span class="normal">226</span>
-<span class="normal">227</span>
-<span class="normal">228</span>
-<span class="normal">229</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">power_distribution_results</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">power_distribution_results</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a receiver for the power distribution results.</span>
 
 <span class="sd">    Returns:</span>
@@ -3206,7 +3246,7 @@ might be more convenient.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../#frequenz.sdk.timeseries.Power">Power</a></code>
                 </span>
             </p>
           </td>
@@ -3315,7 +3355,7 @@ still reject the request.</p>
 <span class="normal">142</span>
 <span class="normal">143</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">set_power</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
-    <span class="n">power</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">power</span><span class="p">:</span> <span class="n">Power</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">adjust_power</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">request_timeout</span><span class="p">:</span> <span class="n">timedelta</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mf">5.0</span><span class="p">),</span>
@@ -3344,7 +3384,7 @@ still reject the request.</p>
     <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_distributing_sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span>
         <span class="n">Request</span><span class="p">(</span>
             <span class="n">namespace</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_power_distributing_namespace</span><span class="p">,</span>
-            <span class="n">power</span><span class="o">=</span><span class="n">power</span><span class="p">,</span>
+            <span class="n">power</span><span class="o">=</span><span class="n">power</span><span class="o">.</span><span class="n">as_watts</span><span class="p">(),</span>
             <span class="n">batteries</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_batteries</span><span class="p">,</span>
             <span class="n">adjust_power</span><span class="o">=</span><span class="n">adjust_power</span><span class="p">,</span>
             <span class="n">request_timeout_sec</span><span class="o">=</span><span class="n">request_timeout</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">(),</span>
@@ -3377,15 +3417,15 @@ still reject the request.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">402</span>
-<span class="normal">403</span>
-<span class="normal">404</span>
-<span class="normal">405</span>
-<span class="normal">406</span>
-<span class="normal">407</span>
-<span class="normal">408</span>
-<span class="normal">409</span>
-<span class="normal">410</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">412</span>
+<span class="normal">413</span>
+<span class="normal">414</span>
+<span class="normal">415</span>
+<span class="normal">416</span>
+<span class="normal">417</span>
+<span class="normal">418</span>
+<span class="normal">419</span>
+<span class="normal">420</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Stop all pending async tasks.&quot;&quot;&quot;</span>
     <span class="n">tasks_to_stop</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">method</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span> <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_methods</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
