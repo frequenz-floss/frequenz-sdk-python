@@ -12,8 +12,9 @@ from typing import Generic, Iterable, TypeVar
 
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory, ComponentMetricId, InverterType
+from ...timeseries import Quantity, Sample
 from ._component_metrics import ComponentMetricsData
-from ._result_types import Bound, CapacityMetrics, PowerMetrics, SoCMetrics
+from ._result_types import Bound, CapacityMetrics, PowerMetrics
 
 _logger = logging.getLogger(__name__)
 _MIN_TIMESTAMP = datetime.min.replace(tzinfo=timezone.utc)
@@ -58,7 +59,7 @@ def battery_inverter_mapping(batteries: Iterable[int]) -> dict[int, int]:
 
 # Formula output types class have no common interface
 # Print all possible types here.
-T = TypeVar("T", SoCMetrics, CapacityMetrics, PowerMetrics)
+T = TypeVar("T", Sample[Quantity], CapacityMetrics, PowerMetrics)
 
 
 class MetricCalculator(ABC, Generic[T]):
@@ -228,7 +229,7 @@ class CapacityCalculator(MetricCalculator[CapacityMetrics]):
         return None if result.timestamp == _MIN_TIMESTAMP else result
 
 
-class SoCCalculator(MetricCalculator[SoCMetrics]):
+class SoCCalculator(MetricCalculator[Sample[Quantity]]):
     """Define how to calculate SoC metrics."""
 
     def __init__(self, batteries: Set[int]) -> None:
@@ -277,7 +278,7 @@ class SoCCalculator(MetricCalculator[SoCMetrics]):
         self,
         metrics_data: dict[int, ComponentMetricsData],
         working_batteries: set[int],
-    ) -> SoCMetrics | None:
+    ) -> Sample[Quantity] | None:
         """Aggregate the metrics_data and calculate high level metric.
 
         Missing components will be ignored. Formula will be calculated for all
@@ -341,13 +342,13 @@ class SoCCalculator(MetricCalculator[SoCMetrics]):
 
         # To avoid zero division error
         if total_capacity_x100 == 0:
-            return SoCMetrics(
+            return Sample(
                 timestamp=timestamp,
-                average_soc=0,
+                value=Quantity(0.0),
             )
-        return SoCMetrics(
+        return Sample(
             timestamp=timestamp,
-            average_soc=used_capacity_x100 / total_capacity_x100,
+            value=Quantity(used_capacity_x100 / total_capacity_x100),
         )
 
 
