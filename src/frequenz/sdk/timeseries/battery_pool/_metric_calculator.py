@@ -12,9 +12,9 @@ from typing import Generic, Iterable, TypeVar
 
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory, ComponentMetricId, InverterType
-from ...timeseries import Quantity, Sample
+from ...timeseries import Energy, Quantity, Sample
 from ._component_metrics import ComponentMetricsData
-from ._result_types import Bound, CapacityMetrics, PowerMetrics
+from ._result_types import Bound, PowerMetrics
 
 _logger = logging.getLogger(__name__)
 _MIN_TIMESTAMP = datetime.min.replace(tzinfo=timezone.utc)
@@ -59,7 +59,7 @@ def battery_inverter_mapping(batteries: Iterable[int]) -> dict[int, int]:
 
 # Formula output types class have no common interface
 # Print all possible types here.
-T = TypeVar("T", Sample[Quantity], CapacityMetrics, PowerMetrics)
+T = TypeVar("T", Sample[Quantity], Sample[Energy], PowerMetrics)
 
 
 class MetricCalculator(ABC, Generic[T]):
@@ -142,7 +142,7 @@ class MetricCalculator(ABC, Generic[T]):
         """
 
 
-class CapacityCalculator(MetricCalculator[CapacityMetrics]):
+class CapacityCalculator(MetricCalculator[Sample[Energy]]):
     """Define how to calculate Capacity metrics."""
 
     def __init__(self, batteries: Set[int]) -> None:
@@ -190,7 +190,7 @@ class CapacityCalculator(MetricCalculator[CapacityMetrics]):
         self,
         metrics_data: dict[int, ComponentMetricsData],
         working_batteries: set[int],
-    ) -> CapacityMetrics | None:
+    ) -> Sample[Energy] | None:
         """Aggregate the metrics_data and calculate high level metric.
 
         Missing components will be ignored. Formula will be calculated for all
@@ -207,7 +207,8 @@ class CapacityCalculator(MetricCalculator[CapacityMetrics]):
             High level metric calculated from the given metrics.
             Return None if there are no component metrics.
         """
-        result = CapacityMetrics(timestamp=_MIN_TIMESTAMP, total_capacity=0)
+        timestamp = _MIN_TIMESTAMP
+        total_capacity = 0.0
 
         for battery_id in working_batteries:
             if battery_id not in metrics_data:
@@ -223,10 +224,14 @@ class CapacityCalculator(MetricCalculator[CapacityMetrics]):
             if capacity is None or soc_lower_bound is None or soc_upper_bound is None:
                 continue
             usable_capacity = capacity * (soc_upper_bound - soc_lower_bound) / 100
-            result.timestamp = max(result.timestamp, metrics.timestamp)
-            result.total_capacity += usable_capacity
+            timestamp = max(timestamp, metrics.timestamp)
+            total_capacity += usable_capacity
 
-        return None if result.timestamp == _MIN_TIMESTAMP else result
+        return (
+            None
+            if timestamp == _MIN_TIMESTAMP
+            else Sample[Energy](timestamp, Energy.from_watt_hours(total_capacity))
+        )
 
 
 class SoCCalculator(MetricCalculator[Sample[Quantity]]):

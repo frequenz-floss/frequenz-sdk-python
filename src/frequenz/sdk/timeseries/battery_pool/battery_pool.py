@@ -27,10 +27,10 @@ from .._formula_engine._formula_generators import (
     FormulaGeneratorConfig,
     FormulaType,
 )
-from .._quantities import Power
+from .._quantities import Energy, Power
 from ._methods import MetricAggregator, SendOnUpdate
 from ._metric_calculator import CapacityCalculator, PowerBoundsCalculator, SoCCalculator
-from ._result_types import CapacityMetrics, PowerMetrics
+from ._result_types import PowerMetrics
 
 
 class BatteryPool:
@@ -357,7 +357,7 @@ class BatteryPool:
         return self._active_methods[method_name]
 
     @property
-    def capacity(self) -> MetricAggregator[CapacityMetrics]:
+    def capacity(self) -> MetricAggregator[Sample[Energy]]:
         """Get receiver to receive new capacity metrics when they change.
 
         Capacity formulas are described in the receiver return type.  None will be send
