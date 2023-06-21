@@ -333,9 +333,26 @@ class BatteryPool:
     def soc(self) -> MetricAggregator[Sample[Quantity]]:
         """Fetch the normalized average weighted-by-capacity SoC values for the pool.
 
-        The formulas for calculating this metric are described
-        [here][frequenz.sdk.timeseries.battery_pool.SoCMetrics].  `None` values will be
-        sent if there are no components to calculate the metric with.
+        The values are normalized to the 0-100% range.
+
+        Average soc is calculated with the formula:
+        ```
+        working_batteries: Set[BatteryData] # working batteries from the battery pool
+
+        soc_scaled = max(
+            0,
+            (soc - soc_lower_bound) / (soc_upper_bound - soc_lower_bound) * 100,
+        )
+        used_capacity = sum(
+            battery.usable_capacity * battery.soc_scaled
+            for battery in working_batteries
+        )
+        total_capacity = sum(battery.usable_capacity for battery in working_batteries)
+        average_soc = used_capacity/total_capacity
+        ```
+
+        `None` values will be sent if there are no components to calculate the metric
+        with.
 
         A receiver from the MetricAggregator can be obtained by calling the
         `new_receiver` method.
@@ -360,8 +377,16 @@ class BatteryPool:
     def capacity(self) -> MetricAggregator[Sample[Energy]]:
         """Get receiver to receive new capacity metrics when they change.
 
-        Capacity formulas are described in the receiver return type.  None will be send
-        if there is no component to calculate metrics.
+        Calculated with the formula:
+        ```
+        working_batteries: Set[BatteryData] # working batteries from the battery pool
+        total_capacity = sum(
+            battery.capacity * (soc_upper_bound - soc_lower_bound) / 100
+            for battery in working_batteries
+        )
+        ```
+
+        None will be send if there is no component to calculate metrics.
 
         A receiver from the MetricAggregator can be obtained by calling the
         `new_receiver` method.
