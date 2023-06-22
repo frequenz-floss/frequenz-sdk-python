@@ -42,12 +42,18 @@ class Fz2(
 
 def test_string_representation() -> None:
     """Test the string representation of the quantities."""
+    assert str(Quantity(1.024445, exponent=0)) == "1.024"
+    assert (
+        repr(Quantity(1.024445, exponent=0)) == "Quantity(value=1.024445, exponent=0)"
+    )
     assert f"{Quantity(1.024445, exponent=0)}" == "1.024"
     assert f"{Quantity(1.024445, exponent=0):.0}" == "1"
     assert f"{Quantity(1.024445, exponent=0):.6}" == "1.024445"
 
     assert f"{Quantity(1.024445, exponent=3)}" == "1024.445"
 
+    assert str(Fz1(1.024445, exponent=0)) == "1.024 Hz"
+    assert repr(Fz1(1.024445, exponent=0)) == "Fz1(value=1.024445, exponent=0)"
     assert f"{Fz1(1.024445, exponent=0)}" == "1.024 Hz"
     assert f"{Fz1(1.024445, exponent=0):.0}" == "1 Hz"
     assert f"{Fz1(1.024445, exponent=0):.1}" == "1 Hz"
@@ -166,6 +172,7 @@ def test_power() -> None:
     power = Power.from_kilowatts(1.2)
     assert power.as_watts() == 1200.0
     assert power.as_megawatts() == 0.0012
+    assert power.as_kilowatts() == 1.2
     assert power == Power.from_milliwatts(1200000.0)
     assert power == Power.from_megawatts(0.0012)
     assert power != Power.from_watts(1000.0)
@@ -229,6 +236,7 @@ def test_quantity_compositions() -> None:
     assert power / voltage == current
     assert power / current == voltage
     assert power == voltage * current
+    assert power == current * voltage
 
     assert energy / power == timedelta(hours=6.2)
     assert energy / timedelta(hours=6.2) == power
