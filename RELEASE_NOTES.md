@@ -6,7 +6,7 @@
 
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with --> 
+<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
 
 ## New Features
 
@@ -16,4 +16,8 @@
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+- Two bugs in the ring buffer which is used by the `MovingWindow` class were fixed:
+  - `len(buffer)` was not considering potentially existing gaps (areas without elements) in the buffer.
+  - A off-by-one error in the gap calculation logic was fixed that recorded a
+    gap when there was none if an element with a future timestamp was added that
+    would create a gap of exactly 1.
