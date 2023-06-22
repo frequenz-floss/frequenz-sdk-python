@@ -61,8 +61,6 @@ def load_dump_test(dumped: rb.OrderedRingBuffer[Any], path: str) -> None:
     # pylint: disable=protected-access
     assert dumped._gaps == loaded._gaps
     # pylint: disable=protected-access
-    assert dumped._time_range == loaded._time_range
-    # pylint: disable=protected-access
     assert dumped._sampling_period == loaded._sampling_period
     # pylint: disable=protected-access
     assert dumped._time_index_alignment == loaded._time_index_alignment

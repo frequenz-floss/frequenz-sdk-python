@@ -82,7 +82,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         self._gaps: list[Gap] = []
         self._datetime_newest: datetime = self._DATETIME_MIN
         self._datetime_oldest: datetime = self._DATETIME_MAX
-        self._time_range: timedelta = (len(self._buffer) - 1) * sampling_period
+        self._full_time_range: timedelta = len(self._buffer) * self._sampling_period
 
     @property
     def sampling_period(self) -> timedelta:
@@ -145,7 +145,9 @@ class OrderedRingBuffer(Generic[FloatArray]):
         # Update timestamps
         prev_newest = self._datetime_newest
         self._datetime_newest = max(self._datetime_newest, timestamp)
-        self._datetime_oldest = self._datetime_newest - self._time_range
+        self._datetime_oldest = self._datetime_newest - (
+            self._full_time_range - self._sampling_period
+        )
 
         # Update data
         value: float = np.nan if sample.value is None else sample.value.base_value
@@ -293,7 +295,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
 
         if not new_missing:
             # Replace all gaps with one if we went far into then future
-            if self._datetime_newest - newest >= self._time_range:
+            if self._datetime_newest - newest >= self._full_time_range:
                 self._gaps = [
                     Gap(start=self._datetime_oldest, end=self._datetime_newest)
                 ]

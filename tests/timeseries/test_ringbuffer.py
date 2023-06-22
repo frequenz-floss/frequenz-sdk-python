@@ -335,3 +335,22 @@ def test_ringbuffer_empty_buffer() -> None:
             sampling_period=timedelta(seconds=1),
             align_to=datetime(1, 1, 1),
         )
+
+
+def test_off_by_one_gap_logic_bug() -> None:
+    """Test off by one bug in the gap calculation."""
+    buffer = OrderedRingBuffer(
+        np.empty(shape=2, dtype=float),
+        sampling_period=timedelta(seconds=1),
+        align_to=datetime(1, 1, 1, tzinfo=timezone.utc),
+    )
+
+    base_time = datetime(2023, 1, 1, tzinfo=timezone.utc)
+
+    times = [base_time, base_time + timedelta(seconds=1)]
+
+    buffer.update(Sample(times[0], Quantity(1.0)))
+    buffer.update(Sample(times[1], Quantity(2.0)))
+
+    assert buffer.is_missing(times[0]) is False
+    assert buffer.is_missing(times[1]) is False
