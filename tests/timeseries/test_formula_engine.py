@@ -305,13 +305,13 @@ class TestFormulaEngineComposition:
     ) -> FormulaEngine[Quantity]:
         """Make a basic FormulaEngine."""
         name = f"#{stream_id}"
-        builder = FormulaBuilder(name, output_type=Quantity)
+        builder = FormulaBuilder(name, create_method=Quantity)
         builder.push_metric(
             name,
             data,
             nones_are_zeros=False,
         )
-        return FormulaEngine(builder, output_type=Quantity)
+        return FormulaEngine(builder, create_method=Quantity)
 
     async def run_test(  # pylint: disable=too-many-locals
         self,
@@ -582,7 +582,7 @@ class TestFormulaAverager:
         """Run a formula test."""
         channels: Dict[str, Broadcast[Sample[Quantity]]] = {}
         streams: List[Tuple[str, Receiver[Sample[Quantity]], bool]] = []
-        builder = FormulaBuilder("test_averager", output_type=Quantity)
+        builder = FormulaBuilder("test_averager", create_method=Quantity)
         for comp_id in components:
             if comp_id not in channels:
                 channels[comp_id] = Broadcast(comp_id)
@@ -650,7 +650,7 @@ class TestConstantValue:
         sender_1 = channel_1.new_sender()
         sender_2 = channel_2.new_sender()
 
-        builder = FormulaBuilder("test_constant_value", output_type=Quantity)
+        builder = FormulaBuilder("test_constant_value", create_method=Quantity)
         builder.push_metric("channel_1", channel_1.new_receiver(), False)
         builder.push_oper("+")
         builder.push_constant(2.0)
@@ -670,7 +670,7 @@ class TestConstantValue:
         await sender_2.send(Sample(now, Quantity(15.0)))
         assert (await results_rx.receive()).value == Quantity(20.0)
 
-        builder = FormulaBuilder("test_constant_value", output_type=Quantity)
+        builder = FormulaBuilder("test_constant_value", create_method=Quantity)
         builder.push_oper("(")
         builder.push_metric("channel_1", channel_1.new_receiver(), False)
         builder.push_oper("+")
@@ -704,7 +704,7 @@ class TestClipper:
         sender_1 = channel_1.new_sender()
         sender_2 = channel_2.new_sender()
 
-        builder = FormulaBuilder("test_clipper", output_type=Quantity)
+        builder = FormulaBuilder("test_clipper", create_method=Quantity)
         builder.push_metric("channel_1", channel_1.new_receiver(), False)
         builder.push_oper("+")
         builder.push_metric("channel_2", channel_2.new_receiver(), False)
@@ -726,7 +726,7 @@ class TestClipper:
         await sender_2.send(Sample(now, Quantity(10.0)))
         assert (await results_rx.receive()).value == Quantity(210.0)
 
-        builder = FormulaBuilder("test_clipper", output_type=Quantity)
+        builder = FormulaBuilder("test_clipper", create_method=Quantity)
         builder.push_oper("(")
         builder.push_metric("channel_1", channel_1.new_receiver(), False)
         builder.push_oper("+")
@@ -762,7 +762,7 @@ class TestFormulaOutputTyping:
         sender_1 = channel_1.new_sender()
         sender_2 = channel_2.new_sender()
 
-        builder = FormulaBuilder("test_typing", output_type=Power)
+        builder = FormulaBuilder("test_typing", create_method=Power.from_watts)
         builder.push_metric("channel_1", channel_1.new_receiver(), False)
         builder.push_oper("+")
         builder.push_metric("channel_2", channel_2.new_receiver(), False)
@@ -771,8 +771,8 @@ class TestFormulaOutputTyping:
         results_rx = engine.new_receiver()
 
         now = datetime.now()
-        await sender_1.send(Sample(now, Power(10.0)))
-        await sender_2.send(Sample(now, Power(150.0)))
+        await sender_1.send(Sample(now, Power.from_watts(10.0)))
+        await sender_2.send(Sample(now, Power.from_watts(150.0)))
         result = await results_rx.receive()
         assert result is not None and result.value is not None
         assert result.value.as_watts() == 160.0

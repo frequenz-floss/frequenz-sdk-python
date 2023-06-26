@@ -35,7 +35,7 @@ class TestFormulaComposition:
             logical_meter._namespace,  # pylint: disable=protected-access
             4,
             ComponentMetricId.ACTIVE_POWER,
-            Power,
+            Power.from_watts,
         )
         grid_power_recv = logical_meter.grid_power.new_receiver()
         battery_power_recv = battery_pool.power.new_receiver()

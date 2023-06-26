@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 from collections import abc
 from dataclasses import dataclass
 from enum import Enum
-from typing import Generic, Type
+from typing import Callable, Generic
 
 from frequenz.channels import Sender
 
@@ -88,7 +88,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
         self,
         name: str,
         component_metric_id: ComponentMetricId,
-        output_type: Type[QuantityT],
+        create_method: Callable[[float], QuantityT],
     ) -> ResampledFormulaBuilder[QuantityT]:
         builder = ResampledFormulaBuilder(
             self._namespace,
@@ -96,7 +96,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
             self._channel_registry,
             self._resampler_subscription_sender,
             component_metric_id,
-            output_type,
+            create_method,
         )
         return builder
 
