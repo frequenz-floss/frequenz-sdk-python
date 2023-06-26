@@ -87,14 +87,14 @@ class TestEVChargerPool:
         consumption_receiver = ev_pool.consumption_power.new_receiver()
 
         await mockgrid.mock_data.send_evc_power([2.0, 4.0, 10.0])
-        assert (await power_receiver.receive()).value == Power(16.0)
-        assert (await production_receiver.receive()).value == Power(0.0)
-        assert (await consumption_receiver.receive()).value == Power(16.0)
+        assert (await power_receiver.receive()).value == Power.from_watts(16.0)
+        assert (await production_receiver.receive()).value == Power.from_watts(0.0)
+        assert (await consumption_receiver.receive()).value == Power.from_watts(16.0)
 
         await mockgrid.mock_data.send_evc_power([2.0, 4.0, -10.0])
-        assert (await power_receiver.receive()).value == Power(-4.0)
-        assert (await production_receiver.receive()).value == Power(4.0)
-        assert (await consumption_receiver.receive()).value == Power(0.0)
+        assert (await power_receiver.receive()).value == Power.from_watts(-4.0)
+        assert (await production_receiver.receive()).value == Power.from_watts(4.0)
+        assert (await consumption_receiver.receive()).value == Power.from_watts(0.0)
 
         await mockgrid.cleanup()
 
@@ -126,7 +126,11 @@ class TestEVChargerPool:
             status.current.value_p1,
             status.current.value_p2,
             status.current.value_p3,
-        ) == (Current(2), Current(3), Current(5))
+        ) == (
+            Current.from_amperes(2),
+            Current.from_amperes(3),
+            Current.from_amperes(5),
+        )
         assert status.state == EVChargerState.MISSING
 
         await mockgrid.mock_data.send_evc_current([[2, 3, None]])
@@ -136,7 +140,11 @@ class TestEVChargerPool:
             status.current.value_p1,
             status.current.value_p2,
             status.current.value_p3,
-        ) == (Current(2), Current(3), None)
+        ) == (
+            Current.from_amperes(2),
+            Current.from_amperes(3),
+            None,
+        )
         assert status.state == EVChargerState.IDLE
 
         await mockgrid.mock_data.send_evc_current([[None, None, None]])
@@ -146,7 +154,11 @@ class TestEVChargerPool:
             status.current.value_p1,
             status.current.value_p2,
             status.current.value_p3,
-        ) == (None, None, None)
+        ) == (
+            None,
+            None,
+            None,
+        )
         assert status.state == EVChargerState.MISSING
 
         await mockgrid.mock_data.send_evc_current([[None, None, None]])
@@ -157,7 +169,11 @@ class TestEVChargerPool:
             status.current.value_p1,
             status.current.value_p2,
             status.current.value_p3,
-        ) == (None, None, None)
+        ) == (
+            None,
+            None,
+            None,
+        )
         assert status.state == EVChargerState.MISSING
 
         await mockgrid.mock_data.send_evc_current([[4, None, None]])
@@ -167,7 +183,11 @@ class TestEVChargerPool:
             status.current.value_p1,
             status.current.value_p2,
             status.current.value_p3,
-        ) == (Current(4), None, None)
+        ) == (
+            Current.from_amperes(4),
+            None,
+            None,
+        )
         assert status.state == EVChargerState.EV_PLUGGED
 
         await mockgrid.cleanup()

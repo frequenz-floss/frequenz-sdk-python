@@ -367,7 +367,9 @@ class Power(
         Returns:
             An energy from multiplying this power by the given duration.
         """
-        return Energy(self._base_value * duration.total_seconds() / 3600.0, exponent=0)
+        return Energy.from_watt_hours(
+            self._base_value * duration.total_seconds() / 3600.0
+        )
 
     @overload
     def __truediv__(self, other: Current) -> Voltage:
@@ -398,9 +400,9 @@ class Power(
             TypeError: If the given value is not a current or voltage.
         """
         if isinstance(other, Current):
-            return Voltage(self._base_value / other._base_value, exponent=0)
+            return Voltage.from_volts(self._base_value / other._base_value)
         if isinstance(other, Voltage):
-            return Current(self._base_value / other._base_value, exponent=0)
+            return Current.from_amperes(self._base_value / other._base_value)
         raise TypeError(
             f"unsupported operand type(s) for /: '{type(self)}' and '{type(other)}'"
         )
@@ -464,7 +466,7 @@ class Current(
         Returns:
             The power.
         """
-        return Power(self._base_value * voltage._base_value, exponent=0)
+        return Power.from_watts(self._base_value * voltage._base_value)
 
 
 class Voltage(Quantity, exponent_unit_map={0: "V", -3: "mV", 3: "kV"}):
@@ -539,7 +541,7 @@ class Voltage(Quantity, exponent_unit_map={0: "V", -3: "mV", 3: "kV"}):
         Returns:
             The calculated power.
         """
-        return Power(self._base_value * current._base_value, exponent=0)
+        return Power.from_watts(self._base_value * current._base_value)
 
 
 class Energy(
@@ -641,9 +643,7 @@ class Energy(
             TypeError: If the given value is not a power or duration.
         """
         if isinstance(other, timedelta):
-            return Power(
-                self._base_value / (other.total_seconds() / 3600.0), exponent=0
-            )
+            return Power.from_watts(self._base_value / (other.total_seconds() / 3600.0))
         if isinstance(other, Power):
             return timedelta(seconds=(self._base_value / other._base_value) * 3600.0)
         raise TypeError(

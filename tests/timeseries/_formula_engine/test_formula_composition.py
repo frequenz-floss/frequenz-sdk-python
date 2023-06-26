@@ -120,7 +120,10 @@ class TestFormulaComposition:
             inv_pow = await inv_calc_recv.receive()
 
             assert inv_pow == bat_pow
-            assert pv_pow.timestamp == inv_pow.timestamp and pv_pow.value == Power(0.0)
+            assert (
+                pv_pow.timestamp == inv_pow.timestamp
+                and pv_pow.value == Power.from_watts(0.0)
+            )
             count += 1
 
         await mockgrid.cleanup()
@@ -154,8 +157,9 @@ class TestFormulaComposition:
             inv_pow = await inv_calc_recv.receive()
 
             assert inv_pow == pv_pow
-            assert bat_pow.timestamp == inv_pow.timestamp and bat_pow.value == Power(
-                0.0
+            assert (
+                bat_pow.timestamp == inv_pow.timestamp
+                and bat_pow.value == Power.from_watts(0.0)
             )
             count += 1
 

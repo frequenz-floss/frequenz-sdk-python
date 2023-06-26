@@ -118,14 +118,14 @@ class TestLogicalMeter:
         grid_consumption_recv = logical_meter.grid_consumption_power.new_receiver()
 
         await mockgrid.mock_data.send_meter_power([1.0, 2.0, 3.0, 4.0])
-        assert (await grid_recv.receive()).value == Power(10.0)
-        assert (await grid_production_recv.receive()).value == Power(0.0)
-        assert (await grid_consumption_recv.receive()).value == Power(10.0)
+        assert (await grid_recv.receive()).value == Power.from_watts(10.0)
+        assert (await grid_production_recv.receive()).value == Power.from_watts(0.0)
+        assert (await grid_consumption_recv.receive()).value == Power.from_watts(10.0)
 
         await mockgrid.mock_data.send_meter_power([1.0, 2.0, -3.0, -4.0])
-        assert (await grid_recv.receive()).value == Power(-4.0)
-        assert (await grid_production_recv.receive()).value == Power(4.0)
-        assert (await grid_consumption_recv.receive()).value == Power(0.0)
+        assert (await grid_recv.receive()).value == Power.from_watts(-4.0)
+        assert (await grid_production_recv.receive()).value == Power.from_watts(4.0)
+        assert (await grid_consumption_recv.receive()).value == Power.from_watts(0.0)
 
     async def test_chp_power(self, mocker: MockerFixture) -> None:
         """Test the chp power formula."""
@@ -144,14 +144,22 @@ class TestLogicalMeter:
         )
 
         await mockgrid.mock_data.send_meter_power([1.0, 2.0, 3.0, 4.0])
-        assert (await chp_power_receiver.receive()).value == Power(2.0)
-        assert (await chp_production_power_receiver.receive()).value == Power(0.0)
-        assert (await chp_consumption_power_receiver.receive()).value == Power(2.0)
+        assert (await chp_power_receiver.receive()).value == Power.from_watts(2.0)
+        assert (
+            await chp_production_power_receiver.receive()
+        ).value == Power.from_watts(0.0)
+        assert (
+            await chp_consumption_power_receiver.receive()
+        ).value == Power.from_watts(2.0)
 
         await mockgrid.mock_data.send_meter_power([-4.0, -12.0, None, 10.2])
-        assert (await chp_power_receiver.receive()).value == Power(-12.0)
-        assert (await chp_production_power_receiver.receive()).value == Power(12.0)
-        assert (await chp_consumption_power_receiver.receive()).value == Power(0.0)
+        assert (await chp_power_receiver.receive()).value == Power.from_watts(-12.0)
+        assert (
+            await chp_production_power_receiver.receive()
+        ).value == Power.from_watts(12.0)
+        assert (
+            await chp_consumption_power_receiver.receive()
+        ).value == Power.from_watts(0.0)
 
     async def test_pv_power(self, mocker: MockerFixture) -> None:
         """Test the pv power formula."""
@@ -167,9 +175,13 @@ class TestLogicalMeter:
         )
 
         await mockgrid.mock_data.send_meter_power([10.0, -1.0, -2.0])
-        assert (await pv_power_receiver.receive()).value == Power(-3.0)
-        assert (await pv_production_power_receiver.receive()).value == Power(3.0)
-        assert (await pv_consumption_power_receiver.receive()).value == Power(0.0)
+        assert (await pv_power_receiver.receive()).value == Power.from_watts(-3.0)
+        assert (await pv_production_power_receiver.receive()).value == Power.from_watts(
+            3.0
+        )
+        assert (
+            await pv_consumption_power_receiver.receive()
+        ).value == Power.from_watts(0.0)
 
     async def test_consumer_power_grid_meter(self, mocker: MockerFixture) -> None:
         """Test the consumer power formula with a grid meter."""
@@ -182,7 +194,7 @@ class TestLogicalMeter:
         consumer_power_receiver = logical_meter.consumer_power.new_receiver()
 
         await mockgrid.mock_data.send_meter_power([20.0, 2.0, 3.0, 4.0, 5.0])
-        assert (await consumer_power_receiver.receive()).value == Power(6.0)
+        assert (await consumer_power_receiver.receive()).value == Power.from_watts(6.0)
 
     async def test_consumer_power_no_grid_meter(self, mocker: MockerFixture) -> None:
         """Test the consumer power formula without a grid meter."""
@@ -195,7 +207,7 @@ class TestLogicalMeter:
         consumer_power_receiver = logical_meter.consumer_power.new_receiver()
 
         await mockgrid.mock_data.send_meter_power([20.0, 2.0, 3.0, 4.0, 5.0])
-        assert (await consumer_power_receiver.receive()).value == Power(20.0)
+        assert (await consumer_power_receiver.receive()).value == Power.from_watts(20.0)
 
     async def test_producer_power(self, mocker: MockerFixture) -> None:
         """Test the producer power formula."""
@@ -208,7 +220,7 @@ class TestLogicalMeter:
         producer_power_receiver = logical_meter.producer_power.new_receiver()
 
         await mockgrid.mock_data.send_meter_power([20.0, 2.0, 3.0, 4.0, 5.0])
-        assert (await producer_power_receiver.receive()).value == Power(14.0)
+        assert (await producer_power_receiver.receive()).value == Power.from_watts(14.0)
 
     async def test_producer_power_no_chp(self, mocker: MockerFixture) -> None:
         """Test the producer power formula without a chp."""
@@ -220,7 +232,7 @@ class TestLogicalMeter:
         producer_power_receiver = logical_meter.producer_power.new_receiver()
 
         await mockgrid.mock_data.send_meter_power([20.0, 2.0, 3.0])
-        assert (await producer_power_receiver.receive()).value == Power(5.0)
+        assert (await producer_power_receiver.receive()).value == Power.from_watts(5.0)
 
     async def test_producer_power_no_pv(self, mocker: MockerFixture) -> None:
         """Test the producer power formula without pv."""
@@ -232,7 +244,7 @@ class TestLogicalMeter:
         producer_power_receiver = logical_meter.producer_power.new_receiver()
 
         await mockgrid.mock_data.send_meter_power([20.0, 2.0])
-        assert (await producer_power_receiver.receive()).value == Power(2.0)
+        assert (await producer_power_receiver.receive()).value == Power.from_watts(2.0)
 
     async def test_no_producer_power(self, mocker: MockerFixture) -> None:
         """Test the producer power formula without producers."""
@@ -243,4 +255,4 @@ class TestLogicalMeter:
         producer_power_receiver = logical_meter.producer_power.new_receiver()
 
         await mockgrid.mock_data.send_non_existing_component_value()
-        assert (await producer_power_receiver.receive()).value == Power(0.0)
+        assert (await producer_power_receiver.receive()).value == Power.from_watts(0.0)
