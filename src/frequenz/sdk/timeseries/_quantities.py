@@ -190,7 +190,9 @@ class Quantity:
         """
         if not type(other) is type(self):
             return NotImplemented
-        return type(self)(self._base_value + other._base_value)
+        summe = type(self).__new__(type(self))
+        summe._base_value = self._base_value + other._base_value
+        return summe
 
     def __sub__(self, other: Self) -> Self:
         """Return the difference of this quantity and another.
@@ -203,7 +205,9 @@ class Quantity:
         """
         if not type(other) is type(self):
             return NotImplemented
-        return type(self)(self._base_value - other._base_value)
+        difference = type(self).__new__(type(self))
+        difference._base_value = self._base_value - other._base_value
+        return difference
 
     def __gt__(self, other: Self) -> bool:
         """Return whether this quantity is greater than another.
@@ -296,7 +300,9 @@ class Power(
         Returns:
             A new power quantity.
         """
-        return cls(value=watts, exponent=0)
+        power = cls.__new__(cls)
+        power._base_value = watts
+        return power
 
     @classmethod
     def from_milliwatts(cls, milliwatts: float) -> Self:
@@ -308,7 +314,9 @@ class Power(
         Returns:
             A new power quantity.
         """
-        return cls(value=milliwatts, exponent=-3)
+        power = cls.__new__(cls)
+        power._base_value = milliwatts * 10**-3
+        return power
 
     @classmethod
     def from_kilowatts(cls, kilowatts: float) -> Self:
@@ -320,7 +328,9 @@ class Power(
         Returns:
             A new power quantity.
         """
-        return cls(value=kilowatts, exponent=3)
+        power = cls.__new__(cls)
+        power._base_value = kilowatts * 10**3
+        return power
 
     @classmethod
     def from_megawatts(cls, megawatts: float) -> Self:
@@ -332,7 +342,9 @@ class Power(
         Returns:
             A new power quantity.
         """
-        return cls(value=megawatts, exponent=6)
+        power = cls.__new__(cls)
+        power._base_value = megawatts * 10**6
+        return power
 
     def as_watts(self) -> float:
         """Return the power in watts.
@@ -427,7 +439,9 @@ class Current(
         Returns:
             A new current quantity.
         """
-        return cls(value=amperes, exponent=0)
+        current = cls.__new__(cls)
+        current._base_value = amperes
+        return current
 
     @classmethod
     def from_milliamperes(cls, milliamperes: float) -> Self:
@@ -439,7 +453,9 @@ class Current(
         Returns:
             A new current quantity.
         """
-        return cls(value=milliamperes, exponent=-3)
+        current = cls.__new__(cls)
+        current._base_value = milliamperes * 10**-3
+        return current
 
     def as_amperes(self) -> float:
         """Return the current in amperes.
@@ -482,7 +498,9 @@ class Voltage(Quantity, exponent_unit_map={0: "V", -3: "mV", 3: "kV"}):
         Returns:
             A new voltage quantity.
         """
-        return cls(value=volts, exponent=0)
+        voltage = cls.__new__(cls)
+        voltage._base_value = volts
+        return voltage
 
     @classmethod
     def from_millivolts(cls, millivolts: float) -> Self:
@@ -494,7 +512,9 @@ class Voltage(Quantity, exponent_unit_map={0: "V", -3: "mV", 3: "kV"}):
         Returns:
             A new voltage quantity.
         """
-        return cls(value=millivolts, exponent=-3)
+        voltage = cls.__new__(cls)
+        voltage._base_value = millivolts * 10**-3
+        return voltage
 
     @classmethod
     def from_kilovolts(cls, kilovolts: float) -> Self:
@@ -506,7 +526,9 @@ class Voltage(Quantity, exponent_unit_map={0: "V", -3: "mV", 3: "kV"}):
         Returns:
             A new voltage quantity.
         """
-        return cls(value=kilovolts, exponent=3)
+        voltage = cls.__new__(cls)
+        voltage._base_value = kilovolts * 10**3
+        return voltage
 
     def as_volts(self) -> float:
         """Return the voltage in volts.
@@ -564,7 +586,9 @@ class Energy(
         Returns:
             A new energy quantity.
         """
-        return cls(value=watt_hours, exponent=0)
+        energy = cls.__new__(cls)
+        energy._base_value = watt_hours
+        return energy
 
     @classmethod
     def from_kilowatt_hours(cls, kilowatt_hours: float) -> Self:
@@ -576,7 +600,9 @@ class Energy(
         Returns:
             A new energy quantity.
         """
-        return cls(value=kilowatt_hours, exponent=3)
+        energy = cls.__new__(cls)
+        energy._base_value = kilowatt_hours * 10**3
+        return energy
 
     @classmethod
     def from_megawatt_hours(cls, megawatt_hours: float) -> Self:
@@ -588,7 +614,9 @@ class Energy(
         Returns:
             A new energy quantity.
         """
-        return cls(value=megawatt_hours, exponent=6)
+        energy = cls.__new__(cls)
+        energy._base_value = megawatt_hours * 10**6
+        return energy
 
     def as_watt_hours(self) -> float:
         """Return the energy in watt hours.
