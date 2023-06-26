@@ -22,7 +22,9 @@ class EVChargerPowerFormula(FormulaGenerator[Power]):
         Returns:
             A formula engine that calculates total EV Charger power values.
         """
-        builder = self._get_builder("ev-power", ComponentMetricId.ACTIVE_POWER, Power)
+        builder = self._get_builder(
+            "ev-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
+        )
 
         component_ids = self._config.component_ids
         if not component_ids:

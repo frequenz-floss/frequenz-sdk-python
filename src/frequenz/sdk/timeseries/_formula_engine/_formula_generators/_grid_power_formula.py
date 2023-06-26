@@ -24,7 +24,9 @@ class GridPowerFormula(FormulaGenerator[Power]):
         Raises:
             ComponentNotFound: when the component graph doesn't have a `GRID` component.
         """
-        builder = self._get_builder("grid-power", ComponentMetricId.ACTIVE_POWER, Power)
+        builder = self._get_builder(
+            "grid-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
+        )
         component_graph = connection_manager.get().component_graph
         grid_component = next(
             (

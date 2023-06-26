@@ -34,7 +34,7 @@ class TestLogicalMeter:
             logical_meter._namespace,  # pylint: disable=protected-access
             mockgrid.main_meter_id,
             ComponentMetricId.ACTIVE_POWER,
-            Power,
+            Power.from_watts,
         )
 
         results = []
@@ -73,7 +73,7 @@ class TestLogicalMeter:
                 logical_meter._namespace,  # pylint: disable=protected-access
                 meter_id,
                 ComponentMetricId.ACTIVE_POWER,
-                Power,
+                Power.from_watts,
             )
             for meter_id in mockgrid.meter_ids
         ]

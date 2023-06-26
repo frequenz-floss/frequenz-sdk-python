@@ -43,7 +43,7 @@ class BatteryPowerFormula(FormulaGenerator[Power]):
                 in the component graph.
         """
         builder = self._get_builder(
-            "battery-power", ComponentMetricId.ACTIVE_POWER, Power
+            "battery-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
         )
         component_ids = self._config.component_ids
         if not component_ids:

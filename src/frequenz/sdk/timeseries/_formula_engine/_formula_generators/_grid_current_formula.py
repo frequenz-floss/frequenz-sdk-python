@@ -43,7 +43,7 @@ class GridCurrentFormula(FormulaGenerator[Current]):
 
         return FormulaEngine3Phase(
             "grid-current",
-            Current,
+            Current.from_amperes,
             (
                 self._gen_phase_formula(
                     grid_successors, ComponentMetricId.CURRENT_PHASE_1
@@ -62,7 +62,7 @@ class GridCurrentFormula(FormulaGenerator[Current]):
         grid_successors: Set[Component],
         metric_id: ComponentMetricId,
     ) -> FormulaEngine[Current]:
-        builder = self._get_builder("grid-current", metric_id, Current)
+        builder = self._get_builder("grid-current", metric_id, Current.from_amperes)
 
         # generate a formula that just adds values from all components that are
         # directly connected to the grid.

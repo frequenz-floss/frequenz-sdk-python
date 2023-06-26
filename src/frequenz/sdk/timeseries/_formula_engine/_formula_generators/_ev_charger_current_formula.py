@@ -37,7 +37,7 @@ class EVChargerCurrentFormula(FormulaGenerator[Current]):
             # frequency as the other streams.  So we subscribe with a non-existing
             # component id, just to get a `None` message at the resampling interval.
             builder = self._get_builder(
-                "ev-current", ComponentMetricId.ACTIVE_POWER, Current
+                "ev-current", ComponentMetricId.ACTIVE_POWER, Current.from_amperes
             )
             builder.push_component_metric(
                 NON_EXISTING_COMPONENT_ID, nones_are_zeros=True
@@ -45,13 +45,13 @@ class EVChargerCurrentFormula(FormulaGenerator[Current]):
             engine = builder.build()
             return FormulaEngine3Phase(
                 "ev-current",
-                Current,
+                Current.from_amperes,
                 (engine, engine, engine),
             )
 
         return FormulaEngine3Phase(
             "ev-current",
-            Current,
+            Current.from_amperes,
             (
                 (
                     self._gen_phase_formula(
@@ -76,7 +76,7 @@ class EVChargerCurrentFormula(FormulaGenerator[Current]):
         component_ids: abc.Set[int],
         metric_id: ComponentMetricId,
     ) -> FormulaEngine[Current]:
-        builder = self._get_builder("ev-current", metric_id, Current)
+        builder = self._get_builder("ev-current", metric_id, Current.from_amperes)
 
         # generate a formula that just adds values from all EV Chargers.
         for idx, component_id in enumerate(component_ids):
