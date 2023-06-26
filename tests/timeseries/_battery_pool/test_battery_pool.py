@@ -24,14 +24,8 @@ from frequenz.sdk._internal._constants import (
 from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.actor.power_distributing import BatteryStatus
 from frequenz.sdk.microgrid.component import ComponentCategory
-from frequenz.sdk.timeseries._quantities import Power
-from frequenz.sdk.timeseries.battery_pool import (
-    BatteryPool,
-    Bound,
-    CapacityMetrics,
-    PowerMetrics,
-    SoCMetrics,
-)
+from frequenz.sdk.timeseries import Energy, Power, Quantity, Sample
+from frequenz.sdk.timeseries.battery_pool import BatteryPool, Bound, PowerMetrics
 from frequenz.sdk.timeseries.battery_pool._metric_calculator import (
     battery_inverter_mapping,
 )
@@ -495,8 +489,8 @@ async def run_capacity_test(setup_args: SetupArgs) -> None:
                 component_id=battery_id,
                 timestamp=datetime.now(tz=timezone.utc),
                 capacity=50,
-                soc_lower_bound=20,
-                soc_upper_bound=80,
+                soc_lower_bound=25,
+                soc_upper_bound=75,
             ),
             sampling_rate=0.05,
         )
@@ -508,65 +502,116 @@ async def run_capacity_test(setup_args: SetupArgs) -> None:
         capacity_receiver.receive(), timeout=WAIT_FOR_COMPONENT_DATA_SEC + 0.2
     )
     now = datetime.now(tz=timezone.utc)
-    expected = CapacityMetrics(
+    expected = Sample[Energy](
         timestamp=now,
-        total_capacity=100,
-        bound=Bound(lower=2000, upper=8000),
+        value=Energy.from_watt_hours(
+            50.0
+        ),  # 50% of 50 kWh + 50% of 50 kWh = 25 + 25 = 50 kWh
     )
     compare_messages(msg, expected, WAIT_FOR_COMPONENT_DATA_SEC + 0.2)
 
     batteries_in_pool = list(battery_pool.battery_ids)
-    scenarios: list[Scenario[CapacityMetrics]] = [
+    scenarios: list[Scenario[Sample[Energy]]] = [
         Scenario(
             batteries_in_pool[0],
-            {"capacity": 90},
-            CapacityMetrics(now, 140, Bound(2800, 11200)),
+            {"capacity": 90.0},
+            Sample(
+                now,
+                Energy.from_watt_hours(
+                    70.0
+                ),  # 50% of 90 kWh + 50% of 50 kWh = 45 + 25 = 70 kWh
+            ),
         ),
         Scenario(
             batteries_in_pool[1],
-            {"soc_lower_bound": 0, "soc_upper_bound": 90},
-            CapacityMetrics(now, 140, Bound(1800, 11700)),
+            {"soc_lower_bound": 0.0, "soc_upper_bound": 90.0},
+            Sample(
+                now,
+                Energy.from_watt_hours(
+                    90.0
+                ),  # 50% of 90 kWh + 90% of 50 kWh = 45 + 45 = 90 kWh
+            ),
         ),
         Scenario(
             batteries_in_pool[0],
-            {"capacity": 0, "soc_lower_bound": 0},
-            CapacityMetrics(now, 50, Bound(0, 4500)),
+            {"capacity": 0.0, "soc_lower_bound": 0.0},
+            Sample(
+                now,
+                Energy.from_watt_hours(
+                    45.0
+                ),  # 75% of 0 kWh + 90% of 50 kWh = 0 + 45 = 45 kWh
+            ),
         ),
         # Test zero division error
         Scenario(
             batteries_in_pool[1],
-            {"capacity": 0},
-            CapacityMetrics(now, 0, Bound(0, 0)),
+            {"capacity": 0.0},
+            Sample(
+                now,
+                Energy.from_watt_hours(
+                    0.0
+                ),  # 75% of 0 kWh + 90% of 0 kWh = 0 + 0 = 0 kWh
+            ),
         ),
         Scenario(
             batteries_in_pool[1],
-            {"capacity": 50},
-            CapacityMetrics(now, 50, Bound(0, 4500)),
+            {"capacity": 50.0},
+            Sample(
+                now,
+                Energy.from_watt_hours(
+                    45.0
+                ),  # 75% of 0 kWh + 90% of 50 kWh = 0 + 45 = 45 kWh
+            ),
         ),
         Scenario(
             batteries_in_pool[1],
             {"soc_upper_bound": float("NaN")},
-            CapacityMetrics(now, 0, Bound(0, 0)),
+            Sample(
+                now,
+                Energy.from_watt_hours(
+                    0.0
+                ),  # 75% of 0 kWh + 90% of 0 kWh = 0 + 0 = 0 kWh
+            ),
         ),
         Scenario(
             batteries_in_pool[0],
-            {"capacity": 30, "soc_lower_bound": 20, "soc_upper_bound": 90},
-            CapacityMetrics(now, 30, Bound(600, 2700)),
+            {"capacity": 30.0, "soc_lower_bound": 20.0, "soc_upper_bound": 90.0},
+            Sample(
+                now,
+                Energy.from_watt_hours(
+                    21.0
+                ),  # 70% of 30 kWh + 90% of 0 kWh = 21 + 0 = 21 kWh
+            ),
         ),
         Scenario(
             batteries_in_pool[1],
-            {"capacity": 200, "soc_lower_bound": 20, "soc_upper_bound": 90},
-            CapacityMetrics(now, 230, Bound(4600, 20700)),
+            {"capacity": 200.0, "soc_lower_bound": 20.0, "soc_upper_bound": 90.0},
+            Sample(
+                now,
+                Energy.from_watt_hours(
+                    161.0
+                ),  # 70% of 30 kWh + 70% of 200 kWh = 21 + 140 = 161 kWh
+            ),
         ),
         Scenario(
             batteries_in_pool[1],
             {"capacity": float("NaN")},
-            CapacityMetrics(now, 30, Bound(600, 2700)),
+            Sample(
+                now,
+                Energy.from_watt_hours(
+                    21.0
+                ),  # 70% of 30 kWh + 70% of 0 kWh = 21 + 0 = 21 kWh
+            ),
         ),
         Scenario(
             batteries_in_pool[1],
-            {"capacity": 200},
-            CapacityMetrics(now, 230, Bound(4600, 20700)),
+            {"capacity": 200.0},
+            Sample(
+                now,
+                Energy.from_watt_hours(
+                    161.0
+                ),  # 70% of 30 kWh + 70% of 200 kWh = 21 + 140 = 161 kWh
+            ),
         ),
     ]
 
@@ -579,15 +624,15 @@ async def run_capacity_test(setup_args: SetupArgs) -> None:
         all_batteries=all_batteries,
         batteries_in_pool=batteries_in_pool,
         waiting_time_sec=waiting_time_sec,
-        all_pool_result=CapacityMetrics(now, 230, Bound(4600, 20700)),
-        only_first_battery_result=CapacityMetrics(now, 30, Bound(600, 2700)),
+        all_pool_result=Sample(now, Energy.from_watt_hours(161.0)),
+        only_first_battery_result=Sample(now, Energy.from_watt_hours(21.0)),
     )
 
     # One battery stopped sending data.
     await streamer.stop_streaming(batteries_in_pool[1])
     await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.2)
     msg = await asyncio.wait_for(capacity_receiver.receive(), timeout=waiting_time_sec)
-    compare_messages(msg, CapacityMetrics(now, 30, Bound(600, 2700)), 0.2)
+    compare_messages(msg, Sample(now, Energy.from_watt_hours(21.0)), 0.2)
 
     # All batteries stopped sending data.
     await streamer.stop_streaming(batteries_in_pool[0])
@@ -599,7 +644,7 @@ async def run_capacity_test(setup_args: SetupArgs) -> None:
     latest_data = streamer.get_current_component_data(batteries_in_pool[0])
     streamer.start_streaming(latest_data, sampling_rate=0.1)
     msg = await asyncio.wait_for(capacity_receiver.receive(), timeout=waiting_time_sec)
-    compare_messages(msg, CapacityMetrics(now, 30, Bound(600, 2700)), 0.2)
+    compare_messages(msg, Sample(now, Energy.from_watt_hours(21.0)), 0.2)
 
 
 async def run_soc_test(setup_args: SetupArgs) -> None:
@@ -628,8 +673,8 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
                 timestamp=datetime.now(tz=timezone.utc),
                 capacity=50,
                 soc=30,
-                soc_lower_bound=20,
-                soc_upper_bound=80,
+                soc_lower_bound=25,
+                soc_upper_bound=75,
             ),
             sampling_rate=0.05,
         )
@@ -641,30 +686,31 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
         receiver.receive(), timeout=WAIT_FOR_COMPONENT_DATA_SEC + 0.2
     )
     now = datetime.now(tz=timezone.utc)
-    expected = SoCMetrics(
+    expected = Sample(
         timestamp=now,
-        average_soc=30,
-        bound=Bound(lower=20, upper=80),
+        value=Quantity(10.0),
     )
     compare_messages(msg, expected, WAIT_FOR_COMPONENT_DATA_SEC + 0.2)
 
     batteries_in_pool = list(battery_pool.battery_ids)
-    scenarios: list[Scenario[SoCMetrics]] = [
+    scenarios: list[Scenario[Sample[Quantity]]] = [
         Scenario(
             batteries_in_pool[0],
             {"capacity": 150, "soc": 10},
-            SoCMetrics(now, 15, Bound(20, 80)),
+            Sample(now, Quantity(2.5)),
         ),
         Scenario(
             batteries_in_pool[0],
-            {"soc_lower_bound": 0},
-            SoCMetrics(now, 15, Bound(5, 80)),
+            {
+                "soc_lower_bound": 0.0,
+            },
+            Sample(now, Quantity(12.727272727272727)),
         ),
         # If NaN, then not include that battery in the metric.
         Scenario(
             batteries_in_pool[0],
             {"soc_upper_bound": float("NaN")},
-            SoCMetrics(now, 30, Bound(20, 80)),
+            Sample(now, Quantity(10.0)),
         ),
         # All batteries are sending NaN, can't calculate SoC so we should send None
         Scenario(
@@ -675,12 +721,12 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
         Scenario(
             batteries_in_pool[1],
             {"soc": 30},
-            SoCMetrics(now, 30, Bound(20, 80)),
+            Sample(now, Quantity(10.0)),
         ),
         # Final metric didn't change, so nothing should be received.
         Scenario(
             batteries_in_pool[0],
-            {"capacity": 0, "soc_lower_bound": 10, "soc_upper_bound": 100},
+            {"capacity": 0, "soc_lower_bound": 10.0, "soc_upper_bound": 100.0},
             None,
             wait_for_result=False,
         ),
@@ -688,21 +734,21 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
         Scenario(
             batteries_in_pool[1],
             {"capacity": 0},
-            SoCMetrics(now, 0, Bound(0, 0)),
+            Sample(now, Quantity(0.0)),
         ),
         Scenario(
             batteries_in_pool[0],
-            {"capacity": 50},
-            SoCMetrics(now, 10, Bound(10, 100)),
+            {"capacity": 50, "soc": 55.0},
+            Sample(now, Quantity(50.0)),
         ),
         Scenario(
             batteries_in_pool[1],
-            {"capacity": 50},
-            SoCMetrics(now, 20, Bound(15, 90)),
+            {"capacity": 150},
+            Sample(now, Quantity(25.0)),
         ),
     ]
 
-    waiting_time_sec = setup_args.min_update_interval + 0.02
+    waiting_time_sec = setup_args.min_update_interval + 0.2
     await run_scenarios(scenarios, streamer, receiver, waiting_time_sec)
 
     await run_test_battery_status_channel(
@@ -711,15 +757,15 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
         all_batteries=all_batteries,
         batteries_in_pool=batteries_in_pool,
         waiting_time_sec=waiting_time_sec,
-        all_pool_result=SoCMetrics(now, 20, Bound(15, 90)),
-        only_first_battery_result=SoCMetrics(now, 10, Bound(10, 100)),
+        all_pool_result=Sample(now, Quantity(25.0)),
+        only_first_battery_result=Sample(now, Quantity(50.0)),
     )
 
     # One battery stopped sending data.
     await streamer.stop_streaming(batteries_in_pool[1])
     await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.2)
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
-    compare_messages(msg, SoCMetrics(now, 10, Bound(10, 100)), 0.2)
+    compare_messages(msg, Sample(now, Quantity(50.0)), 0.2)
 
     # All batteries stopped sending data.
     await streamer.stop_streaming(batteries_in_pool[0])
@@ -731,7 +777,7 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
     latest_data = streamer.get_current_component_data(batteries_in_pool[0])
     streamer.start_streaming(latest_data, sampling_rate=0.1)
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
-    compare_messages(msg, SoCMetrics(now, 10, Bound(10, 100)), 0.2)
+    compare_messages(msg, Sample(now, Quantity(50.0)), 0.2)
 
 
 async def run_power_bounds_test(  # pylint: disable=too-many-locals

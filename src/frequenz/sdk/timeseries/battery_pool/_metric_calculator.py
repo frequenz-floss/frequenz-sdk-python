@@ -12,8 +12,9 @@ from typing import Generic, Iterable, TypeVar
 
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory, ComponentMetricId, InverterType
+from ...timeseries import Energy, Quantity, Sample
 from ._component_metrics import ComponentMetricsData
-from ._result_types import Bound, CapacityMetrics, PowerMetrics, SoCMetrics
+from ._result_types import Bound, PowerMetrics
 
 _logger = logging.getLogger(__name__)
 _MIN_TIMESTAMP = datetime.min.replace(tzinfo=timezone.utc)
@@ -58,7 +59,7 @@ def battery_inverter_mapping(batteries: Iterable[int]) -> dict[int, int]:
 
 # Formula output types class have no common interface
 # Print all possible types here.
-T = TypeVar("T", SoCMetrics, CapacityMetrics, PowerMetrics)
+T = TypeVar("T", Sample[Quantity], Sample[Energy], PowerMetrics)
 
 
 class MetricCalculator(ABC, Generic[T]):
@@ -141,7 +142,7 @@ class MetricCalculator(ABC, Generic[T]):
         """
 
 
-class CapacityCalculator(MetricCalculator[CapacityMetrics]):
+class CapacityCalculator(MetricCalculator[Sample[Energy]]):
     """Define how to calculate Capacity metrics."""
 
     def __init__(self, batteries: Set[int]) -> None:
@@ -189,7 +190,7 @@ class CapacityCalculator(MetricCalculator[CapacityMetrics]):
         self,
         metrics_data: dict[int, ComponentMetricsData],
         working_batteries: set[int],
-    ) -> CapacityMetrics | None:
+    ) -> Sample[Energy] | None:
         """Aggregate the metrics_data and calculate high level metric.
 
         Missing components will be ignored. Formula will be calculated for all
@@ -206,9 +207,8 @@ class CapacityCalculator(MetricCalculator[CapacityMetrics]):
             High level metric calculated from the given metrics.
             Return None if there are no component metrics.
         """
-        result = CapacityMetrics(
-            timestamp=_MIN_TIMESTAMP, total_capacity=0, bound=Bound(lower=0, upper=0)
-        )
+        timestamp = _MIN_TIMESTAMP
+        total_capacity = 0.0
 
         for battery_id in working_batteries:
             if battery_id not in metrics_data:
@@ -223,16 +223,18 @@ class CapacityCalculator(MetricCalculator[CapacityMetrics]):
             # All metrics are related so if any is missing then we skip the component.
             if capacity is None or soc_lower_bound is None or soc_upper_bound is None:
                 continue
+            usable_capacity = capacity * (soc_upper_bound - soc_lower_bound) / 100
+            timestamp = max(timestamp, metrics.timestamp)
+            total_capacity += usable_capacity
 
-            result.timestamp = max(result.timestamp, metrics.timestamp)
-            result.total_capacity += capacity
-            result.bound.upper += capacity * soc_upper_bound
-            result.bound.lower += capacity * soc_lower_bound
+        return (
+            None
+            if timestamp == _MIN_TIMESTAMP
+            else Sample[Energy](timestamp, Energy.from_watt_hours(total_capacity))
+        )
 
-        return None if result.timestamp == _MIN_TIMESTAMP else result
 
-
-class SoCCalculator(MetricCalculator[SoCMetrics]):
+class SoCCalculator(MetricCalculator[Sample[Quantity]]):
     """Define how to calculate SoC metrics."""
 
     def __init__(self, batteries: Set[int]) -> None:
@@ -281,7 +283,7 @@ class SoCCalculator(MetricCalculator[SoCMetrics]):
         self,
         metrics_data: dict[int, ComponentMetricsData],
         working_batteries: set[int],
-    ) -> SoCMetrics | None:
+    ) -> Sample[Quantity] | None:
         """Aggregate the metrics_data and calculate high level metric.
 
         Missing components will be ignored. Formula will be calculated for all
@@ -299,9 +301,9 @@ class SoCCalculator(MetricCalculator[SoCMetrics]):
             Return None if there are no component metrics.
         """
         timestamp = _MIN_TIMESTAMP
-        used_capacity: float = 0
-        total_capacity: float = 0
-        capacity_bound = Bound(0, 0)
+        usable_capacity_x100: float = 0
+        used_capacity_x100: float = 0
+        total_capacity_x100: float = 0
 
         for battery_id in working_batteries:
             if battery_id not in metrics_data:
@@ -323,29 +325,35 @@ class SoCCalculator(MetricCalculator[SoCMetrics]):
             ):
                 continue
 
+            # The SoC bounds are in the 0-100 range, so to get the actual usable
+            # capacity, we need to divide by 100.
+            #
+            # We only want to calculate the SoC, and the usable capacity calculation is
+            # just an intermediate step, so don't have to divide by 100 here, because it
+            # gets cancelled out later.
+            #
+            # Therefore, the variables are named with a `_x100` suffix.
+            usable_capacity_x100 = capacity * (soc_upper_bound - soc_lower_bound)
+            soc_scaled = (
+                (soc - soc_lower_bound) / (soc_upper_bound - soc_lower_bound) * 100
+            )
+            soc_scaled = max(soc_scaled, 0)
             timestamp = max(timestamp, metrics.timestamp)
-            used_capacity += capacity * soc
-            total_capacity += capacity
-            capacity_bound.upper += capacity * soc_upper_bound
-            capacity_bound.lower += capacity * soc_lower_bound
+            used_capacity_x100 += usable_capacity_x100 * soc_scaled
+            total_capacity_x100 += usable_capacity_x100
 
         if timestamp == _MIN_TIMESTAMP:
             return None
 
         # To avoid zero division error
-        if total_capacity == 0:
-            return SoCMetrics(
+        if total_capacity_x100 == 0:
+            return Sample(
                 timestamp=timestamp,
-                average_soc=0,
-                bound=Bound(0, 0),
+                value=Quantity(0.0),
             )
-        return SoCMetrics(
+        return Sample(
             timestamp=timestamp,
-            average_soc=used_capacity / total_capacity,
-            bound=Bound(
-                lower=capacity_bound.lower / total_capacity,
-                upper=capacity_bound.upper / total_capacity,
-            ),
+            value=Quantity(used_capacity_x100 / total_capacity_x100),
         )
 
 

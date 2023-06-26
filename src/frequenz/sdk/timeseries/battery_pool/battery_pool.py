@@ -20,16 +20,17 @@ from ...actor.power_distributing._battery_pool_status import BatteryStatus
 from ...actor.power_distributing.result import Result
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory
+from ...timeseries import Quantity, Sample
 from .._formula_engine import FormulaEngine, FormulaEnginePool
 from .._formula_engine._formula_generators import (
     BatteryPowerFormula,
     FormulaGeneratorConfig,
     FormulaType,
 )
-from .._quantities import Power
+from .._quantities import Energy, Power
 from ._methods import MetricAggregator, SendOnUpdate
 from ._metric_calculator import CapacityCalculator, PowerBoundsCalculator, SoCCalculator
-from ._result_types import CapacityMetrics, PowerMetrics, SoCMetrics
+from ._result_types import PowerMetrics
 
 
 class BatteryPool:
@@ -329,11 +330,29 @@ class BatteryPool:
         return engine
 
     @property
-    def soc(self) -> MetricAggregator[SoCMetrics]:
-        """Get receiver to receive new soc metrics when they change.
+    def soc(self) -> MetricAggregator[Sample[Quantity]]:
+        """Fetch the normalized average weighted-by-capacity SoC values for the pool.
 
-        Soc formulas are described in the receiver return type.  None will be send if
-        there is no component to calculate metric.
+        The values are normalized to the 0-100% range.
+
+        Average soc is calculated with the formula:
+        ```
+        working_batteries: Set[BatteryData] # working batteries from the battery pool
+
+        soc_scaled = max(
+            0,
+            (soc - soc_lower_bound) / (soc_upper_bound - soc_lower_bound) * 100,
+        )
+        used_capacity = sum(
+            battery.usable_capacity * battery.soc_scaled
+            for battery in working_batteries
+        )
+        total_capacity = sum(battery.usable_capacity for battery in working_batteries)
+        average_soc = used_capacity/total_capacity
+        ```
+
+        `None` values will be sent if there are no components to calculate the metric
+        with.
 
         A receiver from the MetricAggregator can be obtained by calling the
         `new_receiver` method.
@@ -355,11 +374,19 @@ class BatteryPool:
         return self._active_methods[method_name]
 
     @property
-    def capacity(self) -> MetricAggregator[CapacityMetrics]:
+    def capacity(self) -> MetricAggregator[Sample[Energy]]:
         """Get receiver to receive new capacity metrics when they change.
 
-        Capacity formulas are described in the receiver return type.  None will be send
-        if there is no component to calculate metrics.
+        Calculated with the formula:
+        ```
+        working_batteries: Set[BatteryData] # working batteries from the battery pool
+        total_capacity = sum(
+            battery.capacity * (soc_upper_bound - soc_lower_bound) / 100
+            for battery in working_batteries
+        )
+        ```
+
+        None will be send if there is no component to calculate metrics.
 
         A receiver from the MetricAggregator can be obtained by calling the
         `new_receiver` method.
