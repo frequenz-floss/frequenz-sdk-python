@@ -1272,8 +1272,7 @@ fetching high level metrics for this subset.</p>
 
         <details class="quote">
           <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 35</span>
-<span class="normal"> 36</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 36</span>
 <span class="normal"> 37</span>
 <span class="normal"> 38</span>
 <span class="normal"> 39</span>
@@ -1677,7 +1676,34 @@ fetching high level metrics for this subset.</p>
 <span class="normal">437</span>
 <span class="normal">438</span>
 <span class="normal">439</span>
-<span class="normal">440</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">BatteryPool</span><span class="p">:</span>
+<span class="normal">440</span>
+<span class="normal">441</span>
+<span class="normal">442</span>
+<span class="normal">443</span>
+<span class="normal">444</span>
+<span class="normal">445</span>
+<span class="normal">446</span>
+<span class="normal">447</span>
+<span class="normal">448</span>
+<span class="normal">449</span>
+<span class="normal">450</span>
+<span class="normal">451</span>
+<span class="normal">452</span>
+<span class="normal">453</span>
+<span class="normal">454</span>
+<span class="normal">455</span>
+<span class="normal">456</span>
+<span class="normal">457</span>
+<span class="normal">458</span>
+<span class="normal">459</span>
+<span class="normal">460</span>
+<span class="normal">461</span>
+<span class="normal">462</span>
+<span class="normal">463</span>
+<span class="normal">464</span>
+<span class="normal">465</span>
+<span class="normal">466</span>
+<span class="normal">467</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">BatteryPool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate high level metrics for a pool of the batteries.</span>
 
 <span class="sd">    BatterPool accepts subset of the battery ids and provides methods methods for</span>
@@ -1974,11 +2000,29 @@ fetching high level metrics for this subset.</p>
         <span class="k">return</span> <span class="n">engine</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">soc</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricAggregator</span><span class="p">[</span><span class="n">SoCMetrics</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get receiver to receive new soc metrics when they change.</span>
+    <span class="k">def</span> <span class="nf">soc</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricAggregator</span><span class="p">[</span><span class="n">Sample</span><span class="p">[</span><span class="n">Quantity</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch the normalized average weighted-by-capacity SoC values for the pool.</span>
 
-<span class="sd">        Soc formulas are described in the receiver return type.  None will be send if</span>
-<span class="sd">        there is no component to calculate metric.</span>
+<span class="sd">        The values are normalized to the 0-100% range.</span>
+
+<span class="sd">        Average soc is calculated with the formula:</span>
+<span class="sd">        ```</span>
+<span class="sd">        working_batteries: Set[BatteryData] # working batteries from the battery pool</span>
+
+<span class="sd">        soc_scaled = max(</span>
+<span class="sd">            0,</span>
+<span class="sd">            (soc - soc_lower_bound) / (soc_upper_bound - soc_lower_bound) * 100,</span>
+<span class="sd">        )</span>
+<span class="sd">        used_capacity = sum(</span>
+<span class="sd">            battery.usable_capacity * battery.soc_scaled</span>
+<span class="sd">            for battery in working_batteries</span>
+<span class="sd">        )</span>
+<span class="sd">        total_capacity = sum(battery.usable_capacity for battery in working_batteries)</span>
+<span class="sd">        average_soc = used_capacity/total_capacity</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        `None` values will be sent if there are no components to calculate the metric</span>
+<span class="sd">        with.</span>
 
 <span class="sd">        A receiver from the MetricAggregator can be obtained by calling the</span>
 <span class="sd">        `new_receiver` method.</span>
@@ -2000,11 +2044,19 @@ fetching high level metrics for this subset.</p>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_methods</span><span class="p">[</span><span class="n">method_name</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">capacity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricAggregator</span><span class="p">[</span><span class="n">CapacityMetrics</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">capacity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricAggregator</span><span class="p">[</span><span class="n">Sample</span><span class="p">[</span><span class="n">Energy</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get receiver to receive new capacity metrics when they change.</span>
 
-<span class="sd">        Capacity formulas are described in the receiver return type.  None will be send</span>
-<span class="sd">        if there is no component to calculate metrics.</span>
+<span class="sd">        Calculated with the formula:</span>
+<span class="sd">        ```</span>
+<span class="sd">        working_batteries: Set[BatteryData] # working batteries from the battery pool</span>
+<span class="sd">        total_capacity = sum(</span>
+<span class="sd">            battery.capacity * (soc_upper_bound - soc_lower_bound) / 100</span>
+<span class="sd">            for battery in working_batteries</span>
+<span class="sd">        )</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        None will be send if there is no component to calculate metrics.</span>
 
 <span class="sd">        A receiver from the MetricAggregator can be obtained by calling the</span>
 <span class="sd">        `new_receiver` method.</span>
@@ -2145,7 +2197,7 @@ fetching high level metrics for this subset.</p>
 
 
 <h6 id="frequenz.sdk.timeseries.battery_pool.battery_pool.BatteryPool.capacity" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">capacity</span><span class="p">:</span> <span class="n">MetricAggregator</span><span class="p">[</span><span class="n">CapacityMetrics</span><span class="p">]</span></code>
+<code class="highlight language-python"><span class="n">capacity</span><span class="p">:</span> <span class="n">MetricAggregator</span><span class="p">[</span><span class="n">Sample</span><span class="p">[</span><span class="n">Energy</span><span class="p">]]</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -2157,8 +2209,14 @@ fetching high level metrics for this subset.</p>
   <div class="doc doc-contents ">
   
       <p>Get receiver to receive new capacity metrics when they change.</p>
-<p>Capacity formulas are described in the receiver return type.  None will be send
-if there is no component to calculate metrics.</p>
+<p>Calculated with the formula:
+<div class="highlight"><pre><span></span><code>working_batteries: Set[BatteryData] # working batteries from the battery pool
+total_capacity = sum(
+    battery.capacity * (soc_upper_bound - soc_lower_bound) / 100
+    for battery in working_batteries
+)
+</code></pre></div></p>
+<p>None will be send if there is no component to calculate metrics.</p>
 <p>A receiver from the MetricAggregator can be obtained by calling the
 <code>new_receiver</code> method.</p>
 
@@ -2173,7 +2231,7 @@ if there is no component to calculate metrics.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><span title="frequenz.sdk.timeseries.battery_pool._methods.MetricAggregator">MetricAggregator</span>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.battery_pool._result_types.CapacityMetrics" href="../#frequenz.sdk.timeseries.battery_pool.CapacityMetrics">CapacityMetrics</a>]</code>
+                  <code><span title="frequenz.sdk.timeseries.battery_pool._methods.MetricAggregator">MetricAggregator</span>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample" href="../../#frequenz.sdk.timeseries.Sample">Sample</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Energy" href="../../#frequenz.sdk.timeseries.Energy">Energy</a>]]</code>
               </span>
           </td>
           <td class="doc-returns-details">
@@ -2395,7 +2453,7 @@ all batteries in the pool.</p>
 
 
 <h6 id="frequenz.sdk.timeseries.battery_pool.battery_pool.BatteryPool.soc" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">soc</span><span class="p">:</span> <span class="n">MetricAggregator</span><span class="p">[</span><span class="n">SoCMetrics</span><span class="p">]</span></code>
+<code class="highlight language-python"><span class="n">soc</span><span class="p">:</span> <span class="n">MetricAggregator</span><span class="p">[</span><span class="n">Sample</span><span class="p">[</span><span class="n">Quantity</span><span class="p">]]</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -2406,9 +2464,24 @@ all batteries in the pool.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Get receiver to receive new soc metrics when they change.</p>
-<p>Soc formulas are described in the receiver return type.  None will be send if
-there is no component to calculate metric.</p>
+      <p>Fetch the normalized average weighted-by-capacity SoC values for the pool.</p>
+<p>The values are normalized to the 0-100% range.</p>
+<p>Average soc is calculated with the formula:
+<div class="highlight"><pre><span></span><code>working_batteries: Set[BatteryData] # working batteries from the battery pool
+
+soc_scaled = max(
+    0,
+    (soc - soc_lower_bound) / (soc_upper_bound - soc_lower_bound) * 100,
+)
+used_capacity = sum(
+    battery.usable_capacity * battery.soc_scaled
+    for battery in working_batteries
+)
+total_capacity = sum(battery.usable_capacity for battery in working_batteries)
+average_soc = used_capacity/total_capacity
+</code></pre></div></p>
+<p><code>None</code> values will be sent if there are no components to calculate the metric
+with.</p>
 <p>A receiver from the MetricAggregator can be obtained by calling the
 <code>new_receiver</code> method.</p>
 
@@ -2423,7 +2496,7 @@ there is no component to calculate metric.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><span title="frequenz.sdk.timeseries.battery_pool._methods.MetricAggregator">MetricAggregator</span>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.battery_pool._result_types.SoCMetrics" href="../#frequenz.sdk.timeseries.battery_pool.SoCMetrics">SoCMetrics</a>]</code>
+                  <code><span title="frequenz.sdk.timeseries.battery_pool._methods.MetricAggregator">MetricAggregator</span>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample" href="../../#frequenz.sdk.timeseries.Sample">Sample</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Quantity" href="../../#frequenz.sdk.timeseries.Quantity">Quantity</a>]]</code>
               </span>
           </td>
           <td class="doc-returns-details">
@@ -2574,8 +2647,7 @@ will be used.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 42</span>
-<span class="normal"> 43</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 43</span>
 <span class="normal"> 44</span>
 <span class="normal"> 45</span>
 <span class="normal"> 46</span>
@@ -2636,7 +2708,8 @@ will be used.</p>
 <span class="normal">101</span>
 <span class="normal">102</span>
 <span class="normal">103</span>
-<span class="normal">104</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>  <span class="c1"># pylint: disable=too-many-arguments</span>
+<span class="normal">104</span>
+<span class="normal">105</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>  <span class="c1"># pylint: disable=too-many-arguments</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">channel_registry</span><span class="p">:</span> <span class="n">ChannelRegistry</span><span class="p">,</span>
     <span class="n">resampler_subscription_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span><span class="n">ComponentMetricRequest</span><span class="p">],</span>
@@ -2836,8 +2909,7 @@ still reject the request.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">145</span>
-<span class="normal">146</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">146</span>
 <span class="normal">147</span>
 <span class="normal">148</span>
 <span class="normal">149</span>
@@ -2878,7 +2950,8 @@ still reject the request.</p>
 <span class="normal">184</span>
 <span class="normal">185</span>
 <span class="normal">186</span>
-<span class="normal">187</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">charge</span><span class="p">(</span>
+<span class="normal">187</span>
+<span class="normal">188</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">charge</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">power</span><span class="p">:</span> <span class="n">Power</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -3058,8 +3131,7 @@ still reject the request.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">189</span>
-<span class="normal">190</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">190</span>
 <span class="normal">191</span>
 <span class="normal">192</span>
 <span class="normal">193</span>
@@ -3100,7 +3172,8 @@ still reject the request.</p>
 <span class="normal">228</span>
 <span class="normal">229</span>
 <span class="normal">230</span>
-<span class="normal">231</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">discharge</span><span class="p">(</span>
+<span class="normal">231</span>
+<span class="normal">232</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">discharge</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">power</span><span class="p">:</span> <span class="n">Power</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -3188,13 +3261,13 @@ still reject the request.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">233</span>
-<span class="normal">234</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">234</span>
 <span class="normal">235</span>
 <span class="normal">236</span>
 <span class="normal">237</span>
 <span class="normal">238</span>
-<span class="normal">239</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">power_distribution_results</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span>
+<span class="normal">239</span>
+<span class="normal">240</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">power_distribution_results</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a receiver for the power distribution results.</span>
 
 <span class="sd">    Returns:</span>
@@ -3316,8 +3389,7 @@ still reject the request.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">106</span>
-<span class="normal">107</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">107</span>
 <span class="normal">108</span>
 <span class="normal">109</span>
 <span class="normal">110</span>
@@ -3353,7 +3425,8 @@ still reject the request.</p>
 <span class="normal">140</span>
 <span class="normal">141</span>
 <span class="normal">142</span>
-<span class="normal">143</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">set_power</span><span class="p">(</span>
+<span class="normal">143</span>
+<span class="normal">144</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">set_power</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">power</span><span class="p">:</span> <span class="n">Power</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -3417,15 +3490,15 @@ still reject the request.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">412</span>
-<span class="normal">413</span>
-<span class="normal">414</span>
-<span class="normal">415</span>
-<span class="normal">416</span>
-<span class="normal">417</span>
-<span class="normal">418</span>
-<span class="normal">419</span>
-<span class="normal">420</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">439</span>
+<span class="normal">440</span>
+<span class="normal">441</span>
+<span class="normal">442</span>
+<span class="normal">443</span>
+<span class="normal">444</span>
+<span class="normal">445</span>
+<span class="normal">446</span>
+<span class="normal">447</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Stop all pending async tasks.&quot;&quot;&quot;</span>
     <span class="n">tasks_to_stop</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">method</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span> <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_methods</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
