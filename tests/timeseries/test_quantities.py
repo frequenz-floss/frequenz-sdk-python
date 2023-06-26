@@ -177,6 +177,10 @@ def test_power() -> None:
     assert power == Power.from_megawatts(0.0012)
     assert power != Power.from_watts(1000.0)
 
+    with pytest.raises(TypeError):
+        # using the default constructor should raise.
+        Power(1.0, exponent=0)
+
 
 def test_current() -> None:
     """Test the current class."""
@@ -191,6 +195,10 @@ def test_current() -> None:
     assert current == Current.from_milliamperes(6000.0)
     assert current == Current.from_amperes(6.0)
     assert current != Current.from_amperes(5.0)
+
+    with pytest.raises(TypeError):
+        # using the default constructor should raise.
+        Current(1.0, exponent=0)
 
 
 def test_voltage() -> None:
@@ -209,6 +217,10 @@ def test_voltage() -> None:
     assert voltage == Voltage.from_volts(6.0)
     assert voltage != Voltage.from_volts(5.0)
 
+    with pytest.raises(TypeError):
+        # using the default constructor should raise.
+        Voltage(1.0, exponent=0)
+
 
 def test_energy() -> None:
     """Test the energy class."""
@@ -224,6 +236,10 @@ def test_energy() -> None:
     assert energy == Energy.from_megawatt_hours(0.006)
     assert energy == Energy.from_kilowatt_hours(6.0)
     assert energy != Energy.from_kilowatt_hours(5.0)
+
+    with pytest.raises(TypeError):
+        # using the default constructor should raise.
+        Energy(1.0, exponent=0)
 
 
 def test_quantity_compositions() -> None:

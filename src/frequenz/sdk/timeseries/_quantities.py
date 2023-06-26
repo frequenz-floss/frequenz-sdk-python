@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import math
 from datetime import timedelta
-from typing import Self, TypeVar, overload
+from typing import Any, NoReturn, Self, TypeVar, overload
 
 QuantityT = TypeVar("QuantityT", "Quantity", "Power", "Current", "Voltage", "Energy")
 
@@ -279,8 +279,29 @@ class Quantity:
         return self._base_value == other._base_value
 
 
+class _NoDefaultConstructible(type):
+    """A metaclass that disables the default constructor."""
+
+    def __call__(cls, *_args: Any, **_kwargs: Any) -> NoReturn:
+        """Raise a TypeError when the default constructor is called.
+
+        Args:
+            _args: ignored positional arguments.
+            _kwargs: ignored keyword arguments.
+
+        Raises:
+            TypeError: Always.
+        """
+        raise TypeError(
+            "Use of default constructor NOT allowed for "
+            f"{cls.__module__}.{cls.__qualname__}, "
+            f"use one of the `{cls.__name__}.from_*()` methods instead."
+        )
+
+
 class Power(
     Quantity,
+    metaclass=_NoDefaultConstructible,
     exponent_unit_map={
         -3: "mW",
         0: "W",
@@ -422,6 +443,7 @@ class Power(
 
 class Current(
     Quantity,
+    metaclass=_NoDefaultConstructible,
     exponent_unit_map={
         -3: "mA",
         0: "A",
@@ -485,7 +507,11 @@ class Current(
         return Power.from_watts(self._base_value * voltage._base_value)
 
 
-class Voltage(Quantity, exponent_unit_map={0: "V", -3: "mV", 3: "kV"}):
+class Voltage(
+    Quantity,
+    metaclass=_NoDefaultConstructible,
+    exponent_unit_map={0: "V", -3: "mV", 3: "kV"},
+):
     """A voltage quantity."""
 
     @classmethod
@@ -568,6 +594,7 @@ class Voltage(Quantity, exponent_unit_map={0: "V", -3: "mV", 3: "kV"}):
 
 class Energy(
     Quantity,
+    metaclass=_NoDefaultConstructible,
     exponent_unit_map={
         0: "Wh",
         3: "kWh",
