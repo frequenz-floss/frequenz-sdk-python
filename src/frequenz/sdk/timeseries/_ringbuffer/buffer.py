@@ -82,7 +82,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         self._gaps: list[Gap] = []
         self._datetime_newest: datetime = self._DATETIME_MIN
         self._datetime_oldest: datetime = self._DATETIME_MAX
-        self._time_range: timedelta = (len(self._buffer) - 1) * sampling_period
+        self._full_time_range: timedelta = len(self._buffer) * self._sampling_period
 
     @property
     def sampling_period(self) -> timedelta:
@@ -145,7 +145,9 @@ class OrderedRingBuffer(Generic[FloatArray]):
         # Update timestamps
         prev_newest = self._datetime_newest
         self._datetime_newest = max(self._datetime_newest, timestamp)
-        self._datetime_oldest = self._datetime_newest - self._time_range
+        self._datetime_oldest = self._datetime_newest - (
+            self._full_time_range - self._sampling_period
+        )
 
         # Update data
         value: float = np.nan if sample.value is None else sample.value.base_value
@@ -279,39 +281,39 @@ class OrderedRingBuffer(Generic[FloatArray]):
         return any(map(lambda gap: gap.contains(timestamp), self._gaps))
 
     def _update_gaps(
-        self, timestamp: datetime, newest: datetime, new_missing: bool
+        self, timestamp: datetime, newest: datetime, record_as_missing: bool
     ) -> None:
         """Update gap list with new timestamp.
 
         Args:
             timestamp: Timestamp of the new value.
             newest: Timestamp of the newest value before the current update.
-            new_missing: if true, the given timestamp will be recorded as missing.
-
+            record_as_missing: if `True`, the given timestamp will be recorded as missing.
         """
-        currently_missing = self.is_missing(timestamp)
+        found_in_gaps = self.is_missing(timestamp)
 
-        if not new_missing:
+        if not record_as_missing:
             # Replace all gaps with one if we went far into then future
-            if self._datetime_newest - newest >= self._time_range:
+            if self._datetime_newest - newest >= self._full_time_range:
                 self._gaps = [
                     Gap(start=self._datetime_oldest, end=self._datetime_newest)
                 ]
                 return
 
-            if not currently_missing and timestamp > newest + self._sampling_period:
+            # Check if we created a gap with the addition of the new value
+            if not found_in_gaps and timestamp > newest + self._sampling_period:
                 self._gaps.append(
                     Gap(start=newest + self._sampling_period, end=timestamp)
                 )
 
         # New missing entry that is not already in a gap?
-        if new_missing:
-            if not currently_missing:
+        if record_as_missing:
+            if not found_in_gaps:
                 self._gaps.append(
                     Gap(start=timestamp, end=timestamp + self._sampling_period)
                 )
         elif len(self._gaps) > 0:
-            if currently_missing:
+            if found_in_gaps:
                 self._remove_gap(timestamp)
 
         self._cleanup_gaps()
@@ -515,10 +517,24 @@ class OrderedRingBuffer(Generic[FloatArray]):
         if self._datetime_newest == self._DATETIME_MIN:
             return 0
 
+        # Sum of all elements in the gap ranges
+        sum_missing_entries = max(
+            0,
+            sum(
+                (
+                    gap.end
+                    # Don't look further back than oldest timestamp
+                    - max(gap.start, self._datetime_oldest)
+                )
+                // self._sampling_period
+                for gap in self._gaps
+            ),
+        )
+
         start_index = self.datetime_to_index(self._datetime_oldest)
         end_index = self.datetime_to_index(self._datetime_newest)
 
         if end_index < start_index:
-            return len(self._buffer) - start_index + end_index + 1
+            return len(self._buffer) - start_index + end_index + 1 - sum_missing_entries
 
-        return end_index + 1 - start_index
+        return end_index + 1 - start_index - sum_missing_entries

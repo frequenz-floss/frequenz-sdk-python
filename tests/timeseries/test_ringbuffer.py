@@ -195,14 +195,14 @@ def test_timestamp_ringbuffer_missing_parameter(
 @pytest.mark.parametrize(
     "buffer",
     [
-        OrderedRingBuffer([0.0] * 24 * int(ONE_MINUTE.total_seconds()), ONE_MINUTE),
+        OrderedRingBuffer([0.0] * 10 * int(ONE_MINUTE.total_seconds()), ONE_MINUTE),
         OrderedRingBuffer(
-            np.empty(shape=(24 * int(ONE_MINUTE.total_seconds()),), dtype=np.float64),
+            np.empty(shape=(12 * int(ONE_MINUTE.total_seconds()),), dtype=np.float64),
             ONE_MINUTE,
         ),
-        OrderedRingBuffer([0.0] * 24 * int(FIVE_MINUTES.total_seconds()), FIVE_MINUTES),
+        OrderedRingBuffer([0.0] * 5 * int(FIVE_MINUTES.total_seconds()), FIVE_MINUTES),
         OrderedRingBuffer(
-            np.empty(shape=(24 * int(FIVE_MINUTES.total_seconds())), dtype=np.float64),
+            np.empty(shape=(5 * int(FIVE_MINUTES.total_seconds())), dtype=np.float64),
             FIVE_MINUTES,
         ),
     ],
@@ -289,6 +289,21 @@ def test_len_ringbuffer_samples_fit_buffer_size() -> None:
         assert len(buffer) == len(test_samples)
 
 
+def test_len_with_gaps() -> None:
+    """Test the length when there are gaps in the buffer."""
+    buffer = OrderedRingBuffer(
+        np.empty(shape=10, dtype=float),
+        sampling_period=timedelta(seconds=1),
+        align_to=datetime(1, 1, 1, tzinfo=timezone.utc),
+    )
+
+    for i in range(10):
+        buffer.update(
+            Sample(datetime(2, 2, 2, 0, 0, i, tzinfo=timezone.utc), Quantity(float(i)))
+        )
+        assert len(buffer) == i + 1
+
+
 def test_len_ringbuffer_samples_overwrite_buffer() -> None:
     """Test the length of ordered ring buffer.
 
@@ -335,3 +350,22 @@ def test_ringbuffer_empty_buffer() -> None:
             sampling_period=timedelta(seconds=1),
             align_to=datetime(1, 1, 1),
         )
+
+
+def test_off_by_one_gap_logic_bug() -> None:
+    """Test off by one bug in the gap calculation."""
+    buffer = OrderedRingBuffer(
+        np.empty(shape=2, dtype=float),
+        sampling_period=timedelta(seconds=1),
+        align_to=datetime(1, 1, 1, tzinfo=timezone.utc),
+    )
+
+    base_time = datetime(2023, 1, 1, tzinfo=timezone.utc)
+
+    times = [base_time, base_time + timedelta(seconds=1)]
+
+    buffer.update(Sample(times[0], Quantity(1.0)))
+    buffer.update(Sample(times[1], Quantity(2.0)))
+
+    assert buffer.is_missing(times[0]) is False
+    assert buffer.is_missing(times[1]) is False
