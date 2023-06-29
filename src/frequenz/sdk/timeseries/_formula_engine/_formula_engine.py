@@ -12,6 +12,7 @@ from collections import deque
 from datetime import datetime
 from math import isinf, isnan
 from typing import (
+    Callable,
     Dict,
     Generic,
     List,
@@ -63,7 +64,7 @@ class FormulaEvaluator(Generic[QuantityT]):
         name: str,
         steps: List[FormulaStep],
         metric_fetchers: Dict[str, MetricFetcher[QuantityT]],
-        output_type: Type[QuantityT],
+        create_method: Callable[[float], QuantityT],
     ) -> None:
         """Create a `FormulaEngine` instance.
 
@@ -71,15 +72,15 @@ class FormulaEvaluator(Generic[QuantityT]):
             name: A name for the formula.
             steps: Steps for the engine to execute, in post-fix order.
             metric_fetchers: Fetchers for each metric stream the formula depends on.
-            output_type: A type object to generate the output `Sample` with.  If the
-                formula is for generating power values, this would be `Power`, for
-                example.
+            create_method: A method to generate the output `Sample` value with.  If the
+                formula is for generating power values, this would be
+                `Power.from_watts`, for example.
         """
         self._name = name
         self._steps = steps
         self._metric_fetchers: Dict[str, MetricFetcher[QuantityT]] = metric_fetchers
         self._first_run = True
-        self._output_type: type[QuantityT] = output_type
+        self._create_method: Callable[[float], QuantityT] = create_method
 
     async def _synchronize_metric_timestamps(
         self, metrics: Set[asyncio.Task[Optional[Sample[QuantityT]]]]
@@ -172,7 +173,7 @@ class FormulaEvaluator(Generic[QuantityT]):
         if isnan(res) or isinf(res):
             return Sample(metric_ts, None)
 
-        return Sample(metric_ts, self._output_type(res))
+        return Sample(metric_ts, self._create_method(res))
 
 
 _CompositionType = Union[
@@ -218,7 +219,7 @@ class _ComposableFormulaEngine(
 ):
     """A base class for formula engines."""
 
-    _output_type: Type[QuantityT]
+    _create_method: Callable[[float], QuantityT]
     _higher_order_builder: Type[_GenericHigherOrderBuilder]
     _task: asyncio.Task[None] | None = None
 
@@ -242,7 +243,7 @@ class _ComposableFormulaEngine(
             A formula builder that can take further expressions, or can be built
                 into a formula engine.
         """
-        return self._higher_order_builder(self, self._output_type) + other  # type: ignore
+        return self._higher_order_builder(self, self._create_method) + other  # type: ignore
 
     def __sub__(
         self, other: _GenericEngine | _GenericHigherOrderBuilder
@@ -257,7 +258,7 @@ class _ComposableFormulaEngine(
             A formula builder that can take further expressions, or can be built
                 into a formula engine.
         """
-        return self._higher_order_builder(self, self._output_type) - other  # type: ignore
+        return self._higher_order_builder(self, self._create_method) - other  # type: ignore
 
     def __mul__(
         self, other: _GenericEngine | _GenericHigherOrderBuilder
@@ -272,7 +273,7 @@ class _ComposableFormulaEngine(
             A formula builder that can take further expressions, or can be built
                 into a formula engine.
         """
-        return self._higher_order_builder(self, self._output_type) * other  # type: ignore
+        return self._higher_order_builder(self, self._create_method) * other  # type: ignore
 
     def __truediv__(
         self, other: _GenericEngine | _GenericHigherOrderBuilder
@@ -287,7 +288,7 @@ class _ComposableFormulaEngine(
             A formula builder that can take further expressions, or can be built
                 into a formula engine.
         """
-        return self._higher_order_builder(self, self._output_type) / other  # type: ignore
+        return self._higher_order_builder(self, self._create_method) / other  # type: ignore
 
 
 class FormulaEngine(
@@ -307,28 +308,28 @@ class FormulaEngine(
     def __init__(
         self,
         builder: FormulaBuilder[QuantityT],
-        output_type: Type[QuantityT],
+        create_method: Callable[[float], QuantityT],
     ) -> None:
         """Create a `FormulaEngine` instance.
 
         Args:
             builder: A `FormulaBuilder` instance to get the formula steps and metric
                 fetchers from.
-            output_type: A type object to generate the output `Sample` with.  If the
-                formula is for generating power values, this would be `Power`, for
-                example.
+            create_method: A method to generate the output `Sample` value with.  If the
+                formula is for generating power values, this would be
+                `Power.from_watts`, for example.
         """
         self._higher_order_builder = HigherOrderFormulaBuilder
         self._name: str = builder.name
         self._builder: FormulaBuilder[QuantityT] = builder
-        self._output_type: Type[QuantityT] = output_type  # type: ignore
+        self._create_method = create_method
         self._channel: Broadcast[Sample[QuantityT]] = Broadcast(self._name)
 
     async def _run(self) -> None:
         await self._builder.subscribe()
         steps, metric_fetchers = self._builder.finalize()
         evaluator = FormulaEvaluator[QuantityT](
-            self._name, steps, metric_fetchers, self._output_type
+            self._name, steps, metric_fetchers, self._create_method
         )
         sender = self._channel.new_sender()
         while True:
@@ -378,7 +379,7 @@ class FormulaEngine3Phase(
     def __init__(
         self,
         name: str,
-        output_type: Type[QuantityT],
+        create_method: Callable[[float], QuantityT],
         phase_streams: Tuple[
             FormulaEngine[QuantityT],
             FormulaEngine[QuantityT],
@@ -389,14 +390,14 @@ class FormulaEngine3Phase(
 
         Args:
             name: A name for the formula.
-            output_type: A type object to generate the output `Sample` with.  If the
-                formula is for generating power values, this would be `Power`, for
-                example.
+            create_method: A method to generate the output `Sample` value with.  If the
+                formula is for generating power values, this would be
+                `Power.from_watts`, for example.
             phase_streams: output streams of formula engines running per-phase formulas.
         """
         self._higher_order_builder = HigherOrderFormulaBuilder3Phase
         self._name: str = name
-        self._output_type = output_type
+        self._create_method = create_method
         self._channel: Broadcast[Sample3Phase[QuantityT]] = Broadcast(self._name)
         self._task: asyncio.Task[None] | None = None
         self._streams: tuple[
@@ -474,17 +475,17 @@ class FormulaBuilder(Generic[QuantityT]):
         add the values and return the result.
     """
 
-    def __init__(self, name: str, output_type: Type[QuantityT]) -> None:
+    def __init__(self, name: str, create_method: Callable[[float], QuantityT]) -> None:
         """Create a `FormulaBuilder` instance.
 
         Args:
             name: A name for the formula being built.
-            output_type: A type object to generate the output `Sample` with.  If the
-                formula is for generating power values, this would be `Power`, for
-                example.
+            create_method: A method to generate the output `Sample` value with.  If the
+                formula is for generating power values, this would be
+                `Power.from_watts`, for example.
         """
         self._name = name
-        self._output_type: Type[QuantityT] = output_type
+        self._create_method: Callable[[float], QuantityT] = create_method
         self._build_stack: List[FormulaStep] = []
         self._steps: List[FormulaStep] = []
         self._metric_fetchers: Dict[str, MetricFetcher[QuantityT]] = {}
@@ -648,7 +649,7 @@ class FormulaBuilder(Generic[QuantityT]):
             A `FormulaEngine` instance.
         """
         self.finalize()
-        return FormulaEngine(self, output_type=self._output_type)
+        return FormulaEngine(self, create_method=self._create_method)
 
 
 class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
@@ -657,16 +658,16 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
     def __init__(
         self,
         engine: FormulaEngine[QuantityT] | FormulaEngine3Phase[QuantityT],
-        output_type: Type[QuantityT],
+        create_method: Callable[[float], QuantityT],
     ) -> None:
         """Create a `GenericHigherOrderFormulaBuilder` instance.
 
         Args:
             engine: A first input stream to create a builder with, so that python
                 operators `+, -, *, /` can be used directly on newly created instances.
-            output_type: A type object to generate the output `Sample` with.  If the
-                formula is for generating power values, this would be `Power`, for
-                example.
+            create_method: A method to generate the output `Sample` value with.  If the
+                formula is for generating power values, this would be
+                `Power.from_watts`, for example.
         """
         self._steps: deque[
             tuple[
@@ -675,7 +676,7 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
             ]
         ] = deque()
         self._steps.append((TokenType.COMPONENT_METRIC, engine))
-        self._output_type: Type[QuantityT] = output_type
+        self._create_method: Callable[[float], QuantityT] = create_method
 
     @overload
     def _push(
@@ -854,7 +855,7 @@ class HigherOrderFormulaBuilder(Generic[QuantityT], _BaseHOFormulaBuilder[Quanti
         Returns:
             A `FormulaEngine` instance.
         """
-        builder = FormulaBuilder(name, self._output_type)
+        builder = FormulaBuilder(name, self._create_method)
         for typ, value in self._steps:
             if typ == TokenType.COMPONENT_METRIC:
                 assert isinstance(value, FormulaEngine)
@@ -888,9 +889,9 @@ class HigherOrderFormulaBuilder3Phase(
             A `FormulaEngine3Phase` instance.
         """
         builders = [
-            FormulaBuilder(name, self._output_type),
-            FormulaBuilder(name, self._output_type),
-            FormulaBuilder(name, self._output_type),
+            FormulaBuilder(name, self._create_method),
+            FormulaBuilder(name, self._create_method),
+            FormulaBuilder(name, self._create_method),
         ]
         for typ, value in self._steps:
             if typ == TokenType.COMPONENT_METRIC:
@@ -909,7 +910,7 @@ class HigherOrderFormulaBuilder3Phase(
                     builders[phase].push_oper(value)
         return FormulaEngine3Phase(
             name,
-            self._output_type,
+            self._create_method,
             (
                 builders[0].build(),
                 builders[1].build(),

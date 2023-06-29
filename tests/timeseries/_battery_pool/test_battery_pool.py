@@ -447,19 +447,19 @@ async def test_battery_pool_power(mocker: MockerFixture) -> None:
     production_receiver = battery_pool.production_power.new_receiver()
 
     await mockgrid.mock_data.send_bat_inverter_power([2.0, 3.0])
-    assert (await power_receiver.receive()).value == Power(5.0)
-    assert (await consumption_receiver.receive()).value == Power(5.0)
-    assert (await production_receiver.receive()).value == Power(0.0)
+    assert (await power_receiver.receive()).value == Power.from_watts(5.0)
+    assert (await consumption_receiver.receive()).value == Power.from_watts(5.0)
+    assert (await production_receiver.receive()).value == Power.from_watts(0.0)
 
     await mockgrid.mock_data.send_bat_inverter_power([-2.0, -5.0])
-    assert (await power_receiver.receive()).value == Power(-7.0)
-    assert (await consumption_receiver.receive()).value == Power(0.0)
-    assert (await production_receiver.receive()).value == Power(7.0)
+    assert (await power_receiver.receive()).value == Power.from_watts(-7.0)
+    assert (await consumption_receiver.receive()).value == Power.from_watts(0.0)
+    assert (await production_receiver.receive()).value == Power.from_watts(7.0)
 
     await mockgrid.mock_data.send_bat_inverter_power([2.0, -5.0])
-    assert (await power_receiver.receive()).value == Power(-3.0)
-    assert (await consumption_receiver.receive()).value == Power(0.0)
-    assert (await production_receiver.receive()).value == Power(3.0)
+    assert (await power_receiver.receive()).value == Power.from_watts(-3.0)
+    assert (await consumption_receiver.receive()).value == Power.from_watts(0.0)
+    assert (await production_receiver.receive()).value == Power.from_watts(3.0)
 
     await mockgrid.cleanup()
 

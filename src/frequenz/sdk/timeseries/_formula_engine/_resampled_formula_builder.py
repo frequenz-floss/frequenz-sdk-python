@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from typing import Generic, Type
+from typing import Callable, Generic
 
 from frequenz.channels import Receiver, Sender
 
@@ -28,7 +28,7 @@ class ResampledFormulaBuilder(Generic[QuantityT], FormulaBuilder[QuantityT]):
         channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         metric_id: ComponentMetricId,
-        output_type: Type[QuantityT],
+        create_method: Callable[[float], QuantityT],
     ) -> None:
         """Create a `ResampledFormulaBuilder` instance.
 
@@ -41,16 +41,16 @@ class ResampledFormulaBuilder(Generic[QuantityT], FormulaBuilder[QuantityT]):
             resampler_subscription_sender: A sender to send metric requests to the
                 resampling actor.
             metric_id: A metric ID to fetch for all components in this formula.
-            output_type: A type object to generate the output `Sample` with.  If the
-                formula is for generating power values, this would be `Power`, for
-                example.
+            create_method: A method to generate the output `Sample` value with.  If the
+                formula is for generating power values, this would be
+                `Power.from_watts`, for example.
         """
         self._channel_registry = channel_registry
         self._resampler_subscription_sender = resampler_subscription_sender
         self._namespace = namespace
         self._metric_id = metric_id
         self._resampler_requests: list[ComponentMetricRequest] = []
-        super().__init__(formula_name, output_type)  # type: ignore[arg-type]
+        super().__init__(formula_name, create_method)  # type: ignore[arg-type]
 
     def _get_resampled_receiver(
         self, component_id: int, metric_id: ComponentMetricId

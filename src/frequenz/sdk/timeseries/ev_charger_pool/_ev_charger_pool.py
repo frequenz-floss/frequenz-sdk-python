@@ -349,13 +349,13 @@ class EVChargerPool:
                 timestamp=phase_1.timestamp,
                 value_p1=None
                 if phase_1.value is None
-                else Current(phase_1.value.base_value),
+                else Current.from_amperes(phase_1.value.base_value),
                 value_p2=None
                 if phase_2.value is None
-                else Current(phase_2.value.base_value),
+                else Current.from_amperes(phase_2.value.base_value),
                 value_p3=None
                 if phase_3.value is None
-                else Current(phase_3.value.base_value),
+                else Current.from_amperes(phase_3.value.base_value),
             )
 
             if (

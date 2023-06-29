@@ -34,7 +34,9 @@ class PVPowerFormula(FormulaGenerator[Power]):
         Raises:
             ComponentNotFound: if there are no PV inverters in the component graph.
         """
-        builder = self._get_builder("pv-power", ComponentMetricId.ACTIVE_POWER, Power)
+        builder = self._get_builder(
+            "pv-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
+        )
 
         pv_meters = self._get_pv_meters()
         if not pv_meters:

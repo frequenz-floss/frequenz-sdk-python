@@ -36,7 +36,7 @@ class ProducerPowerFormula(FormulaGenerator[Power]):
                 meter.
         """
         builder = self._get_builder(
-            "producer_power", ComponentMetricId.ACTIVE_POWER, Power
+            "producer_power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
         )
         component_graph = connection_manager.get().component_graph
         grid_component = next(

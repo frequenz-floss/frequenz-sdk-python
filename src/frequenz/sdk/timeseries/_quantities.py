@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import math
 from datetime import timedelta
-from typing import Self, TypeVar, overload
+from typing import Any, NoReturn, Self, TypeVar, overload
 
 QuantityT = TypeVar("QuantityT", "Quantity", "Power", "Current", "Voltage", "Energy")
 
@@ -190,7 +190,9 @@ class Quantity:
         """
         if not type(other) is type(self):
             return NotImplemented
-        return type(self)(self._base_value + other._base_value)
+        summe = type(self).__new__(type(self))
+        summe._base_value = self._base_value + other._base_value
+        return summe
 
     def __sub__(self, other: Self) -> Self:
         """Return the difference of this quantity and another.
@@ -203,7 +205,9 @@ class Quantity:
         """
         if not type(other) is type(self):
             return NotImplemented
-        return type(self)(self._base_value - other._base_value)
+        difference = type(self).__new__(type(self))
+        difference._base_value = self._base_value - other._base_value
+        return difference
 
     def __gt__(self, other: Self) -> bool:
         """Return whether this quantity is greater than another.
@@ -275,8 +279,29 @@ class Quantity:
         return self._base_value == other._base_value
 
 
+class _NoDefaultConstructible(type):
+    """A metaclass that disables the default constructor."""
+
+    def __call__(cls, *_args: Any, **_kwargs: Any) -> NoReturn:
+        """Raise a TypeError when the default constructor is called.
+
+        Args:
+            _args: ignored positional arguments.
+            _kwargs: ignored keyword arguments.
+
+        Raises:
+            TypeError: Always.
+        """
+        raise TypeError(
+            "Use of default constructor NOT allowed for "
+            f"{cls.__module__}.{cls.__qualname__}, "
+            f"use one of the `{cls.__name__}.from_*()` methods instead."
+        )
+
+
 class Power(
     Quantity,
+    metaclass=_NoDefaultConstructible,
     exponent_unit_map={
         -3: "mW",
         0: "W",
@@ -296,7 +321,9 @@ class Power(
         Returns:
             A new power quantity.
         """
-        return cls(value=watts, exponent=0)
+        power = cls.__new__(cls)
+        power._base_value = watts
+        return power
 
     @classmethod
     def from_milliwatts(cls, milliwatts: float) -> Self:
@@ -308,7 +335,9 @@ class Power(
         Returns:
             A new power quantity.
         """
-        return cls(value=milliwatts, exponent=-3)
+        power = cls.__new__(cls)
+        power._base_value = milliwatts * 10**-3
+        return power
 
     @classmethod
     def from_kilowatts(cls, kilowatts: float) -> Self:
@@ -320,7 +349,9 @@ class Power(
         Returns:
             A new power quantity.
         """
-        return cls(value=kilowatts, exponent=3)
+        power = cls.__new__(cls)
+        power._base_value = kilowatts * 10**3
+        return power
 
     @classmethod
     def from_megawatts(cls, megawatts: float) -> Self:
@@ -332,7 +363,9 @@ class Power(
         Returns:
             A new power quantity.
         """
-        return cls(value=megawatts, exponent=6)
+        power = cls.__new__(cls)
+        power._base_value = megawatts * 10**6
+        return power
 
     def as_watts(self) -> float:
         """Return the power in watts.
@@ -367,7 +400,9 @@ class Power(
         Returns:
             An energy from multiplying this power by the given duration.
         """
-        return Energy(self._base_value * duration.total_seconds() / 3600.0, exponent=0)
+        return Energy.from_watt_hours(
+            self._base_value * duration.total_seconds() / 3600.0
+        )
 
     @overload
     def __truediv__(self, other: Current) -> Voltage:
@@ -398,9 +433,9 @@ class Power(
             TypeError: If the given value is not a current or voltage.
         """
         if isinstance(other, Current):
-            return Voltage(self._base_value / other._base_value, exponent=0)
+            return Voltage.from_volts(self._base_value / other._base_value)
         if isinstance(other, Voltage):
-            return Current(self._base_value / other._base_value, exponent=0)
+            return Current.from_amperes(self._base_value / other._base_value)
         raise TypeError(
             f"unsupported operand type(s) for /: '{type(self)}' and '{type(other)}'"
         )
@@ -408,6 +443,7 @@ class Power(
 
 class Current(
     Quantity,
+    metaclass=_NoDefaultConstructible,
     exponent_unit_map={
         -3: "mA",
         0: "A",
@@ -425,7 +461,9 @@ class Current(
         Returns:
             A new current quantity.
         """
-        return cls(value=amperes, exponent=0)
+        current = cls.__new__(cls)
+        current._base_value = amperes
+        return current
 
     @classmethod
     def from_milliamperes(cls, milliamperes: float) -> Self:
@@ -437,7 +475,9 @@ class Current(
         Returns:
             A new current quantity.
         """
-        return cls(value=milliamperes, exponent=-3)
+        current = cls.__new__(cls)
+        current._base_value = milliamperes * 10**-3
+        return current
 
     def as_amperes(self) -> float:
         """Return the current in amperes.
@@ -464,10 +504,14 @@ class Current(
         Returns:
             The power.
         """
-        return Power(self._base_value * voltage._base_value, exponent=0)
+        return Power.from_watts(self._base_value * voltage._base_value)
 
 
-class Voltage(Quantity, exponent_unit_map={0: "V", -3: "mV", 3: "kV"}):
+class Voltage(
+    Quantity,
+    metaclass=_NoDefaultConstructible,
+    exponent_unit_map={0: "V", -3: "mV", 3: "kV"},
+):
     """A voltage quantity."""
 
     @classmethod
@@ -480,7 +524,9 @@ class Voltage(Quantity, exponent_unit_map={0: "V", -3: "mV", 3: "kV"}):
         Returns:
             A new voltage quantity.
         """
-        return cls(value=volts, exponent=0)
+        voltage = cls.__new__(cls)
+        voltage._base_value = volts
+        return voltage
 
     @classmethod
     def from_millivolts(cls, millivolts: float) -> Self:
@@ -492,7 +538,9 @@ class Voltage(Quantity, exponent_unit_map={0: "V", -3: "mV", 3: "kV"}):
         Returns:
             A new voltage quantity.
         """
-        return cls(value=millivolts, exponent=-3)
+        voltage = cls.__new__(cls)
+        voltage._base_value = millivolts * 10**-3
+        return voltage
 
     @classmethod
     def from_kilovolts(cls, kilovolts: float) -> Self:
@@ -504,7 +552,9 @@ class Voltage(Quantity, exponent_unit_map={0: "V", -3: "mV", 3: "kV"}):
         Returns:
             A new voltage quantity.
         """
-        return cls(value=kilovolts, exponent=3)
+        voltage = cls.__new__(cls)
+        voltage._base_value = kilovolts * 10**3
+        return voltage
 
     def as_volts(self) -> float:
         """Return the voltage in volts.
@@ -539,11 +589,12 @@ class Voltage(Quantity, exponent_unit_map={0: "V", -3: "mV", 3: "kV"}):
         Returns:
             The calculated power.
         """
-        return Power(self._base_value * current._base_value, exponent=0)
+        return Power.from_watts(self._base_value * current._base_value)
 
 
 class Energy(
     Quantity,
+    metaclass=_NoDefaultConstructible,
     exponent_unit_map={
         0: "Wh",
         3: "kWh",
@@ -562,7 +613,9 @@ class Energy(
         Returns:
             A new energy quantity.
         """
-        return cls(value=watt_hours, exponent=0)
+        energy = cls.__new__(cls)
+        energy._base_value = watt_hours
+        return energy
 
     @classmethod
     def from_kilowatt_hours(cls, kilowatt_hours: float) -> Self:
@@ -574,7 +627,9 @@ class Energy(
         Returns:
             A new energy quantity.
         """
-        return cls(value=kilowatt_hours, exponent=3)
+        energy = cls.__new__(cls)
+        energy._base_value = kilowatt_hours * 10**3
+        return energy
 
     @classmethod
     def from_megawatt_hours(cls, megawatt_hours: float) -> Self:
@@ -586,7 +641,9 @@ class Energy(
         Returns:
             A new energy quantity.
         """
-        return cls(value=megawatt_hours, exponent=6)
+        energy = cls.__new__(cls)
+        energy._base_value = megawatt_hours * 10**6
+        return energy
 
     def as_watt_hours(self) -> float:
         """Return the energy in watt hours.
@@ -641,9 +698,7 @@ class Energy(
             TypeError: If the given value is not a power or duration.
         """
         if isinstance(other, timedelta):
-            return Power(
-                self._base_value / (other.total_seconds() / 3600.0), exponent=0
-            )
+            return Power.from_watts(self._base_value / (other.total_seconds() / 3600.0))
         if isinstance(other, Power):
             return timedelta(seconds=(self._base_value / other._base_value) * 3600.0)
         raise TypeError(

@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 from math import isclose
-from typing import Type
+from typing import Callable
 
 from frequenz.channels import Receiver
 
@@ -21,7 +21,7 @@ def get_resampled_stream(
     namespace: str,
     comp_id: int,
     metric_id: ComponentMetricId,
-    output_type: Type[QuantityT],
+    create_method: Callable[[float], QuantityT],
 ) -> Receiver[Sample[QuantityT]]:
     """Return the resampled data stream for the given component."""
     # Create a `FormulaBuilder` instance, just in order to reuse its
@@ -34,7 +34,7 @@ def get_resampled_stream(
         _data_pipeline._get()._channel_registry,
         _data_pipeline._get()._resampling_request_sender(),
         metric_id,
-        output_type,
+        create_method,
     )
     # Resampled data is always `Quantity` type, so we need to convert it to the desired
     # output type.
@@ -44,7 +44,7 @@ def get_resampled_stream(
     ).map(
         lambda sample: Sample(
             sample.timestamp,
-            None if sample.value is None else output_type(sample.value.base_value),
+            None if sample.value is None else create_method(sample.value.base_value),
         )
     )
     # pylint: enable=protected-access

@@ -38,7 +38,9 @@ class CHPPowerFormula(FormulaGenerator[Power]):
             FormulaGenerationError: If there's no dedicated meter attached to every CHP.
 
         """
-        builder = self._get_builder("chp-power", ComponentMetricId.ACTIVE_POWER, Power)
+        builder = self._get_builder(
+            "chp-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
+        )
 
         chp_meter_ids = self._get_chp_meters()
         if not chp_meter_ids:
