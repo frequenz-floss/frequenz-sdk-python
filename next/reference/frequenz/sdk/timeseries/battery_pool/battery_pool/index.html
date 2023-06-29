@@ -2000,7 +2000,7 @@ fetching high level metrics for this subset.</p>
         <span class="k">return</span> <span class="n">engine</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">soc</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricAggregator</span><span class="p">[</span><span class="n">Sample</span><span class="p">[</span><span class="n">Quantity</span><span class="p">]]:</span>
+    <span class="k">def</span> <span class="nf">soc</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricAggregator</span><span class="p">[</span><span class="n">Sample</span><span class="p">[</span><span class="n">Percentage</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch the normalized average weighted-by-capacity SoC values for the pool.</span>
 
 <span class="sd">        The values are normalized to the 0-100% range.</span>
@@ -2453,7 +2453,7 @@ all batteries in the pool.</p>
 
 
 <h6 id="frequenz.sdk.timeseries.battery_pool.battery_pool.BatteryPool.soc" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">soc</span><span class="p">:</span> <span class="n">MetricAggregator</span><span class="p">[</span><span class="n">Sample</span><span class="p">[</span><span class="n">Quantity</span><span class="p">]]</span></code>
+<code class="highlight language-python"><span class="n">soc</span><span class="p">:</span> <span class="n">MetricAggregator</span><span class="p">[</span><span class="n">Sample</span><span class="p">[</span><span class="n">Percentage</span><span class="p">]]</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -2496,7 +2496,7 @@ with.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><span title="frequenz.sdk.timeseries.battery_pool._methods.MetricAggregator">MetricAggregator</span>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample" href="../../#frequenz.sdk.timeseries.Sample">Sample</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Quantity" href="../../#frequenz.sdk.timeseries.Quantity">Quantity</a>]]</code>
+                  <code><span title="frequenz.sdk.timeseries.battery_pool._methods.MetricAggregator">MetricAggregator</span>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample" href="../../#frequenz.sdk.timeseries.Sample">Sample</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Percentage" href="../../#frequenz.sdk.timeseries.Percentage">Percentage</a>]]</code>
               </span>
           </td>
           <td class="doc-returns-details">
