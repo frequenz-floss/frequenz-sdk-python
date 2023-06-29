@@ -2078,13 +2078,13 @@
                 <span class="n">timestamp</span><span class="o">=</span><span class="n">phase_1</span><span class="o">.</span><span class="n">timestamp</span><span class="p">,</span>
                 <span class="n">value_p1</span><span class="o">=</span><span class="kc">None</span>
                 <span class="k">if</span> <span class="n">phase_1</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span>
-                <span class="k">else</span> <span class="n">Current</span><span class="p">(</span><span class="n">phase_1</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">base_value</span><span class="p">),</span>
+                <span class="k">else</span> <span class="n">Current</span><span class="o">.</span><span class="n">from_amperes</span><span class="p">(</span><span class="n">phase_1</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">base_value</span><span class="p">),</span>
                 <span class="n">value_p2</span><span class="o">=</span><span class="kc">None</span>
                 <span class="k">if</span> <span class="n">phase_2</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span>
-                <span class="k">else</span> <span class="n">Current</span><span class="p">(</span><span class="n">phase_2</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">base_value</span><span class="p">),</span>
+                <span class="k">else</span> <span class="n">Current</span><span class="o">.</span><span class="n">from_amperes</span><span class="p">(</span><span class="n">phase_2</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">base_value</span><span class="p">),</span>
                 <span class="n">value_p3</span><span class="o">=</span><span class="kc">None</span>
                 <span class="k">if</span> <span class="n">phase_3</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span>
-                <span class="k">else</span> <span class="n">Current</span><span class="p">(</span><span class="n">phase_3</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">base_value</span><span class="p">),</span>
+                <span class="k">else</span> <span class="n">Current</span><span class="o">.</span><span class="n">from_amperes</span><span class="p">(</span><span class="n">phase_3</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">base_value</span><span class="p">),</span>
             <span class="p">)</span>
 
             <span class="k">if</span> <span class="p">(</span>
