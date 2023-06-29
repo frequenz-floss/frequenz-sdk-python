@@ -9,7 +9,9 @@ import math
 from datetime import timedelta
 from typing import Any, NoReturn, Self, TypeVar, overload
 
-QuantityT = TypeVar("QuantityT", "Quantity", "Power", "Current", "Voltage", "Energy")
+QuantityT = TypeVar(
+    "QuantityT", "Quantity", "Power", "Current", "Voltage", "Energy", "Percentage"
+)
 
 
 class Quantity:
@@ -704,3 +706,55 @@ class Energy(
         raise TypeError(
             f"unsupported operand type(s) for /: '{type(self)}' and '{type(other)}'"
         )
+
+
+class Percentage(
+    Quantity,
+    metaclass=_NoDefaultConstructible,
+    exponent_unit_map={0: "%"},
+):
+    """A percentage quantity."""
+
+    @classmethod
+    def from_percent(cls, percent: float) -> Self:
+        """Initialize a new percentage quantity from a percent value.
+
+        Args:
+            percent: The percent value, normally in the 0.0-100.0 range.
+
+        Returns:
+            A new percentage quantity.
+        """
+        percentage = cls.__new__(cls)
+        percentage._base_value = percent
+        return percentage
+
+    @classmethod
+    def from_fraction(cls, fraction: float) -> Self:
+        """Initialize a new percentage quantity from a fraction.
+
+        Args:
+            fraction: The fraction, normally in the 0.0-1.0 range.
+
+        Returns:
+            A new percentage quantity.
+        """
+        percentage = cls.__new__(cls)
+        percentage._base_value = fraction * 100
+        return percentage
+
+    def as_percent(self) -> float:
+        """Return this quantity as a percentage.
+
+        Returns:
+            This quantity as a percentage.
+        """
+        return self._base_value
+
+    def as_fraction(self) -> float:
+        """Return this quantity as a fraction.
+
+        Returns:
+            This quantity as a fraction.
+        """
+        return self._base_value / 100

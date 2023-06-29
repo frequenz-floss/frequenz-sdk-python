@@ -10,6 +10,7 @@ import pytest
 from frequenz.sdk.timeseries._quantities import (
     Current,
     Energy,
+    Percentage,
     Power,
     Quantity,
     Voltage,
@@ -257,3 +258,13 @@ def test_quantity_compositions() -> None:
     assert energy / power == timedelta(hours=6.2)
     assert energy / timedelta(hours=6.2) == power
     assert energy == power * timedelta(hours=6.2)
+
+
+def test_percentage() -> None:
+    """Test the percentage class."""
+    pct = Percentage.from_fraction(0.204)
+    assert f"{pct}" == "20.4 %"
+    pct = Percentage.from_percent(20.4)
+    assert f"{pct}" == "20.4 %"
+    assert pct.as_percent() == 20.4
+    assert pct.as_fraction() == 0.204
