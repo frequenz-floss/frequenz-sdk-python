@@ -20,14 +20,14 @@ from ...actor.power_distributing._battery_pool_status import BatteryStatus
 from ...actor.power_distributing.result import Result
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory
-from ...timeseries import Quantity, Sample
+from ...timeseries import Sample
 from .._formula_engine import FormulaEngine, FormulaEnginePool
 from .._formula_engine._formula_generators import (
     BatteryPowerFormula,
     FormulaGeneratorConfig,
     FormulaType,
 )
-from .._quantities import Energy, Power
+from .._quantities import Energy, Percentage, Power
 from ._methods import MetricAggregator, SendOnUpdate
 from ._metric_calculator import CapacityCalculator, PowerBoundsCalculator, SoCCalculator
 from ._result_types import PowerMetrics
@@ -330,7 +330,7 @@ class BatteryPool:
         return engine
 
     @property
-    def soc(self) -> MetricAggregator[Sample[Quantity]]:
+    def soc(self) -> MetricAggregator[Sample[Percentage]]:
         """Fetch the normalized average weighted-by-capacity SoC values for the pool.
 
         The values are normalized to the 0-100% range.

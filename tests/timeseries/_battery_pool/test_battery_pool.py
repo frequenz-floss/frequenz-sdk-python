@@ -24,7 +24,7 @@ from frequenz.sdk._internal._constants import (
 from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.actor.power_distributing import BatteryStatus
 from frequenz.sdk.microgrid.component import ComponentCategory
-from frequenz.sdk.timeseries import Energy, Power, Quantity, Sample
+from frequenz.sdk.timeseries import Energy, Percentage, Power, Sample
 from frequenz.sdk.timeseries.battery_pool import BatteryPool, Bound, PowerMetrics
 from frequenz.sdk.timeseries.battery_pool._metric_calculator import (
     battery_inverter_mapping,
@@ -688,29 +688,29 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
     now = datetime.now(tz=timezone.utc)
     expected = Sample(
         timestamp=now,
-        value=Quantity(10.0),
+        value=Percentage.from_percent(10.0),
     )
     compare_messages(msg, expected, WAIT_FOR_COMPONENT_DATA_SEC + 0.2)
 
     batteries_in_pool = list(battery_pool.battery_ids)
-    scenarios: list[Scenario[Sample[Quantity]]] = [
+    scenarios: list[Scenario[Sample[Percentage]]] = [
         Scenario(
             batteries_in_pool[0],
             {"capacity": 150, "soc": 10},
-            Sample(now, Quantity(2.5)),
+            Sample(now, Percentage.from_percent(2.5)),
         ),
         Scenario(
             batteries_in_pool[0],
             {
                 "soc_lower_bound": 0.0,
             },
-            Sample(now, Quantity(12.727272727272727)),
+            Sample(now, Percentage.from_percent(12.727272727272727)),
         ),
         # If NaN, then not include that battery in the metric.
         Scenario(
             batteries_in_pool[0],
             {"soc_upper_bound": float("NaN")},
-            Sample(now, Quantity(10.0)),
+            Sample(now, Percentage.from_percent(10.0)),
         ),
         # All batteries are sending NaN, can't calculate SoC so we should send None
         Scenario(
@@ -721,7 +721,7 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
         Scenario(
             batteries_in_pool[1],
             {"soc": 30},
-            Sample(now, Quantity(10.0)),
+            Sample(now, Percentage.from_percent(10.0)),
         ),
         # Final metric didn't change, so nothing should be received.
         Scenario(
@@ -734,17 +734,17 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
         Scenario(
             batteries_in_pool[1],
             {"capacity": 0},
-            Sample(now, Quantity(0.0)),
+            Sample(now, Percentage.from_percent(0.0)),
         ),
         Scenario(
             batteries_in_pool[0],
             {"capacity": 50, "soc": 55.0},
-            Sample(now, Quantity(50.0)),
+            Sample(now, Percentage.from_percent(50.0)),
         ),
         Scenario(
             batteries_in_pool[1],
             {"capacity": 150},
-            Sample(now, Quantity(25.0)),
+            Sample(now, Percentage.from_percent(25.0)),
         ),
     ]
 
@@ -757,15 +757,15 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
         all_batteries=all_batteries,
         batteries_in_pool=batteries_in_pool,
         waiting_time_sec=waiting_time_sec,
-        all_pool_result=Sample(now, Quantity(25.0)),
-        only_first_battery_result=Sample(now, Quantity(50.0)),
+        all_pool_result=Sample(now, Percentage.from_percent(25.0)),
+        only_first_battery_result=Sample(now, Percentage.from_percent(50.0)),
     )
 
     # One battery stopped sending data.
     await streamer.stop_streaming(batteries_in_pool[1])
     await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.2)
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
-    compare_messages(msg, Sample(now, Quantity(50.0)), 0.2)
+    compare_messages(msg, Sample(now, Percentage.from_percent(50.0)), 0.2)
 
     # All batteries stopped sending data.
     await streamer.stop_streaming(batteries_in_pool[0])
@@ -777,7 +777,7 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
     latest_data = streamer.get_current_component_data(batteries_in_pool[0])
     streamer.start_streaming(latest_data, sampling_rate=0.1)
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
-    compare_messages(msg, Sample(now, Quantity(50.0)), 0.2)
+    compare_messages(msg, Sample(now, Percentage.from_percent(50.0)), 0.2)
 
 
 async def run_power_bounds_test(  # pylint: disable=too-many-locals

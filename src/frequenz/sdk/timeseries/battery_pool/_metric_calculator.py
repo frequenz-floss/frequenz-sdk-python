@@ -12,7 +12,7 @@ from typing import Generic, Iterable, TypeVar
 
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory, ComponentMetricId, InverterType
-from ...timeseries import Energy, Quantity, Sample
+from ...timeseries import Energy, Percentage, Sample
 from ._component_metrics import ComponentMetricsData
 from ._result_types import Bound, PowerMetrics
 
@@ -59,7 +59,7 @@ def battery_inverter_mapping(batteries: Iterable[int]) -> dict[int, int]:
 
 # Formula output types class have no common interface
 # Print all possible types here.
-T = TypeVar("T", Sample[Quantity], Sample[Energy], PowerMetrics)
+T = TypeVar("T", Sample[Percentage], Sample[Energy], PowerMetrics)
 
 
 class MetricCalculator(ABC, Generic[T]):
@@ -234,7 +234,7 @@ class CapacityCalculator(MetricCalculator[Sample[Energy]]):
         )
 
 
-class SoCCalculator(MetricCalculator[Sample[Quantity]]):
+class SoCCalculator(MetricCalculator[Sample[Percentage]]):
     """Define how to calculate SoC metrics."""
 
     def __init__(self, batteries: Set[int]) -> None:
@@ -283,7 +283,7 @@ class SoCCalculator(MetricCalculator[Sample[Quantity]]):
         self,
         metrics_data: dict[int, ComponentMetricsData],
         working_batteries: set[int],
-    ) -> Sample[Quantity] | None:
+    ) -> Sample[Percentage] | None:
         """Aggregate the metrics_data and calculate high level metric.
 
         Missing components will be ignored. Formula will be calculated for all
@@ -349,11 +349,11 @@ class SoCCalculator(MetricCalculator[Sample[Quantity]]):
         if total_capacity_x100 == 0:
             return Sample(
                 timestamp=timestamp,
-                value=Quantity(0.0),
+                value=Percentage.from_percent(0.0),
             )
         return Sample(
             timestamp=timestamp,
-            value=Quantity(used_capacity_x100 / total_capacity_x100),
+            value=Percentage.from_percent(used_capacity_x100 / total_capacity_x100),
         )
 
 
