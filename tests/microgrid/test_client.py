@@ -74,12 +74,9 @@ class TestMicrogridGrpcClient:
                 Component(0, ComponentCategory.METER),
             }
 
-            # sensors/loads are not counted as components by the API client
+            # sensors are not counted as components by the API client
             servicer.add_component(
                 1, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR
-            )
-            servicer.add_component(
-                2, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_LOAD
             )
             assert set(await microgrid.components()) == {
                 Component(0, ComponentCategory.METER),
@@ -91,7 +88,6 @@ class TestMicrogridGrpcClient:
                 [
                     (9, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_METER),
                     (99, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER),
-                    (66, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_LOAD),
                     (666, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR),
                     (999, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY),
                 ]
@@ -104,7 +100,6 @@ class TestMicrogridGrpcClient:
 
             servicer.set_components(
                 [
-                    (66, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_LOAD),
                     (99, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR),
                     (
                         100,

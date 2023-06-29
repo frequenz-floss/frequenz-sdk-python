@@ -244,10 +244,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
             )
         components_only = filter(
             lambda c: c.category
-            not in (
-                microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR,
-                microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_LOAD,
-            ),
+            is not microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR,
             component_list.components,
         )
         result: Iterable[Component] = map(
