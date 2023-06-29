@@ -58,12 +58,10 @@ class ComponentCategory(Enum):
 
     NONE = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_UNSPECIFIED
     GRID = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_GRID
-    JUNCTION = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_JUNCTION
     METER = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_METER
     INVERTER = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
     BATTERY = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
     EV_CHARGER = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER
-    LOAD = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_LOAD
     CHP = microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_CHP
 
     # types not yet supported by the API but which can be inferred
