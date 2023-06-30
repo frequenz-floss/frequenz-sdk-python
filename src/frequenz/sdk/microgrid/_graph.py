@@ -502,7 +502,6 @@ class _MicrogridComponentGraph(ComponentGraph):
         self._validate_graph_root()
         self._validate_grid_endpoint()
         self._validate_intermediary_components()
-        self._validate_junctions()
         self._validate_leaf_components()
 
     def is_pv_inverter(self, component: Component) -> bool:
@@ -747,7 +746,6 @@ class _MicrogridComponentGraph(ComponentGraph):
         valid_root_types = {
             ComponentCategory.NONE,
             ComponentCategory.GRID,
-            ComponentCategory.JUNCTION,
         }
 
         valid_roots = list(
@@ -820,24 +818,6 @@ class _MicrogridComponentGraph(ComponentGraph):
             raise InvalidGraphError(
                 "Intermediary components without graph predecessors: "
                 f"{missing_predecessors}"
-            )
-
-    def _validate_junctions(self) -> None:
-        """Check that junctions are configured correctly in the graph.
-
-        Raises:
-            InvalidGraphError: if any junction has no successors (it is allowed
-                for a single junction to be the root of the component graph, in
-                which case it will have no predecessors: this is taken care of
-                by the `_validate_graph_root` check)
-        """
-        junctions = self.components(component_category={ComponentCategory.JUNCTION})
-        no_successors = list(
-            filter(lambda c: self._graph.out_degree(c.component_id) == 0, junctions)
-        )
-        if len(no_successors) > 0:
-            raise InvalidGraphError(
-                f"Junctions missing graph successors: {no_successors}"
             )
 
     def _validate_leaf_components(self) -> None:

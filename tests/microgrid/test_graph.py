@@ -804,21 +804,6 @@ class Test_MicrogridComponentGraph:
         ):
             graph.validate()
 
-        # junctions are not set up correctly: a junction has no
-        # successors in the graph
-        graph._graph.clear()
-        graph._graph.add_nodes_from(
-            [
-                (1, asdict(Component(1, ComponentCategory.GRID))),
-                (2, asdict(Component(2, ComponentCategory.JUNCTION))),
-            ]
-        )
-        graph._graph.add_edges_from([(1, 2)])
-        with pytest.raises(
-            gr.InvalidGraphError, match="Junctions missing graph successors"
-        ):
-            graph.validate()
-
         # leaf components are not set up correctly: a battery has
         # a successor in the graph
         graph._graph.clear()
@@ -1128,47 +1113,6 @@ class Test_MicrogridComponentGraph:
         )
         graph._graph.add_edges_from([(1, 2), (2, 3), (3, 4)])
         graph._validate_intermediary_components()
-
-    def test__validate_junctions(self) -> None:
-        graph = gr._MicrogridComponentGraph()
-        assert set(graph.components()) == set()
-        assert list(graph.connections()) == []
-
-        # successors missing for at least one junction
-        graph._graph.clear()
-        graph._graph.add_nodes_from(
-            [(1, asdict(Component(1, ComponentCategory.JUNCTION)))]
-        )
-        with pytest.raises(
-            gr.InvalidGraphError, match="Junctions missing graph successors"
-        ):
-            graph._validate_junctions()
-
-        graph._graph.clear()
-        graph._graph.add_nodes_from(
-            [
-                (1, asdict(Component(1, ComponentCategory.JUNCTION))),
-                (2, asdict(Component(2, ComponentCategory.JUNCTION))),
-            ]
-        )
-        graph._graph.add_edges_from([(1, 2)])
-        with pytest.raises(
-            gr.InvalidGraphError, match="Junctions missing graph successors"
-        ):
-            graph._validate_junctions()
-
-        # all junctions have at least one successor
-        graph._graph.clear()
-        graph._graph.add_nodes_from(
-            [
-                (1, asdict(Component(1, ComponentCategory.JUNCTION))),
-                (2, asdict(Component(2, ComponentCategory.JUNCTION))),
-                (3, asdict(Component(3, ComponentCategory.METER))),
-            ]
-        )
-
-        graph._graph.add_edges_from([(1, 2), (2, 3)])
-        graph._validate_junctions()
 
     def test__validate_leaf_components(self) -> None:
         # to ensure clean testing of the individual method,
