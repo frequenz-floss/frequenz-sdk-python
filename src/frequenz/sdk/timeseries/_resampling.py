@@ -348,7 +348,7 @@ class Resampler:
     timeseries to produce `Sample`s at regular periodic intervals.
 
     This class uses
-    a [`ResamplingFunction`][frequenz.sdk.timeseries.resampling.ResamplingFunction]
+    a [`ResamplingFunction`][frequenz.sdk.timeseries._resampling.ResamplingFunction]
     to produce a new sample from samples received in the past. If there are no
     samples coming to a resampled timeseries for a while, eventually the
     `Resampler` will produce `Sample`s with `None` as value, meaning there is
