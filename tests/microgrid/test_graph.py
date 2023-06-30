@@ -221,11 +221,10 @@ class TestComponentGraph:
         [
             ({ComponentCategory.EV_CHARGER}, set()),
             (
-                {ComponentCategory.JUNCTION, ComponentCategory.EV_CHARGER},
-                {Component(31, ComponentCategory.JUNCTION)},
+                {ComponentCategory.BATTERY, ComponentCategory.EV_CHARGER},
+                {Component(61, ComponentCategory.BATTERY)},
             ),
             ({ComponentCategory.GRID}, {Component(11, ComponentCategory.GRID)}),
-            ({ComponentCategory.JUNCTION}, {Component(31, ComponentCategory.JUNCTION)}),
             (
                 {ComponentCategory.METER},
                 {
@@ -245,16 +244,15 @@ class TestComponentGraph:
             (
                 {
                     ComponentCategory.METER,
-                    ComponentCategory.JUNCTION,
+                    ComponentCategory.BATTERY,
                     ComponentCategory.EV_CHARGER,
                 },
                 {
                     Component(21, ComponentCategory.METER),
-                    Component(31, ComponentCategory.JUNCTION),
+                    Component(61, ComponentCategory.BATTERY),
                     Component(41, ComponentCategory.METER),
                 },
             ),
-            ({ComponentCategory.JUNCTION}, {Component(31, ComponentCategory.JUNCTION)}),
         ],
     )
     def test_filter_graph_components_by_type(
@@ -272,14 +270,12 @@ class TestComponentGraph:
         "ids, types, expected",
         [
             ({11}, {ComponentCategory.GRID}, {Component(11, ComponentCategory.GRID)}),
-            ({11}, {ComponentCategory.JUNCTION}, set()),
             ({31}, {ComponentCategory.GRID}, set()),
             (
-                {31},
-                {ComponentCategory.JUNCTION},
-                {Component(31, ComponentCategory.JUNCTION)},
+                {61},
+                {ComponentCategory.BATTERY},
+                {Component(61, ComponentCategory.BATTERY)},
             ),
-            ({31}, {ComponentCategory.GRID}, set()),
             (
                 {11, 21, 31, 61},
                 {ComponentCategory.METER, ComponentCategory.BATTERY},
@@ -604,7 +600,7 @@ class Test_MicrogridComponentGraph:
                 components={
                     Component(7, ComponentCategory.GRID),
                     Component(8, ComponentCategory.METER),
-                    Component(9, ComponentCategory.JUNCTION),
+                    Component(9, ComponentCategory.INVERTER),
                 },
                 connections={
                     Connection(7, 8),
@@ -637,9 +633,9 @@ class Test_MicrogridComponentGraph:
             graph.refresh_from(
                 components={
                     Component(7, ComponentCategory.GRID),
-                    Component(9, ComponentCategory.JUNCTION),
+                    Component(9, ComponentCategory.METER),
                 },
-                connections={Connection(7, 9)},
+                connections={Connection(9, 7)},
                 correct_errors=pretend_to_correct_errors,
             )
 
@@ -875,7 +871,7 @@ class Test_MicrogridComponentGraph:
         graph._graph.add_nodes_from(
             [
                 (1, asdict(Component(1, ComponentCategory.GRID))),
-                (2, asdict(Component(2, ComponentCategory.JUNCTION))),
+                (2, asdict(Component(2, ComponentCategory.INVERTER))),
                 (3, asdict(Component(3, ComponentCategory.METER))),
             ]
         )
@@ -914,9 +910,9 @@ class Test_MicrogridComponentGraph:
         graph._graph.clear()
         graph._graph.add_nodes_from(
             [
-                (1, asdict(Component(1, ComponentCategory.JUNCTION))),
-                (2, asdict(Component(2, ComponentCategory.JUNCTION))),
-                (3, asdict(Component(3, ComponentCategory.JUNCTION))),
+                (1, asdict(Component(1, ComponentCategory.METER))),
+                (2, asdict(Component(2, ComponentCategory.METER))),
+                (3, asdict(Component(3, ComponentCategory.METER))),
             ]
         )
         graph._graph.add_edges_from([(1, 2), (2, 3), (3, 1)])
@@ -959,7 +955,7 @@ class Test_MicrogridComponentGraph:
         graph._graph.add_nodes_from(
             [
                 (1, asdict(Component(1, ComponentCategory.GRID))),
-                (2, asdict(Component(2, ComponentCategory.JUNCTION))),
+                (2, asdict(Component(2, ComponentCategory.GRID))),
                 (3, asdict(Component(3, ComponentCategory.METER))),
             ]
         )
@@ -985,9 +981,7 @@ class Test_MicrogridComponentGraph:
 
         graph._graph.clear()
 
-        graph._graph.add_nodes_from(
-            [(3, asdict(Component(3, ComponentCategory.JUNCTION)))]
-        )
+        graph._graph.add_nodes_from([(3, asdict(Component(3, ComponentCategory.GRID)))])
         with pytest.raises(
             gr.InvalidGraphError, match="Graph root .*id=3.* has no successors!"
         ):
@@ -1017,7 +1011,7 @@ class Test_MicrogridComponentGraph:
         graph._graph.clear()
         graph._graph.add_nodes_from(
             [
-                (1, asdict(Component(1, ComponentCategory.JUNCTION))),
+                (1, asdict(Component(1, ComponentCategory.GRID))),
                 (2, asdict(Component(2, ComponentCategory.METER))),
             ]
         )

@@ -192,7 +192,7 @@ def test_MockMicrogridServicer() -> None:
     api_prealloc = mock_api.MockMicrogridServicer(
         components=[
             (7, ComponentCategory.COMPONENT_CATEGORY_GRID),
-            (9, ComponentCategory.COMPONENT_CATEGORY_LOAD),
+            (9, ComponentCategory.COMPONENT_CATEGORY_METER),
         ],
         connections=[(7, 8), (8, 9)],
     )
@@ -200,7 +200,7 @@ def test_MockMicrogridServicer() -> None:
         api_prealloc.ListComponents(ComponentFilter(), service_context_mock).components
     ) == [
         Component(id=7, category=ComponentCategory.COMPONENT_CATEGORY_GRID),
-        Component(id=9, category=ComponentCategory.COMPONENT_CATEGORY_LOAD),
+        Component(id=9, category=ComponentCategory.COMPONENT_CATEGORY_METER),
     ]
     assert list(
         api_prealloc.ListConnections(
@@ -217,7 +217,7 @@ async def test_MockGrpcServer() -> None:
         components=[
             (1, ComponentCategory.COMPONENT_CATEGORY_GRID),
             (2, ComponentCategory.COMPONENT_CATEGORY_METER),
-            (3, ComponentCategory.COMPONENT_CATEGORY_LOAD),
+            (3, ComponentCategory.COMPONENT_CATEGORY_INVERTER),
         ],
         connections=[(1, 2), (2, 3)],
     )
@@ -230,7 +230,7 @@ async def test_MockGrpcServer() -> None:
     assert list(components1.components) == [
         Component(id=1, category=ComponentCategory.COMPONENT_CATEGORY_GRID),
         Component(id=2, category=ComponentCategory.COMPONENT_CATEGORY_METER),
-        Component(id=3, category=ComponentCategory.COMPONENT_CATEGORY_LOAD),
+        Component(id=3, category=ComponentCategory.COMPONENT_CATEGORY_INVERTER),
     ]
 
     connections1 = await client.ListConnections(ConnectionFilter())  # type: ignore
@@ -246,7 +246,7 @@ async def test_MockGrpcServer() -> None:
             (6, ComponentCategory.COMPONENT_CATEGORY_GRID),
             (77, ComponentCategory.COMPONENT_CATEGORY_METER),
             (888, ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER),
-            (9999, ComponentCategory.COMPONENT_CATEGORY_LOAD),
+            (9999, ComponentCategory.COMPONENT_CATEGORY_INVERTER),
         ],
         connections=[(6, 77), (6, 888), (77, 9999)],
     )
@@ -258,7 +258,7 @@ async def test_MockGrpcServer() -> None:
         Component(id=6, category=ComponentCategory.COMPONENT_CATEGORY_GRID),
         Component(id=77, category=ComponentCategory.COMPONENT_CATEGORY_METER),
         Component(id=888, category=ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER),
-        Component(id=9999, category=ComponentCategory.COMPONENT_CATEGORY_LOAD),
+        Component(id=9999, category=ComponentCategory.COMPONENT_CATEGORY_INVERTER),
     ]
 
     connections2 = await client.ListConnections(ConnectionFilter())  # type: ignore
