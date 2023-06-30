@@ -62,7 +62,6 @@ class TestComponentGraph:
         return {
             Component(11, ComponentCategory.GRID),
             Component(21, ComponentCategory.METER),
-            Component(31, ComponentCategory.JUNCTION),
             Component(41, ComponentCategory.METER),
             Component(51, ComponentCategory.INVERTER),
             Component(61, ComponentCategory.BATTERY),
@@ -72,8 +71,7 @@ class TestComponentGraph:
     def sample_input_connections(self) -> Set[Connection]:
         return {
             Connection(11, 21),
-            Connection(21, 31),
-            Connection(31, 41),
+            Connection(21, 41),
             Connection(41, 51),
             Connection(51, 61),
         }
@@ -142,15 +140,13 @@ class TestComponentGraph:
         input_components = {
             101: Component(101, ComponentCategory.GRID),
             102: Component(102, ComponentCategory.METER),
-            103: Component(103, ComponentCategory.JUNCTION),
             104: Component(104, ComponentCategory.METER),
             105: Component(105, ComponentCategory.INVERTER),
             106: Component(106, ComponentCategory.BATTERY),
         }
         input_connections = {
             Connection(101, 102),
-            Connection(102, 103),
-            Connection(103, 104),
+            Connection(102, 104),
             Connection(104, 105),
             Connection(105, 106),
         }
@@ -186,16 +182,14 @@ class TestComponentGraph:
             ({1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, set()),
             ({11}, {Component(11, ComponentCategory.GRID)}),
             ({21}, {Component(21, ComponentCategory.METER)}),
-            ({31}, {Component(31, ComponentCategory.JUNCTION)}),
             ({41}, {Component(41, ComponentCategory.METER)}),
             ({51}, {Component(51, ComponentCategory.INVERTER)}),
             ({61}, {Component(61, ComponentCategory.BATTERY)}),
             (
-                {31, 11, 61},
+                {11, 61},
                 {
                     Component(11, ComponentCategory.GRID),
                     Component(61, ComponentCategory.BATTERY),
-                    Component(31, ComponentCategory.JUNCTION),
                 },
             ),
             (
@@ -560,15 +554,13 @@ class Test_MicrogridComponentGraph:
             components={
                 Component(1, ComponentCategory.GRID),
                 Component(2, ComponentCategory.METER),
-                Component(3, ComponentCategory.JUNCTION),
                 Component(4, ComponentCategory.METER),
                 Component(5, ComponentCategory.INVERTER),
                 Component(6, ComponentCategory.BATTERY),
             },
             connections={
                 Connection(1, 2),
-                Connection(2, 3),
-                Connection(3, 4),
+                Connection(2, 4),
                 Connection(4, 5),
                 Connection(5, 6),
             },
@@ -576,7 +568,6 @@ class Test_MicrogridComponentGraph:
         expected = {
             Component(1, ComponentCategory.GRID),
             Component(2, ComponentCategory.METER),
-            Component(3, ComponentCategory.JUNCTION),
             Component(4, ComponentCategory.METER),
             Component(5, ComponentCategory.INVERTER),
             Component(6, ComponentCategory.BATTERY),
@@ -585,8 +576,7 @@ class Test_MicrogridComponentGraph:
         assert set(graph.components()) == expected
         assert graph.connections() == {
             Connection(1, 2),
-            Connection(2, 3),
-            Connection(3, 4),
+            Connection(2, 4),
             Connection(4, 5),
             Connection(5, 6),
         }
@@ -614,8 +604,7 @@ class Test_MicrogridComponentGraph:
 
         assert graph.connections() == {
             Connection(1, 2),
-            Connection(2, 3),
-            Connection(3, 4),
+            Connection(2, 4),
             Connection(4, 5),
             Connection(5, 6),
         }

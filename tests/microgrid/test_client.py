@@ -106,7 +106,6 @@ class TestMicrogridGrpcClient:
                         microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_UNSPECIFIED,
                     ),
                     (101, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_GRID),
-                    (103, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_JUNCTION),
                     (104, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_METER),
                     (105, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER),
                     (106, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY),
@@ -117,7 +116,6 @@ class TestMicrogridGrpcClient:
             assert set(await microgrid.components()) == {
                 Component(100, ComponentCategory.NONE),
                 Component(101, ComponentCategory.GRID),
-                Component(103, ComponentCategory.JUNCTION),
                 Component(104, ComponentCategory.METER),
                 Component(105, ComponentCategory.INVERTER, InverterType.NONE),
                 Component(106, ComponentCategory.BATTERY),

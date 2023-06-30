@@ -31,9 +31,6 @@ class TestDataSourcingActor:
             1, microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_GRID
         )
         servicer.add_component(
-            3, microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_JUNCTION
-        )
-        servicer.add_component(
             4, microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_METER
         )
         servicer.add_component(
@@ -46,9 +43,8 @@ class TestDataSourcingActor:
             9, microgrid_pb2.ComponentCategory.COMPONENT_CATEGORY_BATTERY
         )
 
-        servicer.add_connection(1, 3)
-        servicer.add_connection(3, 4)
-        servicer.add_connection(3, 7)
+        servicer.add_connection(1, 4)
+        servicer.add_connection(1, 7)
         servicer.add_connection(7, 8)
         servicer.add_connection(8, 9)
 

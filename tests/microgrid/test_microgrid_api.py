@@ -32,7 +32,6 @@ class TestMicrogridApi:
         components = [
             [
                 Component(1, ComponentCategory.GRID),
-                Component(3, ComponentCategory.JUNCTION),
                 Component(4, ComponentCategory.METER),
                 Component(5, ComponentCategory.METER),
                 Component(6, ComponentCategory.PV_ARRAY),
@@ -45,7 +44,6 @@ class TestMicrogridApi:
             ],
             [
                 Component(1, ComponentCategory.GRID),
-                Component(3, ComponentCategory.JUNCTION),
                 Component(4, ComponentCategory.METER),
                 Component(7, ComponentCategory.METER),
                 Component(8, ComponentCategory.INVERTER),
@@ -67,21 +65,19 @@ class TestMicrogridApi:
         """
         connections = [
             [
-                Connection(1, 3),
-                Connection(3, 4),
-                Connection(3, 5),
+                Connection(1, 4),
+                Connection(1, 5),
                 Connection(5, 6),
-                Connection(3, 7),
+                Connection(1, 7),
                 Connection(7, 8),
                 Connection(8, 9),
-                Connection(3, 10),
+                Connection(1, 10),
                 Connection(10, 11),
                 Connection(11, 12),
             ],
             [
-                Connection(1, 3),
-                Connection(3, 4),
-                Connection(3, 7),
+                Connection(1, 4),
+                Connection(1, 7),
                 Connection(7, 8),
                 Connection(8, 9),
             ],

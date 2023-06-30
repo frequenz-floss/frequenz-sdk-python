@@ -30,13 +30,6 @@ def test_component_category_from_protobuf() -> None:
 
     assert (
         cp._component_category_from_protobuf(
-            microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_JUNCTION
-        )
-        == cp.ComponentCategory.JUNCTION
-    )
-
-    assert (
-        cp._component_category_from_protobuf(
             microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_METER
         )
         == cp.ComponentCategory.METER
@@ -79,9 +72,6 @@ def test_Component() -> None:
 
     c1 = cp.Component(1, cp.ComponentCategory.GRID)
     assert c1.is_valid()
-
-    c3 = cp.Component(3, cp.ComponentCategory.JUNCTION)
-    assert c3.is_valid()
 
     c4 = cp.Component(4, cp.ComponentCategory.METER)
     assert c4.is_valid()
