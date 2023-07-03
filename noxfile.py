@@ -21,7 +21,7 @@ PYTEST_DEPS = [
     "time-machine",
     "async-solipsism",
 ]
-MYPY_DEPS = ["mypy==0.991", "pandas-stubs", "grpc-stubs"]
+MYPY_DEPS = ["mypy==0.991", "pandas-stubs", "grpc-stubs==1.24.12"]
 
 
 def _source_file_paths(session: nox.Session) -> List[str]:
