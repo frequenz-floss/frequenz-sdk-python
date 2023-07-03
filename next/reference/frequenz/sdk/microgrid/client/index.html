@@ -2653,10 +2653,7 @@ are possible.</p>
 <span class="normal">190</span>
 <span class="normal">191</span>
 <span class="normal">192</span>
-<span class="normal">193</span>
-<span class="normal">194</span>
-<span class="normal">195</span>
-<span class="normal">196</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">MicrogridApiClient</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="normal">193</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">MicrogridApiClient</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base interface for microgrid API clients to implement.&quot;&quot;&quot;</span>
 
     <span class="nd">@abstractmethod</span>
@@ -2766,7 +2763,7 @@ are possible.</p>
 <span class="sd">        &quot;&quot;&quot;</span>
 
     <span class="nd">@abstractmethod</span>
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">set_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">power_w</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Empty</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">set_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">power_w</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Send request to the Microgrid to set power for component.</span>
 
 <span class="sd">        If power &gt; 0, then component will be charged with this power.</span>
@@ -2777,9 +2774,6 @@ are possible.</p>
 <span class="sd">        Args:</span>
 <span class="sd">            component_id: id of the component to set power.</span>
 <span class="sd">            power_w: power to set for the component.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Empty response.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
     <span class="nd">@abstractmethod</span>
@@ -3607,15 +3601,15 @@ method on the <code>Receiver.</code></p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">188</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
 <span class="normal">189</span>
 <span class="normal">190</span>
 <span class="normal">191</span>
 <span class="normal">192</span>
-<span class="normal">193</span>
-<span class="normal">194</span>
-<span class="normal">195</span>
-<span class="normal">196</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@abstractmethod</span>
+<span class="normal">193</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@abstractmethod</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">set_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">lower</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">upper</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Send `SetBoundsParam`s received from a channel to nitrogen.</span>
 
@@ -3691,29 +3685,6 @@ If power == 0, then stop charging or discharging component.</p>
     </tbody>
   </table>
 
-  <table>
-    <thead>
-      <tr>
-        <th><b>RETURNS</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><span title="google.protobuf.empty_pb2.Empty">Empty</span></code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <div class="doc-md-description">
-              <p>Empty response.</p>
-            </div>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
         <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">171</span>
@@ -3728,11 +3699,8 @@ If power == 0, then stop charging or discharging component.</p>
 <span class="normal">180</span>
 <span class="normal">181</span>
 <span class="normal">182</span>
-<span class="normal">183</span>
-<span class="normal">184</span>
-<span class="normal">185</span>
-<span class="normal">186</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@abstractmethod</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">set_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">power_w</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Empty</span><span class="p">:</span>
+<span class="normal">183</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@abstractmethod</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">set_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">power_w</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Send request to the Microgrid to set power for component.</span>
 
 <span class="sd">    If power &gt; 0, then component will be charged with this power.</span>
@@ -3743,9 +3711,6 @@ If power == 0, then stop charging or discharging component.</p>
 <span class="sd">    Args:</span>
 <span class="sd">        component_id: id of the component to set power.</span>
 <span class="sd">        power_w: power to set for the component.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        Empty response.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
       </details>
@@ -3782,7 +3747,10 @@ If power == 0, then stop charging or discharging component.</p>
 
         <details class="quote">
           <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">199</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
 <span class="normal">200</span>
 <span class="normal">201</span>
 <span class="normal">202</span>
@@ -4242,17 +4210,7 @@ If power == 0, then stop charging or discharging component.</p>
 <span class="normal">656</span>
 <span class="normal">657</span>
 <span class="normal">658</span>
-<span class="normal">659</span>
-<span class="normal">660</span>
-<span class="normal">661</span>
-<span class="normal">662</span>
-<span class="normal">663</span>
-<span class="normal">664</span>
-<span class="normal">665</span>
-<span class="normal">666</span>
-<span class="normal">667</span>
-<span class="normal">668</span>
-<span class="normal">669</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">MicrogridGrpcClient</span><span class="p">(</span><span class="n">MicrogridApiClient</span><span class="p">):</span>
+<span class="normal">659</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">MicrogridGrpcClient</span><span class="p">(</span><span class="n">MicrogridApiClient</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Microgrid API client implementation using gRPC as the underlying protocol.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -4303,10 +4261,7 @@ If power == 0, then stop charging or discharging component.</p>
             <span class="p">)</span>
         <span class="n">components_only</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span>
             <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">category</span>
-            <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span>
-                <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_SENSOR</span><span class="p">,</span>
-                <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_LOAD</span><span class="p">,</span>
-            <span class="p">),</span>
+            <span class="ow">is</span> <span class="ow">not</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_SENSOR</span><span class="p">,</span>
             <span class="n">component_list</span><span class="o">.</span><span class="n">components</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">result</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Component</span><span class="p">]</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span>
@@ -4623,7 +4578,7 @@ If power == 0, then stop charging or discharging component.</p>
             <span class="n">EVChargerData</span><span class="o">.</span><span class="n">from_proto</span><span class="p">,</span>
         <span class="p">)</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="n">maxsize</span><span class="p">)</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">set_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">power_w</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Empty</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">set_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">power_w</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Send request to the Microgrid to set power for component.</span>
 
 <span class="sd">        If power &gt; 0, then component will be charged with this power.</span>
@@ -4635,9 +4590,6 @@ If power == 0, then stop charging or discharging component.</p>
 <span class="sd">            component_id: id of the component to set power.</span>
 <span class="sd">            power_w: power to set for the component.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            Empty response.</span>
-
 <span class="sd">        Raises:</span>
 <span class="sd">            AioRpcError: if connection to Microgrid API cannot be established or</span>
 <span class="sd">                when the api call exceeded timeout</span>
@@ -4646,7 +4598,7 @@ If power == 0, then stop charging or discharging component.</p>
             <span class="k">if</span> <span class="n">power_w</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="c1"># grpc.aio is missing types and mypy thinks this is not</span>
                 <span class="c1"># async iterable, but it is</span>
-                <span class="n">result</span><span class="p">:</span> <span class="n">Empty</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">Charge</span><span class="p">(</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">Charge</span><span class="p">(</span>
                     <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">PowerLevelParam</span><span class="p">(</span>
                         <span class="n">component_id</span><span class="o">=</span><span class="n">component_id</span><span class="p">,</span> <span class="n">power_w</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">power_w</span><span class="p">)</span>
                     <span class="p">),</span>
@@ -4656,7 +4608,7 @@ If power == 0, then stop charging or discharging component.</p>
                 <span class="c1"># grpc.aio is missing types and mypy thinks this is not</span>
                 <span class="c1"># async iterable, but it is</span>
                 <span class="n">power_w</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
-                <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">Discharge</span><span class="p">(</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">Discharge</span><span class="p">(</span>
                     <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">PowerLevelParam</span><span class="p">(</span>
                         <span class="n">component_id</span><span class="o">=</span><span class="n">component_id</span><span class="p">,</span> <span class="n">power_w</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">power_w</span><span class="p">)</span>
                     <span class="p">),</span>
@@ -4671,7 +4623,6 @@ If power == 0, then stop charging or discharging component.</p>
                 <span class="n">details</span><span class="o">=</span><span class="n">msg</span><span class="p">,</span>
                 <span class="n">debug_error_string</span><span class="o">=</span><span class="n">err</span><span class="o">.</span><span class="n">debug_error_string</span><span class="p">(),</span>
             <span class="p">)</span>
-        <span class="k">return</span> <span class="n">result</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">set_bounds</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -4813,7 +4764,10 @@ method gets lost.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">202</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
 <span class="normal">203</span>
 <span class="normal">204</span>
 <span class="normal">205</span>
@@ -4828,10 +4782,7 @@ method gets lost.</p>
 <span class="normal">214</span>
 <span class="normal">215</span>
 <span class="normal">216</span>
-<span class="normal">217</span>
-<span class="normal">218</span>
-<span class="normal">219</span>
-<span class="normal">220</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<span class="normal">217</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">grpc_channel</span><span class="p">:</span> <span class="n">grpc</span><span class="o">.</span><span class="n">aio</span><span class="o">.</span><span class="n">Channel</span><span class="p">,</span>
     <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -4968,7 +4919,13 @@ method on the <code>Receiver.</code></p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">480</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">474</span>
+<span class="normal">475</span>
+<span class="normal">476</span>
+<span class="normal">477</span>
+<span class="normal">478</span>
+<span class="normal">479</span>
+<span class="normal">480</span>
 <span class="normal">481</span>
 <span class="normal">482</span>
 <span class="normal">483</span>
@@ -4990,13 +4947,7 @@ method on the <code>Receiver.</code></p>
 <span class="normal">499</span>
 <span class="normal">500</span>
 <span class="normal">501</span>
-<span class="normal">502</span>
-<span class="normal">503</span>
-<span class="normal">504</span>
-<span class="normal">505</span>
-<span class="normal">506</span>
-<span class="normal">507</span>
-<span class="normal">508</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">battery_data</span><span class="p">(</span>
+<span class="normal">502</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">battery_data</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">maxsize</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">RECEIVER_MAX_SIZE</span><span class="p">,</span>
@@ -5098,7 +5049,10 @@ when the api call exceeded timeout</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">222</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
 <span class="normal">223</span>
 <span class="normal">224</span>
 <span class="normal">225</span>
@@ -5135,13 +5089,7 @@ when the api call exceeded timeout</p>
 <span class="normal">256</span>
 <span class="normal">257</span>
 <span class="normal">258</span>
-<span class="normal">259</span>
-<span class="normal">260</span>
-<span class="normal">261</span>
-<span class="normal">262</span>
-<span class="normal">263</span>
-<span class="normal">264</span>
-<span class="normal">265</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">components</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Component</span><span class="p">]:</span>
+<span class="normal">259</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">components</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Component</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch all the components present in the microgrid.</span>
 
 <span class="sd">    Returns:</span>
@@ -5169,10 +5117,7 @@ when the api call exceeded timeout</p>
         <span class="p">)</span>
     <span class="n">components_only</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span>
         <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">category</span>
-        <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span>
-            <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_SENSOR</span><span class="p">,</span>
-            <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_LOAD</span><span class="p">,</span>
-        <span class="p">),</span>
+        <span class="ow">is</span> <span class="ow">not</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_SENSOR</span><span class="p">,</span>
         <span class="n">component_list</span><span class="o">.</span><span class="n">components</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">result</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Component</span><span class="p">]</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span>
@@ -5307,7 +5252,13 @@ when the api call exceeded timeout</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">267</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
 <span class="normal">268</span>
 <span class="normal">269</span>
 <span class="normal">270</span>
@@ -5358,13 +5309,7 @@ when the api call exceeded timeout</p>
 <span class="normal">315</span>
 <span class="normal">316</span>
 <span class="normal">317</span>
-<span class="normal">318</span>
-<span class="normal">319</span>
-<span class="normal">320</span>
-<span class="normal">321</span>
-<span class="normal">322</span>
-<span class="normal">323</span>
-<span class="normal">324</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">connections</span><span class="p">(</span>
+<span class="normal">318</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">connections</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">starts</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">ends</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -5540,7 +5485,13 @@ method on the <code>Receiver.</code></p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">540</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">534</span>
+<span class="normal">535</span>
+<span class="normal">536</span>
+<span class="normal">537</span>
+<span class="normal">538</span>
+<span class="normal">539</span>
+<span class="normal">540</span>
 <span class="normal">541</span>
 <span class="normal">542</span>
 <span class="normal">543</span>
@@ -5562,13 +5513,7 @@ method on the <code>Receiver.</code></p>
 <span class="normal">559</span>
 <span class="normal">560</span>
 <span class="normal">561</span>
-<span class="normal">562</span>
-<span class="normal">563</span>
-<span class="normal">564</span>
-<span class="normal">565</span>
-<span class="normal">566</span>
-<span class="normal">567</span>
-<span class="normal">568</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">ev_charger_data</span><span class="p">(</span>
+<span class="normal">562</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">ev_charger_data</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">maxsize</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">RECEIVER_MAX_SIZE</span><span class="p">,</span>
@@ -5715,7 +5660,13 @@ method on the <code>Receiver.</code></p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">510</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">504</span>
+<span class="normal">505</span>
+<span class="normal">506</span>
+<span class="normal">507</span>
+<span class="normal">508</span>
+<span class="normal">509</span>
+<span class="normal">510</span>
 <span class="normal">511</span>
 <span class="normal">512</span>
 <span class="normal">513</span>
@@ -5737,13 +5688,7 @@ method on the <code>Receiver.</code></p>
 <span class="normal">529</span>
 <span class="normal">530</span>
 <span class="normal">531</span>
-<span class="normal">532</span>
-<span class="normal">533</span>
-<span class="normal">534</span>
-<span class="normal">535</span>
-<span class="normal">536</span>
-<span class="normal">537</span>
-<span class="normal">538</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">inverter_data</span><span class="p">(</span>
+<span class="normal">532</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">inverter_data</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">maxsize</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">RECEIVER_MAX_SIZE</span><span class="p">,</span>
@@ -5890,7 +5835,13 @@ method on the <code>Receiver.</code></p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">450</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">444</span>
+<span class="normal">445</span>
+<span class="normal">446</span>
+<span class="normal">447</span>
+<span class="normal">448</span>
+<span class="normal">449</span>
+<span class="normal">450</span>
 <span class="normal">451</span>
 <span class="normal">452</span>
 <span class="normal">453</span>
@@ -5912,13 +5863,7 @@ method on the <code>Receiver.</code></p>
 <span class="normal">469</span>
 <span class="normal">470</span>
 <span class="normal">471</span>
-<span class="normal">472</span>
-<span class="normal">473</span>
-<span class="normal">474</span>
-<span class="normal">475</span>
-<span class="normal">476</span>
-<span class="normal">477</span>
-<span class="normal">478</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">meter_data</span><span class="p">(</span>
+<span class="normal">472</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">meter_data</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">maxsize</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">RECEIVER_MAX_SIZE</span><span class="p">,</span>
@@ -6063,7 +6008,17 @@ or when the api call exceeded timeout</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">620</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">610</span>
+<span class="normal">611</span>
+<span class="normal">612</span>
+<span class="normal">613</span>
+<span class="normal">614</span>
+<span class="normal">615</span>
+<span class="normal">616</span>
+<span class="normal">617</span>
+<span class="normal">618</span>
+<span class="normal">619</span>
+<span class="normal">620</span>
 <span class="normal">621</span>
 <span class="normal">622</span>
 <span class="normal">623</span>
@@ -6102,17 +6057,7 @@ or when the api call exceeded timeout</p>
 <span class="normal">656</span>
 <span class="normal">657</span>
 <span class="normal">658</span>
-<span class="normal">659</span>
-<span class="normal">660</span>
-<span class="normal">661</span>
-<span class="normal">662</span>
-<span class="normal">663</span>
-<span class="normal">664</span>
-<span class="normal">665</span>
-<span class="normal">666</span>
-<span class="normal">667</span>
-<span class="normal">668</span>
-<span class="normal">669</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">set_bounds</span><span class="p">(</span>
+<span class="normal">659</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">set_bounds</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">lower</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -6231,29 +6176,6 @@ If power == 0, then stop charging or discharging component.</p>
   <table>
     <thead>
       <tr>
-        <th><b>RETURNS</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><span title="google.protobuf.empty_pb2.Empty">Empty</span></code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <div class="doc-md-description">
-              <p>Empty response.</p>
-            </div>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <table>
-    <thead>
-      <tr>
         <th><b>RAISES</b></th>
         <th><b>DESCRIPTION</b></th>
       </tr>
@@ -6277,7 +6199,13 @@ when the api call exceeded timeout</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">570</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">564</span>
+<span class="normal">565</span>
+<span class="normal">566</span>
+<span class="normal">567</span>
+<span class="normal">568</span>
+<span class="normal">569</span>
+<span class="normal">570</span>
 <span class="normal">571</span>
 <span class="normal">572</span>
 <span class="normal">573</span>
@@ -6315,17 +6243,7 @@ when the api call exceeded timeout</p>
 <span class="normal">605</span>
 <span class="normal">606</span>
 <span class="normal">607</span>
-<span class="normal">608</span>
-<span class="normal">609</span>
-<span class="normal">610</span>
-<span class="normal">611</span>
-<span class="normal">612</span>
-<span class="normal">613</span>
-<span class="normal">614</span>
-<span class="normal">615</span>
-<span class="normal">616</span>
-<span class="normal">617</span>
-<span class="normal">618</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">set_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">power_w</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Empty</span><span class="p">:</span>
+<span class="normal">608</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">set_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">power_w</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Send request to the Microgrid to set power for component.</span>
 
 <span class="sd">    If power &gt; 0, then component will be charged with this power.</span>
@@ -6337,9 +6255,6 @@ when the api call exceeded timeout</p>
 <span class="sd">        component_id: id of the component to set power.</span>
 <span class="sd">        power_w: power to set for the component.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        Empty response.</span>
-
 <span class="sd">    Raises:</span>
 <span class="sd">        AioRpcError: if connection to Microgrid API cannot be established or</span>
 <span class="sd">            when the api call exceeded timeout</span>
@@ -6348,7 +6263,7 @@ when the api call exceeded timeout</p>
         <span class="k">if</span> <span class="n">power_w</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># grpc.aio is missing types and mypy thinks this is not</span>
             <span class="c1"># async iterable, but it is</span>
-            <span class="n">result</span><span class="p">:</span> <span class="n">Empty</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">Charge</span><span class="p">(</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">Charge</span><span class="p">(</span>
                 <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">PowerLevelParam</span><span class="p">(</span>
                     <span class="n">component_id</span><span class="o">=</span><span class="n">component_id</span><span class="p">,</span> <span class="n">power_w</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">power_w</span><span class="p">)</span>
                 <span class="p">),</span>
@@ -6358,7 +6273,7 @@ when the api call exceeded timeout</p>
             <span class="c1"># grpc.aio is missing types and mypy thinks this is not</span>
             <span class="c1"># async iterable, but it is</span>
             <span class="n">power_w</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">Discharge</span><span class="p">(</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">Discharge</span><span class="p">(</span>
                 <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">PowerLevelParam</span><span class="p">(</span>
                     <span class="n">component_id</span><span class="o">=</span><span class="n">component_id</span><span class="p">,</span> <span class="n">power_w</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">power_w</span><span class="p">)</span>
                 <span class="p">),</span>
@@ -6373,7 +6288,6 @@ when the api call exceeded timeout</p>
             <span class="n">details</span><span class="o">=</span><span class="n">msg</span><span class="p">,</span>
             <span class="n">debug_error_string</span><span class="o">=</span><span class="n">err</span><span class="o">.</span><span class="n">debug_error_string</span><span class="p">(),</span>
         <span class="p">)</span>
-    <span class="k">return</span> <span class="n">result</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>

@@ -2469,7 +2469,9 @@ in percent (%).</p>
 
         <details class="quote">
           <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/component/_component.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">101</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
 <span class="normal">102</span>
 <span class="normal">103</span>
 <span class="normal">104</span>
@@ -2484,9 +2486,7 @@ in percent (%).</p>
 <span class="normal">113</span>
 <span class="normal">114</span>
 <span class="normal">115</span>
-<span class="normal">116</span>
-<span class="normal">117</span>
-<span class="normal">118</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">116</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Component</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Metadata for a single microgrid component.&quot;&quot;&quot;</span>
 
@@ -2559,16 +2559,16 @@ in percent (%).</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/component/_component.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">109</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
 <span class="normal">110</span>
 <span class="normal">111</span>
 <span class="normal">112</span>
 <span class="normal">113</span>
 <span class="normal">114</span>
 <span class="normal">115</span>
-<span class="normal">116</span>
-<span class="normal">117</span>
-<span class="normal">118</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">is_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="normal">116</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">is_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if this instance contains valid data.</span>
 
 <span class="sd">    Returns:</span>
@@ -2626,19 +2626,15 @@ in percent (%).</p>
 <span class="normal">66</span>
 <span class="normal">67</span>
 <span class="normal">68</span>
-<span class="normal">69</span>
-<span class="normal">70</span>
-<span class="normal">71</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ComponentCategory</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="normal">69</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ComponentCategory</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Possible types of microgrid component.&quot;&quot;&quot;</span>
 
     <span class="n">NONE</span> <span class="o">=</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_UNSPECIFIED</span>
     <span class="n">GRID</span> <span class="o">=</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_GRID</span>
-    <span class="n">JUNCTION</span> <span class="o">=</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_JUNCTION</span>
     <span class="n">METER</span> <span class="o">=</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_METER</span>
     <span class="n">INVERTER</span> <span class="o">=</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_INVERTER</span>
     <span class="n">BATTERY</span> <span class="o">=</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_BATTERY</span>
     <span class="n">EV_CHARGER</span> <span class="o">=</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_EV_CHARGER</span>
-    <span class="n">LOAD</span> <span class="o">=</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_LOAD</span>
     <span class="n">CHP</span> <span class="o">=</span> <span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentCategory</span><span class="o">.</span><span class="n">COMPONENT_CATEGORY_CHP</span>
 
     <span class="c1"># types not yet supported by the API but which can be inferred</span>
@@ -2809,8 +2805,8 @@ in percent (%).</p>
 <code class="highlight language-python"><span class="n">raw</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">microgrid_pb</span><span class="o">.</span><span class="n">ComponentData</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component._component_data.ComponentData.raw" class="headerlink" title="Permanent link">¤</a></h6>
@@ -2854,8 +2850,8 @@ in percent (%).</p>
 <code class="highlight language-python"><span class="n">from_proto</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component._component_data.ComponentData.from_proto" class="headerlink" title="Permanent link">¤</a></h6>
@@ -2942,7 +2938,9 @@ in percent (%).</p>
 
         <details class="quote">
           <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/component/_component.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">121</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
 <span class="normal">122</span>
 <span class="normal">123</span>
 <span class="normal">124</span>
@@ -2962,9 +2960,7 @@ in percent (%).</p>
 <span class="normal">138</span>
 <span class="normal">139</span>
 <span class="normal">140</span>
-<span class="normal">141</span>
-<span class="normal">142</span>
-<span class="normal">143</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ComponentMetricId</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="normal">141</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ComponentMetricId</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;An enum representing the various metrics available in the microgrid.&quot;&quot;&quot;</span>
 
     <span class="n">ACTIVE_POWER</span> <span class="o">=</span> <span class="s2">&quot;active_power&quot;</span>

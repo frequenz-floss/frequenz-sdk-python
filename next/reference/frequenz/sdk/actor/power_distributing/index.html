@@ -1835,7 +1835,8 @@ printed.</li>
 
         <details class="quote">
           <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 82</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 81</span>
+<span class="normal"> 82</span>
 <span class="normal"> 83</span>
 <span class="normal"> 84</span>
 <span class="normal"> 85</span>
@@ -2496,9 +2497,7 @@ printed.</li>
 <span class="normal">740</span>
 <span class="normal">741</span>
 <span class="normal">742</span>
-<span class="normal">743</span>
-<span class="normal">744</span>
-<span class="normal">745</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
+<span class="normal">743</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@actor</span>
 <span class="k">class</span> <span class="nc">PowerDistributingActor</span><span class="p">:</span>
     <span class="c1"># pylint: disable=too-many-instance-attributes</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Actor to distribute the power between batteries in a microgrid.</span>
@@ -3093,8 +3092,7 @@ printed.</li>
 
     <span class="k">def</span> <span class="nf">_parse_result</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="c1"># type comment to quiet pylint and mypy `unused-import` error</span>
-        <span class="n">tasks</span><span class="p">,</span>  <span class="c1"># type: Dict[int, asyncio.Task[Empty]]</span>
+        <span class="n">tasks</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]],</span>
         <span class="n">distribution</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
         <span class="n">request_timeout_sec</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
@@ -3267,7 +3265,8 @@ request. It is a time needed to collect first components data.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">179</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">178</span>
+<span class="normal">179</span>
 <span class="normal">180</span>
 <span class="normal">181</span>
 <span class="normal">182</span>
@@ -3315,8 +3314,7 @@ request. It is a time needed to collect first components data.</p>
 <span class="normal">224</span>
 <span class="normal">225</span>
 <span class="normal">226</span>
-<span class="normal">227</span>
-<span class="normal">228</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<span class="normal">227</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">requests_receiver</span><span class="p">:</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Request</span><span class="p">],</span>
     <span class="n">channel_registry</span><span class="p">:</span> <span class="n">ChannelRegistry</span><span class="p">,</span>
@@ -3397,7 +3395,8 @@ as broken for some time.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">288</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">287</span>
+<span class="normal">288</span>
 <span class="normal">289</span>
 <span class="normal">290</span>
 <span class="normal">291</span>
@@ -3486,8 +3485,7 @@ as broken for some time.</p>
 <span class="normal">374</span>
 <span class="normal">375</span>
 <span class="normal">376</span>
-<span class="normal">377</span>
-<span class="normal">378</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">377</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run actor main function.</span>
 
 <span class="sd">    It waits for new requests in task_queue and process it, and send</span>
@@ -3721,8 +3719,8 @@ as broken for some time.</p>
 <code class="highlight language-python"><span class="n">adjust_power</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.request.Request.adjust_power" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3768,8 +3766,8 @@ fail and be replied to with an <code>OutOfBound</code> result.</p>
 <code class="highlight language-python"><span class="n">include_broken_batteries</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.request.Request.include_broken_batteries" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3842,8 +3840,8 @@ channel registry.</p>
 <code class="highlight language-python"><span class="n">request_timeout_sec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.request.Request.request_timeout_sec" class="headerlink" title="Permanent link">¤</a></h6>
