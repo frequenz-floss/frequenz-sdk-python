@@ -24,6 +24,8 @@
   capacity: float = soc_sample.value.as_watt_hours()
   ```
 
+- `MicrogridApiClient.set_power` no longer returns a `protobuf.Empty` result, but a `None`.  This won't affect you unless you are using the low level APIs of the SDK.
+
 <!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
 
 ## New Features

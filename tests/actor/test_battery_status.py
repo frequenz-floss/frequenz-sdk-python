@@ -116,7 +116,6 @@ def component_graph() -> Tuple[Set[Component], Set[Connection]]:
     components = {
         Component(1, ComponentCategory.GRID),
         Component(2, ComponentCategory.METER),
-        Component(3, ComponentCategory.JUNCTION),
         Component(104, ComponentCategory.METER),
         Component(105, ComponentCategory.INVERTER),
         Component(106, ComponentCategory.BATTERY),
@@ -130,14 +129,13 @@ def component_graph() -> Tuple[Set[Component], Set[Connection]]:
 
     connections = {
         Connection(1, 2),
-        Connection(2, 3),
-        Connection(3, 104),
+        Connection(2, 104),
         Connection(104, 105),
         Connection(105, 106),
-        Connection(3, 204),
+        Connection(2, 204),
         Connection(204, 205),
         Connection(205, 206),
-        Connection(3, 304),
+        Connection(2, 304),
         Connection(304, 305),
         Connection(305, 306),
     }

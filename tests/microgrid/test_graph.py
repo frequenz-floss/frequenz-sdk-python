@@ -62,7 +62,6 @@ class TestComponentGraph:
         return {
             Component(11, ComponentCategory.GRID),
             Component(21, ComponentCategory.METER),
-            Component(31, ComponentCategory.JUNCTION),
             Component(41, ComponentCategory.METER),
             Component(51, ComponentCategory.INVERTER),
             Component(61, ComponentCategory.BATTERY),
@@ -72,8 +71,7 @@ class TestComponentGraph:
     def sample_input_connections(self) -> Set[Connection]:
         return {
             Connection(11, 21),
-            Connection(21, 31),
-            Connection(31, 41),
+            Connection(21, 41),
             Connection(41, 51),
             Connection(51, 61),
         }
@@ -142,15 +140,13 @@ class TestComponentGraph:
         input_components = {
             101: Component(101, ComponentCategory.GRID),
             102: Component(102, ComponentCategory.METER),
-            103: Component(103, ComponentCategory.JUNCTION),
             104: Component(104, ComponentCategory.METER),
             105: Component(105, ComponentCategory.INVERTER),
             106: Component(106, ComponentCategory.BATTERY),
         }
         input_connections = {
             Connection(101, 102),
-            Connection(102, 103),
-            Connection(103, 104),
+            Connection(102, 104),
             Connection(104, 105),
             Connection(105, 106),
         }
@@ -186,16 +182,14 @@ class TestComponentGraph:
             ({1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, set()),
             ({11}, {Component(11, ComponentCategory.GRID)}),
             ({21}, {Component(21, ComponentCategory.METER)}),
-            ({31}, {Component(31, ComponentCategory.JUNCTION)}),
             ({41}, {Component(41, ComponentCategory.METER)}),
             ({51}, {Component(51, ComponentCategory.INVERTER)}),
             ({61}, {Component(61, ComponentCategory.BATTERY)}),
             (
-                {31, 11, 61},
+                {11, 61},
                 {
                     Component(11, ComponentCategory.GRID),
                     Component(61, ComponentCategory.BATTERY),
-                    Component(31, ComponentCategory.JUNCTION),
                 },
             ),
             (
@@ -221,11 +215,10 @@ class TestComponentGraph:
         [
             ({ComponentCategory.EV_CHARGER}, set()),
             (
-                {ComponentCategory.JUNCTION, ComponentCategory.EV_CHARGER},
-                {Component(31, ComponentCategory.JUNCTION)},
+                {ComponentCategory.BATTERY, ComponentCategory.EV_CHARGER},
+                {Component(61, ComponentCategory.BATTERY)},
             ),
             ({ComponentCategory.GRID}, {Component(11, ComponentCategory.GRID)}),
-            ({ComponentCategory.JUNCTION}, {Component(31, ComponentCategory.JUNCTION)}),
             (
                 {ComponentCategory.METER},
                 {
@@ -245,16 +238,15 @@ class TestComponentGraph:
             (
                 {
                     ComponentCategory.METER,
-                    ComponentCategory.JUNCTION,
+                    ComponentCategory.BATTERY,
                     ComponentCategory.EV_CHARGER,
                 },
                 {
                     Component(21, ComponentCategory.METER),
-                    Component(31, ComponentCategory.JUNCTION),
+                    Component(61, ComponentCategory.BATTERY),
                     Component(41, ComponentCategory.METER),
                 },
             ),
-            ({ComponentCategory.JUNCTION}, {Component(31, ComponentCategory.JUNCTION)}),
         ],
     )
     def test_filter_graph_components_by_type(
@@ -272,14 +264,12 @@ class TestComponentGraph:
         "ids, types, expected",
         [
             ({11}, {ComponentCategory.GRID}, {Component(11, ComponentCategory.GRID)}),
-            ({11}, {ComponentCategory.JUNCTION}, set()),
             ({31}, {ComponentCategory.GRID}, set()),
             (
-                {31},
-                {ComponentCategory.JUNCTION},
-                {Component(31, ComponentCategory.JUNCTION)},
+                {61},
+                {ComponentCategory.BATTERY},
+                {Component(61, ComponentCategory.BATTERY)},
             ),
-            ({31}, {ComponentCategory.GRID}, set()),
             (
                 {11, 21, 31, 61},
                 {ComponentCategory.METER, ComponentCategory.BATTERY},
@@ -564,15 +554,13 @@ class Test_MicrogridComponentGraph:
             components={
                 Component(1, ComponentCategory.GRID),
                 Component(2, ComponentCategory.METER),
-                Component(3, ComponentCategory.JUNCTION),
                 Component(4, ComponentCategory.METER),
                 Component(5, ComponentCategory.INVERTER),
                 Component(6, ComponentCategory.BATTERY),
             },
             connections={
                 Connection(1, 2),
-                Connection(2, 3),
-                Connection(3, 4),
+                Connection(2, 4),
                 Connection(4, 5),
                 Connection(5, 6),
             },
@@ -580,7 +568,6 @@ class Test_MicrogridComponentGraph:
         expected = {
             Component(1, ComponentCategory.GRID),
             Component(2, ComponentCategory.METER),
-            Component(3, ComponentCategory.JUNCTION),
             Component(4, ComponentCategory.METER),
             Component(5, ComponentCategory.INVERTER),
             Component(6, ComponentCategory.BATTERY),
@@ -589,8 +576,7 @@ class Test_MicrogridComponentGraph:
         assert set(graph.components()) == expected
         assert graph.connections() == {
             Connection(1, 2),
-            Connection(2, 3),
-            Connection(3, 4),
+            Connection(2, 4),
             Connection(4, 5),
             Connection(5, 6),
         }
@@ -604,7 +590,7 @@ class Test_MicrogridComponentGraph:
                 components={
                     Component(7, ComponentCategory.GRID),
                     Component(8, ComponentCategory.METER),
-                    Component(9, ComponentCategory.JUNCTION),
+                    Component(9, ComponentCategory.INVERTER),
                 },
                 connections={
                     Connection(7, 8),
@@ -618,8 +604,7 @@ class Test_MicrogridComponentGraph:
 
         assert graph.connections() == {
             Connection(1, 2),
-            Connection(2, 3),
-            Connection(3, 4),
+            Connection(2, 4),
             Connection(4, 5),
             Connection(5, 6),
         }
@@ -637,9 +622,9 @@ class Test_MicrogridComponentGraph:
             graph.refresh_from(
                 components={
                     Component(7, ComponentCategory.GRID),
-                    Component(9, ComponentCategory.JUNCTION),
+                    Component(9, ComponentCategory.METER),
                 },
-                connections={Connection(7, 9)},
+                connections={Connection(9, 7)},
                 correct_errors=pretend_to_correct_errors,
             )
 
@@ -819,21 +804,6 @@ class Test_MicrogridComponentGraph:
         ):
             graph.validate()
 
-        # junctions are not set up correctly: a junction has no
-        # successors in the graph
-        graph._graph.clear()
-        graph._graph.add_nodes_from(
-            [
-                (1, asdict(Component(1, ComponentCategory.GRID))),
-                (2, asdict(Component(2, ComponentCategory.JUNCTION))),
-            ]
-        )
-        graph._graph.add_edges_from([(1, 2)])
-        with pytest.raises(
-            gr.InvalidGraphError, match="Junctions missing graph successors"
-        ):
-            graph.validate()
-
         # leaf components are not set up correctly: a battery has
         # a successor in the graph
         graph._graph.clear()
@@ -875,7 +845,7 @@ class Test_MicrogridComponentGraph:
         graph._graph.add_nodes_from(
             [
                 (1, asdict(Component(1, ComponentCategory.GRID))),
-                (2, asdict(Component(2, ComponentCategory.JUNCTION))),
+                (2, asdict(Component(2, ComponentCategory.INVERTER))),
                 (3, asdict(Component(3, ComponentCategory.METER))),
             ]
         )
@@ -914,9 +884,9 @@ class Test_MicrogridComponentGraph:
         graph._graph.clear()
         graph._graph.add_nodes_from(
             [
-                (1, asdict(Component(1, ComponentCategory.JUNCTION))),
-                (2, asdict(Component(2, ComponentCategory.JUNCTION))),
-                (3, asdict(Component(3, ComponentCategory.JUNCTION))),
+                (1, asdict(Component(1, ComponentCategory.METER))),
+                (2, asdict(Component(2, ComponentCategory.METER))),
+                (3, asdict(Component(3, ComponentCategory.METER))),
             ]
         )
         graph._graph.add_edges_from([(1, 2), (2, 3), (3, 1)])
@@ -959,7 +929,7 @@ class Test_MicrogridComponentGraph:
         graph._graph.add_nodes_from(
             [
                 (1, asdict(Component(1, ComponentCategory.GRID))),
-                (2, asdict(Component(2, ComponentCategory.JUNCTION))),
+                (2, asdict(Component(2, ComponentCategory.GRID))),
                 (3, asdict(Component(3, ComponentCategory.METER))),
             ]
         )
@@ -985,9 +955,7 @@ class Test_MicrogridComponentGraph:
 
         graph._graph.clear()
 
-        graph._graph.add_nodes_from(
-            [(3, asdict(Component(3, ComponentCategory.JUNCTION)))]
-        )
+        graph._graph.add_nodes_from([(3, asdict(Component(3, ComponentCategory.GRID)))])
         with pytest.raises(
             gr.InvalidGraphError, match="Graph root .*id=3.* has no successors!"
         ):
@@ -1017,7 +985,7 @@ class Test_MicrogridComponentGraph:
         graph._graph.clear()
         graph._graph.add_nodes_from(
             [
-                (1, asdict(Component(1, ComponentCategory.JUNCTION))),
+                (1, asdict(Component(1, ComponentCategory.GRID))),
                 (2, asdict(Component(2, ComponentCategory.METER))),
             ]
         )
@@ -1145,47 +1113,6 @@ class Test_MicrogridComponentGraph:
         )
         graph._graph.add_edges_from([(1, 2), (2, 3), (3, 4)])
         graph._validate_intermediary_components()
-
-    def test__validate_junctions(self) -> None:
-        graph = gr._MicrogridComponentGraph()
-        assert set(graph.components()) == set()
-        assert list(graph.connections()) == []
-
-        # successors missing for at least one junction
-        graph._graph.clear()
-        graph._graph.add_nodes_from(
-            [(1, asdict(Component(1, ComponentCategory.JUNCTION)))]
-        )
-        with pytest.raises(
-            gr.InvalidGraphError, match="Junctions missing graph successors"
-        ):
-            graph._validate_junctions()
-
-        graph._graph.clear()
-        graph._graph.add_nodes_from(
-            [
-                (1, asdict(Component(1, ComponentCategory.JUNCTION))),
-                (2, asdict(Component(2, ComponentCategory.JUNCTION))),
-            ]
-        )
-        graph._graph.add_edges_from([(1, 2)])
-        with pytest.raises(
-            gr.InvalidGraphError, match="Junctions missing graph successors"
-        ):
-            graph._validate_junctions()
-
-        # all junctions have at least one successor
-        graph._graph.clear()
-        graph._graph.add_nodes_from(
-            [
-                (1, asdict(Component(1, ComponentCategory.JUNCTION))),
-                (2, asdict(Component(2, ComponentCategory.JUNCTION))),
-                (3, asdict(Component(3, ComponentCategory.METER))),
-            ]
-        )
-
-        graph._graph.add_edges_from([(1, 2), (2, 3)])
-        graph._validate_junctions()
 
     def test__validate_leaf_components(self) -> None:
         # to ensure clean testing of the individual method,

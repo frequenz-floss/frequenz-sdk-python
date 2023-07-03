@@ -110,7 +110,7 @@ async def test_set_power_timeout(mocker: MockerFixture) -> None:
     power_values = [-100, 100]
     for power_w in power_values:
         with pytest.raises(grpc.aio.AioRpcError) as err_ctx:
-            _ = await client.set_power(component_id=1, power_w=power_w)
+            await client.set_power(component_id=1, power_w=power_w)
         assert err_ctx.value.code() == grpc.StatusCode.DEADLINE_EXCEEDED
 
     assert await server.graceful_shutdown()
