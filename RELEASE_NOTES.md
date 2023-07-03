@@ -2,7 +2,7 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
+New `Quantity` types! These types can have units (power, current, voltage, etc.) and are *type- and unit-safe* in the sense that users can't accidentally sum a power with a voltage, or a power in kW with a power in W.
 
 ## Upgrading
 
@@ -26,20 +26,14 @@
 
 - `MicrogridApiClient.set_power` no longer returns a `protobuf.Empty` result, but a `None`.  This won't affect you unless you are using the low level APIs of the SDK.
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
-
 ## New Features
 
 - The logical meter has a new method that returns producer power, that is the sum of all energy producers.
 
 - `Quantity` types (`Power`, `Current`, `Energy`, `Voltage`) for providing type- and unit-safety when dealing with physical quantities.
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
-
 ## Bug Fixes
 
 - Two bugs in the ring buffer which is used by the `MovingWindow` class were fixed:
   - `len(buffer)` was not considering potentially existing gaps (areas without elements) in the buffer.
-  - A off-by-one error in the gap calculation logic was fixed that recorded a
-    gap when there was none if an element with a future timestamp was added that
-    would create a gap of exactly 1.
+  - A off-by-one error in the gap calculation logic was fixed that recorded a gap when there was none if an element with a future timestamp was added that would create a gap of exactly 1.
