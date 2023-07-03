@@ -4,14 +4,16 @@
 """Read and update config variables."""
 
 import logging
-from typing import Any, Dict, Optional, TypeVar
+from typing import Any, Dict, Optional, Type, TypeVar
 
-from pydantic import ValidationError, parse_raw_as
+from pydantic import ValidationError, parse_obj_as
 
 _logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
+# def parse_raw_as_rep(model: Any, data: dict[str, Any]) -> Any:
+#     return parse_obj_as(model, data)
 
 class Config:
     """
@@ -119,7 +121,7 @@ class Config:
             return value
 
         try:
-            parsed_value: Any = parse_raw_as(expected_type, value)
+            parsed_value: Any = parse_obj_as(expected_type, value)
         except (ValidationError, ValueError) as err:
             raise ValueError(
                 f"Could not convert config variable: {key} = '{value}' "
