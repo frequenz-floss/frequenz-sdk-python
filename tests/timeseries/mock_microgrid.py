@@ -440,6 +440,9 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         if _data_pipeline._DATA_PIPELINE:
             await _data_pipeline._DATA_PIPELINE._stop()
 
+        for coro in self._streaming_coros:
+            coro.close()
+
         for task in self._streaming_tasks:
             await cancel_and_await(task)
         microgrid.connection_manager._CONNECTION_MANAGER = None
