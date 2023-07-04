@@ -148,24 +148,6 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         ]
         return self._microgrid
 
-    async def start(self, mocker: MockerFixture) -> None:
-        """Start the MockServer, and the data source and resampling actors."""
-        self.start_mock_client(lambda mock_client: mock_client.initialize(mocker))
-        await asyncio.sleep(self._sample_rate_s / 2)
-
-        # pylint: disable=protected-access
-        _data_pipeline._DATA_PIPELINE = _data_pipeline._DataPipeline(
-            ResamplerConfig(
-                resampling_period=timedelta(seconds=self._sample_rate_s),
-                # Align to the time the resampler is created to avoid flakiness
-                # in the tests, it seems test using the mock microgrid assume
-                # that the resampling window is aligned to the start of the
-                # test.
-                align_to=None,
-            )
-        )
-        # pylint: enable=protected-access
-
     async def _comp_data_send_task(
         self, comp_id: int, make_comp_data: Callable[[int, datetime], ComponentData]
     ) -> None:
