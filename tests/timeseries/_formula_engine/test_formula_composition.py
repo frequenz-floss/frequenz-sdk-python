@@ -27,7 +27,7 @@ class TestFormulaComposition:
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(3)
         mockgrid.add_solar_inverters(2)
-        await mockgrid.start_mock_datapipeline(mocker)
+        await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
         battery_pool = microgrid.battery_pool()
@@ -99,7 +99,7 @@ class TestFormulaComposition:
         """Test the composition of formulas with missing PV power data."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(3)
-        await mockgrid.start_mock_datapipeline(mocker)
+        await mockgrid.start(mocker)
         battery_pool = microgrid.battery_pool()
         logical_meter = microgrid.logical_meter()
 
@@ -137,7 +137,7 @@ class TestFormulaComposition:
         """Test the composition of formulas with missing battery power data."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_solar_inverters(2)
-        await mockgrid.start_mock_datapipeline(mocker)
+        await mockgrid.start(mocker)
         battery_pool = microgrid.battery_pool()
         logical_meter = microgrid.logical_meter()
 
@@ -177,7 +177,7 @@ class TestFormulaComposition:
         )
         mockgrid.add_batteries(3)
         mockgrid.add_ev_chargers(1)
-        await mockgrid.start_mock_datapipeline(mocker)
+        await mockgrid.start(mocker)
         logical_meter = microgrid.logical_meter()
         ev_pool = microgrid.ev_charger_pool()
 

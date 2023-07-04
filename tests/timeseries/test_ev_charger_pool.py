@@ -79,7 +79,7 @@ class TestEVChargerPool:
         """Test the ev power formula."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_ev_chargers(3)
-        await mockgrid.start_mock_datapipeline(mocker)
+        await mockgrid.start(mocker)
 
         ev_pool = microgrid.ev_charger_pool()
         power_receiver = ev_pool.power.new_receiver()
@@ -107,7 +107,7 @@ class TestEVChargerPool:
         )
         mockgrid.add_ev_chargers(1)
 
-        await mockgrid.start_mock_datapipeline(mocker)
+        await mockgrid.start(mocker)
 
         evc_id = mockgrid.evc_ids[0]
         ev_pool = microgrid.ev_charger_pool()

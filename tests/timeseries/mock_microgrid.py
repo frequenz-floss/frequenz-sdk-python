@@ -105,8 +105,8 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         self._streaming_tasks: list[asyncio.Task[None]] = []
         self._start_meter_streaming(4)
 
-    async def start_mock_datapipeline(self, mocker: MockerFixture) -> None:
-        """Start the MockDataPipeline."""
+    async def start(self, mocker: MockerFixture) -> None:
+        """Init the mock microgrid client and start the mock resampler."""
         self.init_mock_client(lambda mock_client: mock_client.initialize(mocker))
         self.mock_resampler = MockResampler(
             mocker,

@@ -25,7 +25,7 @@ class TestLogicalMeter:
         mockgrid = MockMicrogrid(grid_side_meter=True)
         mockgrid.add_batteries(2)
         mockgrid.add_solar_inverters(1)
-        await mockgrid.start_mock_datapipeline(mocker)
+        await mockgrid.start(mocker)
         logical_meter = microgrid.logical_meter()
 
         grid_power_recv = logical_meter.grid_power.new_receiver()
@@ -65,7 +65,7 @@ class TestLogicalMeter:
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(2)
         mockgrid.add_solar_inverters(1)
-        await mockgrid.start_mock_datapipeline(mocker)
+        await mockgrid.start(mocker)
         logical_meter = microgrid.logical_meter()
 
         grid_power_recv = logical_meter.grid_power.new_receiver()
@@ -114,7 +114,7 @@ class TestLogicalMeter:
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(2)
         mockgrid.add_solar_inverters(1)
-        await mockgrid.start_mock_datapipeline(mocker)
+        await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
         grid_recv = logical_meter.grid_power.new_receiver()
@@ -136,7 +136,7 @@ class TestLogicalMeter:
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_chps(1)
         mockgrid.add_batteries(2)
-        await mockgrid.start_mock_datapipeline(mocker)
+        await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
         chp_power_receiver = logical_meter.chp_power.new_receiver()
@@ -169,7 +169,7 @@ class TestLogicalMeter:
         """Test the pv power formula."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_solar_inverters(2)
-        await mockgrid.start_mock_datapipeline(mocker)
+        await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
         pv_power_receiver = logical_meter.pv_power.new_receiver()
@@ -192,7 +192,7 @@ class TestLogicalMeter:
         mockgrid = MockMicrogrid(grid_side_meter=True)
         mockgrid.add_batteries(2)
         mockgrid.add_solar_inverters(2)
-        await mockgrid.start_mock_datapipeline(mocker)
+        await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
         consumer_power_receiver = logical_meter.consumer_power.new_receiver()
@@ -205,7 +205,7 @@ class TestLogicalMeter:
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(2)
         mockgrid.add_solar_inverters(2)
-        await mockgrid.start_mock_datapipeline(mocker)
+        await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
         consumer_power_receiver = logical_meter.consumer_power.new_receiver()
@@ -218,7 +218,7 @@ class TestLogicalMeter:
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_solar_inverters(2)
         mockgrid.add_chps(2)
-        await mockgrid.start_mock_datapipeline(mocker)
+        await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
         producer_power_receiver = logical_meter.producer_power.new_receiver()
@@ -230,7 +230,7 @@ class TestLogicalMeter:
         """Test the producer power formula without a chp."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_solar_inverters(2)
-        await mockgrid.start_mock_datapipeline(mocker)
+        await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
         producer_power_receiver = logical_meter.producer_power.new_receiver()
@@ -242,7 +242,7 @@ class TestLogicalMeter:
         """Test the producer power formula without pv."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_chps(1)
-        await mockgrid.start_mock_datapipeline(mocker)
+        await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
         producer_power_receiver = logical_meter.producer_power.new_receiver()
@@ -253,7 +253,7 @@ class TestLogicalMeter:
     async def test_no_producer_power(self, mocker: MockerFixture) -> None:
         """Test the producer power formula without producers."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
-        await mockgrid.start_mock_datapipeline(mocker)
+        await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
         producer_power_receiver = logical_meter.producer_power.new_receiver()

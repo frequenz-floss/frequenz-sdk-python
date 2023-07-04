@@ -440,7 +440,7 @@ async def test_battery_pool_power(mocker: MockerFixture) -> None:
     """Test `BatteryPool.{,production,consumption}_power` methods."""
     mockgrid = MockMicrogrid(grid_side_meter=True)
     mockgrid.add_batteries(2)
-    await mockgrid.start_mock_datapipeline(mocker)
+    await mockgrid.start(mocker)
 
     battery_pool = microgrid.battery_pool()
     power_receiver = battery_pool.power.new_receiver()
