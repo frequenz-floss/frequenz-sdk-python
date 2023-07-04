@@ -1,4 +1,4 @@
-# Release Notes
+# Frequenz Python SDK Release Notes
 
 ## Summary
 

@@ -1,14 +1,17 @@
+# License: MIT
+# Copyright © 2022 Frequenz Energy-as-a-Service GmbH
+
 [build-system]
 requires = [
-  "setuptools >= 65.3.0, < 66",
-  "setuptools_scm[toml] >= 7.0.5, < 8",
-  "wheel",
+  "setuptools == 67.7.2",
+  "setuptools_scm[toml] == 7.1.0",
+  "frequenz-repo-config[lib] == 0.3.0",
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "frequenz-sdk"
-description = "Frequenz Python SDK"
+description = "A development kit to interact with the Frequenz development platform"
 readme = "README.md"
 license = { text = "MIT" }
 keywords = ["frequenz", "sdk", "microgrid", "actor"]
@@ -19,6 +22,7 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
   "Topic :: Software Development :: Libraries",
+  "Typing :: Typed",
 ]
 requires-python = ">= 3.11, < 4"
 dependencies = [
@@ -43,25 +47,36 @@ name = "Frequenz Energy-as-a-Service GmbH"
 email = "floss@frequenz.com"
 
 [project.optional-dependencies]
-docs-gen = [
+dev-docstrings = [
+  "pydocstyle == 6.3.0",
+  "darglint == 1.8.1",
+  "tomli == 2.0.1",      # Needed by pydocstyle to read pyproject.toml
+]
+dev-examples = ["polars == 0.18.6"]
+dev-formatting = ["black == 23.3.0", "isort == 5.12.0"]
+dev-mkdocs = [
   "mike == 1.1.2",
   "mkdocs-gen-files == 0.5.0",
   "mkdocs-literate-nav == 0.6.0",
   "mkdocs-material == 9.1.18",
   "mkdocs-section-index == 0.3.5",
   "mkdocstrings[python] == 0.22.0",
+  "frequenz-repo-config[lib] == 0.3.0",
 ]
-docs-lint = [
-  "pydocstyle == 6.3.0",
-  "darglint == 1.8.1",
-  "tomli == 2.0.1",      # Needed by pydocstyle to read pyproject.toml
+dev-mypy = [
+  "mypy == 1.4.1",
+  "grpc-stubs == 1.24.12", # This dependency introduces breaking changes in patch releases
+  # For checking the noxfile, docs/ script, and tests
+  "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
-format = ["black == 23.3.0", "isort == 5.12.0"]
-nox = ["nox == 2023.4.22", "toml == 0.10.2"]
-examples = [ "polars == 0.18.6" ]
-pytest = [
+dev-noxfile = ["nox == 2023.4.22", "frequenz-repo-config[lib] == 0.3.0"]
+dev-pylint = [
+  "pylint == 2.17.4",
+  # For checking the noxfile, docs/ script, and tests
+  "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
+]
+dev-pytest = [
   "pytest == 7.4.0",
-  "pytest-cov == 4.1.0",
   "pytest-mock == 3.11.1",
   "pytest-asyncio == 0.21.0",
   "time-machine == 2.10.0",
@@ -69,37 +84,27 @@ pytest = [
   # For checking docstring code examples
   "sybil == 5.0.2",
   "pylint == 2.17.4",
-  "frequenz-sdk[examples]",
+  "frequenz-sdk[dev-examples]",
 ]
-mypy = [
-  "mypy == 1.4.1",
-  "grpc-stubs == 1.24.12", # This dependency introduces breaking changes in patch releases
-  # For checking the noxfile, docs/ script, and tests
-  "frequenz-sdk[docs-gen,nox,pytest]",
+dev = [
+  "frequenz-sdk[dev-mkdocs,dev-docstrings,dev-formatting,dev-mkdocs,dev-mypy,dev-noxfile,dev-pylint,dev-pytest]",
 ]
-pylint = [
-  "pylint == 2.17.4",
-  # For checking the noxfile, docs/ script, and tests
-  "frequenz-sdk[docs-gen,nox,pytest]",
-]
-dev = ["frequenz-sdk[docs-gen,docs-lint,format,nox,pytest,mypy,pylint]"]
 
 [project.urls]
 Changelog = "https://github.com/frequenz-floss/frequenz-sdk-python/releases"
-Repository = "https://github.com/frequenz-floss/frequenz-sdk-python"
 Issues = "https://github.com/frequenz-floss/frequenz-sdk-python/issues"
+Repository = "https://github.com/frequenz-floss/frequenz-sdk-python"
 Support = "https://github.com/frequenz-floss/frequenz-sdk-python/discussions/categories/support"
-
-[tool.setuptools]
-include-package-data = true
-
-[tool.setuptools_scm]
-version_scheme = "post-release"
 
 [tool.black]
 line-length = 88
-target-version = ['py38']
+target-version = ['py311']
 include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 88
+src_paths = ["src", "examples", "tests"]
 
 [tool.pylint.similarities]
 ignore-comments = ['yes']
@@ -121,17 +126,15 @@ disable = [
 [tool.pylint.design]
 max-attributes = 12
 
-[tool.isort]
-profile = "black"
-line_length = 88
-src_paths = ["src", "examples", "tests"]
-
 [tool.pytest.ini_options]
+testpaths = ["tests", "src"]
 asyncio_mode = "auto"
 required_plugins = ["pytest-asyncio", "pytest-mock"]
 
 [[tool.mypy.overrides]]
 module = [
+  "async_solipsism",
+  "async_solipsism.*",
   "grpc.aio",
   "grpc.aio.*",
   # There is a stubs package available, but it's not working:
@@ -140,6 +143,5 @@ module = [
 ]
 ignore_missing_imports = true
 
-[[tool.mypy.overrides]]
-module = ["async_solipsism", "async_solipsism.*"]
-ignore_missing_imports = true
+[tool.setuptools_scm]
+version_scheme = "post-release"

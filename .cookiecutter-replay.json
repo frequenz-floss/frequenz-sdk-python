@@ -1,0 +1,28 @@
+{
+  "cookiecutter": {
+    "type": "lib",
+    "name": "sdk",
+    "description": "A development kit to interact with the Frequenz development platform",
+    "title": "Frequenz Python SDK",
+    "keywords": "microgrid,actor,ml,machine-learning,ai",
+    "github_org": "frequenz-floss",
+    "license": "MIT",
+    "author_name": "Frequenz Energy-as-a-Service GmbH",
+    "author_email": "floss@frequenz.com",
+    "python_package": "frequenz.sdk",
+    "pypi_package_name": "frequenz-sdk",
+    "github_repo_name": "frequenz-sdk-python",
+    "default_codeowners": "@frequenz-floss/python-sdk-team",
+    "_extensions": [
+      "jinja2_time.TimeExtension",
+      "local_extensions.default_codeowners",
+      "local_extensions.github_repo_name",
+      "local_extensions.keywords",
+      "local_extensions.pypi_package_name",
+      "local_extensions.python_package",
+      "local_extensions.src_path",
+      "local_extensions.title"
+    ],
+    "_template": "gh:frequenz-floss/frequenz-repo-config-python"
+  }
+}

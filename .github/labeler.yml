@@ -20,7 +20,7 @@
   - "src/frequenz/sdk/_data_ingestion/**"
   - "src/frequenz/sdk/timeseries/**"
 
-"part:docs": 
+"part:docs":
   - "**/*.md"
   - "docs/**"
   - "examples/**"
@@ -40,12 +40,9 @@
   - "**/*.toml"
   - "**/*.yaml"
   - "**/*.yml"
-  - "*requirements*.txt"
   - ".git*"
   - ".git*/**"
+  - "docs/*.py"
   - CODEOWNERS
   - MANIFEST.in
-  - docs/mkdocstrings_autoapi.py
   - noxfile.py
-  - setup.cfg
-  - setup.py

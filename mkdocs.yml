@@ -2,13 +2,14 @@
 # For details see: https://www.mkdocs.org/user-guide/configuration/
 
 # Project information
-site_name: Frequenz Python SDK
-site_description: Frequenz Python SDK.
-site_author: Frequenz Energy-as-a-Service GmbH
-copyright: Frequenz Energy-as-a-Service GmbH
+site_name: "Frequenz Python SDK"
+site_description: "A development kit to interact with the Frequenz development platform"
+site_author: "Frequenz Energy-as-a-Service GmbH"
+copyright: "Copyright © 2022 Frequenz Energy-as-a-Service GmbH"
 repo_name: "frequenz-sdk-python"
 repo_url: "https://github.com/frequenz-floss/frequenz-sdk-python"
 edit_uri: "edit/v0.x.x/docs/"
+strict: true  # Treat warnings as errors
 
 # Build directories
 theme:
@@ -88,7 +89,7 @@ plugins:
       handlers:
         python:
           options:
-            paths: [src]
+            paths: ["src"]
             docstring_section_style: spacy
             merge_init_into_class: false
             show_category_heading: true
@@ -102,6 +103,6 @@ plugins:
 
 # Preview controls
 watch:
-  - src
+  - "src"
   - README.md
   - CONTRIBUTING.md

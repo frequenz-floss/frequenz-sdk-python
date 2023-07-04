@@ -1,9 +1,11 @@
-name: frequenz-sdk-python
+name: CI
 
 on:
   merge_group:
   pull_request:
   push:
+    # We need to explicitly include tags because otherwise when adding
+    # `branches-ignore` it will only trigger on branches.
     tags:
       - '*'
     branches-ignore:
@@ -14,10 +16,15 @@ on:
   workflow_dispatch:
 
 env:
+  # Please make sure this version is included in the `matrix`, as the
+  # `matrix` section can't use `env`, so it must be entered manually
   DEFAULT_PYTHON_VERSION: '3.11'
+  # It would be nice to be able to also define a DEFAULT_UBUNTU_VERSION
+  # but sadly `env` can't be used either in `runs-on`.
 
 jobs:
-  test:
+  nox:
+    name: Test with nox
     strategy:
       fail-fast: false
       matrix:
@@ -37,23 +44,19 @@ jobs:
           python-version: ${{ matrix.python }}
           cache: 'pip'
 
-      - uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashFiles('minimum-requirements-ci.txt', 'pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-
-
       - name: Install required Python packages
         run: |
           python -m pip install --upgrade pip
-          python -m pip install nox toml
+          python -m pip install -e .[dev-noxfile]
 
-      - name: run nox
+      - name: Run nox
+        # To speed things up a bit we use the speciall ci_checks_max session
+        # that uses the same venv to run multiple linting sessions
         run: nox -e ci_checks_max pytest_min
         timeout-minutes: 10
 
-  build-dist:
+  build:
+    name: Build distribution packages
     runs-on: ubuntu-20.04
     steps:
       - name: Fetch sources
@@ -62,10 +65,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
           cache: 'pip'
 
-      - name: Install build dependencies
+      - name: Install required Python packages
         run: |
           python -m pip install -U pip
           python -m pip install -U build
@@ -73,14 +76,15 @@ jobs:
       - name: Build the source and binary distribution
         run: python -m build
 
-      - name: Upload dist files
+      - name: Upload distribution files
         uses: actions/upload-artifact@v3
         with:
-          name: frequenz-sdk-python-dist
+          name: dist-packages
           path: dist/
           if-no-files-found: error
 
-  test-generate-docs:
+  test-docs:
+    name: Test documentation website generation
     if: github.event_name != 'push'
     runs-on: ubuntu-20.04
     steps:
@@ -99,7 +103,7 @@ jobs:
       - name: Install build dependencies
         run: |
           python -m pip install -U pip
-          python -m pip install .[docs-gen]
+          python -m pip install .[dev-mkdocs]
 
       - name: Generate the documentation
         env:
@@ -111,12 +115,13 @@ jobs:
       - name: Upload site
         uses: actions/upload-artifact@v3
         with:
-          name: frequenz-channels-python-site
+          name: docs-site
           path: site/
           if-no-files-found: error
 
   publish-docs:
-    needs: ["test", "build-dist"]
+    name: Publish documentation website to GitHub pages
+    needs: ["nox", "build"]
     if: github.event_name == 'push'
     runs-on: ubuntu-20.04
     permissions:
@@ -178,7 +183,7 @@ jobs:
         if: steps.mike-metadata.outputs.version
         run: |
           python -m pip install -U pip
-          python -m pip install .[docs-gen]
+          python -m pip install .[dev-mkdocs]
 
       - name: Fetch the gh-pages branch
         if: steps.mike-metadata.outputs.version
@@ -193,6 +198,7 @@ jobs:
           mike deploy --push --update-aliases "$VERSION" $ALIASES
 
   create-github-release:
+    name: Create GitHub release
     needs: ["publish-docs"]
     # Create a release only on tags creation
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
@@ -203,10 +209,10 @@ jobs:
       discussions: write
     runs-on: ubuntu-20.04
     steps:
-      - name: Download dist files
+      - name: Download distribution files
         uses: actions/download-artifact@v3
         with:
-          name: frequenz-sdk-python-dist
+          name: dist-packages
           path: dist
 
       - name: Download RELEASE_NOTES.md
@@ -230,7 +236,6 @@ jobs:
           if echo "$REF_NAME" | grep -- -; then extra_opts=" --prerelease"; fi
           gh release create \
             -R "$REPOSITORY" \
-            --discussion-category announcements \
             --notes-file RELEASE_NOTES.md \
             --generate-notes \
             $extra_opts \
@@ -242,6 +247,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-to-pypi:
+    name: Publish packages to PyPI
     needs: ["create-github-release"]
     runs-on: ubuntu-20.04
     permissions:
@@ -249,10 +255,10 @@ jobs:
       # https://blog.pypi.org/posts/2023-04-20-introducing-trusted-publishers/
       id-token: write
     steps:
-      - name: Download dist files
+      - name: Download distribution files
         uses: actions/download-artifact@v3
         with:
-          name: frequenz-sdk-python-dist
+          name: dist-packages
           path: dist
 
       - name: Publish the Python distribution to PyPI
