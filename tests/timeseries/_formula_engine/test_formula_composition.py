@@ -44,8 +44,8 @@ class TestFormulaComposition:
         engine = (logical_meter.pv_power + battery_pool.power).build("inv_power")
         inv_calc_recv = engine.new_receiver()
 
-        await mockgrid.mock_data.send_bat_inverter_power([10.0, 12.0, 14.0])
-        await mockgrid.mock_data.send_meter_power(
+        await mockgrid.mock_resampler.send_bat_inverter_power([10.0, 12.0, 14.0])
+        await mockgrid.mock_resampler.send_meter_power(
             [100.0, 10.0, 12.0, 14.0, -100.0, -200.0]
         )
 
@@ -110,10 +110,10 @@ class TestFormulaComposition:
 
         count = 0
         for _ in range(10):
-            await mockgrid.mock_data.send_bat_inverter_power(
+            await mockgrid.mock_resampler.send_bat_inverter_power(
                 [10.0 + count, 12.0 + count, 14.0 + count]
             )
-            await mockgrid.mock_data.send_non_existing_component_value()
+            await mockgrid.mock_resampler.send_non_existing_component_value()
 
             bat_pow = await battery_power_recv.receive()
             pv_pow = await pv_power_recv.receive()
@@ -148,10 +148,10 @@ class TestFormulaComposition:
 
         count = 0
         for _ in range(10):
-            await mockgrid.mock_data.send_meter_power(
+            await mockgrid.mock_resampler.send_meter_power(
                 [10.0 + count, 12.0 + count, 14.0 + count]
             )
-            await mockgrid.mock_data.send_non_existing_component_value()
+            await mockgrid.mock_resampler.send_non_existing_component_value()
             bat_pow = await battery_power_recv.receive()
             pv_pow = await pv_power_recv.receive()
             inv_pow = await inv_calc_recv.receive()
@@ -190,7 +190,7 @@ class TestFormulaComposition:
         count = 0
 
         for _ in range(10):
-            await mockgrid.mock_data.send_meter_current(
+            await mockgrid.mock_resampler.send_meter_current(
                 [
                     [10.0, 12.0, 14.0],
                     [10.0, 12.0, 14.0],
@@ -198,7 +198,7 @@ class TestFormulaComposition:
                     [10.0, 12.0, 14.0],
                 ]
             )
-            await mockgrid.mock_data.send_evc_current(
+            await mockgrid.mock_resampler.send_evc_current(
                 [[10.0 + count, 12.0 + count, 14.0 + count]]
             )
 

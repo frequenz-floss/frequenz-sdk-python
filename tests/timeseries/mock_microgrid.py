@@ -33,7 +33,7 @@ from ..utils.component_data_wrapper import (
     InverterDataWrapper,
     MeterDataWrapper,
 )
-from .mock_datapipeline import MockDataPipeline
+from .mock_resampler import MockResampler
 
 
 class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
@@ -49,7 +49,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
     battery_id_suffix = 9
 
     _microgrid: MockMicrogridClient
-    mock_data: MockDataPipeline
+    mock_resampler: MockResampler
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
@@ -108,7 +108,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
     async def start_mock_datapipeline(self, mocker: MockerFixture) -> None:
         """Start the MockDataPipeline."""
         self.init_mock_client(lambda mock_client: mock_client.initialize(mocker))
-        self.mock_data = MockDataPipeline(
+        self.mock_resampler = MockResampler(
             mocker,
             ResamplerConfig(timedelta(seconds=self._sample_rate_s)),
             bat_inverter_ids=self.battery_inverter_ids,

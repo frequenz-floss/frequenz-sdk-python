@@ -23,8 +23,8 @@ from frequenz.sdk.timeseries._quantities import Quantity
 # pylint: disable=too-many-instance-attributes
 
 
-class MockDataPipeline:
-    """Mock data_pipeline."""
+class MockResampler:
+    """Mock resampler."""
 
     def __init__(  # pylint: disable=too-many-arguments
         self,

@@ -86,12 +86,12 @@ class TestEVChargerPool:
         production_receiver = ev_pool.production_power.new_receiver()
         consumption_receiver = ev_pool.consumption_power.new_receiver()
 
-        await mockgrid.mock_data.send_evc_power([2.0, 4.0, 10.0])
+        await mockgrid.mock_resampler.send_evc_power([2.0, 4.0, 10.0])
         assert (await power_receiver.receive()).value == Power.from_watts(16.0)
         assert (await production_receiver.receive()).value == Power.from_watts(0.0)
         assert (await consumption_receiver.receive()).value == Power.from_watts(16.0)
 
-        await mockgrid.mock_data.send_evc_power([2.0, 4.0, -10.0])
+        await mockgrid.mock_resampler.send_evc_power([2.0, 4.0, -10.0])
         assert (await power_receiver.receive()).value == Power.from_watts(-4.0)
         assert (await production_receiver.receive()).value == Power.from_watts(4.0)
         assert (await consumption_receiver.receive()).value == Power.from_watts(0.0)
@@ -118,7 +118,7 @@ class TestEVChargerPool:
             [0.0]  # only the status gets used from this.
         )
         await asyncio.sleep(0.05)
-        await mockgrid.mock_data.send_evc_current([[2, 3, 5]])
+        await mockgrid.mock_resampler.send_evc_current([[2, 3, 5]])
         status = await recv.receive()
         assert (
             status.current.value_p1,
@@ -135,7 +135,7 @@ class TestEVChargerPool:
             [0.0]  # only the status gets used from this.
         )
         await asyncio.sleep(0.05)
-        await mockgrid.mock_data.send_evc_current([[2, 3, None]])
+        await mockgrid.mock_resampler.send_evc_current([[2, 3, None]])
         status = await recv.receive()
         assert (
             status.current.value_p1,
@@ -152,7 +152,7 @@ class TestEVChargerPool:
             [0.0]  # only the status gets used from this.
         )
         await asyncio.sleep(0.05)
-        await mockgrid.mock_data.send_evc_current([[None, None, None]])
+        await mockgrid.mock_resampler.send_evc_current([[None, None, None]])
         status = await recv.receive()
         assert (
             status.current.value_p1,
@@ -170,7 +170,7 @@ class TestEVChargerPool:
             [0.0]  # only the status gets used from this.
         )
         await asyncio.sleep(0.05)
-        await mockgrid.mock_data.send_evc_current([[None, None, None]])
+        await mockgrid.mock_resampler.send_evc_current([[None, None, None]])
         status = await recv.receive()
         assert (
             status.current.value_p1,
@@ -187,7 +187,7 @@ class TestEVChargerPool:
             [0.0]  # only the status gets used from this.
         )
         await asyncio.sleep(0.05)
-        await mockgrid.mock_data.send_evc_current([[4, None, None]])
+        await mockgrid.mock_resampler.send_evc_current([[4, None, None]])
         status = await recv.receive()
         assert (
             status.current.value_p1,
