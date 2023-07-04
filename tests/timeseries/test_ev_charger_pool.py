@@ -32,13 +32,17 @@ class TestEVChargerPool:
             grid_side_meter=False, api_client_streaming=True, sample_rate_s=0.01
         )
         mockgrid.add_ev_chargers(5)
-        mockgrid.start_mock_client(lambda client: client.initialize(mocker))
+        await mockgrid.start(mocker)
 
         state_tracker = StateTracker(set(mockgrid.evc_ids))
+        await asyncio.sleep(0.05)
 
         async def check_states(
             expected: dict[int, EVChargerState],
         ) -> None:
+            await mockgrid.send_ev_charger_data(
+                [0.0] * 5  # for testing status updates, the values don't matter.
+            )
             await asyncio.sleep(0.05)
             for comp_id, exp_state in expected.items():
                 assert state_tracker.get(comp_id) == exp_state
