@@ -37,3 +37,5 @@ New `Quantity` types! These types can have units (power, current, voltage, etc.)
 - Two bugs in the ring buffer which is used by the `MovingWindow` class were fixed:
   - `len(buffer)` was not considering potentially existing gaps (areas without elements) in the buffer.
   - A off-by-one error in the gap calculation logic was fixed that recorded a gap when there was none if an element with a future timestamp was added that would create a gap of exactly 1.
+
+- A formula engine lifetime issue, when creating higher order formula receivers without holding on to a reference to the engine, was fixed.
