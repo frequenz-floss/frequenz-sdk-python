@@ -363,6 +363,95 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             self._start_ev_charger_streaming(evc_id)
             self._connections.add(Connection(self._connect_to, evc_id))
 
+    async def send_meter_data(self, values: list[float]) -> None:
+        """Send raw meter data from the mock microgrid.
+
+        Args:
+            values: list of active power values for each meter.
+        """
+        assert len(values) == len(self.meter_ids)
+        timestamp = datetime.now(tz=timezone.utc)
+        for comp_id, value in zip(self.meter_ids, values):
+            await self._microgrid.send(
+                MeterDataWrapper(
+                    component_id=comp_id,
+                    timestamp=timestamp,
+                    active_power=value,
+                    current_per_phase=(
+                        value + 100.0,
+                        value + 101.0,
+                        value + 102.0,
+                    ),
+                )
+            )
+
+    async def send_battery_data(self, socs: list[float]) -> None:
+        """Send raw battery data from the mock microgrid.
+
+        Args:
+            values: list of soc values for each battery.
+        """
+        assert len(socs) == len(self.battery_ids)
+        timestamp = datetime.now(tz=timezone.utc)
+        for comp_id, value in zip(self.battery_ids, socs):
+            await self._microgrid.send(
+                BatteryDataWrapper(component_id=comp_id, timestamp=timestamp, soc=value)
+            )
+
+    async def send_battery_inverter_data(self, values: list[float]) -> None:
+        """Send raw battery inverter data from the mock microgrid.
+
+        Args:
+            values: list of active power values for each battery inverter.
+        """
+        assert len(values) == len(self.battery_inverter_ids)
+        timestamp = datetime.now(tz=timezone.utc)
+        for comp_id, value in zip(self.battery_inverter_ids, values):
+            await self._microgrid.send(
+                InverterDataWrapper(
+                    component_id=comp_id, timestamp=timestamp, active_power=value
+                )
+            )
+
+    async def send_pv_inverter_data(self, values: list[float]) -> None:
+        """Send raw pv inverter data from the mock microgrid.
+
+        Args:
+            values: list of active power values for each pv inverter.
+        """
+        assert len(values) == len(self.pv_inverter_ids)
+        timestamp = datetime.now(tz=timezone.utc)
+        for comp_id, value in zip(self.pv_inverter_ids, values):
+            await self._microgrid.send(
+                InverterDataWrapper(
+                    component_id=comp_id, timestamp=timestamp, active_power=value
+                )
+            )
+
+    async def send_ev_charger_data(self, values: list[float]) -> None:
+        """Send raw ev charger data from the mock microgrid.
+
+        Args:
+            values: list of active power values for each ev charger.
+        """
+        assert len(values) == len(self.evc_ids)
+        timestamp = datetime.now(tz=timezone.utc)
+        for comp_id, value in zip(self.evc_ids, values):
+            await self._microgrid.send(
+                EvChargerDataWrapper(
+                    component_id=comp_id,
+                    timestamp=timestamp,
+                    active_power=value,
+                    current_per_phase=(
+                        value + 100.0,
+                        value + 101.0,
+                        value + 102.0,
+                    ),
+                    component_state=self.evc_component_states[comp_id],
+                    cable_state=self.evc_cable_states[comp_id],
+                )
+            )
+
     async def cleanup(self) -> None:
         """Clean up after a test."""
         # pylint: disable=protected-access
