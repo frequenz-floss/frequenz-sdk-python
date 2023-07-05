@@ -7,6 +7,7 @@ from __future__ import annotations
 import asyncio
 import dataclasses
 import logging
+import math
 from dataclasses import dataclass, is_dataclass, replace
 from datetime import datetime, timedelta, timezone
 from typing import Any, AsyncIterator, Generic, Iterator, TypeVar
@@ -565,7 +566,7 @@ async def run_capacity_test(setup_args: SetupArgs) -> None:
         ),
         Scenario(
             batteries_in_pool[1],
-            {"soc_upper_bound": float("NaN")},
+            {"soc_upper_bound": math.nan},
             Sample(
                 now,
                 Energy.from_watt_hours(
@@ -595,7 +596,7 @@ async def run_capacity_test(setup_args: SetupArgs) -> None:
         ),
         Scenario(
             batteries_in_pool[1],
-            {"capacity": float("NaN")},
+            {"capacity": math.nan},
             Sample(
                 now,
                 Energy.from_watt_hours(
@@ -709,13 +710,13 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
         # If NaN, then not include that battery in the metric.
         Scenario(
             batteries_in_pool[0],
-            {"soc_upper_bound": float("NaN")},
+            {"soc_upper_bound": math.nan},
             Sample(now, Percentage.from_percent(10.0)),
         ),
         # All batteries are sending NaN, can't calculate SoC so we should send None
         Scenario(
             batteries_in_pool[1],
-            {"soc": float("NaN")},
+            {"soc": math.nan},
             None,
         ),
         Scenario(
@@ -866,35 +867,35 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
         # Setting upper bound to NaN should not influence lower bound
         Scenario(
             batteries_in_pool[0],
-            {"power_lower_bound": -50, "power_upper_bound": float("NaN")},
+            {"power_lower_bound": -50, "power_upper_bound": math.nan},
             PowerMetrics(now, Bound(-60, 0), Bound(0, 9200)),
         ),
         Scenario(
             bat_inv_map[batteries_in_pool[0]],
             {
-                "active_power_lower_bound": float("NaN"),
-                "active_power_upper_bound": float("NaN"),
+                "active_power_lower_bound": math.nan,
+                "active_power_upper_bound": math.nan,
             },
             PowerMetrics(now, Bound(-60, 0), Bound(0, 200)),
         ),
         Scenario(
             batteries_in_pool[0],
-            {"power_lower_bound": float("NaN")},
+            {"power_lower_bound": math.nan},
             PowerMetrics(now, Bound(-10, 0), Bound(0, 200)),
         ),
         Scenario(
             batteries_in_pool[1],
             {
                 "power_lower_bound": -100,
-                "power_upper_bound": float("NaN"),
+                "power_upper_bound": math.nan,
             },
             PowerMetrics(now, Bound(-100, 0), Bound(0, 6000)),
         ),
         Scenario(
             bat_inv_map[batteries_in_pool[1]],
             {
-                "active_power_lower_bound": float("NaN"),
-                "active_power_upper_bound": float("NaN"),
+                "active_power_lower_bound": math.nan,
+                "active_power_upper_bound": math.nan,
             },
             PowerMetrics(now, Bound(-100, 0), Bound(0, 0)),
         ),
@@ -902,8 +903,8 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
         Scenario(
             batteries_in_pool[1],
             {
-                "power_lower_bound": float("NaN"),
-                "power_upper_bound": float("NaN"),
+                "power_lower_bound": math.nan,
+                "power_upper_bound": math.nan,
             },
             None,
         ),

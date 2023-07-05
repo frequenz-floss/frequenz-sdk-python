@@ -3,6 +3,7 @@
 
 # pylint: disable=too-many-lines
 """Tests for distribution algorithm."""
+import math
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
@@ -62,10 +63,10 @@ def battery_msg(  # pylint: disable=too-many-arguments
     """
     return BatteryDataWrapper(
         component_id=component_id,
-        capacity=capacity.now if capacity.now is not None else float("NaN"),
-        soc=soc.now if soc.now is not None else float("NaN"),
-        soc_lower_bound=soc.bound.lower if soc.bound is not None else float("NaN"),
-        soc_upper_bound=soc.bound.upper if soc.bound is not None else float("NaN"),
+        capacity=capacity.now if capacity.now is not None else math.nan,
+        soc=soc.now if soc.now is not None else math.nan,
+        soc_lower_bound=soc.bound.lower if soc.bound is not None else math.nan,
+        soc_upper_bound=soc.bound.upper if soc.bound is not None else math.nan,
         power_lower_bound=power.lower,
         power_upper_bound=power.upper,
         timestamp=timestamp,

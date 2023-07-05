@@ -12,6 +12,7 @@ that will need to be updated in such cases.
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field, replace
 from datetime import datetime
 from typing import Tuple
@@ -33,13 +34,13 @@ from frequenz.sdk.microgrid.component import (
 class BatteryDataWrapper(BatteryData):
     """Wrapper for the BatteryData with default arguments."""
 
-    soc: float = float("NaN")
-    soc_lower_bound: float = float("NaN")
-    soc_upper_bound: float = float("NaN")
-    capacity: float = float("NaN")
-    power_lower_bound: float = float("NaN")
-    power_upper_bound: float = float("NaN")
-    temperature_max: float = float("NaN")
+    soc: float = math.nan
+    soc_lower_bound: float = math.nan
+    soc_upper_bound: float = math.nan
+    capacity: float = math.nan
+    power_lower_bound: float = math.nan
+    power_upper_bound: float = math.nan
+    temperature_max: float = math.nan
     _relay_state: battery_pb.RelayState.ValueType = (
         battery_pb.RelayState.RELAY_STATE_UNSPECIFIED
     )
@@ -67,9 +68,9 @@ class BatteryDataWrapper(BatteryData):
 class InverterDataWrapper(InverterData):
     """Wrapper for the InverterData with default arguments."""
 
-    active_power: float = float("NaN")
-    active_power_lower_bound: float = float("NaN")
-    active_power_upper_bound: float = float("NaN")
+    active_power: float = math.nan
+    active_power_lower_bound: float = math.nan
+    active_power_upper_bound: float = math.nan
     _component_state: inverter_pb.ComponentState.ValueType = (
         inverter_pb.ComponentState.COMPONENT_STATE_UNSPECIFIED
     )
@@ -94,12 +95,12 @@ class InverterDataWrapper(InverterData):
 class EvChargerDataWrapper(EVChargerData):
     """Wrapper for the EvChargerData with default arguments."""
 
-    active_power: float = float("NaN")
+    active_power: float = math.nan
     current_per_phase: Tuple[float, float, float] = field(
-        default_factory=lambda: (float("NaN"), float("NaN"), float("NaN"))
+        default_factory=lambda: (math.nan, math.nan, math.nan)
     )
     voltage_per_phase: Tuple[float, float, float] = field(
-        default_factory=lambda: (float("NaN"), float("NaN"), float("NaN"))
+        default_factory=lambda: (math.nan, math.nan, math.nan)
     )
     cable_state: EVChargerCableState = EVChargerCableState.UNSPECIFIED
     component_state: EVChargerComponentState = EVChargerComponentState.UNSPECIFIED
@@ -123,14 +124,14 @@ class EvChargerDataWrapper(EVChargerData):
 class MeterDataWrapper(MeterData):
     """Wrapper for the MeterData with default arguments."""
 
-    active_power: float = float("NaN")
+    active_power: float = math.nan
     current_per_phase: Tuple[float, float, float] = field(
-        default_factory=lambda: (float("NaN"), float("NaN"), float("NaN"))
+        default_factory=lambda: (math.nan, math.nan, math.nan)
     )
     voltage_per_phase: Tuple[float, float, float] = field(
-        default_factory=lambda: (float("NaN"), float("NaN"), float("NaN"))
+        default_factory=lambda: (math.nan, math.nan, math.nan)
     )
-    frequency: float = float("NaN")
+    frequency: float = math.nan
 
     def copy_with_new_timestamp(self, new_timestamp: datetime) -> MeterDataWrapper:
         """Copy the component data but insert new timestamp.

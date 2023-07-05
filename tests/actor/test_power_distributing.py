@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import asyncio
+import math
 import re
 from typing import TypeVar
 from unittest.mock import AsyncMock, MagicMock
@@ -190,7 +191,7 @@ class TestPowerDistributingActor:
         await mock_microgrid.send(
             battery_msg(
                 106,
-                soc=Metric(float("NaN"), Bound(20, 80)),
+                soc=Metric(math.nan, Bound(20, 80)),
                 capacity=Metric(98000),
                 power=Bound(-1000, 1000),
             )
@@ -254,7 +255,7 @@ class TestPowerDistributingActor:
             battery_msg(
                 106,
                 soc=Metric(40, Bound(20, 80)),
-                capacity=Metric(float("NaN")),
+                capacity=Metric(math.nan),
                 power=Bound(-1000, 1000),
             )
         )
@@ -310,7 +311,7 @@ class TestPowerDistributingActor:
         await mock_microgrid.send(
             inverter_msg(
                 205,
-                power=Bound(float("NaN"), float("NaN")),
+                power=Bound(math.nan, math.nan),
             )
         )
 
@@ -318,7 +319,7 @@ class TestPowerDistributingActor:
         await mock_microgrid.send(
             inverter_msg(
                 105,
-                power=Bound(-1000, float("NaN")),
+                power=Bound(-1000, math.nan),
             )
         )
 
@@ -327,7 +328,7 @@ class TestPowerDistributingActor:
                 106,
                 soc=Metric(40, Bound(20, 80)),
                 capacity=Metric(float(98000)),
-                power=Bound(float("NaN"), float("NaN")),
+                power=Bound(math.nan, math.nan),
             )
         )
 
@@ -760,14 +761,14 @@ class TestPowerDistributingActor:
         batteries_data = (
             battery_msg(
                 106,
-                soc=Metric(float("NaN"), Bound(20, 80)),
-                capacity=Metric(float("NaN")),
+                soc=Metric(math.nan, Bound(20, 80)),
+                capacity=Metric(math.nan),
                 power=Bound(-1000, 1000),
             ),
             battery_msg(
                 206,
                 soc=Metric(40, Bound(20, 80)),
-                capacity=Metric(float("NaN")),
+                capacity=Metric(math.nan),
                 power=Bound(-1000, 1000),
             ),
         )
@@ -846,21 +847,21 @@ class TestPowerDistributingActor:
         batteries_data = (
             battery_msg(
                 106,
-                soc=Metric(float("NaN"), Bound(20, 80)),
+                soc=Metric(math.nan, Bound(20, 80)),
                 capacity=Metric(98000),
                 power=Bound(-1000, 1000),
             ),
             battery_msg(
                 206,
                 soc=Metric(40, Bound(20, 80)),
-                capacity=Metric(float("NaN")),
+                capacity=Metric(math.nan),
                 power=Bound(-1000, 1000),
             ),
             battery_msg(
                 306,
                 soc=Metric(40, Bound(20, 80)),
                 capacity=Metric(float(98000)),
-                power=Bound(float("NaN"), float("NaN")),
+                power=Bound(math.nan, math.nan),
             ),
         )
 
