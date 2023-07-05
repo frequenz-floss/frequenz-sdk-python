@@ -63,31 +63,35 @@ class TestLogicalMeter:
     ) -> None:
         """Test the grid power formula without a grid side meter."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
-        mockgrid.add_batteries(2)
+        mockgrid.add_batteries(1, no_meter=False)
+        mockgrid.add_batteries(1, no_meter=True)
         mockgrid.add_solar_inverters(1)
         await mockgrid.start(mocker)
         logical_meter = microgrid.logical_meter()
 
         grid_power_recv = logical_meter.grid_power.new_receiver()
 
-        meter_receivers = [
+        component_receivers = [
             get_resampled_stream(
                 logical_meter._namespace,  # pylint: disable=protected-access
-                meter_id,
+                component_id,
                 ComponentMetricId.ACTIVE_POWER,
                 Power.from_watts,
             )
-            for meter_id in mockgrid.meter_ids
+            for component_id in [
+                *mockgrid.meter_ids,
+                # The last battery has no meter, so we get the power from the inverter
+                mockgrid.battery_inverter_ids[-1],
+            ]
         ]
 
         results: list[Quantity] = []
         meter_sums: list[Quantity] = []
         for count in range(10):
-            await mockgrid.mock_resampler.send_meter_power(
-                [20.0 + count, 12.0, -13.0, -5.0]
-            )
+            await mockgrid.mock_resampler.send_meter_power([20.0 + count, 12.0, -13.0])
+            await mockgrid.mock_resampler.send_bat_inverter_power([0.0, -5.0])
             meter_sum = 0.0
-            for recv in meter_receivers:
+            for recv in component_receivers:
                 val = await recv.receive()
                 assert (
                     val is not None
