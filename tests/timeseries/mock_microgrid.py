@@ -251,11 +251,12 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             self._connections.add(Connection(self._connect_to, meter_id))
             self._connections.add(Connection(meter_id, chp_id))
 
-    def add_batteries(self, count: int) -> None:
+    def add_batteries(self, count: int, no_meter: bool = False) -> None:
         """Add batteries with connected inverters and meters to the microgrid.
 
         Args:
             count: number of battery sets to add.
+            no_meter: if True, do not add a meter for each battery set.
         """
         for _ in range(count):
             meter_id = self._id_increment * 10 + self.meter_id_suffix
@@ -263,17 +264,10 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             bat_id = self._id_increment * 10 + self.battery_id_suffix
             self._id_increment += 1
 
-            self.meter_ids.append(meter_id)
             self.battery_inverter_ids.append(inv_id)
             self.battery_ids.append(bat_id)
             self.bat_inv_map[bat_id] = inv_id
 
-            self._components.add(
-                Component(
-                    meter_id,
-                    ComponentCategory.METER,
-                )
-            )
             self._components.add(
                 Component(inv_id, ComponentCategory.INVERTER, InverterType.BATTERY)
             )
@@ -285,9 +279,20 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             )
             self._start_battery_streaming(bat_id)
             self._start_inverter_streaming(inv_id)
-            self._start_meter_streaming(meter_id)
-            self._connections.add(Connection(self._connect_to, meter_id))
-            self._connections.add(Connection(meter_id, inv_id))
+
+            if no_meter:
+                self._connections.add(Connection(self._connect_to, inv_id))
+            else:
+                self.meter_ids.append(meter_id)
+                self._components.add(
+                    Component(
+                        meter_id,
+                        ComponentCategory.METER,
+                    )
+                )
+                self._start_meter_streaming(meter_id)
+                self._connections.add(Connection(self._connect_to, meter_id))
+                self._connections.add(Connection(meter_id, inv_id))
             self._connections.add(Connection(inv_id, bat_id))
 
     def add_solar_inverters(self, count: int) -> None:
