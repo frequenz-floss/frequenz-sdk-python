@@ -30,6 +30,7 @@ from frequenz.sdk.actor.power_distributing.result import (
 )
 from frequenz.sdk.microgrid.client import Connection
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
+from tests.timeseries.mock_microgrid import MockMicrogrid
 
 from ..conftest import SAFETY_TIMEOUT
 from ..power.test_distribution_algorithm import Bound, Metric, battery_msg, inverter_msg
@@ -81,15 +82,10 @@ class TestPowerDistributingActor:
 
     async def test_constructor(self, mocker: MockerFixture) -> None:
         """Test if gets all necessary data."""
-        components, connections = self.component_graph()
-        mock_microgrid = MockMicrogridClient(components, connections)
-        mock_microgrid.initialize(mocker)
-
-        attrs = {"get_working_batteries.return_value": {306}}
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
-        )
+        mockgrid = MockMicrogrid(grid_side_meter=True)
+        mockgrid.add_batteries(2)
+        mockgrid.add_batteries(1, no_meter=True)
+        await mockgrid.start(mocker)
 
         channel = Broadcast[Request]("power_distributor")
         channel_registry = ChannelRegistry(name="power_distributor")
@@ -100,9 +96,28 @@ class TestPowerDistributingActor:
             battery_status_sender=battery_status_channel.new_sender(),
         )
 
-        assert distributor._bat_inv_map == {106: 105, 206: 205, 306: 305}
-        assert distributor._inv_bat_map == {105: 106, 205: 206, 305: 306}
+        assert distributor._bat_inv_map == {9: 8, 19: 18, 29: 28}
+        assert distributor._inv_bat_map == {8: 9, 18: 19, 28: 29}
+
         await distributor._stop_actor()
+        await mockgrid.cleanup()
+
+        # Test if it works without grid side meter
+        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid.add_batteries(1)
+        mockgrid.add_batteries(2, no_meter=True)
+        await mockgrid.start(mocker)
+        distributor = PowerDistributingActor(
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
+            battery_status_sender=battery_status_channel.new_sender(),
+        )
+
+        assert distributor._bat_inv_map == {9: 8, 19: 18, 29: 28}
+        assert distributor._inv_bat_map == {8: 9, 18: 19, 28: 29}
+
+        await distributor._stop_actor()
+        await mockgrid.cleanup()
 
     async def init_mock_microgrid(self, mocker: MockerFixture) -> MockMicrogridClient:
         """Create mock microgrid and send initial data from the components.
