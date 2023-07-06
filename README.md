@@ -6,6 +6,25 @@
 
 A development kit to interact with the Frequenz development platform.
 
+## Quick Start
+
+We assume you are on a system with Python available. If that is not the case,
+please [download and install Python](https://www.python.org/downloads/) first.
+
+To install the SDK, you probably want to create a new virtual environment first.
+For example, if you use a `sh` compatible shell, you can do this:
+
+```sh
+python3 -m venv .venv
+. .venv/bin/activate
+```
+
+Then, just install using `pip`:
+
+```sh
+python3 -m pip install frequenz-sdk
+```
+
 ## Contributing
 
 If you want to know how to build this project and contribute to it, please
