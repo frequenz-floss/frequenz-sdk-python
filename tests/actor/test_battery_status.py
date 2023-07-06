@@ -235,52 +235,52 @@ class TestBatteryStatus:
         assert tracker.battery_id == BATTERY_ID
         assert tracker._last_status == Status.NOT_WORKING
 
-        select = FakeSelect(inverter=inverter_data(component_id=INVERTER_ID))
-        assert tracker._update_status(select) is None  # type: ignore[arg-type]
+        tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
+        assert tracker._get_new_status_if_changed() is None
 
-        select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
-        assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
+        tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+        assert tracker._get_new_status_if_changed() is Status.WORKING
 
         # --- Send correct message once again, status should not change ---
-        select = FakeSelect(inverter=inverter_data(component_id=INVERTER_ID))
-        assert tracker._update_status(select) is None  # type: ignore[arg-type]
+        tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
+        assert tracker._get_new_status_if_changed() is None
 
-        select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
-        assert tracker._update_status(select) is None  # type: ignore[arg-type]
+        tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+        assert tracker._get_new_status_if_changed() is None
 
         # --- Send outdated message ---
-        select = FakeSelect(
-            inverter=inverter_data(
+        tracker._handle_status_inverter(
+            inverter_data(
                 component_id=INVERTER_ID,
                 timestamp=datetime.now(tz=timezone.utc) - timedelta(seconds=31),
             )
         )
-        assert tracker._update_status(select) is Status.NOT_WORKING  # type: ignore[arg-type]
+        assert tracker._get_new_status_if_changed() is Status.NOT_WORKING
 
         # --- BatteryRelayState is invalid. ---
-        select = FakeSelect(
-            battery=battery_data(
+        tracker._handle_status_battery(
+            battery_data(
                 component_id=BATTERY_ID,
                 relay_state=BatteryRelayState.RELAY_STATE_OPENED,
             )
         )
-        assert tracker._update_status(select) is None  # type: ignore[arg-type]
+        assert tracker._get_new_status_if_changed() is None
 
         # --- Inverter started sending data, but battery relays state are still invalid ---
-        select = FakeSelect(inverter=inverter_data(component_id=INVERTER_ID))
-        assert tracker._update_status(select) is None  # type: ignore[arg-type]
+        tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
+        assert tracker._get_new_status_if_changed() is None
 
-        select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
-        assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
+        tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+        assert tracker._get_new_status_if_changed() is Status.WORKING
 
         # --- Inverter started sending data, but battery relays state are still invalid ---
-        select = FakeSelect(
-            inverter=inverter_data(
+        tracker._handle_status_inverter(
+            inverter_data(
                 component_id=INVERTER_ID,
                 component_state=InverterState.COMPONENT_STATE_SWITCHING_OFF,
             )
         )
-        assert tracker._update_status(select) is Status.NOT_WORKING  # type: ignore[arg-type]
+        assert tracker._get_new_status_if_changed() is Status.NOT_WORKING
 
         inverter_critical_error = InverterError(
             code=InverterErrorCode.ERROR_CODE_UNSPECIFIED,
@@ -294,29 +294,30 @@ class TestBatteryStatus:
             msg="",
         )
 
-        select = FakeSelect(
-            inverter=inverter_data(
+        tracker._handle_status_inverter(
+            inverter_data(
                 component_id=INVERTER_ID,
                 component_state=InverterState.COMPONENT_STATE_SWITCHING_OFF,
                 errors=[inverter_critical_error, inverter_warning_error],
             )
         )
-        assert tracker._update_status(select) is None  # type: ignore[arg-type]
 
-        select = FakeSelect(
-            inverter=inverter_data(
+        assert tracker._get_new_status_if_changed() is None
+
+        tracker._handle_status_inverter(
+            inverter_data(
                 component_id=INVERTER_ID,
                 errors=[inverter_critical_error, inverter_warning_error],
             )
         )
-        assert tracker._update_status(select) is None  # type: ignore[arg-type]
 
-        select = FakeSelect(
-            inverter=inverter_data(
-                component_id=INVERTER_ID, errors=[inverter_warning_error]
-            )
+        assert tracker._get_new_status_if_changed() is None
+
+        tracker._handle_status_inverter(
+            inverter_data(component_id=INVERTER_ID, errors=[inverter_warning_error])
         )
-        assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
+
+        assert tracker._get_new_status_if_changed() is Status.WORKING
 
         battery_critical_error = BatteryError(
             code=BatteryErrorCode.ERROR_CODE_UNSPECIFIED,
@@ -330,38 +331,41 @@ class TestBatteryStatus:
             msg="",
         )
 
-        select = FakeSelect(
-            battery=battery_data(
-                component_id=BATTERY_ID, errors=[battery_warning_error]
-            )
+        tracker._handle_status_battery(
+            battery_data(component_id=BATTERY_ID, errors=[battery_warning_error])
         )
-        assert tracker._update_status(select) is None  # type: ignore[arg-type]
 
-        select = FakeSelect(
-            battery=battery_data(
+        assert tracker._get_new_status_if_changed() is None
+
+        tracker._handle_status_battery(
+            battery_data(
                 component_id=BATTERY_ID,
                 errors=[battery_warning_error, battery_critical_error],
             )
         )
-        assert tracker._update_status(select) is Status.NOT_WORKING  # type: ignore[arg-type]
 
-        select = FakeSelect(
-            battery=battery_data(
+        assert tracker._get_new_status_if_changed() is Status.NOT_WORKING
+
+        tracker._handle_status_battery(
+            battery_data(
                 component_id=BATTERY_ID,
                 component_state=BatteryState.COMPONENT_STATE_ERROR,
                 errors=[battery_warning_error, battery_critical_error],
             )
         )
-        assert tracker._update_status(select) is None  # type: ignore[arg-type]
+
+        assert tracker._get_new_status_if_changed() is None
 
         # Check if NaN capacity changes the battery status.
-        select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
-        assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
+        tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
 
-        select = FakeSelect(
-            battery=battery_data(component_id=BATTERY_ID, capacity=math.nan)
+        assert tracker._get_new_status_if_changed() is Status.WORKING
+
+        tracker._handle_status_battery(
+            battery_data(component_id=BATTERY_ID, capacity=math.nan)
         )
-        assert tracker._update_status(select) is Status.NOT_WORKING  # type: ignore[arg-type]
+
+        assert tracker._get_new_status_if_changed() is Status.NOT_WORKING
 
         await tracker.stop()
 
@@ -391,87 +395,90 @@ class TestBatteryStatus:
         )
 
         with time_machine.travel("2022-01-01 00:00 UTC", tick=False) as time:
-            select = FakeSelect(inverter=inverter_data(component_id=INVERTER_ID))
-            assert tracker._update_status(select) is None  # type: ignore[arg-type]
+            tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
 
-            select = FakeSelect(
-                battery=battery_data(
+            assert tracker._get_new_status_if_changed() is None
+
+            tracker._handle_status_battery(
+                battery_data(
                     component_id=BATTERY_ID,
                     component_state=BatteryState.COMPONENT_STATE_ERROR,
                 )
             )
-            assert tracker._update_status(select) is None  # type: ignore[arg-type]
+
+            assert tracker._get_new_status_if_changed() is None
 
             # message is not correct, component should not block.
-            select = FakeSelect(
-                set_power_result=SetPowerResult(succeed={1}, failed={106})
+            tracker._handle_status_set_power_result(
+                SetPowerResult(succeed={1}, failed={106})
             )
-            assert tracker._update_status(select) is None  # type: ignore[arg-type]
 
-            select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
-            assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
+            assert tracker._get_new_status_if_changed() is None
+
+            tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+
+            assert tracker._get_new_status_if_changed() is Status.WORKING
 
             expected_blocking_timeout = [1, 2, 4, 8, 16, 30, 30]
 
             for timeout in expected_blocking_timeout:
                 # message is not correct, component should not block.
-                select = FakeSelect(
-                    set_power_result=SetPowerResult(succeed={1}, failed={106})
+                tracker._handle_status_set_power_result(
+                    SetPowerResult(succeed={1}, failed={106})
                 )
-                status = tracker._update_status(select)  # type: ignore[arg-type]
-                assert status is Status.UNCERTAIN
+
+                assert tracker._get_new_status_if_changed() is Status.UNCERTAIN
 
                 # Battery should be still blocked, nothing should happen
                 time.shift(timeout - 1)
-                select = FakeSelect(
-                    set_power_result=SetPowerResult(succeed={1}, failed={106})
+                tracker._handle_status_set_power_result(
+                    SetPowerResult(succeed={1}, failed={106})
                 )
-                assert tracker._update_status(select) is None  # type: ignore[arg-type]
 
-                select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
-                assert tracker._update_status(select) is None  # type: ignore[arg-type]
+                assert tracker._get_new_status_if_changed() is None
+
+                tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+
+                assert tracker._get_new_status_if_changed() is None
 
                 time.shift(1)
-                select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
-                status = tracker._update_status(select)  # type: ignore[arg-type]
-                assert status is Status.WORKING
+                tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+
+                assert tracker._get_new_status_if_changed() is Status.WORKING
 
             # should block for 30 sec
-            select = FakeSelect(
-                set_power_result=SetPowerResult(succeed={1}, failed={106})
+            tracker._handle_status_set_power_result(
+                SetPowerResult(succeed={1}, failed={106})
             )
-            status = tracker._update_status(select)  # type: ignore[arg-type]
-            assert status is Status.UNCERTAIN
+
+            assert tracker._get_new_status_if_changed() is Status.UNCERTAIN
             time.shift(28)
 
-            select = FakeSelect(
-                battery=battery_data(
+            tracker._handle_status_battery(
+                battery_data(
                     component_id=BATTERY_ID,
                     component_state=BatteryState.COMPONENT_STATE_ERROR,
                 )
             )
-            status = tracker._update_status(select)  # type: ignore[arg-type]
-            assert status is Status.NOT_WORKING
+
+            assert tracker._get_new_status_if_changed() is Status.NOT_WORKING
 
             # Message that changed status to correct should unblock the battery.
-            select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
-            status = tracker._update_status(select)  # type: ignore[arg-type]
-            assert status is Status.WORKING
+            tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+            assert tracker._get_new_status_if_changed() is Status.WORKING
 
             # should block for 30 sec
-            select = FakeSelect(
-                set_power_result=SetPowerResult(succeed={1}, failed={106})
+            tracker._handle_status_set_power_result(
+                SetPowerResult(succeed={1}, failed={106})
             )
-            status = tracker._update_status(select)  # type: ignore[arg-type]
-            assert status is Status.UNCERTAIN
+            assert tracker._get_new_status_if_changed() is Status.UNCERTAIN
             time.shift(28)
 
             # If battery succeed, then it should unblock.
-            select = FakeSelect(
-                set_power_result=SetPowerResult(succeed={106}, failed={206})
+            tracker._handle_status_set_power_result(
+                SetPowerResult(succeed={106}, failed={206})
             )
-            status = tracker._update_status(select)  # type: ignore[arg-type]
-            assert status is Status.WORKING
+            assert tracker._get_new_status_if_changed() is Status.WORKING
 
         await tracker.stop()
 
@@ -499,26 +506,24 @@ class TestBatteryStatus:
         )
 
         with time_machine.travel("2022-01-01 00:00 UTC", tick=False) as time:
-            select = FakeSelect(inverter=inverter_data(component_id=INVERTER_ID))
-            assert tracker._update_status(select) is None  # type: ignore[arg-type]
+            tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
+            assert tracker._get_new_status_if_changed() is None
 
-            select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
-            status = tracker._update_status(select)  # type: ignore[arg-type]
-            assert status is Status.WORKING
+            tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+            assert tracker._get_new_status_if_changed() is Status.WORKING
 
-            select = FakeSelect(
-                set_power_result=SetPowerResult(succeed={1}, failed={106})
+            tracker._handle_status_set_power_result(
+                SetPowerResult(succeed={1}, failed={106})
             )
-            status = tracker._update_status(select)  # type: ignore[arg-type]
-            assert status is Status.UNCERTAIN
+            assert tracker._get_new_status_if_changed() is Status.UNCERTAIN
 
             expected_blocking_timeout = [1, 2, 4]
             for timeout in expected_blocking_timeout:
                 # message is not correct, component should not block.
-                select = FakeSelect(
-                    set_power_result=SetPowerResult(succeed={1}, failed={106})
+                tracker._handle_status_set_power_result(
+                    SetPowerResult(succeed={1}, failed={106})
                 )
-                assert tracker._update_status(select) is None  # type: ignore[arg-type]
+                assert tracker._get_new_status_if_changed() is None
                 time.shift(timeout)
 
             await tracker.stop()
@@ -547,31 +552,37 @@ class TestBatteryStatus:
             set_power_result_receiver=set_power_result_channel.new_receiver(),
         )
 
-        select = FakeSelect(inverter=inverter_data(component_id=INVERTER_ID))
-        assert tracker._update_status(select) is None  # type: ignore[arg-type]
+        tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
+        assert tracker._get_new_status_if_changed() is None
 
-        select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
-        assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
+        tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+        assert tracker._get_new_status_if_changed() is Status.WORKING
 
-        select = FakeSelect(set_power_result=SetPowerResult(succeed={1}, failed={106}))
-        assert tracker._update_status(select) is Status.UNCERTAIN  # type: ignore[arg-type]
+        tracker._handle_status_set_power_result(
+            SetPowerResult(succeed={1}, failed={106})
+        )
+        assert tracker._get_new_status_if_changed() is Status.UNCERTAIN
 
-        select = FakeSelect(
-            inverter=inverter_data(
+        tracker._handle_status_inverter(
+            inverter_data(
                 component_id=INVERTER_ID,
                 component_state=InverterState.COMPONENT_STATE_ERROR,
             )
         )
-        assert tracker._update_status(select) is Status.NOT_WORKING  # type: ignore[arg-type]
+        assert tracker._get_new_status_if_changed() is Status.NOT_WORKING
 
-        select = FakeSelect(set_power_result=SetPowerResult(succeed={1}, failed={106}))
-        assert tracker._update_status(select) is None  # type: ignore[arg-type]
+        tracker._handle_status_set_power_result(
+            SetPowerResult(succeed={1}, failed={106})
+        )
+        assert tracker._get_new_status_if_changed() is None
 
-        select = FakeSelect(set_power_result=SetPowerResult(succeed={106}, failed={}))
-        assert tracker._update_status(select) is None  # type: ignore[arg-type]
+        tracker._handle_status_set_power_result(
+            SetPowerResult(succeed={106}, failed={})
+        )
+        assert tracker._get_new_status_if_changed() is None
 
-        select = FakeSelect(inverter=inverter_data(component_id=INVERTER_ID))
-        assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
+        tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
+        assert tracker._get_new_status_if_changed() is Status.WORKING
 
         await tracker.stop()
 
@@ -605,35 +616,35 @@ class TestBatteryStatus:
         assert tracker.battery_id == BATTERY_ID
         assert tracker._last_status == Status.NOT_WORKING
 
-        select = FakeSelect(inverter=inverter_data(component_id=INVERTER_ID))
-        assert tracker._update_status(select) is None  # type: ignore[arg-type]
+        tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
+        assert tracker._get_new_status_if_changed() is None
 
-        select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
-        assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
-
-        assert battery_timer_spy.call_count == 1
-
-        select = FakeSelect(battery_timer_flag=True)
-        assert tracker._update_status(select) is Status.NOT_WORKING  # type: ignore[arg-type]
+        tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+        assert tracker._get_new_status_if_changed() is Status.WORKING
 
         assert battery_timer_spy.call_count == 1
 
-        select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
-        assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
+        tracker._handle_status_battery_timer()
+        assert tracker._get_new_status_if_changed() is Status.NOT_WORKING
+
+        assert battery_timer_spy.call_count == 1
+
+        tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+        assert tracker._get_new_status_if_changed() is Status.WORKING
 
         assert battery_timer_spy.call_count == 2
 
-        select = FakeSelect(inverter_timer_flag=True)
-        assert tracker._update_status(select) is Status.NOT_WORKING  # type: ignore[arg-type]
+        tracker._handle_status_inverter_timer()
+        assert tracker._get_new_status_if_changed() is Status.NOT_WORKING
 
-        select = FakeSelect(battery_timer_flag=True)
-        assert tracker._update_status(select) is None  # type: ignore[arg-type]
+        tracker._handle_status_battery_timer()
+        assert tracker._get_new_status_if_changed() is None
 
-        select = FakeSelect(battery=battery_data(component_id=BATTERY_ID))
-        assert tracker._update_status(select) is None  # type: ignore[arg-type]
+        tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+        assert tracker._get_new_status_if_changed() is None
 
-        select = FakeSelect(inverter=inverter_data(component_id=INVERTER_ID))
-        assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
+        tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
+        assert tracker._get_new_status_if_changed() is Status.WORKING
 
         assert inverter_timer_spy.call_count == 2
         await tracker.stop()

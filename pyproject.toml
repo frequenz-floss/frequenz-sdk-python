@@ -30,7 +30,7 @@ dependencies = [
   # Make sure to update the mkdocs.yml file when
   # changing the version
   # (plugins.mkdocstrings.handlers.python.import)
-  "frequenz-channels >= 0.14.0, < 0.15.0",
+  "frequenz-channels >= 0.16.0, < 0.17.0",
   "google-api-python-client >= 2.71, < 3",
   "grpcio >= 1.54.2, < 2",
   "grpcio-tools >= 1.54.2, < 2",

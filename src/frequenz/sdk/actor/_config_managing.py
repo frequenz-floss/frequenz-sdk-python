@@ -6,6 +6,7 @@
 import logging
 import os
 import tomllib
+from collections import abc
 from typing import Any, Dict, Optional, Set
 
 from frequenz.channels import Sender
@@ -31,7 +32,7 @@ class ConfigManagingActor:
         self,
         conf_file: str,
         output: Sender[Config],
-        event_types: Optional[Set[FileWatcher.EventType]] = None,
+        event_types: abc.Set[FileWatcher.EventType] = frozenset(FileWatcher.EventType),
     ) -> None:
         """Read config variables from the file.
 
@@ -79,8 +80,8 @@ class ConfigManagingActor:
         """
         await self.send_config()
 
-        async for path in self._file_watcher:
-            if str(path) == self._conf_file:
+        async for event in self._file_watcher:
+            if str(event.path) == self._conf_file:
                 _logger.info(
                     "Update configs, because file %s was modified.",
                     self._conf_file,

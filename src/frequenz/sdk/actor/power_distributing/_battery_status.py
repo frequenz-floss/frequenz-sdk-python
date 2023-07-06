@@ -17,7 +17,7 @@ from frequenz.api.microgrid.battery_pb2 import RelayState as BatteryRelayState
 from frequenz.api.microgrid.common_pb2 import ErrorLevel
 from frequenz.api.microgrid.inverter_pb2 import ComponentState as InverterComponentState
 from frequenz.channels import Receiver, Sender
-from frequenz.channels.util import Select, Timer
+from frequenz.channels.util import Timer, select, selected_from
 
 from frequenz.sdk._internal._asyncio import cancel_and_await
 from frequenz.sdk.microgrid import connection_manager
@@ -197,14 +197,15 @@ class BatteryStatusTracker:
             raise RuntimeError(f"Can't find inverter adjacent to battery: {battery_id}")
 
         self._battery: _ComponentStreamStatus = _ComponentStreamStatus(
-            battery_id, data_recv_timer=Timer(max_data_age_sec)
+            battery_id,
+            data_recv_timer=Timer.timeout(timedelta(max_data_age_sec)),
         )
         self._inverter: _ComponentStreamStatus = _ComponentStreamStatus(
-            inverter_id, data_recv_timer=Timer(max_data_age_sec)
+            inverter_id,
+            data_recv_timer=Timer.timeout(timedelta(max_data_age_sec)),
         )
 
         # Select needs receivers that can be get in async way only.
-        self._select: Select | None = None
 
         self._task: asyncio.Task[None] = asyncio.create_task(
             self._run(status_sender, set_power_result_receiver)
@@ -223,8 +224,70 @@ class BatteryStatusTracker:
         """Stop tracking battery status."""
         await cancel_and_await(self._task)
 
-        if self._select is not None:
-            await self._select.stop()
+    def _handle_status_battery(self, bat_data: BatteryData) -> None:
+        self._battery.last_msg_correct = (
+            self._is_message_reliable(bat_data)
+            and self._is_battery_state_correct(bat_data)
+            and self._no_critical_error(bat_data)
+            and self._is_capacity_present(bat_data)
+        )
+        self._battery.last_msg_timestamp = bat_data.timestamp
+        self._battery.data_recv_timer.reset()
+
+    def _handle_status_inverter(self, inv_data: InverterData) -> None:
+        self._inverter.last_msg_correct = (
+            self._is_message_reliable(inv_data)
+            and self._is_inverter_state_correct(inv_data)
+            and self._no_critical_error(inv_data)
+        )
+        self._inverter.last_msg_timestamp = inv_data.timestamp
+        self._inverter.data_recv_timer.reset()
+
+    def _handle_status_set_power_result(self, result: SetPowerResult) -> None:
+        if self.battery_id in result.succeed:
+            self._blocking_status.unblock()
+
+        elif (
+            self.battery_id in result.failed and self._last_status != Status.NOT_WORKING
+        ):
+            duration = self._blocking_status.block()
+
+            if duration > 0:
+                _logger.warning(
+                    "battery %d failed last response. block it for %f sec",
+                    self.battery_id,
+                    duration,
+                )
+
+    def _handle_status_battery_timer(self) -> None:
+        if self._battery.last_msg_correct:
+            self._battery.last_msg_correct = False
+            _logger.warning(
+                "Battery %d stopped sending data, last timestamp: %s",
+                self._battery.component_id,
+                self._battery.last_msg_timestamp,
+            )
+
+    def _handle_status_inverter_timer(self) -> None:
+        if self._inverter.last_msg_correct:
+            self._inverter.last_msg_correct = False
+            _logger.warning(
+                "Inverter %d stopped sending data, last timestamp: %s",
+                self._inverter.component_id,
+                self._inverter.last_msg_timestamp,
+            )
+
+    def _get_new_status_if_changed(self) -> Optional[Status]:
+        current_status = self._get_current_status()
+        if self._last_status != current_status:
+            self._last_status = current_status
+            _logger.info(
+                "battery %d changed status %s",
+                self.battery_id,
+                str(self._last_status),
+            )
+            return current_status
+        return None
 
     async def _run(
         self,
@@ -245,93 +308,48 @@ class BatteryStatusTracker:
         battery_receiver = await api_client.battery_data(self._battery.component_id)
         inverter_receiver = await api_client.inverter_data(self._inverter.component_id)
 
-        self._select = Select(
-            battery=battery_receiver,
-            battery_timer=self._battery.data_recv_timer,
-            inverter_timer=self._inverter.data_recv_timer,
-            inverter=inverter_receiver,
-            set_power_result=set_power_result_receiver,
-        )
+        battery = battery_receiver
+        battery_timer = self._battery.data_recv_timer
+        inverter_timer = self._inverter.data_recv_timer
+        inverter = inverter_receiver
+        set_power_result = set_power_result_receiver
 
         while True:
             try:
-                while await self._select.ready():
-                    new_status = self._update_status(self._select)
+                async for selected in select(
+                    battery,
+                    battery_timer,
+                    inverter_timer,
+                    inverter,
+                    set_power_result,
+                ):
+                    new_status = None
+
+                    if selected_from(selected, battery):
+                        self._handle_status_battery(selected.value)
+
+                    elif selected_from(selected, inverter):
+                        self._handle_status_inverter(selected.value)
+
+                    elif selected_from(selected, set_power_result):
+                        self._handle_status_set_power_result(selected.value)
+
+                    elif selected_from(selected, battery_timer):
+                        self._handle_status_battery_timer()
+
+                    elif selected_from(selected, inverter_timer):
+                        self._handle_status_inverter_timer()
+
+                    else:
+                        _logger.error("Unknown message returned from select")
+
+                    new_status = self._get_new_status_if_changed()
 
                     if new_status is not None:
                         await status_sender.send(new_status)
 
             except Exception as err:  # pylint: disable=broad-except
                 _logger.exception("BatteryStatusTracker crashed with error: %s", err)
-
-    def _update_status(self, select: Select) -> Optional[Status]:
-        if msg := select.battery:
-            self._battery.last_msg_correct = (
-                self._is_message_reliable(msg.inner)
-                and self._is_battery_state_correct(msg.inner)
-                and self._no_critical_error(msg.inner)
-                and self._is_capacity_present(msg.inner)
-            )
-            self._battery.last_msg_timestamp = msg.inner.timestamp
-            self._battery.data_recv_timer.reset()
-
-        elif msg := select.inverter:
-            self._inverter.last_msg_correct = (
-                self._is_message_reliable(msg.inner)
-                and self._is_inverter_state_correct(msg.inner)
-                and self._no_critical_error(msg.inner)
-            )
-            self._inverter.last_msg_timestamp = msg.inner.timestamp
-            self._inverter.data_recv_timer.reset()
-
-        elif msg := select.set_power_result:
-            result: SetPowerResult = msg.inner
-            if self.battery_id in result.succeed:
-                self._blocking_status.unblock()
-
-            elif (
-                self.battery_id in result.failed
-                and self._last_status != Status.NOT_WORKING
-            ):
-                duration = self._blocking_status.block()
-
-                if duration > 0:
-                    _logger.warning(
-                        "battery %d failed last response. block it for %f sec",
-                        self.battery_id,
-                        duration,
-                    )
-        elif msg := select.battery_timer:
-            if self._battery.last_msg_correct:
-                self._battery.last_msg_correct = False
-                _logger.warning(
-                    "Battery %d stopped sending data, last timestamp: %s",
-                    self._battery.component_id,
-                    self._battery.last_msg_timestamp,
-                )
-        elif msg := select.inverter_timer:
-            if self._inverter.last_msg_correct:
-                self._inverter.last_msg_correct = False
-                _logger.warning(
-                    "Inverter %d stopped sending data, last timestamp: %s",
-                    self._inverter.component_id,
-                    self._inverter.last_msg_timestamp,
-                )
-
-        else:
-            _logger.error("Unknown message returned from select")
-
-        current_status = self._get_current_status()
-        if self._last_status != current_status:
-            self._last_status = current_status
-            _logger.info(
-                "battery %d changed status %s",
-                self.battery_id,
-                str(self._last_status),
-            )
-            return current_status
-
-        return None
 
     def _get_current_status(self) -> Status:
         """Get current battery status.

@@ -82,7 +82,7 @@ def actor(cls: Callable[_P, _R]) -> Type[_R]:
     Example (one actor receiving from two receivers):
     ```python
     from frequenz.channels import Broadcast, Receiver, Sender
-    from frequenz.channels.util import Select
+    from frequenz.channels.util import select, selected_from
     @actor
     class EchoActor:
         def __init__(
@@ -99,13 +99,9 @@ def actor(cls: Callable[_P, _R]) -> Type[_R]:
             self._output = output
 
         async def run(self) -> None:
-            select = Select(channel_1=self._recv1, channel_2=self._recv2)
-            while await select.ready():
-                if msg := select.channel_1:
-                    await self._output.send(msg.inner)
-                elif msg := select.channel_2:
-                    await self._output.send(msg.inner)
-
+            async for selected in select(self._recv1, self._recv2):
+                if selected_from(selected, self._recv1):
+                    await self._output.send(selected.value)
 
     input_chan_1: Broadcast[bool] = Broadcast("input_chan_1")
     input_chan_2: Broadcast[bool] = Broadcast("input_chan_2")
