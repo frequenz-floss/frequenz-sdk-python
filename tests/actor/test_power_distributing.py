@@ -15,6 +15,7 @@ from frequenz.channels import Broadcast
 from pytest import approx
 from pytest_mock import MockerFixture
 
+from frequenz.sdk import microgrid
 from frequenz.sdk.actor import ChannelRegistry
 from frequenz.sdk.actor.power_distributing import (
     BatteryStatus,
@@ -34,7 +35,6 @@ from tests.timeseries.mock_microgrid import MockMicrogrid
 
 from ..conftest import SAFETY_TIMEOUT
 from ..power.test_distribution_algorithm import Bound, Metric, battery_msg, inverter_msg
-from ..utils.mock_microgrid_client import MockMicrogridClient
 
 T = TypeVar("T")  # Declare type variable
 
@@ -119,19 +119,11 @@ class TestPowerDistributingActor:
         await distributor._stop_actor()
         await mockgrid.cleanup()
 
-    async def init_mock_microgrid(self, mocker: MockerFixture) -> MockMicrogridClient:
-        """Create mock microgrid and send initial data from the components.
-
-        Returns:
-            Mock microgrid instance.
-        """
-        components, connections = self.component_graph()
-        microgrid = MockMicrogridClient(components, connections)
-        microgrid.initialize(mocker)
-
-        graph = microgrid.component_graph
+    async def init_component_data(self, mockgrid: MockMicrogrid) -> None:
+        """Send initial component data, for power distributor to start."""
+        graph = microgrid.connection_manager.get().component_graph
         for battery in graph.components(component_category={ComponentCategory.BATTERY}):
-            await microgrid.send(
+            await mockgrid.mock_client.send(
                 battery_msg(
                     battery.component_id,
                     capacity=Metric(98000),
@@ -142,19 +134,19 @@ class TestPowerDistributingActor:
 
         inverters = graph.components(component_category={ComponentCategory.INVERTER})
         for inverter in inverters:
-            await microgrid.send(
+            await mockgrid.mock_client.send(
                 inverter_msg(
                     inverter.component_id,
                     power=Bound(-500, 500),
                 )
             )
 
-        return microgrid
-
     async def test_power_distributor_one_user(self, mocker: MockerFixture) -> None:
-        # pylint: disable=too-many-locals
         """Test if power distribution works with single user works."""
-        await self.init_mock_microgrid(mocker)
+        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid.add_batteries(3)
+        await mockgrid.start(mocker)
+        await self.init_component_data(mockgrid)
 
         channel = Broadcast[Request]("power_distributor")
         channel_registry = ChannelRegistry(name="power_distributor")
@@ -162,7 +154,7 @@ class TestPowerDistributingActor:
         request = Request(
             namespace=self._namespace,
             power=1200.0,
-            batteries={106, 206},
+            batteries={9, 19},
             request_timeout_sec=SAFETY_TIMEOUT,
         )
 
@@ -199,13 +191,15 @@ class TestPowerDistributingActor:
         assert result.request == request
 
     async def test_battery_soc_nan(self, mocker: MockerFixture) -> None:
-        # pylint: disable=too-many-locals
         """Test if battery with SoC==NaN is not used."""
-        mock_microgrid = await self.init_mock_microgrid(mocker)
+        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid.add_batteries(3)
+        await mockgrid.start(mocker)
+        await self.init_component_data(mockgrid)
 
-        await mock_microgrid.send(
+        await mockgrid.mock_client.send(
             battery_msg(
-                106,
+                9,
                 soc=Metric(math.nan, Bound(20, 80)),
                 capacity=Metric(98000),
                 power=Bound(-1000, 1000),
@@ -218,7 +212,7 @@ class TestPowerDistributingActor:
         request = Request(
             namespace=self._namespace,
             power=1200.0,
-            batteries={106, 206},
+            batteries={9, 19},
             request_timeout_sec=SAFETY_TIMEOUT,
         )
 
@@ -256,19 +250,21 @@ class TestPowerDistributingActor:
 
         result: Result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeeded_batteries == {206}
+        assert result.succeeded_batteries == {19}
         assert result.succeeded_power == approx(500.0)
         assert result.excess_power == approx(700.0)
         assert result.request == request
 
     async def test_battery_capacity_nan(self, mocker: MockerFixture) -> None:
-        # pylint: disable=too-many-locals
         """Test battery with capacity set to NaN is not used."""
-        mock_microgrid = await self.init_mock_microgrid(mocker)
+        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid.add_batteries(3)
+        await mockgrid.start(mocker)
+        await self.init_component_data(mockgrid)
 
-        await mock_microgrid.send(
+        await mockgrid.mock_client.send(
             battery_msg(
-                106,
+                9,
                 soc=Metric(40, Bound(20, 80)),
                 capacity=Metric(math.nan),
                 power=Bound(-1000, 1000),
@@ -281,7 +277,7 @@ class TestPowerDistributingActor:
         request = Request(
             namespace=self._namespace,
             power=1200.0,
-            batteries={106, 206},
+            batteries={9, 19},
             request_timeout_sec=SAFETY_TIMEOUT,
         )
         attrs = {"get_working_batteries.return_value": request.batteries}
@@ -312,35 +308,37 @@ class TestPowerDistributingActor:
 
         result: Result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeeded_batteries == {206}
+        assert result.succeeded_batteries == {19}
         assert result.succeeded_power == approx(500.0)
         assert result.excess_power == approx(700.0)
         assert result.request == request
 
     async def test_battery_power_bounds_nan(self, mocker: MockerFixture) -> None:
-        # pylint: disable=too-many-locals
         """Test battery with power bounds set to NaN is not used."""
-        mock_microgrid = await self.init_mock_microgrid(mocker)
+        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid.add_batteries(3)
+        await mockgrid.start(mocker)
+        await self.init_component_data(mockgrid)
 
-        # Battery 206 should work even if his inverter sends NaN
-        await mock_microgrid.send(
+        # Battery 19 should work even if his inverter sends NaN
+        await mockgrid.mock_client.send(
             inverter_msg(
-                205,
+                18,
                 power=Bound(math.nan, math.nan),
             )
         )
 
         # Battery 106 should not work because both battery and inverter sends NaN
-        await mock_microgrid.send(
+        await mockgrid.mock_client.send(
             inverter_msg(
-                105,
+                8,
                 power=Bound(-1000, math.nan),
             )
         )
 
-        await mock_microgrid.send(
+        await mockgrid.mock_client.send(
             battery_msg(
-                106,
+                9,
                 soc=Metric(40, Bound(20, 80)),
                 capacity=Metric(float(98000)),
                 power=Bound(math.nan, math.nan),
@@ -353,7 +351,7 @@ class TestPowerDistributingActor:
         request = Request(
             namespace=self._namespace,
             power=1200.0,
-            batteries={106, 206},
+            batteries={9, 19},
             request_timeout_sec=SAFETY_TIMEOUT,
         )
         attrs = {"get_working_batteries.return_value": request.batteries}
@@ -384,7 +382,7 @@ class TestPowerDistributingActor:
 
         result: Result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeeded_batteries == {206}
+        assert result.succeeded_batteries == {19}
         assert result.succeeded_power == approx(1000.0)
         assert result.excess_power == approx(200.0)
         assert result.request == request
@@ -392,16 +390,18 @@ class TestPowerDistributingActor:
     async def test_power_distributor_invalid_battery_id(
         self, mocker: MockerFixture
     ) -> None:
-        # pylint: disable=too-many-locals
         """Test if power distribution raises error if any battery id is invalid."""
-        await self.init_mock_microgrid(mocker)
+        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid.add_batteries(3)
+        await mockgrid.start(mocker)
+        await self.init_component_data(mockgrid)
 
         channel = Broadcast[Request]("power_distributor")
         channel_registry = ChannelRegistry(name="power_distributor")
         request = Request(
             namespace=self._namespace,
             power=1200.0,
-            batteries={106, 208},
+            batteries={9, 100},
             request_timeout_sec=SAFETY_TIMEOUT,
         )
 
@@ -432,15 +432,17 @@ class TestPowerDistributingActor:
         result: Result = done.pop().result()
         assert isinstance(result, Error)
         assert result.request == request
-        err_msg = re.search(r"^No battery 208, available batteries:", result.msg)
+        err_msg = re.search(r"^No battery 100, available batteries:", result.msg)
         assert err_msg is not None
 
     async def test_power_distributor_one_user_adjust_power_consume(
         self, mocker: MockerFixture
     ) -> None:
-        # pylint: disable=too-many-locals
         """Test if power distribution works with single user works."""
-        await self.init_mock_microgrid(mocker)
+        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid.add_batteries(3)
+        await mockgrid.start(mocker)
+        await self.init_component_data(mockgrid)
 
         channel = Broadcast[Request]("power_distributor")
         channel_registry = ChannelRegistry(name="power_distributor")
@@ -448,7 +450,7 @@ class TestPowerDistributingActor:
         request = Request(
             namespace=self._namespace,
             power=1200.0,
-            batteries={106, 206},
+            batteries={9, 19},
             request_timeout_sec=SAFETY_TIMEOUT,
             adjust_power=False,
         )
@@ -489,9 +491,11 @@ class TestPowerDistributingActor:
     async def test_power_distributor_one_user_adjust_power_supply(
         self, mocker: MockerFixture
     ) -> None:
-        # pylint: disable=too-many-locals
         """Test if power distribution works with single user works."""
-        await self.init_mock_microgrid(mocker)
+        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid.add_batteries(3)
+        await mockgrid.start(mocker)
+        await self.init_component_data(mockgrid)
 
         channel = Broadcast[Request]("power_distributor")
         channel_registry = ChannelRegistry(name="power_distributor")
@@ -499,7 +503,7 @@ class TestPowerDistributingActor:
         request = Request(
             namespace=self._namespace,
             power=-1200.0,
-            batteries={106, 206},
+            batteries={9, 19},
             request_timeout_sec=SAFETY_TIMEOUT,
             adjust_power=False,
         )
@@ -540,9 +544,11 @@ class TestPowerDistributingActor:
     async def test_power_distributor_one_user_adjust_power_success(
         self, mocker: MockerFixture
     ) -> None:
-        # pylint: disable=too-many-locals
         """Test if power distribution works with single user works."""
-        await self.init_mock_microgrid(mocker)
+        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid.add_batteries(3)
+        await mockgrid.start(mocker)
+        await self.init_component_data(mockgrid)
 
         channel = Broadcast[Request]("power_distributor")
         channel_registry = ChannelRegistry(name="power_distributor")
@@ -550,7 +556,7 @@ class TestPowerDistributingActor:
         request = Request(
             namespace=self._namespace,
             power=1000.0,
-            batteries={106, 206},
+            batteries={9, 19},
             request_timeout_sec=SAFETY_TIMEOUT,
             adjust_power=False,
         )
@@ -590,13 +596,16 @@ class TestPowerDistributingActor:
 
     async def test_not_all_batteries_are_working(self, mocker: MockerFixture) -> None:
         """Test if power distribution works if not all batteries are working."""
-        await self.init_mock_microgrid(mocker)
+        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid.add_batteries(3)
+        await mockgrid.start(mocker)
+        await self.init_component_data(mockgrid)
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-        batteries = {106, 206}
+        batteries = {9, 19}
 
-        attrs = {"get_working_batteries.return_value": batteries - {106}}
+        attrs = {"get_working_batteries.return_value": batteries - {9}}
         mocker.patch(
             "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
             return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
@@ -630,7 +639,7 @@ class TestPowerDistributingActor:
         assert len(done) == 1
         result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeeded_batteries == {206}
+        assert result.succeeded_batteries == {19}
         assert result.excess_power == approx(700.0)
         assert result.succeeded_power == approx(500.0)
         assert result.request == request
@@ -641,7 +650,10 @@ class TestPowerDistributingActor:
         self, mocker: MockerFixture
     ) -> None:
         """Test all batteries are used if none of them works."""
-        await self.init_mock_microgrid(mocker)
+        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid.add_batteries(3)
+        await mockgrid.start(mocker)
+        await self.init_component_data(mockgrid)
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
@@ -663,7 +675,7 @@ class TestPowerDistributingActor:
         request = Request(
             namespace=self._namespace,
             power=1200.0,
-            batteries={106, 206},
+            batteries={9, 19},
             request_timeout_sec=SAFETY_TIMEOUT,
             include_broken_batteries=True,
         )
@@ -680,7 +692,7 @@ class TestPowerDistributingActor:
         assert len(done) == 1
         result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeeded_batteries == {106, 206}
+        assert result.succeeded_batteries == {9, 19}
         assert result.excess_power == approx(200.0)
         assert result.succeeded_power == approx(1000.0)
         assert result.request == request
@@ -691,13 +703,16 @@ class TestPowerDistributingActor:
         self, mocker: MockerFixture
     ) -> None:
         """Test force request when a battery is not working."""
-        await self.init_mock_microgrid(mocker)
+        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid.add_batteries(3)
+        await mockgrid.start(mocker)
+        await self.init_component_data(mockgrid)
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-        batteries = {106, 206}
+        batteries = {9, 19}
 
-        attrs = {"get_working_batteries.return_value": batteries - {106}}
+        attrs = {"get_working_batteries.return_value": batteries - {9}}
         mocker.patch(
             "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
             return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
@@ -732,23 +747,26 @@ class TestPowerDistributingActor:
         assert len(done) == 1
         result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeeded_batteries == {106, 206}
+        assert result.succeeded_batteries == {9, 19}
         assert result.excess_power == approx(200.0)
         assert result.succeeded_power == approx(1000.0)
         assert result.request == request
 
         await distributor._stop_actor()
 
-    # pylint: disable=too-many-locals
     async def test_force_request_battery_nan_value_non_cached(
         self, mocker: MockerFixture
     ) -> None:
         """Test battery with NaN in SoC, capacity or power is used if request is forced."""
-        mock_microgrid = await self.init_mock_microgrid(mocker)
+        # pylint: disable=too-many-locals
+        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid.add_batteries(3)
+        await mockgrid.start(mocker)
+        await self.init_component_data(mockgrid)
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-        batteries = {106, 206}
+        batteries = {9, 19}
 
         attrs = {"get_working_batteries.return_value": batteries}
         mocker.patch(
@@ -775,13 +793,13 @@ class TestPowerDistributingActor:
 
         batteries_data = (
             battery_msg(
-                106,
+                9,
                 soc=Metric(math.nan, Bound(20, 80)),
                 capacity=Metric(math.nan),
                 power=Bound(-1000, 1000),
             ),
             battery_msg(
-                206,
+                19,
                 soc=Metric(40, Bound(20, 80)),
                 capacity=Metric(math.nan),
                 power=Bound(-1000, 1000),
@@ -789,7 +807,7 @@ class TestPowerDistributingActor:
         )
 
         for battery in batteries_data:
-            await mock_microgrid.send(battery)
+            await mockgrid.mock_client.send(battery)
 
         await channel.new_sender().send(request)
         result_rx = channel_registry.new_receiver(self._namespace)
@@ -814,11 +832,14 @@ class TestPowerDistributingActor:
         self, mocker: MockerFixture
     ) -> None:
         """Test battery with NaN in SoC, capacity or power is used if request is forced."""
-        mock_microgrid = await self.init_mock_microgrid(mocker)
+        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid.add_batteries(3)
+        await mockgrid.start(mocker)
+        await self.init_component_data(mockgrid)
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-        batteries = {106, 206, 306}
+        batteries = {9, 19, 29}
 
         attrs = {"get_working_batteries.return_value": batteries}
         mocker.patch(
@@ -861,19 +882,19 @@ class TestPowerDistributingActor:
 
         batteries_data = (
             battery_msg(
-                106,
+                9,
                 soc=Metric(math.nan, Bound(20, 80)),
                 capacity=Metric(98000),
                 power=Bound(-1000, 1000),
             ),
             battery_msg(
-                206,
+                19,
                 soc=Metric(40, Bound(20, 80)),
                 capacity=Metric(math.nan),
                 power=Bound(-1000, 1000),
             ),
             battery_msg(
-                306,
+                29,
                 soc=Metric(40, Bound(20, 80)),
                 capacity=Metric(float(98000)),
                 power=Bound(math.nan, math.nan),
@@ -887,7 +908,7 @@ class TestPowerDistributingActor:
         await test_result()
 
         for battery in batteries_data:
-            await mock_microgrid.send(battery)
+            await mockgrid.mock_client.send(battery)
 
         await channel.new_sender().send(request)
         await test_result()

@@ -33,6 +33,7 @@ from frequenz.sdk.microgrid.component import (
     ComponentCategory,
     InverterData,
 )
+from tests.timeseries.mock_microgrid import MockMicrogrid
 
 from ..utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
 from ..utils.mock_microgrid_client import MockMicrogridClient
@@ -154,8 +155,8 @@ class Message(Generic[T]):
     inner: T
 
 
-BATTERY_ID = 106
-INVERTER_ID = 105
+BATTERY_ID = 9
+INVERTER_ID = 8
 
 
 # pylint: disable=protected-access, unused-argument
@@ -179,7 +180,7 @@ class TestBatteryStatus:
 
     @time_machine.travel("2022-01-01 00:00 UTC", tick=False)
     async def test_sync_update_status_with_messages(
-        self, mock_microgrid: MockMicrogridClient
+        self, mocker: MockerFixture
     ) -> None:
         """Test if messages changes battery status/
 
@@ -189,6 +190,10 @@ class TestBatteryStatus:
         Args:
             mock_microgrid: mock_microgrid fixture
         """
+        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid.add_batteries(3)
+        await mock_microgrid.start(mocker)
+
         status_channel = Broadcast[Status]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
@@ -336,10 +341,9 @@ class TestBatteryStatus:
         assert tracker._get_new_status_if_changed() is Status.NOT_WORKING
 
         await tracker.stop()
+        await mock_microgrid.cleanup()
 
-    async def test_sync_blocking_feature(
-        self, mock_microgrid: MockMicrogridClient
-    ) -> None:
+    async def test_sync_blocking_feature(self, mocker: MockerFixture) -> None:
         """Test if status changes when SetPowerResult message is received.
 
         Tests uses FakeSelect to test status in sync way.
@@ -348,6 +352,9 @@ class TestBatteryStatus:
         Args:
             mock_microgrid: mock_microgrid fixture
         """
+        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid.add_batteries(3)
+        await mock_microgrid.start(mocker)
 
         status_channel = Broadcast[Status]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
@@ -444,14 +451,15 @@ class TestBatteryStatus:
 
             # If battery succeed, then it should unblock.
             tracker._handle_status_set_power_result(
-                SetPowerResult(succeed={BATTERY_ID}, failed={206})
+                SetPowerResult(succeed={BATTERY_ID}, failed={19})
             )
             assert tracker._get_new_status_if_changed() is Status.WORKING
 
         await tracker.stop()
+        await mock_microgrid.cleanup()
 
     async def test_sync_blocking_interrupted_with_with_max_data(
-        self, mock_microgrid: MockMicrogridClient
+        self, mocker: MockerFixture
     ) -> None:
         """Test if status changes when SetPowerResult message is received.
 
@@ -461,6 +469,9 @@ class TestBatteryStatus:
         Args:
             mock_microgrid: mock_microgrid fixture
         """
+        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid.add_batteries(3)
+        await mock_microgrid.start(mocker)
 
         status_channel = Broadcast[Status]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
@@ -498,7 +509,7 @@ class TestBatteryStatus:
 
     @time_machine.travel("2022-01-01 00:00 UTC", tick=False)
     async def test_sync_blocking_interrupted_with_invalid_message(
-        self, mock_microgrid: MockMicrogridClient
+        self, mocker: MockerFixture
     ) -> None:
         """Test if status changes when SetPowerResult message is received.
 
@@ -508,6 +519,9 @@ class TestBatteryStatus:
         Args:
             mock_microgrid: mock_microgrid fixture
         """
+        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid.add_batteries(3)
+        await mock_microgrid.start(mocker)
 
         status_channel = Broadcast[Status]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
@@ -555,9 +569,7 @@ class TestBatteryStatus:
         await tracker.stop()
 
     @time_machine.travel("2022-01-01 00:00 UTC", tick=False)
-    async def test_timers(
-        self, mock_microgrid: MockMicrogridClient, mocker: MockerFixture
-    ) -> None:
+    async def test_timers(self, mocker: MockerFixture) -> None:
         """Test if messages changes battery status/
 
         Tests uses FakeSelect to test status in sync way.
@@ -567,6 +579,10 @@ class TestBatteryStatus:
             mock_microgrid: mock_microgrid fixture
             mocker: pytest mocker instance
         """
+        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid.add_batteries(3)
+        await mock_microgrid.start(mocker)
+
         status_channel = Broadcast[Status]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
@@ -616,16 +632,18 @@ class TestBatteryStatus:
 
         assert inverter_timer_spy.call_count == 2
         await tracker.stop()
+        await mock_microgrid.cleanup()
 
     @time_machine.travel("2022-01-01 00:00 UTC", tick=False)
-    async def test_async_battery_status(
-        self, mock_microgrid: MockMicrogridClient
-    ) -> None:
+    async def test_async_battery_status(self, mocker: MockerFixture) -> None:
         """Test if status changes.
 
         Args:
             mock_microgrid: mock_microgrid fixture
         """
+        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid.add_batteries(3)
+        await mock_microgrid.start(mocker)
 
         status_channel = Broadcast[Status]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
@@ -643,8 +661,10 @@ class TestBatteryStatus:
         await asyncio.sleep(0.01)
 
         with time_machine.travel("2022-01-01 00:00 UTC", tick=False) as time:
-            await mock_microgrid.send(inverter_data(component_id=INVERTER_ID))
-            await mock_microgrid.send(battery_data(component_id=BATTERY_ID))
+            await mock_microgrid.mock_client.send(
+                inverter_data(component_id=INVERTER_ID)
+            )
+            await mock_microgrid.mock_client.send(battery_data(component_id=BATTERY_ID))
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
             assert status is Status.WORKING
 
@@ -656,11 +676,11 @@ class TestBatteryStatus:
 
             time.shift(2)
 
-            await mock_microgrid.send(battery_data(component_id=BATTERY_ID))
+            await mock_microgrid.mock_client.send(battery_data(component_id=BATTERY_ID))
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
             assert status is Status.WORKING
 
-            await mock_microgrid.send(
+            await mock_microgrid.mock_client.send(
                 inverter_data(
                     component_id=INVERTER_ID,
                     timestamp=datetime.now(tz=timezone.utc) - timedelta(seconds=7),
@@ -675,8 +695,11 @@ class TestBatteryStatus:
             await asyncio.sleep(0.3)
             assert len(status_receiver) == 0
 
-            await mock_microgrid.send(inverter_data(component_id=INVERTER_ID))
+            await mock_microgrid.mock_client.send(
+                inverter_data(component_id=INVERTER_ID)
+            )
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
             assert status is Status.WORKING
 
         await tracker.stop()
+        await mock_microgrid.cleanup()
