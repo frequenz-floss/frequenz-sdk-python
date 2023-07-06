@@ -3,6 +3,7 @@
 """Tests for BatteryStatusTracker."""
 
 import asyncio
+import math
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Generic, Iterable, List, Optional, Set, Tuple, TypeVar
@@ -358,7 +359,7 @@ class TestBatteryStatus:
         assert tracker._update_status(select) is Status.WORKING  # type: ignore[arg-type]
 
         select = FakeSelect(
-            battery=battery_data(component_id=BATTERY_ID, capacity=float("NaN"))
+            battery=battery_data(component_id=BATTERY_ID, capacity=math.nan)
         )
         assert tracker._update_status(select) is Status.NOT_WORKING  # type: ignore[arg-type]
 

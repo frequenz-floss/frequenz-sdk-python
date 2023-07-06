@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import math
 from abc import ABC, abstractmethod
 from typing import Generic, List, Optional
 
@@ -326,6 +327,6 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
             if self._nones_are_zeros:
                 eval_stack.append(0.0)
             else:
-                eval_stack.append(float("NaN"))
+                eval_stack.append(math.nan)
         else:
             eval_stack.append(next_value.base_value)
