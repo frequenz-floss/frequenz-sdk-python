@@ -79,7 +79,7 @@ def actor(cls: Callable[_P, _R]) -> Type[_R]:
     Raises:
         TypeError: when the class doesn't have a `run` method as per spec.
 
-    Example (one actor receiving from two receivers):
+    Example (one actor receiving from two receivers): !this example is not updated to channels 0.16!
     ```python
     from frequenz.channels import Broadcast, Receiver, Sender
     from frequenz.channels.util import Select

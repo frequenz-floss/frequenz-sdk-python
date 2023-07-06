@@ -10,7 +10,7 @@ from datetime import timedelta
 from typing import Dict
 
 from frequenz.channels import Broadcast, Sender
-from frequenz.channels.util import Select, Timer
+from frequenz.channels.util import Timer, select, selected_from  # Select
 
 from ..._internal._asyncio import cancel_and_await
 from ...microgrid import connection_manager
@@ -95,17 +95,16 @@ class BoundsSetter:
         ).into_peekable()
         latest_bound: Dict[int, ComponentCurrentLimit] = {}
 
-        select = Select(
-            bound_chan=self._bounds_rx,
-            timer=Timer(self._repeat_interval.total_seconds()),
-        )
-        while await select.ready():
+        bound_chan = self._bounds_rx
+        timer = Timer.periodic(timedelta(self._repeat_interval.total_seconds()))
+
+        async for selected in select(bound_chan, timer):
             meter = meter_data.peek()
             if meter is None:
                 raise ValueError("Meter channel closed.")
 
-            if msg := select.bound_chan:
-                bound: ComponentCurrentLimit = msg.inner
+            if selected_from(selected, bound_chan):
+                bound: ComponentCurrentLimit = selected.value
                 if (
                     bound.component_id in latest_bound
                     and latest_bound[bound.component_id] == bound
@@ -119,7 +118,7 @@ class BoundsSetter:
                     0,
                     bound.max_amps * min_voltage * self._NUM_PHASES,
                 )
-            elif msg := select.timer:
+            elif selected_from(selected, timer):
                 for bound in latest_bound.values():
                     min_voltage = min(meter.voltage_per_phase)
                     logging.debug("resending bounds: %s", bound)
