@@ -6,10 +6,6 @@
 
 A development kit to interact with the Frequenz development platform.
 
-## Supported Python versions
-
-* Only Python 3.11 is fully supported (tested).
-
 ## Contributing
 
 If you want to know how to build this project and contribute to it, please
