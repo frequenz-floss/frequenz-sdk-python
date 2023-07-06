@@ -79,6 +79,7 @@ class PeriodicFeatureExtractor:
 
     Example:
         ```python
+        from frequenz.sdk import microgrid
         from datetime import datetime, timedelta, timezone
 
         moving_window = MovingWindow(
