@@ -5,9 +5,9 @@
 
 import logging
 import os
+import tomllib
 from typing import Any, Dict, Optional, Set
 
-import toml
 from frequenz.channels import Sender
 from frequenz.channels.util import FileWatcher
 
@@ -58,7 +58,8 @@ class ConfigManagingActor:
             A dictionary containing configuration variables.
         """
         try:
-            return toml.load(self._conf_file)
+            with open(self._conf_file, "rb") as toml_file:
+                return tomllib.load(toml_file)
         except ValueError as err:
             logging.error("Can't read config file, err: %s", err)
             raise
