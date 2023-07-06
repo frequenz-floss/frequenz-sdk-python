@@ -42,11 +42,12 @@ def get_import_statements(code: str) -> list[str]:
         A list of import statements.
     """
     tree = ast.parse(code)
-    import_statements = []
+    import_statements: list[str] = []
 
     for node in ast.walk(tree):
         if isinstance(node, (ast.Import, ast.ImportFrom)):
             import_statement = ast.get_source_segment(code, node)
+            assert import_statement is not None
             import_statements.append(import_statement)
 
     return import_statements
@@ -85,7 +86,9 @@ def path_to_import_statement(path: Path) -> str:
     return import_statement
 
 
-class CustomPythonCodeBlockParser(CodeBlockParser):
+# We need to add the type ignore comment here because the Sybil library does not
+# have type annotations.
+class CustomPythonCodeBlockParser(CodeBlockParser):  # type: ignore[misc]
     """Code block parser that validates extracted code examples using pylint.
 
     This parser is a modified version of the default Python code block parser
@@ -103,7 +106,7 @@ class CustomPythonCodeBlockParser(CodeBlockParser):
     Pylint warnings which are unimportant for code examples are disabled.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the parser."""
         super().__init__("python")
 
@@ -200,7 +203,9 @@ def validate_with_pylint(
             check=True,
         )
     except subprocess.CalledProcessError as exception:
-        return exception.output.splitlines()
+        output = exception.output
+        assert isinstance(output, str)
+        return output.splitlines()
 
     return []
 

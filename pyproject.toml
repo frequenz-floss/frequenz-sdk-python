@@ -142,6 +142,8 @@ module = [
   # There is a stubs package available, but it's not working:
   # https://github.com/eggplants/networkx-stubs/issues/1
   "networkx",
+  "sybil",
+  "sybil.*",
 ]
 ignore_missing_imports = true
 
