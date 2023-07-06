@@ -349,15 +349,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#supported-python-versions" class="md-nav__link">
-    Supported Python versions
+  <a href="#introduction" class="md-nav__link">
+    Introduction
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#contributing" class="md-nav__link">
-    Contributing
+  <a href="#installation" class="md-nav__link">
+    Installation
   </a>
   
 </li>
@@ -889,15 +889,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#supported-python-versions" class="md-nav__link">
-    Supported Python versions
+  <a href="#introduction" class="md-nav__link">
+    Introduction
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#contributing" class="md-nav__link">
-    Contributing
+  <a href="#installation" class="md-nav__link">
+    Installation
   </a>
   
 </li>
@@ -921,17 +921,53 @@
 
 
 <h1 id="frequenz-python-sdk">Frequenz Python SDK<a class="headerlink" href="#frequenz-python-sdk" title="Permanent link">¤</a></h1>
-<p><a href="https://github.com/frequenz-floss/frequenz-sdk-python/actions/workflows/ci.yaml"><img alt="Build Status" src="https://github.com/frequenz-floss/frequenz-sdk-python/actions/workflows/ci.yaml/badge.svg" /></a>
-<a href="https://pypi.org/project/frequenz-sdk/"><img alt="PyPI Package" src="https://img.shields.io/pypi/v/frequenz-sdk" /></a>
-<a href="https://frequenz-floss.github.io/frequenz-sdk-python/"><img alt="Docs" src="https://img.shields.io/badge/docs-latest-informational" /></a></p>
-<p>A development kit to interact with the Frequenz development platform.</p>
-<h2 id="supported-python-versions">Supported Python versions<a class="headerlink" href="#supported-python-versions" title="Permanent link">¤</a></h2>
-<ul>
-<li>Only Python 3.11 is fully supported (tested).</li>
-</ul>
-<h2 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Permanent link">¤</a></h2>
-<p>If you want to know how to build this project and contribute to it, please
-check out the <a href="CONTRIBUTING/">Contributing Guide</a>.</p>
+<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">¤</a></h2>
+<p>The Frequenz Python SDK is a development kit for interacting with the Frequenz development platform.</p>
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">¤</a></h2>
+<p>First, you need to make sure you have Python installed (at least version 3.11):</p>
+<div class="highlight"><pre><span></span><code><span class="gp">$ </span>python3<span class="w"> </span>--version
+<span class="go">Python 3.11.4</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>These instructions assume you are using a <a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/sh.html">POSIX compatible
+<code>sh</code></a>
+shell.</p>
+</div>
+<p>If that command doesn't print a version newer than 3.11.0, you'll need to
+<a href="https://www.python.org/downloads/">download and install Python</a> first.</p>
+<p>To install the SDK, you probably want to create a new virtual environment first:</p>
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>my-sdk-project
+<span class="nb">cd</span><span class="w"> </span>my-sdk-project
+python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+.<span class="w"> </span>.venv/bin/activate
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Using <a href="https://direnv.net/"><code>direnv</code></a> can greatly simplify this process as
+it automates the creation, activation, and deactivation of the virtual
+environment. The first time you enable <code>direnv</code>, the virtual environment
+will be created, and each time you enter or leave a subdirectory, it will be
+activated and deactivated, respectively.</p>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>direnv<span class="w"> </span><span class="c1"># if you use Debian/Ubuntu</span>
+mkdir<span class="w"> </span>my-sdk-project
+<span class="nb">cd</span><span class="w"> </span>my-sdk-project
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;layout python python3&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>.envrc
+direnv<span class="w"> </span>allow
+</code></pre></div>
+<p>This will create the virtual environment and activate it automatically for you.</p>
+</div>
+<p>Now you can install the SDK by using <code>pip</code>:</p>
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>frequenz-sdk
+</code></pre></div>
+<p>To verify that the installation worked, you can invoke the Python interpreter and
+import the SDK:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">$ </span>python3
+<span class="go">Python 3.11.4 (main, Jun  7 2023, 10:13:09) [GCC 12.2.0] on linux</span>
+<span class="go">Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</span>
+<span class="go">&gt;&gt;&gt; import frequenz.sdk</span>
+<span class="go">&gt;&gt;&gt; </span>
+</code></pre></div>
 
 
 
