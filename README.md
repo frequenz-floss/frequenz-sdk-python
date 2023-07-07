@@ -4,6 +4,8 @@
 [![PyPI Package](https://img.shields.io/pypi/v/frequenz-sdk)](https://pypi.org/project/frequenz-sdk/)
 [![Docs](https://img.shields.io/badge/docs-latest-informational)](https://frequenz-floss.github.io/frequenz-sdk-python/)
 
+## Introduction
+
 A development kit to interact with the Frequenz development platform.
 
 ## Quick Start

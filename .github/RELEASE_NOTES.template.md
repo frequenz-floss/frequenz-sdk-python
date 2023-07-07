@@ -1,4 +1,4 @@
-# Release Notes
+# Frequenz Python SDK Release Notes
 
 ## Summary
 
@@ -6,7 +6,7 @@
 
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with --> 
+<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
 
 ## New Features
 

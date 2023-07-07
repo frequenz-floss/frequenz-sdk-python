@@ -4,12 +4,12 @@
 """Test for Config"""
 import pathlib
 import re
+
+# pylint: disable = no-name-in-module
+import tomllib
 from typing import Any, Dict, List, Optional, Set
 
 import pytest
-
-# pylint: disable = no-name-in-module
-import toml
 from pydantic import BaseModel, StrictBool, StrictFloat, StrictInt
 
 from frequenz.sdk.config import Config
@@ -54,9 +54,14 @@ class TestConfig:
         file_path.write_text(TestConfig.conf_content)
         return file_path
 
-    def test_get(self, config_file: pathlib.Path) -> None:
+    @pytest.fixture()
+    def conf_vars(self, config_file: pathlib.Path) -> dict[str, Any]:
+        """Load the created test config file."""
+        with config_file.open("rb") as file:
+            return tomllib.load(file)
+
+    def test_get(self, conf_vars: dict[str, Any]) -> None:
         """Test get function"""
-        conf_vars = toml.load(config_file)
         config = Config(conf_vars=conf_vars)
 
         assert config.get("logging_lvl") == "DEBUG"
@@ -64,9 +69,8 @@ class TestConfig:
         assert config.get("var2") is None
         assert config.get("var2", default=0) == 0
 
-    def test_getitem(self, config_file: pathlib.Path) -> None:
+    def test_getitem(self, conf_vars: dict[str, Any]) -> None:
         """Test getitem function"""
-        conf_vars = toml.load(config_file)
         config = Config(conf_vars=conf_vars)
 
         assert config["logging_lvl"] == "DEBUG"
@@ -74,9 +78,8 @@ class TestConfig:
         with pytest.raises(KeyError, match="Unknown config name var2"):
             assert config["var2"]
 
-    def test_contains(self, config_file: pathlib.Path) -> None:
+    def test_contains(self, conf_vars: dict[str, Any]) -> None:
         """Test contains function"""
-        conf_vars = toml.load(config_file)
         config = Config(conf_vars=conf_vars)
 
         assert "logging_lvl" in config
@@ -111,11 +114,10 @@ class TestConfig:
         ],
     )
     def test_get_as_success(
-        self, key: str, expected_type: Any, value: Any, config_file: pathlib.Path
+        self, key: str, expected_type: Any, value: Any, conf_vars: dict[str, Any]
     ) -> None:
         """Test get_as function with proper arguments"""
 
-        conf_vars = toml.load(config_file)
         config = Config(conf_vars=conf_vars)
         result = config.get_as(key, expected_type)
         assert result == value
@@ -132,10 +134,9 @@ class TestConfig:
         ],
     )
     def test_get_as_validation_error(
-        self, key: str, expected_type: Any, config_file: pathlib.Path
+        self, key: str, expected_type: Any, conf_vars: dict[str, Any]
     ) -> None:
         """Test get_as function which raise ValidationError"""
-        conf_vars = toml.load(config_file)
         config = Config(conf_vars=conf_vars)
 
         err_msg = (
@@ -158,11 +159,10 @@ class TestConfig:
         key_prefix: str,
         expected_values_type: Any,
         value: Any,
-        config_file: pathlib.Path,
+        conf_vars: dict[str, Any],
     ) -> None:
         """Test get_as function with proper arguments"""
 
-        conf_vars = toml.load(config_file)
         config = Config(conf_vars=conf_vars)
         result = config.get_dict(key_prefix, expected_values_type)
         assert result == value
@@ -176,11 +176,10 @@ class TestConfig:
         ],
     )
     def test_get_dict_success(
-        self, key_prefix: str, expected_values_type: Any, config_file: pathlib.Path
+        self, key_prefix: str, expected_values_type: Any, conf_vars: dict[str, Any]
     ) -> None:
         """Test get_as function with proper arguments"""
 
-        conf_vars = toml.load(config_file)
         config = Config(conf_vars=conf_vars)
 
         err_msg_re = (

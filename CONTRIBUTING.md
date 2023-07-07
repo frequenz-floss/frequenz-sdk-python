@@ -1,4 +1,4 @@
-# Contributing to `frequenz-sdk`
+# Contributing to Frequenz Python SDK
 
 ## Build
 
@@ -28,7 +28,7 @@ If you don't want to install all the dependencies, you can also use `nox` to
 run the tests and other checks creating its own virtual environments:
 
 ```sh
-python -m pip install nox toml
+python -m pip install .[dev-noxfile]
 nox
 ```
 
@@ -41,23 +41,23 @@ For a better development test cycle you can install the runtime and test
 dependencies and run `pytest` manually.
 
 ```sh
-python -m pip install .[pytest]  # included in .[dev] too
+python -m pip install .[dev-pytest]  # included in .[dev] too
 
 # And for example
-pytest tests/test_sdk.py
+pytest tests/test_*.py
 ```
 
 Or you can use `nox`:
 
 ```sh
-nox -R -s pytest -- test/test_sdk.py
+nox -R -s pytest -- test/test_*.py
 ```
 
 The same appliest to `pylint` or `mypy` for example:
 
 ```sh
-nox -R -s pylint -- test/test_sdk.py
-nox -R -s mypy -- test/test_sdk.py
+nox -R -s pylint -- test/test_*.py
+nox -R -s mypy -- test/test_*.py
 ```
 
 ### Building the documentation
@@ -66,7 +66,7 @@ To build the documentation, first install the dependencies (if you didn't
 install all `dev` dependencies):
 
 ```sh
-python -m pip install -e .[docs-gen]
+python -m pip install -e .[dev-mkdocs]
 ```
 
 Then you can build the documentation (it will be written in the `site/`
@@ -122,9 +122,9 @@ These are the steps to create a new release:
 1. Get the latest head you want to create a release from.
 
 2. Update the `RELEASE_NOTES.md` file if it is not complete, up to date, and
-   clean from template comments (`<!-- ... ->`) and empty sections. Submit
-   a pull request if an update is needed, wait until it is merged, and update
-   the latest head you want to create a release from to get the new merged pull
+   remove template comments (`<!-- ... ->`) and empty sections. Submit a pull
+   request if an update is needed, wait until it is merged, and update the
+   latest head you want to create a release from to get the new merged pull
    request.
 
 3. Create a new signed tag using the release notes and
@@ -132,7 +132,7 @@ These are the steps to create a new release:
    for example:
 
    ```sh
-   git tag -s -F RELEASE_NOTES.md v0.0.1
+   git tag -s --cleanup=whitespace -F RELEASE_NOTES.md v0.0.1
    ```
 
 4. Push the new tag.
@@ -140,10 +140,9 @@ These are the steps to create a new release:
 5. A GitHub action will test the tag and if all goes well it will create
    a [GitHub
    Release](https://github.com/frequenz-floss/frequenz-sdk-python/releases),
-   create a new
-   [announcement](https://github.com/frequenz-floss/frequenz-sdk-python/discussions/categories/announcements)
-   about the release, and upload a new package to
-   [PyPI](https://pypi.org/project/frequenz-sdk/) automatically.
+   and upload a new package to
+   [PyPI](https://pypi.org/project/frequenz-sdk/)
+   automatically.
 
 6. Once this is done, reset the `RELEASE_NOTES.md` with the template:
 

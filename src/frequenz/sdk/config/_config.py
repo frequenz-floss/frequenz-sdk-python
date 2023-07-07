@@ -6,7 +6,8 @@
 import logging
 from typing import Any, Dict, Optional, TypeVar
 
-from pydantic import ValidationError, parse_raw_as
+# pylint not finding parse_raw_as is a false positive
+from pydantic import ValidationError, parse_raw_as  # pylint: disable=no-name-in-module
 
 _logger = logging.getLogger(__name__)
 
