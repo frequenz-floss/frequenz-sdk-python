@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Frequenz Python SDK.">
+        <meta name="description" content="A development kit to interact with the Frequenz development platform">
       
       
         <meta name="author" content="Frequenz Energy-as-a-Service GmbH">
@@ -21,7 +21,7 @@
     
     
       
-        <title>Development - Frequenz Python SDK</title>
+        <title>Contributing - Frequenz Python SDK</title>
       
     
     
@@ -79,7 +79,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#contributing-to-frequenz-sdk" class="md-skip">
+        <a href="#contributing-to-frequenz-python-sdk" class="md-skip">
           Skip to content
         </a>
       
@@ -94,7 +94,7 @@
             <div class="md-banner__inner md-grid md-typeset">
               
   You're not viewing the latest (stable) version.
-  <a href="../.."> 
+  <a href="../..">
     <strong>Click here to go to latest (stable) version</strong>
   </a>
 
@@ -127,7 +127,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Development
+              Contributing
             
           </span>
         </div>
@@ -259,7 +259,7 @@
 
   <li class="md-tabs__item">
     <a href="./" class="md-tabs__link md-tabs__link--active">
-      Development
+      Contributing
     </a>
   </li>
 
@@ -817,12 +817,12 @@
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          Development
+          Contributing
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
-        Development
+        Contributing
       </a>
       
         
@@ -974,7 +974,7 @@
   
 
 
-<h1 id="contributing-to-frequenz-sdk">Contributing to <code>frequenz-sdk</code><a class="headerlink" href="#contributing-to-frequenz-sdk" title="Permanent link">¤</a></h1>
+<h1 id="contributing-to-frequenz-python-sdk">Contributing to Frequenz Python SDK<a class="headerlink" href="#contributing-to-frequenz-python-sdk" title="Permanent link">¤</a></h1>
 <h2 id="build">Build<a class="headerlink" href="#build" title="Permanent link">¤</a></h2>
 <p>You can use <code>build</code> to simply build the source and binary distribution:</p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>build
@@ -991,7 +991,7 @@ etc.) in one go too:
 </code></pre></div></p>
 <p>If you don't want to install all the dependencies, you can also use <code>nox</code> to
 run the tests and other checks creating its own virtual environments:</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>nox<span class="w"> </span>toml
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="o">[</span>dev-noxfile<span class="o">]</span>
 nox
 </code></pre></div>
 <p>You can also use <code>nox -R</code> to reuse the current testing environment to speed up
@@ -999,22 +999,22 @@ test at the expense of a higher chance to end up with a dirty test environment.<
 <h3 id="running-tests-checks-individually">Running tests / checks individually<a class="headerlink" href="#running-tests-checks-individually" title="Permanent link">¤</a></h3>
 <p>For a better development test cycle you can install the runtime and test
 dependencies and run <code>pytest</code> manually.</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="o">[</span>pytest<span class="o">]</span><span class="w">  </span><span class="c1"># included in .[dev] too</span>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="o">[</span>dev-pytest<span class="o">]</span><span class="w">  </span><span class="c1"># included in .[dev] too</span>
 
 <span class="c1"># And for example</span>
-pytest<span class="w"> </span>tests/test_sdk.py
+pytest<span class="w"> </span>tests/test_*.py
 </code></pre></div>
 <p>Or you can use <code>nox</code>:</p>
-<div class="highlight"><pre><span></span><code>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>pytest<span class="w"> </span>--<span class="w"> </span>test/test_sdk.py
+<div class="highlight"><pre><span></span><code>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>pytest<span class="w"> </span>--<span class="w"> </span>test/test_*.py
 </code></pre></div>
 <p>The same appliest to <code>pylint</code> or <code>mypy</code> for example:</p>
-<div class="highlight"><pre><span></span><code>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>pylint<span class="w"> </span>--<span class="w"> </span>test/test_sdk.py
-nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>mypy<span class="w"> </span>--<span class="w"> </span>test/test_sdk.py
+<div class="highlight"><pre><span></span><code>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>pylint<span class="w"> </span>--<span class="w"> </span>test/test_*.py
+nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>mypy<span class="w"> </span>--<span class="w"> </span>test/test_*.py
 </code></pre></div>
 <h3 id="building-the-documentation">Building the documentation<a class="headerlink" href="#building-the-documentation" title="Permanent link">¤</a></h3>
 <p>To build the documentation, first install the dependencies (if you didn't
 install all <code>dev</code> dependencies):</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>docs-gen<span class="o">]</span>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev-mkdocs<span class="o">]</span>
 </code></pre></div>
 <p>Then you can build the documentation (it will be written in the <code>site/</code>
 directory):</p>
@@ -1058,9 +1058,9 @@ GitHub pages produced for your fork.</p>
 </li>
 <li>
 <p>Update the <code>RELEASE_NOTES.md</code> file if it is not complete, up to date, and
-   clean from template comments (<code>&lt;!-- ... -&gt;</code>) and empty sections. Submit
-   a pull request if an update is needed, wait until it is merged, and update
-   the latest head you want to create a release from to get the new merged pull
+   remove template comments (<code>&lt;!-- ... -&gt;</code>) and empty sections. Submit a pull
+   request if an update is needed, wait until it is merged, and update the
+   latest head you want to create a release from to get the new merged pull
    request.</p>
 </li>
 <li>
@@ -1069,7 +1069,7 @@ GitHub pages produced for your fork.</p>
    for example:</p>
 </li>
 </ol>
-<div class="highlight"><pre><span></span><code>git<span class="w"> </span>tag<span class="w"> </span>-s<span class="w"> </span>-F<span class="w"> </span>RELEASE_NOTES.md<span class="w"> </span>v0.0.1
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>tag<span class="w"> </span>-s<span class="w"> </span>--cleanup<span class="o">=</span>whitespace<span class="w"> </span>-F<span class="w"> </span>RELEASE_NOTES.md<span class="w"> </span>v0.0.1
 </code></pre></div>
 <ol>
 <li>
@@ -1079,10 +1079,9 @@ GitHub pages produced for your fork.</p>
 <p>A GitHub action will test the tag and if all goes well it will create
    a <a href="https://github.com/frequenz-floss/frequenz-sdk-python/releases">GitHub
    Release</a>,
-   create a new
-   <a href="https://github.com/frequenz-floss/frequenz-sdk-python/discussions/categories/announcements">announcement</a>
-   about the release, and upload a new package to
-   <a href="https://pypi.org/project/frequenz-sdk/">PyPI</a> automatically.</p>
+   and upload a new package to
+   <a href="https://pypi.org/project/frequenz-sdk/">PyPI</a>
+   automatically.</p>
 </li>
 <li>
 <p>Once this is done, reset the <code>RELEASE_NOTES.md</code> with the template:</p>
@@ -1121,7 +1120,7 @@ GitHub pages produced for your fork.</p>
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Frequenz Energy-as-a-Service GmbH
+      Copyright © 2022 Frequenz Energy-as-a-Service GmbH
     </div>
   
   

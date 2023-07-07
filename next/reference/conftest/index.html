@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Frequenz Python SDK.">
+        <meta name="description" content="A development kit to interact with the Frequenz development platform">
       
       
         <meta name="author" content="Frequenz Energy-as-a-Service GmbH">
@@ -96,7 +96,7 @@
             <div class="md-banner__inner md-grid md-typeset">
               
   You're not viewing the latest (stable) version.
-  <a href="../../.."> 
+  <a href="../../..">
     <strong>Click here to go to latest (stable) version</strong>
   </a>
 
@@ -261,7 +261,7 @@
 
   <li class="md-tabs__item">
     <a href="../../CONTRIBUTING/" class="md-tabs__link">
-      Development
+      Contributing
     </a>
   </li>
 
@@ -942,7 +942,7 @@
   
     <li class="md-nav__item">
       <a href="../../CONTRIBUTING/" class="md-nav__link">
-        Development
+        Contributing
       </a>
     </li>
   
@@ -1150,10 +1150,7 @@ line numbers are correct.</p>
 
         <details class="quote">
           <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/conftest.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 88</span>
-<span class="normal"> 89</span>
-<span class="normal"> 90</span>
-<span class="normal"> 91</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 91</span>
 <span class="normal"> 92</span>
 <span class="normal"> 93</span>
 <span class="normal"> 94</span>
@@ -1232,7 +1229,8 @@ line numbers are correct.</p>
 <span class="normal">167</span>
 <span class="normal">168</span>
 <span class="normal">169</span>
-<span class="normal">170</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">CustomPythonCodeBlockParser</span><span class="p">(</span><span class="n">CodeBlockParser</span><span class="p">):</span>
+<span class="normal">170</span>
+<span class="normal">171</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">CustomPythonCodeBlockParser</span><span class="p">(</span><span class="n">CodeBlockParser</span><span class="p">):</span>  <span class="c1"># type: ignore[misc]</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Code block parser that validates extracted code examples using pylint.</span>
 
 <span class="sd">    This parser is a modified version of the default Python code block parser</span>
@@ -1250,7 +1248,7 @@ line numbers are correct.</p>
 <span class="sd">    Pylint warnings which are unimportant for code examples are disabled.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the parser.&quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;python&quot;</span><span class="p">)</span>
 
@@ -1269,8 +1267,6 @@ line numbers are correct.</p>
         <span class="n">import_header</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="n">path_to_import_statement</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">example</span><span class="o">.</span><span class="n">path</span><span class="p">)))</span>
         <span class="p">)</span>
-        <span class="c1"># Add microgrid as default import</span>
-        <span class="n">import_header</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;from frequenz.sdk import microgrid&quot;</span><span class="p">)</span>
         <span class="n">imports_code</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">import_header</span><span class="p">)</span>
 
         <span class="c1"># Dedent the code example</span>
@@ -1311,7 +1307,7 @@ line numbers are correct.</p>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">response</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Pylint validation failed for code example:</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">example_with_imports</span><span class="si">}</span><span class="se">\n</span><span class="s2">Output: </span><span class="si">{</span><span class="n">response</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">example_with_imports</span><span class="si">}</span><span class="se">\n</span><span class="s2">Output: &quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
             <span class="p">)</span>
 
         <span class="k">return</span> <span class="kc">None</span>
@@ -1346,9 +1342,9 @@ line numbers are correct.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/conftest.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">106</span>
-<span class="normal">107</span>
-<span class="normal">108</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialize the parser.&quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;python&quot;</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
@@ -1421,10 +1417,7 @@ line numbers are correct.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/conftest.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">110</span>
-<span class="normal">111</span>
-<span class="normal">112</span>
-<span class="normal">113</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">113</span>
 <span class="normal">114</span>
 <span class="normal">115</span>
 <span class="normal">116</span>
@@ -1481,7 +1474,8 @@ line numbers are correct.</p>
 <span class="normal">167</span>
 <span class="normal">168</span>
 <span class="normal">169</span>
-<span class="normal">170</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">example</span><span class="p">:</span> <span class="n">Example</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span><span class="p">:</span>
+<span class="normal">170</span>
+<span class="normal">171</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">example</span><span class="p">:</span> <span class="n">Example</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate the extracted code example using pylint.</span>
 
 <span class="sd">    Args:</span>
@@ -1496,8 +1490,6 @@ line numbers are correct.</p>
     <span class="n">import_header</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
         <span class="n">path_to_import_statement</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">example</span><span class="o">.</span><span class="n">path</span><span class="p">)))</span>
     <span class="p">)</span>
-    <span class="c1"># Add microgrid as default import</span>
-    <span class="n">import_header</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;from frequenz.sdk import microgrid&quot;</span><span class="p">)</span>
     <span class="n">imports_code</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">import_header</span><span class="p">)</span>
 
     <span class="c1"># Dedent the code example</span>
@@ -1538,7 +1530,7 @@ line numbers are correct.</p>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">response</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Pylint validation failed for code example:</span><span class="se">\n</span><span class="s2">&quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">example_with_imports</span><span class="si">}</span><span class="se">\n</span><span class="s2">Output: </span><span class="si">{</span><span class="n">response</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">example_with_imports</span><span class="si">}</span><span class="se">\n</span><span class="s2">Output: &quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
         <span class="p">)</span>
 
     <span class="k">return</span> <span class="kc">None</span>
@@ -1638,7 +1630,8 @@ line numbers are correct.</p>
 <span class="normal">49</span>
 <span class="normal">50</span>
 <span class="normal">51</span>
-<span class="normal">52</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_import_statements</span><span class="p">(</span><span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="normal">52</span>
+<span class="normal">53</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_import_statements</span><span class="p">(</span><span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get all import statements from a given code string.</span>
 
 <span class="sd">    Args:</span>
@@ -1648,11 +1641,12 @@ line numbers are correct.</p>
 <span class="sd">        A list of import statements.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">tree</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
-    <span class="n">import_statements</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">import_statements</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">ast</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">tree</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">Import</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">ImportFrom</span><span class="p">)):</span>
             <span class="n">import_statement</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">get_source_segment</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">import_statement</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="n">import_statements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">import_statement</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">import_statements</span>
@@ -1749,8 +1743,7 @@ line numbers are correct.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/conftest.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">55</span>
-<span class="normal">56</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">56</span>
 <span class="normal">57</span>
 <span class="normal">58</span>
 <span class="normal">59</span>
@@ -1779,7 +1772,8 @@ line numbers are correct.</p>
 <span class="normal">82</span>
 <span class="normal">83</span>
 <span class="normal">84</span>
-<span class="normal">85</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">path_to_import_statement</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="normal">85</span>
+<span class="normal">86</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">path_to_import_statement</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a path to a Python file to an import statement.</span>
 
 <span class="sd">    Args:</span>
@@ -1908,8 +1902,7 @@ line numbers are correct.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/conftest.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">173</span>
-<span class="normal">174</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">174</span>
 <span class="normal">175</span>
 <span class="normal">176</span>
 <span class="normal">177</span>
@@ -1940,7 +1933,10 @@ line numbers are correct.</p>
 <span class="normal">202</span>
 <span class="normal">203</span>
 <span class="normal">204</span>
-<span class="normal">205</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">validate_with_pylint</span><span class="p">(</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">validate_with_pylint</span><span class="p">(</span>
     <span class="n">code_example</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">disable_params</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate a code example using pylint.</span>
@@ -1970,7 +1966,9 @@ line numbers are correct.</p>
             <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span class="k">as</span> <span class="n">exception</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">exception</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">exception</span><span class="o">.</span><span class="n">output</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">output</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="p">[]</span>
 </code></pre></div></td></tr></table></div>
@@ -2012,7 +2010,7 @@ line numbers are correct.</p>
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Frequenz Energy-as-a-Service GmbH
+      Copyright © 2022 Frequenz Energy-as-a-Service GmbH
     </div>
   
   
