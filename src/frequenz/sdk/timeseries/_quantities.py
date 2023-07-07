@@ -10,7 +10,14 @@ from datetime import timedelta
 from typing import Any, NoReturn, Self, TypeVar, overload
 
 QuantityT = TypeVar(
-    "QuantityT", "Quantity", "Power", "Current", "Voltage", "Energy", "Percentage"
+    "QuantityT",
+    "Current",
+    "Energy",
+    "Percentage",
+    "Power",
+    "Quantity",
+    "Temperature",
+    "Voltage",
 )
 
 
@@ -299,6 +306,38 @@ class _NoDefaultConstructible(type):
             f"{cls.__module__}.{cls.__qualname__}, "
             f"use one of the `{cls.__name__}.from_*()` methods instead."
         )
+
+
+class Temperature(
+    Quantity,
+    metaclass=_NoDefaultConstructible,
+    exponent_unit_map={
+        0: "°C",
+    },
+):
+    """A temperature quantity (in degrees Celsius)."""
+
+    @classmethod
+    def from_celsius(cls, value: float) -> Self:
+        """Initialize a new temperature quantity.
+
+        Args:
+            value: The temperature in degrees Celsius.
+
+        Returns:
+            A new temperature quantity.
+        """
+        power = cls.__new__(cls)
+        power._base_value = value
+        return power
+
+    def as_celsius(self) -> float:
+        """Return the temperature in degrees Celsius.
+
+        Returns:
+            The temperature in degrees Celsius.
+        """
+        return self._base_value
 
 
 class Power(
