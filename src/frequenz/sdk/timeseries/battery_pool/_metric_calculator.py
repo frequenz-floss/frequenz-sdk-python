@@ -14,7 +14,7 @@ from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory, ComponentMetricId, InverterType
 from ...timeseries import Energy, Percentage, Sample, Temperature
 from ._component_metrics import ComponentMetricsData
-from ._result_types import Bound, PowerMetrics
+from ._result_types import Bound, PowerMetrics, TemperatureMetrics
 
 _logger = logging.getLogger(__name__)
 _MIN_TIMESTAMP = datetime.min.replace(tzinfo=timezone.utc)
@@ -59,7 +59,7 @@ def battery_inverter_mapping(batteries: Iterable[int]) -> dict[int, int]:
 
 # Formula output types class have no common interface
 # Print all possible types here.
-T = TypeVar("T", Sample[Percentage], Sample[Energy], PowerMetrics)
+T = TypeVar("T", Sample[Percentage], Sample[Energy], PowerMetrics, TemperatureMetrics)
 
 
 class MetricCalculator(ABC, Generic[T]):
@@ -231,6 +231,99 @@ class CapacityCalculator(MetricCalculator[Sample[Energy]]):
             None
             if timestamp == _MIN_TIMESTAMP
             else Sample[Energy](timestamp, Energy.from_watt_hours(total_capacity))
+        )
+
+
+class TemperatureCalculator(MetricCalculator[TemperatureMetrics]):
+    """Define how to calculate temperature metrics."""
+
+    def __init__(self, batteries: Set[int]) -> None:
+        """Create class instance.
+
+        Args:
+            batteries: What batteries should be used for calculation.
+        """
+        super().__init__(batteries)
+
+        self._metrics = [
+            ComponentMetricId.TEMPERATURE_MAX,
+        ]
+
+    @classmethod
+    def name(cls) -> str:
+        """Return name of the calculator.
+
+        Returns:
+            Name of the calculator
+        """
+        return "temperature"
+
+    @property
+    def battery_metrics(self) -> Mapping[int, list[ComponentMetricId]]:
+        """Return what metrics are needed for each battery.
+
+        Returns:
+            Map between battery id and set of required metrics id.
+        """
+        return {bid: self._metrics for bid in self._batteries}
+
+    @property
+    def inverter_metrics(self) -> Mapping[int, list[ComponentMetricId]]:
+        """Return what metrics are needed for each inverter.
+
+        Returns:
+            Map between inverter id and set of required metrics id.
+        """
+        return {}
+
+    def calculate(
+        self,
+        metrics_data: dict[int, ComponentMetricsData],
+        working_batteries: set[int],
+    ) -> TemperatureMetrics | None:
+        """Aggregate the metrics_data and calculate high level metric for temperature.
+
+        Missing components will be ignored. Formula will be calculated for all
+        working batteries that are in metrics_data.
+
+        Args:
+            metrics_data: Components metrics data, that should be used to calculate the
+                result.
+            working_batteries: working batteries. These batteries will be used
+                to calculate the result. It should be subset of the batteries given in a
+                constructor.
+
+        Returns:
+            High level metric calculated from the given metrics.
+            Return None if there are no component metrics.
+        """
+        timestamp = _MIN_TIMESTAMP
+        temperature_sum: float = 0
+        temperature_min: float = float("inf")
+        temperature_max: float = float("-inf")
+        temperature_count: int = 0
+        for battery_id in working_batteries:
+            if battery_id not in metrics_data:
+                continue
+            metrics = metrics_data[battery_id]
+            temperature = metrics.get(ComponentMetricId.TEMPERATURE_MAX)
+            if temperature is None:
+                continue
+            timestamp = max(timestamp, metrics.timestamp)
+            temperature_sum += temperature
+            temperature_min = min(temperature_min, temperature)
+            temperature_max = max(temperature_max, temperature)
+            temperature_count += 1
+        if timestamp == _MIN_TIMESTAMP:
+            return None
+
+        temperature_avg = temperature_sum / temperature_count
+
+        return TemperatureMetrics(
+            timestamp=timestamp,
+            min=Temperature.from_celsius(value=temperature_min),
+            avg=Temperature.from_celsius(value=temperature_avg),
+            max=Temperature.from_celsius(value=temperature_max),
         )
 
 

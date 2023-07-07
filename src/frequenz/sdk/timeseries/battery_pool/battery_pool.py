@@ -29,8 +29,13 @@ from .._formula_engine._formula_generators import (
 )
 from .._quantities import Energy, Percentage, Power
 from ._methods import MetricAggregator, SendOnUpdate
-from ._metric_calculator import CapacityCalculator, PowerBoundsCalculator, SoCCalculator
-from ._result_types import PowerMetrics
+from ._metric_calculator import (
+    CapacityCalculator,
+    PowerBoundsCalculator,
+    SoCCalculator,
+    TemperatureCalculator,
+)
+from ._result_types import PowerMetrics, TemperatureMetrics
 
 
 class BatteryPool:
@@ -371,6 +376,24 @@ class BatteryPool:
                 min_update_interval=self._min_update_interval,
             )
 
+        return self._active_methods[method_name]
+
+    @property
+    def temperature(self) -> MetricAggregator[TemperatureMetrics]:
+        """Fetch the maximum temperature of the batteries in the pool.
+
+        Returns:
+            A MetricAggregator that will calculate and stream the maximum temperature
+                of all batteries in the pool.
+        """
+        method_name = SendOnUpdate.name() + "_" + TemperatureCalculator.name()
+        if method_name not in self._active_methods:
+            calculator = TemperatureCalculator(self._batteries)
+            self._active_methods[method_name] = SendOnUpdate(
+                metric_calculator=calculator,
+                working_batteries=self._working_batteries,
+                min_update_interval=self._min_update_interval,
+            )
         return self._active_methods[method_name]
 
     @property
