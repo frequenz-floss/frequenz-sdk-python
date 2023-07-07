@@ -165,7 +165,7 @@ class CustomPythonCodeBlockParser(CodeBlockParser):  # type: ignore[misc]
         if len(response) > 0:
             return (
                 f"Pylint validation failed for code example:\n"
-                f"{example_with_imports}\nOutput: {response}"
+                f"{example_with_imports}\nOutput: " + "\n".join(response)
             )
 
         return None
