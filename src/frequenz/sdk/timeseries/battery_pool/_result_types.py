@@ -6,6 +6,8 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from ...timeseries import Temperature
+
 
 @dataclass
 class Bound:
@@ -61,3 +63,20 @@ class PowerMetrics:
         )
     ```
     """
+
+
+@dataclass
+class TemperatureMetrics:
+    """Container for temperature metrics."""
+
+    timestamp: datetime
+    """Timestamp of the metrics."""
+
+    max: Temperature
+    """Maximum temperature of the collection of temperatures."""
+
+    min: Temperature
+    """Minimum temperature of the collection of temperatures."""
+
+    avg: Temperature
+    """Average temperature of the collection of temperatures."""

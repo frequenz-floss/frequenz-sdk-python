@@ -12,7 +12,7 @@ from typing import Generic, Iterable, TypeVar
 
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory, ComponentMetricId, InverterType
-from ...timeseries import Energy, Percentage, Sample
+from ...timeseries import Energy, Percentage, Sample, Temperature
 from ._component_metrics import ComponentMetricsData
 from ._result_types import Bound, PowerMetrics
 
