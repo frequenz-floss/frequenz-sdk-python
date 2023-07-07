@@ -33,7 +33,7 @@ from ..utils.component_data_wrapper import (
     InverterDataWrapper,
     MeterDataWrapper,
 )
-from .mock_datapipeline import MockDataPipeline
+from .mock_resampler import MockResampler
 
 
 class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
@@ -49,7 +49,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
     battery_id_suffix = 9
 
     _microgrid: MockMicrogridClient
-    mock_data: MockDataPipeline
+    mock_resampler: MockResampler
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
@@ -105,10 +105,10 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         self._streaming_tasks: list[asyncio.Task[None]] = []
         self._start_meter_streaming(4)
 
-    async def start_mock_datapipeline(self, mocker: MockerFixture) -> None:
-        """Start the MockDataPipeline."""
+    async def start(self, mocker: MockerFixture) -> None:
+        """Init the mock microgrid client and start the mock resampler."""
         self.init_mock_client(lambda mock_client: mock_client.initialize(mocker))
-        self.mock_data = MockDataPipeline(
+        self.mock_resampler = MockResampler(
             mocker,
             ResamplerConfig(timedelta(seconds=self._sample_rate_s)),
             bat_inverter_ids=self.battery_inverter_ids,
@@ -147,24 +147,6 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             asyncio.create_task(coro) for coro in self._streaming_coros
         ]
         return self._microgrid
-
-    async def start(self, mocker: MockerFixture) -> None:
-        """Start the MockServer, and the data source and resampling actors."""
-        self.start_mock_client(lambda mock_client: mock_client.initialize(mocker))
-        await asyncio.sleep(self._sample_rate_s / 2)
-
-        # pylint: disable=protected-access
-        _data_pipeline._DATA_PIPELINE = _data_pipeline._DataPipeline(
-            ResamplerConfig(
-                resampling_period=timedelta(seconds=self._sample_rate_s),
-                # Align to the time the resampler is created to avoid flakiness
-                # in the tests, it seems test using the mock microgrid assume
-                # that the resampling window is aligned to the start of the
-                # test.
-                align_to=None,
-            )
-        )
-        # pylint: enable=protected-access
 
     async def _comp_data_send_task(
         self, comp_id: int, make_comp_data: Callable[[int, datetime], ComponentData]
@@ -363,11 +345,103 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             self._start_ev_charger_streaming(evc_id)
             self._connections.add(Connection(self._connect_to, evc_id))
 
+    async def send_meter_data(self, values: list[float]) -> None:
+        """Send raw meter data from the mock microgrid.
+
+        Args:
+            values: list of active power values for each meter.
+        """
+        assert len(values) == len(self.meter_ids)
+        timestamp = datetime.now(tz=timezone.utc)
+        for comp_id, value in zip(self.meter_ids, values):
+            await self._microgrid.send(
+                MeterDataWrapper(
+                    component_id=comp_id,
+                    timestamp=timestamp,
+                    active_power=value,
+                    current_per_phase=(
+                        value + 100.0,
+                        value + 101.0,
+                        value + 102.0,
+                    ),
+                )
+            )
+
+    async def send_battery_data(self, socs: list[float]) -> None:
+        """Send raw battery data from the mock microgrid.
+
+        Args:
+            values: list of soc values for each battery.
+        """
+        assert len(socs) == len(self.battery_ids)
+        timestamp = datetime.now(tz=timezone.utc)
+        for comp_id, value in zip(self.battery_ids, socs):
+            await self._microgrid.send(
+                BatteryDataWrapper(component_id=comp_id, timestamp=timestamp, soc=value)
+            )
+
+    async def send_battery_inverter_data(self, values: list[float]) -> None:
+        """Send raw battery inverter data from the mock microgrid.
+
+        Args:
+            values: list of active power values for each battery inverter.
+        """
+        assert len(values) == len(self.battery_inverter_ids)
+        timestamp = datetime.now(tz=timezone.utc)
+        for comp_id, value in zip(self.battery_inverter_ids, values):
+            await self._microgrid.send(
+                InverterDataWrapper(
+                    component_id=comp_id, timestamp=timestamp, active_power=value
+                )
+            )
+
+    async def send_pv_inverter_data(self, values: list[float]) -> None:
+        """Send raw pv inverter data from the mock microgrid.
+
+        Args:
+            values: list of active power values for each pv inverter.
+        """
+        assert len(values) == len(self.pv_inverter_ids)
+        timestamp = datetime.now(tz=timezone.utc)
+        for comp_id, value in zip(self.pv_inverter_ids, values):
+            await self._microgrid.send(
+                InverterDataWrapper(
+                    component_id=comp_id, timestamp=timestamp, active_power=value
+                )
+            )
+
+    async def send_ev_charger_data(self, values: list[float]) -> None:
+        """Send raw ev charger data from the mock microgrid.
+
+        Args:
+            values: list of active power values for each ev charger.
+        """
+        assert len(values) == len(self.evc_ids)
+        timestamp = datetime.now(tz=timezone.utc)
+        for comp_id, value in zip(self.evc_ids, values):
+            await self._microgrid.send(
+                EvChargerDataWrapper(
+                    component_id=comp_id,
+                    timestamp=timestamp,
+                    active_power=value,
+                    current_per_phase=(
+                        value + 100.0,
+                        value + 101.0,
+                        value + 102.0,
+                    ),
+                    component_state=self.evc_component_states[comp_id],
+                    cable_state=self.evc_cable_states[comp_id],
+                )
+            )
+
     async def cleanup(self) -> None:
         """Clean up after a test."""
         # pylint: disable=protected-access
         if _data_pipeline._DATA_PIPELINE:
             await _data_pipeline._DATA_PIPELINE._stop()
+
+        for coro in self._streaming_coros:
+            coro.close()
 
         for task in self._streaming_tasks:
             await cancel_and_await(task)
