@@ -7,7 +7,7 @@ import logging
 import os
 import tomllib
 from collections import abc
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict
 
 from frequenz.channels import Sender
 from frequenz.channels.util import FileWatcher
@@ -81,11 +81,12 @@ class ConfigManagingActor:
         await self.send_config()
 
         async for event in self._file_watcher:
-            if str(event.path) == self._conf_file:
-                _logger.info(
-                    "Update configs, because file %s was modified.",
-                    self._conf_file,
-                )
-                await self.send_config()
+            if event.type != FileWatcher.EventType.DELETE:
+                if str(event.path) == self._conf_file:
+                    _logger.info(
+                        "Update configs, because file %s was modified.",
+                        self._conf_file,
+                    )
+                    await self.send_config()
 
         _logger.debug("ConfigManager stopped.")
