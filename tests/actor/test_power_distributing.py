@@ -29,8 +29,7 @@ from frequenz.sdk.actor.power_distributing.result import (
     Result,
     Success,
 )
-from frequenz.sdk.microgrid.client import Connection
-from frequenz.sdk.microgrid.component import Component, ComponentCategory
+from frequenz.sdk.microgrid.component import ComponentCategory
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
 from ..conftest import SAFETY_TIMEOUT
@@ -44,41 +43,6 @@ class TestPowerDistributingActor:
     """Test tool to distribute power"""
 
     _namespace = "power_distributor"
-
-    def component_graph(self) -> tuple[set[Component], set[Connection]]:
-        """Create graph components
-
-        Returns:
-            Tuple where first element is set of components and second element is
-                set of connections.
-        """
-        components = {
-            Component(1, ComponentCategory.GRID),
-            Component(2, ComponentCategory.METER),
-            Component(104, ComponentCategory.METER),
-            Component(105, ComponentCategory.INVERTER),
-            Component(106, ComponentCategory.BATTERY),
-            Component(204, ComponentCategory.METER),
-            Component(205, ComponentCategory.INVERTER),
-            Component(206, ComponentCategory.BATTERY),
-            Component(304, ComponentCategory.METER),
-            Component(305, ComponentCategory.INVERTER),
-            Component(306, ComponentCategory.BATTERY),
-        }
-
-        connections = {
-            Connection(1, 2),
-            Connection(2, 104),
-            Connection(104, 105),
-            Connection(105, 106),
-            Connection(2, 204),
-            Connection(204, 205),
-            Connection(205, 206),
-            Connection(2, 304),
-            Connection(304, 305),
-            Connection(305, 306),
-        }
-        return components, connections
 
     async def test_constructor(self, mocker: MockerFixture) -> None:
         """Test if gets all necessary data."""

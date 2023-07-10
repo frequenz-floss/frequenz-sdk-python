@@ -6,9 +6,8 @@ import asyncio
 import math
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Generic, Iterable, List, Optional, Set, Tuple, TypeVar
+from typing import Generic, Iterable, List, Optional, TypeVar
 
-import pytest
 import time_machine
 from frequenz.api.microgrid.battery_pb2 import ComponentState as BatteryState
 from frequenz.api.microgrid.battery_pb2 import Error as BatteryError
@@ -26,17 +25,10 @@ from frequenz.sdk.actor.power_distributing._battery_status import (
     SetPowerResult,
     Status,
 )
-from frequenz.sdk.microgrid.client import Connection
-from frequenz.sdk.microgrid.component import (
-    BatteryData,
-    Component,
-    ComponentCategory,
-    InverterData,
-)
+from frequenz.sdk.microgrid.component import BatteryData, InverterData
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
 from ..utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
-from ..utils.mock_microgrid_client import MockMicrogridClient
 
 
 def battery_data(  # pylint: disable=too-many-arguments
@@ -109,42 +101,6 @@ def inverter_data(
     )
 
 
-def component_graph() -> Tuple[Set[Component], Set[Connection]]:
-    """Creates components and connections for the microgrid component graph.
-
-    Returns:
-        Tuple with set of components and set of connections.
-    """
-    components = {
-        Component(1, ComponentCategory.GRID),
-        Component(2, ComponentCategory.METER),
-        Component(104, ComponentCategory.METER),
-        Component(105, ComponentCategory.INVERTER),
-        Component(106, ComponentCategory.BATTERY),
-        Component(204, ComponentCategory.METER),
-        Component(205, ComponentCategory.INVERTER),
-        Component(206, ComponentCategory.BATTERY),
-        Component(304, ComponentCategory.METER),
-        Component(305, ComponentCategory.INVERTER),
-        Component(306, ComponentCategory.BATTERY),
-    }
-
-    connections = {
-        Connection(1, 2),
-        Connection(2, 104),
-        Connection(104, 105),
-        Connection(105, 106),
-        Connection(2, 204),
-        Connection(204, 205),
-        Connection(205, 206),
-        Connection(2, 304),
-        Connection(304, 305),
-        Connection(305, 306),
-    }
-
-    return components, connections
-
-
 T = TypeVar("T")
 
 
@@ -162,21 +118,6 @@ INVERTER_ID = 8
 # pylint: disable=protected-access, unused-argument
 class TestBatteryStatus:
     """Tests BatteryStatusTracker."""
-
-    @pytest.fixture
-    async def mock_microgrid(self, mocker: MockerFixture) -> MockMicrogridClient:
-        """Create and initialize mock microgrid
-
-        Args:
-            mocker: pytest mocker
-
-        Returns:
-            MockMicrogridClient
-        """
-        components, connections = component_graph()
-        microgrid = MockMicrogridClient(components, connections)
-        microgrid.initialize(mocker)
-        return microgrid
 
     @time_machine.travel("2022-01-01 00:00 UTC", tick=False)
     async def test_sync_update_status_with_messages(

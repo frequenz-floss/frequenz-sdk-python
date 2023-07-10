@@ -5,7 +5,6 @@
 import asyncio
 from typing import Set
 
-import pytest
 from frequenz.channels import Broadcast
 from pytest_mock import MockerFixture
 
@@ -16,28 +15,12 @@ from frequenz.sdk.actor.power_distributing._battery_pool_status import (
 from frequenz.sdk.microgrid.component import ComponentCategory
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
-from ..utils.mock_microgrid_client import MockMicrogridClient
-from .test_battery_status import battery_data, component_graph, inverter_data
+from .test_battery_status import battery_data, inverter_data
 
 
 # pylint: disable=protected-access
 class TestBatteryPoolStatus:
     """Tests for BatteryPoolStatus"""
-
-    @pytest.fixture
-    async def mock_microgrid(self, mocker: MockerFixture) -> MockMicrogridClient:
-        """Create and initialize mock microgrid
-
-        Args:
-            mocker: pytest mocker
-
-        Returns:
-            MockMicrogridClient
-        """
-        components, connections = component_graph()
-        microgrid = MockMicrogridClient(components, connections)
-        microgrid.initialize(mocker)
-        return microgrid
 
     async def test_batteries_status(self, mocker: MockerFixture) -> None:
         """Basic tests for BatteryPoolStatus.
