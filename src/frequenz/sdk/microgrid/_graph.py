@@ -8,17 +8,17 @@ abstracted to a level appropriate for higher-level monitoring and control.
 Examples of use-cases would be:
 
   * using the graph structure to infer which component measurements
-    need to be combined to obtain grid power or onsite load
+    need to be combined to obtain grid active_power or onsite load
 
   * identifying which inverter(s) need to be engaged to (dis)charge
     a particular battery
 
-  * understanding which power flows in the microgrid are derived from
+  * understanding which active_power flows in the microgrid are derived from
     green and grey sources
 
 It deliberately does not include all pieces of hardware placed in the microgrid,
 instead limiting itself to just those that are needed to monitor and control the
-flow of power.
+flow of active_power.
 """
 
 import asyncio

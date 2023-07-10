@@ -27,7 +27,7 @@ class PowerMetrics:
     """Timestamp of the metrics."""
 
     supply_bound: Bound
-    """Supply power bounds.
+    """Supply active_power bounds.
 
     Upper bound is always 0 and will be supported later.
     Lower bound is negative number calculated with with the formula:
@@ -37,7 +37,7 @@ class PowerMetrics:
 
     supply_bound.lower = sum(
         max(
-            battery.power_lower_bound, inverter.active_power_lower_bound)
+            battery.active_power_lower_bound, inverter.active_power_lower_bound)
             for each working battery in battery pool
             )
         )
@@ -45,7 +45,7 @@ class PowerMetrics:
     """
 
     consume_bound: Bound
-    """Consume power bounds.
+    """Consume active_power bounds.
 
     Lower bound is always 0 and will be supported later.
     Upper bound is positive number calculated with with the formula:
@@ -55,7 +55,7 @@ class PowerMetrics:
 
     consume_bound.upper = sum(
         min(
-            battery.power_upper_bound, inverter.active_power_upper_bound)
+            battery.active_power_upper_bound, inverter.active_power_upper_bound)
             for each working battery in battery pool
             )
         )

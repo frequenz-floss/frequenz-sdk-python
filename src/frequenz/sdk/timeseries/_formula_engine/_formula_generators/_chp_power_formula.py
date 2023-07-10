@@ -26,20 +26,20 @@ class CHPPowerFormula(FormulaGenerator[Power]):
     """Formula generator for CHP Power."""
 
     def generate(self) -> FormulaEngine[Power]:
-        """Make a formula for the cumulative CHP power of a microgrid.
+        """Make a formula for the cumulative CHP active_power of a microgrid.
 
-        The calculation is performed by adding the active power measurements from
+        The calculation is performed by adding the active active_power measurements from
         dedicated meters attached to CHPs.
 
         Returns:
-            A formula engine that will calculate cumulative CHP power values.
+            A formula engine that will calculate cumulative CHP active_power values.
 
         Raises:
             FormulaGenerationError: If there's no dedicated meter attached to every CHP.
 
         """
         builder = self._get_builder(
-            "chp-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
+            "chp-active_power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
         )
 
         chp_meter_ids = self._get_chp_meters()

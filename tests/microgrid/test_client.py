@@ -492,7 +492,7 @@ class TestMicrogridGrpcClient:
                 83, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_METER
             )
 
-            await microgrid.set_power(component_id=83, power_w=12)
+            await microgrid.set_active_power(component_id=83, active_power_w=12)
 
             assert servicer.latest_charge is not None
             assert servicer.latest_charge.component_id == 83
@@ -515,7 +515,7 @@ class TestMicrogridGrpcClient:
                 73, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_METER
             )
 
-            await microgrid.set_power(component_id=73, power_w=-15)
+            await microgrid.set_active_power(component_id=73, active_power_w=-15)
 
             assert servicer.latest_discharge is not None
             assert servicer.latest_discharge.component_id == 73

@@ -163,20 +163,20 @@ def test_comparison() -> None:
     )
 
 
-def test_power() -> None:
-    """Test the power class."""
-    power = Power.from_milliwatts(0.0000002)
-    assert f"{power:.9}" == "0.0000002 mW"
-    power = Power.from_kilowatts(10000000.2)
-    assert f"{power}" == "10000 MW"
+def test_active_power() -> None:
+    """Test the active_power class."""
+    active_power = Power.from_milliwatts(0.0000002)
+    assert f"{active_power:.9}" == "0.0000002 mW"
+    active_power = Power.from_kilowatts(10000000.2)
+    assert f"{active_power}" == "10000 MW"
 
-    power = Power.from_kilowatts(1.2)
-    assert power.as_watts() == 1200.0
-    assert power.as_megawatts() == 0.0012
-    assert power.as_kilowatts() == 1.2
-    assert power == Power.from_milliwatts(1200000.0)
-    assert power == Power.from_megawatts(0.0012)
-    assert power != Power.from_watts(1000.0)
+    active_power = Power.from_kilowatts(1.2)
+    assert active_power.as_watts() == 1200.0
+    assert active_power.as_megawatts() == 0.0012
+    assert active_power.as_kilowatts() == 1.2
+    assert active_power == Power.from_milliwatts(1200000.0)
+    assert active_power == Power.from_megawatts(0.0012)
+    assert active_power != Power.from_watts(1000.0)
 
     with pytest.raises(TypeError):
         # using the default constructor should raise.
@@ -245,19 +245,19 @@ def test_energy() -> None:
 
 def test_quantity_compositions() -> None:
     """Test the composition of quantities."""
-    power = Power.from_watts(1000.0)
+    active_power = Power.from_watts(1000.0)
     voltage = Voltage.from_volts(230.0)
     current = Current.from_amperes(4.3478260869565215)
     energy = Energy.from_kilowatt_hours(6.2)
 
-    assert power / voltage == current
-    assert power / current == voltage
-    assert power == voltage * current
-    assert power == current * voltage
+    assert active_power / voltage == current
+    assert active_power / current == voltage
+    assert active_power == voltage * current
+    assert active_power == current * voltage
 
-    assert energy / power == timedelta(hours=6.2)
-    assert energy / timedelta(hours=6.2) == power
-    assert energy == power * timedelta(hours=6.2)
+    assert energy / active_power == timedelta(hours=6.2)
+    assert energy / timedelta(hours=6.2) == active_power
+    assert energy == active_power * timedelta(hours=6.2)
 
 
 def test_percentage() -> None:

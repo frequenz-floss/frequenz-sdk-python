@@ -166,7 +166,7 @@ class BatteryStatusTracker:
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
         status_sender: Sender[Status],
-        set_power_result_receiver: Receiver[SetPowerResult],
+        set_active_power_result_receiver: Receiver[SetPowerResult],
     ) -> None:
         """Create class instance.
 
@@ -179,7 +179,7 @@ class BatteryStatusTracker:
             max_blocking_duration_sec: This value tell what should be the maximum
                 timeout used for blocking failing component.
             status_sender: Channel to send status updates.
-            set_power_result_receiver: Channel to receive results of the requests to the
+            set_active_power_result_receiver: Channel to receive results of the requests to the
                 components.
 
         Raises:
@@ -208,7 +208,7 @@ class BatteryStatusTracker:
         # self._select: Select | None = None
 
         self._task: asyncio.Task[None] = asyncio.create_task(
-            self._run(status_sender, set_power_result_receiver)
+            self._run(status_sender, set_active_power_result_receiver)
         )
 
     @property
@@ -247,7 +247,7 @@ class BatteryStatusTracker:
         self._inverter.last_msg_timestamp = inv_data.timestamp
         self._inverter.data_recv_timer.reset()
 
-    def _handle_status_set_power_result(
+    def _handle_status_set_active_power_result(
         self, result: SetPowerResult
     ) -> None:  # Any is probably not the best
         if self.battery_id in result.succeed:
@@ -302,15 +302,15 @@ class BatteryStatusTracker:
     async def _run(
         self,
         status_sender: Sender[Status],
-        set_power_result_receiver: Receiver[SetPowerResult],
+        set_active_power_result_receiver: Receiver[SetPowerResult],
     ) -> None:
-        """Process data from the components and set_power_result_receiver.
+        """Process data from the components and set_active_power_result_receiver.
 
         New status is send only when it change.
 
         Args:
             status_sender: Channel to send status updates.
-            set_power_result_receiver: Channel to receive results of the requests to the
+            set_active_power_result_receiver: Channel to receive results of the requests to the
                 components.
         """
         api_client = connection_manager.get().api_client
@@ -322,7 +322,7 @@ class BatteryStatusTracker:
         battery_timer = self._battery.data_recv_timer
         inverter_timer = self._inverter.data_recv_timer
         inverter = inverter_receiver
-        set_power_result = set_power_result_receiver
+        set_active_power_result = set_active_power_result_receiver
 
         while True:
             try:
@@ -331,7 +331,7 @@ class BatteryStatusTracker:
                     battery_timer,
                     inverter_timer,
                     inverter,
-                    set_power_result,
+                    set_active_power_result,
                 ):
                     new_status = None
 
@@ -341,8 +341,8 @@ class BatteryStatusTracker:
                     elif selected_from(selected, inverter):
                         self._handle_status_inverter(selected.value)
 
-                    elif selected_from(selected, set_power_result):
-                        self._handle_status_set_power_result(selected.value)
+                    elif selected_from(selected, set_active_power_result):
+                        self._handle_status_set_active_power_result(selected.value)
 
                     elif selected_from(selected, battery_timer):
                         self._handle_status_battery_timer(selected.value)

@@ -261,7 +261,7 @@ class MockMicrogridClient:
         )
 
         # Can be override in the future
-        api.set_power = AsyncMock(return_value=Empty)
+        api.set_active_power = AsyncMock(return_value=Empty)
         return api
 
     def _get_battery_receiver(

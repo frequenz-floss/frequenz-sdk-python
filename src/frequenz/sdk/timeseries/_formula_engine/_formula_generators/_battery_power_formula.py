@@ -20,21 +20,21 @@ _logger = logging.getLogger(__name__)
 
 
 class BatteryPowerFormula(FormulaGenerator[Power]):
-    """Creates a formula engine from the component graph for calculating grid power."""
+    """Creates a formula engine from the component graph for calculating grid active_power."""
 
     def generate(
         self,
     ) -> FormulaEngine[Power]:
-        """Make a formula for the cumulative AC battery power of a microgrid.
+        """Make a formula for the cumulative AC battery active_power of a microgrid.
 
         The calculation is performed by adding the Active Powers of all the inverters
         that are attached to batteries.
 
-        If there's no data coming from an inverter, that inverter's power will be
+        If there's no data coming from an inverter, that inverter's active_power will be
         treated as 0.
 
         Returns:
-            A formula engine that will calculate cumulative battery power values.
+            A formula engine that will calculate cumulative battery active_power values.
 
         Raises:
             ComponentNotFound: if there are no batteries in the component graph, or if
@@ -43,7 +43,7 @@ class BatteryPowerFormula(FormulaGenerator[Power]):
                 in the component graph.
         """
         builder = self._get_builder(
-            "battery-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
+            "battery-active_power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
         )
         component_ids = self._config.component_ids
         if not component_ids:

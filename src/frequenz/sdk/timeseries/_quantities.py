@@ -311,96 +311,96 @@ class Power(
         6: "MW",
     },
 ):
-    """A power quantity."""
+    """A active_power quantity."""
 
     @classmethod
     def from_watts(cls, watts: float) -> Self:
-        """Initialize a new power quantity.
+        """Initialize a new active_power quantity.
 
         Args:
-            watts: The power in watts.
+            watts: The active_power in watts.
 
         Returns:
-            A new power quantity.
+            A new active_power quantity.
         """
-        power = cls.__new__(cls)
-        power._base_value = watts
-        return power
+        active_power = cls.__new__(cls)
+        active_power._base_value = watts
+        return active_power
 
     @classmethod
     def from_milliwatts(cls, milliwatts: float) -> Self:
-        """Initialize a new power quantity.
+        """Initialize a new active_power quantity.
 
         Args:
-            milliwatts: The power in milliwatts.
+            milliwatts: The active_power in milliwatts.
 
         Returns:
-            A new power quantity.
+            A new active_power quantity.
         """
-        power = cls.__new__(cls)
-        power._base_value = milliwatts * 10**-3
-        return power
+        active_power = cls.__new__(cls)
+        active_power._base_value = milliwatts * 10**-3
+        return active_power
 
     @classmethod
     def from_kilowatts(cls, kilowatts: float) -> Self:
-        """Initialize a new power quantity.
+        """Initialize a new active_power quantity.
 
         Args:
-            kilowatts: The power in kilowatts.
+            kilowatts: The active_power in kilowatts.
 
         Returns:
-            A new power quantity.
+            A new active_power quantity.
         """
-        power = cls.__new__(cls)
-        power._base_value = kilowatts * 10**3
-        return power
+        active_power = cls.__new__(cls)
+        active_power._base_value = kilowatts * 10**3
+        return active_power
 
     @classmethod
     def from_megawatts(cls, megawatts: float) -> Self:
-        """Initialize a new power quantity.
+        """Initialize a new active_power quantity.
 
         Args:
-            megawatts: The power in megawatts.
+            megawatts: The active_power in megawatts.
 
         Returns:
-            A new power quantity.
+            A new active_power quantity.
         """
-        power = cls.__new__(cls)
-        power._base_value = megawatts * 10**6
-        return power
+        active_power = cls.__new__(cls)
+        active_power._base_value = megawatts * 10**6
+        return active_power
 
     def as_watts(self) -> float:
-        """Return the power in watts.
+        """Return the active_power in watts.
 
         Returns:
-            The power in watts.
+            The active_power in watts.
         """
         return self._base_value
 
     def as_kilowatts(self) -> float:
-        """Return the power in kilowatts.
+        """Return the active_power in kilowatts.
 
         Returns:
-            The power in kilowatts.
+            The active_power in kilowatts.
         """
         return self._base_value / 1e3
 
     def as_megawatts(self) -> float:
-        """Return the power in megawatts.
+        """Return the active_power in megawatts.
 
         Returns:
-            The power in megawatts.
+            The active_power in megawatts.
         """
         return self._base_value / 1e6
 
     def __mul__(self, duration: timedelta) -> Energy:
-        """Return an energy from multiplying this power by the given duration.
+        """Return an energy from multiplying this active_power by the given duration.
 
         Args:
             duration: The duration to multiply by.
 
         Returns:
-            An energy from multiplying this power by the given duration.
+            An energy from multiplying this active_power by the given duration.
         """
         return Energy.from_watt_hours(
             self._base_value * duration.total_seconds() / 3600.0
@@ -408,7 +408,7 @@ class Power(
 
     @overload
     def __truediv__(self, other: Current) -> Voltage:
-        """Return a voltage from dividing this power by the given current.
+        """Return a voltage from dividing this active_power by the given current.
 
         Args:
             other: The current to divide by.
@@ -416,20 +416,20 @@ class Power(
 
     @overload
     def __truediv__(self, other: Voltage) -> Current:
-        """Return a current from dividing this power by the given voltage.
+        """Return a current from dividing this active_power by the given voltage.
 
         Args:
             other: The voltage to divide by.
         """
 
     def __truediv__(self, other: Current | Voltage) -> Voltage | Current:
-        """Return a current or voltage from dividing this power by the given value.
+        """Return a current or voltage from dividing this active_power by the given value.
 
         Args:
             other: The current or voltage to divide by.
 
         Returns:
-            A current or voltage from dividing this power by the given value.
+            A current or voltage from dividing this active_power by the given value.
 
         Raises:
             TypeError: If the given value is not a current or voltage.
@@ -498,13 +498,13 @@ class Current(
         return self._base_value * 1e3
 
     def __mul__(self, voltage: Voltage) -> Power:
-        """Multiply the current by a voltage to get a power.
+        """Multiply the current by a voltage to get a active_power.
 
         Args:
             voltage: The voltage.
 
         Returns:
-            The power.
+            The active_power.
         """
         return Power.from_watts(self._base_value * voltage._base_value)
 
@@ -583,13 +583,13 @@ class Voltage(
         return self._base_value / 1e3
 
     def __mul__(self, current: Current) -> Power:
-        """Multiply the voltage by the current to get the power.
+        """Multiply the voltage by the current to get the active_power.
 
         Args:
             current: The current to multiply the voltage with.
 
         Returns:
-            The calculated power.
+            The calculated active_power.
         """
         return Power.from_watts(self._base_value * current._base_value)
 
@@ -673,7 +673,7 @@ class Energy(
 
     @overload
     def __truediv__(self, other: timedelta) -> Power:
-        """Return a power from dividing this energy by the given duration.
+        """Return a active_power from dividing this energy by the given duration.
 
         Args:
             other: The duration to divide by.
@@ -681,23 +681,23 @@ class Energy(
 
     @overload
     def __truediv__(self, other: Power) -> timedelta:
-        """Return a duration from dividing this energy by the given power.
+        """Return a duration from dividing this energy by the given active_power.
 
         Args:
-            other: The power to divide by.
+            other: The active_power to divide by.
         """
 
     def __truediv__(self, other: timedelta | Power) -> Power | timedelta:
-        """Return a power or duration from dividing this energy by the given value.
+        """Return a active_power or duration from dividing this energy by the given value.
 
         Args:
-            other: The power or duration to divide by.
+            other: The active_power or duration to divide by.
 
         Returns:
-            A power or duration from dividing this energy by the given value.
+            A active_power or duration from dividing this energy by the given value.
 
         Raises:
-            TypeError: If the given value is not a power or duration.
+            TypeError: If the given value is not a active_power or duration.
         """
         if isinstance(other, timedelta):
             return Power.from_watts(self._base_value / (other.total_seconds() / 3600.0))

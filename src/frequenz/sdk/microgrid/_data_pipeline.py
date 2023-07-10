@@ -88,11 +88,11 @@ class _DataPipeline:
         self._battery_status_channel = Broadcast["BatteryStatus"](
             "battery-status", resend_latest=True
         )
-        self._power_distribution_channel = Broadcast["Request"](
+        self._active_power_distribution_channel = Broadcast["Request"](
             "Power Distributing Actor, Broadcast Channel"
         )
 
-        self._power_distributing_actor: "PowerDistributingActor" | None = None
+        self._active_power_distributing_actor: "PowerDistributingActor" | None = None
 
         self._logical_meter: "LogicalMeter" | None = None
         self._ev_charger_pools: dict[frozenset[int], "EVChargerPool"] = {}
@@ -164,8 +164,8 @@ class _DataPipeline:
         """
         from ..timeseries.battery_pool import BatteryPool
 
-        if not self._power_distributing_actor:
-            self._start_power_distributing_actor()
+        if not self._active_power_distributing_actor:
+            self._start_active_power_distributing_actor()
 
         # We use frozenset to make a hashable key from the input set.
         key: frozenset[int] = frozenset()
@@ -179,16 +179,16 @@ class _DataPipeline:
                 batteries_status_receiver=self._battery_status_channel.new_receiver(
                     maxsize=1
                 ),
-                power_distributing_sender=self._power_distribution_channel.new_sender(),
+                active_power_distributing_sender=self._active_power_distribution_channel.new_sender(),
                 min_update_interval=self._resampler_config.resampling_period,
                 batteries_id=battery_ids,
             )
 
         return self._battery_pools[key]
 
-    def _start_power_distributing_actor(self) -> None:
-        """Start the power distributing actor if it is not already running."""
-        if self._power_distributing_actor:
+    def _start_active_power_distributing_actor(self) -> None:
+        """Start the active_power distributing actor if it is not already running."""
+        if self._active_power_distributing_actor:
             return
 
         component_graph = connection_manager.get().component_graph
@@ -197,7 +197,7 @@ class _DataPipeline:
         ):
             _logger.warning(
                 "No batteries found in the component graph. "
-                "The power distributing actor will not be started."
+                "The active_power distributing actor will not be started."
             )
             return
 
@@ -206,8 +206,8 @@ class _DataPipeline:
         # The PowerDistributingActor is started with only a single default user channel.
         # Until the PowerManager is implemented, support for multiple use-case actors
         # will not be available in the high level interface.
-        self._power_distributing_actor = PowerDistributingActor(
-            requests_receiver=self._power_distribution_channel.new_receiver(),
+        self._active_power_distributing_actor = PowerDistributingActor(
+            requests_receiver=self._active_power_distribution_channel.new_receiver(),
             channel_registry=self._channel_registry,
             battery_status_sender=self._battery_status_channel.new_sender(),
         )

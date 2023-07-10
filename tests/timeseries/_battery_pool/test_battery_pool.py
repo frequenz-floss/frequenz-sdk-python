@@ -319,22 +319,26 @@ async def test_battery_pool_soc(setup_batteries_pool: SetupArgs) -> None:
     await run_soc_test(setup_batteries_pool)
 
 
-async def test_all_batteries_power_bounds(setup_all_batteries: SetupArgs) -> None:
-    """Test power bounds metric for battery pool with all components in the microgrid.
+async def test_all_batteries_active_power_bounds(
+    setup_all_batteries: SetupArgs,
+) -> None:
+    """Test active_power bounds metric for battery pool with all components in the microgrid.
 
     Args:
         setup_all_batteries: Fixture that creates needed microgrid tools.
     """
-    await run_power_bounds_test(setup_all_batteries)
+    await run_active_power_bounds_test(setup_all_batteries)
 
 
-async def test_battery_pool_power_bounds(setup_batteries_pool: SetupArgs) -> None:
-    """Test power bounds metric for battery pool with subset of components in the microgrid.
+async def test_battery_pool_active_power_bounds(
+    setup_batteries_pool: SetupArgs,
+) -> None:
+    """Test active_power bounds metric for battery pool with subset of components in the microgrid.
 
     Args:
         setup_all_batteries: Fixture that creates needed microgrid tools.
     """
-    await run_power_bounds_test(setup_batteries_pool)
+    await run_active_power_bounds_test(setup_batteries_pool)
 
 
 def assert_dataclass(arg: Any) -> None:
@@ -436,29 +440,29 @@ async def run_test_battery_status_channel(  # pylint: disable=too-many-arguments
     compare_messages(msg, all_pool_result, waiting_time_sec)
 
 
-async def test_battery_pool_power(mocker: MockerFixture) -> None:
-    """Test `BatteryPool.{,production,consumption}_power` methods."""
+async def test_battery_pool_active_power(mocker: MockerFixture) -> None:
+    """Test `BatteryPool.{,production,consumption}_active_power` methods."""
     mockgrid = MockMicrogrid(grid_side_meter=True)
     mockgrid.add_batteries(2)
     await mockgrid.start_mock_datapipeline(mocker)
 
     battery_pool = microgrid.battery_pool()
-    power_receiver = battery_pool.power.new_receiver()
-    consumption_receiver = battery_pool.consumption_power.new_receiver()
-    production_receiver = battery_pool.production_power.new_receiver()
+    active_power_receiver = battery_pool.active_power.new_receiver()
+    consumption_receiver = battery_pool.consumption_active_power.new_receiver()
+    production_receiver = battery_pool.production_active_power.new_receiver()
 
-    await mockgrid.mock_data.send_bat_inverter_power([2.0, 3.0])
-    assert (await power_receiver.receive()).value == Power.from_watts(5.0)
+    await mockgrid.mock_data.send_bat_inverter_active_power([2.0, 3.0])
+    assert (await active_power_receiver.receive()).value == Power.from_watts(5.0)
     assert (await consumption_receiver.receive()).value == Power.from_watts(5.0)
     assert (await production_receiver.receive()).value == Power.from_watts(0.0)
 
-    await mockgrid.mock_data.send_bat_inverter_power([-2.0, -5.0])
-    assert (await power_receiver.receive()).value == Power.from_watts(-7.0)
+    await mockgrid.mock_data.send_bat_inverter_active_power([-2.0, -5.0])
+    assert (await active_power_receiver.receive()).value == Power.from_watts(-7.0)
     assert (await consumption_receiver.receive()).value == Power.from_watts(0.0)
     assert (await production_receiver.receive()).value == Power.from_watts(7.0)
 
-    await mockgrid.mock_data.send_bat_inverter_power([2.0, -5.0])
-    assert (await power_receiver.receive()).value == Power.from_watts(-3.0)
+    await mockgrid.mock_data.send_bat_inverter_active_power([2.0, -5.0])
+    assert (await active_power_receiver.receive()).value == Power.from_watts(-3.0)
     assert (await consumption_receiver.receive()).value == Power.from_watts(0.0)
     assert (await production_receiver.receive()).value == Power.from_watts(3.0)
 
@@ -781,10 +785,10 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
     compare_messages(msg, Sample(now, Percentage.from_percent(50.0)), 0.2)
 
 
-async def run_power_bounds_test(  # pylint: disable=too-many-locals
+async def run_active_power_bounds_test(  # pylint: disable=too-many-locals
     setup_args: SetupArgs,
 ) -> None:
-    """Test if power bounds metric is working as expected.
+    """Test if active_power bounds metric is working as expected.
 
     Args:
         setup_args: Needed sdk tools and tools for mocking microgrid.
@@ -808,8 +812,8 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
             BatteryDataWrapper(
                 component_id=battery_id,
                 timestamp=datetime.now(tz=timezone.utc),
-                power_lower_bound=-1000,
-                power_upper_bound=5000,
+                active_power_lower_bound=-1000,
+                active_power_upper_bound=5000,
             ),
             sampling_rate=0.05,
         )
@@ -823,7 +827,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
             sampling_rate=0.1,
         )
 
-    receiver = battery_pool.power_bounds.new_receiver(maxsize=50)
+    receiver = battery_pool.active_power_bounds.new_receiver(maxsize=50)
 
     # First metrics delivers slower because of the startup delay in the pool.
     msg = await asyncio.wait_for(
@@ -853,12 +857,12 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
         ),
         Scenario(
             batteries_in_pool[0],
-            {"power_lower_bound": 0, "power_upper_bound": 4000},
+            {"active_power_lower_bound": 0, "active_power_upper_bound": 4000},
             PowerMetrics(now, Bound(-900, 0), Bound(0, 9000)),
         ),
         Scenario(
             batteries_in_pool[1],
-            {"power_lower_bound": -10, "power_upper_bound": 200},
+            {"active_power_lower_bound": -10, "active_power_upper_bound": 200},
             PowerMetrics(now, Bound(-10, 0), Bound(0, 4200)),
         ),
         # Test 2 things:
@@ -867,7 +871,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
         # Setting upper bound to NaN should not influence lower bound
         Scenario(
             batteries_in_pool[0],
-            {"power_lower_bound": -50, "power_upper_bound": math.nan},
+            {"active_power_lower_bound": -50, "active_power_upper_bound": math.nan},
             PowerMetrics(now, Bound(-60, 0), Bound(0, 9200)),
         ),
         Scenario(
@@ -880,14 +884,14 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
         ),
         Scenario(
             batteries_in_pool[0],
-            {"power_lower_bound": math.nan},
+            {"active_power_lower_bound": math.nan},
             PowerMetrics(now, Bound(-10, 0), Bound(0, 200)),
         ),
         Scenario(
             batteries_in_pool[1],
             {
-                "power_lower_bound": -100,
-                "power_upper_bound": math.nan,
+                "active_power_lower_bound": -100,
+                "active_power_upper_bound": math.nan,
             },
             PowerMetrics(now, Bound(-100, 0), Bound(0, 6000)),
         ),
@@ -903,14 +907,14 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
         Scenario(
             batteries_in_pool[1],
             {
-                "power_lower_bound": math.nan,
-                "power_upper_bound": math.nan,
+                "active_power_lower_bound": math.nan,
+                "active_power_upper_bound": math.nan,
             },
             None,
         ),
         Scenario(
             batteries_in_pool[0],
-            {"power_lower_bound": -100, "power_upper_bound": 100},
+            {"active_power_lower_bound": -100, "active_power_upper_bound": 100},
             PowerMetrics(now, Bound(-100, 0), Bound(0, 100)),
         ),
         Scenario(
@@ -924,8 +928,8 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
         Scenario(
             batteries_in_pool[1],
             {
-                "power_lower_bound": -300,
-                "power_upper_bound": 700,
+                "active_power_lower_bound": -300,
+                "active_power_upper_bound": 700,
             },
             PowerMetrics(now, Bound(-400, 0), Bound(0, 500)),
         ),
@@ -970,7 +974,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
     compare_messages(msg, PowerMetrics(now, Bound(-400, 0), Bound(0, 400)), 0.2)
 
-    # All components stopped sending data, we can assume that power bounds are 0
+    # All components stopped sending data, we can assume that active_power bounds are 0
     await streamer.stop_streaming(bat_inv_map[batteries_in_pool[1]])
     await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.2)
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)

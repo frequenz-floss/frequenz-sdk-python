@@ -14,16 +14,16 @@ _logger = logging.getLogger(__name__)
 
 
 class EVChargerPowerFormula(FormulaGenerator[Power]):
-    """Create a formula engine from the component graph for calculating grid power."""
+    """Create a formula engine from the component graph for calculating grid active_power."""
 
     def generate(self) -> FormulaEngine[Power]:
-        """Generate a formula for calculating total EV power for given component ids.
+        """Generate a formula for calculating total EV active_power for given component ids.
 
         Returns:
-            A formula engine that calculates total EV Charger power values.
+            A formula engine that calculates total EV Charger active_power values.
         """
         builder = self._get_builder(
-            "ev-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
+            "ev-active_power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
         )
 
         component_ids = self._config.component_ids

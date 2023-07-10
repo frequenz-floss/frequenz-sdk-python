@@ -98,8 +98,12 @@ class BatteryPoolStatus:
         self._current_status = BatteryStatus(working=set(), uncertain=set())
 
         # Channel for sending results of requests to the batteries
-        set_power_result_channel = Broadcast[SetPowerResult]("battery_request_status")
-        self._set_power_result_sender = set_power_result_channel.new_sender()
+        set_active_power_result_channel = Broadcast[SetPowerResult](
+            "battery_request_status"
+        )
+        self._set_active_power_result_sender = (
+            set_active_power_result_channel.new_sender()
+        )
 
         self._batteries: Dict[str, BatteryStatusTracker] = {}
 
@@ -116,7 +120,7 @@ class BatteryPoolStatus:
                 max_data_age_sec=max_data_age_sec,
                 max_blocking_duration_sec=max_blocking_duration_sec,
                 status_sender=channel.sender,
-                set_power_result_receiver=set_power_result_channel.new_receiver(
+                set_active_power_result_receiver=set_active_power_result_channel.new_receiver(
                     f"battery_{battery_id}_request_status"
                 ),
             )
@@ -200,7 +204,7 @@ class BatteryPoolStatus:
             succeed_batteries: Batteries that succeed request
             failed_batteries: Batteries that failed request
         """
-        await self._set_power_result_sender.send(
+        await self._set_active_power_result_sender.send(
             SetPowerResult(succeed_batteries, failed_batteries)
         )
 

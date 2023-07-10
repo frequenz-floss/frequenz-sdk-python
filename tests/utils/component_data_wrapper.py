@@ -38,8 +38,8 @@ class BatteryDataWrapper(BatteryData):
     soc_lower_bound: float = math.nan
     soc_upper_bound: float = math.nan
     capacity: float = math.nan
-    power_lower_bound: float = math.nan
-    power_upper_bound: float = math.nan
+    active_power_lower_bound: float = math.nan
+    active_power_upper_bound: float = math.nan
     temperature_max: float = math.nan
     _relay_state: battery_pb.RelayState.ValueType = (
         battery_pb.RelayState.RELAY_STATE_UNSPECIFIED

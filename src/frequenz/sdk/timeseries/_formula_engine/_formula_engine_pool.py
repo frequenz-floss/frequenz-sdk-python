@@ -48,7 +48,7 @@ class FormulaEnginePool:
         self._channel_registry = channel_registry
         self._resampler_subscription_sender = resampler_subscription_sender
         self._string_engines: dict[str, FormulaEngine[Quantity]] = {}
-        self._power_engines: dict[str, FormulaEngine[Power]] = {}
+        self._active_power_engines: dict[str, FormulaEngine[Power]] = {}
         self._current_engines: dict[str, FormulaEngine3Phase[Current]] = {}
 
     def from_string(
@@ -86,7 +86,7 @@ class FormulaEnginePool:
 
         return formula_engine
 
-    def from_power_formula_generator(
+    def from_active_power_formula_generator(
         self,
         channel_key: str,
         generator: Type[FormulaGenerator[Power]],
@@ -107,8 +107,8 @@ class FormulaEnginePool:
             FormulaEngine,
         )
 
-        if channel_key in self._power_engines:
-            return self._power_engines[channel_key]
+        if channel_key in self._active_power_engines:
+            return self._active_power_engines[channel_key]
 
         engine = generator(
             self._namespace,
@@ -117,7 +117,7 @@ class FormulaEnginePool:
             config,
         ).generate()
         assert isinstance(engine, FormulaEngine)
-        self._power_engines[channel_key] = engine
+        self._active_power_engines[channel_key] = engine
         return engine
 
     def from_3_phase_current_formula_generator(
@@ -158,7 +158,7 @@ class FormulaEnginePool:
         """Stop all formula engines in the pool."""
         for string_engine in self._string_engines.values():
             await string_engine._stop()  # pylint: disable=protected-access
-        for power_engine in self._power_engines.values():
-            await power_engine._stop()  # pylint: disable=protected-access
+        for active_power_engine in self._active_power_engines.values():
+            await active_power_engine._stop()  # pylint: disable=protected-access
         for current_engine in self._current_engines.values():
             await current_engine._stop()  # pylint: disable=protected-access

@@ -11,21 +11,21 @@ from ._formula_generator import ComponentNotFound, FormulaGenerator, FormulaType
 
 
 class GridPowerFormula(FormulaGenerator[Power]):
-    """Creates a formula engine from the component graph for calculating grid power."""
+    """Creates a formula engine from the component graph for calculating grid active_power."""
 
     def generate(
         self,
     ) -> FormulaEngine[Power]:
-        """Generate a formula for calculating grid power from the component graph.
+        """Generate a formula for calculating grid active_power from the component graph.
 
         Returns:
-            A formula engine that will calculate grid power values.
+            A formula engine that will calculate grid active_power values.
 
         Raises:
             ComponentNotFound: when the component graph doesn't have a `GRID` component.
         """
         builder = self._get_builder(
-            "grid-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
+            "grid-active_power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
         )
         component_graph = connection_manager.get().component_graph
         grid_component = next(

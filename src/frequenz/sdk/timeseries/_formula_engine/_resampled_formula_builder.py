@@ -42,7 +42,7 @@ class ResampledFormulaBuilder(Generic[QuantityT], FormulaBuilder[QuantityT]):
                 resampling actor.
             metric_id: A metric ID to fetch for all components in this formula.
             create_method: A method to generate the output `Sample` value with.  If the
-                formula is for generating power values, this would be
+                formula is for generating active_power values, this would be
                 `Power.from_watts`, for example.
         """
         self._channel_registry = channel_registry

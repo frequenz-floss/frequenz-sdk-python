@@ -19,24 +19,25 @@ from ._formula_generator import (
 class ProducerPowerFormula(FormulaGenerator[Power]):
     """Formula generator from component graph for calculating the Producer Power.
 
-    The producer power is calculated by summing up the power of all power producers,
+    The producer active_power is calculated by summing up the active_power
+    of all active_power producers,
     which are CHP and PV.
     """
 
     def generate(self) -> FormulaEngine[Power]:
-        """Generate formula for calculating producer power from the component graph.
+        """Generate formula for calculating producer active_power from the component graph.
 
         Returns:
-            A formula engine that will calculate the producer power.
+            A formula engine that will calculate the producer active_power.
 
         Raises:
-            ComponentNotFound: If the component graph does not contain a producer power
+            ComponentNotFound: If the component graph does not contain a producer active_power
                 component.
             RuntimeError: If the grid component has a single successor that is not a
                 meter.
         """
         builder = self._get_builder(
-            "producer_power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
+            "producer_active_power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
         )
         component_graph = connection_manager.get().component_graph
         grid_component = next(

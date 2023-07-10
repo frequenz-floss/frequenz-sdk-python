@@ -1,12 +1,12 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""Actor to distribute power between batteries.
+"""Actor to distribute active_power between batteries.
 
-When charge/discharge method is called the power should be distributed so that
+When charge/discharge method is called the active_power should be distributed so that
 the SoC in batteries stays at the same level. That way of distribution
 prevents using only one battery, increasing temperature, and maximize the total
-amount power to charge/discharge.
+amount active_power to charge/discharge.
 
 Purpose of this actor is to keep SoC level of each component at the equal level.
 """
@@ -81,7 +81,7 @@ class _CacheEntry:
 @actor
 class PowerDistributingActor:
     # pylint: disable=too-many-instance-attributes
-    """Actor to distribute the power between batteries in a microgrid.
+    """Actor to distribute the active_power between batteries in a microgrid.
 
     The purpose of this tool is to keep an equal SoC level in all batteries.
     The PowerDistributingActor can have many concurrent users which at this time
@@ -138,9 +138,9 @@ class PowerDistributingActor:
 
         battery_status_channel = Broadcast[BatteryStatus]("battery-status")
 
-        channel = Broadcast[Request]("power_distributor")
-        channel_registry = ChannelRegistry(name="power_distributor")
-        power_distributor = PowerDistributingActor(
+        channel = Broadcast[Request]("active_power_distributor")
+        channel_registry = ChannelRegistry(name="active_power_distributor")
+        active_power_distributor = PowerDistributingActor(
             requests_receiver=channel.new_receiver(),
             channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
@@ -148,10 +148,10 @@ class PowerDistributingActor:
 
         sender = channel.new_sender()
         namespace: str = "namespace"
-        # Set power 1200W to given batteries.
+        # Set active_power 1200W to given batteries.
         request = Request(
             namespace=namespace,
-            power=1200.0,
+            active_power=1200.0,
             batteries=batteries_ids,
             request_timeout_sec=10.0
         )
@@ -165,8 +165,8 @@ class PowerDistributingActor:
             print("Command succeed")
         elif isinstance(result, PartialFailure):
             print(
-                f"Batteries {result.failed_batteries} failed, total failed power" \
-                f"{result.failed_power}"
+                f"Batteries {result.failed_batteries} failed, total failed active_power" \
+                f"{result.failed_active_power}"
             )
         elif isinstance(result, Ignored):
             print("Request was ignored, because of newer request")
@@ -185,7 +185,7 @@ class PowerDistributingActor:
         """Create class instance.
 
         Args:
-            requests_receiver: Receiver for receiving power requests from other actors.
+            requests_receiver: Receiver for receiving active_power requests from other actors.
             channel_registry: Channel registry for creating result channels dynamically
                 for each request namespace.
             battery_status_sender: Channel for sending information which batteries are
@@ -203,10 +203,10 @@ class PowerDistributingActor:
         to their senders, for fast access.
         """
 
-        # NOTE: power_distributor_exponent should be received from ConfigManager
-        self.power_distributor_exponent: float = 1.0
+        # NOTE: active_power_distributor_exponent should be received from ConfigManager
+        self.active_power_distributor_exponent: float = 1.0
         self.distribution_algorithm = DistributionAlgorithm(
-            self.power_distributor_exponent
+            self.active_power_distributor_exponent
         )
 
         self._bat_inv_map, self._inv_bat_map = self._get_components_pairs(
@@ -227,7 +227,7 @@ class PowerDistributingActor:
         }
 
     def _get_upper_bound(self, batteries: abc.Set[int], include_broken: bool) -> float:
-        """Get total upper bound of power to be set for given batteries.
+        """Get total upper bound of active_power to be set for given batteries.
 
         Note, output of that function doesn't guarantee that this bound will be
         the same when the request is processed.
@@ -238,18 +238,18 @@ class PowerDistributingActor:
                 request must be used regardless the status.
 
         Returns:
-            Upper bound for `set_power` operation.
+            Upper bound for `set_active_power` operation.
         """
         pairs_data: List[InvBatPair] = self._get_components_data(
             batteries, include_broken
         )
         return sum(
-            min(battery.power_upper_bound, inverter.active_power_upper_bound)
+            min(battery.active_power_upper_bound, inverter.active_power_upper_bound)
             for battery, inverter in pairs_data
         )
 
     def _get_lower_bound(self, batteries: abc.Set[int], include_broken: bool) -> float:
-        """Get total lower bound of power to be set for given batteries.
+        """Get total lower bound of active_power to be set for given batteries.
 
         Note, output of that function doesn't guarantee that this bound will be
         the same when the request is processed.
@@ -260,13 +260,13 @@ class PowerDistributingActor:
                 request must be used regardless the status.
 
         Returns:
-            Lower bound for `set_power` operation.
+            Lower bound for `set_active_power` operation.
         """
         pairs_data: List[InvBatPair] = self._get_components_data(
             batteries, include_broken
         )
         return sum(
-            max(battery.power_lower_bound, inverter.active_power_lower_bound)
+            max(battery.active_power_lower_bound, inverter.active_power_lower_bound)
             for battery, inverter in pairs_data
         )
 
@@ -288,8 +288,8 @@ class PowerDistributingActor:
         """Run actor main function.
 
         It waits for new requests in task_queue and process it, and send
-        `set_power` request with distributed power.
-        The output of the `set_power` method is processed.
+        `set_active_power` request with distributed active_power.
+        The output of the `set_active_power` method is processed.
         Every battery and inverter that failed or didn't respond in time will be marked
         as broken for some time.
         """
@@ -324,26 +324,31 @@ class PowerDistributingActor:
                 continue
 
             try:
-                distribution = self._get_power_distribution(request, pairs_data)
+                distribution = self._get_active_power_distribution(request, pairs_data)
             except ValueError as err:
-                error_msg = f"Couldn't distribute power, error: {str(err)}"
+                error_msg = f"Couldn't distribute active_power, error: {str(err)}"
                 await self._send_result(
                     request.namespace, Error(request=request, msg=str(error_msg))
                 )
                 continue
 
-            distributed_power_value = request.power - distribution.remaining_power
+            distributed_active_power_value = (
+                request.active_power - distribution.remaining_active_power
+            )
             battery_distribution = {
                 self._inv_bat_map[bat_id]: dist
                 for bat_id, dist in distribution.distribution.items()
             }
             _logger.debug(
-                "Distributing power %d between the batteries %s",
-                distributed_power_value,
+                "Distributing active_power %d between the batteries %s",
+                distributed_active_power_value,
                 str(battery_distribution),
             )
 
-            failed_power, failed_batteries = await self._set_distributed_power(
+            (
+                failed_active_power,
+                failed_batteries,
+            ) = await self._set_distributed_active_power(
                 api, distribution, request.request_timeout_sec
             )
 
@@ -352,19 +357,19 @@ class PowerDistributingActor:
                 succeed_batteries = set(battery_distribution.keys()) - failed_batteries
                 response = PartialFailure(
                     request=request,
-                    succeeded_power=distributed_power_value,
+                    succeeded_active_power=distributed_active_power_value,
                     succeeded_batteries=succeed_batteries,
-                    failed_power=failed_power,
+                    failed_active_power=failed_active_power,
                     failed_batteries=failed_batteries,
-                    excess_power=distribution.remaining_power,
+                    excess_active_power=distribution.remaining_active_power,
                 )
             else:
                 succeed_batteries = set(battery_distribution.keys())
                 response = Success(
                     request=request,
-                    succeeded_power=distributed_power_value,
+                    succeeded_active_power=distributed_active_power_value,
                     succeeded_batteries=succeed_batteries,
-                    excess_power=distribution.remaining_power,
+                    excess_active_power=distribution.remaining_active_power,
                 )
 
             asyncio.gather(
@@ -376,13 +381,13 @@ class PowerDistributingActor:
                 ]
             )
 
-    async def _set_distributed_power(
+    async def _set_distributed_active_power(
         self,
         api: MicrogridApiClient,
         distribution: DistributionResult,
         timeout_sec: float,
     ) -> Tuple[float, Set[int]]:
-        """Send distributed power to the inverters.
+        """Send distributed active_power to the inverters.
 
         Args:
             api: Microgrid api client
@@ -390,12 +395,14 @@ class PowerDistributingActor:
             timeout_sec: How long wait for the response
 
         Returns:
-            Tuple where first element is total failed power, and the second element
+            Tuple where first element is total failed active_power, and the second element
             set of batteries that failed.
         """
         tasks = {
-            inverter_id: asyncio.create_task(api.set_power(inverter_id, power))
-            for inverter_id, power in distribution.distribution.items()
+            inverter_id: asyncio.create_task(
+                api.set_active_power(inverter_id, active_power)
+            )
+            for inverter_id, active_power in distribution.distribution.items()
         }
 
         _, pending = await asyncio.wait(
@@ -408,17 +415,17 @@ class PowerDistributingActor:
 
         return self._parse_result(tasks, distribution.distribution, timeout_sec)
 
-    def _get_power_distribution(
+    def _get_active_power_distribution(
         self, request: Request, inv_bat_pairs: List[InvBatPair]
     ) -> DistributionResult:
-        """Get power distribution result for the batteries in the request.
+        """Get active_power distribution result for the batteries in the request.
 
         Args:
-            request: the power request to process.
+            request: the active_power request to process.
             inv_bat_pairs: the battery and adjacent inverter data pairs.
 
         Returns:
-            the power distribution result.
+            the active_power distribution result.
         """
         available_bat_ids = {battery.component_id for battery, _ in inv_bat_pairs}
         unavailable_bat_ids = request.batteries - available_bat_ids
@@ -427,22 +434,24 @@ class PowerDistributingActor:
         }
 
         if request.include_broken_batteries and not available_bat_ids:
-            return self.distribution_algorithm.distribute_power_equally(
-                request.power, unavailable_inv_ids
+            return self.distribution_algorithm.distribute_active_power_equally(
+                request.active_power, unavailable_inv_ids
             )
 
-        result = self.distribution_algorithm.distribute_power(
-            request.power, inv_bat_pairs
+        result = self.distribution_algorithm.distribute_active_power(
+            request.active_power, inv_bat_pairs
         )
 
         if request.include_broken_batteries and unavailable_inv_ids:
-            additional_result = self.distribution_algorithm.distribute_power_equally(
-                result.remaining_power, unavailable_inv_ids
+            additional_result = (
+                self.distribution_algorithm.distribute_active_power_equally(
+                    result.remaining_active_power, unavailable_inv_ids
+                )
             )
 
-            for inv_id, power in additional_result.distribution.items():
-                result.distribution[inv_id] = power
-            result.remaining_power = 0.0
+            for inv_id, active_power in additional_result.distribution.items():
+                result.distribution[inv_id] = active_power
+            result.remaining_active_power = 0.0
 
         return result
 
@@ -466,18 +475,18 @@ class PowerDistributingActor:
                 )
                 return Error(request=request, msg=msg)
 
-        if not request.adjust_power:
-            if request.power < 0:
+        if not request.adjust_active_power:
+            if request.active_power < 0:
                 bound = self._get_lower_bound(
                     request.batteries, request.include_broken_batteries
                 )
-                if request.power < bound:
+                if request.active_power < bound:
                     return OutOfBound(request=request, bound=bound)
             else:
                 bound = self._get_upper_bound(
                     request.batteries, request.include_broken_batteries
                 )
-                if request.power > bound:
+                if request.active_power > bound:
                     return OutOfBound(request=request, bound=bound)
 
         return None
@@ -581,8 +590,8 @@ class PowerDistributingActor:
         Each float data from the microgrid can be "NaN".
         We can't do math operations on "NaN".
         So check all the metrics and:
-        * if power bounds are NaN, then try to replace it with the corresponding
-          power bounds from the adjacent component. If metric in the adjacent component
+        * if active_power bounds are NaN, then try to replace it with the corresponding
+          active_power bounds from the adjacent component. If metric in the adjacent component
           is also NaN, then return None.
         * if other metrics are NaN then return None. We can't assume anything for other
           metrics.
@@ -622,8 +631,8 @@ class PowerDistributingActor:
             return None
 
         replaceable_metrics = [
-            battery_data.power_lower_bound,
-            battery_data.power_upper_bound,
+            battery_data.active_power_lower_bound,
+            battery_data.active_power_upper_bound,
             inverter_data.active_power_lower_bound,
             inverter_data.active_power_upper_bound,
         ]
@@ -637,8 +646,8 @@ class PowerDistributingActor:
         # Replace NaN with the corresponding value in the adjacent component.
         # If both metrics are None, return None to ignore this battery.
         replaceable_pairs = [
-            ("power_lower_bound", "active_power_lower_bound"),
-            ("power_upper_bound", "active_power_upper_bound"),
+            ("active_power_lower_bound", "active_power_lower_bound"),
+            ("active_power_upper_bound", "active_power_upper_bound"),
         ]
 
         battery_new_metrics = {}
@@ -677,23 +686,24 @@ class PowerDistributingActor:
         distribution: Dict[int, float],
         request_timeout_sec: float,
     ) -> Tuple[float, Set[int]]:
-        """Parse the results of `set_power` requests.
+        """Parse the results of `set_active_power` requests.
 
         Check if any task has failed and determine the reason for failure.
         If any task did not succeed, then the corresponding battery is marked as broken.
 
         Args:
             tasks: A dictionary where the key is the inverter ID and the value is the task that
-                set the power for this inverter. Each task should be finished or cancelled.
+                set the active_power for this inverter. Each task should be finished or cancelled.
             distribution: A dictionary where the key is the inverter ID and the value is how much
-                power was set to the corresponding inverter.
+                active_power was set to the corresponding inverter.
             request_timeout_sec: The timeout that was used for the request.
 
         Returns:
-            A tuple where the first element is the total failed power, and the second element is
+            A tuple where the first element is the total failed active_power,
+            and the second element is
             the set of batteries that failed.
         """
-        failed_power: float = 0.0
+        failed_active_power: float = 0.0
         failed_batteries: Set[int] = set()
 
         for inverter_id, aws in tasks.items():
@@ -701,22 +711,22 @@ class PowerDistributingActor:
             try:
                 aws.result()
             except grpc.aio.AioRpcError as err:
-                failed_power += distribution[inverter_id]
+                failed_active_power += distribution[inverter_id]
                 failed_batteries.add(battery_id)
                 if err.code() == grpc.StatusCode.OUT_OF_RANGE:
                     _logger.debug(
-                        "Set power for battery %d failed, error %s",
+                        "Set active_power for battery %d failed, error %s",
                         battery_id,
                         str(err),
                     )
                 else:
                     _logger.warning(
-                        "Set power for battery %d failed, error %s. Mark it as broken.",
+                        "Set active_power for battery %d failed, error %s. Mark it as broken.",
                         battery_id,
                         str(err),
                     )
             except asyncio.exceptions.CancelledError:
-                failed_power += distribution[inverter_id]
+                failed_active_power += distribution[inverter_id]
                 failed_batteries.add(battery_id)
                 _logger.warning(
                     "Battery %d didn't respond in %f sec. Mark it as broken.",
@@ -724,7 +734,7 @@ class PowerDistributingActor:
                     request_timeout_sec,
                 )
 
-        return failed_power, failed_batteries
+        return failed_active_power, failed_batteries
 
     async def _cancel_tasks(self, tasks: Iterable[asyncio.Task[Any]]) -> None:
         """Cancel given asyncio tasks and wait for them.

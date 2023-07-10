@@ -73,7 +73,7 @@ class FormulaEvaluator(Generic[QuantityT]):
             steps: Steps for the engine to execute, in post-fix order.
             metric_fetchers: Fetchers for each metric stream the formula depends on.
             create_method: A method to generate the output `Sample` value with.  If the
-                formula is for generating power values, this would be
+                formula is for generating active_power values, this would be
                 `Power.from_watts`, for example.
         """
         self._name = name
@@ -316,7 +316,7 @@ class FormulaEngine(
             builder: A `FormulaBuilder` instance to get the formula steps and metric
                 fetchers from.
             create_method: A method to generate the output `Sample` value with.  If the
-                formula is for generating power values, this would be
+                formula is for generating active_power values, this would be
                 `Power.from_watts`, for example.
         """
         self._higher_order_builder = HigherOrderFormulaBuilder
@@ -370,7 +370,7 @@ class FormulaEngine(
         # `asyncio.create_task` docs here:
         # https://docs.python.org/3/library/asyncio-task.html#asyncio.create_task
         #
-        #     formula = (grid_power_engine + bat_power_engine).build().new_receiver()
+        #     formula = (grid_active_power_engine + bat_active_power_engine).build().new_receiver()
         recv._engine_reference = self  # type: ignore # pylint: disable=protected-access
         return recv
 
@@ -403,7 +403,7 @@ class FormulaEngine3Phase(
         Args:
             name: A name for the formula.
             create_method: A method to generate the output `Sample` value with.  If the
-                formula is for generating power values, this would be
+                formula is for generating active_power values, this would be
                 `Power.from_watts`, for example.
             phase_streams: output streams of formula engines running per-phase formulas.
         """
@@ -493,7 +493,7 @@ class FormulaBuilder(Generic[QuantityT]):
         Args:
             name: A name for the formula being built.
             create_method: A method to generate the output `Sample` value with.  If the
-                formula is for generating power values, this would be
+                formula is for generating active_power values, this would be
                 `Power.from_watts`, for example.
         """
         self._name = name
@@ -678,7 +678,7 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
             engine: A first input stream to create a builder with, so that python
                 operators `+, -, *, /` can be used directly on newly created instances.
             create_method: A method to generate the output `Sample` value with.  If the
-                formula is for generating power values, this would be
+                formula is for generating active_power values, this would be
                 `Power.from_watts`, for example.
         """
         self._steps: deque[

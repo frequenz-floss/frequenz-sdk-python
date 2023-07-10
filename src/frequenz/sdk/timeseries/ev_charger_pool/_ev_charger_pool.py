@@ -132,23 +132,23 @@ class EVChargerPool:
         return engine
 
     @property
-    def power(self) -> FormulaEngine[Power]:
-        """Fetch the total power for the EV Chargers in the pool.
+    def active_power(self) -> FormulaEngine[Power]:
+        """Fetch the total active_power for the EV Chargers in the pool.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
-        If a formula engine to calculate EV Charger power is not already running, it
+        If a formula engine to calculate EV Charger active_power is not already running, it
         will be started.
 
         A receiver from the formula engine can be created using the `new_receiver`
         method.
 
         Returns:
-            A FormulaEngine that will calculate and stream the total power of all EV
+            A FormulaEngine that will calculate and stream the total active_power of all EV
                 Chargers.
         """
-        engine = self._formula_pool.from_power_formula_generator(
-            "ev_charger_power",
+        engine = self._formula_pool.from_active_power_formula_generator(
+            "ev_charger_active_power",
             EVChargerPowerFormula,
             FormulaGeneratorConfig(
                 component_ids=self._component_ids,
@@ -159,23 +159,23 @@ class EVChargerPool:
         return engine
 
     @property
-    def production_power(self) -> FormulaEngine[Power]:
-        """Fetch the total power produced by the EV Chargers in the pool.
+    def production_active_power(self) -> FormulaEngine[Power]:
+        """Fetch the total active_power produced by the EV Chargers in the pool.
 
-        This formula produces positive values when producing power and 0 otherwise.
+        This formula produces positive values when producing active_power and 0 otherwise.
 
-        If a formula engine to calculate EV Charger power is not already running, it
+        If a formula engine to calculate EV Charger active_power is not already running, it
         will be started.
 
         A receiver from the formula engine can be created using the `new_receiver`
         method.
 
         Returns:
-            A FormulaEngine that will calculate and stream the production power of all
+            A FormulaEngine that will calculate and stream the production active_power of all
                 EV Chargers.
         """
-        engine = self._formula_pool.from_power_formula_generator(
-            "ev_charger_production_power",
+        engine = self._formula_pool.from_active_power_formula_generator(
+            "ev_charger_production_active_power",
             EVChargerPowerFormula,
             FormulaGeneratorConfig(
                 component_ids=self._component_ids,
@@ -186,23 +186,23 @@ class EVChargerPool:
         return engine
 
     @property
-    def consumption_power(self) -> FormulaEngine[Power]:
-        """Fetch the total power consumed by the EV Chargers in the pool.
+    def consumption_active_power(self) -> FormulaEngine[Power]:
+        """Fetch the total active_power consumed by the EV Chargers in the pool.
 
-        This formula produces positive values when consuming power and 0 otherwise.
+        This formula produces positive values when consuming active_power and 0 otherwise.
 
-        If a formula engine to calculate EV Charger power is not already running, it
+        If a formula engine to calculate EV Charger active_power is not already running, it
         will be started.
 
         A receiver from the formula engine can be created using the `new_receiver`
         method.
 
         Returns:
-            A FormulaEngine that will calculate and stream the consumption power of all
+            A FormulaEngine that will calculate and stream the consumption active_power of all
                 EV Chargers.
         """
-        engine = self._formula_pool.from_power_formula_generator(
-            "ev_charger_consumption_power",
+        engine = self._formula_pool.from_active_power_formula_generator(
+            "ev_charger_consumption_active_power",
             EVChargerPowerFormula,
             FormulaGeneratorConfig(
                 component_ids=self._component_ids,

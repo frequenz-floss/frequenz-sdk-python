@@ -72,27 +72,27 @@ class TestEVChargerPool:
         await state_tracker.stop()
         await mockgrid.cleanup()
 
-    async def test_ev_power(  # pylint: disable=too-many-locals
+    async def test_ev_active_power(  # pylint: disable=too-many-locals
         self,
         mocker: MockerFixture,
     ) -> None:
-        """Test the ev power formula."""
+        """Test the ev active_power formula."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_ev_chargers(3)
         await mockgrid.start_mock_datapipeline(mocker)
 
         ev_pool = microgrid.ev_charger_pool()
-        power_receiver = ev_pool.power.new_receiver()
-        production_receiver = ev_pool.production_power.new_receiver()
-        consumption_receiver = ev_pool.consumption_power.new_receiver()
+        active_power_receiver = ev_pool.active_power.new_receiver()
+        production_receiver = ev_pool.production_active_power.new_receiver()
+        consumption_receiver = ev_pool.consumption_active_power.new_receiver()
 
-        await mockgrid.mock_data.send_evc_power([2.0, 4.0, 10.0])
-        assert (await power_receiver.receive()).value == Power.from_watts(16.0)
+        await mockgrid.mock_data.send_evc_active_power([2.0, 4.0, 10.0])
+        assert (await active_power_receiver.receive()).value == Power.from_watts(16.0)
         assert (await production_receiver.receive()).value == Power.from_watts(0.0)
         assert (await consumption_receiver.receive()).value == Power.from_watts(16.0)
 
-        await mockgrid.mock_data.send_evc_power([2.0, 4.0, -10.0])
-        assert (await power_receiver.receive()).value == Power.from_watts(-4.0)
+        await mockgrid.mock_data.send_evc_active_power([2.0, 4.0, -10.0])
+        assert (await active_power_receiver.receive()).value == Power.from_watts(-4.0)
         assert (await production_receiver.receive()).value == Power.from_watts(4.0)
         assert (await consumption_receiver.receive()).value == Power.from_watts(0.0)
 

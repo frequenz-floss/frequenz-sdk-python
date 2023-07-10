@@ -1,7 +1,7 @@
 # License: MIT
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
-"""A task for sending EV Charger power bounds to the microgrid API."""
+"""A task for sending EV Charger active_power bounds to the microgrid API."""
 
 import asyncio
 import logging
@@ -28,7 +28,7 @@ class ComponentCurrentLimit:
 
 
 class BoundsSetter:
-    """A task for sending EV Charger power bounds to the microgrid API.
+    """A task for sending EV Charger active_power bounds to the microgrid API.
 
     Also, periodically resends the last set bounds to the microgrid API, if no new
     bounds have been set.

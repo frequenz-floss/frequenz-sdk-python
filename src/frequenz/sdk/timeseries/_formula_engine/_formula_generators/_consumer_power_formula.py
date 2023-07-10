@@ -18,24 +18,24 @@ from ._formula_generator import ComponentNotFound, FormulaGenerator
 class ConsumerPowerFormula(FormulaGenerator[Power]):
     """Formula generator from component graph for calculating the Consumer Power.
 
-    The consumer power is calculated by summing up the power of all components that
+    The consumer active_power is calculated by summing up the active_power of all components that
     are not part of a battery, CHP, PV or EV charger chain.
     """
 
     def generate(self) -> FormulaEngine[Power]:
-        """Generate formula for calculating consumer power from the component graph.
+        """Generate formula for calculating consumer active_power from the component graph.
 
         Returns:
-            A formula engine that will calculate the consumer power.
+            A formula engine that will calculate the consumer active_power.
 
         Raises:
-            ComponentNotFound: If the component graph does not contain a consumer power
+            ComponentNotFound: If the component graph does not contain a consumer active_power
                 component.
             RuntimeError: If the grid component has a single successor that is not a
                 meter.
         """
         builder = self._get_builder(
-            "consumer-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
+            "consumer-active_power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
         )
         component_graph = connection_manager.get().component_graph
         grid_component = next(
@@ -68,14 +68,14 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
         builder: ResampledFormulaBuilder[Power],
         grid_meter: Component,
     ) -> FormulaEngine[Power]:
-        """Generate formula for calculating consumer power with grid meter.
+        """Generate formula for calculating consumer active_power with grid meter.
 
         Args:
             builder: The formula engine builder.
             grid_meter: The grid meter component.
 
         Returns:
-            A formula engine that will calculate the consumer power.
+            A formula engine that will calculate the consumer active_power.
         """
         component_graph = connection_manager.get().component_graph
         successors = component_graph.successors(grid_meter.component_id)
@@ -106,14 +106,14 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
         builder: ResampledFormulaBuilder[Power],
         grid_successors: abc.Iterable[Component],
     ) -> FormulaEngine[Power]:
-        """Generate formula for calculating consumer power without a grid meter.
+        """Generate formula for calculating consumer active_power without a grid meter.
 
         Args:
             builder: The formula engine builder.
             grid_successors: The grid successors.
 
         Returns:
-            A formula engine that will calculate the consumer power.
+            A formula engine that will calculate the consumer active_power.
         """
         component_graph = connection_manager.get().component_graph
         is_first = True

@@ -162,7 +162,7 @@ class FakeSelect:
         self,
         battery: Optional[BatteryData] = None,
         inverter: Optional[InverterData] = None,
-        set_power_result: Optional[SetPowerResult] = None,
+        set_active_power_result: Optional[SetPowerResult] = None,
         battery_timer_flag: bool = False,
         inverter_timer_flag: bool = False,
     ) -> None:
@@ -175,14 +175,16 @@ class FakeSelect:
                 that no messages have been received for a while.
             inverter_timer_flag: If true the inverter data timer will be set to indicate
                 that no messages have been received for a while.
-            set_power_result: Expected SetPowerResult message. Defaults to None.
+            set_active_power_result: Expected SetPowerResult message. Defaults to None.
         """
         self.battery = None if battery is None else Message(battery)
         self.inverter = None if inverter is None else Message(inverter)
         self.inverter_timer = inverter_timer_flag
         self.battery_timer = battery_timer_flag
-        self.set_power_result = (
-            None if set_power_result is None else Message(set_power_result)
+        self.set_active_power_result = (
+            None
+            if set_active_power_result is None
+            else Message(set_active_power_result)
         )
 
 
@@ -222,14 +224,16 @@ class TestBatteryStatus:
             mock_microgrid: mock_microgrid fixture
         """
         status_channel = Broadcast[Status]("battery_status")
-        set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
+        set_active_power_result_channel = Broadcast[SetPowerResult](
+            "set_active_power_result"
+        )
 
         tracker = BatteryStatusTracker(
             BATTERY_ID,
             max_data_age_sec=5,
             max_blocking_duration_sec=30,
             status_sender=status_channel.new_sender(),
-            set_power_result_receiver=set_power_result_channel.new_receiver(),
+            set_active_power_result_receiver=set_active_power_result_channel.new_receiver(),
         )
 
         assert tracker.battery_id == BATTERY_ID
@@ -382,7 +386,9 @@ class TestBatteryStatus:
         """
 
         status_channel = Broadcast[Status]("battery_status")
-        set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
+        set_active_power_result_channel = Broadcast[SetPowerResult](
+            "set_active_power_result"
+        )
 
         # increase max_data_age_sec for blocking tests.
         # Otherwise it will block blocking.
@@ -391,7 +397,7 @@ class TestBatteryStatus:
             max_data_age_sec=500,
             max_blocking_duration_sec=30,
             status_sender=status_channel.new_sender(),
-            set_power_result_receiver=set_power_result_channel.new_receiver(),
+            set_active_power_result_receiver=set_active_power_result_channel.new_receiver(),
         )
 
         with time_machine.travel("2022-01-01 00:00 UTC", tick=False) as time:
@@ -409,7 +415,7 @@ class TestBatteryStatus:
             assert tracker._check_status() is None
 
             # message is not correct, component should not block.
-            tracker._handle_status_set_power_result(
+            tracker._handle_status_set_active_power_result(
                 SetPowerResult(succeed={1}, failed={106})
             )
 
@@ -423,7 +429,7 @@ class TestBatteryStatus:
 
             for timeout in expected_blocking_timeout:
                 # message is not correct, component should not block.
-                tracker._handle_status_set_power_result(
+                tracker._handle_status_set_active_power_result(
                     SetPowerResult(succeed={1}, failed={106})
                 )
 
@@ -431,7 +437,7 @@ class TestBatteryStatus:
 
                 # Battery should be still blocked, nothing should happen
                 time.shift(timeout - 1)
-                tracker._handle_status_set_power_result(
+                tracker._handle_status_set_active_power_result(
                     SetPowerResult(succeed={1}, failed={106})
                 )
 
@@ -447,7 +453,7 @@ class TestBatteryStatus:
                 assert tracker._check_status() is Status.WORKING
 
             # should block for 30 sec
-            tracker._handle_status_set_power_result(
+            tracker._handle_status_set_active_power_result(
                 SetPowerResult(succeed={1}, failed={106})
             )
 
@@ -468,14 +474,14 @@ class TestBatteryStatus:
             assert tracker._check_status() is Status.WORKING
 
             # should block for 30 sec
-            tracker._handle_status_set_power_result(
+            tracker._handle_status_set_active_power_result(
                 SetPowerResult(succeed={1}, failed={106})
             )
             assert tracker._check_status() is Status.UNCERTAIN
             time.shift(28)
 
             # If battery succeed, then it should unblock.
-            tracker._handle_status_set_power_result(
+            tracker._handle_status_set_active_power_result(
                 SetPowerResult(succeed={106}, failed={206})
             )
             assert tracker._check_status() is Status.WORKING
@@ -495,14 +501,16 @@ class TestBatteryStatus:
         """
 
         status_channel = Broadcast[Status]("battery_status")
-        set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
+        set_active_power_result_channel = Broadcast[SetPowerResult](
+            "set_active_power_result"
+        )
 
         tracker = BatteryStatusTracker(
             BATTERY_ID,
             max_data_age_sec=5,
             max_blocking_duration_sec=30,
             status_sender=status_channel.new_sender(),
-            set_power_result_receiver=set_power_result_channel.new_receiver(),
+            set_active_power_result_receiver=set_active_power_result_channel.new_receiver(),
         )
 
         with time_machine.travel("2022-01-01 00:00 UTC", tick=False) as time:
@@ -512,7 +520,7 @@ class TestBatteryStatus:
             tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
             assert tracker._check_status() is Status.WORKING
 
-            tracker._handle_status_set_power_result(
+            tracker._handle_status_set_active_power_result(
                 SetPowerResult(succeed={1}, failed={106})
             )
             assert tracker._check_status() is Status.UNCERTAIN
@@ -520,7 +528,7 @@ class TestBatteryStatus:
             expected_blocking_timeout = [1, 2, 4]
             for timeout in expected_blocking_timeout:
                 # message is not correct, component should not block.
-                tracker._handle_status_set_power_result(
+                tracker._handle_status_set_active_power_result(
                     SetPowerResult(succeed={1}, failed={106})
                 )
                 assert tracker._check_status() is None
@@ -542,14 +550,16 @@ class TestBatteryStatus:
         """
 
         status_channel = Broadcast[Status]("battery_status")
-        set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
+        set_active_power_result_channel = Broadcast[SetPowerResult](
+            "set_active_power_result"
+        )
 
         tracker = BatteryStatusTracker(
             BATTERY_ID,
             max_data_age_sec=5,
             max_blocking_duration_sec=30,
             status_sender=status_channel.new_sender(),
-            set_power_result_receiver=set_power_result_channel.new_receiver(),
+            set_active_power_result_receiver=set_active_power_result_channel.new_receiver(),
         )
 
         tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
@@ -558,7 +568,7 @@ class TestBatteryStatus:
         tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
         assert tracker._check_status() is Status.WORKING
 
-        tracker._handle_status_set_power_result(
+        tracker._handle_status_set_active_power_result(
             SetPowerResult(succeed={1}, failed={106})
         )
         assert tracker._check_status() is Status.UNCERTAIN
@@ -571,12 +581,12 @@ class TestBatteryStatus:
         )
         assert tracker._check_status() is Status.NOT_WORKING
 
-        tracker._handle_status_set_power_result(
+        tracker._handle_status_set_active_power_result(
             SetPowerResult(succeed={1}, failed={106})
         )
         assert tracker._check_status() is None
 
-        tracker._handle_status_set_power_result(
+        tracker._handle_status_set_active_power_result(
             SetPowerResult(succeed={106}, failed={})
         )
         assert tracker._check_status() is None
@@ -600,14 +610,16 @@ class TestBatteryStatus:
             mocker: pytest mocker instance
         """
         status_channel = Broadcast[Status]("battery_status")
-        set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
+        set_active_power_result_channel = Broadcast[SetPowerResult](
+            "set_active_power_result"
+        )
 
         tracker = BatteryStatusTracker(
             BATTERY_ID,
             max_data_age_sec=5,
             max_blocking_duration_sec=30,
             status_sender=status_channel.new_sender(),
-            set_power_result_receiver=set_power_result_channel.new_receiver(),
+            set_active_power_result_receiver=set_active_power_result_channel.new_receiver(),
         )
 
         battery_timer_spy = mocker.spy(tracker._battery.data_recv_timer, "reset")
@@ -660,17 +672,19 @@ class TestBatteryStatus:
         """
 
         status_channel = Broadcast[Status]("battery_status")
-        set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
+        set_active_power_result_channel = Broadcast[SetPowerResult](
+            "set_active_power_result"
+        )
 
         status_receiver = status_channel.new_receiver()
-        set_power_result_sender = set_power_result_channel.new_sender()
+        set_active_power_result_sender = set_active_power_result_channel.new_sender()
 
         tracker = BatteryStatusTracker(
             BATTERY_ID,
             max_data_age_sec=5,
             max_blocking_duration_sec=30,
             status_sender=status_channel.new_sender(),
-            set_power_result_receiver=set_power_result_channel.new_receiver(),
+            set_active_power_result_receiver=set_active_power_result_channel.new_receiver(),
         )
         await asyncio.sleep(0.01)
 
@@ -680,7 +694,7 @@ class TestBatteryStatus:
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
             assert status is Status.WORKING
 
-            await set_power_result_sender.send(
+            await set_active_power_result_sender.send(
                 SetPowerResult(succeed={}, failed={BATTERY_ID})
             )
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
@@ -701,7 +715,7 @@ class TestBatteryStatus:
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
             assert status is Status.NOT_WORKING
 
-            await set_power_result_sender.send(
+            await set_active_power_result_sender.send(
                 SetPowerResult(succeed={}, failed={BATTERY_ID})
             )
             await asyncio.sleep(0.3)

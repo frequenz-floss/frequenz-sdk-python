@@ -12,7 +12,7 @@ from .request import Request
 
 @dataclasses.dataclass
 class _BaseResultMixin:
-    """Base mixin class for reporting power distribution results."""
+    """Base mixin class for reporting active_power distribution results."""
 
     request: Request
     """The user's request to which this message responds."""
@@ -32,18 +32,18 @@ class Result(_BaseResultMixin):
 
 @dataclasses.dataclass
 class _BaseSuccessMixin:
-    """Result returned when setting the power succeed for all batteries."""
+    """Result returned when setting the active_power succeed for all batteries."""
 
-    succeeded_power: float
-    """The part of the requested power that was successfully set."""
+    succeeded_active_power: float
+    """The part of the requested active_power that was successfully set."""
 
     succeeded_batteries: set[int]
-    """The subset of batteries for which power was set successfully."""
+    """The subset of batteries for which active_power was set successfully."""
 
-    excess_power: float
-    """The part of the requested power that could not be fulfilled.
+    excess_active_power: float
+    """The part of the requested active_power that could not be fulfilled.
 
-    This happens when the requested power is outside the available power bounds.
+    This happens when the requested active_power is outside the available active_power bounds.
     """
 
 
@@ -55,15 +55,15 @@ class _BaseSuccessMixin:
 
 @dataclasses.dataclass
 class Success(_BaseSuccessMixin, Result):  # Order matters here. See above.
-    """Result returned when setting the power succeeded for all batteries."""
+    """Result returned when setting the active_power succeeded for all batteries."""
 
 
 @dataclasses.dataclass
 class PartialFailure(_BaseSuccessMixin, Result):
     """Result returned when any battery failed to perform the request."""
 
-    failed_power: float
-    """The part of the requested power that failed to be set."""
+    failed_active_power: float
+    """The part of the requested active_power that failed to be set."""
 
     failed_batteries: set[int]
     """The subset of batteries for which the request failed."""
@@ -71,7 +71,7 @@ class PartialFailure(_BaseSuccessMixin, Result):
 
 @dataclasses.dataclass
 class Error(Result):
-    """Result returned when an error occurred and power was not set at all."""
+    """Result returned when an error occurred and active_power was not set at all."""
 
     msg: str
     """The error message explaining why error happened."""
@@ -79,15 +79,15 @@ class Error(Result):
 
 @dataclasses.dataclass
 class OutOfBound(Result):
-    """Result returned when the power was not set because it was out of bounds.
+    """Result returned when the active_power was not set because it was out of bounds.
 
     This result happens when the originating request was done with
-    `adjust_power = False` and the requested power is not within the batteries bounds.
+    `adjust_active_power = False` and the requested active_power is not within the batteries bounds.
     """
 
     bound: float
-    """The total power bound for the requested batteries.
+    """The total active_power bound for the requested batteries.
 
-    If the requested power negative, then this value is the lower bound.
+    If the requested active_power negative, then this value is the lower bound.
     Otherwise it is upper bound.
     """

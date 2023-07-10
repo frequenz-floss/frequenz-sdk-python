@@ -42,12 +42,12 @@ class FormulaType(Enum):
 
     PRODUCTION = 2
     """Formula output will be unsigned values representing production to the grid.  When
-    power is being consumed from the grid instead, this formula will output zero.
+    active_power is being consumed from the grid instead, this formula will output zero.
     """
 
     CONSUMPTION = 3
     """Formula output will be unsigned values representing consumption from the grid.
-    When power is being produced to the grid instead, this formula will output zero.
+    When active_power is being produced to the grid instead, this formula will output zero.
     """
 
 

@@ -35,7 +35,7 @@ async def main() -> None:
     receivers: Dict[str, Receiver[Any]] = {
         "soc": battery_pool.soc.new_receiver(maxsize=1),
         "capacity": battery_pool.capacity.new_receiver(maxsize=1),
-        "power_bounds": battery_pool.power_bounds.new_receiver(maxsize=1),
+        "active_power_bounds": battery_pool.active_power_bounds.new_receiver(maxsize=1),
     }
 
     merged_channel = MergeNamed[Any](**receivers)

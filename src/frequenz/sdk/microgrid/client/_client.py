@@ -169,17 +169,17 @@ class MicrogridApiClient(ABC):
         """
 
     @abstractmethod
-    async def set_power(self, component_id: int, power_w: float) -> None:
-        """Send request to the Microgrid to set power for component.
+    async def set_active_power(self, component_id: int, active_power_w: float) -> None:
+        """Send request to the Microgrid to set active_power for component.
 
-        If power > 0, then component will be charged with this power.
-        If power < 0, then component will be discharged with this power.
-        If power == 0, then stop charging or discharging component.
+        If active_power > 0, then component will be charged with this active_power.
+        If active_power < 0, then component will be discharged with this active_power.
+        If active_power == 0, then stop charging or discharging component.
 
 
         Args:
-            component_id: id of the component to set power.
-            power_w: power to set for the component.
+            component_id: id of the component to set active_power.
+            active_power_w: active_power to set for the component.
         """
 
     @abstractmethod
@@ -561,44 +561,46 @@ class MicrogridGrpcClient(MicrogridApiClient):
             EVChargerData.from_proto,
         ).new_receiver(maxsize=maxsize)
 
-    async def set_power(self, component_id: int, power_w: float) -> None:
-        """Send request to the Microgrid to set power for component.
+    async def set_active_power(self, component_id: int, active_power_w: float) -> None:
+        """Send request to the Microgrid to set active_power for component.
 
-        If power > 0, then component will be charged with this power.
-        If power < 0, then component will be discharged with this power.
-        If power == 0, then stop charging or discharging component.
+        If active_power > 0, then component will be charged with this active_power.
+        If active_power < 0, then component will be discharged with this active_power.
+        If active_power == 0, then stop charging or discharging component.
 
 
         Args:
-            component_id: id of the component to set power.
-            power_w: power to set for the component.
+            component_id: id of the component to set active_power.
+            active_power_w: active_power to set for the component.
 
         Raises:
             AioRpcError: if connection to Microgrid API cannot be established or
                 when the api call exceeded timeout
         """
         try:
-            if power_w >= 0:
+            if active_power_w >= 0:
                 # grpc.aio is missing types and mypy thinks this is not
                 # async iterable, but it is
                 await self.api.Charge(
                     microgrid_pb.PowerLevelParam(
-                        component_id=component_id, power_w=math.floor(power_w)
+                        component_id=component_id,
+                        power_w=math.floor(active_power_w),
                     ),
                     timeout=DEFAULT_GRPC_CALL_TIMEOUT,  # type: ignore[arg-type]
                 )  # type: ignore[misc]
             else:
                 # grpc.aio is missing types and mypy thinks this is not
                 # async iterable, but it is
-                power_w *= -1
+                active_power_w *= -1
                 await self.api.Discharge(
                     microgrid_pb.PowerLevelParam(
-                        component_id=component_id, power_w=math.floor(power_w)
+                        component_id=component_id,
+                        power_w=math.floor(active_power_w),
                     ),
                     timeout=DEFAULT_GRPC_CALL_TIMEOUT,  # type: ignore[arg-type]
                 )  # type: ignore[misc]
         except grpc.aio.AioRpcError as err:
-            msg = f"Failed to set power. Microgrid API: {self.target}. Err: {err.details()}"
+            msg = f"Failed to set active_power. Microgrid API: {self.target}. Err: {err.details()}"
             raise grpc.aio.AioRpcError(
                 code=err.code(),
                 initial_metadata=err.initial_metadata(),

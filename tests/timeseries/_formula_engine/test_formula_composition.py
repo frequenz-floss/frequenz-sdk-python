@@ -37,21 +37,23 @@ class TestFormulaComposition:
             ComponentMetricId.ACTIVE_POWER,
             Power.from_watts,
         )
-        grid_power_recv = logical_meter.grid_power.new_receiver()
-        battery_power_recv = battery_pool.power.new_receiver()
-        pv_power_recv = logical_meter.pv_power.new_receiver()
+        grid_active_power_recv = logical_meter.grid_active_power.new_receiver()
+        battery_active_power_recv = battery_pool.active_power.new_receiver()
+        pv_active_power_recv = logical_meter.pv_active_power.new_receiver()
 
-        engine = (logical_meter.pv_power + battery_pool.power).build("inv_power")
+        engine = (logical_meter.pv_active_power + battery_pool.active_power).build(
+            "inv_active_power"
+        )
         inv_calc_recv = engine.new_receiver()
 
-        await mockgrid.mock_data.send_bat_inverter_power([10.0, 12.0, 14.0])
-        await mockgrid.mock_data.send_meter_power(
+        await mockgrid.mock_data.send_bat_inverter_active_power([10.0, 12.0, 14.0])
+        await mockgrid.mock_data.send_meter_active_power(
             [100.0, 10.0, 12.0, 14.0, -100.0, -200.0]
         )
 
-        grid_pow = await grid_power_recv.receive()
-        pv_pow = await pv_power_recv.receive()
-        bat_pow = await battery_power_recv.receive()
+        grid_pow = await grid_active_power_recv.receive()
+        pv_pow = await pv_active_power_recv.receive()
+        bat_pow = await battery_active_power_recv.receive()
         main_pow = await main_meter_recv.receive()
         inv_calc_pow = await inv_calc_recv.receive()
 
@@ -96,27 +98,29 @@ class TestFormulaComposition:
         await logical_meter.stop()
 
     async def test_formula_composition_missing_pv(self, mocker: MockerFixture) -> None:
-        """Test the composition of formulas with missing PV power data."""
+        """Test the composition of formulas with missing PV active_power data."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_batteries(3)
         await mockgrid.start_mock_datapipeline(mocker)
         battery_pool = microgrid.battery_pool()
         logical_meter = microgrid.logical_meter()
 
-        battery_power_recv = battery_pool.power.new_receiver()
-        pv_power_recv = logical_meter.pv_power.new_receiver()
-        engine = (logical_meter.pv_power + battery_pool.power).build("inv_power")
+        battery_active_power_recv = battery_pool.active_power.new_receiver()
+        pv_active_power_recv = logical_meter.pv_active_power.new_receiver()
+        engine = (logical_meter.pv_active_power + battery_pool.active_power).build(
+            "inv_active_power"
+        )
         inv_calc_recv = engine.new_receiver()
 
         count = 0
         for _ in range(10):
-            await mockgrid.mock_data.send_bat_inverter_power(
+            await mockgrid.mock_data.send_bat_inverter_active_power(
                 [10.0 + count, 12.0 + count, 14.0 + count]
             )
             await mockgrid.mock_data.send_non_existing_component_value()
 
-            bat_pow = await battery_power_recv.receive()
-            pv_pow = await pv_power_recv.receive()
+            bat_pow = await battery_active_power_recv.receive()
+            pv_pow = await pv_active_power_recv.receive()
             inv_pow = await inv_calc_recv.receive()
 
             assert inv_pow == bat_pow
@@ -134,26 +138,28 @@ class TestFormulaComposition:
         assert count == 10
 
     async def test_formula_composition_missing_bat(self, mocker: MockerFixture) -> None:
-        """Test the composition of formulas with missing battery power data."""
+        """Test the composition of formulas with missing battery active_power data."""
         mockgrid = MockMicrogrid(grid_side_meter=False)
         mockgrid.add_solar_inverters(2)
         await mockgrid.start_mock_datapipeline(mocker)
         battery_pool = microgrid.battery_pool()
         logical_meter = microgrid.logical_meter()
 
-        battery_power_recv = battery_pool.power.new_receiver()
-        pv_power_recv = logical_meter.pv_power.new_receiver()
-        engine = (logical_meter.pv_power + battery_pool.power).build("inv_power")
+        battery_active_power_recv = battery_pool.active_power.new_receiver()
+        pv_active_power_recv = logical_meter.pv_active_power.new_receiver()
+        engine = (logical_meter.pv_active_power + battery_pool.active_power).build(
+            "inv_active_power"
+        )
         inv_calc_recv = engine.new_receiver()
 
         count = 0
         for _ in range(10):
-            await mockgrid.mock_data.send_meter_power(
+            await mockgrid.mock_data.send_meter_active_power(
                 [10.0 + count, 12.0 + count, 14.0 + count]
             )
             await mockgrid.mock_data.send_non_existing_component_value()
-            bat_pow = await battery_power_recv.receive()
-            pv_pow = await pv_power_recv.receive()
+            bat_pow = await battery_active_power_recv.receive()
+            pv_pow = await pv_active_power_recv.receive()
             inv_pow = await inv_calc_recv.receive()
 
             assert inv_pow == pv_pow

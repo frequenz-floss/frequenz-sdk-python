@@ -45,7 +45,7 @@ class BatteryPool:
         channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         batteries_status_receiver: Receiver[BatteryStatus],
-        power_distributing_sender: Sender[Request],
+        active_power_distributing_sender: Sender[Request],
         min_update_interval: timedelta,
         batteries_id: Set[int] | None = None,
     ) -> None:
@@ -62,8 +62,8 @@ class BatteryPool:
                 It should send information when any battery changed status.
                 Battery status should include status of the inverter adjacent to this
                 battery.
-            power_distributing_sender: A Channel sender for sending power requests to
-                the power distributing actor.
+            active_power_distributing_sender: A Channel sender for sending active_power requests to
+                the active_power distributing actor.
             min_update_interval: Some metrics in BatteryPool are send only when they
                 change. For these metrics min_update_interval is the minimum time
                 interval between the following messages.
@@ -92,11 +92,13 @@ class BatteryPool:
 
         self._min_update_interval = min_update_interval
 
-        self._power_distributing_sender = power_distributing_sender
+        self._active_power_distributing_sender = active_power_distributing_sender
         self._active_methods: dict[str, MetricAggregator[Any]] = {}
 
         self._namespace: str = f"battery-pool-{self._batteries}-{uuid.uuid4()}"
-        self._power_distributing_namespace: str = f"power-distributor-{self._namespace}"
+        self._active_power_distributing_namespace: str = (
+            f"active_power-distributor-{self._namespace}"
+        )
         self._channel_registry: ChannelRegistry = channel_registry
         self._formula_pool: FormulaEnginePool = FormulaEnginePool(
             self._namespace,
@@ -104,40 +106,41 @@ class BatteryPool:
             resampler_subscription_sender,
         )
 
-    async def set_power(
+    async def set_active_power(
         self,
-        power: Power,
+        active_power: Power,
         *,
-        adjust_power: bool = True,
+        adjust_active_power: bool = True,
         request_timeout: timedelta = timedelta(seconds=5.0),
         include_broken_batteries: bool = False,
     ) -> None:
-        """Set the given power for the batteries in the pool.
+        """Set the given active_power for the batteries in the pool.
 
         Power values need to follow the Passive Sign Convention (PSC). That is, positive
-        values indicate charge power and negative values indicate discharge power.
+        values indicate charge active_power and negative values indicate discharge active_power.
 
         When not using the Passive Sign Convention, the `charge` and `discharge` methods
         might be more convenient.
 
         Args:
-            power: The power to set for the batteries in the pool.
-            adjust_power: If True, the power will be adjusted to fit the power bounds,
-                if necessary. If False, then power requests outside the bounds will be
+            active_power: The active_power to set for the batteries in the pool.
+            adjust_active_power:
+            If True, the active_power will be adjusted to fit the active_power bounds,
+                if necessary. If False, then active_power requests outside the bounds will be
                 rejected.
             request_timeout: The timeout for the request.
-            include_broken_batteries: if True, the power will be set for all batteries
-                in the pool, including the broken ones. If False, then the power will be
+            include_broken_batteries: if True, the active_power will be set for all batteries
+                in the pool, including the broken ones. If False, then the active_power will be
                 set only for the working batteries.  This is not a guarantee that the
-                power will be set for all working batteries, as the microgrid API may
+                active_power will be set for all working batteries, as the microgrid API may
                 still reject the request.
         """
-        await self._power_distributing_sender.send(
+        await self._active_power_distributing_sender.send(
             Request(
-                namespace=self._power_distributing_namespace,
-                power=power.as_watts(),
+                namespace=self._active_power_distributing_namespace,
+                active_power=active_power.as_watts(),
                 batteries=self._batteries,
-                adjust_power=adjust_power,
+                adjust_active_power=adjust_active_power,
                 request_timeout_sec=request_timeout.total_seconds(),
                 include_broken_batteries=include_broken_batteries,
             )
@@ -145,43 +148,44 @@ class BatteryPool:
 
     async def charge(
         self,
-        power: Power,
+        active_power: Power,
         *,
-        adjust_power: bool = True,
+        adjust_active_power: bool = True,
         request_timeout: timedelta = timedelta(seconds=5.0),
         include_broken_batteries: bool = False,
     ) -> None:
-        """Set the given charge power for the batteries in the pool.
+        """Set the given charge active_power for the batteries in the pool.
 
-        Power values need to be positive values, indicating charge power.
+        Power values need to be positive values, indicating charge active_power.
 
-        When using the Passive Sign Convention, the `set_power` method might be more
+        When using the Passive Sign Convention, the `set_active_power` method might be more
         convenient.
 
         Args:
-            power: Unsigned charge power to set for the batteries in the pool.
-            adjust_power: If True, the power will be adjusted to fit the power bounds,
-                if necessary. If False, then power requests outside the bounds will be
+            active_power: Unsigned charge active_power to set for the batteries in the pool.
+            adjust_active_power:
+            If True, the active_power will be adjusted to fit the active_power bounds,
+                if necessary. If False, then active_power requests outside the bounds will be
                 rejected.
             request_timeout: The timeout for the request.
-            include_broken_batteries: if True, the power will be set for all batteries
-                in the pool, including the broken ones. If False, then the power will be
+            include_broken_batteries: if True, the active_power will be set for all batteries
+                in the pool, including the broken ones. If False, then the active_power will be
                 set only for the working batteries.  This is not a guarantee that the
-                power will be set for all working batteries, as the microgrid API may
+                active_power will be set for all working batteries, as the microgrid API may
                 still reject the request.
 
         Raises:
-            ValueError: If the given power is negative.
+            ValueError: If the given active_power is negative.
         """
-        as_watts = power.as_watts()
+        as_watts = active_power.as_watts()
         if as_watts < 0.0:
-            raise ValueError("Charge power must be positive.")
-        await self._power_distributing_sender.send(
+            raise ValueError("Charge active_power must be positive.")
+        await self._active_power_distributing_sender.send(
             Request(
-                namespace=self._power_distributing_namespace,
-                power=as_watts,
+                namespace=self._active_power_distributing_namespace,
+                active_power=as_watts,
                 batteries=self._batteries,
-                adjust_power=adjust_power,
+                adjust_active_power=adjust_active_power,
                 request_timeout_sec=request_timeout.total_seconds(),
                 include_broken_batteries=include_broken_batteries,
             )
@@ -189,55 +193,58 @@ class BatteryPool:
 
     async def discharge(
         self,
-        power: Power,
+        active_power: Power,
         *,
-        adjust_power: bool = True,
+        adjust_active_power: bool = True,
         request_timeout: timedelta = timedelta(seconds=5.0),
         include_broken_batteries: bool = False,
     ) -> None:
-        """Set the given discharge power for the batteries in the pool.
+        """Set the given discharge active_power for the batteries in the pool.
 
-        Power values need to be positive values, indicating discharge power.
+        Power values need to be positive values, indicating discharge active_power.
 
-        When using the Passive Sign Convention, the `set_power` method might be more
+        When using the Passive Sign Convention, the `set_active_power` method might be more
         convenient.
 
         Args:
-            power: Unsigned discharge power to set for the batteries in the pool.
-            adjust_power: If True, the power will be adjusted to fit the power bounds,
-                if necessary. If False, then power requests outside the bounds will be
+            active_power: Unsigned discharge active_power to set for the batteries in the pool.
+            adjust_active_power: If True, the active_power
+            will be adjusted to fit the active_power bounds,
+                if necessary. If False, then active_power requests outside the bounds will be
                 rejected.
             request_timeout: The timeout for the request.
-            include_broken_batteries: if True, the power will be set for all batteries
-                in the pool, including the broken ones. If False, then the power will be
+            include_broken_batteries: if True, the active_power will be set for all batteries
+                in the pool, including the broken ones. If False, then the active_power will be
                 set only for the working batteries.  This is not a guarantee that the
-                power will be set for all working batteries, as the microgrid API may
+                active_power will be set for all working batteries, as the microgrid API may
                 still reject the request.
 
         Raises:
-            ValueError: If the given power is negative.
+            ValueError: If the given active_power is negative.
         """
-        as_watts = power.as_watts()
+        as_watts = active_power.as_watts()
         if as_watts < 0.0:
-            raise ValueError("Discharge power must be positive.")
-        await self._power_distributing_sender.send(
+            raise ValueError("Discharge active_power must be positive.")
+        await self._active_power_distributing_sender.send(
             Request(
-                namespace=self._power_distributing_namespace,
-                power=-as_watts,
+                namespace=self._active_power_distributing_namespace,
+                active_power=-as_watts,
                 batteries=self._batteries,
-                adjust_power=adjust_power,
+                adjust_active_power=adjust_active_power,
                 request_timeout_sec=request_timeout.total_seconds(),
                 include_broken_batteries=include_broken_batteries,
             )
         )
 
-    def power_distribution_results(self) -> Receiver[Result]:
-        """Return a receiver for the power distribution results.
+    def active_power_distribution_results(self) -> Receiver[Result]:
+        """Return a receiver for the active_power distribution results.
 
         Returns:
-            A receiver for the power distribution results.
+            A receiver for the active_power distribution results.
         """
-        return self._channel_registry.new_receiver(self._power_distributing_namespace)
+        return self._channel_registry.new_receiver(
+            self._active_power_distributing_namespace
+        )
 
     @property
     def battery_ids(self) -> Set[int]:
@@ -249,8 +256,8 @@ class BatteryPool:
         return self._batteries
 
     @property
-    def power(self) -> FormulaEngine[Power]:
-        """Fetch the total power of the batteries in the pool.
+    def active_power(self) -> FormulaEngine[Power]:
+        """Fetch the total active_power of the batteries in the pool.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
@@ -261,11 +268,11 @@ class BatteryPool:
         method.
 
         Returns:
-            A FormulaEngine that will calculate and stream the total power of all
+            A FormulaEngine that will calculate and stream the total active_power of all
                 batteries in the pool.
         """
-        engine = self._formula_pool.from_power_formula_generator(
-            "battery_pool_power",
+        engine = self._formula_pool.from_active_power_formula_generator(
+            "battery_pool_active_power",
             BatteryPowerFormula,
             FormulaGeneratorConfig(
                 component_ids=self._batteries,
@@ -276,10 +283,10 @@ class BatteryPool:
         return engine
 
     @property
-    def production_power(self) -> FormulaEngine[Power]:
-        """Fetch the total production power of the batteries in the pool.
+    def production_active_power(self) -> FormulaEngine[Power]:
+        """Fetch the total production active_power of the batteries in the pool.
 
-        This formula produces positive values when producing power and 0 otherwise.
+        This formula produces positive values when producing active_power and 0 otherwise.
 
         If a formula engine to calculate this metric is not already running, it will be
         started.
@@ -288,11 +295,11 @@ class BatteryPool:
         method.
 
         Returns:
-            A FormulaEngine that will calculate and stream the total production power of
+            A FormulaEngine that will calculate and stream the total production active_power of
                 all batteries in the pool.
         """
-        engine = self._formula_pool.from_power_formula_generator(
-            "battery_pool_production_power",
+        engine = self._formula_pool.from_active_power_formula_generator(
+            "battery_pool_production_active_power",
             BatteryPowerFormula,
             FormulaGeneratorConfig(
                 component_ids=self._batteries,
@@ -303,10 +310,10 @@ class BatteryPool:
         return engine
 
     @property
-    def consumption_power(self) -> FormulaEngine[Power]:
-        """Fetch the total consumption power of the batteries in the pool.
+    def consumption_active_power(self) -> FormulaEngine[Power]:
+        """Fetch the total consumption active_power of the batteries in the pool.
 
-        This formula produces positive values when consuming power and 0 otherwise.
+        This formula produces positive values when consuming active_power and 0 otherwise.
 
         If a formula engine to calculate this metric is not already running, it will be
         started.
@@ -316,10 +323,10 @@ class BatteryPool:
 
         Returns:
             A FormulaEngine that will calculate and stream the total consumption
-                power of all batteries in the pool.
+                active_power of all batteries in the pool.
         """
-        engine = self._formula_pool.from_power_formula_generator(
-            "battery_pool_consumption_power",
+        engine = self._formula_pool.from_active_power_formula_generator(
+            "battery_pool_consumption_active_power",
             BatteryPowerFormula,
             FormulaGeneratorConfig(
                 component_ids=self._batteries,
@@ -408,10 +415,10 @@ class BatteryPool:
         return self._active_methods[method_name]
 
     @property
-    def power_bounds(self) -> MetricAggregator[PowerMetrics]:
-        """Get receiver to receive new power bounds when they change.
+    def active_power_bounds(self) -> MetricAggregator[PowerMetrics]:
+        """Get receiver to receive new active_power bounds when they change.
 
-        Power bounds refer to the min and max power that a battery can
+        Power bounds refer to the min and max active_power that a battery can
         discharge or charge at and is also denoted as SoP.
 
         Power bounds formulas are described in the receiver return type.
@@ -421,7 +428,7 @@ class BatteryPool:
         `new_receiver` method.
 
         Returns:
-            A MetricAggregator that will calculate and stream the power bounds
+            A MetricAggregator that will calculate and stream the active_power bounds
                 of all batteries in the pool.
         """
         method_name = SendOnUpdate.name() + "_" + PowerBoundsCalculator.name()

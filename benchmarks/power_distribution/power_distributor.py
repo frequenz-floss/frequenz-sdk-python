@@ -1,7 +1,7 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""Check how long it takes to distribute power."""
+"""Check how long it takes to distribute active_power."""
 
 import asyncio
 import csv
@@ -37,7 +37,7 @@ async def send_requests(batteries: Set[int], request_num: int) -> List[Result]:
 
     Args:
         user: user that should send request
-        batteries: set of batteries where the power should be set
+        batteries: set of batteries where the active_power should be set
         request_num: number of requests that should be send
 
     Raises:
@@ -47,10 +47,12 @@ async def send_requests(batteries: Set[int], request_num: int) -> List[Result]:
         List of the results from the PowerDistributingActor.
     """
     battery_pool = microgrid.battery_pool(batteries)
-    results_rx = battery_pool.power_distribution_results()
+    results_rx = battery_pool.active_power_distribution_results()
     result: List[Result] = []
     for _ in range(request_num):
-        await battery_pool.set_power(Power(float(random.randrange(100000, 1000000))))
+        await battery_pool.set_active_power(
+            Power(float(random.randrange(100000, 1000000)))
+        )
         try:
             output = await asyncio.wait_for(results_rx.receive(), timeout=3)
             if output is None:
@@ -105,12 +107,12 @@ async def run_test(  # pylint: disable=too-many-locals
     """
     start = timeit.default_timer()
 
-    power_request_channel = Broadcast[Request]("power-request")
+    active_power_request_channel = Broadcast[Request]("active_power-request")
     battery_status_channel = Broadcast[BatteryStatus]("battery-status")
-    channel_registry = ChannelRegistry(name="power_distributor")
+    channel_registry = ChannelRegistry(name="active_power_distributor")
     distributor = PowerDistributingActor(
         channel_registry=channel_registry,
-        requests_receiver=power_request_channel.new_receiver(),
+        requests_receiver=active_power_request_channel.new_receiver(),
         battery_status_sender=battery_status_channel.new_sender(),
     )
 

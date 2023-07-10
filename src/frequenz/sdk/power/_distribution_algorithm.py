@@ -1,7 +1,7 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""Power distribution algorithm to distribute power between batteries."""
+"""Power distribution algorithm to distribute active_power between batteries."""
 
 import logging
 from dataclasses import dataclass
@@ -29,40 +29,40 @@ class DistributionResult:
     """Distribution result."""
 
     distribution: Dict[int, float]
-    """The power to be set for each inverter.
+    """The active_power to be set for each inverter.
 
-    The key is inverter ID, and the value is the power that should be set for
+    The key is inverter ID, and the value is the active_power that should be set for
     that inverter.
     """
 
-    remaining_power: float
-    """The power which could not be distributed because of bounds."""
+    remaining_active_power: float
+    """The active_power which could not be distributed because of bounds."""
 
 
 class DistributionAlgorithm:
-    r"""Distribute power between many components.
+    r"""Distribute active_power between many components.
 
     The purpose of this tool is to keep equal SoC level in the batteries.
-    It takes total power that should be to be set for some subset of battery-inverter
-    pairs. The total power is distributed between given battery-inverter pairs.
+    It takes total active_power that should be to be set for some subset of battery-inverter
+    pairs. The total active_power is distributed between given battery-inverter pairs.
     Distribution is calculated based on data below:
 
     * Battery current SoC.
     * Battery upper and lower SoC bound.
     * Battery capacity.
-    * Battery lower and upper power bound.
-    * Inverter lower and upper active power bound.
+    * Battery lower and upper active_power bound.
+    * Inverter lower and upper active active_power bound.
 
     # Distribution algorithm
 
     Lets assume that:
 
     * `N` - number of batteries
-    * `power_w` - power to distribute
+    * `active_power_w` - active_power to distribute
     * `capacity[i]` - capacity of i'th battery
     * `available_soc[i]` - how much SoC remained to reach:
-        * SoC upper bound - if need to distribute power that charges inverters.
-        * SoC lower bound - if need to distribute power that discharges inverters.
+        * SoC upper bound - if need to distribute active_power that charges inverters.
+        * SoC lower bound - if need to distribute active_power that discharges inverters.
         * `0` - if SoC is outside SoC bounds.
 
     * `total_capacity` - `sum(c for c in capacity.values())`
@@ -72,7 +72,7 @@ class DistributionAlgorithm:
     We would like our distribution to meet the equation:
 
     ```
-    distribution[i] = power_w * capacity_ratio[i] * x[i]
+    distribution[i] = active_power_w * capacity_ratio[i] * x[i]
     ```
 
     where:
@@ -101,10 +101,10 @@ class DistributionAlgorithm:
     Now we know everything and we can compute distribution:
 
     ```
-    distribution[i] = power_w * capacity_ratio[i] * x[i]  # from (1)
+    distribution[i] = active_power_w * capacity_ratio[i] * x[i]  # from (1)
     distribution[i] = \
-            power_w * capacity_ratio[i] * available_soc[i] * y  # from (2)
-    distribution[i] = power_w * capacity_ratio[i] * available_soc[i] * \
+            active_power_w * capacity_ratio[i] * available_soc[i] * y  # from (2)
+    distribution[i] = active_power_w * capacity_ratio[i] * available_soc[i] * \
             1/sum(capacity_ratio[i] * available_soc[i])
     ```
 
@@ -117,7 +117,7 @@ class DistributionAlgorithm:
 
     Then:
     ```
-    distribution[i] = power_w * battery_availability_ratio[i] \
+    distribution[i] = active_power_w * battery_availability_ratio[i] \
             / total_battery_availability_ratio
     ```
     """
@@ -156,7 +156,7 @@ class DistributionAlgorithm:
               BAT2_DISTRIBUTION = 4000
               ```
 
-            * `1`: then `Bat2` will have 3x more power assigned then `Bat1`.
+            * `1`: then `Bat2` will have 3x more active_power assigned then `Bat1`.
               ```python
               # 10 * x + 30 * x = 8000
               X = 200
@@ -164,7 +164,7 @@ class DistributionAlgorithm:
               BAT2_DISTRIBUTION = 6000
               ```
 
-            * `2`: then `Bat2` will have 9x more power assigned then `Bat1`.
+            * `2`: then `Bat2` will have 9x more active_power assigned then `Bat1`.
               ```python
               # 10^2 * x + 30^2 * x = 8000
               X = 80
@@ -172,7 +172,7 @@ class DistributionAlgorithm:
               BAT2_DISTRIBUTION = 7200
               ```
 
-            * `3`: then `Bat2` will have 27x more power assigned then `Bat1`.
+            * `3`: then `Bat2` will have 27x more active_power assigned then `Bat1`.
               ```python
               # 10^3 * x + 30^3 * x = 8000
               X = 0.285714286
@@ -198,7 +198,7 @@ class DistributionAlgorithm:
               BAT2_DISTRIBUTION = 450
               ```
 
-            * `1`: then `Bat2` will have 2x more power assigned then `Bat1`.
+            * `1`: then `Bat2` will have 2x more active_power assigned then `Bat1`.
               ```python
               # 30 * x + 60 * x = 900
               X = 100
@@ -206,7 +206,7 @@ class DistributionAlgorithm:
               BAT2_DISTRIBUTION = 600
               ```
 
-            * `2`: then `Bat2` will have 4x more power assigned then `Bat1`.
+            * `2`: then `Bat2` will have 4x more active_power assigned then `Bat1`.
               ```python
               # 30^2 * x + 60^2 * x = 900
               X = 0.2
@@ -214,7 +214,7 @@ class DistributionAlgorithm:
               BAT2_DISTRIBUTION = 720
               ```
 
-            * `3`: then `Bat2` will have 8x more power assigned then `Bat1`.
+            * `3`: then `Bat2` will have 8x more active_power assigned then `Bat1`.
               ```python
               # 30^3 * x + 60^3 * x = 900
               X = 0.003703704
@@ -239,7 +239,7 @@ class DistributionAlgorithm:
               BAT2_DISTRIBUTION = 450
               ```
 
-            * `0.5`: then `Bat2` will have 6/4x more power assigned then `Bat1`.
+            * `0.5`: then `Bat2` will have 6/4x more active_power assigned then `Bat1`.
               ```python
               # sqrt(36) * x + sqrt(16) * x = 900
               X = 100
@@ -289,8 +289,8 @@ class DistributionAlgorithm:
         Args:
             components: list of the components
             available_soc: How much SoC remained to reach
-                * SoC upper bound - if need to distribute consumption power
-                * SoC lower bound - if need to distribute supply power
+                * SoC upper bound - if need to distribute consumption active_power
+                * SoC lower bound - if need to distribute supply active_power
 
         Returns:
             Tuple where first argument is battery availability ratio for each
@@ -317,28 +317,28 @@ class DistributionAlgorithm:
 
         return battery_availability_ratio, total_battery_availability_ratio
 
-    def _distribute_power(
+    def _distribute_active_power(
         self,
         components: List[InvBatPair],
-        power_w: float,
+        active_power_w: float,
         available_soc: Dict[int, float],
         upper_bounds: Dict[int, float],
     ) -> DistributionResult:
         # pylint: disable=too-many-locals
-        """Distribute power between given components.
+        """Distribute active_power between given components.
 
-        After this method power should be distributed between batteries
+        After this method active_power should be distributed between batteries
         in a way that equalize SoC between batteries.
 
         Args:
             components: list of components.
-            power_w: power to distribute
+            active_power_w: active_power to distribute
             available_soc: how much SoC remained to reach:
-                * SoC upper bound - if need to distribute consumption power
-                * SoC lower bound - if need to distribute supply power
+                * SoC upper bound - if need to distribute consumption active_power
+                * SoC lower bound - if need to distribute supply active_power
             upper_bounds: Min between upper bound of each pair in the components list:
-                * supply upper bound - if need to distribute consumption power
-                * consumption lower bound - if need to distribute supply power
+                * supply upper bound - if need to distribute consumption active_power
+                * consumption lower bound - if need to distribute supply active_power
 
         Returns:
             Distribution result.
@@ -353,10 +353,10 @@ class DistributionAlgorithm:
         # sum_ratio == 0 means that all batteries are fully charged / discharged
         if is_close_to_zero(sum_ratio):
             distribution = {inverter.component_id: 0 for _, inverter in components}
-            return DistributionResult(distribution, power_w)
+            return DistributionResult(distribution, active_power_w)
 
-        distributed_power: float = 0.0
-        power_to_distribute: float = power_w
+        distributed_active_power: float = 0.0
+        active_power_to_distribute: float = active_power_w
         used_ratio: float = 0.0
         ratio = sum_ratio
         for pair, battery_ratio in battery_availability_ratio:
@@ -368,33 +368,35 @@ class DistributionAlgorithm:
                 continue
 
             distribution[inverter.component_id] = (
-                power_to_distribute * battery_ratio / ratio
+                active_power_to_distribute * battery_ratio / ratio
             )
 
             used_ratio += battery_ratio
 
-            # If the power allocated for that inverter is out of bound,
-            # then we need to distribute more power over all remaining batteries.
+            # If the active_power allocated for that inverter is out of bound,
+            # then we need to distribute more active_power over all remaining batteries.
             upper_bound = upper_bounds[inverter.component_id]
             if distribution[inverter.component_id] > upper_bound:
                 distribution[inverter.component_id] = upper_bound
-                distributed_power += upper_bound
-                # Distribute only the remaining power.
-                power_to_distribute = power_w - distributed_power
+                distributed_active_power += upper_bound
+                # Distribute only the remaining active_power.
+                active_power_to_distribute = active_power_w - distributed_active_power
                 # Distribute between remaining batteries
                 ratio = sum_ratio - used_ratio
             else:
-                distributed_power += distribution[inverter.component_id]
+                distributed_active_power += distribution[inverter.component_id]
 
-        return DistributionResult(distribution, power_w - distributed_power)
+        return DistributionResult(
+            distribution, active_power_w - distributed_active_power
+        )
 
-    def _greedy_distribute_remaining_power(
+    def _greedy_distribute_remaining_active_power(
         self,
         distribution: Dict[int, float],
         upper_bounds: Dict[int, float],
-        remaining_power: float,
+        remaining_active_power: float,
     ) -> DistributionResult:
-        """Add remaining power greedily to the given distribution.
+        """Add remaining active_power greedily to the given distribution.
 
         Distribution for each inverter will not exceed its upper bound.
 
@@ -402,84 +404,88 @@ class DistributionAlgorithm:
             distribution: distribution
             upper_bounds: upper bounds inverter and adjacent battery in
                 distribution.
-            remaining_power: power to distribute
+            remaining_active_power: active_power to distribute
 
         Returns:
-            Return the power for each inverter in given distribution.
+            Return the active_power for each inverter in given distribution.
         """
-        if is_close_to_zero(remaining_power):
-            return DistributionResult(distribution, remaining_power)
+        if is_close_to_zero(remaining_active_power):
+            return DistributionResult(distribution, remaining_active_power)
 
         new_distribution: Dict[int, float] = {}
 
-        for inverter_id, power in distribution.items():
-            if is_close_to_zero(remaining_power) or is_close_to_zero(power):
-                new_distribution[inverter_id] = power
+        for inverter_id, active_power in distribution.items():
+            if is_close_to_zero(remaining_active_power) or is_close_to_zero(
+                active_power
+            ):
+                new_distribution[inverter_id] = active_power
             else:
-                remaining_power_capacity: float = upper_bounds[inverter_id] - power
-                to_add = min(remaining_power_capacity, remaining_power)
-                new_distribution[inverter_id] = power + to_add
-                remaining_power -= to_add
+                remaining_active_power_capacity: float = (
+                    upper_bounds[inverter_id] - active_power
+                )
+                to_add = min(remaining_active_power_capacity, remaining_active_power)
+                new_distribution[inverter_id] = active_power + to_add
+                remaining_active_power -= to_add
 
-        return DistributionResult(new_distribution, remaining_power)
+        return DistributionResult(new_distribution, remaining_active_power)
 
-    def distribute_power_equally(
-        self, power: float, inverters: set[int]
+    def distribute_active_power_equally(
+        self, active_power: float, inverters: set[int]
     ) -> DistributionResult:
-        """Distribute the power equally between the inverters in the set.
+        """Distribute the active_power equally between the inverters in the set.
 
-        This function is mainly useful to set the power for components that are
+        This function is mainly useful to set the active_power for components that are
         broken or have no metrics available.
 
         Args:
-            power: the power to distribute.
-            inverters: the inverters to set the power to.
+            active_power: the active_power to distribute.
+            inverters: the inverters to set the active_power to.
 
         Returns:
-            the power distribution result.
+            the active_power distribution result.
         """
-        power_per_inverter = power / len(inverters)
+        active_power_per_inverter = active_power / len(inverters)
         return DistributionResult(
-            distribution={id: power_per_inverter for id in inverters},
-            remaining_power=0.0,
+            distribution={id: active_power_per_inverter for id in inverters},
+            remaining_active_power=0.0,
         )
 
-    def distribute_power(
-        self, power: float, components: List[InvBatPair]
+    def distribute_active_power(
+        self, active_power: float, components: List[InvBatPair]
     ) -> DistributionResult:
-        """Distribute given power between given components.
+        """Distribute given active_power between given components.
 
         Args:
-            power: Power to distribute
+            active_power: Power to distribute
             components: InvBatPaired components data. Each pair should have data
                 for battery and adjacent inverter.
 
         Returns:
             Distribution result
         """
-        if power >= 0.0:
-            return self._distribute_consume_power(power, components)
-        return self._distribute_supply_power(power, components)
+        if active_power >= 0.0:
+            return self._distribute_consume_active_power(active_power, components)
+        return self._distribute_supply_active_power(active_power, components)
 
-    def _distribute_consume_power(
-        self, power_w: float, components: List[InvBatPair]
+    def _distribute_consume_active_power(
+        self, active_power_w: float, components: List[InvBatPair]
     ) -> DistributionResult:
-        """Distribute power between the given components.
+        """Distribute active_power between the given components.
 
-        Distribute power in a way that the SoC level between given components will:
+        Distribute active_power in a way that the SoC level between given components will:
             * stay on the same level, equal in all given components
             * will try to align himself to the same level.
 
         Args:
-            power_w: power to distribute
-            components: list of components between which the power should be
+            active_power_w: active_power to distribute
+            components: list of components between which the active_power should be
                 distributed.
 
         Returns:
             Distribution result, batteries with no SoC and capacity won't be used.
         """
         # If SoC exceeded bound then remaining SoC should be 0.
-        # Otherwise algorithm would try to supply power from that battery
+        # Otherwise algorithm would try to supply active_power from that battery
         # in order to keep equal SoC level.
         available_soc: Dict[int, float] = {}
         for battery, _ in components:
@@ -491,29 +497,29 @@ class DistributionAlgorithm:
         for battery, inverter in components:
             # We can supply/consume with int only
             inverter_bound = inverter.active_power_upper_bound
-            battery_bound = battery.power_upper_bound
+            battery_bound = battery.active_power_upper_bound
             bounds[inverter.component_id] = min(inverter_bound, battery_bound)
 
-        result: DistributionResult = self._distribute_power(
-            components, power_w, available_soc, bounds
+        result: DistributionResult = self._distribute_active_power(
+            components, active_power_w, available_soc, bounds
         )
 
-        return self._greedy_distribute_remaining_power(
-            result.distribution, bounds, result.remaining_power
+        return self._greedy_distribute_remaining_active_power(
+            result.distribution, bounds, result.remaining_active_power
         )
 
-    def _distribute_supply_power(
-        self, power_w: float, components: List[InvBatPair]
+    def _distribute_supply_active_power(
+        self, active_power_w: float, components: List[InvBatPair]
     ) -> DistributionResult:
-        """Distribute power between the given components.
+        """Distribute active_power between the given components.
 
-        Distribute power in a way that the SoC level between given components will:
+        Distribute active_power in a way that the SoC level between given components will:
             * stay on the same level, equal in all given components
             * will try to align himself to the same level.
 
         Args:
-            power_w: power to distribute
-            components: list of components between which the power should be
+            active_power_w: active_power to distribute
+            components: list of components between which the active_power should be
                 distributed.
 
         Returns:
@@ -529,19 +535,19 @@ class DistributionAlgorithm:
         for battery, inverter in components:
             # We can consume with int only
             inverter_bound = inverter.active_power_lower_bound
-            battery_bound = battery.power_lower_bound
+            battery_bound = battery.active_power_lower_bound
             bounds[inverter.component_id] = -1 * max(inverter_bound, battery_bound)
 
-        result: DistributionResult = self._distribute_power(
-            components, -1 * power_w, available_soc, bounds
+        result: DistributionResult = self._distribute_active_power(
+            components, -1 * active_power_w, available_soc, bounds
         )
 
-        result = self._greedy_distribute_remaining_power(
-            result.distribution, bounds, result.remaining_power
+        result = self._greedy_distribute_remaining_active_power(
+            result.distribution, bounds, result.remaining_active_power
         )
 
         for inverter_id in result.distribution.keys():
             result.distribution[inverter_id] *= -1
-        result.remaining_power *= -1
+        result.remaining_active_power *= -1
 
         return result

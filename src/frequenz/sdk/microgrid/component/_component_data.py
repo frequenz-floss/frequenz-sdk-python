@@ -61,7 +61,7 @@ class MeterData(ComponentData):
     """A wrapper class for holding meter data."""
 
     active_power: float
-    """The 3-phase active power, in Watts, represented in the passive sign convention.
+    """The 3-phase active active_power, in Watts, represented in the passive sign convention.
             +ve current means consumption, away from the grid.
             -ve current means supply into the grid.
     """
@@ -78,7 +78,7 @@ class MeterData(ComponentData):
     """
 
     frequency: float
-    """The AC power frequency in Hertz (Hz)."""
+    """The AC active_power frequency in Hertz (Hz)."""
 
     @classmethod
     def from_proto(cls, raw: microgrid_pb.ComponentData) -> MeterData:
@@ -130,14 +130,14 @@ class BatteryData(ComponentData):
     capacity: float
     """The capacity of the battery in Wh (Watt-hour)."""
 
-    power_lower_bound: float
-    """The maximum discharge power, in watts, represented in the passive sign
+    active_power_lower_bound: float
+    """The maximum discharge active_power, in watts, represented in the passive sign
         convention. this will be a negative number, or zero if no discharging is
         possible.
     """
 
-    power_upper_bound: float
-    """The maximum charge power, in Watts, represented in the passive sign convention.
+    active_power_upper_bound: float
+    """The maximum charge active_power, in Watts, represented in the passive sign convention.
         This will be a positive number, or zero if no charging is possible.
     """
 
@@ -170,8 +170,8 @@ class BatteryData(ComponentData):
             soc_lower_bound=raw.battery.data.soc.system_bounds.lower,
             soc_upper_bound=raw.battery.data.soc.system_bounds.upper,
             capacity=raw.battery.properties.capacity,
-            power_lower_bound=raw.battery.data.dc.power.system_bounds.lower,
-            power_upper_bound=raw.battery.data.dc.power.system_bounds.upper,
+            active_power_lower_bound=raw.battery.data.dc.power.system_bounds.lower,
+            active_power_upper_bound=raw.battery.data.dc.power.system_bounds.upper,
             temperature_max=raw.battery.data.temperature.max,
             _relay_state=raw.battery.state.relay_state,
             _component_state=raw.battery.state.component_state,
@@ -186,19 +186,19 @@ class InverterData(ComponentData):
     """A wrapper class for holding inverter data."""
 
     active_power: float
-    """The 3-phase active power, in Watts, represented in the passive sign convention.
+    """The 3-phase active active_power, in Watts, represented in the passive sign convention.
             +ve current means consumption, away from the grid.
             -ve current means supply into the grid.
     """
 
     active_power_lower_bound: float
-    """The maximum discharge power, in Watts, represented in the passive sign
+    """The maximum discharge active_power, in Watts, represented in the passive sign
         convention. This will be a negative number, or zero if no discharging is
         possible.
     """
 
     active_power_upper_bound: float
-    """The maximum charge power, in Watts, represented in the passive sign convention.
+    """The maximum charge active_power, in Watts, represented in the passive sign convention.
         This will be a positive number, or zero if no charging is possible.
     """
 
@@ -237,7 +237,7 @@ class EVChargerData(ComponentData):
     """A wrapper class for holding ev_charger data."""
 
     active_power: float
-    """The 3-phase active power, in Watts, represented in the passive sign convention.
+    """The 3-phase active active_power, in Watts, represented in the passive sign convention.
         +ve current means consumption, away from the grid.
         -ve current means supply into the grid.
     """
