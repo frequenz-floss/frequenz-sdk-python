@@ -154,38 +154,6 @@ class Message(Generic[T]):
     inner: T
 
 
-class FakeSelect:
-    """Helper class to mock Select object used in BatteryStatusTracker"""
-
-    # This is just number of Select instance attributes.
-    def __init__(  # pylint: disable=too-many-arguments
-        self,
-        battery: Optional[BatteryData] = None,
-        inverter: Optional[InverterData] = None,
-        set_power_result: Optional[SetPowerResult] = None,
-        battery_timer_flag: bool = False,
-        inverter_timer_flag: bool = False,
-    ) -> None:
-        """Create FakeSelect instance
-
-        Args:
-            battery: Expected battery message. Defaults to None.
-            inverter: Expected inverter message. Defaults to None.
-            battery_timer_flag: If true the battery data timer will be set to indicate
-                that no messages have been received for a while.
-            inverter_timer_flag: If true the inverter data timer will be set to indicate
-                that no messages have been received for a while.
-            set_power_result: Expected SetPowerResult message. Defaults to None.
-        """
-        self.battery = None if battery is None else Message(battery)
-        self.inverter = None if inverter is None else Message(inverter)
-        self.inverter_timer = inverter_timer_flag
-        self.battery_timer = battery_timer_flag
-        self.set_power_result = (
-            None if set_power_result is None else Message(set_power_result)
-        )
-
-
 BATTERY_ID = 106
 INVERTER_ID = 105
 

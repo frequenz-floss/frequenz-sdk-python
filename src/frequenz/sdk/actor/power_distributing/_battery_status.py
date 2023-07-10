@@ -198,11 +198,11 @@ class BatteryStatusTracker:
 
         self._battery: _ComponentStreamStatus = _ComponentStreamStatus(
             battery_id,
-            data_recv_timer=Timer.timeout(timedelta(max_data_age_sec)),
+            data_recv_timer=Timer.timeout(timedelta(seconds=max_data_age_sec)),
         )
         self._inverter: _ComponentStreamStatus = _ComponentStreamStatus(
             inverter_id,
-            data_recv_timer=Timer.timeout(timedelta(max_data_age_sec)),
+            data_recv_timer=Timer.timeout(timedelta(seconds=max_data_age_sec)),
         )
 
         # Select needs receivers that can be get in async way only.
