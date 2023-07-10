@@ -378,7 +378,7 @@ class TestBatteryStatus:
 
             # message is not correct, component should not block.
             tracker._handle_status_set_power_result(
-                SetPowerResult(succeed={1}, failed={106})
+                SetPowerResult(succeed={1}, failed={BATTERY_ID})
             )
 
             assert tracker._get_new_status_if_changed() is None
@@ -392,7 +392,7 @@ class TestBatteryStatus:
             for timeout in expected_blocking_timeout:
                 # message is not correct, component should not block.
                 tracker._handle_status_set_power_result(
-                    SetPowerResult(succeed={1}, failed={106})
+                    SetPowerResult(succeed={1}, failed={BATTERY_ID})
                 )
 
                 assert tracker._get_new_status_if_changed() is Status.UNCERTAIN
@@ -400,7 +400,7 @@ class TestBatteryStatus:
                 # Battery should be still blocked, nothing should happen
                 time.shift(timeout - 1)
                 tracker._handle_status_set_power_result(
-                    SetPowerResult(succeed={1}, failed={106})
+                    SetPowerResult(succeed={1}, failed={BATTERY_ID})
                 )
 
                 assert tracker._get_new_status_if_changed() is None
@@ -416,7 +416,7 @@ class TestBatteryStatus:
 
             # should block for 30 sec
             tracker._handle_status_set_power_result(
-                SetPowerResult(succeed={1}, failed={106})
+                SetPowerResult(succeed={1}, failed={BATTERY_ID})
             )
 
             assert tracker._get_new_status_if_changed() is Status.UNCERTAIN
@@ -437,14 +437,14 @@ class TestBatteryStatus:
 
             # should block for 30 sec
             tracker._handle_status_set_power_result(
-                SetPowerResult(succeed={1}, failed={106})
+                SetPowerResult(succeed={1}, failed={BATTERY_ID})
             )
             assert tracker._get_new_status_if_changed() is Status.UNCERTAIN
             time.shift(28)
 
             # If battery succeed, then it should unblock.
             tracker._handle_status_set_power_result(
-                SetPowerResult(succeed={106}, failed={206})
+                SetPowerResult(succeed={BATTERY_ID}, failed={206})
             )
             assert tracker._get_new_status_if_changed() is Status.WORKING
 
@@ -481,7 +481,7 @@ class TestBatteryStatus:
             assert tracker._get_new_status_if_changed() is Status.WORKING
 
             tracker._handle_status_set_power_result(
-                SetPowerResult(succeed={1}, failed={106})
+                SetPowerResult(succeed={1}, failed={BATTERY_ID})
             )
             assert tracker._get_new_status_if_changed() is Status.UNCERTAIN
 
@@ -489,7 +489,7 @@ class TestBatteryStatus:
             for timeout in expected_blocking_timeout:
                 # message is not correct, component should not block.
                 tracker._handle_status_set_power_result(
-                    SetPowerResult(succeed={1}, failed={106})
+                    SetPowerResult(succeed={1}, failed={BATTERY_ID})
                 )
                 assert tracker._get_new_status_if_changed() is None
                 time.shift(timeout)
@@ -527,7 +527,7 @@ class TestBatteryStatus:
         assert tracker._get_new_status_if_changed() is Status.WORKING
 
         tracker._handle_status_set_power_result(
-            SetPowerResult(succeed={1}, failed={106})
+            SetPowerResult(succeed={1}, failed={BATTERY_ID})
         )
         assert tracker._get_new_status_if_changed() is Status.UNCERTAIN
 
@@ -540,12 +540,12 @@ class TestBatteryStatus:
         assert tracker._get_new_status_if_changed() is Status.NOT_WORKING
 
         tracker._handle_status_set_power_result(
-            SetPowerResult(succeed={1}, failed={106})
+            SetPowerResult(succeed={1}, failed={BATTERY_ID})
         )
         assert tracker._get_new_status_if_changed() is None
 
         tracker._handle_status_set_power_result(
-            SetPowerResult(succeed={106}, failed={})
+            SetPowerResult(succeed={BATTERY_ID}, failed={})
         )
         assert tracker._get_new_status_if_changed() is None
 
