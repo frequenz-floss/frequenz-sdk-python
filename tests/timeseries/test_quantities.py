@@ -84,6 +84,11 @@ def test_string_representation() -> None:
     assert f"{Fz1(1.024445, exponent=-12)}" == "0 Hz"
     assert f"{Fz2(1.024445, exponent=-12)}" == "0 Hz"
 
+    assert f"{Fz1(0)}" == "0 Hz"
+
+    assert f"{Fz1(-20)}" == "-20 Hz"
+    assert f"{Fz1(-20000)}" == "-20 kHz"
+
 
 def test_addition_subtraction() -> None:
     """Test the addition and subtraction of the quantities."""
