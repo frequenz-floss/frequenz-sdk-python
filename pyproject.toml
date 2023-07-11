@@ -82,7 +82,7 @@ dev-pytest = [
   "pytest == 7.4.0",
   "pytest-mock == 3.11.1",
   "pytest-asyncio == 0.21.0",
-  "time-machine == 2.10.0",
+  "time-machine == 2.11.0",
   "async-solipsism == 0.5",
   # For checking docstring code examples
   "sybil == 5.0.2",
