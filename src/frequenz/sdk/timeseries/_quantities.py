@@ -164,7 +164,7 @@ class Quantity:
             return f"{self._base_value:.{precision}f}"
 
         abs_value = abs(self._base_value)
-        exponent = math.floor(math.log10(abs_value))
+        exponent = math.floor(math.log10(abs_value)) if abs_value else 0
         unit_place = exponent - exponent % 3
         if unit_place < min(self._exponent_unit_map):
             unit = self._exponent_unit_map[min(self._exponent_unit_map.keys())]
