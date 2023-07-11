@@ -81,6 +81,10 @@ class _BlockingStatus:
     max_duration_sec: float
 
     def __post_init__(self) -> None:
+        assert self.min_duration_sec <= self.max_duration_sec, (
+            f"Minimum blocking duration ({self.min_duration_sec}) cannot be greater "
+            f"than maximum blocking duration ({self.max_duration_sec})"
+        )
         self.last_blocking_duration_sec: float = self.min_duration_sec
         self.blocked_until: Optional[datetime] = None
 
