@@ -120,6 +120,9 @@ class BatteryPool:
         When not using the Passive Sign Convention, the `charge` and `discharge` methods
         might be more convenient.
 
+        The result of the request can be accessed using the receiver returned from
+        the `power_distribution_results` method.
+
         Args:
             power: The power to set for the batteries in the pool.
             adjust_power: If True, the power will be adjusted to fit the power bounds,
@@ -157,6 +160,9 @@ class BatteryPool:
 
         When using the Passive Sign Convention, the `set_power` method might be more
         convenient.
+
+        The result of the request can be accessed using the receiver returned from
+        the `power_distribution_results` method.
 
         Args:
             power: Unsigned charge power to set for the batteries in the pool.
@@ -201,6 +207,9 @@ class BatteryPool:
 
         When using the Passive Sign Convention, the `set_power` method might be more
         convenient.
+
+        The result of the request can be accessed using the receiver returned from
+        the `power_distribution_results` method.
 
         Args:
             power: Unsigned discharge power to set for the batteries in the pool.
