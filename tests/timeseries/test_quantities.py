@@ -10,6 +10,7 @@ import pytest
 from frequenz.sdk.timeseries._quantities import (
     Current,
     Energy,
+    Frequency,
     Percentage,
     Power,
     Quantity,
@@ -263,6 +264,25 @@ def test_quantity_compositions() -> None:
     assert energy / power == timedelta(hours=6.2)
     assert energy / timedelta(hours=6.2) == power
     assert energy == power * timedelta(hours=6.2)
+
+
+def test_frequency() -> None:
+    """Test the frequency class."""
+    freq = Frequency.from_hertz(0.0000002)
+    assert f"{freq:.9}" == "0.0000002 Hz"
+    freq = Frequency.from_kilohertz(600000.0)
+    assert f"{freq}" == "600 MHz"
+
+    freq = Frequency.from_hertz(6.0)
+    assert freq.as_hertz() == 6.0
+    assert freq.as_kilohertz() == 0.006
+    assert freq == Frequency.from_kilohertz(0.006)
+    assert freq == Frequency.from_hertz(6.0)
+    assert freq != Frequency.from_hertz(5.0)
+
+    with pytest.raises(TypeError):
+        # using the default constructor should raise.
+        Frequency(1.0, exponent=0)
 
 
 def test_percentage() -> None:
