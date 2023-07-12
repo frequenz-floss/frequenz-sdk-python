@@ -14,4 +14,6 @@
 
 ## Bug Fixes
 
+- Fix formatting issue for `Quantity` objects with zero values.
+
 <!-- Here goes notable bug fixes that are worth a special mention or explanation -->
