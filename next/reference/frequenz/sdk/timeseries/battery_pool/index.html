@@ -1590,7 +1590,16 @@ fetching high level metrics for this subset.</p>
 <span class="normal">464</span>
 <span class="normal">465</span>
 <span class="normal">466</span>
-<span class="normal">467</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">BatteryPool</span><span class="p">:</span>
+<span class="normal">467</span>
+<span class="normal">468</span>
+<span class="normal">469</span>
+<span class="normal">470</span>
+<span class="normal">471</span>
+<span class="normal">472</span>
+<span class="normal">473</span>
+<span class="normal">474</span>
+<span class="normal">475</span>
+<span class="normal">476</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">BatteryPool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate high level metrics for a pool of the batteries.</span>
 
 <span class="sd">    BatterPool accepts subset of the battery ids and provides methods methods for</span>
@@ -1677,6 +1686,9 @@ fetching high level metrics for this subset.</p>
 <span class="sd">        When not using the Passive Sign Convention, the `charge` and `discharge` methods</span>
 <span class="sd">        might be more convenient.</span>
 
+<span class="sd">        The result of the request can be accessed using the receiver returned from</span>
+<span class="sd">        the `power_distribution_results` method.</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            power: The power to set for the batteries in the pool.</span>
 <span class="sd">            adjust_power: If True, the power will be adjusted to fit the power bounds,</span>
@@ -1714,6 +1726,9 @@ fetching high level metrics for this subset.</p>
 
 <span class="sd">        When using the Passive Sign Convention, the `set_power` method might be more</span>
 <span class="sd">        convenient.</span>
+
+<span class="sd">        The result of the request can be accessed using the receiver returned from</span>
+<span class="sd">        the `power_distribution_results` method.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            power: Unsigned charge power to set for the batteries in the pool.</span>
@@ -1758,6 +1773,9 @@ fetching high level metrics for this subset.</p>
 
 <span class="sd">        When using the Passive Sign Convention, the `set_power` method might be more</span>
 <span class="sd">        convenient.</span>
+
+<span class="sd">        The result of the request can be accessed using the receiver returned from</span>
+<span class="sd">        the `power_distribution_results` method.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            power: Unsigned discharge power to set for the batteries in the pool.</span>
@@ -2685,6 +2703,8 @@ will be used.</p>
 <p>Power values need to be positive values, indicating charge power.</p>
 <p>When using the Passive Sign Convention, the <code>set_power</code> method might be more
 convenient.</p>
+<p>The result of the request can be accessed using the receiver returned from
+the <code>power_distribution_results</code> method.</p>
 
   <table>
     <thead>
@@ -2796,10 +2816,7 @@ still reject the request.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">146</span>
-<span class="normal">147</span>
-<span class="normal">148</span>
-<span class="normal">149</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">149</span>
 <span class="normal">150</span>
 <span class="normal">151</span>
 <span class="normal">152</span>
@@ -2838,7 +2855,13 @@ still reject the request.</p>
 <span class="normal">185</span>
 <span class="normal">186</span>
 <span class="normal">187</span>
-<span class="normal">188</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">charge</span><span class="p">(</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">charge</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">power</span><span class="p">:</span> <span class="n">Power</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -2852,6 +2875,9 @@ still reject the request.</p>
 
 <span class="sd">    When using the Passive Sign Convention, the `set_power` method might be more</span>
 <span class="sd">    convenient.</span>
+
+<span class="sd">    The result of the request can be accessed using the receiver returned from</span>
+<span class="sd">    the `power_distribution_results` method.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        power: Unsigned charge power to set for the batteries in the pool.</span>
@@ -2907,6 +2933,8 @@ still reject the request.</p>
 <p>Power values need to be positive values, indicating discharge power.</p>
 <p>When using the Passive Sign Convention, the <code>set_power</code> method might be more
 convenient.</p>
+<p>The result of the request can be accessed using the receiver returned from
+the <code>power_distribution_results</code> method.</p>
 
   <table>
     <thead>
@@ -3018,13 +3046,7 @@ still reject the request.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">190</span>
-<span class="normal">191</span>
-<span class="normal">192</span>
-<span class="normal">193</span>
-<span class="normal">194</span>
-<span class="normal">195</span>
-<span class="normal">196</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">196</span>
 <span class="normal">197</span>
 <span class="normal">198</span>
 <span class="normal">199</span>
@@ -3060,7 +3082,16 @@ still reject the request.</p>
 <span class="normal">229</span>
 <span class="normal">230</span>
 <span class="normal">231</span>
-<span class="normal">232</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">discharge</span><span class="p">(</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">discharge</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">power</span><span class="p">:</span> <span class="n">Power</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -3074,6 +3105,9 @@ still reject the request.</p>
 
 <span class="sd">    When using the Passive Sign Convention, the `set_power` method might be more</span>
 <span class="sd">    convenient.</span>
+
+<span class="sd">    The result of the request can be accessed using the receiver returned from</span>
+<span class="sd">    the `power_distribution_results` method.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        power: Unsigned discharge power to set for the batteries in the pool.</span>
@@ -3148,13 +3182,13 @@ still reject the request.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">234</span>
-<span class="normal">235</span>
-<span class="normal">236</span>
-<span class="normal">237</span>
-<span class="normal">238</span>
-<span class="normal">239</span>
-<span class="normal">240</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">power_distribution_results</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">power_distribution_results</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Receiver</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a receiver for the power distribution results.</span>
 
 <span class="sd">    Returns:</span>
@@ -3188,6 +3222,8 @@ still reject the request.</p>
 values indicate charge power and negative values indicate discharge power.</p>
 <p>When not using the Passive Sign Convention, the <code>charge</code> and <code>discharge</code> methods
 might be more convenient.</p>
+<p>The result of the request can be accessed using the receiver returned from
+the <code>power_distribution_results</code> method.</p>
 
   <table>
     <thead>
@@ -3313,7 +3349,10 @@ still reject the request.</p>
 <span class="normal">141</span>
 <span class="normal">142</span>
 <span class="normal">143</span>
-<span class="normal">144</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">set_power</span><span class="p">(</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">set_power</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">power</span><span class="p">:</span> <span class="n">Power</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -3328,6 +3367,9 @@ still reject the request.</p>
 
 <span class="sd">    When not using the Passive Sign Convention, the `charge` and `discharge` methods</span>
 <span class="sd">    might be more convenient.</span>
+
+<span class="sd">    The result of the request can be accessed using the receiver returned from</span>
+<span class="sd">    the `power_distribution_results` method.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        power: The power to set for the batteries in the pool.</span>
@@ -3377,15 +3419,15 @@ still reject the request.</p>
 
       <details class="quote">
         <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">439</span>
-<span class="normal">440</span>
-<span class="normal">441</span>
-<span class="normal">442</span>
-<span class="normal">443</span>
-<span class="normal">444</span>
-<span class="normal">445</span>
-<span class="normal">446</span>
-<span class="normal">447</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">448</span>
+<span class="normal">449</span>
+<span class="normal">450</span>
+<span class="normal">451</span>
+<span class="normal">452</span>
+<span class="normal">453</span>
+<span class="normal">454</span>
+<span class="normal">455</span>
+<span class="normal">456</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Stop all pending async tasks.&quot;&quot;&quot;</span>
     <span class="n">tasks_to_stop</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">method</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span> <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_methods</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
@@ -3708,8 +3750,8 @@ Lower bound is negative number calculated with with the formula:
 <code class="highlight language-python"><span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
       <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool._result_types.PowerMetrics.timestamp" class="headerlink" title="Permanent link">¤</a></h6>
