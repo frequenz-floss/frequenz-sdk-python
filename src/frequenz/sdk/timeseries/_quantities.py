@@ -10,7 +10,14 @@ from datetime import timedelta
 from typing import Any, NoReturn, Self, TypeVar, overload
 
 QuantityT = TypeVar(
-    "QuantityT", "Quantity", "Power", "Current", "Voltage", "Energy", "Percentage"
+    "QuantityT",
+    "Quantity",
+    "Power",
+    "Current",
+    "Voltage",
+    "Energy",
+    "Frequency",
+    "Percentage",
 )
 
 
@@ -706,6 +713,110 @@ class Energy(
         raise TypeError(
             f"unsupported operand type(s) for /: '{type(self)}' and '{type(other)}'"
         )
+
+
+class Frequency(
+    Quantity,
+    metaclass=_NoDefaultConstructible,
+    exponent_unit_map={0: "Hz", 3: "kHz", 6: "MHz", 9: "GHz"},
+):
+    """A frequency quantity."""
+
+    @classmethod
+    def from_hertz(cls, hertz: float) -> Self:
+        """Initialize a new frequency quantity.
+
+        Args:
+            hertz: The frequency in hertz.
+
+        Returns:
+            A new frequency quantity.
+        """
+        frequency = cls.__new__(cls)
+        frequency._base_value = hertz
+        return frequency
+
+    @classmethod
+    def from_kilohertz(cls, kilohertz: float) -> Self:
+        """Initialize a new frequency quantity.
+
+        Args:
+            kilohertz: The frequency in kilohertz.
+
+        Returns:
+            A new frequency quantity.
+        """
+        frequency = cls.__new__(cls)
+        frequency._base_value = kilohertz * 10**3
+        return frequency
+
+    @classmethod
+    def from_megahertz(cls, megahertz: float) -> Self:
+        """Initialize a new frequency quantity.
+
+        Args:
+            megahertz: The frequency in megahertz.
+
+        Returns:
+            A new frequency quantity.
+        """
+        frequency = cls.__new__(cls)
+        frequency._base_value = megahertz * 10**6
+        return frequency
+
+    @classmethod
+    def from_gigahertz(cls, gigahertz: float) -> Self:
+        """Initialize a new frequency quantity.
+
+        Args:
+            gigahertz: The frequency in gigahertz.
+
+        Returns:
+            A new frequency quantity.
+        """
+        frequency = cls.__new__(cls)
+        frequency._base_value = gigahertz * 10**9
+        return frequency
+
+    def as_hertz(self) -> float:
+        """Return the frequency in hertz.
+
+        Returns:
+            The frequency in hertz.
+        """
+        return self._base_value
+
+    def as_kilohertz(self) -> float:
+        """Return the frequency in kilohertz.
+
+        Returns:
+            The frequency in kilohertz.
+        """
+        return self._base_value / 1e3
+
+    def as_megahertz(self) -> float:
+        """Return the frequency in megahertz.
+
+        Returns:
+            The frequency in megahertz.
+        """
+        return self._base_value / 1e6
+
+    def as_gigahertz(self) -> float:
+        """Return the frequency in gigahertz.
+
+        Returns:
+            The frequency in gigahertz.
+        """
+        return self._base_value / 1e9
+
+    def period(self) -> timedelta:
+        """Return the period of the frequency.
+
+        Returns:
+            The period of the frequency.
+        """
+        return timedelta(seconds=1.0 / self._base_value)
 
 
 class Percentage(
