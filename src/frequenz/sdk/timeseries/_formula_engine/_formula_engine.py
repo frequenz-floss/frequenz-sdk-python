@@ -325,6 +325,62 @@ class FormulaEngine(
         self._create_method = create_method
         self._channel: Broadcast[Sample[QuantityT]] = Broadcast(self._name)
 
+    @classmethod
+    def from_receiver(
+        cls,
+        name: str,
+        receiver: Receiver[Sample[QuantityT]],
+        create_method: Callable[[float], QuantityT],
+        nones_are_zeros: bool = False,
+    ) -> FormulaEngine[QuantityT]:
+        """
+        Create a formula engine from a receiver.
+
+        Can be used to compose a formula engine with a receiver. When composing
+        the new engine with other engines, make sure that receiver gets data
+        from the same resampler and that the `create_method`s match.
+
+        Example:
+            ```python
+            from frequenz.sdk import microgrid
+            from frequenz.sdk.timeseries import Power
+
+            async def run() -> None:
+                producer_power_engine = microgrid.logical_meter().producer_power
+                consumer_power_recv = (
+                    microgrid.logical_meter().consumer_power.new_receiver()
+                )
+
+                excess_power_recv = (
+                    (
+                        producer_power_engine
+                        + FormulaEngine.from_receiver(
+                            "consumer power",
+                            consumer_power_recv,
+                            Power.from_watts,
+                        )
+                    )
+                    .build("excess power")
+                    .new_receiver()
+                )
+
+            asyncio.run(run())
+            ```
+
+        Args:
+            receiver: A receiver that streams `Sample`s.
+            name: A name for the formula engine.
+            create_method: A method to generate the output `Sample` value with,
+                e.g. `Power.from_watts`.
+            nones_are_zeros: If `True`, `None` values in the receiver are treated as 0.
+
+        Returns:
+            A formula engine that streams the `Sample`s from the receiver.
+        """
+        builder = FormulaBuilder(name, create_method)
+        builder.push_metric(name, receiver, nones_are_zeros=nones_are_zeros)
+        return cls(builder, create_method)
+
     async def _run(self) -> None:
         await self._builder.subscribe()
         steps, metric_fetchers = self._builder.finalize()
