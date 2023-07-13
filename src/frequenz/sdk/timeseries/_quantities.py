@@ -221,6 +221,22 @@ class Quantity:
         difference._base_value = self._base_value - other._base_value
         return difference
 
+    def __mul__(self, percent: Percentage) -> Self:
+        """Return the product of this quantity and a percentage.
+
+        Args:
+            percent: The percentage.
+
+        Returns:
+            The product of this quantity and a percentage.
+        """
+        if not isinstance(percent, Percentage):
+            return NotImplemented
+
+        product = type(self).__new__(type(self))
+        product._base_value = self._base_value * percent.as_fraction()
+        return product
+
     def __gt__(self, other: Self) -> bool:
         """Return whether this quantity is greater than another.
 
@@ -423,18 +439,42 @@ class Power(
         """
         return self._base_value / 1e6
 
-    def __mul__(self, duration: timedelta) -> Energy:
+    @overload  # type: ignore
+    def __mul__(self, other: Percentage) -> Self:
+        """Return a power from multiplying this power by the given percentage.
+
+        Args:
+            other: The percentage to multiply by.
+        """
+
+    @overload
+    def __mul__(self, other: timedelta) -> Energy:
         """Return an energy from multiplying this power by the given duration.
 
         Args:
-            duration: The duration to multiply by.
+            other: The duration to multiply by.
+        """
+
+    def __mul__(self, other: Percentage | timedelta) -> Self | Energy:
+        """Return a power or energy from multiplying this power by the given value.
+
+        Args:
+            other: The percentage or duration to multiply by.
 
         Returns:
-            An energy from multiplying this power by the given duration.
+            A power or energy.
+
+        Raises:
+            TypeError: If the given value is not a percentage or duration.
         """
-        return Energy.from_watt_hours(
-            self._base_value * duration.total_seconds() / 3600.0
-        )
+        if isinstance(other, Percentage):
+            return super().__mul__(other)
+        if isinstance(other, timedelta):
+            return Energy.from_watt_hours(
+                self._base_value * other.total_seconds() / 3600.0
+            )
+
+        return NotImplemented
 
     @overload
     def __truediv__(self, other: Current) -> Voltage:
@@ -527,16 +567,40 @@ class Current(
         """
         return self._base_value * 1e3
 
-    def __mul__(self, voltage: Voltage) -> Power:
+    @overload  # type: ignore
+    def __mul__(self, other: Percentage) -> Self:
+        """Return a power from multiplying this power by the given percentage.
+
+        Args:
+            other: The percentage to multiply by.
+        """
+
+    @overload
+    def __mul__(self, other: Voltage) -> Power:
         """Multiply the current by a voltage to get a power.
 
         Args:
-            voltage: The voltage.
+            other: The voltage.
+        """
+
+    def __mul__(self, other: Percentage | Voltage) -> Self | Power:
+        """Return a current or power from multiplying this current by the given value.
+
+        Args:
+            other: The percentage or voltage to multiply by.
 
         Returns:
-            The power.
+            A current or power.
+
+        Raises:
+            TypeError: If the given value is not a percentage or voltage.
         """
-        return Power.from_watts(self._base_value * voltage._base_value)
+        if isinstance(other, Percentage):
+            return super().__mul__(other)
+        if isinstance(other, Voltage):
+            return Power.from_watts(self._base_value * other._base_value)
+
+        return NotImplemented
 
 
 class Voltage(
@@ -612,16 +676,40 @@ class Voltage(
         """
         return self._base_value / 1e3
 
-    def __mul__(self, current: Current) -> Power:
+    @overload  # type: ignore
+    def __mul__(self, other: Percentage) -> Self:
+        """Return a power from multiplying this power by the given percentage.
+
+        Args:
+            other: The percentage to multiply by.
+        """
+
+    @overload
+    def __mul__(self, other: Current) -> Power:
         """Multiply the voltage by the current to get the power.
 
         Args:
-            current: The current to multiply the voltage with.
+            other: The current to multiply the voltage with.
+        """
+
+    def __mul__(self, other: Percentage | Current) -> Self | Power:
+        """Return a voltage or power from multiplying this voltage by the given value.
+
+        Args:
+            other: The percentage or current to multiply by.
 
         Returns:
-            The calculated power.
+            The calculated voltage or power.
+
+        Raises:
+            TypeError: If the given value is not a percentage or current.
         """
-        return Power.from_watts(self._base_value * current._base_value)
+        if isinstance(other, Percentage):
+            return super().__mul__(other)
+        if isinstance(other, Current):
+            return Power.from_watts(self._base_value * other._base_value)
+
+        return NotImplemented
 
 
 class Energy(

@@ -377,3 +377,47 @@ def test_abs() -> None:
     pct = Percentage.from_fraction(30)
     assert abs(pct) == Percentage.from_fraction(30)
     assert abs(-pct) == Percentage.from_fraction(30)
+
+
+def test_quantity_multiplied_with_precentage() -> None:
+    """Test the multiplication of all quantities with percentage."""
+    percentage = Percentage.from_percent(50)
+    power = Power.from_watts(1000.0)
+    voltage = Voltage.from_volts(230.0)
+    current = Current.from_amperes(2)
+    energy = Energy.from_kilowatt_hours(12)
+    percentage_ = Percentage.from_percent(50)
+
+    assert power * percentage == Power.from_watts(500.0)
+    assert voltage * percentage == Voltage.from_volts(115.0)
+    assert current * percentage == Current.from_amperes(1)
+    assert energy * percentage == Energy.from_kilowatt_hours(6)
+    assert percentage_ * percentage == Percentage.from_percent(25)
+
+
+def test_invalid_multiplications() -> None:
+    """Test the multiplication of quantities with invalid quantities."""
+    power = Power.from_watts(1000.0)
+    voltage = Voltage.from_volts(230.0)
+    current = Current.from_amperes(2)
+    energy = Energy.from_kilowatt_hours(12)
+
+    for quantity in [power, voltage, current, energy]:
+        with pytest.raises(TypeError):
+            _ = power * quantity  # type: ignore
+
+    for quantity in [voltage, power, energy]:
+        with pytest.raises(TypeError):
+            _ = voltage * quantity  # type: ignore
+
+    for quantity in [current, power, energy]:
+        with pytest.raises(TypeError):
+            _ = current * quantity  # type: ignore
+
+    for quantity in [energy, power, voltage, current]:
+        with pytest.raises(TypeError):
+            _ = energy * quantity  # type: ignore
+
+    for quantity in [power, voltage, current, energy, Percentage.from_percent(50)]:
+        with pytest.raises(TypeError):
+            _ = quantity * 200.0  # type: ignore
