@@ -81,7 +81,7 @@ dev-pylint = [
 dev-pytest = [
   "pytest == 7.4.0",
   "pytest-mock == 3.11.1",
-  "pytest-asyncio == 0.21.0",
+  "pytest-asyncio == 0.21.1",
   "time-machine == 2.11.0",
   "async-solipsism == 0.5",
   # For checking docstring code examples
