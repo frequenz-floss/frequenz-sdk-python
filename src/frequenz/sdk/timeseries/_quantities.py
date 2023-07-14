@@ -170,6 +170,9 @@ class Quantity:
         if not self._exponent_unit_map:
             return f"{self._base_value:.{precision}f}"
 
+        if math.isinf(self._base_value) or math.isnan(self._base_value):
+            return f"{self._base_value} {self._exponent_unit_map[0]}"
+
         abs_value = abs(self._base_value)
         exponent = math.floor(math.log10(abs_value)) if abs_value else 0
         unit_place = exponent - exponent % 3

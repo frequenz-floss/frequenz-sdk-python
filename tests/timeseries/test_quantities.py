@@ -319,3 +319,34 @@ def test_neg() -> None:
     pct = Percentage.from_fraction(30)
     assert -pct == Percentage.from_fraction(-30)
     assert -(-pct) == pct
+
+
+def test_inf() -> None:
+    """Test proper formating when using inf in quantities"""
+    assert f"{Power.from_watts(float('inf'))}" == "inf W"
+    assert f"{Power.from_watts(float('-inf'))}" == "-inf W"
+
+    assert f"{Voltage.from_volts(float('inf'))}" == "inf V"
+    assert f"{Voltage.from_volts(float('-inf'))}" == "-inf V"
+
+    assert f"{Current.from_amperes(float('inf'))}" == "inf A"
+    assert f"{Current.from_amperes(float('-inf'))}" == "-inf A"
+
+    assert f"{Energy.from_watt_hours(float('inf'))}" == "inf Wh"
+    assert f"{Energy.from_watt_hours(float('-inf'))}" == "-inf Wh"
+
+    assert f"{Frequency.from_hertz(float('inf'))}" == "inf Hz"
+    assert f"{Frequency.from_hertz(float('-inf'))}" == "-inf Hz"
+
+    assert f"{Percentage.from_fraction(float('inf'))}" == "inf %"
+    assert f"{Percentage.from_fraction(float('-inf'))}" == "-inf %"
+
+
+def test_nan() -> None:
+    """Test proper formating when using nan in quantities"""
+    assert f"{Power.from_watts(float('nan'))}" == "nan W"
+    assert f"{Voltage.from_volts(float('nan'))}" == "nan V"
+    assert f"{Current.from_amperes(float('nan'))}" == "nan A"
+    assert f"{Energy.from_watt_hours(float('nan'))}" == "nan Wh"
+    assert f"{Frequency.from_hertz(float('nan'))}" == "nan Hz"
+    assert f"{Percentage.from_fraction(float('nan'))}" == "nan %"
