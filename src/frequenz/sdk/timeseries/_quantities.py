@@ -287,6 +287,16 @@ class Quantity:
         assert isinstance(other, self.__class__)
         return self._base_value == other._base_value
 
+    def __neg__(self) -> Self:
+        """Return the negation of this quantity.
+
+        Returns:
+            The negation of this quantity.
+        """
+        negation = type(self).__new__(type(self))
+        negation._base_value = -self._base_value
+        return negation
+
 
 class _NoDefaultConstructible(type):
     """A metaclass that disables the default constructor."""
