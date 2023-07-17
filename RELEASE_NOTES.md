@@ -8,6 +8,8 @@
 
 <!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with --> 
 
+- `Channels` has been upgraded to version 0.16.0, for information on how to upgrade visit https://github.com/frequenz-floss/frequenz-channels-python/releases/tag/v0.16.0
+
 ## New Features
 
 * Add quantity class `Frequency` for frequency values.

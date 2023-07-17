@@ -3,7 +3,7 @@
 
 """Simple test for the BaseActor."""
 from frequenz.channels import Broadcast, Receiver, Sender
-from frequenz.channels.util import Select
+from frequenz.channels.util import select, selected_from
 
 from frequenz.sdk.actor import actor, run
 
@@ -62,12 +62,15 @@ class EchoActor:
         Args:
             output (Sender[OT]): A channel sender, to send actor's results to.
         """
-        select = Select(channel_1=self._recv1, channel_2=self._recv2)
-        while await select.ready():
-            if msg := select.channel_1:
-                await self._output.send(msg.inner)
-            elif msg := select.channel_2:
-                await self._output.send(msg.inner)
+
+        channel_1 = self._recv1
+        channel_2 = self._recv2
+
+        async for selected in select(channel_1, channel_2):
+            if selected_from(selected, channel_1):
+                await self._output.send(selected.value)
+            elif selected_from(selected, channel_2):
+                await self._output.send(selected.value)
 
 
 async def test_basic_actor() -> None:
