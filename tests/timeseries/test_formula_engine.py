@@ -776,3 +776,27 @@ class TestFormulaOutputTyping:
         result = await results_rx.receive()
         assert result is not None and result.value is not None
         assert result.value.as_watts() == 160.0
+
+
+class TestFromReceiver:
+    """Test creating a formula engine from a receiver."""
+
+    async def test_from_receiver(self) -> None:
+        """Test creating a formula engine from a receiver."""
+        channel = Broadcast[Sample[Power]]("channel_1")
+        sender = channel.new_sender()
+
+        builder = FormulaBuilder("test_from_receiver", create_method=Power.from_watts)
+        builder.push_metric("channel_1", channel.new_receiver(), False)
+        engine = builder.build()
+
+        engine_from_receiver = FormulaEngine.from_receiver(
+            "test_from_receiver", engine.new_receiver(), create_method=Power.from_watts
+        )
+
+        results_rx = engine_from_receiver.new_receiver()
+
+        await sender.send(Sample(datetime.now(), Power.from_watts(10.0)))
+        result = await results_rx.receive()
+        assert result is not None and result.value is not None
+        assert result.value.as_watts() == 10.0
