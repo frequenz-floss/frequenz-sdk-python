@@ -13,6 +13,7 @@
 ## New Features
 
 - Add quantity class `Frequency` for frequency values.
+- Add `abs()` support for quantities.
 
 ## Bug Fixes
 
