@@ -293,3 +293,29 @@ def test_percentage() -> None:
     assert f"{pct}" == "20.4 %"
     assert pct.as_percent() == 20.4
     assert pct.as_fraction() == 0.204
+
+
+def test_neg() -> None:
+    """Test the negation of quantities."""
+    power = Power.from_watts(1000.0)
+    assert -power == Power.from_watts(-1000.0)
+    assert -(-power) == power
+
+    voltage = Voltage.from_volts(230.0)
+    assert -voltage == Voltage.from_volts(-230.0)
+    assert -(-voltage) == voltage
+
+    current = Current.from_amperes(2)
+    assert -current == Current.from_amperes(-2)
+    assert -(-current) == current
+
+    energy = Energy.from_kilowatt_hours(6.2)
+    assert -energy == Energy.from_kilowatt_hours(-6.2)
+
+    freq = Frequency.from_hertz(50)
+    assert -freq == Frequency.from_hertz(-50)
+    assert -(-freq) == freq
+
+    pct = Percentage.from_fraction(30)
+    assert -pct == Percentage.from_fraction(-30)
+    assert -(-pct) == pct
