@@ -1263,7 +1263,7 @@
 
 
 <h2 id="frequenz.sdk.power" class="doc doc-heading">
-          <code>frequenz.sdk.power</code>
+            <code>frequenz.sdk.power</code>
 
 
 <a href="#frequenz.sdk.power" class="headerlink" title="Permanent link">¤</a></h2>
@@ -1288,7 +1288,7 @@
 
 
 <h4 id="frequenz.sdk.power.DistributionAlgorithm" class="doc doc-heading">
-        <code>frequenz.sdk.power.DistributionAlgorithm</code>
+          <code>frequenz.sdk.power.DistributionAlgorithm</code>
 
 
 <a href="#frequenz.sdk.power.DistributionAlgorithm" class="headerlink" title="Permanent link">¤</a></h4>
@@ -1361,10 +1361,9 @@ total_battery_availability_ratio = sum(battery_availability_ratio)
         / total_battery_availability_ratio
 </code></pre></div></p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/power/_distribution_algorithm.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 42</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/power/_distribution_algorithm.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 42</span>
 <span class="normal"> 43</span>
 <span class="normal"> 44</span>
 <span class="normal"> 45</span>
@@ -2376,7 +2375,7 @@ total_battery_availability_ratio = sum(battery_availability_ratio)
 
         <span class="k">return</span> <span class="n">result</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   
 
@@ -2389,6 +2388,7 @@ total_battery_availability_ratio = sum(battery_availability_ratio)
 
 
 <h5 id="frequenz.sdk.power.DistributionAlgorithm-functions">Functions<a href="#frequenz.sdk.power.DistributionAlgorithm-functions" class="headerlink" title="Permanent link">¤</a></h5>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2404,11 +2404,13 @@ total_battery_availability_ratio = sum(battery_availability_ratio)
   
       <p>Create distribution algorithm instance.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -2550,6 +2552,8 @@ except SoC are equal. SoC bounds for each battery is <code>lower = 20</code>,
 </li>
 </ul>
 </details>
+
+
   <table>
     <thead>
       <tr>
@@ -2573,9 +2577,9 @@ except SoC are equal. SoC bounds for each battery is <code>lower = 20</code>,
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/power/_distribution_algorithm.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">125</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/power/_distribution_algorithm.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">125</span>
 <span class="normal">126</span>
 <span class="normal">127</span>
 <span class="normal">128</span>
@@ -2841,10 +2845,11 @@ except SoC are equal. SoC bounds for each battery is <code>lower = 20</code>,
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Distribution factor should be float &gt;= 0.&quot;</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_distributor_exponent</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">distributor_exponent</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2860,11 +2865,13 @@ except SoC are equal. SoC bounds for each battery is <code>lower = 20</code>,
   
       <p>Distribute given power between given components.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -2900,6 +2907,8 @@ for battery and adjacent inverter.</p>
     </tbody>
   </table>
 
+
+
   <table>
     <thead>
       <tr>
@@ -2923,9 +2932,9 @@ for battery and adjacent inverter.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/power/_distribution_algorithm.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">447</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/power/_distribution_algorithm.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">447</span>
 <span class="normal">448</span>
 <span class="normal">449</span>
 <span class="normal">450</span>
@@ -2957,10 +2966,11 @@ for battery and adjacent inverter.</p>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_distribute_consume_power</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">components</span><span class="p">)</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_distribute_supply_power</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">components</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2978,11 +2988,13 @@ for battery and adjacent inverter.</p>
 <p>This function is mainly useful to set the power for components that are
 broken or have no metrics available.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -3017,6 +3029,8 @@ broken or have no metrics available.</p>
     </tbody>
   </table>
 
+
+
   <table>
     <thead>
       <tr>
@@ -3040,9 +3054,9 @@ broken or have no metrics available.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/power/_distribution_algorithm.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">426</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/power/_distribution_algorithm.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">426</span>
 <span class="normal">427</span>
 <span class="normal">428</span>
 <span class="normal">429</span>
@@ -3082,7 +3096,7 @@ broken or have no metrics available.</p>
         <span class="n">remaining_power</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
     <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
@@ -3100,7 +3114,7 @@ broken or have no metrics available.</p>
 
 
 <h4 id="frequenz.sdk.power.DistributionResult" class="doc doc-heading">
-        <code>frequenz.sdk.power.DistributionResult</code>
+          <code>frequenz.sdk.power.DistributionResult</code>
 
   
   <span class="doc doc-labels">
@@ -3115,10 +3129,9 @@ broken or have no metrics available.</p>
   
       <p>Distribution result.</p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/power/_distribution_algorithm.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">27</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/power/_distribution_algorithm.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">27</span>
 <span class="normal">28</span>
 <span class="normal">29</span>
 <span class="normal">30</span>
@@ -3144,7 +3157,7 @@ broken or have no metrics available.</p>
     <span class="n">remaining_power</span><span class="p">:</span> <span class="nb">float</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The power which could not be distributed because of bounds.&quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   
 
@@ -3215,23 +3228,22 @@ that inverter.</p>
 
 
 <h4 id="frequenz.sdk.power.InvBatPair" class="doc doc-heading">
-        <code>frequenz.sdk.power.InvBatPair</code>
+          <code>frequenz.sdk.power.InvBatPair</code>
 
 
 <a href="#frequenz.sdk.power.InvBatPair" class="headerlink" title="Permanent link">¤</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-external" title="typing.NamedTuple" href="https://docs.python.org/3/library/typing.html#typing.NamedTuple">NamedTuple</a></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-external" title="typing.NamedTuple" href="https://docs.python.org/3/library/typing.html#typing.NamedTuple">NamedTuple</a></code></p>
 
   
       <p>InvBatPair with inverter and adjacent battery data.</p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/power/_distribution_algorithm.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">17</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/power/_distribution_algorithm.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">17</span>
 <span class="normal">18</span>
 <span class="normal">19</span>
 <span class="normal">20</span>
@@ -3247,7 +3259,7 @@ that inverter.</p>
     <span class="n">inverter</span><span class="p">:</span> <span class="n">InverterData</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The inverter data.&quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   
 

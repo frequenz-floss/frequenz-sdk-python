@@ -1295,7 +1295,7 @@
 
 
 <h2 id="frequenz.sdk.timeseries.ev_charger_pool" class="doc doc-heading">
-          <code>frequenz.sdk.timeseries.ev_charger_pool</code>
+            <code>frequenz.sdk.timeseries.ev_charger_pool</code>
 
 
 <a href="#frequenz.sdk.timeseries.ev_charger_pool" class="headerlink" title="Permanent link">¤</a></h2>
@@ -1320,7 +1320,7 @@
 
 
 <h4 id="frequenz.sdk.timeseries.ev_charger_pool.ComponentCurrentLimit" class="doc doc-heading">
-        <code>frequenz.sdk.timeseries.ev_charger_pool.ComponentCurrentLimit</code>
+          <code>frequenz.sdk.timeseries.ev_charger_pool.ComponentCurrentLimit</code>
 
   
   <span class="doc doc-labels">
@@ -1335,10 +1335,9 @@
   
       <p>A current limit, to be sent to the EV Charger.</p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_set_current_bounds.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">22</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_set_current_bounds.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">22</span>
 <span class="normal">23</span>
 <span class="normal">24</span>
 <span class="normal">25</span>
@@ -1350,7 +1349,7 @@
     <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">max_amps</span><span class="p">:</span> <span class="nb">float</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   
 
@@ -1377,7 +1376,7 @@
 
 
 <h4 id="frequenz.sdk.timeseries.ev_charger_pool.EVChargerData" class="doc doc-heading">
-        <code>frequenz.sdk.timeseries.ev_charger_pool.EVChargerData</code>
+          <code>frequenz.sdk.timeseries.ev_charger_pool.EVChargerData</code>
 
   
   <span class="doc doc-labels">
@@ -1392,10 +1391,9 @@
   
       <p>Data for an EV Charger, including the 3-phase current and the component state.</p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">41</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">41</span>
 <span class="normal">42</span>
 <span class="normal">43</span>
 <span class="normal">44</span>
@@ -1409,7 +1407,7 @@
     <span class="n">current</span><span class="p">:</span> <span class="n">Sample3Phase</span><span class="p">[</span><span class="n">Current</span><span class="p">]</span>
     <span class="n">state</span><span class="p">:</span> <span class="n">EVChargerState</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   
 
@@ -1436,7 +1434,7 @@
 
 
 <h4 id="frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool" class="doc doc-heading">
-        <code>frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool</code>
+          <code>frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool</code>
 
 
 <a href="#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool" class="headerlink" title="Permanent link">¤</a></h4>
@@ -1447,10 +1445,9 @@
   
       <p>Interactions with EV Chargers.</p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 50</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 50</span>
 <span class="normal"> 51</span>
 <span class="normal"> 52</span>
 <span class="normal"> 53</span>
@@ -2104,7 +2101,7 @@
                 <span class="p">)</span>
             <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   
 
@@ -2133,6 +2130,8 @@
   <div class="doc doc-contents ">
   
       <p>Return component IDs of all EV Chargers managed by this EVChargerPool.</p>
+
+
 
   <table>
     <thead>
@@ -2182,6 +2181,8 @@
 will be started.</p>
 <p>A receiver from the formula engine can be created using the <code>new_receiver</code>
 method.</p>
+
+
 
   <table>
     <thead>
@@ -2233,6 +2234,8 @@ will be started.</p>
 <p>A receiver from the formula engine can be created using the <code>new_receiver</code>
 method.</p>
 
+
+
   <table>
     <thead>
       <tr>
@@ -2282,6 +2285,8 @@ Chargers.</p>
 will be started.</p>
 <p>A receiver from the formula engine can be created using the <code>new_receiver</code>
 method.</p>
+
+
 
   <table>
     <thead>
@@ -2333,6 +2338,8 @@ will be started.</p>
 <p>A receiver from the formula engine can be created using the <code>new_receiver</code>
 method.</p>
 
+
+
   <table>
     <thead>
       <tr>
@@ -2362,6 +2369,7 @@ EV Chargers.</p>
 
 <h5 id="frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool-functions">Functions<a href="#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool-functions" class="headerlink" title="Permanent link">¤</a></h5>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2376,11 +2384,13 @@ EV Chargers.</p>
   
       <p>Create an <code>EVChargerPool</code> instance.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -2448,7 +2458,7 @@ microgrid API, if no new calls to <code>set_bounds</code> have been made.</p>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>timedelta(seconds=3.0)</code>
+                    <code><a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3/library/datetime.html#datetime.timedelta">timedelta</a>(seconds=3.0)</code>
                 </span>
             </p>
           </td>
@@ -2456,9 +2466,9 @@ microgrid API, if no new calls to <code>set_bounds</code> have been made.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">53</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">53</span>
 <span class="normal">54</span>
 <span class="normal">55</span>
 <span class="normal">56</span>
@@ -2552,10 +2562,11 @@ microgrid API, if no new calls to <code>set_bounds</code> have been made.</p>
     <span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_bounds_setter</span><span class="p">:</span> <span class="n">BoundsSetter</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2571,11 +2582,13 @@ microgrid API, if no new calls to <code>set_bounds</code> have been made.</p>
   
       <p>Stream 3-phase current values and state of an EV Charger.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -2595,6 +2608,8 @@ microgrid API, if no new calls to <code>set_bounds</code> have been made.</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <table>
     <thead>
@@ -2620,9 +2635,9 @@ an EV Charger.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">215</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">215</span>
 <span class="normal">216</span>
 <span class="normal">217</span>
 <span class="normal">218</span>
@@ -2676,10 +2691,11 @@ an EV Charger.</p>
 
     <span class="k">return</span> <span class="n">output_chan</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2696,6 +2712,8 @@ an EV Charger.</p>
       <p>Return a <code>Sender</code> for setting EV Charger current bounds with.</p>
 <p>Bounds are used to limit the max current drawn by an EV, although the exact
 value will be determined by the EV.</p>
+
+
 
   <table>
     <thead>
@@ -2720,9 +2738,9 @@ value will be determined by the EV.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">257</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">257</span>
 <span class="normal">258</span>
 <span class="normal">259</span>
 <span class="normal">260</span>
@@ -2746,10 +2764,11 @@ value will be determined by the EV.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">_bounds_setter</span> <span class="o">=</span> <span class="n">BoundsSetter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_repeat_interval</span><span class="p">)</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds_setter</span><span class="o">.</span><span class="n">new_bounds_sender</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2771,11 +2790,13 @@ value will be determined by the EV.</p>
 <p>Bounds are used to limit the max current drawn by an EV, although the exact
 value will be determined by the EV.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -2810,9 +2831,9 @@ value will be determined by the EV.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">243</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">243</span>
 <span class="normal">244</span>
 <span class="normal">245</span>
 <span class="normal">246</span>
@@ -2838,10 +2859,11 @@ value will be determined by the EV.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">_bounds_setter</span> <span class="o">=</span> <span class="n">BoundsSetter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_repeat_interval</span><span class="p">)</span>
     <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds_setter</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">component_id</span><span class="p">,</span> <span class="n">max_amps</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2861,9 +2883,9 @@ value will be determined by the EV.</p>
   
       <p>Stop all tasks and channels owned by the EVChargerPool.</p>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">270</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">270</span>
 <span class="normal">271</span>
 <span class="normal">272</span>
 <span class="normal">273</span>
@@ -2885,7 +2907,7 @@ value will be determined by the EV.</p>
         <span class="k">await</span> <span class="n">chan</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="k">await</span> <span class="n">cancel_and_await</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
@@ -2903,27 +2925,26 @@ value will be determined by the EV.</p>
 
 
 <h4 id="frequenz.sdk.timeseries.ev_charger_pool.EVChargerPoolError" class="doc doc-heading">
-        <code>frequenz.sdk.timeseries.ev_charger_pool.EVChargerPoolError</code>
+          <code>frequenz.sdk.timeseries.ev_charger_pool.EVChargerPoolError</code>
 
 
 <a href="#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPoolError" class="headerlink" title="Permanent link">¤</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#Exception">Exception</a></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#Exception">Exception</a></code></p>
 
   
       <p>An error that occurred in any of the EVChargerPool methods.</p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">37</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_ev_charger_pool.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">37</span>
 <span class="normal">38</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">EVChargerPoolError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;An error that occurred in any of the EVChargerPool methods.&quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   </div>
 
@@ -2934,23 +2955,22 @@ value will be determined by the EV.</p>
 
 
 <h4 id="frequenz.sdk.timeseries.ev_charger_pool.EVChargerState" class="doc doc-heading">
-        <code>frequenz.sdk.timeseries.ev_charger_pool.EVChargerState</code>
+          <code>frequenz.sdk.timeseries.ev_charger_pool.EVChargerState</code>
 
 
 <a href="#frequenz.sdk.timeseries.ev_charger_pool.EVChargerState" class="headerlink" title="Permanent link">¤</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-external" title="enum.Enum" href="https://docs.python.org/3/library/enum.html#enum.Enum">Enum</a></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-external" title="enum.Enum" href="https://docs.python.org/3/library/enum.html#enum.Enum">Enum</a></code></p>
 
   
       <p>State of individual ev charger.</p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_state_tracker.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">25</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_state_tracker.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">25</span>
 <span class="normal">26</span>
 <span class="normal">27</span>
 <span class="normal">28</span>
@@ -3038,7 +3058,7 @@ value will be determined by the EV.</p>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span> <span class="ow">in</span> <span class="p">(</span><span class="n">EVChargerState</span><span class="o">.</span><span class="n">EV_PLUGGED</span><span class="p">,</span> <span class="n">EVChargerState</span><span class="o">.</span><span class="n">EV_LOCKED</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   
 
@@ -3051,6 +3071,7 @@ value will be determined by the EV.</p>
 
 
 <h5 id="frequenz.sdk.timeseries.ev_charger_pool.EVChargerState-functions">Functions<a href="#frequenz.sdk.timeseries.ev_charger_pool.EVChargerState-functions" class="headerlink" title="Permanent link">¤</a></h5>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3070,11 +3091,13 @@ value will be determined by the EV.</p>
   
       <p>Create an <code>EVChargerState</code> instance from component data.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -3094,6 +3117,8 @@ value will be determined by the EV.</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <table>
     <thead>
@@ -3118,9 +3143,9 @@ value will be determined by the EV.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_state_tracker.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">36</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_state_tracker.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">36</span>
 <span class="normal">37</span>
 <span class="normal">38</span>
 <span class="normal">39</span>
@@ -3170,10 +3195,11 @@ value will be determined by the EV.</p>
         <span class="k">return</span> <span class="n">EVChargerState</span><span class="o">.</span><span class="n">EV_PLUGGED</span>
     <span class="k">return</span> <span class="n">EVChargerState</span><span class="o">.</span><span class="n">IDLE</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3188,6 +3214,8 @@ value will be determined by the EV.</p>
   <div class="doc doc-contents ">
   
       <p>Check whether an EV is connected to the charger.</p>
+
+
 
   <table>
     <thead>
@@ -3212,9 +3240,9 @@ value will be determined by the EV.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_state_tracker.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">62</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/ev_charger_pool/_state_tracker.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">62</span>
 <span class="normal">63</span>
 <span class="normal">64</span>
 <span class="normal">65</span>
@@ -3228,7 +3256,7 @@ value will be determined by the EV.</p>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">self</span> <span class="ow">in</span> <span class="p">(</span><span class="n">EVChargerState</span><span class="o">.</span><span class="n">EV_PLUGGED</span><span class="p">,</span> <span class="n">EVChargerState</span><span class="o">.</span><span class="n">EV_LOCKED</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>

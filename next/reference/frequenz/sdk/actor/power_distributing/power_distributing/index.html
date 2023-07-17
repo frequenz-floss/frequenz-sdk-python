@@ -1051,7 +1051,7 @@
 
 
 <h2 id="frequenz.sdk.actor.power_distributing.power_distributing" class="doc doc-heading">
-          <code>frequenz.sdk.actor.power_distributing.power_distributing</code>
+            <code>frequenz.sdk.actor.power_distributing.power_distributing</code>
 
 
 <a href="#frequenz.sdk.actor.power_distributing.power_distributing" class="headerlink" title="Permanent link">¤</a></h2>
@@ -1081,7 +1081,7 @@ amount power to charge/discharge.</p>
 
 
 <h4 id="frequenz.sdk.actor.power_distributing.power_distributing.PowerDistributingActor" class="doc doc-heading">
-        <code>frequenz.sdk.actor.power_distributing.power_distributing.PowerDistributingActor</code>
+          <code>frequenz.sdk.actor.power_distributing.power_distributing.PowerDistributingActor</code>
 
 
 <a href="#frequenz.sdk.actor.power_distributing.power_distributing.PowerDistributingActor" class="headerlink" title="Permanent link">¤</a></h4>
@@ -1179,10 +1179,9 @@ printed.</li>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Request failed with error: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
 </details>
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 81</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 81</span>
 <span class="normal"> 82</span>
 <span class="normal"> 83</span>
 <span class="normal"> 84</span>
@@ -2508,7 +2507,7 @@ printed.</li>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all_battery_status</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stop</span><span class="p">()</span>  <span class="c1"># type: ignore # pylint: disable=no-member</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   
 
@@ -2521,6 +2520,7 @@ printed.</li>
 
 
 <h5 id="frequenz.sdk.actor.power_distributing.power_distributing.PowerDistributingActor-functions">Functions<a href="#frequenz.sdk.actor.power_distributing.power_distributing.PowerDistributingActor-functions" class="headerlink" title="Permanent link">¤</a></h5>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2536,11 +2536,13 @@ printed.</li>
   
       <p>Create class instance.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -2610,9 +2612,9 @@ request. It is a time needed to collect first components data.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">178</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">178</span>
 <span class="normal">179</span>
 <span class="normal">180</span>
 <span class="normal">181</span>
@@ -2712,10 +2714,11 @@ request. It is a time needed to collect first components data.</p>
         <span class="n">bat_id</span><span class="p">:</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">bat_id</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bat_inv_map</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
     <span class="p">}</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2740,9 +2743,9 @@ The output of the <code>set_power</code> method is processed.
 Every battery and inverter that failed or didn't respond in time will be marked
 as broken for some time.</p>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">287</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/power_distributing.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">287</span>
 <span class="normal">288</span>
 <span class="normal">289</span>
 <span class="normal">290</span>
@@ -2924,7 +2927,7 @@ as broken for some time.</p>
             <span class="p">]</span>
         <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>

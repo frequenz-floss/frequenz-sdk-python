@@ -1231,7 +1231,7 @@
 
 
 <h2 id="frequenz.sdk.timeseries.battery_pool.battery_pool" class="doc doc-heading">
-          <code>frequenz.sdk.timeseries.battery_pool.battery_pool</code>
+            <code>frequenz.sdk.timeseries.battery_pool.battery_pool</code>
 
 
 <a href="#frequenz.sdk.timeseries.battery_pool.battery_pool" class="headerlink" title="Permanent link">¤</a></h2>
@@ -1256,7 +1256,7 @@
 
 
 <h4 id="frequenz.sdk.timeseries.battery_pool.battery_pool.BatteryPool" class="doc doc-heading">
-        <code>frequenz.sdk.timeseries.battery_pool.battery_pool.BatteryPool</code>
+          <code>frequenz.sdk.timeseries.battery_pool.battery_pool.BatteryPool</code>
 
 
 <a href="#frequenz.sdk.timeseries.battery_pool.battery_pool.BatteryPool" class="headerlink" title="Permanent link">¤</a></h4>
@@ -1269,10 +1269,9 @@
 <p>BatterPool accepts subset of the battery ids and provides methods methods for
 fetching high level metrics for this subset.</p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 36</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 36</span>
 <span class="normal"> 37</span>
 <span class="normal"> 38</span>
 <span class="normal"> 39</span>
@@ -2154,7 +2153,7 @@ fetching high level metrics for this subset.</p>
             <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_methods</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                 <span class="n">item</span><span class="o">.</span><span class="n">update_working_batteries</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_working_batteries</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   
 
@@ -2183,6 +2182,8 @@ fetching high level metrics for this subset.</p>
   <div class="doc doc-contents ">
   
       <p>Return ids of the batteries in the pool.</p>
+
+
 
   <table>
     <thead>
@@ -2238,6 +2239,8 @@ total_capacity = sum(
 <p>A receiver from the MetricAggregator can be obtained by calling the
 <code>new_receiver</code> method.</p>
 
+
+
   <table>
     <thead>
       <tr>
@@ -2288,6 +2291,8 @@ started.</p>
 <p>A receiver from the formula engine can be obtained by calling the <code>new_receiver</code>
 method.</p>
 
+
+
   <table>
     <thead>
       <tr>
@@ -2337,6 +2342,8 @@ power of all batteries in the pool.</p>
 started.</p>
 <p>A receiver from the formula engine can be obtained by calling the <code>new_receiver</code>
 method.</p>
+
+
 
   <table>
     <thead>
@@ -2389,6 +2396,8 @@ None will be send if there is no component to calculate metrics.</p>
 <p>A receiver from the MetricAggregator can be obtained by calling the
 <code>new_receiver</code> method.</p>
 
+
+
   <table>
     <thead>
       <tr>
@@ -2438,6 +2447,8 @@ of all batteries in the pool.</p>
 started.</p>
 <p>A receiver from the formula engine can be obtained by calling the <code>new_receiver</code>
 method.</p>
+
+
 
   <table>
     <thead>
@@ -2503,6 +2514,8 @@ with.</p>
 <p>A receiver from the MetricAggregator can be obtained by calling the
 <code>new_receiver</code> method.</p>
 
+
+
   <table>
     <thead>
       <tr>
@@ -2532,6 +2545,7 @@ all batteries in the pool.</p>
 
 <h5 id="frequenz.sdk.timeseries.battery_pool.battery_pool.BatteryPool-functions">Functions<a href="#frequenz.sdk.timeseries.battery_pool.battery_pool.BatteryPool-functions" class="headerlink" title="Permanent link">¤</a></h5>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2546,11 +2560,13 @@ all batteries in the pool.</p>
   
       <p>Create the class instance.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -2663,9 +2679,9 @@ will be used.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 43</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 43</span>
 <span class="normal"> 44</span>
 <span class="normal"> 45</span>
 <span class="normal"> 46</span>
@@ -2791,10 +2807,11 @@ will be used.</p>
         <span class="n">resampler_subscription_sender</span><span class="p">,</span>
     <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2819,11 +2836,13 @@ convenient.</p>
 <p>The result of the request can be accessed using the receiver returned from
 the <code>power_distribution_results</code> method.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -2874,7 +2893,7 @@ rejected.</p>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>timedelta(seconds=5.0)</code>
+                    <code><a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3/library/datetime.html#datetime.timedelta">timedelta</a>(seconds=5.0)</code>
                 </span>
             </p>
           </td>
@@ -2904,6 +2923,8 @@ still reject the request.</p>
     </tbody>
   </table>
 
+
+
   <table>
     <thead>
       <tr>
@@ -2927,9 +2948,9 @@ still reject the request.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">149</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">149</span>
 <span class="normal">150</span>
 <span class="normal">151</span>
 <span class="normal">152</span>
@@ -3021,10 +3042,11 @@ still reject the request.</p>
         <span class="p">)</span>
     <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3049,11 +3071,13 @@ convenient.</p>
 <p>The result of the request can be accessed using the receiver returned from
 the <code>power_distribution_results</code> method.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -3104,7 +3128,7 @@ rejected.</p>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>timedelta(seconds=5.0)</code>
+                    <code><a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3/library/datetime.html#datetime.timedelta">timedelta</a>(seconds=5.0)</code>
                 </span>
             </p>
           </td>
@@ -3134,6 +3158,8 @@ still reject the request.</p>
     </tbody>
   </table>
 
+
+
   <table>
     <thead>
       <tr>
@@ -3157,9 +3183,9 @@ still reject the request.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">196</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">196</span>
 <span class="normal">197</span>
 <span class="normal">198</span>
 <span class="normal">199</span>
@@ -3251,10 +3277,11 @@ still reject the request.</p>
         <span class="p">)</span>
     <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3269,6 +3296,8 @@ still reject the request.</p>
   <div class="doc doc-contents ">
   
       <p>Return a receiver for the power distribution results.</p>
+
+
 
   <table>
     <thead>
@@ -3293,9 +3322,9 @@ still reject the request.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">243</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">243</span>
 <span class="normal">244</span>
 <span class="normal">245</span>
 <span class="normal">246</span>
@@ -3309,10 +3338,11 @@ still reject the request.</p>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel_registry</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_power_distributing_namespace</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3338,11 +3368,13 @@ might be more convenient.</p>
 <p>The result of the request can be accessed using the receiver returned from
 the <code>power_distribution_results</code> method.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -3393,7 +3425,7 @@ rejected.</p>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>timedelta(seconds=5.0)</code>
+                    <code><a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3/library/datetime.html#datetime.timedelta">timedelta</a>(seconds=5.0)</code>
                 </span>
             </p>
           </td>
@@ -3423,9 +3455,9 @@ still reject the request.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">107</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">107</span>
 <span class="normal">108</span>
 <span class="normal">109</span>
 <span class="normal">110</span>
@@ -3507,10 +3539,11 @@ still reject the request.</p>
         <span class="p">)</span>
     <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3530,9 +3563,9 @@ still reject the request.</p>
   
       <p>Stop all pending async tasks.</p>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">448</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/timeseries/battery_pool/battery_pool.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">448</span>
 <span class="normal">449</span>
 <span class="normal">450</span>
 <span class="normal">451</span>
@@ -3550,7 +3583,7 @@ still reject the request.</p>
         <span class="n">tasks_to_stop</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cancel_and_await</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_update_battery_status_task</span><span class="p">))</span>
     <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">tasks_to_stop</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>

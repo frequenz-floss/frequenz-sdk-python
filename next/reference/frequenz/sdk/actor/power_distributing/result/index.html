@@ -1197,7 +1197,7 @@
 
 
 <h2 id="frequenz.sdk.actor.power_distributing.result" class="doc doc-heading">
-          <code>frequenz.sdk.actor.power_distributing.result</code>
+            <code>frequenz.sdk.actor.power_distributing.result</code>
 
 
 <a href="#frequenz.sdk.actor.power_distributing.result" class="headerlink" title="Permanent link">¤</a></h2>
@@ -1222,7 +1222,7 @@
 
 
 <h4 id="frequenz.sdk.actor.power_distributing.result.Error" class="doc doc-heading">
-        <code>frequenz.sdk.actor.power_distributing.result.Error</code>
+          <code>frequenz.sdk.actor.power_distributing.result.Error</code>
 
   
   <span class="doc doc-labels">
@@ -1233,16 +1233,15 @@
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor.power_distributing.result.Result" href="#frequenz.sdk.actor.power_distributing.result.Result">Result</a></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor.power_distributing.result.Result" href="#frequenz.sdk.actor.power_distributing.result.Result">Result</a></code></p>
 
   
       <p>Result returned when an error occurred and power was not set at all.</p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/result.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">72</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/result.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">72</span>
 <span class="normal">73</span>
 <span class="normal">74</span>
 <span class="normal">75</span>
@@ -1254,7 +1253,7 @@
     <span class="n">msg</span><span class="p">:</span> <span class="nb">str</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The error message explaining why error happened.&quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   
 
@@ -1302,7 +1301,7 @@
 
 
 <h4 id="frequenz.sdk.actor.power_distributing.result.OutOfBound" class="doc doc-heading">
-        <code>frequenz.sdk.actor.power_distributing.result.OutOfBound</code>
+          <code>frequenz.sdk.actor.power_distributing.result.OutOfBound</code>
 
   
   <span class="doc doc-labels">
@@ -1313,18 +1312,17 @@
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor.power_distributing.result.Result" href="#frequenz.sdk.actor.power_distributing.result.Result">Result</a></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor.power_distributing.result.Result" href="#frequenz.sdk.actor.power_distributing.result.Result">Result</a></code></p>
 
   
       <p>Result returned when the power was not set because it was out of bounds.</p>
 <p>This result happens when the originating request was done with
 <code>adjust_power = False</code> and the requested power is not within the batteries bounds.</p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/result.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">80</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/result.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">80</span>
 <span class="normal">81</span>
 <span class="normal">82</span>
 <span class="normal">83</span>
@@ -1352,7 +1350,7 @@
 <span class="sd">    Otherwise it is upper bound.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   
 
@@ -1402,7 +1400,7 @@ Otherwise it is upper bound.</p>
 
 
 <h4 id="frequenz.sdk.actor.power_distributing.result.PartialFailure" class="doc doc-heading">
-        <code>frequenz.sdk.actor.power_distributing.result.PartialFailure</code>
+          <code>frequenz.sdk.actor.power_distributing.result.PartialFailure</code>
 
   
   <span class="doc doc-labels">
@@ -1413,16 +1411,15 @@ Otherwise it is upper bound.</p>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="frequenz.sdk.actor.power_distributing.result._BaseSuccessMixin">_BaseSuccessMixin</span></code>, <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor.power_distributing.result.Result" href="#frequenz.sdk.actor.power_distributing.result.Result">Result</a></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="frequenz.sdk.actor.power_distributing.result._BaseSuccessMixin">_BaseSuccessMixin</span></code>, <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor.power_distributing.result.Result" href="#frequenz.sdk.actor.power_distributing.result.Result">Result</a></code></p>
 
   
       <p>Result returned when any battery failed to perform the request.</p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/result.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">61</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/result.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">61</span>
 <span class="normal">62</span>
 <span class="normal">63</span>
 <span class="normal">64</span>
@@ -1440,7 +1437,7 @@ Otherwise it is upper bound.</p>
     <span class="n">failed_batteries</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The subset of batteries for which the request failed.&quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   
 
@@ -1509,7 +1506,7 @@ Otherwise it is upper bound.</p>
 
 
 <h4 id="frequenz.sdk.actor.power_distributing.result.Result" class="doc doc-heading">
-        <code>frequenz.sdk.actor.power_distributing.result.Result</code>
+          <code>frequenz.sdk.actor.power_distributing.result.Result</code>
 
   
   <span class="doc doc-labels">
@@ -1520,22 +1517,21 @@ Otherwise it is upper bound.</p>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="frequenz.sdk.actor.power_distributing.result._BaseResultMixin">_BaseResultMixin</span></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="frequenz.sdk.actor.power_distributing.result._BaseResultMixin">_BaseResultMixin</span></code></p>
 
   
       <p>Power distribution result.</p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/result.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">28</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/result.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">28</span>
 <span class="normal">29</span>
 <span class="normal">30</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span> <span class="nc">Result</span><span class="p">(</span><span class="n">_BaseResultMixin</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Power distribution result.&quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   </div>
 
@@ -1546,7 +1542,7 @@ Otherwise it is upper bound.</p>
 
 
 <h4 id="frequenz.sdk.actor.power_distributing.result.Success" class="doc doc-heading">
-        <code>frequenz.sdk.actor.power_distributing.result.Success</code>
+          <code>frequenz.sdk.actor.power_distributing.result.Success</code>
 
   
   <span class="doc doc-labels">
@@ -1557,22 +1553,21 @@ Otherwise it is upper bound.</p>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="frequenz.sdk.actor.power_distributing.result._BaseSuccessMixin">_BaseSuccessMixin</span></code>, <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor.power_distributing.result.Result" href="#frequenz.sdk.actor.power_distributing.result.Result">Result</a></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="frequenz.sdk.actor.power_distributing.result._BaseSuccessMixin">_BaseSuccessMixin</span></code>, <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor.power_distributing.result.Result" href="#frequenz.sdk.actor.power_distributing.result.Result">Result</a></code></p>
 
   
       <p>Result returned when setting the power succeeded for all batteries.</p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/result.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">56</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/actor/power_distributing/result.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">56</span>
 <span class="normal">57</span>
 <span class="normal">58</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span> <span class="nc">Success</span><span class="p">(</span><span class="n">_BaseSuccessMixin</span><span class="p">,</span> <span class="n">Result</span><span class="p">):</span>  <span class="c1"># Order matters here. See above.</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Result returned when setting the power succeeded for all batteries.&quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   </div>
 

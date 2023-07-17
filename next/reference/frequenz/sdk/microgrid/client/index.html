@@ -1645,7 +1645,7 @@
 
 
 <h2 id="frequenz.sdk.microgrid.client" class="doc doc-heading">
-          <code>frequenz.sdk.microgrid.client</code>
+            <code>frequenz.sdk.microgrid.client</code>
 
 
 <a href="#frequenz.sdk.microgrid.client" class="headerlink" title="Permanent link">¤</a></h2>
@@ -1671,23 +1671,22 @@
 
 
 <h4 id="frequenz.sdk.microgrid.client.Connection" class="doc doc-heading">
-        <code>frequenz.sdk.microgrid.client.Connection</code>
+          <code>frequenz.sdk.microgrid.client.Connection</code>
 
 
 <a href="#frequenz.sdk.microgrid.client.Connection" class="headerlink" title="Permanent link">¤</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-external" title="typing.NamedTuple" href="https://docs.python.org/3/library/typing.html#typing.NamedTuple">NamedTuple</a></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-external" title="typing.NamedTuple" href="https://docs.python.org/3/library/typing.html#typing.NamedTuple">NamedTuple</a></code></p>
 
   
       <p>Metadata for a connection between microgrid components.</p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_connection.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 9</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_connection.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 9</span>
 <span class="normal">10</span>
 <span class="normal">11</span>
 <span class="normal">12</span>
@@ -1715,7 +1714,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   
 
@@ -1728,6 +1727,7 @@
 
 
 <h5 id="frequenz.sdk.microgrid.client.Connection-functions">Functions<a href="#frequenz.sdk.microgrid.client.Connection-functions" class="headerlink" title="Permanent link">¤</a></h5>
+
 
 <div class="doc doc-object doc-function">
 
@@ -1742,6 +1742,8 @@
   <div class="doc doc-contents ">
   
       <p>Check if this instance contains valid data.</p>
+
+
 
   <table>
     <thead>
@@ -1767,9 +1769,9 @@ otherwise.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_connection.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">15</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_connection.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">15</span>
 <span class="normal">16</span>
 <span class="normal">17</span>
 <span class="normal">18</span>
@@ -1785,7 +1787,7 @@ otherwise.</p>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
@@ -1803,23 +1805,22 @@ otherwise.</p>
 
 
 <h4 id="frequenz.sdk.microgrid.client.ExponentialBackoff" class="doc doc-heading">
-        <code>frequenz.sdk.microgrid.client.ExponentialBackoff</code>
+          <code>frequenz.sdk.microgrid.client.ExponentialBackoff</code>
 
 
 <a href="#frequenz.sdk.microgrid.client.ExponentialBackoff" class="headerlink" title="Permanent link">¤</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.client._retry.RetryStrategy" href="#frequenz.sdk.microgrid.client.RetryStrategy">RetryStrategy</a></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.client._retry.RetryStrategy" href="#frequenz.sdk.microgrid.client.RetryStrategy">RetryStrategy</a></code></p>
 
   
       <p>Provides methods for calculating the exponential interval between retries.</p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">113</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">113</span>
 <span class="normal">114</span>
 <span class="normal">115</span>
 <span class="normal">116</span>
@@ -1917,7 +1918,7 @@ otherwise.</p>
         <span class="n">exp_backoff_interval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initial</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multiplier</span> <span class="o">**</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">exp_backoff_interval</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jitter</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   
 
@@ -1930,6 +1931,7 @@ otherwise.</p>
 
 
 <h5 id="frequenz.sdk.microgrid.client.ExponentialBackoff-functions">Functions<a href="#frequenz.sdk.microgrid.client.ExponentialBackoff-functions" class="headerlink" title="Permanent link">¤</a></h5>
+
 
 <div class="doc doc-object doc-function">
 
@@ -1945,11 +1947,13 @@ otherwise.</p>
   
       <p>Create a <code>ExponentialBackoff</code> instance.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -1967,7 +1971,7 @@ seconds.</p>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>DEFAULT_INTERVAL</code>
+                    <code><span title="frequenz.sdk.microgrid.client._retry.ExponentialBackoff.DEFAULT_INTERVAL">DEFAULT_INTERVAL</span></code>
                 </span>
             </p>
           </td>
@@ -1985,7 +1989,7 @@ seconds.</p>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>DEFAULT_MAX_INTERVAL</code>
+                    <code><span title="frequenz.sdk.microgrid.client._retry.ExponentialBackoff.DEFAULT_MAX_INTERVAL">DEFAULT_MAX_INTERVAL</span></code>
                 </span>
             </p>
           </td>
@@ -2003,7 +2007,7 @@ seconds.</p>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>DEFAULT_MULTIPLIER</code>
+                    <code><span title="frequenz.sdk.microgrid.client._retry.ExponentialBackoff.DEFAULT_MULTIPLIER">DEFAULT_MULTIPLIER</span></code>
                 </span>
             </p>
           </td>
@@ -2021,7 +2025,7 @@ seconds.</p>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>DEFAULT_RETRY_JITTER</code>
+                    <code><span title="frequenz.sdk.microgrid.client._retry.DEFAULT_RETRY_JITTER">DEFAULT_RETRY_JITTER</span></code>
                 </span>
             </p>
           </td>
@@ -2048,9 +2052,9 @@ limit, and <code>0</code> means no retry.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">121</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">121</span>
 <span class="normal">122</span>
 <span class="normal">123</span>
 <span class="normal">124</span>
@@ -2102,10 +2106,11 @@ limit, and <code>0</code> means no retry.</p>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">=</span> <span class="mi">0</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2122,6 +2127,8 @@ limit, and <code>0</code> means no retry.</p>
       <p>Return the time to wait before the next retry.</p>
 <p>Returns <code>None</code> if the retry limit has been reached, and no more retries
 are possible.</p>
+
+
 
   <table>
     <thead>
@@ -2146,9 +2153,9 @@ are possible.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">148</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">148</span>
 <span class="normal">149</span>
 <span class="normal">150</span>
 <span class="normal">151</span>
@@ -2176,7 +2183,7 @@ are possible.</p>
     <span class="n">exp_backoff_interval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initial</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multiplier</span> <span class="o">**</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">exp_backoff_interval</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jitter</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
@@ -2194,23 +2201,22 @@ are possible.</p>
 
 
 <h4 id="frequenz.sdk.microgrid.client.LinearBackoff" class="doc doc-heading">
-        <code>frequenz.sdk.microgrid.client.LinearBackoff</code>
+          <code>frequenz.sdk.microgrid.client.LinearBackoff</code>
 
 
 <a href="#frequenz.sdk.microgrid.client.LinearBackoff" class="headerlink" title="Permanent link">¤</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.client._retry.RetryStrategy" href="#frequenz.sdk.microgrid.client.RetryStrategy">RetryStrategy</a></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.client._retry.RetryStrategy" href="#frequenz.sdk.microgrid.client.RetryStrategy">RetryStrategy</a></code></p>
 
   
       <p>Provides methods for calculating the interval between retries.</p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 75</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 75</span>
 <span class="normal"> 76</span>
 <span class="normal"> 77</span>
 <span class="normal"> 78</span>
@@ -2282,7 +2288,7 @@ are possible.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interval</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jitter</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   
 
@@ -2295,6 +2301,7 @@ are possible.</p>
 
 
 <h5 id="frequenz.sdk.microgrid.client.LinearBackoff-functions">Functions<a href="#frequenz.sdk.microgrid.client.LinearBackoff-functions" class="headerlink" title="Permanent link">¤</a></h5>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2310,11 +2317,13 @@ are possible.</p>
   
       <p>Create a <code>LinearBackoff</code> instance.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -2331,7 +2340,7 @@ are possible.</p>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>DEFAULT_RETRY_INTERVAL</code>
+                    <code><span title="frequenz.sdk.microgrid.client._retry.DEFAULT_RETRY_INTERVAL">DEFAULT_RETRY_INTERVAL</span></code>
                 </span>
             </p>
           </td>
@@ -2349,7 +2358,7 @@ are possible.</p>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>DEFAULT_RETRY_JITTER</code>
+                    <code><span title="frequenz.sdk.microgrid.client._retry.DEFAULT_RETRY_JITTER">DEFAULT_RETRY_JITTER</span></code>
                 </span>
             </p>
           </td>
@@ -2376,9 +2385,9 @@ limit, and <code>0</code> means no retry.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">78</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">78</span>
 <span class="normal">79</span>
 <span class="normal">80</span>
 <span class="normal">81</span>
@@ -2416,10 +2425,11 @@ limit, and <code>0</code> means no retry.</p>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">=</span> <span class="mi">0</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2436,6 +2446,8 @@ limit, and <code>0</code> means no retry.</p>
       <p>Return the time to wait before the next retry.</p>
 <p>Returns <code>None</code> if the retry limit has been reached, and no more retries
 are possible.</p>
+
+
 
   <table>
     <thead>
@@ -2460,9 +2472,9 @@ are possible.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 98</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 98</span>
 <span class="normal"> 99</span>
 <span class="normal">100</span>
 <span class="normal">101</span>
@@ -2488,7 +2500,7 @@ are possible.</p>
     <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">+=</span> <span class="mi">1</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interval</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jitter</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
@@ -2506,23 +2518,22 @@ are possible.</p>
 
 
 <h4 id="frequenz.sdk.microgrid.client.MicrogridApiClient" class="doc doc-heading">
-        <code>frequenz.sdk.microgrid.client.MicrogridApiClient</code>
+          <code>frequenz.sdk.microgrid.client.MicrogridApiClient</code>
 
 
 <a href="#frequenz.sdk.microgrid.client.MicrogridApiClient" class="headerlink" title="Permanent link">¤</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
 
   
       <p>Base interface for microgrid API clients to implement.</p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 62</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 62</span>
 <span class="normal"> 63</span>
 <span class="normal"> 64</span>
 <span class="normal"> 65</span>
@@ -2786,7 +2797,7 @@ are possible.</p>
 <span class="sd">            upper: Upper bound to be set for the component.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   
 
@@ -2800,6 +2811,7 @@ are possible.</p>
 
 <h5 id="frequenz.sdk.microgrid.client.MicrogridApiClient-functions">Functions<a href="#frequenz.sdk.microgrid.client.MicrogridApiClient-functions" class="headerlink" title="Permanent link">¤</a></h5>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2808,8 +2820,8 @@ are possible.</p>
 <code class="highlight language-python"><span class="n">battery_data</span><span class="p">(</span><span class="n">component_id</span><span class="p">,</span> <span class="n">maxsize</span><span class="o">=</span><span class="n">RECEIVER_MAX_SIZE</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#frequenz.sdk.microgrid.client._client.MicrogridApiClient.battery_data" class="headerlink" title="Permanent link">¤</a></h6>
@@ -2822,11 +2834,13 @@ are possible.</p>
 method can be converted into a <code>Peekable</code> with the <code>into_peekable</code>
 method on the <code>Receiver.</code></p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -2857,13 +2871,15 @@ method on the <code>Receiver.</code></p>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>RECEIVER_MAX_SIZE</code>
+                    <code><span title="frequenz.sdk._internal._constants.RECEIVER_MAX_SIZE">RECEIVER_MAX_SIZE</span></code>
                 </span>
             </p>
           </td>
         </tr>
     </tbody>
   </table>
+
+
 
   <table>
     <thead>
@@ -2888,9 +2904,9 @@ method on the <code>Receiver.</code></p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">111</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">111</span>
 <span class="normal">112</span>
 <span class="normal">113</span>
 <span class="normal">114</span>
@@ -2928,10 +2944,11 @@ method on the <code>Receiver.</code></p>
 <span class="sd">        A channel receiver that provides realtime battery data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2941,8 +2958,8 @@ method on the <code>Receiver.</code></p>
 <code class="highlight language-python"><span class="n">components</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#frequenz.sdk.microgrid.client._client.MicrogridApiClient.components" class="headerlink" title="Permanent link">¤</a></h6>
@@ -2951,6 +2968,8 @@ method on the <code>Receiver.</code></p>
   <div class="doc doc-contents ">
   
       <p>Fetch all the components present in the microgrid.</p>
+
+
 
   <table>
     <thead>
@@ -2975,9 +2994,9 @@ method on the <code>Receiver.</code></p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">65</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">65</span>
 <span class="normal">66</span>
 <span class="normal">67</span>
 <span class="normal">68</span>
@@ -2991,10 +3010,11 @@ method on the <code>Receiver.</code></p>
 <span class="sd">        Iterator whose elements are all the components in the microgrid.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3004,8 +3024,8 @@ method on the <code>Receiver.</code></p>
 <code class="highlight language-python"><span class="n">connections</span><span class="p">(</span><span class="n">starts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ends</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#frequenz.sdk.microgrid.client._client.MicrogridApiClient.connections" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3015,11 +3035,13 @@ method on the <code>Receiver.</code></p>
   
       <p>Fetch the connections between components in the microgrid.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -3064,6 +3086,8 @@ matches one of the provided component IDs</p>
     </tbody>
   </table>
 
+
+
   <table>
     <thead>
       <tr>
@@ -3087,9 +3111,9 @@ matches one of the provided component IDs</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">73</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">73</span>
 <span class="normal">74</span>
 <span class="normal">75</span>
 <span class="normal">76</span>
@@ -3123,10 +3147,11 @@ matches one of the provided component IDs</p>
 <span class="sd">        Microgrid connections matching the provided start and end filters.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3136,8 +3161,8 @@ matches one of the provided component IDs</p>
 <code class="highlight language-python"><span class="n">ev_charger_data</span><span class="p">(</span><span class="n">component_id</span><span class="p">,</span> <span class="n">maxsize</span><span class="o">=</span><span class="n">RECEIVER_MAX_SIZE</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#frequenz.sdk.microgrid.client._client.MicrogridApiClient.ev_charger_data" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3150,11 +3175,13 @@ matches one of the provided component IDs</p>
 method can be converted into a <code>Peekable</code> with the <code>into_peekable</code>
 method on the <code>Receiver.</code></p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -3185,13 +3212,15 @@ method on the <code>Receiver.</code></p>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>RECEIVER_MAX_SIZE</code>
+                    <code><span title="frequenz.sdk._internal._constants.RECEIVER_MAX_SIZE">RECEIVER_MAX_SIZE</span></code>
                 </span>
             </p>
           </td>
         </tr>
     </tbody>
   </table>
+
+
 
   <table>
     <thead>
@@ -3216,9 +3245,9 @@ method on the <code>Receiver.</code></p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">151</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">151</span>
 <span class="normal">152</span>
 <span class="normal">153</span>
 <span class="normal">154</span>
@@ -3256,10 +3285,11 @@ method on the <code>Receiver.</code></p>
 <span class="sd">        A channel receiver that provides realtime ev charger data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3269,8 +3299,8 @@ method on the <code>Receiver.</code></p>
 <code class="highlight language-python"><span class="n">inverter_data</span><span class="p">(</span><span class="n">component_id</span><span class="p">,</span> <span class="n">maxsize</span><span class="o">=</span><span class="n">RECEIVER_MAX_SIZE</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#frequenz.sdk.microgrid.client._client.MicrogridApiClient.inverter_data" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3283,11 +3313,13 @@ method on the <code>Receiver.</code></p>
 method can be converted into a <code>Peekable</code> with the <code>into_peekable</code>
 method on the <code>Receiver.</code></p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -3318,13 +3350,15 @@ method on the <code>Receiver.</code></p>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>RECEIVER_MAX_SIZE</code>
+                    <code><span title="frequenz.sdk._internal._constants.RECEIVER_MAX_SIZE">RECEIVER_MAX_SIZE</span></code>
                 </span>
             </p>
           </td>
         </tr>
     </tbody>
   </table>
+
+
 
   <table>
     <thead>
@@ -3349,9 +3383,9 @@ method on the <code>Receiver.</code></p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">131</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">131</span>
 <span class="normal">132</span>
 <span class="normal">133</span>
 <span class="normal">134</span>
@@ -3389,10 +3423,11 @@ method on the <code>Receiver.</code></p>
 <span class="sd">        A channel receiver that provides realtime inverter data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3402,8 +3437,8 @@ method on the <code>Receiver.</code></p>
 <code class="highlight language-python"><span class="n">meter_data</span><span class="p">(</span><span class="n">component_id</span><span class="p">,</span> <span class="n">maxsize</span><span class="o">=</span><span class="n">RECEIVER_MAX_SIZE</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#frequenz.sdk.microgrid.client._client.MicrogridApiClient.meter_data" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3416,11 +3451,13 @@ method on the <code>Receiver.</code></p>
 method can be converted into a <code>Peekable</code> with the <code>into_peekable</code>
 method on the <code>Receiver.</code></p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -3451,13 +3488,15 @@ method on the <code>Receiver.</code></p>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>RECEIVER_MAX_SIZE</code>
+                    <code><span title="frequenz.sdk._internal._constants.RECEIVER_MAX_SIZE">RECEIVER_MAX_SIZE</span></code>
                 </span>
             </p>
           </td>
         </tr>
     </tbody>
   </table>
+
+
 
   <table>
     <thead>
@@ -3482,9 +3521,9 @@ method on the <code>Receiver.</code></p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 91</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 91</span>
 <span class="normal"> 92</span>
 <span class="normal"> 93</span>
 <span class="normal"> 94</span>
@@ -3522,10 +3561,11 @@ method on the <code>Receiver.</code></p>
 <span class="sd">        A channel receiver that provides realtime meter data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3535,8 +3575,8 @@ method on the <code>Receiver.</code></p>
 <code class="highlight language-python"><span class="n">set_bounds</span><span class="p">(</span><span class="n">component_id</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#frequenz.sdk.microgrid.client._client.MicrogridApiClient.set_bounds" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3546,11 +3586,13 @@ method on the <code>Receiver.</code></p>
   
       <p>Send <code>SetBoundsParam</code>s received from a channel to nitrogen.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -3599,9 +3641,9 @@ method on the <code>Receiver.</code></p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">185</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">185</span>
 <span class="normal">186</span>
 <span class="normal">187</span>
 <span class="normal">188</span>
@@ -3619,10 +3661,11 @@ method on the <code>Receiver.</code></p>
 <span class="sd">        upper: Upper bound to be set for the component.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3632,8 +3675,8 @@ method on the <code>Receiver.</code></p>
 <code class="highlight language-python"><span class="n">set_power</span><span class="p">(</span><span class="n">component_id</span><span class="p">,</span> <span class="n">power_w</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#frequenz.sdk.microgrid.client._client.MicrogridApiClient.set_power" class="headerlink" title="Permanent link">¤</a></h6>
@@ -3646,11 +3689,13 @@ method on the <code>Receiver.</code></p>
 If power &lt; 0, then component will be discharged with this power.
 If power == 0, then stop charging or discharging component.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -3685,9 +3730,9 @@ If power == 0, then stop charging or discharging component.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">171</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">171</span>
 <span class="normal">172</span>
 <span class="normal">173</span>
 <span class="normal">174</span>
@@ -3713,7 +3758,7 @@ If power == 0, then stop charging or discharging component.</p>
 <span class="sd">        power_w: power to set for the component.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
@@ -3731,23 +3776,22 @@ If power == 0, then stop charging or discharging component.</p>
 
 
 <h4 id="frequenz.sdk.microgrid.client.MicrogridGrpcClient" class="doc doc-heading">
-        <code>frequenz.sdk.microgrid.client.MicrogridGrpcClient</code>
+          <code>frequenz.sdk.microgrid.client.MicrogridGrpcClient</code>
 
 
 <a href="#frequenz.sdk.microgrid.client.MicrogridGrpcClient" class="headerlink" title="Permanent link">¤</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.client._client.MicrogridApiClient" href="#frequenz.sdk.microgrid.client.MicrogridApiClient">MicrogridApiClient</a></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.client._client.MicrogridApiClient" href="#frequenz.sdk.microgrid.client.MicrogridApiClient">MicrogridApiClient</a></code></p>
 
   
       <p>Microgrid API client implementation using gRPC as the underlying protocol.</p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">196</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">196</span>
 <span class="normal">197</span>
 <span class="normal">198</span>
 <span class="normal">199</span>
@@ -4675,7 +4719,7 @@ If power == 0, then stop charging or discharging component.</p>
             <span class="p">)</span>
             <span class="k">raise</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   
 
@@ -4688,6 +4732,7 @@ If power == 0, then stop charging or discharging component.</p>
 
 
 <h5 id="frequenz.sdk.microgrid.client.MicrogridGrpcClient-functions">Functions<a href="#frequenz.sdk.microgrid.client.MicrogridGrpcClient-functions" class="headerlink" title="Permanent link">¤</a></h5>
+
 
 <div class="doc doc-object doc-function">
 
@@ -4703,11 +4748,13 @@ If power == 0, then stop charging or discharging component.</p>
   
       <p>Initialize the class instance.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -4754,7 +4801,7 @@ method gets lost.</p>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>LinearBackoff()</code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.client._retry.LinearBackoff" href="#frequenz.sdk.microgrid.client.LinearBackoff">LinearBackoff</a>()</code>
                 </span>
             </p>
           </td>
@@ -4762,9 +4809,9 @@ method gets lost.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">199</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">199</span>
 <span class="normal">200</span>
 <span class="normal">201</span>
 <span class="normal">202</span>
@@ -4802,10 +4849,11 @@ method gets lost.</p>
     <span class="bp">self</span><span class="o">.</span><span class="n">_component_streams</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Broadcast</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_retry_spec</span> <span class="o">=</span> <span class="n">retry_spec</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -4827,6 +4875,8 @@ method gets lost.</p>
 <p>If only the latest value is required, the <code>Receiver</code> returned by this
 method can be converted into a <code>Peekable</code> with the <code>into_peekable</code>
 method on the <code>Receiver.</code></p>
+
+
 
   <table>
     <thead>
@@ -4851,11 +4901,13 @@ method on the <code>Receiver.</code></p>
     </tbody>
   </table>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -4886,13 +4938,15 @@ method on the <code>Receiver.</code></p>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>RECEIVER_MAX_SIZE</code>
+                    <code><span title="frequenz.sdk._internal._constants.RECEIVER_MAX_SIZE">RECEIVER_MAX_SIZE</span></code>
                 </span>
             </p>
           </td>
         </tr>
     </tbody>
   </table>
+
+
 
   <table>
     <thead>
@@ -4917,9 +4971,9 @@ method on the <code>Receiver.</code></p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">474</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">474</span>
 <span class="normal">475</span>
 <span class="normal">476</span>
 <span class="normal">477</span>
@@ -4977,10 +5031,11 @@ method on the <code>Receiver.</code></p>
         <span class="n">BatteryData</span><span class="o">.</span><span class="n">from_proto</span><span class="p">,</span>
     <span class="p">)</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="n">maxsize</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -4999,6 +5054,8 @@ method on the <code>Receiver.</code></p>
   <div class="doc doc-contents ">
   
       <p>Fetch all the components present in the microgrid.</p>
+
+
 
   <table>
     <thead>
@@ -5022,6 +5079,8 @@ method on the <code>Receiver.</code></p>
         </tr>
     </tbody>
   </table>
+
+
 
   <table>
     <thead>
@@ -5047,9 +5106,9 @@ when the api call exceeded timeout</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">219</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">219</span>
 <span class="normal">220</span>
 <span class="normal">221</span>
 <span class="normal">222</span>
@@ -5131,10 +5190,11 @@ when the api call exceeded timeout</p>
 
     <span class="k">return</span> <span class="n">result</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -5154,11 +5214,13 @@ when the api call exceeded timeout</p>
   
       <p>Fetch the connections between components in the microgrid.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -5203,6 +5265,8 @@ matches one of the provided component IDs</p>
     </tbody>
   </table>
 
+
+
   <table>
     <thead>
       <tr>
@@ -5225,6 +5289,8 @@ matches one of the provided component IDs</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <table>
     <thead>
@@ -5250,9 +5316,9 @@ when the api call exceeded timeout</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">261</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">261</span>
 <span class="normal">262</span>
 <span class="normal">263</span>
 <span class="normal">264</span>
@@ -5368,10 +5434,11 @@ when the api call exceeded timeout</p>
 
     <span class="k">return</span> <span class="n">result</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -5393,6 +5460,8 @@ when the api call exceeded timeout</p>
 <p>If only the latest value is required, the <code>Receiver</code> returned by this
 method can be converted into a <code>Peekable</code> with the <code>into_peekable</code>
 method on the <code>Receiver.</code></p>
+
+
 
   <table>
     <thead>
@@ -5417,11 +5486,13 @@ method on the <code>Receiver.</code></p>
     </tbody>
   </table>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -5452,13 +5523,15 @@ method on the <code>Receiver.</code></p>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>RECEIVER_MAX_SIZE</code>
+                    <code><span title="frequenz.sdk._internal._constants.RECEIVER_MAX_SIZE">RECEIVER_MAX_SIZE</span></code>
                 </span>
             </p>
           </td>
         </tr>
     </tbody>
   </table>
+
+
 
   <table>
     <thead>
@@ -5483,9 +5556,9 @@ method on the <code>Receiver.</code></p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">534</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">534</span>
 <span class="normal">535</span>
 <span class="normal">536</span>
 <span class="normal">537</span>
@@ -5543,10 +5616,11 @@ method on the <code>Receiver.</code></p>
         <span class="n">EVChargerData</span><span class="o">.</span><span class="n">from_proto</span><span class="p">,</span>
     <span class="p">)</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="n">maxsize</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -5568,6 +5642,8 @@ method on the <code>Receiver.</code></p>
 <p>If only the latest value is required, the <code>Receiver</code> returned by this
 method can be converted into a <code>Peekable</code> with the <code>into_peekable</code>
 method on the <code>Receiver.</code></p>
+
+
 
   <table>
     <thead>
@@ -5592,11 +5668,13 @@ method on the <code>Receiver.</code></p>
     </tbody>
   </table>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -5627,13 +5705,15 @@ method on the <code>Receiver.</code></p>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>RECEIVER_MAX_SIZE</code>
+                    <code><span title="frequenz.sdk._internal._constants.RECEIVER_MAX_SIZE">RECEIVER_MAX_SIZE</span></code>
                 </span>
             </p>
           </td>
         </tr>
     </tbody>
   </table>
+
+
 
   <table>
     <thead>
@@ -5658,9 +5738,9 @@ method on the <code>Receiver.</code></p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">504</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">504</span>
 <span class="normal">505</span>
 <span class="normal">506</span>
 <span class="normal">507</span>
@@ -5718,10 +5798,11 @@ method on the <code>Receiver.</code></p>
         <span class="n">InverterData</span><span class="o">.</span><span class="n">from_proto</span><span class="p">,</span>
     <span class="p">)</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="n">maxsize</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -5743,6 +5824,8 @@ method on the <code>Receiver.</code></p>
 <p>If only the latest value is required, the <code>Receiver</code> returned by this
 method can be converted into a <code>Peekable</code> with the <code>into_peekable</code>
 method on the <code>Receiver.</code></p>
+
+
 
   <table>
     <thead>
@@ -5767,11 +5850,13 @@ method on the <code>Receiver.</code></p>
     </tbody>
   </table>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -5802,13 +5887,15 @@ method on the <code>Receiver.</code></p>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>RECEIVER_MAX_SIZE</code>
+                    <code><span title="frequenz.sdk._internal._constants.RECEIVER_MAX_SIZE">RECEIVER_MAX_SIZE</span></code>
                 </span>
             </p>
           </td>
         </tr>
     </tbody>
   </table>
+
+
 
   <table>
     <thead>
@@ -5833,9 +5920,9 @@ method on the <code>Receiver.</code></p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">444</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">444</span>
 <span class="normal">445</span>
 <span class="normal">446</span>
 <span class="normal">447</span>
@@ -5893,10 +5980,11 @@ method on the <code>Receiver.</code></p>
         <span class="n">MeterData</span><span class="o">.</span><span class="n">from_proto</span><span class="p">,</span>
     <span class="p">)</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="n">maxsize</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -5916,11 +6004,13 @@ method on the <code>Receiver.</code></p>
   
       <p>Send <code>SetBoundsParam</code>s received from a channel to nitrogen.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -5969,6 +6059,8 @@ method on the <code>Receiver.</code></p>
     </tbody>
   </table>
 
+
+
   <table>
     <thead>
       <tr>
@@ -6006,9 +6098,9 @@ or when the api call exceeded timeout</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">610</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">610</span>
 <span class="normal">611</span>
 <span class="normal">612</span>
 <span class="normal">613</span>
@@ -6108,10 +6200,11 @@ or when the api call exceeded timeout</p>
         <span class="p">)</span>
         <span class="k">raise</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -6134,11 +6227,13 @@ or when the api call exceeded timeout</p>
 If power &lt; 0, then component will be discharged with this power.
 If power == 0, then stop charging or discharging component.</p>
 
+
+
   <table>
     <thead>
       <tr>
         <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
+        <th><b> DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
@@ -6173,6 +6268,8 @@ If power == 0, then stop charging or discharging component.</p>
     </tbody>
   </table>
 
+
+
   <table>
     <thead>
       <tr>
@@ -6197,9 +6294,9 @@ when the api call exceeded timeout</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">564</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_client.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">564</span>
 <span class="normal">565</span>
 <span class="normal">566</span>
 <span class="normal">567</span>
@@ -6289,7 +6386,7 @@ when the api call exceeded timeout</p>
             <span class="n">debug_error_string</span><span class="o">=</span><span class="n">err</span><span class="o">.</span><span class="n">debug_error_string</span><span class="p">(),</span>
         <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
@@ -6307,23 +6404,22 @@ when the api call exceeded timeout</p>
 
 
 <h4 id="frequenz.sdk.microgrid.client.RetryStrategy" class="doc doc-heading">
-        <code>frequenz.sdk.microgrid.client.RetryStrategy</code>
+          <code>frequenz.sdk.microgrid.client.RetryStrategy</code>
 
 
 <a href="#frequenz.sdk.microgrid.client.RetryStrategy" class="headerlink" title="Permanent link">¤</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
 
   
       <p>Interface for implementing retry strategies.</p>
 
-
-        <details class="quote">
-          <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">17</span>
+            <details class="quote">
+              <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">17</span>
 <span class="normal">18</span>
 <span class="normal">19</span>
 <span class="normal">20</span>
@@ -6435,7 +6531,7 @@ when the api call exceeded timeout</p>
                 <span class="k">break</span>
             <span class="k">yield</span> <span class="n">interval</span>
 </code></pre></div></td></tr></table></div>
-        </details>
+            </details>
 
   
 
@@ -6448,6 +6544,7 @@ when the api call exceeded timeout</p>
 
 
 <h5 id="frequenz.sdk.microgrid.client.RetryStrategy-functions">Functions<a href="#frequenz.sdk.microgrid.client.RetryStrategy-functions" class="headerlink" title="Permanent link">¤</a></h5>
+
 
 <div class="doc doc-object doc-function">
 
@@ -6462,6 +6559,8 @@ when the api call exceeded timeout</p>
   <div class="doc doc-contents ">
   
       <p>Return an iterator over the retry intervals.</p>
+
+
 
   <table>
     <thead>
@@ -6486,9 +6585,9 @@ when the api call exceeded timeout</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">62</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">62</span>
 <span class="normal">63</span>
 <span class="normal">64</span>
 <span class="normal">65</span>
@@ -6510,10 +6609,11 @@ when the api call exceeded timeout</p>
             <span class="k">break</span>
         <span class="k">yield</span> <span class="n">interval</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -6528,6 +6628,8 @@ when the api call exceeded timeout</p>
   <div class="doc doc-contents ">
   
       <p>Create a new instance of <code>self</code>.</p>
+
+
 
   <table>
     <thead>
@@ -6552,9 +6654,9 @@ when the api call exceeded timeout</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">52</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">52</span>
 <span class="normal">53</span>
 <span class="normal">54</span>
 <span class="normal">55</span>
@@ -6572,10 +6674,11 @@ when the api call exceeded timeout</p>
     <span class="n">ret</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">ret</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -6590,6 +6693,8 @@ when the api call exceeded timeout</p>
   <div class="doc doc-contents ">
   
       <p>Return a string denoting the retry progress.</p>
+
+
 
   <table>
     <thead>
@@ -6614,9 +6719,9 @@ when the api call exceeded timeout</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">34</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">34</span>
 <span class="normal">35</span>
 <span class="normal">36</span>
 <span class="normal">37</span>
@@ -6636,10 +6741,11 @@ when the api call exceeded timeout</p>
 
     <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_count</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_limit</span><span class="si">}</span><span class="s2">)&quot;</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -6660,6 +6766,8 @@ when the api call exceeded timeout</p>
       <p>Return the time to wait before the next retry.</p>
 <p>Returns <code>None</code> if the retry limit has been reached, and no more retries
 are possible.</p>
+
+
 
   <table>
     <thead>
@@ -6684,9 +6792,9 @@ are possible.</p>
     </tbody>
   </table>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">23</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">23</span>
 <span class="normal">24</span>
 <span class="normal">25</span>
 <span class="normal">26</span>
@@ -6706,10 +6814,11 @@ are possible.</p>
 <span class="sd">        Time until next retry when below retry limit, and None otherwise.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -6726,9 +6835,9 @@ are possible.</p>
       <p>Reset the retry counter.</p>
 <p>To be called as soon as a connection is successful.</p>
 
-      <details class="quote">
-        <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">45</span>
+          <details class="quote">
+            <summary>Source code in <code>/opt/hostedtoolcache/Python/3.11.4/x64/lib/python3.11/site-packages/frequenz/sdk/microgrid/client/_retry.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">45</span>
 <span class="normal">46</span>
 <span class="normal">47</span>
 <span class="normal">48</span>
@@ -6740,7 +6849,7 @@ are possible.</p>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">=</span> <span class="mi">0</span>
 </code></pre></div></td></tr></table></div>
-      </details>
+          </details>
   </div>
 
 </div>
