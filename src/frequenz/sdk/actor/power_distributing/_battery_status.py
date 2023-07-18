@@ -339,9 +339,25 @@ class BatteryStatusTracker:
                         self._handle_status_set_power_result(selected.value)
 
                     elif selected_from(selected, battery_timer):
+                        if (
+                            datetime.now(tz=timezone.utc)
+                            - self._battery.last_msg_timestamp
+                        ) < timedelta(seconds=self._max_data_age):
+                            # This means that we have received data from the battery
+                            # since the timer triggered, but the timer event arrived
+                            # late, so we can ignore it.
+                            continue
                         self._handle_status_battery_timer()
 
                     elif selected_from(selected, inverter_timer):
+                        if (
+                            datetime.now(tz=timezone.utc)
+                            - self._inverter.last_msg_timestamp
+                        ) < timedelta(seconds=self._max_data_age):
+                            # This means that we have received data from the inverter
+                            # since the timer triggered, but the timer event arrived
+                            # late, so we can ignore it.
+                            continue
                         self._handle_status_inverter_timer()
 
                     else:
