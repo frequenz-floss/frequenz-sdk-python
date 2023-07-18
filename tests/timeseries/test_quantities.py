@@ -350,3 +350,30 @@ def test_nan() -> None:
     assert f"{Energy.from_watt_hours(float('nan'))}" == "nan Wh"
     assert f"{Frequency.from_hertz(float('nan'))}" == "nan Hz"
     assert f"{Percentage.from_fraction(float('nan'))}" == "nan %"
+
+
+def test_abs() -> None:
+    """Test the absolute value of quantities."""
+    power = Power.from_watts(1000.0)
+    assert abs(power) == Power.from_watts(1000.0)
+    assert abs(-power) == Power.from_watts(1000.0)
+
+    voltage = Voltage.from_volts(230.0)
+    assert abs(voltage) == Voltage.from_volts(230.0)
+    assert abs(-voltage) == Voltage.from_volts(230.0)
+
+    current = Current.from_amperes(2)
+    assert abs(current) == Current.from_amperes(2)
+    assert abs(-current) == Current.from_amperes(2)
+
+    energy = Energy.from_kilowatt_hours(6.2)
+    assert abs(energy) == Energy.from_kilowatt_hours(6.2)
+    assert abs(-energy) == Energy.from_kilowatt_hours(6.2)
+
+    freq = Frequency.from_hertz(50)
+    assert abs(freq) == Frequency.from_hertz(50)
+    assert abs(-freq) == Frequency.from_hertz(50)
+
+    pct = Percentage.from_fraction(30)
+    assert abs(pct) == Percentage.from_fraction(30)
+    assert abs(-pct) == Percentage.from_fraction(30)

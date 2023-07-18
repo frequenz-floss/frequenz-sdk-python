@@ -300,6 +300,16 @@ class Quantity:
         negation._base_value = -self._base_value
         return negation
 
+    def __abs__(self) -> Self:
+        """Return the absolute value of this quantity.
+
+        Returns:
+            The absolute value of this quantity.
+        """
+        absolute = type(self).__new__(type(self))
+        absolute._base_value = abs(self._base_value)
+        return absolute
+
 
 class _NoDefaultConstructible(type):
     """A metaclass that disables the default constructor."""
