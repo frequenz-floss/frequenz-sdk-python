@@ -15,6 +15,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import AsyncIterator, Callable, Coroutine, Optional, Sequence
 
+from frequenz.channels.util import Timer
+
 from .._internal._asyncio import cancel_and_await
 from ._base_types import UNIX_EPOCH, Sample
 from ._quantities import Quantity, QuantityT
@@ -461,15 +463,33 @@ class Resampler:
                 timeseries from the resampler before calling this method
                 again).
         """
-        while True:
-            await self._wait_for_next_resampling_period()
+        async for _ in Timer.periodic(
+            timedelta(seconds=self._config.resampling_period.total_seconds())
+        ):
+            now = datetime.now(tz=timezone.utc)
+            timer_error = now - self._window_end
+            # We use a tolerance of 10% of the resampling period
+            tolerance = timedelta(
+                seconds=self._config.resampling_period.total_seconds() / 10.0
+            )
+            if timer_error > tolerance:
+                _logger.warning(
+                    "The resampling task woke up too late. Resampling should have "
+                    "started at %s, but it started at %s (tolerance: %s, "
+                    "difference: %s; resampling period: %s)",
+                    self._window_end,
+                    now,
+                    tolerance,
+                    timer_error,
+                    self._config.resampling_period,
+                )
 
             results = await asyncio.gather(
                 *[r.resample(self._window_end) for r in self._resamplers.values()],
                 return_exceptions=True,
             )
 
-            self._window_end = self._window_end + self._config.resampling_period
+            self._window_end += self._config.resampling_period
             exceptions = {
                 source: results[i]
                 for i, source in enumerate(self._resamplers)
@@ -481,35 +501,6 @@ class Resampler:
                 raise ResamplingError(exceptions)
             if one_shot:
                 break
-
-    async def _wait_for_next_resampling_period(self) -> None:
-        """Wait for next resampling period.
-
-        If resampling period already started, then return without sleeping.
-        That would allow us to catch up with resampling.
-        Print warning if function woke up to late.
-        """
-        now = datetime.now(tz=timezone.utc)
-        if self._window_end > now:
-            sleep_for = self._window_end - now
-            await asyncio.sleep(sleep_for.total_seconds())
-
-        timer_error = now - self._window_end
-        # We use a tolerance of 10% of the resampling period
-        tolerance = timedelta(
-            seconds=self._config.resampling_period.total_seconds() / 10.0
-        )
-        if timer_error > tolerance:
-            _logger.warning(
-                "The resampling task woke up too late. Resampling should have "
-                "started at %s, but it started at %s (tolerance: %s, "
-                "difference: %s; resampling period: %s)",
-                self._window_end,
-                now,
-                tolerance,
-                timer_error,
-                self._config.resampling_period,
-            )
 
     def _calculate_window_end(self) -> datetime:
         """Calculate the end of the current resampling window.
