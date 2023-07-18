@@ -29,7 +29,7 @@ from frequenz.channels import Broadcast, Receiver
 
 from ..._internal._asyncio import cancel_and_await
 from .. import Sample, Sample3Phase
-from .._quantities import QuantityT
+from .._quantities import Quantity, QuantityT
 from ._formula_steps import (
     Adder,
     Averager,
@@ -231,7 +231,7 @@ class _ComposableFormulaEngine(
 
     def __add__(
         self,
-        other: _GenericEngine | _GenericHigherOrderBuilder,
+        other: _GenericEngine | _GenericHigherOrderBuilder | QuantityT,
     ) -> _GenericHigherOrderBuilder:
         """Return a formula builder that adds (data in) `other` to `self`.
 
@@ -246,7 +246,7 @@ class _ComposableFormulaEngine(
         return self._higher_order_builder(self, self._create_method) + other  # type: ignore
 
     def __sub__(
-        self, other: _GenericEngine | _GenericHigherOrderBuilder
+        self, other: _GenericEngine | _GenericHigherOrderBuilder | QuantityT
     ) -> _GenericHigherOrderBuilder:
         """Return a formula builder that subtracts (data in) `other` from `self`.
 
@@ -261,7 +261,7 @@ class _ComposableFormulaEngine(
         return self._higher_order_builder(self, self._create_method) - other  # type: ignore
 
     def __mul__(
-        self, other: _GenericEngine | _GenericHigherOrderBuilder
+        self, other: _GenericEngine | _GenericHigherOrderBuilder | float
     ) -> _GenericHigherOrderBuilder:
         """Return a formula builder that multiplies (data in) `self` with `other`.
 
@@ -276,7 +276,7 @@ class _ComposableFormulaEngine(
         return self._higher_order_builder(self, self._create_method) * other  # type: ignore
 
     def __truediv__(
-        self, other: _GenericEngine | _GenericHigherOrderBuilder
+        self, other: _GenericEngine | _GenericHigherOrderBuilder | float
     ) -> _GenericHigherOrderBuilder:
         """Return a formula builder that divides (data in) `self` by `other`.
 
@@ -740,7 +740,11 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         self._steps: deque[
             tuple[
                 TokenType,
-                FormulaEngine[QuantityT] | FormulaEngine3Phase[QuantityT] | str,
+                FormulaEngine[QuantityT]
+                | FormulaEngine3Phase[QuantityT]
+                | QuantityT
+                | float
+                | str,
             ]
         ] = deque()
         self._steps.append((TokenType.COMPONENT_METRIC, engine))
@@ -754,12 +758,12 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
 
     @overload
     def _push(
-        self, oper: str, other: _CompositionType3Phase
+        self, oper: str, other: _CompositionType3Phase | QuantityT | float
     ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
         ...
 
     def _push(
-        self, oper: str, other: _CompositionType
+        self, oper: str, other: _CompositionType | QuantityT | float
     ) -> (
         HigherOrderFormulaBuilder[QuantityT]
         | HigherOrderFormulaBuilder3Phase[QuantityT]
@@ -771,6 +775,19 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         # pylint: disable=protected-access
         if isinstance(other, (FormulaEngine, FormulaEngine3Phase)):
             self._steps.append((TokenType.COMPONENT_METRIC, other))
+        elif isinstance(other, (Quantity, float)):
+            match oper:
+                case "+" | "-":
+                    if not isinstance(other, Quantity):
+                        raise RuntimeError(
+                            f"A Quantity must be provided for addition or subtraction to {other}"
+                        )
+                case "*" | "/":
+                    if not isinstance(other, (float, int)):
+                        raise RuntimeError(
+                            f"A float must be provided for scalar multiplication to {other}"
+                        )
+            self._steps.append((TokenType.CONSTANT, other))
         elif isinstance(other, _BaseHOFormulaBuilder):
             self._steps.append((TokenType.OPER, "("))
             self._steps.extend(other._steps)
@@ -791,12 +808,12 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
 
     @overload
     def __add__(
-        self, other: _CompositionType3Phase
+        self, other: _CompositionType3Phase | QuantityT
     ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
         ...
 
     def __add__(
-        self, other: _CompositionType
+        self, other: _CompositionType | QuantityT
     ) -> (
         HigherOrderFormulaBuilder[QuantityT]
         | HigherOrderFormulaBuilder3Phase[QuantityT]
@@ -821,13 +838,13 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
 
     @overload
     def __sub__(
-        self, other: _CompositionType3Phase
+        self, other: _CompositionType3Phase | QuantityT
     ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
         ...
 
     def __sub__(
         self,
-        other: _CompositionType,
+        other: _CompositionType | QuantityT,
     ) -> (
         HigherOrderFormulaBuilder[QuantityT]
         | HigherOrderFormulaBuilder3Phase[QuantityT]
@@ -852,13 +869,13 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
 
     @overload
     def __mul__(
-        self, other: _CompositionType3Phase
+        self, other: _CompositionType3Phase | float
     ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
         ...
 
     def __mul__(
         self,
-        other: _CompositionType,
+        other: _CompositionType | float,
     ) -> (
         HigherOrderFormulaBuilder[QuantityT]
         | HigherOrderFormulaBuilder3Phase[QuantityT]
@@ -883,13 +900,13 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
 
     @overload
     def __truediv__(
-        self, other: _CompositionType3Phase
+        self, other: _CompositionType3Phase | float
     ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
         ...
 
     def __truediv__(
         self,
-        other: _CompositionType,
+        other: _CompositionType | float,
     ) -> (
         HigherOrderFormulaBuilder[QuantityT]
         | HigherOrderFormulaBuilder3Phase[QuantityT]
@@ -935,6 +952,11 @@ class HigherOrderFormulaBuilder(Generic[QuantityT], _BaseHOFormulaBuilder[Quanti
             elif typ == TokenType.OPER:
                 assert isinstance(value, str)
                 builder.push_oper(value)
+            elif typ == TokenType.CONSTANT:
+                assert isinstance(value, (Quantity, float))
+                builder.push_constant(
+                    value.base_value if isinstance(value, Quantity) else value
+                )
         return builder.build()
 
 
