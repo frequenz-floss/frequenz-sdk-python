@@ -322,6 +322,17 @@ class MovingWindow:
             if isinstance(key.start, datetime) and isinstance(key.stop, datetime):
                 return self._buffer.window(key.start, key.stop)
             if isinstance(key.start, int) and isinstance(key.stop, int):
+                new_start = self._buffer.wrap(key.start)
+                new_stop = self._buffer.wrap(key.stop)
+                if new_start >= new_stop:
+                    if (
+                        new_stop < 0
+                        and (self._buffer.maxlen - 1) + new_stop >= new_start
+                    ):
+                        return self._buffer[key]
+                    return np.concatenate(
+                        (self._buffer[new_start:], self._buffer[0:new_stop])
+                    )
                 return self._buffer[key]
         elif isinstance(key, datetime):
             _logger.debug("Returning value at time %s ", key)

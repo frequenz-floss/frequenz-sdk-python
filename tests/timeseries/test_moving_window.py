@@ -111,6 +111,13 @@ async def test_access_window_by_ts_slice() -> None:
     assert np.array_equal(window[time_start:time_end], np.array([3.0, 4.0]))  # type: ignore
 
 
+async def test_access_window_wraparound_int_slice() -> None:
+    """Test accessing a subwindow with an integer slice that wraps around the window"""
+    window, sender = init_moving_window(timedelta(seconds=5))
+    await push_logical_meter_data(sender, range(0, 5))
+    assert np.array_equal(window[3:7], np.array([3.0, 4.0, 0.0, 1.0]))
+
+
 async def test_window_size() -> None:
     """Test the size of the window."""
     window, sender = init_moving_window(timedelta(seconds=5))
