@@ -14,7 +14,7 @@ from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory, ComponentMetricId, InverterType
 from ...timeseries import Energy, Percentage, Sample, Temperature
 from ._component_metrics import ComponentMetricsData
-from ._result_types import Bound, PowerMetrics
+from ._result_types import Bounds, PowerMetrics
 
 _logger = logging.getLogger(__name__)
 _MIN_TIMESTAMP = datetime.min.replace(tzinfo=timezone.utc)
@@ -537,8 +537,8 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
 
         result = PowerMetrics(
             timestamp=_MIN_TIMESTAMP,
-            supply_bound=Bound(0, 0),
-            consume_bound=Bound(0, 0),
+            supply_bound=Bounds(0, 0),
+            consume_bound=Bounds(0, 0),
         )
 
         for battery_id in working_batteries:

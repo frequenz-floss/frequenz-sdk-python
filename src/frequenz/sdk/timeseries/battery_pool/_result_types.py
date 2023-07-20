@@ -8,7 +8,7 @@ from datetime import datetime
 
 
 @dataclass
-class Bound:
+class Bounds:
     """Lower and upper bound values."""
 
     lower: float
@@ -26,7 +26,7 @@ class PowerMetrics:
     timestamp: datetime = field(compare=False)
     """Timestamp of the metrics."""
 
-    supply_bound: Bound
+    supply_bound: Bounds
     """Supply power bounds.
 
     Upper bound is always 0 and will be supported later.
@@ -44,7 +44,7 @@ class PowerMetrics:
     ```
     """
 
-    consume_bound: Bound
+    consume_bound: Bounds
     """Consume power bounds.
 
     Lower bound is always 0 and will be supported later.

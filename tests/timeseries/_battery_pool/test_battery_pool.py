@@ -27,7 +27,7 @@ from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.actor.power_distributing import BatteryStatus
 from frequenz.sdk.microgrid.component import ComponentCategory
 from frequenz.sdk.timeseries import Energy, Percentage, Power, Sample, Temperature
-from frequenz.sdk.timeseries.battery_pool import BatteryPool, Bound, PowerMetrics
+from frequenz.sdk.timeseries.battery_pool import BatteryPool, Bounds, PowerMetrics
 from frequenz.sdk.timeseries.battery_pool._metric_calculator import (
     battery_inverter_mapping,
 )
@@ -853,8 +853,8 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
     now = datetime.now(tz=timezone.utc)
     expected = PowerMetrics(
         timestamp=now,
-        supply_bound=Bound(-1800, 0),
-        consume_bound=Bound(0, 10000),
+        supply_bound=Bounds(-1800, 0),
+        consume_bound=Bounds(0, 10000),
     )
     compare_messages(msg, expected, WAIT_FOR_COMPONENT_DATA_SEC + 0.2)
 
@@ -863,7 +863,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
         Scenario(
             bat_inv_map[batteries_in_pool[0]],
             {"active_power_inclusion_lower_bound": -100},
-            PowerMetrics(now, Bound(-1000, 0), Bound(0, 10000)),
+            PowerMetrics(now, Bounds(-1000, 0), Bounds(0, 10000)),
         ),
         # Inverter bound changed, but metric result should not change.
         Scenario(
@@ -875,12 +875,12 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
         Scenario(
             batteries_in_pool[0],
             {"power_inclusion_lower_bound": 0, "power_inclusion_upper_bound": 4000},
-            PowerMetrics(now, Bound(-900, 0), Bound(0, 9000)),
+            PowerMetrics(now, Bounds(-900, 0), Bounds(0, 9000)),
         ),
         Scenario(
             batteries_in_pool[1],
             {"power_inclusion_lower_bound": -10, "power_inclusion_upper_bound": 200},
-            PowerMetrics(now, Bound(-10, 0), Bound(0, 4200)),
+            PowerMetrics(now, Bounds(-10, 0), Bounds(0, 4200)),
         ),
         # Test 2 things:
         # 1. Battery is sending upper bounds=NaN, use only inverter upper bounds
@@ -892,7 +892,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 "power_inclusion_lower_bound": -50,
                 "power_inclusion_upper_bound": math.nan,
             },
-            PowerMetrics(now, Bound(-60, 0), Bound(0, 9200)),
+            PowerMetrics(now, Bounds(-60, 0), Bounds(0, 9200)),
         ),
         Scenario(
             bat_inv_map[batteries_in_pool[0]],
@@ -900,12 +900,12 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 "active_power_inclusion_lower_bound": math.nan,
                 "active_power_inclusion_upper_bound": math.nan,
             },
-            PowerMetrics(now, Bound(-60, 0), Bound(0, 200)),
+            PowerMetrics(now, Bounds(-60, 0), Bounds(0, 200)),
         ),
         Scenario(
             batteries_in_pool[0],
             {"power_inclusion_lower_bound": math.nan},
-            PowerMetrics(now, Bound(-10, 0), Bound(0, 200)),
+            PowerMetrics(now, Bounds(-10, 0), Bounds(0, 200)),
         ),
         Scenario(
             batteries_in_pool[1],
@@ -913,7 +913,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 "power_inclusion_lower_bound": -100,
                 "power_inclusion_upper_bound": math.nan,
             },
-            PowerMetrics(now, Bound(-100, 0), Bound(0, 6000)),
+            PowerMetrics(now, Bounds(-100, 0), Bounds(0, 6000)),
         ),
         Scenario(
             bat_inv_map[batteries_in_pool[1]],
@@ -921,7 +921,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 "active_power_inclusion_lower_bound": math.nan,
                 "active_power_inclusion_upper_bound": math.nan,
             },
-            PowerMetrics(now, Bound(-100, 0), Bound(0, 0)),
+            PowerMetrics(now, Bounds(-100, 0), Bounds(0, 0)),
         ),
         # All components are sending NaN, can't calculate bounds
         Scenario(
@@ -935,7 +935,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
         Scenario(
             batteries_in_pool[0],
             {"power_inclusion_lower_bound": -100, "power_inclusion_upper_bound": 100},
-            PowerMetrics(now, Bound(-100, 0), Bound(0, 100)),
+            PowerMetrics(now, Bounds(-100, 0), Bounds(0, 100)),
         ),
         Scenario(
             bat_inv_map[batteries_in_pool[1]],
@@ -943,7 +943,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 "active_power_inclusion_lower_bound": -400,
                 "active_power_inclusion_upper_bound": 400,
             },
-            PowerMetrics(now, Bound(-500, 0), Bound(0, 500)),
+            PowerMetrics(now, Bounds(-500, 0), Bounds(0, 500)),
         ),
         Scenario(
             batteries_in_pool[1],
@@ -951,7 +951,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 "power_inclusion_lower_bound": -300,
                 "power_inclusion_upper_bound": 700,
             },
-            PowerMetrics(now, Bound(-400, 0), Bound(0, 500)),
+            PowerMetrics(now, Bounds(-400, 0), Bounds(0, 500)),
         ),
         Scenario(
             bat_inv_map[batteries_in_pool[0]],
@@ -959,7 +959,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 "active_power_inclusion_lower_bound": -200,
                 "active_power_inclusion_upper_bound": 50,
             },
-            PowerMetrics(now, Bound(-400, 0), Bound(0, 450)),
+            PowerMetrics(now, Bounds(-400, 0), Bounds(0, 450)),
         ),
     ]
 
@@ -972,27 +972,27 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
         all_batteries=all_batteries,
         batteries_in_pool=batteries_in_pool,
         waiting_time_sec=waiting_time_sec,
-        all_pool_result=PowerMetrics(now, Bound(-400, 0), Bound(0, 450)),
-        only_first_battery_result=PowerMetrics(now, Bound(-100, 0), Bound(0, 50)),
+        all_pool_result=PowerMetrics(now, Bounds(-400, 0), Bounds(0, 450)),
+        only_first_battery_result=PowerMetrics(now, Bounds(-100, 0), Bounds(0, 50)),
     )
 
     # One battery stopped sending data, inverter data should be used.
     await streamer.stop_streaming(batteries_in_pool[1])
     await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.2)
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
-    compare_messages(msg, PowerMetrics(now, Bound(-500, 0), Bound(0, 450)), 0.2)
+    compare_messages(msg, PowerMetrics(now, Bounds(-500, 0), Bounds(0, 450)), 0.2)
 
     # All batteries stopped sending data, use inverters only.
     await streamer.stop_streaming(batteries_in_pool[0])
     await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.2)
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
-    compare_messages(msg, PowerMetrics(now, Bound(-600, 0), Bound(0, 450)), 0.2)
+    compare_messages(msg, PowerMetrics(now, Bounds(-600, 0), Bounds(0, 450)), 0.2)
 
     # One inverter stopped sending data, use one remaining inverter
     await streamer.stop_streaming(bat_inv_map[batteries_in_pool[0]])
     await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.2)
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
-    compare_messages(msg, PowerMetrics(now, Bound(-400, 0), Bound(0, 400)), 0.2)
+    compare_messages(msg, PowerMetrics(now, Bounds(-400, 0), Bounds(0, 400)), 0.2)
 
     # All components stopped sending data, we can assume that power bounds are 0
     await streamer.stop_streaming(bat_inv_map[batteries_in_pool[1]])
@@ -1004,7 +1004,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
     latest_data = streamer.get_current_component_data(batteries_in_pool[0])
     streamer.start_streaming(latest_data, sampling_rate=0.1)
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
-    compare_messages(msg, PowerMetrics(now, Bound(-100, 0), Bound(0, 100)), 0.2)
+    compare_messages(msg, PowerMetrics(now, Bounds(-100, 0), Bounds(0, 100)), 0.2)
 
 
 async def run_temperature_test(  # pylint: disable=too-many-locals
