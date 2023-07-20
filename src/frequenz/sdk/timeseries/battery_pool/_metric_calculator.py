@@ -542,8 +542,8 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
         )
 
         for battery_id in working_batteries:
-            supply_upper_bounds: list[float] = []
-            consume_upper_bounds: list[float] = []
+            inclusion_lower_bounds: list[float] = []
+            inclusion_upper_bounds: list[float] = []
 
             if battery_id in metrics_data:
                 data = metrics_data[battery_id]
@@ -553,12 +553,12 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
                 value = data.get(ComponentMetricId.POWER_INCLUSION_UPPER_BOUND)
                 if value is not None:
                     result.timestamp = max(result.timestamp, data.timestamp)
-                    consume_upper_bounds.append(value)
+                    inclusion_upper_bounds.append(value)
 
                 value = data.get(ComponentMetricId.POWER_INCLUSION_LOWER_BOUND)
                 if value is not None:
                     result.timestamp = max(result.timestamp, data.timestamp)
-                    supply_upper_bounds.append(value)
+                    inclusion_lower_bounds.append(value)
 
             inverter_id = self._bat_inv_map[battery_id]
             if inverter_id in metrics_data:
@@ -567,17 +567,17 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
                 value = data.get(ComponentMetricId.ACTIVE_POWER_INCLUSION_UPPER_BOUND)
                 if value is not None:
                     result.timestamp = max(data.timestamp, result.timestamp)
-                    consume_upper_bounds.append(value)
+                    inclusion_upper_bounds.append(value)
 
                 value = data.get(ComponentMetricId.ACTIVE_POWER_INCLUSION_LOWER_BOUND)
                 if value is not None:
                     result.timestamp = max(data.timestamp, result.timestamp)
-                    supply_upper_bounds.append(value)
+                    inclusion_lower_bounds.append(value)
 
-            if len(consume_upper_bounds) > 0:
-                result.consume_bound.upper += min(consume_upper_bounds)
-            if len(supply_upper_bounds) > 0:
-                result.supply_bound.lower += max(supply_upper_bounds)
+            if len(inclusion_upper_bounds) > 0:
+                result.consume_bound.upper += min(inclusion_upper_bounds)
+            if len(inclusion_lower_bounds) > 0:
+                result.supply_bound.lower += max(inclusion_lower_bounds)
 
         if result.timestamp == _MIN_TIMESTAMP:
             return None
