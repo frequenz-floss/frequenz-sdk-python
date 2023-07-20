@@ -145,9 +145,13 @@ class ComponentMetricId(Enum):
     CAPACITY = "capacity"
 
     POWER_INCLUSION_LOWER_BOUND = "power_inclusion_lower_bound"
+    POWER_EXCLUSION_LOWER_BOUND = "power_exclusion_lower_bound"
+    POWER_EXCLUSION_UPPER_BOUND = "power_exclusion_upper_bound"
     POWER_INCLUSION_UPPER_BOUND = "power_inclusion_upper_bound"
 
     ACTIVE_POWER_INCLUSION_LOWER_BOUND = "active_power_inclusion_lower_bound"
+    ACTIVE_POWER_EXCLUSION_LOWER_BOUND = "active_power_exclusion_lower_bound"
+    ACTIVE_POWER_EXCLUSION_UPPER_BOUND = "active_power_exclusion_upper_bound"
     ACTIVE_POWER_INCLUSION_UPPER_BOUND = "active_power_inclusion_upper_bound"
 
     TEMPERATURE = "temperature"
