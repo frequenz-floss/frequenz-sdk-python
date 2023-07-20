@@ -170,6 +170,62 @@ class TestFormulaComposition:
 
         assert count == 10
 
+    async def test_formula_composition_constant(self, mocker: MockerFixture) -> None:
+        """Test the composition of formulas with constant values."""
+        mockgrid = MockMicrogrid(grid_side_meter=True)
+        await mockgrid.start(mocker)
+
+        logical_meter = microgrid.logical_meter()
+        engine_add = (logical_meter.grid_power + Power.from_watts(50)).build(
+            "grid_power_addition"
+        )
+        engine_sub = (logical_meter.grid_power - Power.from_watts(100)).build(
+            "grid_power_subtraction"
+        )
+        engine_mul = (logical_meter.grid_power * 2.0).build("grid_power_multiplication")
+        engine_div = (logical_meter.grid_power / 2.0).build("grid_power_division")
+
+        await mockgrid.mock_resampler.send_meter_power([100.0])
+
+        # Test addition
+        grid_power_addition = await engine_add.new_receiver().receive()
+        assert grid_power_addition.value is not None
+        assert math.isclose(
+            grid_power_addition.value.as_watts(),
+            150.0,
+        )
+
+        # Test subtraction
+        grid_power_subtraction = await engine_sub.new_receiver().receive()
+        assert grid_power_subtraction.value is not None
+        assert math.isclose(
+            grid_power_subtraction.value.as_watts(),
+            0.0,
+        )
+
+        # Test multiplication
+        grid_power_multiplication = await engine_mul.new_receiver().receive()
+        assert grid_power_multiplication.value is not None
+        assert math.isclose(
+            grid_power_multiplication.value.as_watts(),
+            200.0,
+        )
+
+        # Test division
+        grid_power_division = await engine_div.new_receiver().receive()
+        assert grid_power_division.value is not None
+        assert math.isclose(
+            grid_power_division.value.as_watts(),
+            50.0,
+        )
+
+        await engine_add._stop()  # pylint: disable=protected-access
+        await engine_sub._stop()  # pylint: disable=protected-access
+        await engine_mul._stop()  # pylint: disable=protected-access
+        await engine_div._stop()  # pylint: disable=protected-access
+        await mockgrid.cleanup()
+        await logical_meter.stop()
+
     async def test_3_phase_formulas(self, mocker: MockerFixture) -> None:
         """Test 3 phase formulas current formulas and their composition."""
         mockgrid = MockMicrogrid(
