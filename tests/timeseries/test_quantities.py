@@ -105,6 +105,15 @@ def test_addition_subtraction() -> None:
         assert Fz1(1) - Fz2(1)  # type: ignore
     assert excinfo.value.args[0] == "unsupported operand type(s) for -: 'Fz1' and 'Fz2'"
 
+    fz1 = Fz1(1.0)
+    fz1 += Fz1(4.0)
+    assert fz1 == Fz1(5.0)
+    fz1 -= Fz1(9.0)
+    assert fz1 == Fz1(-4.0)
+
+    with pytest.raises(TypeError) as excinfo:
+        fz1 += Fz2(1.0)  # type: ignore
+
 
 def test_comparison() -> None:
     """Test the comparison of the quantities."""
@@ -394,6 +403,17 @@ def test_quantity_multiplied_with_precentage() -> None:
     assert energy * percentage == Energy.from_kilowatt_hours(6)
     assert percentage_ * percentage == Percentage.from_percent(25)
 
+    power *= percentage
+    assert power == Power.from_watts(500.0)
+    voltage *= percentage
+    assert voltage == Voltage.from_volts(115.0)
+    current *= percentage
+    assert current == Current.from_amperes(1)
+    energy *= percentage
+    assert energy == Energy.from_kilowatt_hours(6)
+    percentage_ *= percentage
+    assert percentage_ == Percentage.from_percent(25)
+
 
 def test_invalid_multiplications() -> None:
     """Test the multiplication of quantities with invalid quantities."""
@@ -405,19 +425,29 @@ def test_invalid_multiplications() -> None:
     for quantity in [power, voltage, current, energy]:
         with pytest.raises(TypeError):
             _ = power * quantity  # type: ignore
+        with pytest.raises(TypeError):
+            power *= quantity  # type: ignore
 
     for quantity in [voltage, power, energy]:
         with pytest.raises(TypeError):
             _ = voltage * quantity  # type: ignore
+        with pytest.raises(TypeError):
+            voltage *= quantity  # type: ignore
 
     for quantity in [current, power, energy]:
         with pytest.raises(TypeError):
             _ = current * quantity  # type: ignore
+        with pytest.raises(TypeError):
+            current *= quantity  # type: ignore
 
     for quantity in [energy, power, voltage, current]:
         with pytest.raises(TypeError):
             _ = energy * quantity  # type: ignore
+        with pytest.raises(TypeError):
+            energy *= quantity  # type: ignore
 
     for quantity in [power, voltage, current, energy, Percentage.from_percent(50)]:
         with pytest.raises(TypeError):
             _ = quantity * 200.0  # type: ignore
+        with pytest.raises(TypeError):
+            quantity *= 200.0  # type: ignore
