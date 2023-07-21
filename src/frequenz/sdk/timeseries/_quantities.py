@@ -3,6 +3,8 @@
 
 """Types for holding quantities with units."""
 
+# pylint: disable=too-many-lines
+
 from __future__ import annotations
 
 import math
@@ -236,6 +238,48 @@ class Quantity:
         product = type(self).__new__(type(self))
         product._base_value = self._base_value * percent.as_fraction()
         return product
+
+    def __iadd__(self, other: Self) -> Self:
+        """Add another quantity to this one.
+
+        Args:
+            other: The other quantity.
+
+        Returns:
+            This quantity.
+        """
+        if not type(other) is type(self):
+            return NotImplemented
+        self._base_value += other._base_value
+        return self
+
+    def __isub__(self, other: Self) -> Self:
+        """Subtract another quantity from this one.
+
+        Args:
+            other: The other quantity.
+
+        Returns:
+            This quantity.
+        """
+        if not type(other) is type(self):
+            return NotImplemented
+        self._base_value -= other._base_value
+        return self
+
+    def __imul__(self, percent: Percentage) -> Self:
+        """Multiply this quantity by a percentage.
+
+        Args:
+            percent: The percentage.
+
+        Returns:
+            This quantity.
+        """
+        if not isinstance(percent, Percentage):
+            return NotImplemented
+        self._base_value *= percent.as_fraction()
+        return self
 
     def __gt__(self, other: Self) -> bool:
         """Return whether this quantity is greater than another.
