@@ -537,8 +537,8 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
 
         result = PowerMetrics(
             timestamp=_MIN_TIMESTAMP,
-            supply_bound=Bounds(0, 0),
-            consume_bound=Bounds(0, 0),
+            inclusion_bounds=Bounds(0, 0),
+            exclusion_bounds=Bounds(0, 0),
         )
 
         for battery_id in working_batteries:
@@ -575,9 +575,9 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
                     inclusion_lower_bounds.append(value)
 
             if len(inclusion_upper_bounds) > 0:
-                result.consume_bound.upper += min(inclusion_upper_bounds)
+                result.inclusion_bounds.upper += min(inclusion_upper_bounds)
             if len(inclusion_lower_bounds) > 0:
-                result.supply_bound.lower += max(inclusion_lower_bounds)
+                result.inclusion_bounds.lower += max(inclusion_lower_bounds)
 
         if result.timestamp == _MIN_TIMESTAMP:
             return None
