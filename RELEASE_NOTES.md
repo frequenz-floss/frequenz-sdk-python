@@ -12,8 +12,9 @@
 
 ## New Features
 
-- Add quantity class `Frequency` for frequency values.
 - Add `abs()` support for quantities.
+* Add quantity class `Frequency` for frequency values.
+* Quantities can now be multiplied with `Percentage` types.
 
 ## Bug Fixes
 
