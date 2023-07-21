@@ -6,15 +6,17 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from .._quantities import Power
+
 
 @dataclass
 class Bounds:
     """Lower and upper bound values."""
 
-    lower: float
+    lower: Power
     """Lower bound."""
 
-    upper: float
+    upper: Power
     """Upper bound."""
 
 

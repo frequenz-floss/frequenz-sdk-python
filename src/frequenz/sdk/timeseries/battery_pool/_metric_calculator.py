@@ -12,7 +12,8 @@ from typing import Generic, Iterable, TypeVar
 
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory, ComponentMetricId, InverterType
-from ...timeseries import Energy, Percentage, Sample, Temperature
+from ...timeseries import Sample
+from .._quantities import Energy, Percentage, Power, Temperature
 from ._component_metrics import ComponentMetricsData
 from ._result_types import Bounds, PowerMetrics
 
@@ -535,11 +536,9 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
         """
         # In the future we will have lower bound, too.
 
-        result = PowerMetrics(
-            timestamp=_MIN_TIMESTAMP,
-            inclusion_bounds=Bounds(0, 0),
-            exclusion_bounds=Bounds(0, 0),
-        )
+        timestamp = _MIN_TIMESTAMP
+        inclusion_bounds_lower = 0.0
+        inclusion_bounds_upper = 0.0
 
         for battery_id in working_batteries:
             inclusion_lower_bounds: list[float] = []
@@ -552,12 +551,12 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
                 # If one is missing, then we can still use the other.
                 value = data.get(ComponentMetricId.POWER_INCLUSION_UPPER_BOUND)
                 if value is not None:
-                    result.timestamp = max(result.timestamp, data.timestamp)
+                    timestamp = max(timestamp, data.timestamp)
                     inclusion_upper_bounds.append(value)
 
                 value = data.get(ComponentMetricId.POWER_INCLUSION_LOWER_BOUND)
                 if value is not None:
-                    result.timestamp = max(result.timestamp, data.timestamp)
+                    timestamp = max(timestamp, data.timestamp)
                     inclusion_lower_bounds.append(value)
 
             inverter_id = self._bat_inv_map[battery_id]
@@ -566,20 +565,27 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
 
                 value = data.get(ComponentMetricId.ACTIVE_POWER_INCLUSION_UPPER_BOUND)
                 if value is not None:
-                    result.timestamp = max(data.timestamp, result.timestamp)
+                    timestamp = max(data.timestamp, timestamp)
                     inclusion_upper_bounds.append(value)
 
                 value = data.get(ComponentMetricId.ACTIVE_POWER_INCLUSION_LOWER_BOUND)
                 if value is not None:
-                    result.timestamp = max(data.timestamp, result.timestamp)
+                    timestamp = max(data.timestamp, timestamp)
                     inclusion_lower_bounds.append(value)
 
             if len(inclusion_upper_bounds) > 0:
-                result.inclusion_bounds.upper += min(inclusion_upper_bounds)
+                inclusion_bounds_upper += min(inclusion_upper_bounds)
             if len(inclusion_lower_bounds) > 0:
-                result.inclusion_bounds.lower += max(inclusion_lower_bounds)
+                inclusion_bounds_lower += max(inclusion_lower_bounds)
 
-        if result.timestamp == _MIN_TIMESTAMP:
+        if timestamp == _MIN_TIMESTAMP:
             return None
 
-        return result
+        return PowerMetrics(
+            timestamp=timestamp,
+            inclusion_bounds=Bounds(
+                Power.from_watts(inclusion_bounds_lower),
+                Power.from_watts(inclusion_bounds_upper),
+            ),
+            exclusion_bounds=Bounds(Power.from_watts(0.0), Power.from_watts(0.0)),
+        )
