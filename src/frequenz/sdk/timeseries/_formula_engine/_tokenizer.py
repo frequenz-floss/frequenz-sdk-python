@@ -79,7 +79,8 @@ class TokenType(Enum):
     """Represents the types of tokens the Tokenizer can return."""
 
     COMPONENT_METRIC = 0
-    OPER = 1
+    CONSTANT = 1
+    OPER = 2
 
 
 @dataclass
