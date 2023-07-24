@@ -6,6 +6,7 @@
 
 import math
 
+import pytest
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
@@ -218,6 +219,20 @@ class TestFormulaComposition:
             grid_power_division.value.as_watts(),
             50.0,
         )
+
+        # Test multiplication with a Quantity
+        with pytest.raises(RuntimeError):
+            engine_assert = (
+                logical_meter.grid_power * Power.from_watts(2.0)  # type: ignore
+            ).build("grid_power_multiplication")
+            await engine_assert.new_receiver().receive()
+
+        # Test addition with a float
+        with pytest.raises(RuntimeError):
+            engine_assert = (logical_meter.grid_power + 2.0).build(  # type: ignore
+                "grid_power_multiplication"
+            )
+            await engine_assert.new_receiver().receive()
 
         await engine_add._stop()  # pylint: disable=protected-access
         await engine_sub._stop()  # pylint: disable=protected-access
