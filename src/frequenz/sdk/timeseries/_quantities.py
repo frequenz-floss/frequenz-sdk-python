@@ -100,6 +100,24 @@ class Quantity:
         """
         return math.isinf(self._base_value)
 
+    def isclose(self, other: Self, rel_tol: float = 1e-9, abs_tol: float = 0.0) -> bool:
+        """Return whether this quantity is close to another.
+
+        Args:
+            other: The quantity to compare to.
+            rel_tol: The relative tolerance.
+            abs_tol: The absolute tolerance.
+
+        Returns:
+            Whether this quantity is close to another.
+        """
+        return math.isclose(
+            self._base_value,
+            other._base_value,  # pylint: disable=protected-access
+            rel_tol=rel_tol,
+            abs_tol=abs_tol,
+        )
+
     def __repr__(self) -> str:
         """Return a representation of this quantity.
 
