@@ -515,6 +515,45 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
         """
         return {cid: self._inverter_metrics for cid in set(self._bat_inv_map.values())}
 
+    def _fetch_inclusion_bounds(
+        self,
+        battery_id: int,
+        inverter_id: int,
+        metrics_data: dict[int, ComponentMetricsData],
+    ) -> tuple[datetime, list[float], list[float]]:
+        timestamp = _MIN_TIMESTAMP
+        inclusion_lower_bounds: list[float] = []
+        inclusion_upper_bounds: list[float] = []
+
+        # Inclusion upper and lower bounds are not related.
+        # If one is missing, then we can still use the other.
+        if battery_id in metrics_data:
+            data = metrics_data[battery_id]
+            value = data.get(ComponentMetricId.POWER_INCLUSION_UPPER_BOUND)
+            if value is not None:
+                timestamp = max(timestamp, data.timestamp)
+                inclusion_upper_bounds.append(value)
+
+            value = data.get(ComponentMetricId.POWER_INCLUSION_LOWER_BOUND)
+            if value is not None:
+                timestamp = max(timestamp, data.timestamp)
+                inclusion_lower_bounds.append(value)
+
+        if inverter_id in metrics_data:
+            data = metrics_data[inverter_id]
+
+            value = data.get(ComponentMetricId.ACTIVE_POWER_INCLUSION_UPPER_BOUND)
+            if value is not None:
+                timestamp = max(data.timestamp, timestamp)
+                inclusion_upper_bounds.append(value)
+
+            value = data.get(ComponentMetricId.ACTIVE_POWER_INCLUSION_LOWER_BOUND)
+            if value is not None:
+                timestamp = max(data.timestamp, timestamp)
+                inclusion_lower_bounds.append(value)
+
+        return (timestamp, inclusion_lower_bounds, inclusion_upper_bounds)
+
     def calculate(
         self,
         metrics_data: dict[int, ComponentMetricsData],
@@ -541,38 +580,13 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
         inclusion_bounds_upper = 0.0
 
         for battery_id in working_batteries:
-            inclusion_lower_bounds: list[float] = []
-            inclusion_upper_bounds: list[float] = []
-
-            if battery_id in metrics_data:
-                data = metrics_data[battery_id]
-
-                # Consume and supply bounds are not related.
-                # If one is missing, then we can still use the other.
-                value = data.get(ComponentMetricId.POWER_INCLUSION_UPPER_BOUND)
-                if value is not None:
-                    timestamp = max(timestamp, data.timestamp)
-                    inclusion_upper_bounds.append(value)
-
-                value = data.get(ComponentMetricId.POWER_INCLUSION_LOWER_BOUND)
-                if value is not None:
-                    timestamp = max(timestamp, data.timestamp)
-                    inclusion_lower_bounds.append(value)
-
             inverter_id = self._bat_inv_map[battery_id]
-            if inverter_id in metrics_data:
-                data = metrics_data[inverter_id]
-
-                value = data.get(ComponentMetricId.ACTIVE_POWER_INCLUSION_UPPER_BOUND)
-                if value is not None:
-                    timestamp = max(data.timestamp, timestamp)
-                    inclusion_upper_bounds.append(value)
-
-                value = data.get(ComponentMetricId.ACTIVE_POWER_INCLUSION_LOWER_BOUND)
-                if value is not None:
-                    timestamp = max(data.timestamp, timestamp)
-                    inclusion_lower_bounds.append(value)
-
+            (
+                _ts,
+                inclusion_lower_bounds,
+                inclusion_upper_bounds,
+            ) = self._fetch_inclusion_bounds(battery_id, inverter_id, metrics_data)
+            timestamp = max(timestamp, _ts)
             if len(inclusion_upper_bounds) > 0:
                 inclusion_bounds_upper += min(inclusion_upper_bounds)
             if len(inclusion_lower_bounds) > 0:
