@@ -100,14 +100,6 @@ class Quantity:
         """
         return math.isinf(self._base_value)
 
-    def __hash__(self) -> int:
-        """Return a hash of this object.
-
-        Returns:
-            A hash of this object.
-        """
-        return hash((type(self), self._base_value))
-
     def __repr__(self) -> str:
         """Return a representation of this quantity.
 
