@@ -382,6 +382,9 @@ class Resampler:
         the window end is deterministic.
         """
 
+        self._timer: Timer = Timer.periodic(config.resampling_period)
+        """The timer used to trigger the resampling windows."""
+
     @property
     def config(self) -> ResamplerConfig:
         """Get the resampler configuration.
@@ -467,9 +470,8 @@ class Resampler:
         tolerance = timedelta(
             seconds=self._config.resampling_period.total_seconds() / 10.0
         )
-        async for drift in Timer.periodic(
-            timedelta(seconds=self._config.resampling_period.total_seconds())
-        ):
+
+        async for drift in self._timer:
             now = datetime.now(tz=timezone.utc)
 
             if drift > tolerance:
