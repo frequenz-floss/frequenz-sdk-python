@@ -192,7 +192,7 @@ async def test_helper_buffer_too_big(
             datetime(2020, 1, 1, 2, 3, 5, 300000, tzinfo=timezone.utc),
             datetime(2020, 1, 1, tzinfo=timezone.utc),
             (
-                datetime(2020, 1, 1, 2, 3, 6, tzinfo=timezone.utc),
+                datetime(2020, 1, 1, 2, 3, 7, tzinfo=timezone.utc),
                 timedelta(seconds=0.7),
             ),
         ),
@@ -201,7 +201,7 @@ async def test_helper_buffer_too_big(
             datetime(2020, 1, 1, 2, 3, 5, 300000, tzinfo=timezone.utc),
             datetime(2020, 1, 1, 0, 0, 5, tzinfo=timezone.utc),
             (
-                datetime(2020, 1, 1, 2, 3, 8, tzinfo=timezone.utc),
+                datetime(2020, 1, 1, 2, 3, 11, tzinfo=timezone.utc),
                 timedelta(seconds=2.7),
             ),
         ),
@@ -210,7 +210,7 @@ async def test_helper_buffer_too_big(
             datetime(2020, 1, 1, 2, 3, 5, 300000, tzinfo=timezone.utc),
             datetime(2020, 1, 1, 0, 0, 5, tzinfo=timezone.utc),
             (
-                datetime(2020, 1, 1, 2, 3, 15, tzinfo=timezone.utc),
+                datetime(2020, 1, 1, 2, 3, 25, tzinfo=timezone.utc),
                 timedelta(seconds=9.7),
             ),
         ),
@@ -220,7 +220,7 @@ async def test_helper_buffer_too_big(
             datetime(2020, 1, 1, 2, 3, 5, 300000, tzinfo=timezone.utc),
             datetime(2020, 1, 1, 2, 3, 18, tzinfo=timezone.utc),
             (
-                datetime(2020, 1, 1, 2, 3, 8, tzinfo=timezone.utc),
+                datetime(2020, 1, 1, 2, 3, 18, tzinfo=timezone.utc),
                 timedelta(seconds=2.7),
             ),
         ),
@@ -1141,7 +1141,7 @@ async def test_timer_is_aligned(
         resampling_period=timedelta(seconds=resampling_period_s),
         max_data_age_in_periods=2.0,
         resampling_function=resampling_fun_mock,
-        initial_buffer_len=4,
+        initial_buffer_len=5,
     )
 
     # Advance the time a bit so that the resampler is not aligned to the resampling
@@ -1159,33 +1159,39 @@ async def test_timer_is_aligned(
     source_props = resampler.get_source_properties(source_receiver)
 
     # Test timeline
-    #                   alignment
-    #                ,-------------.
+    #                 start delay  timer start
+    #                ,-------------|---------------------|
     #             start = 0.667
-    # t(s)   0       |  1    1.5   2
-    #        |-------+--|-----|----R-----> (no more samples)
-    # value            5.0   12.0
+    # t(s)   0       |  1    1.5   2   2.5    3          4
+    #        |-------+--|-----|----|----|-----|----------R-----> (no more samples)
+    # value            5.0   12.0      2.0   4.0        5.0
     #
     # R = resampling is done
 
     # Send samples and resample
     sample1s = Sample(timestamp + timedelta(seconds=1.0), value=Quantity(5.0))
     sample1_5s = Sample(timestamp + timedelta(seconds=1.5), value=Quantity(12.0))
+    sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=Quantity(2.0))
+    sample3s = Sample(timestamp + timedelta(seconds=3), value=Quantity(4.0))
+    sample4s = Sample(timestamp + timedelta(seconds=4), value=Quantity(5.0))
     await source_sender.send(sample1s)
     await source_sender.send(sample1_5s)
-    await _advance_time(fake_time, resampling_period_s * 2 / 3)
+    await source_sender.send(sample2_5s)
+    await source_sender.send(sample3s)
+    await source_sender.send(sample4s)
+    await _advance_time(fake_time, resampling_period_s * (1 + 2 / 3))
     await resampler.resample(one_shot=True)
 
-    assert datetime.now(timezone.utc).timestamp() == pytest.approx(2)
-    assert asyncio.get_running_loop().time() == pytest.approx(2)
+    assert datetime.now(timezone.utc).timestamp() == pytest.approx(4)
+    assert asyncio.get_running_loop().time() == pytest.approx(4)
     sink_mock.assert_called_once_with(
         Sample(
-            timestamp + timedelta(seconds=resampling_period_s),
+            timestamp + timedelta(seconds=resampling_period_s * 2),
             Quantity(expected_resampled_value),
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample1s, sample1_5s),
+        a_sequence(sample1s, sample1_5s, sample2_5s, sample3s, sample4s),
         config,
         source_props,
     )

@@ -388,12 +388,10 @@ class Resampler:
         """The timer used to trigger the resampling windows."""
 
         # Hack to align the timer, this should be implemented in the Timer class
-        # If there is no delay, then we need to add one period, because the timer
-        # shouldn't fire right away
-        if not start_delay_time:
-            start_delay_time += config.resampling_period
         self._timer._next_tick_time = _to_microseconds(
-            timedelta(seconds=asyncio.get_running_loop().time()) + start_delay_time
+            timedelta(seconds=asyncio.get_running_loop().time())
+            + config.resampling_period
+            + start_delay_time
         )  # pylint: disable=protected-access
 
     @property
@@ -541,8 +539,15 @@ class Resampler:
 
         elapsed = (now - align_to) % period
 
+        # If we are already in sync, we don't need to add an extra period
+        if not elapsed:
+            return (now + period, timedelta(0))
+
         return (
-            now + period - elapsed,
+            # We add an extra period when it is not aligned to make sure we collected
+            # enough samples before the first resampling, otherwise the initial window
+            # to collect samples could be too small.
+            now + period * 2 - elapsed,
             period - elapsed if elapsed else timedelta(0),
         )
 
