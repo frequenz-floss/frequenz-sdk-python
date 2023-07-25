@@ -191,35 +191,47 @@ async def test_helper_buffer_too_big(
             1.0,
             datetime(2020, 1, 1, 2, 3, 5, 300000, tzinfo=timezone.utc),
             datetime(2020, 1, 1, tzinfo=timezone.utc),
-            datetime(2020, 1, 1, 2, 3, 6, tzinfo=timezone.utc),
+            (
+                datetime(2020, 1, 1, 2, 3, 6, tzinfo=timezone.utc),
+                timedelta(seconds=0.7),
+            ),
         ),
         (
             3.0,
             datetime(2020, 1, 1, 2, 3, 5, 300000, tzinfo=timezone.utc),
             datetime(2020, 1, 1, 0, 0, 5, tzinfo=timezone.utc),
-            datetime(2020, 1, 1, 2, 3, 8, tzinfo=timezone.utc),
+            (
+                datetime(2020, 1, 1, 2, 3, 8, tzinfo=timezone.utc),
+                timedelta(seconds=2.7),
+            ),
         ),
         (
             10.0,
             datetime(2020, 1, 1, 2, 3, 5, 300000, tzinfo=timezone.utc),
             datetime(2020, 1, 1, 0, 0, 5, tzinfo=timezone.utc),
-            datetime(2020, 1, 1, 2, 3, 15, tzinfo=timezone.utc),
+            (
+                datetime(2020, 1, 1, 2, 3, 15, tzinfo=timezone.utc),
+                timedelta(seconds=9.7),
+            ),
         ),
         # Future align_to
         (
             10.0,
             datetime(2020, 1, 1, 2, 3, 5, 300000, tzinfo=timezone.utc),
             datetime(2020, 1, 1, 2, 3, 18, tzinfo=timezone.utc),
-            datetime(2020, 1, 1, 2, 3, 8, tzinfo=timezone.utc),
+            (
+                datetime(2020, 1, 1, 2, 3, 8, tzinfo=timezone.utc),
+                timedelta(seconds=2.7),
+            ),
         ),
     ),
 )
-def test_calculate_window_end_trivial_cases(
+async def test_calculate_window_end_trivial_cases(
     fake_time: time_machine.Coordinates,
     resampling_period_s: float,
     now: datetime,
     align_to: datetime,
-    result: datetime,
+    result: tuple[datetime, timedelta],
 ) -> None:
     """Test the calculation of the resampling window end for simple cases."""
     resampling_period = timedelta(seconds=resampling_period_s)
@@ -249,11 +261,10 @@ def test_calculate_window_end_trivial_cases(
     )
     fake_time.move_to(now)
     # pylint: disable=protected-access
-    assert (
-        resampler_now._calculate_window_end() == resampler_none._calculate_window_end()
-    )
+    none_result = resampler_none._calculate_window_end()
+    assert resampler_now._calculate_window_end() == none_result
     # pylint: disable=protected-access
-    assert resampler_none._calculate_window_end() == now + resampling_period
+    assert none_result[0] == now + resampling_period
 
 
 async def test_resampling_window_size_is_constant(
@@ -303,6 +314,7 @@ async def test_resampling_window_size_is_constant(
     await resampler.resample(one_shot=True)
 
     assert datetime.now(timezone.utc).timestamp() == 2
+    assert asyncio.get_event_loop().time() == 2
     sink_mock.assert_called_once_with(
         Sample(
             timestamp + timedelta(seconds=resampling_period_s),
@@ -343,7 +355,7 @@ async def test_resampling_window_size_is_constant(
     resampling_fun_mock.reset_mock()
 
 
-async def test_timer_errors_are_logged(
+async def test_timer_errors_are_logged(  # pylint: disable=too-many-statements
     fake_time: time_machine.Coordinates,
     source_chan: Broadcast[Sample[Quantity]],
     caplog: pytest.LogCaptureFixture,
@@ -384,15 +396,14 @@ async def test_timer_errors_are_logged(
     # T = timer tick
 
     # Send a few samples and run a resample tick, advancing the fake time by one period
-    # Important: this is needed because the resampling timer only starts after the first
-    # resapmle() is called, so the first resampling will never have a shift.
+    # No log message should be produced
     sample0s = Sample(timestamp, value=Quantity(5.0))
     sample1s = Sample(timestamp + timedelta(seconds=1.0), value=Quantity(12.0))
     await source_sender.send(sample0s)
     await source_sender.send(sample1s)
     # Here we need to advance only the wall clock because the resampler timer is not yet
     # started, otherwise the loop time will be advanced twice
-    fake_time.shift(resampling_period_s)
+    await _advance_time(fake_time, resampling_period_s)
     await resampler.resample(one_shot=True)
 
     assert datetime.now(timezone.utc).timestamp() == pytest.approx(2)
@@ -1110,6 +1121,82 @@ async def test_receiving_resampling_error(fake_time: time_machine.Coordinates) -
     assert fake_source in exceptions
     timeseries_error = exceptions[fake_source]
     assert isinstance(timeseries_error, TestException)
+
+
+async def test_timer_is_aligned(
+    fake_time: time_machine.Coordinates,
+    source_chan: Broadcast[Sample[Quantity]],
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that big differences between the expected window end and the fired timer are logged."""
+    timestamp = datetime.now(timezone.utc)
+
+    resampling_period_s = 2
+    expected_resampled_value = 42.0
+
+    resampling_fun_mock = MagicMock(
+        spec=ResamplingFunction, return_value=expected_resampled_value
+    )
+    config = ResamplerConfig(
+        resampling_period=timedelta(seconds=resampling_period_s),
+        max_data_age_in_periods=2.0,
+        resampling_function=resampling_fun_mock,
+        initial_buffer_len=4,
+    )
+
+    # Advance the time a bit so that the resampler is not aligned to the resampling
+    # period
+    await _advance_time(fake_time, resampling_period_s / 3)
+
+    resampler = Resampler(config)
+
+    source_receiver = source_chan.new_receiver()
+    source_sender = source_chan.new_sender()
+
+    sink_mock = AsyncMock(spec=Sink, return_value=True)
+
+    resampler.add_timeseries("test", source_receiver, sink_mock)
+    source_props = resampler.get_source_properties(source_receiver)
+
+    # Test timeline
+    #                   alignment
+    #                ,-------------.
+    #             start = 0.667
+    # t(s)   0       |  1    1.5   2
+    #        |-------+--|-----|----R-----> (no more samples)
+    # value            5.0   12.0
+    #
+    # R = resampling is done
+
+    # Send samples and resample
+    sample1s = Sample(timestamp + timedelta(seconds=1.0), value=Quantity(5.0))
+    sample1_5s = Sample(timestamp + timedelta(seconds=1.5), value=Quantity(12.0))
+    await source_sender.send(sample1s)
+    await source_sender.send(sample1_5s)
+    await _advance_time(fake_time, resampling_period_s * 2 / 3)
+    await resampler.resample(one_shot=True)
+
+    assert datetime.now(timezone.utc).timestamp() == pytest.approx(2)
+    assert asyncio.get_running_loop().time() == pytest.approx(2)
+    sink_mock.assert_called_once_with(
+        Sample(
+            timestamp + timedelta(seconds=resampling_period_s),
+            Quantity(expected_resampled_value),
+        )
+    )
+    resampling_fun_mock.assert_called_once_with(
+        a_sequence(sample1s, sample1_5s),
+        config,
+        source_props,
+    )
+    assert not [
+        *_filter_logs(
+            caplog.record_tuples,
+            logger_level=logging.WARNING,
+        )
+    ]
+    sink_mock.reset_mock()
+    resampling_fun_mock.reset_mock()
 
 
 def _get_buffer_len(resampler: Resampler, source_recvr: Source) -> int:

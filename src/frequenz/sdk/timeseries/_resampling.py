@@ -16,6 +16,7 @@ from datetime import datetime, timedelta, timezone
 from typing import AsyncIterator, Callable, Coroutine, Optional, Sequence
 
 from frequenz.channels.util import Timer
+from frequenz.channels.util._timer import _to_microseconds
 
 from .._internal._asyncio import cancel_and_await
 from ._base_types import UNIX_EPOCH, Sample
@@ -369,7 +370,8 @@ class Resampler:
         self._resamplers: dict[Source, _StreamingHelper] = {}
         """A mapping between sources and the streaming helper handling that source."""
 
-        self._window_end: datetime = self._calculate_window_end()
+        window_end, start_delay_time = self._calculate_window_end()
+        self._window_end: datetime = window_end
         """The time in which the current window ends.
 
         This is used to make sure every resampling window is generated at
@@ -384,6 +386,15 @@ class Resampler:
 
         self._timer: Timer = Timer.periodic(config.resampling_period)
         """The timer used to trigger the resampling windows."""
+
+        # Hack to align the timer, this should be implemented in the Timer class
+        # If there is no delay, then we need to add one period, because the timer
+        # shouldn't fire right away
+        if not start_delay_time:
+            start_delay_time += config.resampling_period
+        self._timer._next_tick_time = _to_microseconds(
+            timedelta(seconds=asyncio.get_running_loop().time()) + start_delay_time
+        )  # pylint: disable=protected-access
 
     @property
     def config(self) -> ResamplerConfig:
@@ -504,7 +515,7 @@ class Resampler:
             if one_shot:
                 break
 
-    def _calculate_window_end(self) -> datetime:
+    def _calculate_window_end(self) -> tuple[datetime, timedelta]:
         """Calculate the end of the current resampling window.
 
         The calculated resampling window end is a multiple of
@@ -512,20 +523,28 @@ class Resampler:
 
         if `self._config.align_to` is `None`, the current time is used.
 
+        If the current time is not aligned to `self._config.resampling_period`, then
+        the end of the current resampling window will be more than one period away, to
+        make sure to have some time to collect samples if the misalignment is too big.
+
         Returns:
-            The end of the current resampling window aligned to
-                `self._config.align_to`.
+            A tuple with the end of the current resampling window aligned to
+                `self._config.align_to` as the first item and the time we need to
+                delay the timer start to make sure it is also aligned.
         """
         now = datetime.now(timezone.utc)
         period = self._config.resampling_period
         align_to = self._config.align_to
 
         if align_to is None:
-            return now + period
+            return (now + period, timedelta(0))
 
         elapsed = (now - align_to) % period
 
-        return now + period - elapsed
+        return (
+            now + period - elapsed,
+            period - elapsed if elapsed else timedelta(0),
+        )
 
 
 class _ResamplingHelper:
