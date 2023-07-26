@@ -84,7 +84,7 @@ _BatteryDataMethods: Dict[ComponentMetricId, Callable[[BatteryData], float]] = {
     ComponentMetricId.CAPACITY: lambda msg: msg.capacity,
     ComponentMetricId.POWER_LOWER_BOUND: lambda msg: msg.power_lower_bound,
     ComponentMetricId.POWER_UPPER_BOUND: lambda msg: msg.power_upper_bound,
-    ComponentMetricId.TEMPERATURE_MAX: lambda msg: msg.temperature_max,
+    ComponentMetricId.TEMPERATURE: lambda msg: msg.temperature,
 }
 
 _InverterDataMethods: Dict[ComponentMetricId, Callable[[InverterData], float]] = {

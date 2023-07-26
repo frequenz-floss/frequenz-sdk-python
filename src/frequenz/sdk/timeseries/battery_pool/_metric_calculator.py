@@ -246,7 +246,7 @@ class TemperatureCalculator(MetricCalculator[TemperatureMetrics]):
         super().__init__(batteries)
 
         self._metrics = [
-            ComponentMetricId.TEMPERATURE_MAX,
+            ComponentMetricId.TEMPERATURE,
         ]
 
     @classmethod
@@ -306,7 +306,7 @@ class TemperatureCalculator(MetricCalculator[TemperatureMetrics]):
             if battery_id not in metrics_data:
                 continue
             metrics = metrics_data[battery_id]
-            temperature = metrics.get(ComponentMetricId.TEMPERATURE_MAX)
+            temperature = metrics.get(ComponentMetricId.TEMPERATURE)
             if temperature is None:
                 continue
             timestamp = max(timestamp, metrics.timestamp)
