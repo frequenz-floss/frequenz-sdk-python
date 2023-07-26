@@ -91,6 +91,12 @@ def test_string_representation() -> None:
     assert f"{Fz1(-20000)}" == "-20 kHz"
 
 
+def test_isclose() -> None:
+    """Test the isclose method of the quantities."""
+    assert Fz1(1.024445).isclose(Fz1(1.024445))
+    assert not Fz1(1.024445).isclose(Fz1(1.0))
+
+
 def test_addition_subtraction() -> None:
     """Test the addition and subtraction of the quantities."""
     assert Quantity(1) + Quantity(1, exponent=0) == Quantity(2, exponent=0)

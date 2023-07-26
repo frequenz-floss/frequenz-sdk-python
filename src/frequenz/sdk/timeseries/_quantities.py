@@ -100,13 +100,23 @@ class Quantity:
         """
         return math.isinf(self._base_value)
 
-    def __hash__(self) -> int:
-        """Return a hash of this object.
+    def isclose(self, other: Self, rel_tol: float = 1e-9, abs_tol: float = 0.0) -> bool:
+        """Return whether this quantity is close to another.
+
+        Args:
+            other: The quantity to compare to.
+            rel_tol: The relative tolerance.
+            abs_tol: The absolute tolerance.
 
         Returns:
-            A hash of this object.
+            Whether this quantity is close to another.
         """
-        return hash((type(self), self._base_value))
+        return math.isclose(
+            self._base_value,
+            other._base_value,  # pylint: disable=protected-access
+            rel_tol=rel_tol,
+            abs_tol=abs_tol,
+        )
 
     def __repr__(self) -> str:
         """Return a representation of this quantity.
@@ -401,7 +411,16 @@ class Power(
         6: "MW",
     },
 ):
-    """A power quantity."""
+    """A power quantity.
+
+    Objects of this type are wrappers around `float` values.
+
+    The constructors accept a single `float` value, the `as_*()` methods return a
+    `float` value, and each of the arithmetic operators supported by this type are
+    actually implemented using floating-point arithmetic.
+
+    So all considerations about floating-point arithmetic apply to this type as well.
+    """
 
     @classmethod
     def from_watts(cls, watts: float) -> Self:
@@ -565,7 +584,16 @@ class Current(
         0: "A",
     },
 ):
-    """A current quantity."""
+    """A current quantity.
+
+    Objects of this type are wrappers around `float` values.
+
+    The constructors accept a single `float` value, the `as_*()` methods return a
+    `float` value, and each of the arithmetic operators supported by this type are
+    actually implemented using floating-point arithmetic.
+
+    So all considerations about floating-point arithmetic apply to this type as well.
+    """
 
     @classmethod
     def from_amperes(cls, amperes: float) -> Self:
@@ -652,7 +680,16 @@ class Voltage(
     metaclass=_NoDefaultConstructible,
     exponent_unit_map={0: "V", -3: "mV", 3: "kV"},
 ):
-    """A voltage quantity."""
+    """A voltage quantity.
+
+    Objects of this type are wrappers around `float` values.
+
+    The constructors accept a single `float` value, the `as_*()` methods return a
+    `float` value, and each of the arithmetic operators supported by this type are
+    actually implemented using floating-point arithmetic.
+
+    So all considerations about floating-point arithmetic apply to this type as well.
+    """
 
     @classmethod
     def from_volts(cls, volts: float) -> Self:
@@ -765,7 +802,16 @@ class Energy(
         6: "MWh",
     },
 ):
-    """An energy quantity."""
+    """An energy quantity.
+
+    Objects of this type are wrappers around `float` values.
+
+    The constructors accept a single `float` value, the `as_*()` methods return a
+    `float` value, and each of the arithmetic operators supported by this type are
+    actually implemented using floating-point arithmetic.
+
+    So all considerations about floating-point arithmetic apply to this type as well.
+    """
 
     @classmethod
     def from_watt_hours(cls, watt_hours: float) -> Self:
@@ -875,7 +921,16 @@ class Frequency(
     metaclass=_NoDefaultConstructible,
     exponent_unit_map={0: "Hz", 3: "kHz", 6: "MHz", 9: "GHz"},
 ):
-    """A frequency quantity."""
+    """A frequency quantity.
+
+    Objects of this type are wrappers around `float` values.
+
+    The constructors accept a single `float` value, the `as_*()` methods return a
+    `float` value, and each of the arithmetic operators supported by this type are
+    actually implemented using floating-point arithmetic.
+
+    So all considerations about floating-point arithmetic apply to this type as well.
+    """
 
     @classmethod
     def from_hertz(cls, hertz: float) -> Self:
@@ -979,7 +1034,16 @@ class Percentage(
     metaclass=_NoDefaultConstructible,
     exponent_unit_map={0: "%"},
 ):
-    """A percentage quantity."""
+    """A percentage quantity.
+
+    Objects of this type are wrappers around `float` values.
+
+    The constructors accept a single `float` value, the `as_*()` methods return a
+    `float` value, and each of the arithmetic operators supported by this type are
+    actually implemented using floating-point arithmetic.
+
+    So all considerations about floating-point arithmetic apply to this type as well.
+    """
 
     @classmethod
     def from_percent(cls, percent: float) -> Self:
