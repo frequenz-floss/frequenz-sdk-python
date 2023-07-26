@@ -65,6 +65,30 @@ class Quantity:
         cls._exponent_unit_map = exponent_unit_map
         super().__init_subclass__()
 
+    _zero_cache: dict[type, Quantity] = {}
+    """Cache for zero singletons.
+
+    This is a workaround for mypy getting confused when using @functools.cache and
+    @classmethod combined with returning Self. It believes the resulting type of this
+    method is Self and complains that members of the actual class don't exist in Self,
+    so we need to implement the cache ourselves.
+    """
+
+    @classmethod
+    def zero(cls) -> Self:
+        """Return a quantity with value 0.
+
+        Returns:
+            A quantity with value 0.
+        """
+        _zero = cls._zero_cache.get(cls, None)
+        if _zero is None:
+            _zero = cls.__new__(cls)
+            _zero._base_value = 0
+            cls._zero_cache[cls] = _zero
+        assert isinstance(_zero, cls)
+        return _zero
+
     @property
     def base_value(self) -> float:
         """Return the value of this quantity in the base unit.
