@@ -305,6 +305,8 @@ class MovingWindow:
             A float if the key is a number or a timestamp.
             an numpy array if the key is a slice.
         """
+        if len(self._buffer) == 0:
+            raise IndexError("The buffer is empty.")
         if isinstance(key, slice):
             if isinstance(key.start, int) or isinstance(key.stop, int):
                 if key.start is None or key.stop is None:
@@ -327,6 +329,7 @@ class MovingWindow:
             _logger.debug("Returning value at time %s ", key)
             return self._buffer[self._buffer.datetime_to_index(key)]
         elif isinstance(key, SupportsIndex):
+            _logger.debug("Returning value at index %s ", key)
             return self._buffer[key]
 
         raise TypeError(
