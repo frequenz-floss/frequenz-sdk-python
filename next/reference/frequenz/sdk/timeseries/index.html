@@ -5011,7 +5011,10 @@ set to None in which case the MovingWindow will not perform any resampling.</p>
 <span class="normal">332</span>
 <span class="normal">333</span>
 <span class="normal">334</span>
-<span class="normal">335</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">MovingWindow</span><span class="p">:</span>
+<span class="normal">335</span>
+<span class="normal">336</span>
+<span class="normal">337</span>
+<span class="normal">338</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">MovingWindow</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A data window that moves with the latest datapoints of a data stream.</span>
 
@@ -5291,6 +5294,8 @@ set to None in which case the MovingWindow will not perform any resampling.</p>
 <span class="sd">            A float if the key is a number or a timestamp.</span>
 <span class="sd">            an numpy array if the key is a slice.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s2">&quot;The buffer is empty.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">key</span><span class="o">.</span><span class="n">stop</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -5313,6 +5318,7 @@ set to None in which case the MovingWindow will not perform any resampling.</p>
             <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Returning value at time </span><span class="si">%s</span><span class="s2"> &quot;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">datetime_to_index</span><span class="p">(</span><span class="n">key</span><span class="p">)]</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">SupportsIndex</span><span class="p">):</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Returning value at index </span><span class="si">%s</span><span class="s2"> &quot;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
 
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
@@ -5562,7 +5568,10 @@ or by a slice of timestamps or integers.</p>
 <span class="normal">332</span>
 <span class="normal">333</span>
 <span class="normal">334</span>
-<span class="normal">335</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">SupportsIndex</span> <span class="o">|</span> <span class="n">datetime</span> <span class="o">|</span> <span class="nb">slice</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">ArrayLike</span><span class="p">:</span>
+<span class="normal">335</span>
+<span class="normal">336</span>
+<span class="normal">337</span>
+<span class="normal">338</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">SupportsIndex</span> <span class="o">|</span> <span class="n">datetime</span> <span class="o">|</span> <span class="nb">slice</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">ArrayLike</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return a sub window of the `MovingWindow`.</span>
 
@@ -5588,6 +5597,8 @@ or by a slice of timestamps or integers.</p>
 <span class="sd">        A float if the key is a number or a timestamp.</span>
 <span class="sd">        an numpy array if the key is a slice.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s2">&quot;The buffer is empty.&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">key</span><span class="o">.</span><span class="n">stop</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -5610,6 +5621,7 @@ or by a slice of timestamps or integers.</p>
         <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Returning value at time </span><span class="si">%s</span><span class="s2"> &quot;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">datetime_to_index</span><span class="p">(</span><span class="n">key</span><span class="p">)]</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">SupportsIndex</span><span class="p">):</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Returning value at index </span><span class="si">%s</span><span class="s2"> &quot;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
 
     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
