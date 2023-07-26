@@ -27,7 +27,7 @@ from .._formula_engine._formula_generators import (
     FormulaGeneratorConfig,
     FormulaType,
 )
-from .._quantities import Energy, Percentage, Power
+from .._quantities import Energy, Percentage, Power, Temperature
 from ._methods import MetricAggregator, SendOnUpdate
 from ._metric_calculator import (
     CapacityCalculator,
@@ -35,7 +35,7 @@ from ._metric_calculator import (
     SoCCalculator,
     TemperatureCalculator,
 )
-from ._result_types import PowerMetrics, TemperatureMetrics
+from ._result_types import PowerMetrics
 
 
 class BatteryPool:
@@ -388,11 +388,11 @@ class BatteryPool:
         return self._active_methods[method_name]
 
     @property
-    def temperature(self) -> MetricAggregator[TemperatureMetrics]:
-        """Fetch the maximum temperature of the batteries in the pool.
+    def temperature(self) -> MetricAggregator[Sample[Temperature]]:
+        """Fetch the average temperature of the batteries in the pool.
 
         Returns:
-            A MetricAggregator that will calculate and stream the maximum temperature
+            A MetricAggregator that will calculate and stream the average temperature
                 of all batteries in the pool.
         """
         method_name = SendOnUpdate.name() + "_" + TemperatureCalculator.name()

@@ -14,7 +14,7 @@ from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory, ComponentMetricId, InverterType
 from ...timeseries import Energy, Percentage, Sample, Temperature
 from ._component_metrics import ComponentMetricsData
-from ._result_types import Bound, PowerMetrics, TemperatureMetrics
+from ._result_types import Bound, PowerMetrics
 
 _logger = logging.getLogger(__name__)
 _MIN_TIMESTAMP = datetime.min.replace(tzinfo=timezone.utc)
@@ -59,7 +59,7 @@ def battery_inverter_mapping(batteries: Iterable[int]) -> dict[int, int]:
 
 # Formula output types class have no common interface
 # Print all possible types here.
-T = TypeVar("T", Sample[Percentage], Sample[Energy], PowerMetrics, TemperatureMetrics)
+T = TypeVar("T", Sample[Percentage], Sample[Energy], PowerMetrics, Sample[Temperature])
 
 
 class MetricCalculator(ABC, Generic[T]):
@@ -234,7 +234,7 @@ class CapacityCalculator(MetricCalculator[Sample[Energy]]):
         )
 
 
-class TemperatureCalculator(MetricCalculator[TemperatureMetrics]):
+class TemperatureCalculator(MetricCalculator[Sample[Temperature]]):
     """Define how to calculate temperature metrics."""
 
     def __init__(self, batteries: Set[int]) -> None:
@@ -280,7 +280,7 @@ class TemperatureCalculator(MetricCalculator[TemperatureMetrics]):
         self,
         metrics_data: dict[int, ComponentMetricsData],
         working_batteries: set[int],
-    ) -> TemperatureMetrics | None:
+    ) -> Sample[Temperature] | None:
         """Aggregate the metrics_data and calculate high level metric for temperature.
 
         Missing components will be ignored. Formula will be calculated for all
@@ -298,9 +298,7 @@ class TemperatureCalculator(MetricCalculator[TemperatureMetrics]):
             Return None if there are no component metrics.
         """
         timestamp = _MIN_TIMESTAMP
-        temperature_sum: float = 0
-        temperature_min: float = float("inf")
-        temperature_max: float = float("-inf")
+        temperature_sum: float = 0.0
         temperature_count: int = 0
         for battery_id in working_batteries:
             if battery_id not in metrics_data:
@@ -311,19 +309,15 @@ class TemperatureCalculator(MetricCalculator[TemperatureMetrics]):
                 continue
             timestamp = max(timestamp, metrics.timestamp)
             temperature_sum += temperature
-            temperature_min = min(temperature_min, temperature)
-            temperature_max = max(temperature_max, temperature)
             temperature_count += 1
         if timestamp == _MIN_TIMESTAMP:
             return None
 
         temperature_avg = temperature_sum / temperature_count
 
-        return TemperatureMetrics(
+        return Sample[Temperature](
             timestamp=timestamp,
-            min=Temperature.from_celsius(value=temperature_min),
-            avg=Temperature.from_celsius(value=temperature_avg),
-            max=Temperature.from_celsius(value=temperature_max),
+            value=Temperature.from_celsius(value=temperature_avg),
         )
 
 
