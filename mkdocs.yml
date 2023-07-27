@@ -22,6 +22,8 @@ theme:
     repo: fontawesome/brands/github
   custom_dir: docs/overrides
   features:
+    - content.code.annotate
+    - content.code.copy
     - navigation.instant
     - navigation.tabs
     - navigation.top
@@ -62,9 +64,11 @@ markdown_extensions:
   - admonition
   - attr_list
   - pymdownx.details
-  - pymdownx.superfences
-  - pymdownx.tasklist
-  - pymdownx.tabbed
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.keys
   - pymdownx.snippets:
       check_paths: true
   - pymdownx.superfences:
@@ -72,6 +76,8 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: "!!python/name:pymdownx.superfences.fence_code_format"
+  - pymdownx.tabbed
+  - pymdownx.tasklist
   - toc:
       permalink: "¤"
 
@@ -97,6 +103,7 @@ plugins:
             show_root_members_full_path: true
             show_source: true
           import:
+            # See https://mkdocstrings.github.io/python/usage/#import for details
             - https://docs.python.org/3/objects.inv
             - https://frequenz-floss.github.io/frequenz-channels-python/v0.14/objects.inv
             - https://grpc.github.io/grpc/python/objects.inv
