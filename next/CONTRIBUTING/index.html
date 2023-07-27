@@ -977,52 +977,52 @@
 <h1 id="contributing-to-frequenz-python-sdk">Contributing to Frequenz Python SDK<a class="headerlink" href="#contributing-to-frequenz-python-sdk" title="Permanent link">¤</a></h1>
 <h2 id="build">Build<a class="headerlink" href="#build" title="Permanent link">¤</a></h2>
 <p>You can use <code>build</code> to simply build the source and binary distribution:</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>build
-python<span class="w"> </span>-m<span class="w"> </span>build
-</code></pre></div>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>build
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>python<span class="w"> </span>-m<span class="w"> </span>build
+</span></code></pre></div>
 <h2 id="local-development">Local development<a class="headerlink" href="#local-development" title="Permanent link">¤</a></h2>
 <p>You can use editable installs to develop the project locally (it will install
 all the dependencies too):</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
-</code></pre></div>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</span></code></pre></div>
 <p>Or you can install all development dependencies (<code>mypy</code>, <code>pylint</code>, <code>pytest</code>,
 etc.) in one go too:
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
-</code></pre></div></p>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
+</span></code></pre></div></p>
 <p>If you don't want to install all the dependencies, you can also use <code>nox</code> to
 run the tests and other checks creating its own virtual environments:</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="o">[</span>dev-noxfile<span class="o">]</span>
-nox
-</code></pre></div>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="o">[</span>dev-noxfile<span class="o">]</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>nox
+</span></code></pre></div>
 <p>You can also use <code>nox -R</code> to reuse the current testing environment to speed up
 test at the expense of a higher chance to end up with a dirty test environment.</p>
 <h3 id="running-tests-checks-individually">Running tests / checks individually<a class="headerlink" href="#running-tests-checks-individually" title="Permanent link">¤</a></h3>
 <p>For a better development test cycle you can install the runtime and test
 dependencies and run <code>pytest</code> manually.</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="o">[</span>dev-pytest<span class="o">]</span><span class="w">  </span><span class="c1"># included in .[dev] too</span>
-
-<span class="c1"># And for example</span>
-pytest<span class="w"> </span>tests/test_*.py
-</code></pre></div>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="o">[</span>dev-pytest<span class="o">]</span><span class="w">  </span><span class="c1"># included in .[dev] too</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># And for example</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>pytest<span class="w"> </span>tests/test_*.py
+</span></code></pre></div>
 <p>Or you can use <code>nox</code>:</p>
-<div class="highlight"><pre><span></span><code>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>pytest<span class="w"> </span>--<span class="w"> </span>test/test_*.py
-</code></pre></div>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>pytest<span class="w"> </span>--<span class="w"> </span>test/test_*.py
+</span></code></pre></div>
 <p>The same appliest to <code>pylint</code> or <code>mypy</code> for example:</p>
-<div class="highlight"><pre><span></span><code>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>pylint<span class="w"> </span>--<span class="w"> </span>test/test_*.py
-nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>mypy<span class="w"> </span>--<span class="w"> </span>test/test_*.py
-</code></pre></div>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>pylint<span class="w"> </span>--<span class="w"> </span>test/test_*.py
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>mypy<span class="w"> </span>--<span class="w"> </span>test/test_*.py
+</span></code></pre></div>
 <h3 id="building-the-documentation">Building the documentation<a class="headerlink" href="#building-the-documentation" title="Permanent link">¤</a></h3>
 <p>To build the documentation, first install the dependencies (if you didn't
 install all <code>dev</code> dependencies):</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev-mkdocs<span class="o">]</span>
-</code></pre></div>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev-mkdocs<span class="o">]</span>
+</span></code></pre></div>
 <p>Then you can build the documentation (it will be written in the <code>site/</code>
 directory):</p>
-<div class="highlight"><pre><span></span><code>mkdocs<span class="w"> </span>build
-</code></pre></div>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>mkdocs<span class="w"> </span>build
+</span></code></pre></div>
 <p>Or you can just serve the documentation without building it using:</p>
-<div class="highlight"><pre><span></span><code>mkdocs<span class="w"> </span>serve
-</code></pre></div>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>mkdocs<span class="w"> </span>serve
+</span></code></pre></div>
 <p>Your site will be updated <strong>live</strong> when you change your files (provided that
 you used <code>pip install -e .</code>, beware of a common pitfall of using <code>pip install</code>
 without <code>-e</code>, in that case the API reference won't change unless you do a new
@@ -1030,10 +1030,10 @@ without <code>-e</code>, in that case the API reference won't change unless you 
 <p>To build multi-version documentation, we use
 <a href="https://github.com/jimporter/mike">mike</a>. If you want to see how the
 multi-version sites looks like locally, you can use:</p>
-<div class="highlight"><pre><span></span><code>mike<span class="w"> </span>deploy<span class="w"> </span>my-version
-mike<span class="w"> </span>set-default<span class="w"> </span>my-version
-mike<span class="w"> </span>serve
-</code></pre></div>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>mike<span class="w"> </span>deploy<span class="w"> </span>my-version
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>mike<span class="w"> </span>set-default<span class="w"> </span>my-version
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>mike<span class="w"> </span>serve
+</span></code></pre></div>
 <p><code>mike</code> works in mysterious ways. Some basic information:</p>
 <ul>
 <li><code>mike deploy</code> will do a <code>mike build</code> and write the results to your <strong>local</strong>
@@ -1069,8 +1069,8 @@ GitHub pages produced for your fork.</p>
    for example:</p>
 </li>
 </ol>
-<div class="highlight"><pre><span></span><code>git<span class="w"> </span>tag<span class="w"> </span>-s<span class="w"> </span>--cleanup<span class="o">=</span>whitespace<span class="w"> </span>-F<span class="w"> </span>RELEASE_NOTES.md<span class="w"> </span>v0.0.1
-</code></pre></div>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>git<span class="w"> </span>tag<span class="w"> </span>-s<span class="w"> </span>--cleanup<span class="o">=</span>whitespace<span class="w"> </span>-F<span class="w"> </span>RELEASE_NOTES.md<span class="w"> </span>v0.0.1
+</span></code></pre></div>
 <ol>
 <li>
 <p>Push the new tag.</p>
@@ -1087,8 +1087,8 @@ GitHub pages produced for your fork.</p>
 <p>Once this is done, reset the <code>RELEASE_NOTES.md</code> with the template:</p>
 </li>
 </ol>
-<div class="highlight"><pre><span></span><code>cp<span class="w"> </span>.github/RELEASE_NOTES.template.md<span class="w"> </span>RELEASE_NOTES.md
-</code></pre></div>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>cp<span class="w"> </span>.github/RELEASE_NOTES.template.md<span class="w"> </span>RELEASE_NOTES.md
+</span></code></pre></div>
 <p>Commit the new release notes and create a PR (this step should be automated
    eventually too).</p>
 <ol>
@@ -1166,7 +1166,7 @@ GitHub pages produced for your fork.</p>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.tabs", "navigation.top", "navigation.tracking", "toc.follow"], "search": "../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.annotate", "content.code.copy", "navigation.instant", "navigation.tabs", "navigation.top", "navigation.tracking", "toc.follow"], "search": "../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../assets/javascripts/bundle.220ee61c.min.js"></script>
