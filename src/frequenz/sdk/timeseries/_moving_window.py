@@ -9,8 +9,9 @@ import asyncio
 import logging
 import math
 from collections.abc import Sequence
+from copy import deepcopy
 from datetime import datetime, timedelta
-from typing import SupportsIndex, overload
+from typing import Optional, SupportsIndex, overload
 
 import numpy as np
 from frequenz.channels import Broadcast, Receiver, Sender
@@ -258,6 +259,60 @@ class MovingWindow:
         """
         return len(self._buffer)
 
+    def window(
+        self,
+        start: int | datetime,
+        end: int | datetime,
+        fill_gaps: Optional[float] = None,
+        force_copy: bool = False,
+    ) -> ArrayLike:
+        """
+        Access a sub window of the `MovingWindow`.
+
+        Args:
+            start: The start index or datetime of the sub window.
+            end: The end index or datetime of the sub window.
+            fill_gaps: The value to fill gaps with.
+            force_copy: If True, a copy of the underlying buffer is returned.
+
+        Raises:
+            IndexError: if the end index is smaller than the start index.
+
+        Returns:
+            A sub window of the `MovingWindow`.
+        """
+        if len(self._buffer) == 0:
+            raise IndexError("The buffer is empty.")
+        if isinstance(start, datetime) and isinstance(end, datetime):
+            if start > end:
+                raise IndexError(
+                    f"end parameter {end} has to predate start parameter {start}"
+                )
+
+            start_index = self._buffer.datetime_to_index(start)
+            end_index = self._buffer.datetime_to_index(end)
+        else:
+            start_index = start  # type: ignore
+            end_index = end  # type: ignore
+
+        # Make copy of buffer
+        buffer_to_use = deepcopy(self._buffer) if (force_copy) else self._buffer
+
+        # Fill gaps with the given value
+        # Assumption that if fill_gaps is used then also force_copy is used
+        # To make this even more efficient use interval tree
+        if fill_gaps is not None and force_copy:
+            for gap_range in buffer_to_use.gaps:
+                buffer_to_use[gap_range.start : gap_range.end] = [fill_gaps] * len(range(gap_range.start, gap_range.end))  # type: ignore  # pylint: disable=line-too-long
+
+        len_to_use = len(buffer_to_use) if (fill_gaps is None) else buffer_to_use.maxlen
+
+        # Requested window wraps around the ends
+        if start_index >= end_index:
+            if end_index >= 0 or not (len_to_use - 1) + end_index >= start_index:
+                return np.concatenate((buffer_to_use[start_index:], buffer_to_use[0:end_index]))  # type: ignore  # pylint: disable=line-too-long
+        return buffer_to_use[start_index:end_index]
+
     @overload
     def __getitem__(self, key: SupportsIndex) -> float:
         """See the main __getitem__ method.
@@ -279,7 +334,7 @@ class MovingWindow:
         # noqa: DAR101 key
         """
 
-    def __getitem__(self, key: SupportsIndex | datetime | slice) -> float | ArrayLike:
+    def __getitem__(self, key: SupportsIndex | datetime | slice) -> float:
         """
         Return a sub window of the `MovingWindow`.
 
@@ -305,34 +360,16 @@ class MovingWindow:
             A float if the key is a number or a timestamp.
             an numpy array if the key is a slice.
         """
-        if isinstance(key, slice):
-            if isinstance(key.start, int) or isinstance(key.stop, int):
-                if key.start is None or key.stop is None:
-                    key = slice(slice(key.start, key.stop).indices(self.__len__()))
-            elif isinstance(key.start, datetime) or isinstance(key.stop, datetime):
-                if key.start is None:
-                    key = slice(self._buffer.time_bound_oldest, key.stop)
-                if key.stop is None:
-                    key = slice(key.start, self._buffer.time_bound_newest)
-
-            _logger.debug("Returning slice for [%s:%s].", key.start, key.stop)
-
-            # we are doing runtime typechecks since there is no abstract slice type yet
-            # see also (https://peps.python.org/pep-0696)
-            if isinstance(key.start, datetime) and isinstance(key.stop, datetime):
-                return self._buffer.window(key.start, key.stop)
-            if isinstance(key.start, int) and isinstance(key.stop, int):
-                return self._buffer[key]
-        elif isinstance(key, datetime):
+        if len(self._buffer) == 0:
+            raise IndexError("The buffer is empty.")
+        if isinstance(key, datetime):
             _logger.debug("Returning value at time %s ", key)
             return self._buffer[self._buffer.datetime_to_index(key)]
-        elif isinstance(key, SupportsIndex):
+        if isinstance(key, SupportsIndex):
+            _logger.debug("Returning value at index %s ", key)
             return self._buffer[key]
 
-        raise TypeError(
-            "Key has to be either a timestamp or an integer "
-            "or a slice of timestamps or integers"
-        )
+        raise TypeError("Key has to be either a timestamp or an integer ")
 
 
 # We need to register the class as a subclass of Sequence like this because

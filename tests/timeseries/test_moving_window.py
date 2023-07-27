@@ -95,11 +95,11 @@ async def test_access_window_by_int_slice() -> None:
     """
     window, sender = init_moving_window(timedelta(seconds=14))
     await push_logical_meter_data(sender, range(0, 5))
-    assert np.array_equal(window[3:5], np.array([3.0, 4.0]))
+    assert np.array_equal(window.window(3, 5), np.array([3.0, 4.0]))
 
     data = [1, 2, 2.5, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1]
     await push_logical_meter_data(sender, data)
-    assert np.array_equal(window[5:14], np.array(data[5:14]))
+    assert np.array_equal(window.window(5, 14), np.array(data[5:14]))
 
 
 async def test_access_window_by_ts_slice() -> None:
@@ -108,7 +108,7 @@ async def test_access_window_by_ts_slice() -> None:
     await push_logical_meter_data(sender, range(0, 5))
     time_start = UNIX_EPOCH + timedelta(seconds=3)
     time_end = time_start + timedelta(seconds=2)
-    assert np.array_equal(window[time_start:time_end], np.array([3.0, 4.0]))  # type: ignore
+    assert np.array_equal(window.window(time_start, time_end), np.array([3.0, 4.0]))
 
 
 async def test_window_size() -> None:
