@@ -50,7 +50,7 @@ jobs:
           python -m pip install -e .[dev-noxfile]
 
       - name: Run nox
-        # To speed things up a bit we use the speciall ci_checks_max session
+        # To speed things up a bit we use the special ci_checks_max session
         # that uses the same venv to run multiple linting sessions
         run: nox -e ci_checks_max pytest_min
         timeout-minutes: 10
