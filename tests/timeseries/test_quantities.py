@@ -14,6 +14,7 @@ from frequenz.sdk.timeseries._quantities import (
     Percentage,
     Power,
     Quantity,
+    Temperature,
     Voltage,
 )
 
@@ -262,6 +263,19 @@ def test_energy() -> None:
     with pytest.raises(TypeError):
         # using the default constructor should raise.
         Energy(1.0, exponent=0)
+
+
+def test_temperature() -> None:
+    """Test the temperature class."""
+    temp = Temperature.from_celsius(30.4)
+    assert f"{temp}" == "30.4 °C"
+
+    assert temp.as_celsius() == 30.4
+    assert temp != Temperature.from_celsius(5.0)
+
+    with pytest.raises(TypeError):
+        # using the default constructor should raise.
+        Temperature(1.0, exponent=0)
 
 
 def test_quantity_compositions() -> None:
