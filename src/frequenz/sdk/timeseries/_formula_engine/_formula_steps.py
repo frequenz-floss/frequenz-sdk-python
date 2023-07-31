@@ -132,6 +132,52 @@ class Divider(FormulaStep):
         eval_stack.append(res)
 
 
+class Maximizer(FormulaStep):
+    """A formula step that represents the max function."""
+
+    def __repr__(self) -> str:
+        """Return a string representation of the step.
+
+        Returns:
+            A string representation of the step.
+        """
+        return "max"
+
+    def apply(self, eval_stack: List[float]) -> None:
+        """Extract two values from the stack and pushes back the maximum.
+
+        Args:
+            eval_stack: An evaluation stack, to apply the formula step on.
+        """
+        val2 = eval_stack.pop()
+        val1 = eval_stack.pop()
+        res = max(val1, val2)
+        eval_stack.append(res)
+
+
+class Minimizer(FormulaStep):
+    """A formula step that represents the min function."""
+
+    def __repr__(self) -> str:
+        """Return a string representation of the step.
+
+        Returns:
+            A string representation of the step.
+        """
+        return "min"
+
+    def apply(self, eval_stack: List[float]) -> None:
+        """Extract two values from the stack and pushes back the minimum.
+
+        Args:
+            eval_stack: An evaluation stack, to apply the formula step on.
+        """
+        val2 = eval_stack.pop()
+        val1 = eval_stack.pop()
+        res = min(val1, val2)
+        eval_stack.append(res)
+
+
 class OpenParen(FormulaStep):
     """A no-op formula step used while building a prefix formula engine.
 
