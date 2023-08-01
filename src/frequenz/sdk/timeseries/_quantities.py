@@ -24,7 +24,10 @@ QuantityT = TypeVar(
 
 
 class Quantity:
-    """A quantity with a unit."""
+    """A quantity with a unit.
+
+    Quantities try to behave like float and are also immutable.
+    """
 
     _base_value: float
     """The value of this quantity in the base unit."""
@@ -249,48 +252,6 @@ class Quantity:
         product._base_value = self._base_value * percent.as_fraction()
         return product
 
-    def __iadd__(self, other: Self) -> Self:
-        """Add another quantity to this one.
-
-        Args:
-            other: The other quantity.
-
-        Returns:
-            This quantity.
-        """
-        if not type(other) is type(self):
-            return NotImplemented
-        self._base_value += other._base_value
-        return self
-
-    def __isub__(self, other: Self) -> Self:
-        """Subtract another quantity from this one.
-
-        Args:
-            other: The other quantity.
-
-        Returns:
-            This quantity.
-        """
-        if not type(other) is type(self):
-            return NotImplemented
-        self._base_value -= other._base_value
-        return self
-
-    def __imul__(self, percent: Percentage) -> Self:
-        """Multiply this quantity by a percentage.
-
-        Args:
-            percent: The percentage.
-
-        Returns:
-            This quantity.
-        """
-        if not isinstance(percent, Percentage):
-            return NotImplemented
-        self._base_value *= percent.as_fraction()
-        return self
-
     def __gt__(self, other: Self) -> bool:
         """Return whether this quantity is greater than another.
 
@@ -413,7 +374,7 @@ class Power(
 ):
     """A power quantity.
 
-    Objects of this type are wrappers around `float` values.
+    Objects of this type are wrappers around `float` values and are immutable.
 
     The constructors accept a single `float` value, the `as_*()` methods return a
     `float` value, and each of the arithmetic operators supported by this type are
@@ -586,7 +547,7 @@ class Current(
 ):
     """A current quantity.
 
-    Objects of this type are wrappers around `float` values.
+    Objects of this type are wrappers around `float` values and are immutable.
 
     The constructors accept a single `float` value, the `as_*()` methods return a
     `float` value, and each of the arithmetic operators supported by this type are
@@ -682,7 +643,7 @@ class Voltage(
 ):
     """A voltage quantity.
 
-    Objects of this type are wrappers around `float` values.
+    Objects of this type are wrappers around `float` values and are immutable.
 
     The constructors accept a single `float` value, the `as_*()` methods return a
     `float` value, and each of the arithmetic operators supported by this type are
@@ -804,7 +765,7 @@ class Energy(
 ):
     """An energy quantity.
 
-    Objects of this type are wrappers around `float` values.
+    Objects of this type are wrappers around `float` values and are immutable.
 
     The constructors accept a single `float` value, the `as_*()` methods return a
     `float` value, and each of the arithmetic operators supported by this type are
@@ -923,7 +884,7 @@ class Frequency(
 ):
     """A frequency quantity.
 
-    Objects of this type are wrappers around `float` values.
+    Objects of this type are wrappers around `float` values and are immutable.
 
     The constructors accept a single `float` value, the `as_*()` methods return a
     `float` value, and each of the arithmetic operators supported by this type are
@@ -1036,7 +997,7 @@ class Percentage(
 ):
     """A percentage quantity.
 
-    Objects of this type are wrappers around `float` values.
+    Objects of this type are wrappers around `float` values and are immutable.
 
     The constructors accept a single `float` value, the `as_*()` methods return a
     `float` value, and each of the arithmetic operators supported by this type are
