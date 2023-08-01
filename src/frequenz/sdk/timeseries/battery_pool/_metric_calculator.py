@@ -424,7 +424,8 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
             soc_scaled = (
                 (soc - soc_lower_bound) / (soc_upper_bound - soc_lower_bound) * 100
             )
-            soc_scaled = max(soc_scaled, 0)
+            # we are clamping here because the SoC might be out of bounds
+            soc_scaled = min(max(soc_scaled, 0), 100)
             timestamp = max(timestamp, metrics.timestamp)
             used_capacity_x100 += usable_capacity_x100 * soc_scaled
             total_capacity_x100 += usable_capacity_x100
