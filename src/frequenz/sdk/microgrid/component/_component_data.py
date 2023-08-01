@@ -142,7 +142,7 @@ class BatteryData(ComponentData):
     """
 
     temperature: float
-    """The (average) temperature reported by the battery a battery, in Celcius (°C)."""
+    """The (average) temperature reported by the battery, in Celcius (°C)."""
 
     _relay_state: battery_pb.RelayState.ValueType
     """State of the battery relay."""
