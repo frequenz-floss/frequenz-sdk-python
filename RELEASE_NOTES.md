@@ -18,6 +18,7 @@
 - Quantities can now be multiplied with `Percentage` types.
 - `FormulaEngine` arithmetics now supports scalar multiplication with floats and addition with Quantities.
 - Add a `isclose()` method on quantities to compare them to other values of the same type.  Because `Quantity` types are just wrappers around `float`s, direct comparison might not always be desirable.
+- Add a new method for streaming average temperature values for the battery pool.
 
 ## Bug Fixes
 
