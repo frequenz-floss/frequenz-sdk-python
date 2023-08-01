@@ -43,7 +43,7 @@ class BatteryDataWrapper(BatteryData):
         capacity: float = math.nan,
         power_lower_bound: float = math.nan,
         power_upper_bound: float = math.nan,
-        temperature_max: float = math.nan,
+        temperature: float = math.nan,
         _relay_state: battery_pb.RelayState.ValueType = (
             battery_pb.RelayState.RELAY_STATE_UNSPECIFIED
         ),
@@ -66,7 +66,7 @@ class BatteryDataWrapper(BatteryData):
             capacity=capacity,
             power_lower_bound=power_lower_bound,
             power_upper_bound=power_upper_bound,
-            temperature_max=temperature_max,
+            temperature=temperature,
             _relay_state=_relay_state,
             _component_state=_component_state,
             _errors=_errors if _errors else [],

@@ -22,6 +22,7 @@
   * Add a new quantity class `Frequency` for frequency values.
 
 - `FormulaEngine` arithmetics now supports scalar multiplication with floats and addition with Quantities
+- Add a new method for streaming average temperature values for the battery pool.
 
 ## Bug Fixes
 

@@ -139,3 +139,5 @@ class ComponentMetricId(Enum):
 
     ACTIVE_POWER_LOWER_BOUND = "active_power_lower_bound"
     ACTIVE_POWER_UPPER_BOUND = "active_power_upper_bound"
+
+    TEMPERATURE = "temperature"
