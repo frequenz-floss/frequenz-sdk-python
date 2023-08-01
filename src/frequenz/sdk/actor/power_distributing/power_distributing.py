@@ -517,19 +517,27 @@ class PowerDistributingActor:
                 )
                 return Error(request=request, msg=msg)
 
-        if not request.adjust_power:
-            if request.power < 0:
-                bound = self._get_lower_bound(
-                    request.batteries, request.include_broken_batteries
-                )
-                if request.power < bound:
-                    return OutOfBound(request=request, bound=bound)
-            else:
-                bound = self._get_upper_bound(
-                    request.batteries, request.include_broken_batteries
-                )
-                if request.power > bound:
-                    return OutOfBound(request=request, bound=bound)
+        bounds = self._get_bounds(request.batteries, request.include_broken_batteries)
+        if request.adjust_power:
+            # Automatic power adjustments can only bring down the requested power down
+            # to the inclusion bounds.
+            #
+            # If the requested power is in the exclusion bounds, it is NOT possible to
+            # increase it so that it is outside the exclusion bounds.
+            if (
+                request.power > bounds.exclusion_lower
+                and request.power < bounds.exclusion_upper
+            ):
+                return OutOfBound(request=request, bound=bounds)
+        else:
+            in_lower_range = (
+                bounds.inclusion_lower <= request.power <= bounds.exclusion_lower
+            )
+            in_upper_range = (
+                bounds.exclusion_upper <= request.power <= bounds.inclusion_upper
+            )
+            if not (in_lower_range or in_upper_range):
+                return OutOfBound(request=request, bound=bounds)
 
         return None
 

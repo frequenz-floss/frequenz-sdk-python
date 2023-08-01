@@ -95,8 +95,8 @@ class OutOfBound(Result):
     `adjust_power = False` and the requested power is not within the batteries bounds.
     """
 
-    bound: float
-    """The total power bound for the requested batteries.
+    bound: PowerBounds
+    """The power bounds for the requested batteries.
 
     If the requested power negative, then this value is the lower bound.
     Otherwise it is upper bound.
