@@ -42,6 +42,62 @@ class Fz2(
     """Frequency quantity with broad exponent unit map."""
 
 
+def test_zero() -> None:
+    """Test the zero value for quantity."""
+    assert Quantity(0.0) == Quantity.zero()
+    assert Quantity(0.0, exponent=100) == Quantity.zero()
+    assert Quantity.zero() is Quantity.zero()  # It is a "singleton"
+    assert Quantity.zero().base_value == 0.0
+
+    # Test the singleton is immutable
+    one = Quantity.zero()
+    one += Quantity(1.0)
+    assert one != Quantity.zero()
+    assert Quantity.zero() == Quantity(0.0)
+
+    assert Power.from_watts(0.0) == Power.zero()
+    assert Power.from_kilowatts(0.0) == Power.zero()
+    assert isinstance(Power.zero(), Power)
+    assert Power.zero().as_watts() == 0.0
+    assert Power.zero().as_kilowatts() == 0.0
+    assert Power.zero() is Power.zero()  # It is a "singleton"
+
+    assert Current.from_amperes(0.0) == Current.zero()
+    assert Current.from_milliamperes(0.0) == Current.zero()
+    assert isinstance(Current.zero(), Current)
+    assert Current.zero().as_amperes() == 0.0
+    assert Current.zero().as_milliamperes() == 0.0
+    assert Current.zero() is Current.zero()  # It is a "singleton"
+
+    assert Voltage.from_volts(0.0) == Voltage.zero()
+    assert Voltage.from_kilovolts(0.0) == Voltage.zero()
+    assert isinstance(Voltage.zero(), Voltage)
+    assert Voltage.zero().as_volts() == 0.0
+    assert Voltage.zero().as_kilovolts() == 0.0
+    assert Voltage.zero() is Voltage.zero()  # It is a "singleton"
+
+    assert Energy.from_kilowatt_hours(0.0) == Energy.zero()
+    assert Energy.from_megawatt_hours(0.0) == Energy.zero()
+    assert isinstance(Energy.zero(), Energy)
+    assert Energy.zero().as_kilowatt_hours() == 0.0
+    assert Energy.zero().as_megawatt_hours() == 0.0
+    assert Energy.zero() is Energy.zero()  # It is a "singleton"
+
+    assert Frequency.from_hertz(0.0) == Frequency.zero()
+    assert Frequency.from_megahertz(0.0) == Frequency.zero()
+    assert isinstance(Frequency.zero(), Frequency)
+    assert Frequency.zero().as_hertz() == 0.0
+    assert Frequency.zero().as_megahertz() == 0.0
+    assert Frequency.zero() is Frequency.zero()  # It is a "singleton"
+
+    assert Percentage.from_percent(0.0) == Percentage.zero()
+    assert Percentage.from_fraction(0.0) == Percentage.zero()
+    assert isinstance(Percentage.zero(), Percentage)
+    assert Percentage.zero().as_percent() == 0.0
+    assert Percentage.zero().as_fraction() == 0.0
+    assert Percentage.zero() is Percentage.zero()  # It is a "singleton"
+
+
 def test_string_representation() -> None:
     """Test the string representation of the quantities."""
     assert str(Quantity(1.024445, exponent=0)) == "1.024"

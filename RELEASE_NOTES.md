@@ -13,11 +13,15 @@
 
 ## New Features
 
-- Add `abs()` support for quantities.
-- Add quantity class `Frequency` for frequency values.
-- Quantities can now be multiplied with `Percentage` types.
-- `FormulaEngine` arithmetics now supports scalar multiplication with floats and addition with Quantities.
-- Add a `isclose()` method on quantities to compare them to other values of the same type.  Because `Quantity` types are just wrappers around `float`s, direct comparison might not always be desirable.
+- Quantities
+
+  * Add `abs()`.
+  * Add a `isclose()` method on quantities to compare them to other values of the same type.  Because `Quantity` types are just wrappers around `float`s, direct comparison might not always be desirable.
+  * Add `zero()` constructor (which returns a singleton) to easily get a zero value.
+  * Add multiplication by `Percentage` types.
+  * Add a new quantity class `Frequency` for frequency values.
+
+- `FormulaEngine` arithmetics now supports scalar multiplication with floats and addition with Quantities
 
 ## Bug Fixes
 
