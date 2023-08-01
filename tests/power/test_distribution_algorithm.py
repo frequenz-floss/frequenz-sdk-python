@@ -10,6 +10,7 @@ from typing import Dict, List, Optional
 
 from pytest import approx, raises
 
+from frequenz.sdk.actor.power_distributing.result import PowerBounds
 from frequenz.sdk.microgrid.component import BatteryData, InverterData
 from frequenz.sdk.power import DistributionAlgorithm, InvBatPair
 
@@ -36,7 +37,7 @@ def battery_msg(  # pylint: disable=too-many-arguments
     component_id: int,
     capacity: Metric,
     soc: Metric,
-    power: Bound,
+    power: PowerBounds,
     timestamp: datetime = datetime.now(timezone.utc),
 ) -> BatteryData:
     """Create protobuf battery components with given arguments.
@@ -58,15 +59,17 @@ def battery_msg(  # pylint: disable=too-many-arguments
         soc=soc.now if soc.now is not None else math.nan,
         soc_lower_bound=soc.bound.lower if soc.bound is not None else math.nan,
         soc_upper_bound=soc.bound.upper if soc.bound is not None else math.nan,
-        power_inclusion_lower_bound=power.lower,
-        power_inclusion_upper_bound=power.upper,
+        power_inclusion_lower_bound=power.inclusion_lower,
+        power_exclusion_lower_bound=power.exclusion_lower,
+        power_exclusion_upper_bound=power.exclusion_upper,
+        power_inclusion_upper_bound=power.inclusion_upper,
         timestamp=timestamp,
     )
 
 
 def inverter_msg(
     component_id: int,
-    power: Bound,
+    power: PowerBounds,
     timestamp: datetime = datetime.now(timezone.utc),
 ) -> InverterData:
     """Create protobuf inverter components with given arguments.
@@ -83,8 +86,10 @@ def inverter_msg(
     return InverterDataWrapper(
         component_id=component_id,
         timestamp=timestamp,
-        active_power_inclusion_lower_bound=power.lower,
-        active_power_inclusion_upper_bound=power.upper,
+        active_power_inclusion_lower_bound=power.inclusion_lower,
+        active_power_exclusion_lower_bound=power.exclusion_lower,
+        active_power_exclusion_upper_bound=power.exclusion_upper,
+        active_power_inclusion_upper_bound=power.inclusion_upper,
     )
 
 
@@ -259,7 +264,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         num: int,
         capacity: List[Metric],
         soc: List[Metric],
-        power: List[Bound],
+        power: List[PowerBounds],
     ) -> List[InvBatPair]:
         """Create components with given arguments.
 
@@ -295,12 +300,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
         # consume bounds == 0 makes sure they are not used in supply algorithm
         bounds = [
-            Bound(-900, 0),
-            Bound(-1000, 0),
-            Bound(-800, 0),
-            Bound(-700, 0),
-            Bound(-900, 0),
-            Bound(-900, 0),
+            PowerBounds(-900, 0, 0, 0),
+            PowerBounds(-1000, 0, 0, 0),
+            PowerBounds(-800, 0, 0, 0),
+            PowerBounds(-700, 0, 0, 0),
+            PowerBounds(-900, 0, 0, 0),
+            PowerBounds(-900, 0, 0, 0),
         ]
         components = self.create_components(3, capacity, soc, bounds)
 
@@ -320,12 +325,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         bounds = [
-            Bound(-900, 0),
-            Bound(-1000, 0),
-            Bound(-800, 0),
-            Bound(-700, 0),
-            Bound(-900, 0),
-            Bound(-900, 0),
+            PowerBounds(-900, 0, 0, 0),
+            PowerBounds(-1000, 0, 0, 0),
+            PowerBounds(-800, 0, 0, 0),
+            PowerBounds(-700, 0, 0, 0),
+            PowerBounds(-900, 0, 0, 0),
+            PowerBounds(-900, 0, 0, 0),
         ]
         components = self.create_components(3, capacity, soc, bounds)
 
@@ -345,12 +350,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         supply_bounds = [
-            Bound(-600, 0),
-            Bound(-1000, 0),
-            Bound(-600, 0),
-            Bound(-100, 0),
-            Bound(-800, 0),
-            Bound(-900, 0),
+            PowerBounds(-600, 0, 0, 0),
+            PowerBounds(-1000, 0, 0, 0),
+            PowerBounds(-600, 0, 0, 0),
+            PowerBounds(-100, 0, 0, 0),
+            PowerBounds(-800, 0, 0, 0),
+            PowerBounds(-900, 0, 0, 0),
         ]
         components = self.create_components(3, capacity, soc, supply_bounds)
 
@@ -370,12 +375,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         bounds = [
-            Bound(-600, 0),
-            Bound(-1000, 0),
-            Bound(-600, 0),
-            Bound(-100, 0),
-            Bound(-800, 0),
-            Bound(-900, 0),
+            PowerBounds(-600, 0, 0, 0),
+            PowerBounds(-1000, 0, 0, 0),
+            PowerBounds(-600, 0, 0, 0),
+            PowerBounds(-100, 0, 0, 0),
+            PowerBounds(-800, 0, 0, 0),
+            PowerBounds(-900, 0, 0, 0),
         ]
         components = self.create_components(3, capacity, soc, bounds)
 
@@ -395,12 +400,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         supply_bounds = [
-            Bound(-600, 0),
-            Bound(-1000, 0),
-            Bound(-600, 0),
-            Bound(-100, 0),
-            Bound(-800, 0),
-            Bound(-900, 0),
+            PowerBounds(-600, 0, 0, 0),
+            PowerBounds(-1000, 0, 0, 0),
+            PowerBounds(-600, 0, 0, 0),
+            PowerBounds(-100, 0, 0, 0),
+            PowerBounds(-800, 0, 0, 0),
+            PowerBounds(-900, 0, 0, 0),
         ]
         components = self.create_components(3, capacity, soc, supply_bounds)
 
@@ -420,10 +425,10 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
         # consume bounds == 0 makes sure they are not used in supply algorithm
         supply_bounds = [
-            Bound(-600, 0),
-            Bound(-1000, 0),
-            Bound(-600, 0),
-            Bound(-1000, 0),
+            PowerBounds(-600, 0, 0, 0),
+            PowerBounds(-1000, 0, 0, 0),
+            PowerBounds(-600, 0, 0, 0),
+            PowerBounds(-1000, 0, 0, 0),
         ]
         components = self.create_components(2, capacity, soc, supply_bounds)
 
@@ -442,10 +447,10 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         supply_bounds = [
-            Bound(-600, 0),
-            Bound(-1000, 0),
-            Bound(-600, 0),
-            Bound(-1000, 0),
+            PowerBounds(-600, 0, 0, 0),
+            PowerBounds(-1000, 0, 0, 0),
+            PowerBounds(-600, 0, 0, 0),
+            PowerBounds(-1000, 0, 0, 0),
         ]
         components = self.create_components(2, capacity, soc, supply_bounds)
 
@@ -466,12 +471,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         bounds = [
-            Bound(0, 900),
-            Bound(0, 1000),
-            Bound(0, 800),
-            Bound(0, 700),
-            Bound(0, 900),
-            Bound(0, 900),
+            PowerBounds(0, 0, 0, 900),
+            PowerBounds(0, 0, 0, 1000),
+            PowerBounds(0, 0, 0, 800),
+            PowerBounds(0, 0, 0, 700),
+            PowerBounds(0, 0, 0, 900),
+            PowerBounds(0, 0, 0, 900),
         ]
         components = self.create_components(3, capacity, soc, bounds)
 
@@ -491,12 +496,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         bounds = [
-            Bound(0, 900),
-            Bound(0, 1000),
-            Bound(0, 800),
-            Bound(0, 700),
-            Bound(0, 900),
-            Bound(0, 900),
+            PowerBounds(0, 0, 0, 900),
+            PowerBounds(0, 0, 0, 1000),
+            PowerBounds(0, 0, 0, 800),
+            PowerBounds(0, 0, 0, 700),
+            PowerBounds(0, 0, 0, 900),
+            PowerBounds(0, 0, 0, 900),
         ]
         components = self.create_components(3, capacity, soc, bounds)
 
@@ -516,12 +521,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         bounds = [
-            Bound(0, 600),
-            Bound(0, 1000),
-            Bound(0, 600),
-            Bound(0, 100),
-            Bound(0, 800),
-            Bound(0, 900),
+            PowerBounds(0, 0, 0, 600),
+            PowerBounds(0, 0, 0, 1000),
+            PowerBounds(0, 0, 0, 600),
+            PowerBounds(0, 0, 0, 100),
+            PowerBounds(0, 0, 0, 800),
+            PowerBounds(0, 0, 0, 900),
         ]
         components = self.create_components(3, capacity, soc, bounds)
 
@@ -541,12 +546,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         bounds = [
-            Bound(0, 600),
-            Bound(0, 1000),
-            Bound(0, 600),
-            Bound(0, 100),
-            Bound(0, 800),
-            Bound(0, 900),
+            PowerBounds(0, 0, 0, 600),
+            PowerBounds(0, 0, 0, 1000),
+            PowerBounds(0, 0, 0, 600),
+            PowerBounds(0, 0, 0, 100),
+            PowerBounds(0, 0, 0, 800),
+            PowerBounds(0, 0, 0, 900),
         ]
         components = self.create_components(3, capacity, soc, bounds)
 
@@ -566,12 +571,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         bounds = [
-            Bound(0, 600),
-            Bound(0, 1000),
-            Bound(0, 600),
-            Bound(0, 100),
-            Bound(0, 800),
-            Bound(0, 900),
+            PowerBounds(0, 0, 0, 600),
+            PowerBounds(0, 0, 0, 1000),
+            PowerBounds(0, 0, 0, 600),
+            PowerBounds(0, 0, 0, 100),
+            PowerBounds(0, 0, 0, 800),
+            PowerBounds(0, 0, 0, 900),
         ]
         components = self.create_components(3, capacity, soc, bounds)
 
@@ -591,12 +596,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         bounds = [
-            Bound(0, 600),
-            Bound(0, 1000),
-            Bound(0, 600),
-            Bound(0, 100),
-            Bound(0, 800),
-            Bound(0, 900),
+            PowerBounds(0, 0, 0, 600),
+            PowerBounds(0, 0, 0, 1000),
+            PowerBounds(0, 0, 0, 600),
+            PowerBounds(0, 0, 0, 100),
+            PowerBounds(0, 0, 0, 800),
+            PowerBounds(0, 0, 0, 900),
         ]
         components = self.create_components(3, capacity, soc, bounds)
 
@@ -616,12 +621,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         bounds = [
-            Bound(0, 500),
-            Bound(0, 1000),
-            Bound(0, 600),
-            Bound(0, 700),
-            Bound(0, 800),
-            Bound(0, 900),
+            PowerBounds(0, 0, 0, 500),
+            PowerBounds(0, 0, 0, 1000),
+            PowerBounds(0, 0, 0, 600),
+            PowerBounds(0, 0, 0, 700),
+            PowerBounds(0, 0, 0, 800),
+            PowerBounds(0, 0, 0, 900),
         ]
         components = self.create_components(3, capacity, soc, bounds)
 
@@ -640,10 +645,10 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         bounds = [
-            Bound(0, 600),
-            Bound(0, 1000),
-            Bound(0, 600),
-            Bound(0, 1000),
+            PowerBounds(0, 0, 0, 600),
+            PowerBounds(0, 0, 0, 1000),
+            PowerBounds(0, 0, 0, 600),
+            PowerBounds(0, 0, 0, 1000),
         ]
         components = self.create_components(2, capacity, soc, bounds)
 
@@ -662,10 +667,10 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         bounds = [
-            Bound(0, 9000),
-            Bound(0, 9000),
-            Bound(0, 9000),
-            Bound(0, 9000),
+            PowerBounds(0, 0, 0, 9000),
+            PowerBounds(0, 0, 0, 9000),
+            PowerBounds(0, 0, 0, 9000),
+            PowerBounds(0, 0, 0, 9000),
         ]
         components = self.create_components(2, capacity, soc, bounds)
 
@@ -696,10 +701,10 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         bounds = [
-            Bound(0, 9000),
-            Bound(0, 9000),
-            Bound(0, 9000),
-            Bound(0, 9000),
+            PowerBounds(0, 0, 0, 9000),
+            PowerBounds(0, 0, 0, 9000),
+            PowerBounds(0, 0, 0, 9000),
+            PowerBounds(0, 0, 0, 9000),
         ]
         components = self.create_components(2, capacity, soc, bounds)
 
@@ -748,10 +753,10 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         bounds = [
-            Bound(-9000, 0),
-            Bound(-9000, 0),
-            Bound(-9000, 0),
-            Bound(-9000, 0),
+            PowerBounds(-9000, 0, 0, 0),
+            PowerBounds(-9000, 0, 0, 0),
+            PowerBounds(-9000, 0, 0, 0),
+            PowerBounds(-9000, 0, 0, 0),
         ]
         components = self.create_components(2, capacity, soc, bounds)
 
@@ -782,10 +787,10 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         supply_bounds = [
-            Bound(-9000, 0),
-            Bound(-9000, 0),
-            Bound(-9000, 0),
-            Bound(-9000, 0),
+            PowerBounds(-9000, 0, 0, 0),
+            PowerBounds(-9000, 0, 0, 0),
+            PowerBounds(-9000, 0, 0, 0),
+            PowerBounds(-9000, 0, 0, 0),
         ]
         components = self.create_components(2, capacity, soc, supply_bounds)
 
@@ -817,12 +822,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         bounds = [
-            Bound(-9000, 0),
-            Bound(-9000, 0),
-            Bound(-9000, 0),
-            Bound(-9000, 0),
-            Bound(-9000, 0),
-            Bound(-9000, 0),
+            PowerBounds(-9000, 0, 0, 0),
+            PowerBounds(-9000, 0, 0, 0),
+            PowerBounds(-9000, 0, 0, 0),
+            PowerBounds(-9000, 0, 0, 0),
+            PowerBounds(-9000, 0, 0, 0),
+            PowerBounds(-9000, 0, 0, 0),
         ]
         components = self.create_components(3, capacity, soc, bounds)
 
@@ -860,12 +865,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         supply_bounds = [
-            Bound(-9000, 0),
-            Bound(-9000, 0),
-            Bound(-9000, 0),
-            Bound(-9000, 0),
-            Bound(-9000, 0),
-            Bound(-9000, 0),
+            PowerBounds(-9000, 0, 0, 0),
+            PowerBounds(-9000, 0, 0, 0),
+            PowerBounds(-9000, 0, 0, 0),
+            PowerBounds(-9000, 0, 0, 0),
+            PowerBounds(-9000, 0, 0, 0),
+            PowerBounds(-9000, 0, 0, 0),
         ]
         components = self.create_components(3, capacity, soc, supply_bounds)
 
@@ -890,10 +895,10 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         ]
         # consume bounds == 0 makes sure they are not used in supply algorithm
         bounds = [
-            Bound(0, 9000),
-            Bound(0, 9000),
-            Bound(0, 9000),
-            Bound(0, 9000),
+            PowerBounds(0, 0, 0, 9000),
+            PowerBounds(0, 0, 0, 9000),
+            PowerBounds(0, 0, 0, 9000),
+            PowerBounds(0, 0, 0, 9000),
         ]
         components = self.create_components(2, capacity, soc, bounds)
 
