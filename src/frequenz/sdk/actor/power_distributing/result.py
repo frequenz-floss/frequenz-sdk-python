@@ -78,6 +78,16 @@ class Error(Result):
 
 
 @dataclasses.dataclass
+class PowerBounds:
+    """Inclusion and exclusion power bounds for requested batteries."""
+
+    inclusion_lower: float
+    exclusion_lower: float
+    exclusion_upper: float
+    inclusion_upper: float
+
+
+@dataclasses.dataclass
 class OutOfBound(Result):
     """Result returned when the power was not set because it was out of bounds.
 

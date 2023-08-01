@@ -39,7 +39,7 @@ from ...microgrid.component import (
 from ...power import DistributionAlgorithm, DistributionResult, InvBatPair
 from ._battery_pool_status import BatteryPoolStatus, BatteryStatus
 from .request import Request
-from .result import Error, OutOfBound, PartialFailure, Result, Success
+from .result import Error, OutOfBound, PartialFailure, PowerBounds, Result, Success
 
 _logger = logging.getLogger(__name__)
 
@@ -225,6 +225,51 @@ class PowerDistributingActor:
         self._cached_metrics: dict[int, _CacheEntry | None] = {
             bat_id: None for bat_id, _ in self._bat_inv_map.items()
         }
+
+    def _get_bounds(self, batteries: abc.Set[int], include_broken: bool) -> PowerBounds:
+        """Get power bounds for given batteries.
+
+        Args:
+            batteries: List of batteries
+            include_broken: whether all batteries in the batteries set in the
+                request must be used regardless the status.
+
+        Returns:
+            Power bounds for given batteries.
+        """
+        pairs_data: List[InvBatPair] = self._get_components_data(
+            batteries, include_broken
+        )
+        return PowerBounds(
+            inclusion_lower=sum(
+                max(
+                    battery.power_inclusion_lower_bound,
+                    inverter.active_power_inclusion_lower_bound,
+                )
+                for battery, inverter in pairs_data
+            ),
+            inclusion_upper=sum(
+                min(
+                    battery.power_inclusion_upper_bound,
+                    inverter.active_power_inclusion_upper_bound,
+                )
+                for battery, inverter in pairs_data
+            ),
+            exclusion_lower=sum(
+                min(
+                    battery.power_exclusion_lower_bound,
+                    inverter.active_power_exclusion_lower_bound,
+                )
+                for battery, inverter in pairs_data
+            ),
+            exclusion_upper=sum(
+                max(
+                    battery.power_exclusion_upper_bound,
+                    inverter.active_power_exclusion_upper_bound,
+                )
+                for battery, inverter in pairs_data
+            ),
+        )
 
     def _get_upper_bound(self, batteries: abc.Set[int], include_broken: bool) -> float:
         """Get total upper bound of power to be set for given batteries.
