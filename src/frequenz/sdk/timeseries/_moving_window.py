@@ -294,8 +294,12 @@ class MovingWindow:
             start_index = self._buffer.datetime_to_index(start)
             end_index = self._buffer.datetime_to_index(end)
         elif isinstance(start, int) and isinstance(end, int):
-            start_index = start
-            end_index = end
+            start_index = self._buffer.wrap(
+                start + self._buffer.datetime_to_index(self._buffer.time_bound_oldest)
+            )
+            end_index = self._buffer.wrap(
+                end + self._buffer.datetime_to_index(self._buffer.time_bound_oldest)
+            )
         else:
             raise TypeError(
                 f"start and end parameters have to be of type int or datetime, but are {type(start)} and {type(end)}"  # pylint: disable=line-too-long

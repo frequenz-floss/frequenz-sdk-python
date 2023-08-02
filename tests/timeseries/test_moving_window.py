@@ -94,7 +94,7 @@ async def test_access_window_by_int_slice() -> None:
     since the push_lm_data function is starting with the same initial timestamp.
     """
     window, sender = init_moving_window(timedelta(seconds=14))
-    await push_logical_meter_data(sender, range(0, 5))
+    await push_logical_meter_data(sender, range(0, 14))
     assert np.array_equal(window.window(3, 5), np.array([3.0, 4.0]))
 
     data = [1, 2, 2.5, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1]
@@ -109,6 +109,17 @@ async def test_access_window_by_ts_slice() -> None:
     time_start = UNIX_EPOCH + timedelta(seconds=3)
     time_end = time_start + timedelta(seconds=2)
     assert np.array_equal(window.window(time_start, time_end), np.array([3.0, 4.0]))
+
+
+async def test_access_empty_window() -> None:
+    """Test accessing an empty window, should throw IndexError"""
+    window, _ = init_moving_window(timedelta(seconds=5))
+    try:
+        window[42]
+    except IndexError as index_error:
+        assert str(index_error) == "The buffer is empty."
+    else:
+        assert False
 
 
 async def test_window_size() -> None:

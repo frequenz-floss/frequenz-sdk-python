@@ -2,6 +2,7 @@
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
 """Tests for battery pool."""
+
 from __future__ import annotations
 
 import asyncio
@@ -25,7 +26,7 @@ from frequenz.sdk._internal._constants import (
 from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.actor.power_distributing import BatteryStatus
 from frequenz.sdk.microgrid.component import ComponentCategory
-from frequenz.sdk.timeseries import Energy, Percentage, Power, Sample
+from frequenz.sdk.timeseries import Energy, Percentage, Power, Sample, Temperature
 from frequenz.sdk.timeseries.battery_pool import BatteryPool, Bound, PowerMetrics
 from frequenz.sdk.timeseries.battery_pool._metric_calculator import (
     battery_inverter_mapping,
@@ -44,6 +45,8 @@ _logger = logging.getLogger(__name__)
 
 # pylint doesn't understand fixtures. It thinks it is redefined name.
 # pylint: disable=redefined-outer-name
+
+# pylint: disable=too-many-lines
 
 
 @pytest.fixture()
@@ -335,6 +338,24 @@ async def test_battery_pool_power_bounds(setup_batteries_pool: SetupArgs) -> Non
         setup_all_batteries: Fixture that creates needed microgrid tools.
     """
     await run_power_bounds_test(setup_batteries_pool)
+
+
+async def test_all_batteries_temperature(setup_all_batteries: SetupArgs) -> None:
+    """Test temperature for battery pool with all components in the microgrid.
+
+    Args:
+        setup_all_batteries: Fixture that creates needed microgrid tools.
+    """
+    await run_temperature_test(setup_all_batteries)
+
+
+async def test_battery_pool_temperature(setup_batteries_pool: SetupArgs) -> None:
+    """Test temperature for battery pool with subset of components in the microgrid.
+
+    Args:
+        setup_all_batteries: Fixture that creates needed microgrid tools.
+    """
+    await run_temperature_test(setup_batteries_pool)
 
 
 def assert_dataclass(arg: Any) -> None:
@@ -981,3 +1002,112 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
     streamer.start_streaming(latest_data, sampling_rate=0.1)
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
     compare_messages(msg, PowerMetrics(now, Bound(-100, 0), Bound(0, 100)), 0.2)
+
+
+async def run_temperature_test(  # pylint: disable=too-many-locals
+    setup_args: SetupArgs,
+) -> None:
+    """Test if temperature metric is working as expected."""
+    battery_pool = setup_args.battery_pool
+    mock_microgrid = setup_args.mock_microgrid
+    streamer = setup_args.streamer
+    battery_status_sender = setup_args.battery_status_sender
+
+    all_batteries = get_components(mock_microgrid, ComponentCategory.BATTERY)
+    await battery_status_sender.send(
+        BatteryStatus(working=all_batteries, uncertain=set())
+    )
+    bat_inv_map = battery_inverter_mapping(all_batteries)
+
+    for battery_id, inverter_id in bat_inv_map.items():
+        # Sampling rate choose to reflect real application.
+        streamer.start_streaming(
+            BatteryDataWrapper(
+                component_id=battery_id,
+                timestamp=datetime.now(tz=timezone.utc),
+                temperature=25.0,
+            ),
+            sampling_rate=0.05,
+        )
+        streamer.start_streaming(
+            InverterDataWrapper(
+                component_id=inverter_id,
+                timestamp=datetime.now(tz=timezone.utc),
+            ),
+            sampling_rate=0.1,
+        )
+
+    receiver = battery_pool.temperature.new_receiver()
+
+    msg = await asyncio.wait_for(
+        receiver.receive(), timeout=WAIT_FOR_COMPONENT_DATA_SEC + 0.2
+    )
+    now = datetime.now(tz=timezone.utc)
+    expected = Sample(now, value=Temperature.from_celsius(25.0))
+    compare_messages(msg, expected, WAIT_FOR_COMPONENT_DATA_SEC + 0.2)
+
+    batteries_in_pool = list(battery_pool.battery_ids)
+    bat_0, bat_1 = batteries_in_pool
+    scenarios: list[Scenario[Sample[Temperature]]] = [
+        Scenario(
+            bat_0,
+            {"temperature": 30.0},
+            Sample(now, value=Temperature.from_celsius(27.5)),
+        ),
+        Scenario(
+            bat_1,
+            {"temperature": 20.0},
+            Sample(now, value=Temperature.from_celsius(25.0)),
+        ),
+        Scenario(
+            bat_0,
+            {"temperature": math.nan},
+            Sample(now, value=Temperature.from_celsius(20.0)),
+        ),
+        Scenario(
+            bat_1,
+            {"temperature": math.nan},
+            None,
+        ),
+        Scenario(
+            bat_0,
+            {"temperature": 30.0},
+            Sample(now, value=Temperature.from_celsius(30.0)),
+        ),
+        Scenario(
+            bat_1,
+            {"temperature": 15.0},
+            Sample(now, value=Temperature.from_celsius(22.5)),
+        ),
+    ]
+
+    waiting_time_sec = setup_args.min_update_interval + 0.02
+    await run_scenarios(scenarios, streamer, receiver, waiting_time_sec)
+
+    await run_test_battery_status_channel(
+        battery_status_sender=battery_status_sender,
+        battery_pool_metric_receiver=receiver,
+        all_batteries=all_batteries,
+        batteries_in_pool=batteries_in_pool,
+        waiting_time_sec=waiting_time_sec,
+        all_pool_result=Sample(now, Temperature.from_celsius(22.5)),
+        only_first_battery_result=Sample(now, Temperature.from_celsius(30.0)),
+    )
+
+    # one battery stops sending data.
+    await streamer.stop_streaming(bat_1)
+    await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.2)
+    msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
+    compare_messages(msg, Sample(now, Temperature.from_celsius(30.0)), 0.2)
+
+    # All batteries stopped sending data.
+    await streamer.stop_streaming(bat_0)
+    await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.2)
+    msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
+    assert msg is None
+
+    # one battery started sending data.
+    latest_data = streamer.get_current_component_data(bat_1)
+    streamer.start_streaming(latest_data, sampling_rate=0.1)
+    msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
+    compare_messages(msg, Sample(now, Temperature.from_celsius(15.0)), 0.2)

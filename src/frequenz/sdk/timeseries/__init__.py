@@ -45,6 +45,7 @@ from ._quantities import (
     Percentage,
     Power,
     Quantity,
+    Temperature,
     Voltage,
 )
 from ._resampling import ResamplerConfig
@@ -63,6 +64,7 @@ __all__ = [
     "Current",
     "Energy",
     "Power",
+    "Temperature",
     "Voltage",
     "Frequency",
     "Percentage",

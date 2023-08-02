@@ -14,6 +14,7 @@ from frequenz.sdk.timeseries._quantities import (
     Percentage,
     Power,
     Quantity,
+    Temperature,
     Voltage,
 )
 
@@ -40,6 +41,62 @@ class Fz2(
     },
 ):
     """Frequency quantity with broad exponent unit map."""
+
+
+def test_zero() -> None:
+    """Test the zero value for quantity."""
+    assert Quantity(0.0) == Quantity.zero()
+    assert Quantity(0.0, exponent=100) == Quantity.zero()
+    assert Quantity.zero() is Quantity.zero()  # It is a "singleton"
+    assert Quantity.zero().base_value == 0.0
+
+    # Test the singleton is immutable
+    one = Quantity.zero()
+    one += Quantity(1.0)
+    assert one != Quantity.zero()
+    assert Quantity.zero() == Quantity(0.0)
+
+    assert Power.from_watts(0.0) == Power.zero()
+    assert Power.from_kilowatts(0.0) == Power.zero()
+    assert isinstance(Power.zero(), Power)
+    assert Power.zero().as_watts() == 0.0
+    assert Power.zero().as_kilowatts() == 0.0
+    assert Power.zero() is Power.zero()  # It is a "singleton"
+
+    assert Current.from_amperes(0.0) == Current.zero()
+    assert Current.from_milliamperes(0.0) == Current.zero()
+    assert isinstance(Current.zero(), Current)
+    assert Current.zero().as_amperes() == 0.0
+    assert Current.zero().as_milliamperes() == 0.0
+    assert Current.zero() is Current.zero()  # It is a "singleton"
+
+    assert Voltage.from_volts(0.0) == Voltage.zero()
+    assert Voltage.from_kilovolts(0.0) == Voltage.zero()
+    assert isinstance(Voltage.zero(), Voltage)
+    assert Voltage.zero().as_volts() == 0.0
+    assert Voltage.zero().as_kilovolts() == 0.0
+    assert Voltage.zero() is Voltage.zero()  # It is a "singleton"
+
+    assert Energy.from_kilowatt_hours(0.0) == Energy.zero()
+    assert Energy.from_megawatt_hours(0.0) == Energy.zero()
+    assert isinstance(Energy.zero(), Energy)
+    assert Energy.zero().as_kilowatt_hours() == 0.0
+    assert Energy.zero().as_megawatt_hours() == 0.0
+    assert Energy.zero() is Energy.zero()  # It is a "singleton"
+
+    assert Frequency.from_hertz(0.0) == Frequency.zero()
+    assert Frequency.from_megahertz(0.0) == Frequency.zero()
+    assert isinstance(Frequency.zero(), Frequency)
+    assert Frequency.zero().as_hertz() == 0.0
+    assert Frequency.zero().as_megahertz() == 0.0
+    assert Frequency.zero() is Frequency.zero()  # It is a "singleton"
+
+    assert Percentage.from_percent(0.0) == Percentage.zero()
+    assert Percentage.from_fraction(0.0) == Percentage.zero()
+    assert isinstance(Percentage.zero(), Percentage)
+    assert Percentage.zero().as_percent() == 0.0
+    assert Percentage.zero().as_fraction() == 0.0
+    assert Percentage.zero() is Percentage.zero()  # It is a "singleton"
 
 
 def test_string_representation() -> None:
@@ -91,6 +148,12 @@ def test_string_representation() -> None:
     assert f"{Fz1(-20000)}" == "-20 kHz"
 
 
+def test_isclose() -> None:
+    """Test the isclose method of the quantities."""
+    assert Fz1(1.024445).isclose(Fz1(1.024445))
+    assert not Fz1(1.024445).isclose(Fz1(1.0))
+
+
 def test_addition_subtraction() -> None:
     """Test the addition and subtraction of the quantities."""
     assert Quantity(1) + Quantity(1, exponent=0) == Quantity(2, exponent=0)
@@ -104,6 +167,15 @@ def test_addition_subtraction() -> None:
     with pytest.raises(TypeError) as excinfo:
         assert Fz1(1) - Fz2(1)  # type: ignore
     assert excinfo.value.args[0] == "unsupported operand type(s) for -: 'Fz1' and 'Fz2'"
+
+    fz1 = Fz1(1.0)
+    fz1 += Fz1(4.0)
+    assert fz1 == Fz1(5.0)
+    fz1 -= Fz1(9.0)
+    assert fz1 == Fz1(-4.0)
+
+    with pytest.raises(TypeError) as excinfo:
+        fz1 += Fz2(1.0)  # type: ignore
 
 
 def test_comparison() -> None:
@@ -249,6 +321,19 @@ def test_energy() -> None:
         Energy(1.0, exponent=0)
 
 
+def test_temperature() -> None:
+    """Test the temperature class."""
+    temp = Temperature.from_celsius(30.4)
+    assert f"{temp}" == "30.4 °C"
+
+    assert temp.as_celsius() == 30.4
+    assert temp != Temperature.from_celsius(5.0)
+
+    with pytest.raises(TypeError):
+        # using the default constructor should raise.
+        Temperature(1.0, exponent=0)
+
+
 def test_quantity_compositions() -> None:
     """Test the composition of quantities."""
     power = Power.from_watts(1000.0)
@@ -377,3 +462,68 @@ def test_abs() -> None:
     pct = Percentage.from_fraction(30)
     assert abs(pct) == Percentage.from_fraction(30)
     assert abs(-pct) == Percentage.from_fraction(30)
+
+
+def test_quantity_multiplied_with_precentage() -> None:
+    """Test the multiplication of all quantities with percentage."""
+    percentage = Percentage.from_percent(50)
+    power = Power.from_watts(1000.0)
+    voltage = Voltage.from_volts(230.0)
+    current = Current.from_amperes(2)
+    energy = Energy.from_kilowatt_hours(12)
+    percentage_ = Percentage.from_percent(50)
+
+    assert power * percentage == Power.from_watts(500.0)
+    assert voltage * percentage == Voltage.from_volts(115.0)
+    assert current * percentage == Current.from_amperes(1)
+    assert energy * percentage == Energy.from_kilowatt_hours(6)
+    assert percentage_ * percentage == Percentage.from_percent(25)
+
+    power *= percentage
+    assert power == Power.from_watts(500.0)
+    voltage *= percentage
+    assert voltage == Voltage.from_volts(115.0)
+    current *= percentage
+    assert current == Current.from_amperes(1)
+    energy *= percentage
+    assert energy == Energy.from_kilowatt_hours(6)
+    percentage_ *= percentage
+    assert percentage_ == Percentage.from_percent(25)
+
+
+def test_invalid_multiplications() -> None:
+    """Test the multiplication of quantities with invalid quantities."""
+    power = Power.from_watts(1000.0)
+    voltage = Voltage.from_volts(230.0)
+    current = Current.from_amperes(2)
+    energy = Energy.from_kilowatt_hours(12)
+
+    for quantity in [power, voltage, current, energy]:
+        with pytest.raises(TypeError):
+            _ = power * quantity  # type: ignore
+        with pytest.raises(TypeError):
+            power *= quantity  # type: ignore
+
+    for quantity in [voltage, power, energy]:
+        with pytest.raises(TypeError):
+            _ = voltage * quantity  # type: ignore
+        with pytest.raises(TypeError):
+            voltage *= quantity  # type: ignore
+
+    for quantity in [current, power, energy]:
+        with pytest.raises(TypeError):
+            _ = current * quantity  # type: ignore
+        with pytest.raises(TypeError):
+            current *= quantity  # type: ignore
+
+    for quantity in [energy, power, voltage, current]:
+        with pytest.raises(TypeError):
+            _ = energy * quantity  # type: ignore
+        with pytest.raises(TypeError):
+            energy *= quantity  # type: ignore
+
+    for quantity in [power, voltage, current, energy, Percentage.from_percent(50)]:
+        with pytest.raises(TypeError):
+            _ = quantity * 200.0  # type: ignore
+        with pytest.raises(TypeError):
+            quantity *= 200.0  # type: ignore

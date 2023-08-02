@@ -12,7 +12,7 @@ from typing import Generic, Iterable, TypeVar
 
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory, ComponentMetricId, InverterType
-from ...timeseries import Energy, Percentage, Sample
+from ...timeseries import Energy, Percentage, Sample, Temperature
 from ._component_metrics import ComponentMetricsData
 from ._result_types import Bound, PowerMetrics
 
@@ -59,7 +59,7 @@ def battery_inverter_mapping(batteries: Iterable[int]) -> dict[int, int]:
 
 # Formula output types class have no common interface
 # Print all possible types here.
-T = TypeVar("T", Sample[Percentage], Sample[Energy], PowerMetrics)
+T = TypeVar("T", Sample[Percentage], Sample[Energy], PowerMetrics, Sample[Temperature])
 
 
 class MetricCalculator(ABC, Generic[T]):
@@ -234,6 +234,93 @@ class CapacityCalculator(MetricCalculator[Sample[Energy]]):
         )
 
 
+class TemperatureCalculator(MetricCalculator[Sample[Temperature]]):
+    """Define how to calculate temperature metrics."""
+
+    def __init__(self, batteries: Set[int]) -> None:
+        """Create class instance.
+
+        Args:
+            batteries: What batteries should be used for calculation.
+        """
+        super().__init__(batteries)
+
+        self._metrics = [
+            ComponentMetricId.TEMPERATURE,
+        ]
+
+    @classmethod
+    def name(cls) -> str:
+        """Return name of the calculator.
+
+        Returns:
+            Name of the calculator
+        """
+        return "temperature"
+
+    @property
+    def battery_metrics(self) -> Mapping[int, list[ComponentMetricId]]:
+        """Return what metrics are needed for each battery.
+
+        Returns:
+            Map between battery id and set of required metrics id.
+        """
+        return {bid: self._metrics for bid in self._batteries}
+
+    @property
+    def inverter_metrics(self) -> Mapping[int, list[ComponentMetricId]]:
+        """Return what metrics are needed for each inverter.
+
+        Returns:
+            Map between inverter id and set of required metrics id.
+        """
+        return {}
+
+    def calculate(
+        self,
+        metrics_data: dict[int, ComponentMetricsData],
+        working_batteries: set[int],
+    ) -> Sample[Temperature] | None:
+        """Aggregate the metrics_data and calculate high level metric for temperature.
+
+        Missing components will be ignored. Formula will be calculated for all
+        working batteries that are in metrics_data.
+
+        Args:
+            metrics_data: Components metrics data, that should be used to calculate the
+                result.
+            working_batteries: working batteries. These batteries will be used
+                to calculate the result. It should be subset of the batteries given in a
+                constructor.
+
+        Returns:
+            High level metric calculated from the given metrics.
+            Return None if there are no component metrics.
+        """
+        timestamp = _MIN_TIMESTAMP
+        temperature_sum: float = 0.0
+        temperature_count: int = 0
+        for battery_id in working_batteries:
+            if battery_id not in metrics_data:
+                continue
+            metrics = metrics_data[battery_id]
+            temperature = metrics.get(ComponentMetricId.TEMPERATURE)
+            if temperature is None:
+                continue
+            timestamp = max(timestamp, metrics.timestamp)
+            temperature_sum += temperature
+            temperature_count += 1
+        if timestamp == _MIN_TIMESTAMP:
+            return None
+
+        temperature_avg = temperature_sum / temperature_count
+
+        return Sample[Temperature](
+            timestamp=timestamp,
+            value=Temperature.from_celsius(value=temperature_avg),
+        )
+
+
 class SoCCalculator(MetricCalculator[Sample[Percentage]]):
     """Define how to calculate SoC metrics."""
 
@@ -337,7 +424,8 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
             soc_scaled = (
                 (soc - soc_lower_bound) / (soc_upper_bound - soc_lower_bound) * 100
             )
-            soc_scaled = max(soc_scaled, 0)
+            # we are clamping here because the SoC might be out of bounds
+            soc_scaled = min(max(soc_scaled, 0), 100)
             timestamp = max(timestamp, metrics.timestamp)
             used_capacity_x100 += usable_capacity_x100 * soc_scaled
             total_capacity_x100 += usable_capacity_x100

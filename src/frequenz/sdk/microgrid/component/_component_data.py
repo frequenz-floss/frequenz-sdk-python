@@ -141,8 +141,8 @@ class BatteryData(ComponentData):
         This will be a positive number, or zero if no charging is possible.
     """
 
-    temperature_max: float
-    """The maximum temperature of all the blocks in a battery, in Celcius (°C)."""
+    temperature: float
+    """The (average) temperature reported by the battery, in Celcius (°C)."""
 
     _relay_state: battery_pb.RelayState.ValueType
     """State of the battery relay."""
@@ -172,7 +172,7 @@ class BatteryData(ComponentData):
             capacity=raw.battery.properties.capacity,
             power_lower_bound=raw.battery.data.dc.power.system_bounds.lower,
             power_upper_bound=raw.battery.data.dc.power.system_bounds.upper,
-            temperature_max=raw.battery.data.temperature.max,
+            temperature=raw.battery.data.temperature.avg,
             _relay_state=raw.battery.state.relay_state,
             _component_state=raw.battery.state.component_state,
             _errors=list(raw.battery.errors),

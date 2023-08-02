@@ -5,7 +5,7 @@
 requires = [
   "setuptools == 67.7.2",
   "setuptools_scm[toml] == 7.1.0",
-  "frequenz-repo-config[lib] == 0.3.0",
+  "frequenz-repo-config[lib] == 0.4.0",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -14,7 +14,7 @@ name = "frequenz-sdk"
 description = "A development kit to interact with the Frequenz development platform"
 readme = "README.md"
 license = { text = "MIT" }
-keywords = ["frequenz", "sdk", "microgrid", "actor"]
+keywords = ["frequenz", "python", "lib", "library", "sdk", "microgrid"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
@@ -54,27 +54,27 @@ dev-docstrings = [
   "darglint == 1.8.1",
   "tomli == 2.0.1",      # Needed by pydocstyle to read pyproject.toml
 ]
-dev-examples = ["polars == 0.18.7"]
+dev-examples = ["polars == 0.18.11"]
 dev-formatting = ["black == 23.7.0", "isort == 5.12.0"]
 dev-mkdocs = [
   "mike == 1.1.2",
   "mkdocs-gen-files == 0.5.0",
   "mkdocs-literate-nav == 0.6.0",
-  "mkdocs-material == 9.1.19",
+  "mkdocs-material == 9.1.21",
   "mkdocs-section-index == 0.3.5",
   "mkdocstrings[python] == 0.22.0",
-  "frequenz-repo-config[lib] == 0.3.0",
+  "frequenz-repo-config[lib] == 0.4.0",
 ]
 dev-mypy = [
   "mypy == 1.4.1",
   "grpc-stubs == 1.24.12",      # This dependency introduces breaking changes in patch releases
-  "types-protobuf == 4.23.0.1",
+  "types-protobuf == 4.23.0.2",
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
-dev-noxfile = ["nox == 2023.4.22", "frequenz-repo-config[lib] == 0.3.0"]
+dev-noxfile = ["nox == 2023.4.22", "frequenz-repo-config[lib] == 0.4.0"]
 dev-pylint = [
-  "pylint == 2.17.4",
+  "pylint == 2.17.5",
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
@@ -86,7 +86,7 @@ dev-pytest = [
   "async-solipsism == 0.5",
   # For checking docstring code examples
   "sybil == 5.0.3",
-  "pylint == 2.17.4",
+  "pylint == 2.17.5",
   "frequenz-sdk[dev-examples]",
 ]
 dev = [
@@ -107,7 +107,7 @@ include = '\.pyi?$'
 [tool.isort]
 profile = "black"
 line_length = 88
-src_paths = ["src", "examples", "tests"]
+src_paths = ["benchmarks", "examples", "src", "tests"]
 
 [tool.pylint.similarities]
 ignore-comments = ['yes']

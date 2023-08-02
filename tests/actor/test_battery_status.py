@@ -6,7 +6,7 @@ import asyncio
 import math
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Generic, Iterable, List, Optional, Set, Tuple, TypeVar
+from typing import AsyncIterator, Generic, Iterable, List, Optional, TypeVar
 
 import pytest
 import time_machine
@@ -18,7 +18,7 @@ from frequenz.api.microgrid.common_pb2 import ErrorLevel
 from frequenz.api.microgrid.inverter_pb2 import ComponentState as InverterState
 from frequenz.api.microgrid.inverter_pb2 import Error as InverterError
 from frequenz.api.microgrid.inverter_pb2 import ErrorCode as InverterErrorCode
-from frequenz.channels import Broadcast
+from frequenz.channels import Broadcast, Receiver
 from pytest_mock import MockerFixture
 
 from frequenz.sdk.actor.power_distributing._battery_status import (
@@ -26,16 +26,10 @@ from frequenz.sdk.actor.power_distributing._battery_status import (
     SetPowerResult,
     Status,
 )
-from frequenz.sdk.microgrid.client import Connection
-from frequenz.sdk.microgrid.component import (
-    BatteryData,
-    Component,
-    ComponentCategory,
-    InverterData,
-)
+from frequenz.sdk.microgrid.component import BatteryData, InverterData
+from tests.timeseries.mock_microgrid import MockMicrogrid
 
 from ..utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
-from ..utils.mock_microgrid_client import MockMicrogridClient
 
 
 def battery_data(  # pylint: disable=too-many-arguments
@@ -108,42 +102,6 @@ def inverter_data(
     )
 
 
-def component_graph() -> Tuple[Set[Component], Set[Connection]]:
-    """Creates components and connections for the microgrid component graph.
-
-    Returns:
-        Tuple with set of components and set of connections.
-    """
-    components = {
-        Component(1, ComponentCategory.GRID),
-        Component(2, ComponentCategory.METER),
-        Component(104, ComponentCategory.METER),
-        Component(105, ComponentCategory.INVERTER),
-        Component(106, ComponentCategory.BATTERY),
-        Component(204, ComponentCategory.METER),
-        Component(205, ComponentCategory.INVERTER),
-        Component(206, ComponentCategory.BATTERY),
-        Component(304, ComponentCategory.METER),
-        Component(305, ComponentCategory.INVERTER),
-        Component(306, ComponentCategory.BATTERY),
-    }
-
-    connections = {
-        Connection(1, 2),
-        Connection(2, 104),
-        Connection(104, 105),
-        Connection(105, 106),
-        Connection(2, 204),
-        Connection(204, 205),
-        Connection(205, 206),
-        Connection(2, 304),
-        Connection(304, 305),
-        Connection(305, 306),
-    }
-
-    return components, connections
-
-
 T = TypeVar("T")
 
 
@@ -154,32 +112,37 @@ class Message(Generic[T]):
     inner: T
 
 
-BATTERY_ID = 106
-INVERTER_ID = 105
+BATTERY_ID = 9
+INVERTER_ID = 8
+
+
+class _Timeout:
+    """Sentinel for timeout."""
+
+
+async def recv_timeout(recv: Receiver[T], timeout: float = 0.1) -> T | type[_Timeout]:
+    """Receive message from receiver with timeout.
+
+    Args:
+        recv: Receiver to receive message from.
+        timeout: Timeout in seconds.
+
+    Returns:
+        Received message or _Timeout if timeout is reached.
+    """
+    try:
+        return await asyncio.wait_for(recv.receive(), timeout=timeout)
+    except asyncio.TimeoutError:
+        return _Timeout
 
 
 # pylint: disable=protected-access, unused-argument
 class TestBatteryStatus:
     """Tests BatteryStatusTracker."""
 
-    @pytest.fixture
-    async def mock_microgrid(self, mocker: MockerFixture) -> MockMicrogridClient:
-        """Create and initialize mock microgrid
-
-        Args:
-            mocker: pytest mocker
-
-        Returns:
-            MockMicrogridClient
-        """
-        components, connections = component_graph()
-        microgrid = MockMicrogridClient(components, connections)
-        microgrid.initialize(mocker)
-        return microgrid
-
     @time_machine.travel("2022-01-01 00:00 UTC", tick=False)
     async def test_sync_update_status_with_messages(
-        self, mock_microgrid: MockMicrogridClient
+        self, mocker: MockerFixture
     ) -> None:
         """Test if messages changes battery status/
 
@@ -189,6 +152,10 @@ class TestBatteryStatus:
         Args:
             mock_microgrid: mock_microgrid fixture
         """
+        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid.add_batteries(3)
+        await mock_microgrid.start(mocker)
+
         status_channel = Broadcast[Status]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
@@ -336,10 +303,9 @@ class TestBatteryStatus:
         assert tracker._get_new_status_if_changed() is Status.NOT_WORKING
 
         await tracker.stop()
+        await mock_microgrid.cleanup()
 
-    async def test_sync_blocking_feature(
-        self, mock_microgrid: MockMicrogridClient
-    ) -> None:
+    async def test_sync_blocking_feature(self, mocker: MockerFixture) -> None:
         """Test if status changes when SetPowerResult message is received.
 
         Tests uses FakeSelect to test status in sync way.
@@ -348,6 +314,9 @@ class TestBatteryStatus:
         Args:
             mock_microgrid: mock_microgrid fixture
         """
+        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid.add_batteries(3)
+        await mock_microgrid.start(mocker)
 
         status_channel = Broadcast[Status]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
@@ -378,7 +347,7 @@ class TestBatteryStatus:
 
             # message is not correct, component should not block.
             tracker._handle_status_set_power_result(
-                SetPowerResult(succeed={1}, failed={106})
+                SetPowerResult(succeed={1}, failed={BATTERY_ID})
             )
 
             assert tracker._get_new_status_if_changed() is None
@@ -392,7 +361,7 @@ class TestBatteryStatus:
             for timeout in expected_blocking_timeout:
                 # message is not correct, component should not block.
                 tracker._handle_status_set_power_result(
-                    SetPowerResult(succeed={1}, failed={106})
+                    SetPowerResult(succeed={1}, failed={BATTERY_ID})
                 )
 
                 assert tracker._get_new_status_if_changed() is Status.UNCERTAIN
@@ -400,7 +369,7 @@ class TestBatteryStatus:
                 # Battery should be still blocked, nothing should happen
                 time.shift(timeout - 1)
                 tracker._handle_status_set_power_result(
-                    SetPowerResult(succeed={1}, failed={106})
+                    SetPowerResult(succeed={1}, failed={BATTERY_ID})
                 )
 
                 assert tracker._get_new_status_if_changed() is None
@@ -416,7 +385,7 @@ class TestBatteryStatus:
 
             # should block for 30 sec
             tracker._handle_status_set_power_result(
-                SetPowerResult(succeed={1}, failed={106})
+                SetPowerResult(succeed={1}, failed={BATTERY_ID})
             )
 
             assert tracker._get_new_status_if_changed() is Status.UNCERTAIN
@@ -437,21 +406,22 @@ class TestBatteryStatus:
 
             # should block for 30 sec
             tracker._handle_status_set_power_result(
-                SetPowerResult(succeed={1}, failed={106})
+                SetPowerResult(succeed={1}, failed={BATTERY_ID})
             )
             assert tracker._get_new_status_if_changed() is Status.UNCERTAIN
             time.shift(28)
 
             # If battery succeed, then it should unblock.
             tracker._handle_status_set_power_result(
-                SetPowerResult(succeed={106}, failed={206})
+                SetPowerResult(succeed={BATTERY_ID}, failed={19})
             )
             assert tracker._get_new_status_if_changed() is Status.WORKING
 
         await tracker.stop()
+        await mock_microgrid.cleanup()
 
     async def test_sync_blocking_interrupted_with_with_max_data(
-        self, mock_microgrid: MockMicrogridClient
+        self, mocker: MockerFixture
     ) -> None:
         """Test if status changes when SetPowerResult message is received.
 
@@ -461,6 +431,9 @@ class TestBatteryStatus:
         Args:
             mock_microgrid: mock_microgrid fixture
         """
+        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid.add_batteries(3)
+        await mock_microgrid.start(mocker)
 
         status_channel = Broadcast[Status]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
@@ -481,7 +454,7 @@ class TestBatteryStatus:
             assert tracker._get_new_status_if_changed() is Status.WORKING
 
             tracker._handle_status_set_power_result(
-                SetPowerResult(succeed={1}, failed={106})
+                SetPowerResult(succeed={1}, failed={BATTERY_ID})
             )
             assert tracker._get_new_status_if_changed() is Status.UNCERTAIN
 
@@ -489,16 +462,17 @@ class TestBatteryStatus:
             for timeout in expected_blocking_timeout:
                 # message is not correct, component should not block.
                 tracker._handle_status_set_power_result(
-                    SetPowerResult(succeed={1}, failed={106})
+                    SetPowerResult(succeed={1}, failed={BATTERY_ID})
                 )
                 assert tracker._get_new_status_if_changed() is None
                 time.shift(timeout)
 
-            await tracker.stop()
+        await tracker.stop()
+        await mock_microgrid.cleanup()
 
     @time_machine.travel("2022-01-01 00:00 UTC", tick=False)
     async def test_sync_blocking_interrupted_with_invalid_message(
-        self, mock_microgrid: MockMicrogridClient
+        self, mocker: MockerFixture
     ) -> None:
         """Test if status changes when SetPowerResult message is received.
 
@@ -508,6 +482,9 @@ class TestBatteryStatus:
         Args:
             mock_microgrid: mock_microgrid fixture
         """
+        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid.add_batteries(3)
+        await mock_microgrid.start(mocker)
 
         status_channel = Broadcast[Status]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
@@ -527,7 +504,7 @@ class TestBatteryStatus:
         assert tracker._get_new_status_if_changed() is Status.WORKING
 
         tracker._handle_status_set_power_result(
-            SetPowerResult(succeed={1}, failed={106})
+            SetPowerResult(succeed={1}, failed={BATTERY_ID})
         )
         assert tracker._get_new_status_if_changed() is Status.UNCERTAIN
 
@@ -540,12 +517,12 @@ class TestBatteryStatus:
         assert tracker._get_new_status_if_changed() is Status.NOT_WORKING
 
         tracker._handle_status_set_power_result(
-            SetPowerResult(succeed={1}, failed={106})
+            SetPowerResult(succeed={1}, failed={BATTERY_ID})
         )
         assert tracker._get_new_status_if_changed() is None
 
         tracker._handle_status_set_power_result(
-            SetPowerResult(succeed={106}, failed={})
+            SetPowerResult(succeed={BATTERY_ID}, failed={})
         )
         assert tracker._get_new_status_if_changed() is None
 
@@ -553,11 +530,10 @@ class TestBatteryStatus:
         assert tracker._get_new_status_if_changed() is Status.WORKING
 
         await tracker.stop()
+        await mock_microgrid.cleanup()
 
     @time_machine.travel("2022-01-01 00:00 UTC", tick=False)
-    async def test_timers(
-        self, mock_microgrid: MockMicrogridClient, mocker: MockerFixture
-    ) -> None:
+    async def test_timers(self, mocker: MockerFixture) -> None:
         """Test if messages changes battery status/
 
         Tests uses FakeSelect to test status in sync way.
@@ -567,6 +543,10 @@ class TestBatteryStatus:
             mock_microgrid: mock_microgrid fixture
             mocker: pytest mocker instance
         """
+        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid.add_batteries(3)
+        await mock_microgrid.start(mocker)
+
         status_channel = Broadcast[Status]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
@@ -616,16 +596,18 @@ class TestBatteryStatus:
 
         assert inverter_timer_spy.call_count == 2
         await tracker.stop()
+        await mock_microgrid.cleanup()
 
     @time_machine.travel("2022-01-01 00:00 UTC", tick=False)
-    async def test_async_battery_status(
-        self, mock_microgrid: MockMicrogridClient
-    ) -> None:
+    async def test_async_battery_status(self, mocker: MockerFixture) -> None:
         """Test if status changes.
 
         Args:
             mock_microgrid: mock_microgrid fixture
         """
+        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid.add_batteries(3)
+        await mock_microgrid.start(mocker)
 
         status_channel = Broadcast[Status]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
@@ -643,8 +625,10 @@ class TestBatteryStatus:
         await asyncio.sleep(0.01)
 
         with time_machine.travel("2022-01-01 00:00 UTC", tick=False) as time:
-            await mock_microgrid.send(inverter_data(component_id=INVERTER_ID))
-            await mock_microgrid.send(battery_data(component_id=BATTERY_ID))
+            await mock_microgrid.mock_client.send(
+                inverter_data(component_id=INVERTER_ID)
+            )
+            await mock_microgrid.mock_client.send(battery_data(component_id=BATTERY_ID))
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
             assert status is Status.WORKING
 
@@ -656,11 +640,11 @@ class TestBatteryStatus:
 
             time.shift(2)
 
-            await mock_microgrid.send(battery_data(component_id=BATTERY_ID))
+            await mock_microgrid.mock_client.send(battery_data(component_id=BATTERY_ID))
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
             assert status is Status.WORKING
 
-            await mock_microgrid.send(
+            await mock_microgrid.mock_client.send(
                 inverter_data(
                     component_id=INVERTER_ID,
                     timestamp=datetime.now(tz=timezone.utc) - timedelta(seconds=7),
@@ -675,8 +659,325 @@ class TestBatteryStatus:
             await asyncio.sleep(0.3)
             assert len(status_receiver) == 0
 
-            await mock_microgrid.send(inverter_data(component_id=INVERTER_ID))
+            await mock_microgrid.mock_client.send(
+                inverter_data(component_id=INVERTER_ID)
+            )
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
             assert status is Status.WORKING
 
         await tracker.stop()
+        await mock_microgrid.cleanup()
+
+
+class TestBatteryStatusRecovery:
+    """Test battery status recovery.
+
+    The following cases are tested:
+
+    - battery/inverter data missing
+    - battery/inverter bad state
+    - battery/inverter warning/critical error
+    - battery capacity missing
+    - received stale battery/inverter data
+    """
+
+    @pytest.fixture
+    async def setup_tracker(
+        self, mocker: MockerFixture
+    ) -> AsyncIterator[tuple[MockMicrogrid, Receiver[Status]]]:
+        """Setup a BatteryStatusTracker instance to run tests with."""
+        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid.add_batteries(1)
+        await mock_microgrid.start(mocker)
+
+        status_channel = Broadcast[Status]("battery_status")
+        set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
+
+        status_receiver = status_channel.new_receiver()
+
+        _tracker = BatteryStatusTracker(
+            BATTERY_ID,
+            max_data_age_sec=0.1,
+            max_blocking_duration_sec=1,
+            status_sender=status_channel.new_sender(),
+            set_power_result_receiver=set_power_result_channel.new_receiver(),
+        )
+
+        await asyncio.sleep(0.05)
+
+        yield (mock_microgrid, status_receiver)
+
+        await _tracker.stop()
+        await mock_microgrid.cleanup()
+
+    async def _send_healthy_battery(
+        self, mock_microgrid: MockMicrogrid, timestamp: datetime | None = None
+    ) -> None:
+        await mock_microgrid.mock_client.send(
+            battery_data(
+                timestamp=timestamp,
+                component_id=BATTERY_ID,
+                component_state=BatteryState.COMPONENT_STATE_IDLE,
+                relay_state=BatteryRelayState.RELAY_STATE_CLOSED,
+            )
+        )
+
+    async def _send_battery_missing_capacity(
+        self, mock_microgrid: MockMicrogrid
+    ) -> None:
+        await mock_microgrid.mock_client.send(
+            battery_data(
+                component_id=BATTERY_ID,
+                component_state=BatteryState.COMPONENT_STATE_IDLE,
+                relay_state=BatteryRelayState.RELAY_STATE_CLOSED,
+                capacity=math.nan,
+            )
+        )
+
+    async def _send_healthy_inverter(
+        self, mock_microgrid: MockMicrogrid, timestamp: datetime | None = None
+    ) -> None:
+        await mock_microgrid.mock_client.send(
+            inverter_data(
+                timestamp=timestamp,
+                component_id=INVERTER_ID,
+                component_state=InverterState.COMPONENT_STATE_IDLE,
+            )
+        )
+
+    async def _send_bad_state_battery(self, mock_microgrid: MockMicrogrid) -> None:
+        await mock_microgrid.mock_client.send(
+            battery_data(
+                component_id=BATTERY_ID,
+                component_state=BatteryState.COMPONENT_STATE_ERROR,
+                relay_state=BatteryRelayState.RELAY_STATE_CLOSED,
+            )
+        )
+
+    async def _send_bad_state_inverter(self, mock_microgrid: MockMicrogrid) -> None:
+        await mock_microgrid.mock_client.send(
+            inverter_data(
+                component_id=INVERTER_ID,
+                component_state=InverterState.COMPONENT_STATE_ERROR,
+            )
+        )
+
+    async def _send_critical_error_battery(self, mock_microgrid: MockMicrogrid) -> None:
+        battery_critical_error = BatteryError(
+            code=BatteryErrorCode.ERROR_CODE_BLOCK_ERROR,
+            level=ErrorLevel.ERROR_LEVEL_CRITICAL,
+            msg="",
+        )
+        await mock_microgrid.mock_client.send(
+            battery_data(
+                component_id=BATTERY_ID,
+                component_state=BatteryState.COMPONENT_STATE_IDLE,
+                relay_state=BatteryRelayState.RELAY_STATE_CLOSED,
+                errors=[battery_critical_error],
+            )
+        )
+
+    async def _send_warning_error_battery(self, mock_microgrid: MockMicrogrid) -> None:
+        battery_warning_error = BatteryError(
+            code=BatteryErrorCode.ERROR_CODE_HIGH_HUMIDITY,
+            level=ErrorLevel.ERROR_LEVEL_WARN,
+            msg="",
+        )
+        await mock_microgrid.mock_client.send(
+            battery_data(
+                component_id=BATTERY_ID,
+                component_state=BatteryState.COMPONENT_STATE_IDLE,
+                relay_state=BatteryRelayState.RELAY_STATE_CLOSED,
+                errors=[battery_warning_error],
+            )
+        )
+
+    async def _send_critical_error_inverter(
+        self, mock_microgrid: MockMicrogrid
+    ) -> None:
+        inverter_critical_error = InverterError(
+            code=InverterErrorCode.ERROR_CODE_UNSPECIFIED,
+            level=ErrorLevel.ERROR_LEVEL_CRITICAL,
+            msg="",
+        )
+        await mock_microgrid.mock_client.send(
+            inverter_data(
+                component_id=INVERTER_ID,
+                component_state=InverterState.COMPONENT_STATE_IDLE,
+                errors=[inverter_critical_error],
+            )
+        )
+
+    async def _send_warning_error_inverter(self, mock_microgrid: MockMicrogrid) -> None:
+        inverter_warning_error = InverterError(
+            code=InverterErrorCode.ERROR_CODE_UNSPECIFIED,
+            level=ErrorLevel.ERROR_LEVEL_WARN,
+            msg="",
+        )
+        await mock_microgrid.mock_client.send(
+            inverter_data(
+                component_id=INVERTER_ID,
+                component_state=InverterState.COMPONENT_STATE_IDLE,
+                errors=[inverter_warning_error],
+            )
+        )
+
+    async def test_missing_data(
+        self,
+        setup_tracker: tuple[MockMicrogrid, Receiver[Status]],
+    ) -> None:
+        """Test recovery after missing data."""
+        mock_microgrid, status_receiver = setup_tracker
+
+        await self._send_healthy_battery(mock_microgrid)
+        await self._send_healthy_inverter(mock_microgrid)
+        assert await status_receiver.receive() is Status.WORKING
+
+        # --- missing battery data ---
+        await self._send_healthy_inverter(mock_microgrid)
+        assert await status_receiver.receive() is Status.NOT_WORKING
+
+        await self._send_healthy_battery(mock_microgrid)
+        await self._send_healthy_inverter(mock_microgrid)
+        assert await status_receiver.receive() is Status.WORKING
+
+        # --- missing inverter data ---
+        await self._send_healthy_battery(mock_microgrid)
+        assert await status_receiver.receive() is Status.NOT_WORKING
+
+        await self._send_healthy_battery(mock_microgrid)
+        await self._send_healthy_inverter(mock_microgrid)
+        assert await status_receiver.receive() is Status.WORKING
+
+    async def test_bad_state(
+        self,
+        setup_tracker: tuple[MockMicrogrid, Receiver[Status]],
+    ) -> None:
+        """Test recovery after bad component state."""
+        mock_microgrid, status_receiver = setup_tracker
+
+        await self._send_healthy_battery(mock_microgrid)
+        await self._send_healthy_inverter(mock_microgrid)
+        assert await status_receiver.receive() is Status.WORKING
+
+        # --- bad battery state ---
+        await self._send_healthy_inverter(mock_microgrid)
+        await self._send_bad_state_battery(mock_microgrid)
+        assert await status_receiver.receive() is Status.NOT_WORKING
+
+        await self._send_healthy_battery(mock_microgrid)
+        await self._send_healthy_inverter(mock_microgrid)
+        assert await status_receiver.receive() is Status.WORKING
+
+        # --- bad inverter state ---
+        await self._send_bad_state_inverter(mock_microgrid)
+        await self._send_healthy_battery(mock_microgrid)
+        assert await status_receiver.receive() is Status.NOT_WORKING
+
+        await self._send_healthy_battery(mock_microgrid)
+        await self._send_healthy_inverter(mock_microgrid)
+        assert await status_receiver.receive() is Status.WORKING
+
+    async def test_critical_error(
+        self,
+        setup_tracker: tuple[MockMicrogrid, Receiver[Status]],
+    ) -> None:
+        """Test recovery after critical error."""
+
+        mock_microgrid, status_receiver = setup_tracker
+
+        await self._send_healthy_inverter(mock_microgrid)
+        await self._send_healthy_battery(mock_microgrid)
+        assert await status_receiver.receive() is Status.WORKING
+
+        # --- battery warning error (keeps working) ---
+        await self._send_healthy_inverter(mock_microgrid)
+        await self._send_warning_error_battery(mock_microgrid)
+        assert await recv_timeout(status_receiver, timeout=0.1) is _Timeout
+
+        await self._send_healthy_battery(mock_microgrid)
+        await self._send_healthy_inverter(mock_microgrid)
+
+        # --- battery critical error ---
+        await self._send_healthy_inverter(mock_microgrid)
+        await self._send_critical_error_battery(mock_microgrid)
+        assert await status_receiver.receive() is Status.NOT_WORKING
+
+        await self._send_healthy_battery(mock_microgrid)
+        await self._send_healthy_inverter(mock_microgrid)
+        assert await status_receiver.receive() is Status.WORKING
+
+        # --- inverter warning error (keeps working) ---
+        await self._send_healthy_battery(mock_microgrid)
+        await self._send_warning_error_inverter(mock_microgrid)
+        assert await recv_timeout(status_receiver, timeout=0.1) is _Timeout
+
+        await self._send_healthy_battery(mock_microgrid)
+        await self._send_healthy_inverter(mock_microgrid)
+
+        # --- inverter critical error ---
+        await self._send_healthy_battery(mock_microgrid)
+        await self._send_critical_error_inverter(mock_microgrid)
+        assert await status_receiver.receive() is Status.NOT_WORKING
+
+        await self._send_healthy_battery(mock_microgrid)
+        await self._send_healthy_inverter(mock_microgrid)
+        assert await status_receiver.receive() is Status.WORKING
+
+    async def test_missing_capacity(
+        self,
+        setup_tracker: tuple[MockMicrogrid, Receiver[Status]],
+    ) -> None:
+        """Test recovery after missing capacity."""
+        mock_microgrid, status_receiver = setup_tracker
+
+        await self._send_healthy_battery(mock_microgrid)
+        await self._send_healthy_inverter(mock_microgrid)
+        assert await status_receiver.receive() is Status.WORKING
+
+        await self._send_healthy_inverter(mock_microgrid)
+        await self._send_battery_missing_capacity(mock_microgrid)
+        assert await status_receiver.receive() is Status.NOT_WORKING
+
+        await self._send_healthy_battery(mock_microgrid)
+        await self._send_healthy_inverter(mock_microgrid)
+        assert await status_receiver.receive() is Status.WORKING
+
+    async def test_stale_data(
+        self,
+        setup_tracker: tuple[MockMicrogrid, Receiver[Status]],
+    ) -> None:
+        """Test recovery after stale data."""
+        mock_microgrid, status_receiver = setup_tracker
+
+        timestamp = datetime.now(timezone.utc)
+        await self._send_healthy_battery(mock_microgrid, timestamp)
+        await self._send_healthy_inverter(mock_microgrid)
+        assert await status_receiver.receive() is Status.WORKING
+
+        # --- stale battery data ---
+        await self._send_healthy_inverter(mock_microgrid)
+        await self._send_healthy_battery(mock_microgrid, timestamp)
+        assert await recv_timeout(status_receiver) is _Timeout
+
+        await self._send_healthy_inverter(mock_microgrid)
+        await self._send_healthy_battery(mock_microgrid, timestamp)
+        assert await recv_timeout(status_receiver) is Status.NOT_WORKING
+
+        timestamp = datetime.now(timezone.utc)
+        await self._send_healthy_battery(mock_microgrid, timestamp)
+        await self._send_healthy_inverter(mock_microgrid, timestamp)
+        assert await status_receiver.receive() is Status.WORKING
+
+        # --- stale inverter data ---
+        await self._send_healthy_battery(mock_microgrid)
+        await self._send_healthy_inverter(mock_microgrid, timestamp)
+        assert await recv_timeout(status_receiver) is _Timeout
+
+        await self._send_healthy_battery(mock_microgrid)
+        await self._send_healthy_inverter(mock_microgrid, timestamp)
+        assert await recv_timeout(status_receiver) is Status.NOT_WORKING
+
+        await self._send_healthy_battery(mock_microgrid)
+        await self._send_healthy_inverter(mock_microgrid)
+        assert await status_receiver.receive() is Status.WORKING

@@ -9,15 +9,12 @@ import asyncio
 import logging
 from abc import ABC
 from collections import deque
-from datetime import datetime
-from math import isinf, isnan
 from typing import (
     Callable,
     Dict,
     Generic,
     List,
     Optional,
-    Set,
     Tuple,
     Type,
     TypeVar,
@@ -29,7 +26,8 @@ from frequenz.channels import Broadcast, Receiver
 
 from ..._internal._asyncio import cancel_and_await
 from .. import Sample, Sample3Phase
-from .._quantities import QuantityT
+from .._quantities import Quantity, QuantityT
+from ._formula_evaluator import FormulaEvaluator
 from ._formula_steps import (
     Adder,
     Averager,
@@ -54,126 +52,6 @@ _operator_precedence = {
     "+": 4,
     ")": 5,
 }
-
-
-class FormulaEvaluator(Generic[QuantityT]):
-    """A post-fix formula evaluator that operates on `Sample` receivers."""
-
-    def __init__(
-        self,
-        name: str,
-        steps: List[FormulaStep],
-        metric_fetchers: Dict[str, MetricFetcher[QuantityT]],
-        create_method: Callable[[float], QuantityT],
-    ) -> None:
-        """Create a `FormulaEngine` instance.
-
-        Args:
-            name: A name for the formula.
-            steps: Steps for the engine to execute, in post-fix order.
-            metric_fetchers: Fetchers for each metric stream the formula depends on.
-            create_method: A method to generate the output `Sample` value with.  If the
-                formula is for generating power values, this would be
-                `Power.from_watts`, for example.
-        """
-        self._name = name
-        self._steps = steps
-        self._metric_fetchers: Dict[str, MetricFetcher[QuantityT]] = metric_fetchers
-        self._first_run = True
-        self._create_method: Callable[[float], QuantityT] = create_method
-
-    async def _synchronize_metric_timestamps(
-        self, metrics: Set[asyncio.Task[Optional[Sample[QuantityT]]]]
-    ) -> datetime:
-        """Synchronize the metric streams.
-
-        For synchronised streams like data from the `ComponentMetricsResamplingActor`,
-        this a call to this function is required only once, before the first set of
-        inputs are fetched.
-
-        Args:
-            metrics: The finished tasks from the first `fetch_next` calls to all the
-                `MetricFetcher`s.
-
-        Returns:
-            The timestamp of the latest metric value.
-
-        Raises:
-            RuntimeError: when some streams have no value, or when the synchronization
-                of timestamps fails.
-        """
-        metrics_by_ts: Dict[datetime, list[str]] = {}
-        for metric in metrics:
-            result = metric.result()
-            name = metric.get_name()
-            if result is None:
-                raise RuntimeError(f"Stream closed for component: {name}")
-            metrics_by_ts.setdefault(result.timestamp, []).append(name)
-        latest_ts = max(metrics_by_ts)
-
-        # fetch the metrics with non-latest timestamps again until we have the values
-        # for the same ts for all metrics.
-        for metric_ts, names in metrics_by_ts.items():
-            if metric_ts == latest_ts:
-                continue
-            while metric_ts < latest_ts:
-                for name in names:
-                    fetcher = self._metric_fetchers[name]
-                    next_val = await fetcher.fetch_next()
-                    assert next_val is not None
-                    metric_ts = next_val.timestamp
-            if metric_ts > latest_ts:
-                raise RuntimeError(
-                    "Unable to synchronize resampled metric timestamps, "
-                    f"for formula: {self._name}"
-                )
-        self._first_run = False
-        return latest_ts
-
-    async def apply(self) -> Sample[QuantityT]:
-        """Fetch the latest metrics, apply the formula once and return the result.
-
-        Returns:
-            The result of the formula.
-
-        Raises:
-            RuntimeError: if some samples didn't arrive, or if formula application
-                failed.
-        """
-        eval_stack: List[float] = []
-        ready_metrics, pending = await asyncio.wait(
-            [
-                asyncio.create_task(fetcher.fetch_next(), name=name)
-                for name, fetcher in self._metric_fetchers.items()
-            ],
-            return_when=asyncio.ALL_COMPLETED,
-        )
-
-        if pending or any(res.result() is None for res in iter(ready_metrics)):
-            raise RuntimeError(
-                f"Some resampled metrics didn't arrive, for formula: {self._name}"
-            )
-
-        if self._first_run:
-            metric_ts = await self._synchronize_metric_timestamps(ready_metrics)
-        else:
-            sample = next(iter(ready_metrics)).result()
-            assert sample is not None
-            metric_ts = sample.timestamp
-
-        for step in self._steps:
-            step.apply(eval_stack)
-
-        # if all steps were applied and the formula was correct, there should only be a
-        # single value in the evaluation stack, and that would be the formula result.
-        if len(eval_stack) != 1:
-            raise RuntimeError(f"Formula application failed: {self._name}")
-
-        res = eval_stack.pop()
-        if isnan(res) or isinf(res):
-            return Sample(metric_ts, None)
-
-        return Sample(metric_ts, self._create_method(res))
 
 
 _CompositionType = Union[
@@ -231,7 +109,7 @@ class _ComposableFormulaEngine(
 
     def __add__(
         self,
-        other: _GenericEngine | _GenericHigherOrderBuilder,
+        other: _GenericEngine | _GenericHigherOrderBuilder | QuantityT,
     ) -> _GenericHigherOrderBuilder:
         """Return a formula builder that adds (data in) `other` to `self`.
 
@@ -246,7 +124,7 @@ class _ComposableFormulaEngine(
         return self._higher_order_builder(self, self._create_method) + other  # type: ignore
 
     def __sub__(
-        self, other: _GenericEngine | _GenericHigherOrderBuilder
+        self, other: _GenericEngine | _GenericHigherOrderBuilder | QuantityT
     ) -> _GenericHigherOrderBuilder:
         """Return a formula builder that subtracts (data in) `other` from `self`.
 
@@ -261,7 +139,7 @@ class _ComposableFormulaEngine(
         return self._higher_order_builder(self, self._create_method) - other  # type: ignore
 
     def __mul__(
-        self, other: _GenericEngine | _GenericHigherOrderBuilder
+        self, other: _GenericEngine | _GenericHigherOrderBuilder | float
     ) -> _GenericHigherOrderBuilder:
         """Return a formula builder that multiplies (data in) `self` with `other`.
 
@@ -276,7 +154,7 @@ class _ComposableFormulaEngine(
         return self._higher_order_builder(self, self._create_method) * other  # type: ignore
 
     def __truediv__(
-        self, other: _GenericEngine | _GenericHigherOrderBuilder
+        self, other: _GenericEngine | _GenericHigherOrderBuilder | float
     ) -> _GenericHigherOrderBuilder:
         """Return a formula builder that divides (data in) `self` by `other`.
 
@@ -740,7 +618,11 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         self._steps: deque[
             tuple[
                 TokenType,
-                FormulaEngine[QuantityT] | FormulaEngine3Phase[QuantityT] | str,
+                FormulaEngine[QuantityT]
+                | FormulaEngine3Phase[QuantityT]
+                | QuantityT
+                | float
+                | str,
             ]
         ] = deque()
         self._steps.append((TokenType.COMPONENT_METRIC, engine))
@@ -754,12 +636,12 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
 
     @overload
     def _push(
-        self, oper: str, other: _CompositionType3Phase
+        self, oper: str, other: _CompositionType3Phase | QuantityT | float
     ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
         ...
 
     def _push(
-        self, oper: str, other: _CompositionType
+        self, oper: str, other: _CompositionType | QuantityT | float
     ) -> (
         HigherOrderFormulaBuilder[QuantityT]
         | HigherOrderFormulaBuilder3Phase[QuantityT]
@@ -771,6 +653,19 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         # pylint: disable=protected-access
         if isinstance(other, (FormulaEngine, FormulaEngine3Phase)):
             self._steps.append((TokenType.COMPONENT_METRIC, other))
+        elif isinstance(other, (Quantity, float)):
+            match oper:
+                case "+" | "-":
+                    if not isinstance(other, Quantity):
+                        raise RuntimeError(
+                            f"A Quantity must be provided for addition or subtraction to {other}"
+                        )
+                case "*" | "/":
+                    if not isinstance(other, (float, int)):
+                        raise RuntimeError(
+                            f"A float must be provided for scalar multiplication to {other}"
+                        )
+            self._steps.append((TokenType.CONSTANT, other))
         elif isinstance(other, _BaseHOFormulaBuilder):
             self._steps.append((TokenType.OPER, "("))
             self._steps.extend(other._steps)
@@ -791,12 +686,12 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
 
     @overload
     def __add__(
-        self, other: _CompositionType3Phase
+        self, other: _CompositionType3Phase | QuantityT
     ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
         ...
 
     def __add__(
-        self, other: _CompositionType
+        self, other: _CompositionType | QuantityT
     ) -> (
         HigherOrderFormulaBuilder[QuantityT]
         | HigherOrderFormulaBuilder3Phase[QuantityT]
@@ -821,13 +716,13 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
 
     @overload
     def __sub__(
-        self, other: _CompositionType3Phase
+        self, other: _CompositionType3Phase | QuantityT
     ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
         ...
 
     def __sub__(
         self,
-        other: _CompositionType,
+        other: _CompositionType | QuantityT,
     ) -> (
         HigherOrderFormulaBuilder[QuantityT]
         | HigherOrderFormulaBuilder3Phase[QuantityT]
@@ -852,13 +747,13 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
 
     @overload
     def __mul__(
-        self, other: _CompositionType3Phase
+        self, other: _CompositionType3Phase | float
     ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
         ...
 
     def __mul__(
         self,
-        other: _CompositionType,
+        other: _CompositionType | float,
     ) -> (
         HigherOrderFormulaBuilder[QuantityT]
         | HigherOrderFormulaBuilder3Phase[QuantityT]
@@ -883,13 +778,13 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
 
     @overload
     def __truediv__(
-        self, other: _CompositionType3Phase
+        self, other: _CompositionType3Phase | float
     ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
         ...
 
     def __truediv__(
         self,
-        other: _CompositionType,
+        other: _CompositionType | float,
     ) -> (
         HigherOrderFormulaBuilder[QuantityT]
         | HigherOrderFormulaBuilder3Phase[QuantityT]
@@ -935,6 +830,11 @@ class HigherOrderFormulaBuilder(Generic[QuantityT], _BaseHOFormulaBuilder[Quanti
             elif typ == TokenType.OPER:
                 assert isinstance(value, str)
                 builder.push_oper(value)
+            elif typ == TokenType.CONSTANT:
+                assert isinstance(value, (Quantity, float))
+                builder.push_constant(
+                    value.base_value if isinstance(value, Quantity) else value
+                )
         return builder.build()
 
 

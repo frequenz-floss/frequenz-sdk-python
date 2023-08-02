@@ -3,6 +3,8 @@
 
 """Types for holding quantities with units."""
 
+# pylint: disable=too-many-lines
+
 from __future__ import annotations
 
 import math
@@ -18,11 +20,15 @@ QuantityT = TypeVar(
     "Energy",
     "Frequency",
     "Percentage",
+    "Temperature",
 )
 
 
 class Quantity:
-    """A quantity with a unit."""
+    """A quantity with a unit.
+
+    Quantities try to behave like float and are also immutable.
+    """
 
     _base_value: float
     """The value of this quantity in the base unit."""
@@ -59,6 +65,30 @@ class Quantity:
             raise ValueError("Expected a base unit for the type (for exponent 0)")
         cls._exponent_unit_map = exponent_unit_map
         super().__init_subclass__()
+
+    _zero_cache: dict[type, Quantity] = {}
+    """Cache for zero singletons.
+
+    This is a workaround for mypy getting confused when using @functools.cache and
+    @classmethod combined with returning Self. It believes the resulting type of this
+    method is Self and complains that members of the actual class don't exist in Self,
+    so we need to implement the cache ourselves.
+    """
+
+    @classmethod
+    def zero(cls) -> Self:
+        """Return a quantity with value 0.
+
+        Returns:
+            A quantity with value 0.
+        """
+        _zero = cls._zero_cache.get(cls, None)
+        if _zero is None:
+            _zero = cls.__new__(cls)
+            _zero._base_value = 0
+            cls._zero_cache[cls] = _zero
+        assert isinstance(_zero, cls)
+        return _zero
 
     @property
     def base_value(self) -> float:
@@ -98,13 +128,23 @@ class Quantity:
         """
         return math.isinf(self._base_value)
 
-    def __hash__(self) -> int:
-        """Return a hash of this object.
+    def isclose(self, other: Self, rel_tol: float = 1e-9, abs_tol: float = 0.0) -> bool:
+        """Return whether this quantity is close to another.
+
+        Args:
+            other: The quantity to compare to.
+            rel_tol: The relative tolerance.
+            abs_tol: The absolute tolerance.
 
         Returns:
-            A hash of this object.
+            Whether this quantity is close to another.
         """
-        return hash((type(self), self._base_value))
+        return math.isclose(
+            self._base_value,
+            other._base_value,  # pylint: disable=protected-access
+            rel_tol=rel_tol,
+            abs_tol=abs_tol,
+        )
 
     def __repr__(self) -> str:
         """Return a representation of this quantity.
@@ -221,6 +261,22 @@ class Quantity:
         difference._base_value = self._base_value - other._base_value
         return difference
 
+    def __mul__(self, percent: Percentage) -> Self:
+        """Return the product of this quantity and a percentage.
+
+        Args:
+            percent: The percentage.
+
+        Returns:
+            The product of this quantity and a percentage.
+        """
+        if not isinstance(percent, Percentage):
+            return NotImplemented
+
+        product = type(self).__new__(type(self))
+        product._base_value = self._base_value * percent.as_fraction()
+        return product
+
     def __gt__(self, other: Self) -> bool:
         """Return whether this quantity is greater than another.
 
@@ -331,6 +387,38 @@ class _NoDefaultConstructible(type):
         )
 
 
+class Temperature(
+    Quantity,
+    metaclass=_NoDefaultConstructible,
+    exponent_unit_map={
+        0: "°C",
+    },
+):
+    """A temperature quantity (in degrees Celsius)."""
+
+    @classmethod
+    def from_celsius(cls, value: float) -> Self:
+        """Initialize a new temperature quantity.
+
+        Args:
+            value: The temperature in degrees Celsius.
+
+        Returns:
+            A new temperature quantity.
+        """
+        power = cls.__new__(cls)
+        power._base_value = value
+        return power
+
+    def as_celsius(self) -> float:
+        """Return the temperature in degrees Celsius.
+
+        Returns:
+            The temperature in degrees Celsius.
+        """
+        return self._base_value
+
+
 class Power(
     Quantity,
     metaclass=_NoDefaultConstructible,
@@ -341,7 +429,16 @@ class Power(
         6: "MW",
     },
 ):
-    """A power quantity."""
+    """A power quantity.
+
+    Objects of this type are wrappers around `float` values and are immutable.
+
+    The constructors accept a single `float` value, the `as_*()` methods return a
+    `float` value, and each of the arithmetic operators supported by this type are
+    actually implemented using floating-point arithmetic.
+
+    So all considerations about floating-point arithmetic apply to this type as well.
+    """
 
     @classmethod
     def from_watts(cls, watts: float) -> Self:
@@ -423,18 +520,42 @@ class Power(
         """
         return self._base_value / 1e6
 
-    def __mul__(self, duration: timedelta) -> Energy:
+    @overload  # type: ignore
+    def __mul__(self, other: Percentage) -> Self:
+        """Return a power from multiplying this power by the given percentage.
+
+        Args:
+            other: The percentage to multiply by.
+        """
+
+    @overload
+    def __mul__(self, other: timedelta) -> Energy:
         """Return an energy from multiplying this power by the given duration.
 
         Args:
-            duration: The duration to multiply by.
+            other: The duration to multiply by.
+        """
+
+    def __mul__(self, other: Percentage | timedelta) -> Self | Energy:
+        """Return a power or energy from multiplying this power by the given value.
+
+        Args:
+            other: The percentage or duration to multiply by.
 
         Returns:
-            An energy from multiplying this power by the given duration.
+            A power or energy.
+
+        Raises:
+            TypeError: If the given value is not a percentage or duration.
         """
-        return Energy.from_watt_hours(
-            self._base_value * duration.total_seconds() / 3600.0
-        )
+        if isinstance(other, Percentage):
+            return super().__mul__(other)
+        if isinstance(other, timedelta):
+            return Energy.from_watt_hours(
+                self._base_value * other.total_seconds() / 3600.0
+            )
+
+        return NotImplemented
 
     @overload
     def __truediv__(self, other: Current) -> Voltage:
@@ -481,7 +602,16 @@ class Current(
         0: "A",
     },
 ):
-    """A current quantity."""
+    """A current quantity.
+
+    Objects of this type are wrappers around `float` values and are immutable.
+
+    The constructors accept a single `float` value, the `as_*()` methods return a
+    `float` value, and each of the arithmetic operators supported by this type are
+    actually implemented using floating-point arithmetic.
+
+    So all considerations about floating-point arithmetic apply to this type as well.
+    """
 
     @classmethod
     def from_amperes(cls, amperes: float) -> Self:
@@ -527,16 +657,40 @@ class Current(
         """
         return self._base_value * 1e3
 
-    def __mul__(self, voltage: Voltage) -> Power:
+    @overload  # type: ignore
+    def __mul__(self, other: Percentage) -> Self:
+        """Return a power from multiplying this power by the given percentage.
+
+        Args:
+            other: The percentage to multiply by.
+        """
+
+    @overload
+    def __mul__(self, other: Voltage) -> Power:
         """Multiply the current by a voltage to get a power.
 
         Args:
-            voltage: The voltage.
+            other: The voltage.
+        """
+
+    def __mul__(self, other: Percentage | Voltage) -> Self | Power:
+        """Return a current or power from multiplying this current by the given value.
+
+        Args:
+            other: The percentage or voltage to multiply by.
 
         Returns:
-            The power.
+            A current or power.
+
+        Raises:
+            TypeError: If the given value is not a percentage or voltage.
         """
-        return Power.from_watts(self._base_value * voltage._base_value)
+        if isinstance(other, Percentage):
+            return super().__mul__(other)
+        if isinstance(other, Voltage):
+            return Power.from_watts(self._base_value * other._base_value)
+
+        return NotImplemented
 
 
 class Voltage(
@@ -544,7 +698,16 @@ class Voltage(
     metaclass=_NoDefaultConstructible,
     exponent_unit_map={0: "V", -3: "mV", 3: "kV"},
 ):
-    """A voltage quantity."""
+    """A voltage quantity.
+
+    Objects of this type are wrappers around `float` values and are immutable.
+
+    The constructors accept a single `float` value, the `as_*()` methods return a
+    `float` value, and each of the arithmetic operators supported by this type are
+    actually implemented using floating-point arithmetic.
+
+    So all considerations about floating-point arithmetic apply to this type as well.
+    """
 
     @classmethod
     def from_volts(cls, volts: float) -> Self:
@@ -612,16 +775,40 @@ class Voltage(
         """
         return self._base_value / 1e3
 
-    def __mul__(self, current: Current) -> Power:
+    @overload  # type: ignore
+    def __mul__(self, other: Percentage) -> Self:
+        """Return a power from multiplying this power by the given percentage.
+
+        Args:
+            other: The percentage to multiply by.
+        """
+
+    @overload
+    def __mul__(self, other: Current) -> Power:
         """Multiply the voltage by the current to get the power.
 
         Args:
-            current: The current to multiply the voltage with.
+            other: The current to multiply the voltage with.
+        """
+
+    def __mul__(self, other: Percentage | Current) -> Self | Power:
+        """Return a voltage or power from multiplying this voltage by the given value.
+
+        Args:
+            other: The percentage or current to multiply by.
 
         Returns:
-            The calculated power.
+            The calculated voltage or power.
+
+        Raises:
+            TypeError: If the given value is not a percentage or current.
         """
-        return Power.from_watts(self._base_value * current._base_value)
+        if isinstance(other, Percentage):
+            return super().__mul__(other)
+        if isinstance(other, Current):
+            return Power.from_watts(self._base_value * other._base_value)
+
+        return NotImplemented
 
 
 class Energy(
@@ -633,7 +820,16 @@ class Energy(
         6: "MWh",
     },
 ):
-    """An energy quantity."""
+    """An energy quantity.
+
+    Objects of this type are wrappers around `float` values and are immutable.
+
+    The constructors accept a single `float` value, the `as_*()` methods return a
+    `float` value, and each of the arithmetic operators supported by this type are
+    actually implemented using floating-point arithmetic.
+
+    So all considerations about floating-point arithmetic apply to this type as well.
+    """
 
     @classmethod
     def from_watt_hours(cls, watt_hours: float) -> Self:
@@ -743,7 +939,16 @@ class Frequency(
     metaclass=_NoDefaultConstructible,
     exponent_unit_map={0: "Hz", 3: "kHz", 6: "MHz", 9: "GHz"},
 ):
-    """A frequency quantity."""
+    """A frequency quantity.
+
+    Objects of this type are wrappers around `float` values and are immutable.
+
+    The constructors accept a single `float` value, the `as_*()` methods return a
+    `float` value, and each of the arithmetic operators supported by this type are
+    actually implemented using floating-point arithmetic.
+
+    So all considerations about floating-point arithmetic apply to this type as well.
+    """
 
     @classmethod
     def from_hertz(cls, hertz: float) -> Self:
@@ -847,7 +1052,16 @@ class Percentage(
     metaclass=_NoDefaultConstructible,
     exponent_unit_map={0: "%"},
 ):
-    """A percentage quantity."""
+    """A percentage quantity.
+
+    Objects of this type are wrappers around `float` values and are immutable.
+
+    The constructors accept a single `float` value, the `as_*()` methods return a
+    `float` value, and each of the arithmetic operators supported by this type are
+    actually implemented using floating-point arithmetic.
+
+    So all considerations about floating-point arithmetic apply to this type as well.
+    """
 
     @classmethod
     def from_percent(cls, percent: float) -> Self:
