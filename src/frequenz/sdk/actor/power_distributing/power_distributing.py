@@ -226,20 +226,18 @@ class PowerDistributingActor:
             bat_id: None for bat_id, _ in self._bat_inv_map.items()
         }
 
-    def _get_bounds(self, batteries: abc.Set[int], include_broken: bool) -> PowerBounds:
+    def _get_bounds(
+        self,
+        pairs_data: list[InvBatPair],
+    ) -> PowerBounds:
         """Get power bounds for given batteries.
 
         Args:
-            batteries: List of batteries
-            include_broken: whether all batteries in the batteries set in the
-                request must be used regardless the status.
+            pairs_data: list of battery and adjacent inverter data pairs.
 
         Returns:
             Power bounds for given batteries.
         """
-        pairs_data: List[InvBatPair] = self._get_components_data(
-            batteries, include_broken
-        )
         return PowerBounds(
             inclusion_lower=sum(
                 max(
@@ -352,11 +350,6 @@ class PowerDistributingActor:
         await asyncio.sleep(self._wait_for_data_sec)
 
         async for request in self._requests_receiver:
-            error = self._check_request(request)
-            if error:
-                await self._send_result(request.namespace, error)
-                continue
-
             try:
                 pairs_data: List[InvBatPair] = self._get_components_data(
                     request.batteries, request.include_broken_batteries
@@ -372,6 +365,11 @@ class PowerDistributingActor:
                 await self._send_result(
                     request.namespace, Error(request=request, msg=str(error_msg))
                 )
+                continue
+
+            error = self._check_request(request, pairs_data)
+            if error:
+                await self._send_result(request.namespace, error)
                 continue
 
             try:
@@ -497,11 +495,16 @@ class PowerDistributingActor:
 
         return result
 
-    def _check_request(self, request: Request) -> Optional[Result]:
+    def _check_request(
+        self,
+        request: Request,
+        pairs_data: List[InvBatPair],
+    ) -> Optional[Result]:
         """Check whether the given request if correct.
 
         Args:
             request: request to check
+            pairs_data: list of battery and adjacent inverter data pairs.
 
         Returns:
             Result for the user if the request is wrong, None otherwise.
@@ -517,7 +520,7 @@ class PowerDistributingActor:
                 )
                 return Error(request=request, msg=msg)
 
-        bounds = self._get_bounds(request.batteries, request.include_broken_batteries)
+        bounds = self._get_bounds(pairs_data)
         if request.adjust_power:
             # Automatic power adjustments can only bring down the requested power down
             # to the inclusion bounds.

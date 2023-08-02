@@ -397,7 +397,7 @@ class TestPowerDistributingActor:
         result: Result = done.pop().result()
         assert isinstance(result, Error)
         assert result.request == request
-        err_msg = re.search(r"^No battery 100, available batteries:", result.msg)
+        err_msg = re.search(r"No battery 100, available batteries:", result.msg)
         assert err_msg is not None
 
     async def test_power_distributor_one_user_adjust_power_consume(
