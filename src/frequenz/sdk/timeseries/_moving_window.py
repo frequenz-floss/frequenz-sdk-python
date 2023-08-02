@@ -272,11 +272,13 @@ class MovingWindow:
         Args:
             start: The start index or datetime of the sub window.
             end: The end index or datetime of the sub window.
-            fill_gaps: The value to fill gaps with.
+            fill_gaps: The value to fill gaps with, fill_gaps implies force_copy = True.
             force_copy: If True, a copy of the underlying buffer is returned.
 
         Raises:
             IndexError: if the end index is smaller than the start index.
+            TypeError: if the start and end parameters are not of type int or datetime.
+            ValueError: if fill_gaps is not None and force_copy is False.
 
         Returns:
             A sub window of the `MovingWindow`.
@@ -291,9 +293,16 @@ class MovingWindow:
 
             start_index = self._buffer.datetime_to_index(start)
             end_index = self._buffer.datetime_to_index(end)
+        elif isinstance(start, int) and isinstance(end, int):
+            start_index = start
+            end_index = end
         else:
-            start_index = start  # type: ignore
-            end_index = end  # type: ignore
+            raise TypeError(
+                f"start and end parameters have to be of type int or datetime, but are {type(start)} and {type(end)}"  # pylint: disable=line-too-long
+            )
+
+        if fill_gaps is not None and not force_copy:
+            raise ValueError("fill_gaps can only be used with force_copy=True")
 
         # Make copy of buffer
         buffer_to_use = deepcopy(self._buffer) if (force_copy) else self._buffer
@@ -327,14 +336,7 @@ class MovingWindow:
         # noqa: DAR101 key
         """
 
-    @overload
-    def __getitem__(self, key: slice) -> ArrayLike:
-        """See the main __getitem__ method.
-
-        # noqa: DAR101 key
-        """
-
-    def __getitem__(self, key: SupportsIndex | datetime | slice) -> float:
+    def __getitem__(self, key: SupportsIndex | datetime) -> float:
         """
         Return a sub window of the `MovingWindow`.
 
