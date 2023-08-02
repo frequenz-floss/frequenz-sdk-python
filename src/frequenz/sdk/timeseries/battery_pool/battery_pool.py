@@ -347,16 +347,17 @@ class BatteryPool:
     def soc(self) -> MetricAggregator[Sample[Percentage]]:
         """Fetch the normalized average weighted-by-capacity SoC values for the pool.
 
-        The values are normalized to the 0-100% range.
+        The values are normalized to the 0-100% range and clamped if the SoC is out of
+        bounds.
 
         Average soc is calculated with the formula:
         ```
         working_batteries: Set[BatteryData] # working batteries from the battery pool
 
-        soc_scaled = max(
+        soc_scaled = min(max(
             0,
             (soc - soc_lower_bound) / (soc_upper_bound - soc_lower_bound) * 100,
-        )
+        ), 100)
         used_capacity = sum(
             battery.usable_capacity * battery.soc_scaled
             for battery in working_batteries
