@@ -1,0 +1,25 @@
+name: Release Notes Check
+
+on:
+  pull_request:
+    types:
+      # On by default if you specify no types.
+      - "opened"
+      - "reopened"
+      - "synchronize"
+      # For `skip-label` only.
+      - "labeled"
+      - "unlabeled"
+
+jobs:
+  check-release-notes:
+    name: Check release notes are updated
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for a release notes update
+        uses: brettcannon/check-for-changed-files@294a99714e0d350b5083472a293d41bc91804e68 # v1.1.1
+        with:
+          file-pattern: "RELEASE_NOTES.md"
+          prereq-pattern: "src/**"
+          skip-label: "cmd:skip-release-notes"
+          failure-message: "Missing a release notes update. Please add one or apply the ${skip-label} label to the pull request"
