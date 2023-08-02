@@ -28,5 +28,6 @@
 
 - Fix formatting issue for `Quantity` objects with zero values.
 - Fix formatting isuse for `Quantity` when the base value is float.inf or float.nan.
+- Fix clamping to 100% for the battery pool SoC scaling calculation.
 
 <!-- Here goes notable bug fixes that are worth a special mention or explanation -->
