@@ -140,11 +140,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         components = self.create_components_with_capacity(1, capacity)
 
         available_soc: Dict[int, float] = {0: 40}
-        upper_bounds: Dict[int, float] = {1: 500}
+        incl_bounds: Dict[int, float] = {1: 500}
+        excl_bounds: Dict[int, float] = {1: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
-            components, 650, available_soc, upper_bounds
+            components, 650, available_soc, incl_bounds, excl_bounds
         )
 
         assert result.distribution == approx({1: 500})
@@ -160,11 +161,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         components = self.create_components_with_capacity(2, capacity)
 
         available_soc: Dict[int, float] = {0: 40, 2: 20}
-        upper_bounds: Dict[int, float] = {1: 500, 3: 500}
+        incl_bounds: Dict[int, float] = {1: 500, 3: 500}
+        excl_bounds: Dict[int, float] = {1: 0, 3: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
-            components, 600, available_soc, upper_bounds
+            components, 600, available_soc, incl_bounds, excl_bounds
         )
 
         assert result.distribution == approx({1: 400, 3: 200})
@@ -180,11 +182,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         components = self.create_components_with_capacity(2, capacity)
 
         available_soc: Dict[int, float] = {0: 20, 2: 20}
-        upper_bounds: Dict[int, float] = {1: 500, 3: 500}
+        incl_bounds: Dict[int, float] = {1: 500, 3: 500}
+        excl_bounds: Dict[int, float] = {1: 0, 3: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
-            components, 600, available_soc, upper_bounds
+            components, 600, available_soc, incl_bounds, excl_bounds
         )
 
         assert result.distribution == approx({1: 200, 3: 400})
@@ -201,11 +204,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         components = self.create_components_with_capacity(2, capacity)
 
         available_soc: Dict[int, float] = {0: 40, 2: 20}
-        upper_bounds: Dict[int, float] = {1: 250, 3: 330}
+        incl_bounds: Dict[int, float] = {1: 250, 3: 330}
+        excl_bounds: Dict[int, float] = {1: 0, 3: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
-            components, 600, available_soc, upper_bounds
+            components, 600, available_soc, incl_bounds, excl_bounds
         )
 
         assert result.distribution == approx({1: 250, 3: 330})
@@ -217,11 +221,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         components = self.create_components_with_capacity(3, capacity)
 
         available_soc: Dict[int, float] = {0: 40, 2: 20, 4: 20}
-        upper_bounds: Dict[int, float] = {1: 1000, 3: 3400, 5: 3550}
+        incl_bounds: Dict[int, float] = {1: 1000, 3: 3400, 5: 3550}
+        excl_bounds: Dict[int, float] = {1: 0, 3: 0, 5: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
-            components, 1000, available_soc, upper_bounds
+            components, 1000, available_soc, incl_bounds, excl_bounds
         )
 
         assert result.distribution == approx({1: 400, 3: 400, 5: 200})
@@ -233,11 +238,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         components = self.create_components_with_capacity(3, capacity)
 
         available_soc: Dict[int, float] = {0: 80, 2: 10, 4: 20}
-        upper_bounds: Dict[int, float] = {1: 400, 3: 3400, 5: 300}
+        incl_bounds: Dict[int, float] = {1: 400, 3: 3400, 5: 300}
+        excl_bounds: Dict[int, float] = {1: 0, 3: 0, 5: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
-            components, 1000, available_soc, upper_bounds
+            components, 1000, available_soc, incl_bounds, excl_bounds
         )
 
         assert result.distribution == approx({1: 400, 3: 300, 5: 300})
@@ -249,11 +255,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         components = self.create_components_with_capacity(3, capacity)
 
         available_soc: Dict[int, float] = {0: 80, 2: 10, 4: 20}
-        upper_bounds: Dict[int, float] = {1: 500, 3: 300, 5: 300}
+        incl_bounds: Dict[int, float] = {1: 500, 3: 300, 5: 300}
+        excl_bounds: Dict[int, float] = {1: 0, 3: 0, 5: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
-            components, 1000, available_soc, upper_bounds
+            components, 1000, available_soc, incl_bounds, excl_bounds
         )
 
         assert result.distribution == approx({1: 0, 3: 300, 5: 0})
