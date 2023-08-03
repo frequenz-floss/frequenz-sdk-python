@@ -6,7 +6,7 @@
 
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
+- Upgrade to microgrid API v0.15.1.  If you're using any of the lower level microgrid interfaces, you will need to upgrade your code.
 
 ## New Features
 
