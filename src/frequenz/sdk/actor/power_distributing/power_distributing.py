@@ -183,6 +183,8 @@ class PowerDistributingActor(Actor):
         channel_registry: ChannelRegistry,
         battery_status_sender: Sender[BatteryStatus],
         wait_for_data_sec: float = 2,
+        *,
+        name: str | None = None,
     ) -> None:
         """Create class instance.
 
@@ -194,8 +196,10 @@ class PowerDistributingActor(Actor):
                 working.
             wait_for_data_sec: How long actor should wait before processing first
                 request. It is a time needed to collect first components data.
+            name: The name of the actor. If `None`, `str(id(self))` will be used. This
+                is used mostly for debugging purposes.
         """
-        super().__init__()
+        super().__init__(name=name)
         self._requests_receiver = requests_receiver
         self._channel_registry = channel_registry
         self._wait_for_data_sec = wait_for_data_sec

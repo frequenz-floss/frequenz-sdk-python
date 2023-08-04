@@ -32,6 +32,7 @@ class ComponentMetricsResamplingActor(Actor):
         data_sourcing_request_sender: Sender[ComponentMetricRequest],
         resampling_request_receiver: Receiver[ComponentMetricRequest],
         config: ResamplerConfig,
+        name: str | None = None,
     ) -> None:
         """Initialize an instance.
 
@@ -44,8 +45,10 @@ class ComponentMetricsResamplingActor(Actor):
             resampling_request_receiver: The receiver to use to receive new
                 resampmling subscription requests.
             config: The configuration for the resampler.
+            name: The name of the actor. If `None`, `str(id(self))` will be used. This
+                is used mostly for debugging purposes.
         """
-        super().__init__()
+        super().__init__(name=name)
         self._channel_registry: ChannelRegistry = channel_registry
         self._data_sourcing_request_sender: Sender[
             ComponentMetricRequest

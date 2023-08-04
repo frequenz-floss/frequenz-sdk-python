@@ -35,6 +35,8 @@ class ConfigManagingActor(Actor):
         config_path: pathlib.Path | str,
         output: Sender[Config],
         event_types: abc.Set[FileWatcher.EventType] = frozenset(FileWatcher.EventType),
+        *,
+        name: str | None = None,
     ) -> None:
         """Initialize this instance.
 
@@ -42,8 +44,10 @@ class ConfigManagingActor(Actor):
             config_path: The path to the TOML file with the configuration.
             output: The sender to send the config to.
             event_types: The set of event types to monitor.
+            name: The name of the actor. If `None`, `str(id(self))` will
+                be used. This is used mostly for debugging purposes.
         """
-        super().__init__()
+        super().__init__(name=name)
         self._config_path: pathlib.Path = (
             config_path
             if isinstance(config_path, pathlib.Path)

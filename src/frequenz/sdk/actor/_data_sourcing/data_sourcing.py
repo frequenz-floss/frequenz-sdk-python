@@ -17,6 +17,8 @@ class DataSourcingActor(Actor):
         self,
         request_receiver: Receiver[ComponentMetricRequest],
         registry: ChannelRegistry,
+        *,
+        name: str | None = None,
     ) -> None:
         """Create a `DataSourcingActor` instance.
 
@@ -24,8 +26,10 @@ class DataSourcingActor(Actor):
             request_receiver: A channel receiver to accept metric requests from.
             registry: A channel registry.  To be replaced by a singleton
                 instance.
+            name: The name of the actor. If `None`, `str(id(self))` will be used. This
+                is used mostly for debugging purposes.
         """
-        super().__init__()
+        super().__init__(name=name)
         self._request_receiver = request_receiver
         self._microgrid_api_source = MicrogridApiSource(registry)
 
