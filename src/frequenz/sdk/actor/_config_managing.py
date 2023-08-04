@@ -7,7 +7,7 @@ import logging
 import os
 import tomllib
 from collections import abc
-from typing import Any, Dict
+from typing import Any
 
 from frequenz.channels import Sender
 from frequenz.channels.util import FileWatcher
@@ -49,7 +49,7 @@ class ConfigManagingActor:
         )
         self._output = output
 
-    def _read_config(self) -> Dict[str, Any]:
+    def _read_config(self) -> dict[str, Any]:
         """Read the contents of the config file.
 
         Raises:
