@@ -80,9 +80,7 @@ class TestActorConfigManager:
         config_channel: Broadcast[Config] = Broadcast(
             "Config Channel", resend_latest=True
         )
-        _config_manager = ConfigManagingActor(
-            conf_file=str(config_file), output=config_channel.new_sender()
-        )
+        _config_manager = ConfigManagingActor(config_file, config_channel.new_sender())
 
         config_receiver = config_channel.new_receiver()
 

@@ -4,7 +4,7 @@
 """Read and update config variables."""
 
 import logging
-import os
+import pathlib
 import tomllib
 from collections import abc
 from typing import Any
@@ -33,21 +33,24 @@ class ConfigManagingActor:
 
     def __init__(
         self,
-        conf_file: str,
+        config_path: pathlib.Path | str,
         output: Sender[Config],
         event_types: abc.Set[FileWatcher.EventType] = frozenset(FileWatcher.EventType),
     ) -> None:
         """Initialize this instance.
 
         Args:
-            conf_file: The path to the TOML file with the configuration.
+            config_path: The path to the TOML file with the configuration.
             output: The sender to send the config to.
             event_types: The set of event types to monitor.
         """
-        self._conf_file: str = conf_file
-        self._conf_dir: str = os.path.dirname(conf_file)
+        self._config_path: pathlib.Path = (
+            config_path
+            if isinstance(config_path, pathlib.Path)
+            else pathlib.Path(config_path)
+        )
         self._file_watcher: FileWatcher = FileWatcher(
-            paths=[self._conf_dir], event_types=event_types
+            paths=[self._config_path.parent], event_types=event_types
         )
         self._output: Sender[Config] = output
 
@@ -61,7 +64,7 @@ class ConfigManagingActor:
             ValueError: If config file cannot be read.
         """
         try:
-            with open(self._conf_file, "rb") as toml_file:
+            with self._config_path.open("rb") as toml_file:
                 return tomllib.load(toml_file)
         except ValueError as err:
             logging.error("%s: Can't read config file, err: %s", self, err)
@@ -79,10 +82,10 @@ class ConfigManagingActor:
 
         async for event in self._file_watcher:
             if event.type != FileWatcher.EventType.DELETE:
-                if str(event.path) == self._conf_file:
+                if event.path == self._config_path:
                     _logger.info(
                         "%s: Update configs, because file %s was modified.",
                         self,
-                        self._conf_file,
+                        self._config_path,
                     )
                     await self.send_config()
