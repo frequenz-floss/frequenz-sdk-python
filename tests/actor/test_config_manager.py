@@ -80,27 +80,23 @@ class TestActorConfigManager:
         config_channel: Broadcast[Config] = Broadcast(
             "Config Channel", resend_latest=True
         )
-        _config_manager = ConfigManagingActor(config_file, config_channel.new_sender())
-
         config_receiver = config_channel.new_receiver()
 
-        config = await config_receiver.receive()
-        assert config is not None
-        assert config.get("logging_lvl") == "DEBUG"
-        assert config.get("var1") == "1"
-        assert config.get("var2") is None
-        assert config.get("var3") is None
+        async with ConfigManagingActor(config_file, config_channel.new_sender()):
+            config = await config_receiver.receive()
+            assert config is not None
+            assert config.get("logging_lvl") == "DEBUG"
+            assert config.get("var1") == "1"
+            assert config.get("var2") is None
+            assert config.get("var3") is None
 
-        number = 5
-        config_file.write_text(create_content(number=number))
+            number = 5
+            config_file.write_text(create_content(number=number))
 
-        config = await config_receiver.receive()
-        assert config is not None
-        assert config.get("logging_lvl") == "ERROR"
-        assert config.get("var1") == "0"
-        assert config.get("var2") == str(number)
-        assert config.get("var3") is None
-        assert config_file.read_text() == create_content(number=number)
-
-        # pylint: disable=protected-access,no-member
-        await _config_manager._stop()  # type: ignore
+            config = await config_receiver.receive()
+            assert config is not None
+            assert config.get("logging_lvl") == "ERROR"
+            assert config.get("var1") == "0"
+            assert config.get("var2") == str(number)
+            assert config.get("var3") is None
+            assert config_file.read_text() == create_content(number=number)

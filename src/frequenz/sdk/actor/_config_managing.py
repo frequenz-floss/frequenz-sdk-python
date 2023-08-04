@@ -12,14 +12,13 @@ from typing import Any, assert_never
 from frequenz.channels import Sender
 from frequenz.channels.util import FileWatcher
 
-from ..actor._decorator import actor
+from ..actor._actor import Actor
 from ..config import Config
 
 _logger = logging.getLogger(__name__)
 
 
-@actor
-class ConfigManagingActor:
+class ConfigManagingActor(Actor):
     """An actor that monitors a TOML configuration file for updates.
 
     When the file is updated, the new configuration is sent, as a [`dict`][], to the
@@ -44,6 +43,7 @@ class ConfigManagingActor:
             output: The sender to send the config to.
             event_types: The set of event types to monitor.
         """
+        super().__init__()
         self._config_path: pathlib.Path = (
             config_path
             if isinstance(config_path, pathlib.Path)
@@ -79,8 +79,13 @@ class ConfigManagingActor:
         config = Config(conf_vars)
         await self._output.send(config)
 
-    async def run(self) -> None:
-        """Monitor for and send configuration file updates."""
+    async def _run(self) -> None:
+        """Monitor for and send configuration file updates.
+
+        At startup, the Config Manager sends the current config so that it
+        can be cache in the Broadcast channel and served to receivers even if
+        there hasn't been any change to the config file itself.
+        """
         await self.send_config()
 
         async for event in self._file_watcher:
