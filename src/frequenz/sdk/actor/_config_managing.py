@@ -64,7 +64,7 @@ class ConfigManagingActor:
             with open(self._conf_file, "rb") as toml_file:
                 return tomllib.load(toml_file)
         except ValueError as err:
-            logging.error("Can't read config file, err: %s", err)
+            logging.error("%s: Can't read config file, err: %s", self, err)
             raise
 
     async def send_config(self) -> None:
@@ -81,9 +81,8 @@ class ConfigManagingActor:
             if event.type != FileWatcher.EventType.DELETE:
                 if str(event.path) == self._conf_file:
                     _logger.info(
-                        "Update configs, because file %s was modified.",
+                        "%s: Update configs, because file %s was modified.",
+                        self,
                         self._conf_file,
                     )
                     await self.send_config()
-
-        _logger.debug("ConfigManager stopped.")
