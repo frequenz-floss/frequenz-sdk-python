@@ -114,12 +114,8 @@ async def test_access_window_by_ts_slice() -> None:
 async def test_access_empty_window() -> None:
     """Test accessing an empty window, should throw IndexError"""
     window, _ = init_moving_window(timedelta(seconds=5))
-    try:
-        window[42]
-    except IndexError as index_error:
-        assert str(index_error) == "The buffer is empty."
-    else:
-        assert False
+    with pytest.raises(IndexError, match=r"^The buffer is empty\.$"):
+        _ = window[42]
 
 
 async def test_window_size() -> None:

@@ -2,7 +2,7 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
+This release ships many small improvements and bug fixes to `Quantity`s. It also depends on [channels](https://github.com/frequenz-floss/frequenz-channels-python/) v0.16.0, so users must update the dependency too.
 
 ## Upgrading
 

@@ -15,6 +15,9 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import AsyncIterator, Callable, Coroutine, Optional, Sequence
 
+from frequenz.channels.util import Timer
+from frequenz.channels.util._timer import _to_microseconds
+
 from .._internal._asyncio import cancel_and_await
 from ._base_types import UNIX_EPOCH, Sample
 from ._quantities import Quantity, QuantityT
@@ -367,7 +370,8 @@ class Resampler:
         self._resamplers: dict[Source, _StreamingHelper] = {}
         """A mapping between sources and the streaming helper handling that source."""
 
-        self._window_end: datetime = self._calculate_window_end()
+        window_end, start_delay_time = self._calculate_window_end()
+        self._window_end: datetime = window_end
         """The time in which the current window ends.
 
         This is used to make sure every resampling window is generated at
@@ -379,6 +383,16 @@ class Resampler:
         The window end will also be aligned to the `config.align_to` time, so
         the window end is deterministic.
         """
+
+        self._timer: Timer = Timer.periodic(config.resampling_period)
+        """The timer used to trigger the resampling windows."""
+
+        # Hack to align the timer, this should be implemented in the Timer class
+        self._timer._next_tick_time = _to_microseconds(
+            timedelta(seconds=asyncio.get_running_loop().time())
+            + config.resampling_period
+            + start_delay_time
+        )  # pylint: disable=protected-access
 
     @property
     def config(self) -> ResamplerConfig:
@@ -461,15 +475,32 @@ class Resampler:
                 timeseries from the resampler before calling this method
                 again).
         """
-        while True:
-            await self._wait_for_next_resampling_period()
+        # We use a tolerance of 10% of the resampling period
+        tolerance = timedelta(
+            seconds=self._config.resampling_period.total_seconds() / 10.0
+        )
+
+        async for drift in self._timer:
+            now = datetime.now(tz=timezone.utc)
+
+            if drift > tolerance:
+                _logger.warning(
+                    "The resampling task woke up too late. Resampling should have "
+                    "started at %s, but it started at %s (tolerance: %s, "
+                    "difference: %s; resampling period: %s)",
+                    self._window_end,
+                    now,
+                    tolerance,
+                    drift,
+                    self._config.resampling_period,
+                )
 
             results = await asyncio.gather(
                 *[r.resample(self._window_end) for r in self._resamplers.values()],
                 return_exceptions=True,
             )
 
-            self._window_end = self._window_end + self._config.resampling_period
+            self._window_end += self._config.resampling_period
             exceptions = {
                 source: results[i]
                 for i, source in enumerate(self._resamplers)
@@ -482,36 +513,7 @@ class Resampler:
             if one_shot:
                 break
 
-    async def _wait_for_next_resampling_period(self) -> None:
-        """Wait for next resampling period.
-
-        If resampling period already started, then return without sleeping.
-        That would allow us to catch up with resampling.
-        Print warning if function woke up to late.
-        """
-        now = datetime.now(tz=timezone.utc)
-        if self._window_end > now:
-            sleep_for = self._window_end - now
-            await asyncio.sleep(sleep_for.total_seconds())
-
-        timer_error = now - self._window_end
-        # We use a tolerance of 10% of the resampling period
-        tolerance = timedelta(
-            seconds=self._config.resampling_period.total_seconds() / 10.0
-        )
-        if timer_error > tolerance:
-            _logger.warning(
-                "The resampling task woke up too late. Resampling should have "
-                "started at %s, but it started at %s (tolerance: %s, "
-                "difference: %s; resampling period: %s)",
-                self._window_end,
-                now,
-                tolerance,
-                timer_error,
-                self._config.resampling_period,
-            )
-
-    def _calculate_window_end(self) -> datetime:
+    def _calculate_window_end(self) -> tuple[datetime, timedelta]:
         """Calculate the end of the current resampling window.
 
         The calculated resampling window end is a multiple of
@@ -519,20 +521,35 @@ class Resampler:
 
         if `self._config.align_to` is `None`, the current time is used.
 
+        If the current time is not aligned to `self._config.resampling_period`, then
+        the end of the current resampling window will be more than one period away, to
+        make sure to have some time to collect samples if the misalignment is too big.
+
         Returns:
-            The end of the current resampling window aligned to
-                `self._config.align_to`.
+            A tuple with the end of the current resampling window aligned to
+                `self._config.align_to` as the first item and the time we need to
+                delay the timer start to make sure it is also aligned.
         """
         now = datetime.now(timezone.utc)
         period = self._config.resampling_period
         align_to = self._config.align_to
 
         if align_to is None:
-            return now + period
+            return (now + period, timedelta(0))
 
         elapsed = (now - align_to) % period
 
-        return now + period - elapsed
+        # If we are already in sync, we don't need to add an extra period
+        if not elapsed:
+            return (now + period, timedelta(0))
+
+        return (
+            # We add an extra period when it is not aligned to make sure we collected
+            # enough samples before the first resampling, otherwise the initial window
+            # to collect samples could be too small.
+            now + period * 2 - elapsed,
+            period - elapsed if elapsed else timedelta(0),
+        )
 
 
 class _ResamplingHelper:
