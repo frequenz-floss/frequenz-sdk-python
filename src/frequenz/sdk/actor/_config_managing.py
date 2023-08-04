@@ -7,7 +7,7 @@ import logging
 import pathlib
 import tomllib
 from collections import abc
-from typing import Any
+from typing import Any, assert_never
 
 from frequenz.channels import Sender
 from frequenz.channels.util import FileWatcher
@@ -84,13 +84,31 @@ class ConfigManagingActor:
         await self.send_config()
 
         async for event in self._file_watcher:
-            if event.type != FileWatcher.EventType.DELETE:
-                # Since we are watching the whole parent directory, we need to make sure
-                # we only react to events related to the configuration file.
-                if event.path == self._config_path:
+            # Since we are watching the whole parent directory, we need to make sure
+            # we only react to events related to the configuration file.
+            if event.path != self._config_path:
+                continue
+
+            match event.type:
+                case FileWatcher.EventType.CREATE:
                     _logger.info(
-                        "%s: Update configs, because file %s was modified.",
+                        "%s: The configuration file %s was created, sending new config...",
                         self,
                         self._config_path,
                     )
                     await self.send_config()
+                case FileWatcher.EventType.MODIFY:
+                    _logger.info(
+                        "%s: The configuration file %s was modified, sending update...",
+                        self,
+                        self._config_path,
+                    )
+                    await self.send_config()
+                case FileWatcher.EventType.DELETE:
+                    _logger.info(
+                        "%s: The configuration file %s was deleted, ignoring...",
+                        self,
+                        self._config_path,
+                    )
+                case _:
+                    assert_never(event.type)
