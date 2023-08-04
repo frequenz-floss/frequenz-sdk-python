@@ -12,7 +12,7 @@ from pytest import approx, raises
 
 from frequenz.sdk.actor.power_distributing.result import PowerBounds
 from frequenz.sdk.microgrid.component import BatteryData, InverterData
-from frequenz.sdk.power import DistributionAlgorithm, InvBatPair
+from frequenz.sdk.power import DistributionAlgorithm, DistributionResult, InvBatPair
 
 from ..utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
 
@@ -919,3 +919,290 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
         assert result.distribution == approx({1: 500, 3: 500})
         assert result.remaining_power == approx(0.0)
+
+
+class TestDistWithExclBounds:
+    """Test the distribution algorithm with exclusive bounds."""
+
+    @staticmethod
+    def assert_result(result: DistributionResult, expected: DistributionResult) -> None:
+        """Assert the result is as expected."""
+        assert result.distribution == approx(expected.distribution, abs=0.01)
+        assert result.remaining_power == approx(expected.remaining_power, abs=0.01)
+
+    def test_scenario_1(self) -> None:
+        """Test scenario 1.
+
+        Set params for 3 batteries:
+            capacities: 10000, 10000, 10000
+            socs: 30, 50, 70
+
+            individual soc bounds: 10-90
+            individual bounds: -1000, -100, 100, 1000
+
+            battery pool bounds: -3000, -300, 300, 1000
+
+        Expected result:
+
+        | request |                        |    excess |
+        |   power | distribution           | remaining |
+        |---------+------------------------+-----------|
+        |    -300 | -100, -100, -100       |         0 |
+        |     300 | 100, 100, 100          |         0 |
+        |    -600 | -100, -200, -300       |         0 |
+        |     900 | 466.66, 300, 133.33    |         0 |
+        |    -900 | -133.33, -300, -466.66 |         0 |
+        |    2200 | 1000, 850, 350         |         0 |
+        |   -2200 | -350, -850, -1000      |         0 |
+        |    2800 | 1000, 1000, 800        |         0 |
+        |   -2800 | -800, -1000, -1000     |         0 |
+        |    3800 | 1000, 1000, 1000       |       800 |
+        |   -3200 | -1000, -1000, -1000    |      -200 |
+
+        """
+        capacities: List[Metric] = [Metric(10000), Metric(10000), Metric(10000)]
+        soc: List[Metric] = [
+            Metric(30.0, Bound(10, 90)),
+            Metric(50.0, Bound(10, 90)),
+            Metric(70.0, Bound(10, 90)),
+        ]
+        bounds = [
+            PowerBounds(-1000, -100, 20, 1000),
+            PowerBounds(-1000, -90, 100, 1000),
+            PowerBounds(-1000, -50, 100, 1000),
+            PowerBounds(-1000, -100, 90, 1000),
+            PowerBounds(-1000, -20, 100, 1000),
+            PowerBounds(-1000, -100, 80, 1000),
+        ]
+        components = create_components(3, capacities, soc, bounds)
+
+        algorithm = DistributionAlgorithm()
+
+        self.assert_result(
+            algorithm.distribute_power(-300, components),
+            DistributionResult({1: -100, 3: -100, 5: -100}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(300, components),
+            DistributionResult({1: 100, 3: 100, 5: 100}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(-600, components),
+            DistributionResult({1: -100, 3: -200, 5: -300}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(900, components),
+            DistributionResult({1: 450, 3: 300, 5: 150}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(-900, components),
+            DistributionResult({1: -150, 3: -300, 5: -450}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(2200, components),
+            DistributionResult({1: 1000, 3: 833.33, 5: 366.66}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(-2200, components),
+            DistributionResult({1: -366.66, 3: -833.33, 5: -1000}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(2800, components),
+            DistributionResult({1: 1000, 3: 1000, 5: 800}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(-2800, components),
+            DistributionResult({1: -800, 3: -1000, 5: -1000}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(3800, components),
+            DistributionResult({1: 1000, 3: 1000, 5: 1000}, remaining_power=800.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(-3200, components),
+            DistributionResult({1: -1000, 3: -1000, 5: -1000}, remaining_power=-200.0),
+        )
+
+    def test_scenario_2(self) -> None:
+        """Test scenario 2.
+
+        Set params for 3 batteries:
+            capacities: 10000, 10000, 10000
+            socs: 50, 50, 70
+
+            individual soc bounds: 10-90
+            individual bounds: -1000, -100, 100, 1000
+
+            battery pool bounds: -3000, -300, 300, 1000
+
+        Expected result:
+
+        | request |                           |    excess |
+        |   power | distribution              | remaining |
+        |---------+---------------------------+-----------|
+        |    -300 | -100, -100, -100          |         0 |
+        |     300 | 100, 100, 100             |         0 |
+        |    -530 | -151.42, -151.42, -227.14 |         0 |
+        |     530 | 212, 212, 106             |         0 |
+        |    2000 | 800, 800, 400             |         0 |
+        |   -2000 | -571.42, -571.42, -857.14 |         0 |
+        |    2500 | 1000, 1000, 500           |         0 |
+        |   -2500 | -785.71, -714.28, -1000.0 |         0 |
+        |    3000 | 1000, 1000, 1000          |         0 |
+        |   -3000 | -1000, -1000, -1000       |         0 |
+        |    3500 | 1000, 1000, 1000          |       500 |
+        |   -3500 | -1000, -1000, -1000       |      -500 |
+        """
+        capacities: List[Metric] = [Metric(10000), Metric(10000), Metric(10000)]
+        soc: List[Metric] = [
+            Metric(50.0, Bound(10, 90)),
+            Metric(50.0, Bound(10, 90)),
+            Metric(70.0, Bound(10, 90)),
+        ]
+        bounds = [
+            PowerBounds(-1000, -100, 20, 1000),
+            PowerBounds(-1000, -90, 100, 1000),
+            PowerBounds(-1000, -50, 100, 1000),
+            PowerBounds(-1000, -100, 90, 1000),
+            PowerBounds(-1000, -20, 100, 1000),
+            PowerBounds(-1000, -100, 80, 1000),
+        ]
+        components = create_components(3, capacities, soc, bounds)
+
+        algorithm = DistributionAlgorithm()
+
+        self.assert_result(
+            algorithm.distribute_power(-300, components),
+            DistributionResult({1: -100, 3: -100, 5: -100}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(300, components),
+            DistributionResult({1: 100, 3: 100, 5: 100}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(-530, components),
+            DistributionResult(
+                {1: -151.42, 3: -151.42, 5: -227.14}, remaining_power=0.0
+            ),
+        )
+        self.assert_result(
+            algorithm.distribute_power(530, components),
+            DistributionResult({1: 212, 3: 212, 5: 106}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(2000, components),
+            DistributionResult({1: 800, 3: 800, 5: 400}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(-2000, components),
+            DistributionResult(
+                {1: -571.42, 3: -571.42, 5: -857.14}, remaining_power=0.0
+            ),
+        )
+        self.assert_result(
+            algorithm.distribute_power(2500, components),
+            DistributionResult({1: 1000, 3: 1000, 5: 500}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(-2500, components),
+            DistributionResult(
+                {1: -785.71, 3: -714.28, 5: -1000.0}, remaining_power=0.0
+            ),
+        )
+        self.assert_result(
+            algorithm.distribute_power(3000, components),
+            DistributionResult({1: 1000, 3: 1000, 5: 1000}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(-3000, components),
+            DistributionResult({1: -1000, 3: -1000, 5: -1000}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(3500, components),
+            DistributionResult({1: 1000, 3: 1000, 5: 1000}, remaining_power=500.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(-3500, components),
+            DistributionResult({1: -1000, 3: -1000, 5: -1000}, remaining_power=-500.0),
+        )
+
+    def test_scenario_3(self) -> None:
+        """Test scenario 3.
+
+        Set params for 3 batteries:
+            capacities: 10000, 10000, 10000
+            socs: 50, 50, 70
+
+            individual soc bounds: 10-90
+            individual bounds 1: -1000, 0, 0, 1000
+            individual bounds 2: -1000, -100, 100, 1000
+            individual bounds 3: -1000, 0, 0, 1000
+
+            battery pool bounds: -3000, -100, 100, 1000
+
+        Expected result:
+
+        | request |                           |    excess |
+        |   power | distribution              | remaining |
+        |---------+---------------------------+-----------|
+        |    -300 | -88, -108.57, -123.43     |         0 |
+        |     300 | 128, 128, 64              |         0 |
+        |   -1800 | -514.28, -514.28, -771.42 |         0 |
+        |    1800 | 720, 720, 360             |         0 |
+        |   -2800 | -800, -1000, -1000        |         0 |
+        |    2800 | 1000, 1000, 800           |         0 |
+        |   -3500 | -1000, -1000, -1000       |      -500 |
+        |    3500 | 1000, 1000, 1000          |       500 |
+        """
+        capacities: List[Metric] = [Metric(10000), Metric(10000), Metric(10000)]
+        soc: List[Metric] = [
+            Metric(50.0, Bound(10, 90)),
+            Metric(50.0, Bound(10, 90)),
+            Metric(70.0, Bound(10, 90)),
+        ]
+        bounds = [
+            PowerBounds(-1000, 0, 0, 1000),
+            PowerBounds(-1000, 0, 0, 1000),
+            PowerBounds(-1000, -100, 100, 1000),
+            PowerBounds(-1000, -100, 100, 1000),
+            PowerBounds(-1000, 0, 0, 1000),
+            PowerBounds(-1000, 0, 0, 1000),
+        ]
+        components = create_components(3, capacities, soc, bounds)
+
+        algorithm = DistributionAlgorithm()
+
+        self.assert_result(
+            algorithm.distribute_power(-320, components),
+            DistributionResult({1: -88, 3: -108.57, 5: -123.43}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(320, components),
+            DistributionResult({1: 128, 3: 128, 5: 64}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(-1800, components),
+            DistributionResult(
+                {1: -514.28, 3: -514.28, 5: -771.42}, remaining_power=0.0
+            ),
+        )
+        self.assert_result(
+            algorithm.distribute_power(1800, components),
+            DistributionResult({1: 720, 3: 720, 5: 360}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(-2800, components),
+            DistributionResult({1: -800, 3: -1000, 5: -1000}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(2800, components),
+            DistributionResult({1: 1000, 3: 1000, 5: 800}, remaining_power=0.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(-3500, components),
+            DistributionResult({1: -1000, 3: -1000, 5: -1000}, remaining_power=-500.0),
+        )
+        self.assert_result(
+            algorithm.distribute_power(3500, components),
+            DistributionResult({1: 1000, 3: 1000, 5: 1000}, remaining_power=500.0),
+        )
