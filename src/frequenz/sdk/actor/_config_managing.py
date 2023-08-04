@@ -49,6 +49,9 @@ class ConfigManagingActor:
             if isinstance(config_path, pathlib.Path)
             else pathlib.Path(config_path)
         )
+        # FileWatcher can't watch for non-existing files, so we need to watch for the
+        # parent directory instead just in case a configuration file doesn't exist yet
+        # or it is deleted and recreated again.
         self._file_watcher: FileWatcher = FileWatcher(
             paths=[self._config_path.parent], event_types=event_types
         )
@@ -82,6 +85,8 @@ class ConfigManagingActor:
 
         async for event in self._file_watcher:
             if event.type != FileWatcher.EventType.DELETE:
+                # Since we are watching the whole parent directory, we need to make sure
+                # we only react to events related to the configuration file.
                 if event.path == self._config_path:
                     _logger.info(
                         "%s: Update configs, because file %s was modified.",
