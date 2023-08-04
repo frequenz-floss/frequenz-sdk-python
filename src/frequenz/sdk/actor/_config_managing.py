@@ -46,10 +46,10 @@ class ConfigManagingActor:
         """
         self._conf_file: str = conf_file
         self._conf_dir: str = os.path.dirname(conf_file)
-        self._file_watcher = FileWatcher(
+        self._file_watcher: FileWatcher = FileWatcher(
             paths=[self._conf_dir], event_types=event_types
         )
-        self._output = output
+        self._output: Sender[Config] = output
 
     def _read_config(self) -> dict[str, Any]:
         """Read the contents of the configuration file.
