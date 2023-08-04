@@ -9,7 +9,8 @@ import asyncio
 
 import grpc
 import pytest
-from frequenz.api.microgrid import common_pb2 as common_pb
+from frequenz.api.common import components_pb2 as components_pb
+from frequenz.api.common import metrics_pb2 as metrics_pb
 from frequenz.api.microgrid import microgrid_pb2 as microgrid_pb
 from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
@@ -51,14 +52,14 @@ class TestMicrogridGrpcClient:
             assert set(await microgrid.components()) == set()
 
             servicer.add_component(
-                0, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_METER
+                0, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER
             )
             assert set(await microgrid.components()) == {
                 Component(0, ComponentCategory.METER)
             }
 
             servicer.add_component(
-                0, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
+                0, components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
             )
             assert set(await microgrid.components()) == {
                 Component(0, ComponentCategory.METER),
@@ -66,7 +67,7 @@ class TestMicrogridGrpcClient:
             }
 
             servicer.add_component(
-                0, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_METER
+                0, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER
             )
             assert set(await microgrid.components()) == {
                 Component(0, ComponentCategory.METER),
@@ -76,7 +77,7 @@ class TestMicrogridGrpcClient:
 
             # sensors are not counted as components by the API client
             servicer.add_component(
-                1, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR
+                1, components_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR
             )
             assert set(await microgrid.components()) == {
                 Component(0, ComponentCategory.METER),
@@ -86,10 +87,10 @@ class TestMicrogridGrpcClient:
 
             servicer.set_components(
                 [
-                    (9, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_METER),
-                    (99, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER),
-                    (666, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR),
-                    (999, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY),
+                    (9, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER),
+                    (99, components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER),
+                    (666, components_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR),
+                    (999, components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY),
                 ]
             )
             assert set(await microgrid.components()) == {
@@ -100,17 +101,20 @@ class TestMicrogridGrpcClient:
 
             servicer.set_components(
                 [
-                    (99, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR),
+                    (99, components_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR),
                     (
                         100,
-                        microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_UNSPECIFIED,
+                        components_pb.ComponentCategory.COMPONENT_CATEGORY_UNSPECIFIED,
                     ),
-                    (101, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_GRID),
-                    (104, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_METER),
-                    (105, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER),
-                    (106, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY),
-                    (107, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER),
-                    (999, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR),
+                    (101, components_pb.ComponentCategory.COMPONENT_CATEGORY_GRID),
+                    (104, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER),
+                    (105, components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER),
+                    (106, components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY),
+                    (
+                        107,
+                        components_pb.ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER,
+                    ),
+                    (999, components_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR),
                 ]
             )
             assert set(await microgrid.components()) == {
@@ -120,6 +124,25 @@ class TestMicrogridGrpcClient:
                 Component(105, ComponentCategory.INVERTER, InverterType.NONE),
                 Component(106, ComponentCategory.BATTERY),
                 Component(107, ComponentCategory.EV_CHARGER),
+            }
+
+            servicer.set_components(
+                [
+                    (9, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER),
+                    (666, components_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR),
+                    (999, components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY),
+                ]
+            )
+            servicer.add_component(
+                99,
+                components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER,
+                components_pb.InverterType.INVERTER_TYPE_BATTERY,
+            )
+
+            assert set(await microgrid.components()) == {
+                Component(9, ComponentCategory.METER),
+                Component(99, ComponentCategory.INVERTER, InverterType.BATTERY),
+                Component(999, ComponentCategory.BATTERY),
             }
 
         finally:
@@ -141,11 +164,11 @@ class TestMicrogridGrpcClient:
             servicer.add_connection(7, 9)
             servicer.add_component(
                 7,
-                component_category=microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY,
+                component_category=components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY,
             )
             servicer.add_component(
                 9,
-                component_category=microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER,
+                component_category=components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER,
             )
             assert set(await microgrid.connections()) == {
                 Connection(0, 0),
@@ -163,7 +186,7 @@ class TestMicrogridGrpcClient:
             for component_id in [999, 99, 19, 909, 101, 91]:
                 servicer.add_component(
                     component_id,
-                    microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY,
+                    components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY,
                 )
 
             assert set(await microgrid.connections()) == {
@@ -176,7 +199,7 @@ class TestMicrogridGrpcClient:
             for component_id in [1, 2, 3, 4, 5, 6, 7, 8]:
                 servicer.add_component(
                     component_id,
-                    microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY,
+                    components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY,
                 )
 
             servicer.set_connections(
@@ -308,7 +331,7 @@ class TestMicrogridGrpcClient:
             for component_id in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
                 servicer.add_component(
                     component_id,
-                    microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY,
+                    components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY,
                 )
             servicer.set_connections(
                 [
@@ -359,10 +382,10 @@ class TestMicrogridGrpcClient:
             microgrid = self.create_client(57899)
 
             servicer.add_component(
-                83, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_METER
+                83, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER
             )
             servicer.add_component(
-                38, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
+                38, components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
             )
 
             with pytest.raises(ValueError):
@@ -391,10 +414,10 @@ class TestMicrogridGrpcClient:
             microgrid = self.create_client(57899)
 
             servicer.add_component(
-                83, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
+                83, components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
             )
             servicer.add_component(
-                38, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
+                38, components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
             )
 
             with pytest.raises(ValueError):
@@ -423,10 +446,10 @@ class TestMicrogridGrpcClient:
             microgrid = self.create_client(57899)
 
             servicer.add_component(
-                83, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
+                83, components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
             )
             servicer.add_component(
-                38, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
+                38, components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
             )
 
             with pytest.raises(ValueError):
@@ -455,10 +478,10 @@ class TestMicrogridGrpcClient:
             microgrid = self.create_client(57899)
 
             servicer.add_component(
-                83, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER
+                83, components_pb.ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER
             )
             servicer.add_component(
-                38, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
+                38, components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
             )
 
             with pytest.raises(ValueError):
@@ -489,14 +512,14 @@ class TestMicrogridGrpcClient:
             microgrid = self.create_client(57899)
 
             servicer.add_component(
-                83, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_METER
+                83, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER
             )
 
             await microgrid.set_power(component_id=83, power_w=12)
 
-            assert servicer.latest_charge is not None
-            assert servicer.latest_charge.component_id == 83
-            assert servicer.latest_charge.power_w == 12
+            assert servicer.latest_power is not None
+            assert servicer.latest_power.component_id == 83
+            assert servicer.latest_power.power == 12
 
         finally:
             assert await server.graceful_shutdown()
@@ -512,14 +535,14 @@ class TestMicrogridGrpcClient:
             microgrid = self.create_client(57899)
 
             servicer.add_component(
-                73, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_METER
+                73, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER
             )
 
             await microgrid.set_power(component_id=73, power_w=-15)
 
-            assert servicer.latest_discharge is not None
-            assert servicer.latest_discharge.component_id == 73
-            assert servicer.latest_discharge.power_w == 15
+            assert servicer.latest_power is not None
+            assert servicer.latest_power.component_id == 73
+            assert servicer.latest_power.power == -15
         finally:
             assert await server.graceful_shutdown()
 
@@ -532,7 +555,7 @@ class TestMicrogridGrpcClient:
             microgrid = self.create_client(57899)
 
             servicer.add_component(
-                38, microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
+                38, components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
             )
 
             num_calls = 4
@@ -542,7 +565,7 @@ class TestMicrogridGrpcClient:
                 microgrid_pb.SetBoundsParam(
                     component_id=comp_id,
                     target_metric=target_metric.TARGET_METRIC_POWER_ACTIVE,
-                    bounds=common_pb.Bounds(lower=-10, upper=2),
+                    bounds=metrics_pb.Bounds(lower=-10, upper=2),
                 )
                 for comp_id in range(num_calls)
             ]

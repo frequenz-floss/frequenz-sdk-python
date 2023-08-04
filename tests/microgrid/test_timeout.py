@@ -8,6 +8,8 @@ from unittest.mock import patch
 
 import grpc
 import pytest
+
+# pylint: disable=no-name-in-module
 from frequenz.api.microgrid.microgrid_pb2 import (
     ComponentFilter,
     ComponentList,
@@ -15,7 +17,9 @@ from frequenz.api.microgrid.microgrid_pb2 import (
     ConnectionList,
     PowerLevelParam,
 )
-from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
+from google.protobuf.empty_pb2 import Empty
+
+# pylint: enable=no-name-in-module
 from pytest_mock import MockerFixture
 
 from frequenz.sdk.microgrid.client import MicrogridGrpcClient
@@ -98,8 +102,7 @@ async def test_set_power_timeout(mocker: MockerFixture) -> None:
         time.sleep(GRPC_SERVER_DELAY)
         return Empty()
 
-    mocker.patch.object(servicer, "Charge", mock_set_power)
-    mocker.patch.object(servicer, "Discharge", mock_set_power)
+    mocker.patch.object(servicer, "SetPowerActive", mock_set_power)
     server = MockGrpcServer(servicer, port=57809)
     await server.start()
 

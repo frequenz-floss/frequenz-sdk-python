@@ -244,7 +244,10 @@ class PowerDistributingActor:
             batteries, include_broken
         )
         return sum(
-            min(battery.power_upper_bound, inverter.active_power_upper_bound)
+            min(
+                battery.power_inclusion_upper_bound,
+                inverter.active_power_inclusion_upper_bound,
+            )
             for battery, inverter in pairs_data
         )
 
@@ -266,7 +269,10 @@ class PowerDistributingActor:
             batteries, include_broken
         )
         return sum(
-            max(battery.power_lower_bound, inverter.active_power_lower_bound)
+            max(
+                battery.power_inclusion_lower_bound,
+                inverter.active_power_inclusion_lower_bound,
+            )
             for battery, inverter in pairs_data
         )
 
@@ -622,10 +628,10 @@ class PowerDistributingActor:
             return None
 
         replaceable_metrics = [
-            battery_data.power_lower_bound,
-            battery_data.power_upper_bound,
-            inverter_data.active_power_lower_bound,
-            inverter_data.active_power_upper_bound,
+            battery_data.power_inclusion_lower_bound,
+            battery_data.power_inclusion_upper_bound,
+            inverter_data.active_power_inclusion_lower_bound,
+            inverter_data.active_power_inclusion_upper_bound,
         ]
 
         # If all values are ok then return them.
@@ -637,8 +643,8 @@ class PowerDistributingActor:
         # Replace NaN with the corresponding value in the adjacent component.
         # If both metrics are None, return None to ignore this battery.
         replaceable_pairs = [
-            ("power_lower_bound", "active_power_lower_bound"),
-            ("power_upper_bound", "active_power_upper_bound"),
+            ("power_inclusion_lower_bound", "active_power_inclusion_lower_bound"),
+            ("power_inclusion_upper_bound", "active_power_inclusion_upper_bound"),
         ]
 
         battery_new_metrics = {}

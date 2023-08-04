@@ -11,9 +11,9 @@ Tests for the microgrid mock api.
 from unittest.mock import Mock
 
 import grpc
+from frequenz.api.common.components_pb2 import ComponentCategory
 from frequenz.api.microgrid.microgrid_pb2 import (
     Component,
-    ComponentCategory,
     ComponentFilter,
     Connection,
     ConnectionFilter,

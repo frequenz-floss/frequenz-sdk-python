@@ -10,6 +10,8 @@ from typing import AsyncIterator, Generic, Iterable, List, Optional, TypeVar
 
 import pytest
 import time_machine
+
+# pylint: disable=no-name-in-module
 from frequenz.api.microgrid.battery_pb2 import ComponentState as BatteryState
 from frequenz.api.microgrid.battery_pb2 import Error as BatteryError
 from frequenz.api.microgrid.battery_pb2 import ErrorCode as BatteryErrorCode
@@ -18,6 +20,8 @@ from frequenz.api.microgrid.common_pb2 import ErrorLevel
 from frequenz.api.microgrid.inverter_pb2 import ComponentState as InverterState
 from frequenz.api.microgrid.inverter_pb2 import Error as InverterError
 from frequenz.api.microgrid.inverter_pb2 import ErrorCode as InverterErrorCode
+
+# pylint: enable=no-name-in-module
 from frequenz.channels import Broadcast, Receiver
 from pytest_mock import MockerFixture
 

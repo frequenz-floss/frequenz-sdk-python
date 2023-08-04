@@ -5,10 +5,12 @@
 Tests for the microgrid component wrapper.
 """
 
-import frequenz.api.microgrid.microgrid_pb2 as microgrid_pb
+import frequenz.api.common.components_pb2 as components_pb
 import pytest
 
 import frequenz.sdk.microgrid.component._component as cp
+
+# pylint:disable=no-member
 
 
 # pylint: disable=protected-access
@@ -16,42 +18,42 @@ def test_component_category_from_protobuf() -> None:
     """Test the creating component category from protobuf."""
     assert (
         cp._component_category_from_protobuf(
-            microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_UNSPECIFIED
+            components_pb.ComponentCategory.COMPONENT_CATEGORY_UNSPECIFIED
         )
         == cp.ComponentCategory.NONE
     )
 
     assert (
         cp._component_category_from_protobuf(
-            microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_GRID
+            components_pb.ComponentCategory.COMPONENT_CATEGORY_GRID
         )
         == cp.ComponentCategory.GRID
     )
 
     assert (
         cp._component_category_from_protobuf(
-            microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_METER
+            components_pb.ComponentCategory.COMPONENT_CATEGORY_METER
         )
         == cp.ComponentCategory.METER
     )
 
     assert (
         cp._component_category_from_protobuf(
-            microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
+            components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
         )
         == cp.ComponentCategory.INVERTER
     )
 
     assert (
         cp._component_category_from_protobuf(
-            microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
+            components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
         )
         == cp.ComponentCategory.BATTERY
     )
 
     assert (
         cp._component_category_from_protobuf(
-            microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER
+            components_pb.ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER
         )
         == cp.ComponentCategory.EV_CHARGER
     )
@@ -60,7 +62,7 @@ def test_component_category_from_protobuf() -> None:
 
     with pytest.raises(ValueError):
         cp._component_category_from_protobuf(
-            microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR
+            components_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR
         )
 
 

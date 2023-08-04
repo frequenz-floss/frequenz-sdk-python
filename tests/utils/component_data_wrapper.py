@@ -29,6 +29,8 @@ from frequenz.sdk.microgrid.component import (
     MeterData,
 )
 
+# pylint: disable=no-member
+
 
 class BatteryDataWrapper(BatteryData):
     """Wrapper for the BatteryData with default arguments."""
@@ -41,8 +43,10 @@ class BatteryDataWrapper(BatteryData):
         soc_lower_bound: float = math.nan,
         soc_upper_bound: float = math.nan,
         capacity: float = math.nan,
-        power_lower_bound: float = math.nan,
-        power_upper_bound: float = math.nan,
+        power_inclusion_lower_bound: float = math.nan,
+        power_exclusion_lower_bound: float = math.nan,
+        power_inclusion_upper_bound: float = math.nan,
+        power_exclusion_upper_bound: float = math.nan,
         temperature: float = math.nan,
         _relay_state: battery_pb.RelayState.ValueType = (
             battery_pb.RelayState.RELAY_STATE_UNSPECIFIED
@@ -64,8 +68,10 @@ class BatteryDataWrapper(BatteryData):
             soc_lower_bound=soc_lower_bound,
             soc_upper_bound=soc_upper_bound,
             capacity=capacity,
-            power_lower_bound=power_lower_bound,
-            power_upper_bound=power_upper_bound,
+            power_inclusion_lower_bound=power_inclusion_lower_bound,
+            power_exclusion_lower_bound=power_exclusion_lower_bound,
+            power_inclusion_upper_bound=power_inclusion_upper_bound,
+            power_exclusion_upper_bound=power_exclusion_upper_bound,
             temperature=temperature,
             _relay_state=_relay_state,
             _component_state=_component_state,
@@ -96,8 +102,10 @@ class InverterDataWrapper(InverterData):
         component_id: int,
         timestamp: datetime,
         active_power: float = math.nan,
-        active_power_lower_bound: float = math.nan,
-        active_power_upper_bound: float = math.nan,
+        active_power_inclusion_lower_bound: float = math.nan,
+        active_power_exclusion_lower_bound: float = math.nan,
+        active_power_inclusion_upper_bound: float = math.nan,
+        active_power_exclusion_upper_bound: float = math.nan,
         _component_state: inverter_pb.ComponentState.ValueType = (
             inverter_pb.ComponentState.COMPONENT_STATE_UNSPECIFIED
         ),
@@ -112,8 +120,10 @@ class InverterDataWrapper(InverterData):
             component_id=component_id,
             timestamp=timestamp,
             active_power=active_power,
-            active_power_lower_bound=active_power_lower_bound,
-            active_power_upper_bound=active_power_upper_bound,
+            active_power_inclusion_lower_bound=active_power_inclusion_lower_bound,
+            active_power_exclusion_lower_bound=active_power_exclusion_lower_bound,
+            active_power_inclusion_upper_bound=active_power_inclusion_upper_bound,
+            active_power_exclusion_upper_bound=active_power_exclusion_upper_bound,
             _component_state=_component_state,
             _errors=_errors if _errors else [],
         )

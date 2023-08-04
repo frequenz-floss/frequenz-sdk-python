@@ -8,6 +8,8 @@ from enum import Enum
 
 from frequenz.api.microgrid import ev_charger_pb2 as ev_charger_pb
 
+# pylint: disable=no-member
+
 
 class EVChargerCableState(Enum):
     """Cable states of an EV Charger."""

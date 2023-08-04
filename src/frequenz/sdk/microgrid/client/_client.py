@@ -5,7 +5,6 @@
 
 import asyncio
 import logging
-import math
 from abc import ABC, abstractmethod
 from typing import (
     Any,
@@ -20,11 +19,11 @@ from typing import (
 )
 
 import grpc
-from frequenz.api.microgrid import common_pb2 as common_pb
+from frequenz.api.common import components_pb2 as components_pb
+from frequenz.api.common import metrics_pb2 as metrics_pb
 from frequenz.api.microgrid import microgrid_pb2 as microgrid_pb
 from frequenz.api.microgrid.microgrid_pb2_grpc import MicrogridStub
 from frequenz.channels import Broadcast, Receiver, Sender
-from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
 from ..._internal._constants import RECEIVER_MAX_SIZE
 from ..component import (
@@ -193,6 +192,9 @@ class MicrogridApiClient(ABC):
         """
 
 
+# pylint: disable=no-member
+
+
 class MicrogridGrpcClient(MicrogridApiClient):
     """Microgrid API client implementation using gRPC as the underlying protocol."""
 
@@ -244,7 +246,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
             )
         components_only = filter(
             lambda c: c.category
-            is not microgrid_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR,
+            is not components_pb.ComponentCategory.COMPONENT_CATEGORY_SENSOR,
             component_list.components,
         )
         result: Iterable[Component] = map(
@@ -340,7 +342,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
                 "Making call to `GetComponentData`, for component_id=%d", component_id
             )
             try:
-                call = self.api.GetComponentData(
+                call = self.api.StreamComponentData(
                     microgrid_pb.ComponentIdParam(id=component_id),
                 )
                 # grpc.aio is missing types and mypy thinks this is not
@@ -578,25 +580,12 @@ class MicrogridGrpcClient(MicrogridApiClient):
                 when the api call exceeded timeout
         """
         try:
-            if power_w >= 0:
-                # grpc.aio is missing types and mypy thinks this is not
-                # async iterable, but it is
-                await self.api.Charge(
-                    microgrid_pb.PowerLevelParam(
-                        component_id=component_id, power_w=math.floor(power_w)
-                    ),
-                    timeout=DEFAULT_GRPC_CALL_TIMEOUT,  # type: ignore[arg-type]
-                )  # type: ignore[misc]
-            else:
-                # grpc.aio is missing types and mypy thinks this is not
-                # async iterable, but it is
-                power_w *= -1
-                await self.api.Discharge(
-                    microgrid_pb.PowerLevelParam(
-                        component_id=component_id, power_w=math.floor(power_w)
-                    ),
-                    timeout=DEFAULT_GRPC_CALL_TIMEOUT,  # type: ignore[arg-type]
-                )  # type: ignore[misc]
+            await self.api.SetPowerActive(
+                microgrid_pb.SetPowerActiveParam(
+                    component_id=component_id, power=power_w
+                ),
+                timeout=DEFAULT_GRPC_CALL_TIMEOUT,  # type: ignore[arg-type]
+            )  # type: ignore[misc]
         except grpc.aio.AioRpcError as err:
             msg = f"Failed to set power. Microgrid API: {self.target}. Err: {err.details()}"
             raise grpc.aio.AioRpcError(
@@ -632,20 +621,13 @@ class MicrogridGrpcClient(MicrogridApiClient):
         if lower > 0:
             raise ValueError(f"Lower bound {upper} must be less than or equal to 0.")
 
-        # grpc.aio is missing types and mypy thinks request_iterator is
-        # a required argument, but it is not
-        set_bounds_call = self.api.SetBounds(
-            timeout=DEFAULT_GRPC_CALL_TIMEOUT,
-        )  # type: ignore[call-arg]
         try:
-            # grpc.aio is missing types and mypy thinks set_bounds_call can be Empty
-            assert not isinstance(set_bounds_call, Empty)
-            await set_bounds_call.write(
+            self.api.AddInclusionBounds(
                 microgrid_pb.SetBoundsParam(
                     component_id=component_id,
                     # pylint: disable=no-member,line-too-long
                     target_metric=microgrid_pb.SetBoundsParam.TargetMetric.TARGET_METRIC_POWER_ACTIVE,
-                    bounds=common_pb.Bounds(lower=lower, upper=upper),
+                    bounds=metrics_pb.Bounds(lower=lower, upper=upper),
                 ),
             )
         except grpc.aio.AioRpcError as err:

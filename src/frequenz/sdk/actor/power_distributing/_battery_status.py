@@ -12,10 +12,13 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Iterable, Optional, Set, TypeVar, Union
 
+# pylint: disable=no-name-in-module
 from frequenz.api.microgrid.battery_pb2 import ComponentState as BatteryComponentState
 from frequenz.api.microgrid.battery_pb2 import RelayState as BatteryRelayState
 from frequenz.api.microgrid.common_pb2 import ErrorLevel
 from frequenz.api.microgrid.inverter_pb2 import ComponentState as InverterComponentState
+
+# pylint: enable=no-name-in-module
 from frequenz.channels import Receiver, Sender
 from frequenz.channels.util import Timer, select, selected_from
 
