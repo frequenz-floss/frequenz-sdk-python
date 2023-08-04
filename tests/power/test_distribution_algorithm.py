@@ -93,6 +93,33 @@ def inverter_msg(
     )
 
 
+def create_components(
+    num: int,
+    capacity: List[Metric],
+    soc: List[Metric],
+    power: List[PowerBounds],
+) -> List[InvBatPair]:
+    """Create components with given arguments.
+
+    Args:
+        num: Number of components
+        capacity: Capacity for each battery
+        soc: SoC for each battery
+        soc_bounds: SoC bounds for each battery
+        supply_bounds: Supply bounds for each battery and inverter
+        consumption_bounds: Consumption bounds for each battery and inverter
+
+    Returns:
+        List of the components
+    """
+    components: List[InvBatPair] = []
+    for i in range(0, num):
+        battery = battery_msg(2 * i, capacity[i], soc[i], power[2 * i])
+        inverter = inverter_msg(2 * i + 1, power[2 * i + 1])
+        components.append(InvBatPair(battery, inverter))
+    return components
+
+
 class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
     """Test whether the algorithm works as expected."""
 
@@ -266,34 +293,6 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         assert result.distribution == approx({1: 0, 3: 300, 5: 0})
         assert result.remaining_power == approx(700.0)
 
-    def create_components(  # pylint: disable=too-many-arguments
-        self,
-        num: int,
-        capacity: List[Metric],
-        soc: List[Metric],
-        power: List[PowerBounds],
-    ) -> List[InvBatPair]:
-        """Create components with given arguments.
-
-        Args:
-            num: Number of components
-            capacity: Capacity for each battery
-            soc: SoC for each battery
-            soc_bounds: SoC bounds for each battery
-            supply_bounds: Supply bounds for each battery and inverter
-            consumption_bounds: Consumption bounds for each battery and inverter
-
-        Returns:
-            List of the components
-        """
-
-        components: List[InvBatPair] = []
-        for i in range(0, num):
-            battery = battery_msg(2 * i, capacity[i], soc[i], power[2 * i])
-            inverter = inverter_msg(2 * i + 1, power[2 * i + 1])
-            components.append(InvBatPair(battery, inverter))
-        return components
-
     # Test distribute supply power
     def test_supply_three_batteries_1(self) -> None:
         """Test distribute supply power for batteries with different SoC."""
@@ -314,7 +313,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(-900, 0, 0, 0),
             PowerBounds(-900, 0, 0, 0),
         ]
-        components = self.create_components(3, capacity, soc, bounds)
+        components = create_components(3, capacity, soc, bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(-1200, components)
@@ -339,7 +338,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(-900, 0, 0, 0),
             PowerBounds(-900, 0, 0, 0),
         ]
-        components = self.create_components(3, capacity, soc, bounds)
+        components = create_components(3, capacity, soc, bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(-1400, components)
@@ -364,7 +363,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(-800, 0, 0, 0),
             PowerBounds(-900, 0, 0, 0),
         ]
-        components = self.create_components(3, capacity, soc, supply_bounds)
+        components = create_components(3, capacity, soc, supply_bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(-1400, components)
@@ -389,7 +388,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(-800, 0, 0, 0),
             PowerBounds(-900, 0, 0, 0),
         ]
-        components = self.create_components(3, capacity, soc, bounds)
+        components = create_components(3, capacity, soc, bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(-1700, components)
@@ -414,7 +413,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(-800, 0, 0, 0),
             PowerBounds(-900, 0, 0, 0),
         ]
-        components = self.create_components(3, capacity, soc, supply_bounds)
+        components = create_components(3, capacity, soc, supply_bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(-1700, components)
@@ -437,7 +436,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(-600, 0, 0, 0),
             PowerBounds(-1000, 0, 0, 0),
         ]
-        components = self.create_components(2, capacity, soc, supply_bounds)
+        components = create_components(2, capacity, soc, supply_bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(-600, components)
@@ -459,7 +458,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(-600, 0, 0, 0),
             PowerBounds(-1000, 0, 0, 0),
         ]
-        components = self.create_components(2, capacity, soc, supply_bounds)
+        components = create_components(2, capacity, soc, supply_bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(-600, components)
@@ -485,7 +484,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(0, 0, 0, 900),
             PowerBounds(0, 0, 0, 900),
         ]
-        components = self.create_components(3, capacity, soc, bounds)
+        components = create_components(3, capacity, soc, bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(1200, components)
@@ -510,7 +509,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(0, 0, 0, 900),
             PowerBounds(0, 0, 0, 900),
         ]
-        components = self.create_components(3, capacity, soc, bounds)
+        components = create_components(3, capacity, soc, bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(1400, components)
@@ -535,7 +534,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(0, 0, 0, 800),
             PowerBounds(0, 0, 0, 900),
         ]
-        components = self.create_components(3, capacity, soc, bounds)
+        components = create_components(3, capacity, soc, bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(1400, components)
@@ -560,7 +559,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(0, 0, 0, 800),
             PowerBounds(0, 0, 0, 900),
         ]
-        components = self.create_components(3, capacity, soc, bounds)
+        components = create_components(3, capacity, soc, bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(1700, components)
@@ -585,7 +584,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(0, 0, 0, 800),
             PowerBounds(0, 0, 0, 900),
         ]
-        components = self.create_components(3, capacity, soc, bounds)
+        components = create_components(3, capacity, soc, bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(1700, components)
@@ -610,7 +609,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(0, 0, 0, 800),
             PowerBounds(0, 0, 0, 900),
         ]
-        components = self.create_components(3, capacity, soc, bounds)
+        components = create_components(3, capacity, soc, bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(1700, components)
@@ -635,7 +634,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(0, 0, 0, 800),
             PowerBounds(0, 0, 0, 900),
         ]
-        components = self.create_components(3, capacity, soc, bounds)
+        components = create_components(3, capacity, soc, bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(500, components)
@@ -657,7 +656,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(0, 0, 0, 600),
             PowerBounds(0, 0, 0, 1000),
         ]
-        components = self.create_components(2, capacity, soc, bounds)
+        components = create_components(2, capacity, soc, bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(600, components)
@@ -679,7 +678,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(0, 0, 0, 9000),
             PowerBounds(0, 0, 0, 9000),
         ]
-        components = self.create_components(2, capacity, soc, bounds)
+        components = create_components(2, capacity, soc, bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(8000, components)
@@ -713,7 +712,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(0, 0, 0, 9000),
             PowerBounds(0, 0, 0, 9000),
         ]
-        components = self.create_components(2, capacity, soc, bounds)
+        components = create_components(2, capacity, soc, bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(900, components)
@@ -765,7 +764,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(-9000, 0, 0, 0),
             PowerBounds(-9000, 0, 0, 0),
         ]
-        components = self.create_components(2, capacity, soc, bounds)
+        components = create_components(2, capacity, soc, bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(-8000, components)
@@ -799,7 +798,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(-9000, 0, 0, 0),
             PowerBounds(-9000, 0, 0, 0),
         ]
-        components = self.create_components(2, capacity, soc, supply_bounds)
+        components = create_components(2, capacity, soc, supply_bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(-8000, components)
@@ -836,7 +835,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(-9000, 0, 0, 0),
             PowerBounds(-9000, 0, 0, 0),
         ]
-        components = self.create_components(3, capacity, soc, bounds)
+        components = create_components(3, capacity, soc, bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm.distribute_power(-8000, components)
@@ -879,7 +878,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(-9000, 0, 0, 0),
             PowerBounds(-9000, 0, 0, 0),
         ]
-        components = self.create_components(3, capacity, soc, supply_bounds)
+        components = create_components(3, capacity, soc, supply_bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=0.5)
         result = algorithm.distribute_power(-1300, components)
@@ -907,7 +906,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             PowerBounds(0, 0, 0, 9000),
             PowerBounds(0, 0, 0, 9000),
         ]
-        components = self.create_components(2, capacity, soc, bounds)
+        components = create_components(2, capacity, soc, bounds)
 
         algorithm = DistributionAlgorithm(distributor_exponent=0.5)
         result = algorithm.distribute_power(1000, components)
