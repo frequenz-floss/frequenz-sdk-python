@@ -7,10 +7,11 @@
 ## Upgrading
 
 - Upgrade to microgrid API v0.15.1.  If you're using any of the lower level microgrid interfaces, you will need to upgrade your code.
+- The argument `conf_file` of the `ConfigManagingActor` constructor was renamed to `config_path`.
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+- The `ConfigManagingActor` constructor now can accept a `pathlib.Path` as `config_path` too (before it accepted only a `str`).
 
 ## Bug Fixes
 

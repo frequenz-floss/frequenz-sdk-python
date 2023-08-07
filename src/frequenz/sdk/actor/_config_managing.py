@@ -4,10 +4,10 @@
 """Read and update config variables."""
 
 import logging
-import os
+import pathlib
 import tomllib
 from collections import abc
-from typing import Any, Dict
+from typing import Any, assert_never
 
 from frequenz.channels import Sender
 from frequenz.channels.util import FileWatcher
@@ -20,73 +20,95 @@ _logger = logging.getLogger(__name__)
 
 @actor
 class ConfigManagingActor:
-    """
-    Manages config variables.
+    """An actor that monitors a TOML configuration file for updates.
 
-    Config variables are read from file.
-    Only single file can be read.
-    If new file is read, then previous configs will be forgotten.
+    When the file is updated, the new configuration is sent, as a [`dict`][], to the
+    `output` sender.
+
+    When the actor is started, if a configuration file already exists, then it will be
+    read and sent to the `output` sender before the actor starts monitoring the file
+    for updates. This way users can rely on the actor to do the initial configuration
+    reading too.
     """
 
     def __init__(
         self,
-        conf_file: str,
+        config_path: pathlib.Path | str,
         output: Sender[Config],
         event_types: abc.Set[FileWatcher.EventType] = frozenset(FileWatcher.EventType),
     ) -> None:
-        """Read config variables from the file.
+        """Initialize this instance.
 
         Args:
-            conf_file: Path to file with config variables.
-            output: Channel to publish updates to.
-            event_types: Which types of events should update the config and
-                trigger a notification.
+            config_path: The path to the TOML file with the configuration.
+            output: The sender to send the config to.
+            event_types: The set of event types to monitor.
         """
-        self._conf_file: str = conf_file
-        self._conf_dir: str = os.path.dirname(conf_file)
-        self._file_watcher = FileWatcher(
-            paths=[self._conf_dir], event_types=event_types
+        self._config_path: pathlib.Path = (
+            config_path
+            if isinstance(config_path, pathlib.Path)
+            else pathlib.Path(config_path)
         )
-        self._output = output
+        # FileWatcher can't watch for non-existing files, so we need to watch for the
+        # parent directory instead just in case a configuration file doesn't exist yet
+        # or it is deleted and recreated again.
+        self._file_watcher: FileWatcher = FileWatcher(
+            paths=[self._config_path.parent], event_types=event_types
+        )
+        self._output: Sender[Config] = output
 
-    def _read_config(self) -> Dict[str, Any]:
-        """Read the contents of the config file.
-
-        Raises:
-            ValueError: if config file cannot be read.
+    def _read_config(self) -> dict[str, Any]:
+        """Read the contents of the configuration file.
 
         Returns:
             A dictionary containing configuration variables.
+
+        Raises:
+            ValueError: If config file cannot be read.
         """
         try:
-            with open(self._conf_file, "rb") as toml_file:
+            with self._config_path.open("rb") as toml_file:
                 return tomllib.load(toml_file)
         except ValueError as err:
-            logging.error("Can't read config file, err: %s", err)
+            logging.error("%s: Can't read config file, err: %s", self, err)
             raise
 
     async def send_config(self) -> None:
-        """Send config file using a broadcast channel."""
+        """Send the configuration to the output sender."""
         conf_vars = self._read_config()
         config = Config(conf_vars)
         await self._output.send(config)
 
     async def run(self) -> None:
-        """Watch config file and update when modified.
-
-        At startup, the Config Manager sends the current config so that it
-        can be cache in the Broadcast channel and served to receivers even if
-        there hasn't been any change to the config file itself.
-        """
+        """Monitor for and send configuration file updates."""
         await self.send_config()
 
         async for event in self._file_watcher:
-            if event.type != FileWatcher.EventType.DELETE:
-                if str(event.path) == self._conf_file:
+            # Since we are watching the whole parent directory, we need to make sure
+            # we only react to events related to the configuration file.
+            if event.path != self._config_path:
+                continue
+
+            match event.type:
+                case FileWatcher.EventType.CREATE:
                     _logger.info(
-                        "Update configs, because file %s was modified.",
-                        self._conf_file,
+                        "%s: The configuration file %s was created, sending new config...",
+                        self,
+                        self._config_path,
                     )
                     await self.send_config()
-
-        _logger.debug("ConfigManager stopped.")
+                case FileWatcher.EventType.MODIFY:
+                    _logger.info(
+                        "%s: The configuration file %s was modified, sending update...",
+                        self,
+                        self._config_path,
+                    )
+                    await self.send_config()
+                case FileWatcher.EventType.DELETE:
+                    _logger.info(
+                        "%s: The configuration file %s was deleted, ignoring...",
+                        self,
+                        self._config_path,
+                    )
+                case _:
+                    assert_never(event.type)
