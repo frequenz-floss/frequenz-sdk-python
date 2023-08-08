@@ -984,7 +984,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
             },
             PowerMetrics(
                 now,
-                Bounds(Power.from_watts(-100), Power.from_watts(0)),
+                Bounds(Power.from_watts(-100), Power.zero()),
                 Bounds(Power.from_watts(-50), Power.from_watts(350)),
             ),
         ),
