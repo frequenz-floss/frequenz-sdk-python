@@ -15,6 +15,8 @@
 
 - The `ConfigManagingActor` constructor now can accept a `pathlib.Path` as `config_path` too (before it accepted only a `str`).
 
+- The `PowerDistributingActor` now considers exclusion bounds, when finding an optimal distribution for power between batteries.
+
 ## Bug Fixes
 
 <!-- Here goes notable bug fixes that are worth a special mention or explanation -->
