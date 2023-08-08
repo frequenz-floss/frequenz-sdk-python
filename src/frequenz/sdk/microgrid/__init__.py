@@ -22,7 +22,7 @@ async def initialize(host: str, port: int, resampler_config: ResamplerConfig) ->
         resampler_config: Configuration for the resampling actor.
     """
     await connection_manager.initialize(host, port)
-    _data_pipeline.initialize(resampler_config)
+    await _data_pipeline.initialize(resampler_config)
 
 
 __all__ = [

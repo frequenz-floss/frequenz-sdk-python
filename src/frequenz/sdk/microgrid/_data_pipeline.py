@@ -270,14 +270,14 @@ class _DataPipeline:
         if self._data_sourcing_actor:
             await self._data_sourcing_actor.actor._stop()  # type: ignore
         if self._resampling_actor:
-            await self._resampling_actor.actor._stop()  # type: ignore
+            await self._resampling_actor.actor.stop()
         # pylint: enable=protected-access
 
 
 _DATA_PIPELINE: _DataPipeline | None = None
 
 
-def initialize(resampler_config: ResamplerConfig) -> None:
+async def initialize(resampler_config: ResamplerConfig) -> None:
     """Initialize a `DataPipeline` instance.
 
     Args:
