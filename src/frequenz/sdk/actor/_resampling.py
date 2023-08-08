@@ -99,6 +99,11 @@ class ComponentMetricsResamplingActor(Actor):
         other error will be propagated (most likely ending in the actor being
         restarted).
 
+        This method creates 2 main tasks:
+
+        - One task to process incoming subscription requests to resample new metrics.
+        - One task to run the resampler.
+
         Raises:
             RuntimeError: If there is some unexpected error while resampling or
                 handling requests.
