@@ -15,15 +15,14 @@ from .._internal._asyncio import cancel_and_await
 from ..timeseries import Sample
 from ..timeseries._quantities import Quantity
 from ..timeseries._resampling import Resampler, ResamplerConfig, ResamplingError
+from ._actor import Actor
 from ._channel_registry import ChannelRegistry
 from ._data_sourcing import ComponentMetricRequest
-from ._decorator import actor
 
 _logger = logging.getLogger(__name__)
 
 
-@actor
-class ComponentMetricsResamplingActor:
+class ComponentMetricsResamplingActor(Actor):
     """An actor to resample microgrid component metrics."""
 
     def __init__(  # pylint: disable=too-many-arguments
@@ -46,6 +45,7 @@ class ComponentMetricsResamplingActor:
                 resampmling subscription requests.
             config: The configuration for the resampler.
         """
+        super().__init__()
         self._channel_registry: ChannelRegistry = channel_registry
         self._data_sourcing_request_sender: Sender[
             ComponentMetricRequest
@@ -91,7 +91,7 @@ class ComponentMetricsResamplingActor:
         async for request in self._resampling_request_receiver:
             await self._subscribe(request)
 
-    async def run(self) -> None:
+    async def _run(self) -> None:
         """Resample known component metrics and process resampling requests.
 
         If there is a resampling error while resampling some component metric,

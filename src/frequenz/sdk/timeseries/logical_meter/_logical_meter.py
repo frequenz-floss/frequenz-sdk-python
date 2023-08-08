@@ -57,41 +57,40 @@ class LogicalMeter:
         )
 
         # Instantiate a resampling actor
-        _resampling_actor = ComponentMetricsResamplingActor(
+        async with ComponentMetricsResamplingActor(
             channel_registry=channel_registry,
             data_sourcing_request_sender=data_source_request_sender,
             resampling_request_receiver=resampling_request_receiver,
             config=ResamplerConfig(resampling_period=timedelta(seconds=1)),
-        )
-
-        await initialize(
-            "127.0.0.1",
-            50051,
-            ResamplerConfig(resampling_period=timedelta(seconds=1))
-        )
-
-        # Create a logical meter instance
-        logical_meter = LogicalMeter(
-            channel_registry,
-            resampling_request_sender,
-        )
-
-        # Get a receiver for a builtin formula
-        grid_power_recv = logical_meter.grid_power.new_receiver()
-        for grid_power_sample in grid_power_recv:
-            print(grid_power_sample)
-
-        # or compose formula receivers to create a new formula
-        net_power_recv = (
-            (
-                logical_meter.grid_power
-                - logical_meter.pv_power
+        ):
+            await initialize(
+                "127.0.0.1",
+                50051,
+                ResamplerConfig(resampling_period=timedelta(seconds=1))
             )
-            .build("net_power")
-            .new_receiver()
-        )
-        for net_power_sample in net_power_recv:
-            print(net_power_sample)
+
+            # Create a logical meter instance
+            logical_meter = LogicalMeter(
+                channel_registry,
+                resampling_request_sender,
+            )
+
+            # Get a receiver for a builtin formula
+            grid_power_recv = logical_meter.grid_power.new_receiver()
+            for grid_power_sample in grid_power_recv:
+                print(grid_power_sample)
+
+            # or compose formula receivers to create a new formula
+            net_power_recv = (
+                (
+                    logical_meter.grid_power
+                    - logical_meter.pv_power
+                )
+                .build("net_power")
+                .new_receiver()
+            )
+            for net_power_sample in net_power_recv:
+                print(net_power_sample)
         ```
     """
 

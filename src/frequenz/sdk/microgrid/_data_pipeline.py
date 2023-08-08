@@ -264,6 +264,11 @@ class _DataPipeline:
             self._resampling_actor = _ActorInfo(actor, channel)
         return self._resampling_actor.channel.new_sender()
 
+    async def _start(self) -> None:
+        """Start the data pipeline actors."""
+        if self._resampling_actor:
+            await self._resampling_actor.actor.start()
+
     async def _stop(self) -> None:
         """Stop the data pipeline actors."""
         # pylint: disable=protected-access
@@ -291,6 +296,7 @@ async def initialize(resampler_config: ResamplerConfig) -> None:
     if _DATA_PIPELINE is not None:
         raise RuntimeError("DataPipeline is already initialized.")
     _DATA_PIPELINE = _DataPipeline(resampler_config)
+    await _DATA_PIPELINE._start()  # pylint: disable=protected-access
 
 
 def logical_meter() -> LogicalMeter:
