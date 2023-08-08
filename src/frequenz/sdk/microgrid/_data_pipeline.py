@@ -50,12 +50,14 @@ A larger buffer size means that the DataSourcing and Resampling actors don't dro
 requests and will be able to keep up with higher request rates in larger installations.
 """
 
+_T = typing.TypeVar("_T")
+
 
 @dataclass
-class _ActorInfo:
+class _ActorInfo(typing.Generic[_T]):
     """Holds instances of core data pipeline actors and their request channels."""
 
-    actor: "DataSourcingActor | ComponentMetricsResamplingActor"
+    actor: _T
     channel: Broadcast["ComponentMetricRequest"]
 
 
@@ -82,8 +84,10 @@ class _DataPipeline:
 
         self._channel_registry = ChannelRegistry(name="Data Pipeline Registry")
 
-        self._data_sourcing_actor: _ActorInfo | None = None
-        self._resampling_actor: _ActorInfo | None = None
+        self._data_sourcing_actor: _ActorInfo[DataSourcingActor] | None = None
+        self._resampling_actor: _ActorInfo[
+            ComponentMetricsResamplingActor
+        ] | None = None
 
         self._battery_status_channel = Broadcast["BatteryStatus"](
             "battery-status", resend_latest=True
