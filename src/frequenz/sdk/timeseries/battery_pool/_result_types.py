@@ -6,15 +6,17 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from .._quantities import Power
+
 
 @dataclass
-class Bound:
+class Bounds:
     """Lower and upper bound values."""
 
-    lower: float
+    lower: Power
     """Lower bound."""
 
-    upper: float
+    upper: Power
     """Upper bound."""
 
 
@@ -26,38 +28,24 @@ class PowerMetrics:
     timestamp: datetime = field(compare=False)
     """Timestamp of the metrics."""
 
-    supply_bound: Bound
-    """Supply power bounds.
+    # pylint: disable=line-too-long
+    inclusion_bounds: Bounds
+    """Inclusion power bounds for all batteries in the battery pool instance.
 
-    Upper bound is always 0 and will be supported later.
-    Lower bound is negative number calculated with with the formula:
-    ```python
-    working_pairs: Set[BatteryData, InverterData] # working batteries from the battery
-        pool and adjacent inverters
+    This is the range within which power requests are allowed by the battery pool.
 
-    supply_bound.lower = sum(
-        max(
-            battery.power_inclusion_lower_bound, inverter.active_power_inclusion_lower_bound)
-            for each working battery in battery pool
-            )
-        )
-    ```
+    When exclusion bounds are present, they will exclude a subset of the inclusion
+    bounds.
+
+    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
     """
 
-    consume_bound: Bound
-    """Consume power bounds.
+    exclusion_bounds: Bounds
+    """Exclusion power bounds for all batteries in the battery pool instance.
 
-    Lower bound is always 0 and will be supported later.
-    Upper bound is positive number calculated with with the formula:
-    ```python
-    working_pairs: Set[BatteryData, InverterData] # working batteries from the battery
-        pool and adjacent inverters
+    This is the range within which power requests are NOT allowed by the battery pool.
+    If present, they will be a subset of the inclusion bounds.
 
-    consume_bound.upper = sum(
-        min(
-            battery.power_inclusion_upper_bound, inverter.active_power_inclusion_upper_bound)
-            for each working battery in battery pool
-            )
-        )
-    ```
+    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
     """
+    # pylint: enable=line-too-long

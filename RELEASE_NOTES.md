@@ -9,6 +9,8 @@
 - Upgrade to microgrid API v0.15.1.  If you're using any of the lower level microgrid interfaces, you will need to upgrade your code.
 - The argument `conf_file` of the `ConfigManagingActor` constructor was renamed to `config_path`.
 
+- The `BatteryPool.power_bounds` method now streams inclusion/exclusion bounds.  The bounds are now represented by `Power` objects and not `float`s.
+
 ## New Features
 
 - The `ConfigManagingActor` constructor now can accept a `pathlib.Path` as `config_path` too (before it accepted only a `str`).

@@ -85,6 +85,12 @@ _BatteryDataMethods: Dict[ComponentMetricId, Callable[[BatteryData], float]] = {
     ComponentMetricId.POWER_INCLUSION_LOWER_BOUND: lambda msg: (
         msg.power_inclusion_lower_bound
     ),
+    ComponentMetricId.POWER_EXCLUSION_LOWER_BOUND: lambda msg: (
+        msg.power_exclusion_lower_bound
+    ),
+    ComponentMetricId.POWER_EXCLUSION_UPPER_BOUND: lambda msg: (
+        msg.power_exclusion_upper_bound
+    ),
     ComponentMetricId.POWER_INCLUSION_UPPER_BOUND: lambda msg: (
         msg.power_inclusion_upper_bound
     ),
@@ -95,6 +101,12 @@ _InverterDataMethods: Dict[ComponentMetricId, Callable[[InverterData], float]] =
     ComponentMetricId.ACTIVE_POWER: lambda msg: msg.active_power,
     ComponentMetricId.ACTIVE_POWER_INCLUSION_LOWER_BOUND: lambda msg: (
         msg.active_power_inclusion_lower_bound
+    ),
+    ComponentMetricId.ACTIVE_POWER_EXCLUSION_LOWER_BOUND: lambda msg: (
+        msg.active_power_exclusion_lower_bound
+    ),
+    ComponentMetricId.ACTIVE_POWER_EXCLUSION_UPPER_BOUND: lambda msg: (
+        msg.active_power_exclusion_upper_bound
     ),
     ComponentMetricId.ACTIVE_POWER_INCLUSION_UPPER_BOUND: lambda msg: (
         msg.active_power_inclusion_upper_bound
