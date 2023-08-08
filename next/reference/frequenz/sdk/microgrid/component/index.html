@@ -3141,7 +3141,11 @@ in percent (%).</p>
 <span class="normal"><a href="#__codelineno-0-150">150</a></span>
 <span class="normal"><a href="#__codelineno-0-151">151</a></span>
 <span class="normal"><a href="#__codelineno-0-152">152</a></span>
-<span class="normal"><a href="#__codelineno-0-153">153</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-129"><a id="__codelineno-0-129" name="__codelineno-0-129"></a><span class="k">class</span> <span class="nc">ComponentMetricId</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-153">153</a></span>
+<span class="normal"><a href="#__codelineno-0-154">154</a></span>
+<span class="normal"><a href="#__codelineno-0-155">155</a></span>
+<span class="normal"><a href="#__codelineno-0-156">156</a></span>
+<span class="normal"><a href="#__codelineno-0-157">157</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-129"><a id="__codelineno-0-129" name="__codelineno-0-129"></a><span class="k">class</span> <span class="nc">ComponentMetricId</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
 </span><span id="__span-0-130"><a id="__codelineno-0-130" name="__codelineno-0-130"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;An enum representing the various metrics available in the microgrid.&quot;&quot;&quot;</span>
 </span><span id="__span-0-131"><a id="__codelineno-0-131" name="__codelineno-0-131"></a>
 </span><span id="__span-0-132"><a id="__codelineno-0-132" name="__codelineno-0-132"></a>    <span class="n">ACTIVE_POWER</span> <span class="o">=</span> <span class="s2">&quot;active_power&quot;</span>
@@ -3160,12 +3164,16 @@ in percent (%).</p>
 </span><span id="__span-0-145"><a id="__codelineno-0-145" name="__codelineno-0-145"></a>    <span class="n">CAPACITY</span> <span class="o">=</span> <span class="s2">&quot;capacity&quot;</span>
 </span><span id="__span-0-146"><a id="__codelineno-0-146" name="__codelineno-0-146"></a>
 </span><span id="__span-0-147"><a id="__codelineno-0-147" name="__codelineno-0-147"></a>    <span class="n">POWER_INCLUSION_LOWER_BOUND</span> <span class="o">=</span> <span class="s2">&quot;power_inclusion_lower_bound&quot;</span>
-</span><span id="__span-0-148"><a id="__codelineno-0-148" name="__codelineno-0-148"></a>    <span class="n">POWER_INCLUSION_UPPER_BOUND</span> <span class="o">=</span> <span class="s2">&quot;power_inclusion_upper_bound&quot;</span>
-</span><span id="__span-0-149"><a id="__codelineno-0-149" name="__codelineno-0-149"></a>
-</span><span id="__span-0-150"><a id="__codelineno-0-150" name="__codelineno-0-150"></a>    <span class="n">ACTIVE_POWER_INCLUSION_LOWER_BOUND</span> <span class="o">=</span> <span class="s2">&quot;active_power_inclusion_lower_bound&quot;</span>
-</span><span id="__span-0-151"><a id="__codelineno-0-151" name="__codelineno-0-151"></a>    <span class="n">ACTIVE_POWER_INCLUSION_UPPER_BOUND</span> <span class="o">=</span> <span class="s2">&quot;active_power_inclusion_upper_bound&quot;</span>
-</span><span id="__span-0-152"><a id="__codelineno-0-152" name="__codelineno-0-152"></a>
-</span><span id="__span-0-153"><a id="__codelineno-0-153" name="__codelineno-0-153"></a>    <span class="n">TEMPERATURE</span> <span class="o">=</span> <span class="s2">&quot;temperature&quot;</span>
+</span><span id="__span-0-148"><a id="__codelineno-0-148" name="__codelineno-0-148"></a>    <span class="n">POWER_EXCLUSION_LOWER_BOUND</span> <span class="o">=</span> <span class="s2">&quot;power_exclusion_lower_bound&quot;</span>
+</span><span id="__span-0-149"><a id="__codelineno-0-149" name="__codelineno-0-149"></a>    <span class="n">POWER_EXCLUSION_UPPER_BOUND</span> <span class="o">=</span> <span class="s2">&quot;power_exclusion_upper_bound&quot;</span>
+</span><span id="__span-0-150"><a id="__codelineno-0-150" name="__codelineno-0-150"></a>    <span class="n">POWER_INCLUSION_UPPER_BOUND</span> <span class="o">=</span> <span class="s2">&quot;power_inclusion_upper_bound&quot;</span>
+</span><span id="__span-0-151"><a id="__codelineno-0-151" name="__codelineno-0-151"></a>
+</span><span id="__span-0-152"><a id="__codelineno-0-152" name="__codelineno-0-152"></a>    <span class="n">ACTIVE_POWER_INCLUSION_LOWER_BOUND</span> <span class="o">=</span> <span class="s2">&quot;active_power_inclusion_lower_bound&quot;</span>
+</span><span id="__span-0-153"><a id="__codelineno-0-153" name="__codelineno-0-153"></a>    <span class="n">ACTIVE_POWER_EXCLUSION_LOWER_BOUND</span> <span class="o">=</span> <span class="s2">&quot;active_power_exclusion_lower_bound&quot;</span>
+</span><span id="__span-0-154"><a id="__codelineno-0-154" name="__codelineno-0-154"></a>    <span class="n">ACTIVE_POWER_EXCLUSION_UPPER_BOUND</span> <span class="o">=</span> <span class="s2">&quot;active_power_exclusion_upper_bound&quot;</span>
+</span><span id="__span-0-155"><a id="__codelineno-0-155" name="__codelineno-0-155"></a>    <span class="n">ACTIVE_POWER_INCLUSION_UPPER_BOUND</span> <span class="o">=</span> <span class="s2">&quot;active_power_inclusion_upper_bound&quot;</span>
+</span><span id="__span-0-156"><a id="__codelineno-0-156" name="__codelineno-0-156"></a>
+</span><span id="__span-0-157"><a id="__codelineno-0-157" name="__codelineno-0-157"></a>    <span class="n">TEMPERATURE</span> <span class="o">=</span> <span class="s2">&quot;temperature&quot;</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
 
