@@ -404,9 +404,7 @@ class DistributionAlgorithm:
                 take_from = max(excess_reserved.items(), key=lambda item: item[1])
                 if is_close_to_zero(take_from[1]) or take_from[1] < 0.0:
                     break
-                if take_from[1] >= -deficit or math.isclose(
-                    take_from[1], -deficit, abs_tol=1e-6
-                ):
+                if take_from[1] >= -deficit or math.isclose(take_from[1], -deficit):
                     excess_reserved[take_from[0]] += deficit
                     deficits[inverter_id] = 0.0
                     deficit = 0.0
