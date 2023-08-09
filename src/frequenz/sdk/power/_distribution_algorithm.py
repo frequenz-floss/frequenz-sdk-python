@@ -360,7 +360,6 @@ class DistributionAlgorithm:
         )
 
         distribution: Dict[int, float] = {}
-        print(f"{power_w=}")
         # sum_ratio == 0 means that all batteries are fully charged / discharged
         if is_close_to_zero(sum_ratio):
             distribution = {inverter.component_id: 0 for _, inverter in components}
