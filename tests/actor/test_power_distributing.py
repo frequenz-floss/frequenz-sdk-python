@@ -26,6 +26,7 @@ from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPo
 from frequenz.sdk.actor.power_distributing.result import (
     Error,
     OutOfBound,
+    PowerBounds,
     Result,
     Success,
 )
@@ -92,7 +93,7 @@ class TestPowerDistributingActor:
                     battery.component_id,
                     capacity=Metric(98000),
                     soc=Metric(40, Bound(20, 80)),
-                    power=Bound(-1000, 1000),
+                    power=PowerBounds(-1000, 0, 0, 1000),
                 )
             )
 
@@ -101,7 +102,7 @@ class TestPowerDistributingActor:
             await mockgrid.mock_client.send(
                 inverter_msg(
                     inverter.component_id,
-                    power=Bound(-500, 500),
+                    power=PowerBounds(-500, 0, 0, 500),
                 )
             )
 
@@ -166,7 +167,7 @@ class TestPowerDistributingActor:
                 9,
                 soc=Metric(math.nan, Bound(20, 80)),
                 capacity=Metric(98000),
-                power=Bound(-1000, 1000),
+                power=PowerBounds(-1000, 0, 0, 1000),
             )
         )
 
@@ -231,7 +232,7 @@ class TestPowerDistributingActor:
                 9,
                 soc=Metric(40, Bound(20, 80)),
                 capacity=Metric(math.nan),
-                power=Bound(-1000, 1000),
+                power=PowerBounds(-1000, 0, 0, 1000),
             )
         )
 
@@ -288,7 +289,7 @@ class TestPowerDistributingActor:
         await mockgrid.mock_client.send(
             inverter_msg(
                 18,
-                power=Bound(math.nan, math.nan),
+                power=PowerBounds(math.nan, 0, 0, math.nan),
             )
         )
 
@@ -296,7 +297,7 @@ class TestPowerDistributingActor:
         await mockgrid.mock_client.send(
             inverter_msg(
                 8,
-                power=Bound(-1000, math.nan),
+                power=PowerBounds(-1000, 0, 0, math.nan),
             )
         )
 
@@ -305,7 +306,7 @@ class TestPowerDistributingActor:
                 9,
                 soc=Metric(40, Bound(20, 80)),
                 capacity=Metric(float(98000)),
-                power=Bound(math.nan, math.nan),
+                power=PowerBounds(math.nan, 0, 0, math.nan),
             )
         )
 
@@ -396,7 +397,7 @@ class TestPowerDistributingActor:
         result: Result = done.pop().result()
         assert isinstance(result, Error)
         assert result.request == request
-        err_msg = re.search(r"^No battery 100, available batteries:", result.msg)
+        err_msg = re.search(r"No battery 100, available batteries:", result.msg)
         assert err_msg is not None
 
     async def test_power_distributor_one_user_adjust_power_consume(
@@ -450,7 +451,7 @@ class TestPowerDistributingActor:
         assert isinstance(result, OutOfBound)
         assert result is not None
         assert result.request == request
-        assert result.bound == 1000
+        assert result.bound.inclusion_upper == 1000
 
     async def test_power_distributor_one_user_adjust_power_supply(
         self, mocker: MockerFixture
@@ -503,7 +504,7 @@ class TestPowerDistributingActor:
         assert isinstance(result, OutOfBound)
         assert result is not None
         assert result.request == request
-        assert result.bound == -1000
+        assert result.bound.inclusion_lower == -1000
 
     async def test_power_distributor_one_user_adjust_power_success(
         self, mocker: MockerFixture
@@ -760,13 +761,13 @@ class TestPowerDistributingActor:
                 9,
                 soc=Metric(math.nan, Bound(20, 80)),
                 capacity=Metric(math.nan),
-                power=Bound(-1000, 1000),
+                power=PowerBounds(-1000, 0, 0, 1000),
             ),
             battery_msg(
                 19,
                 soc=Metric(40, Bound(20, 80)),
                 capacity=Metric(math.nan),
-                power=Bound(-1000, 1000),
+                power=PowerBounds(-1000, 0, 0, 1000),
             ),
         )
 
@@ -849,19 +850,19 @@ class TestPowerDistributingActor:
                 9,
                 soc=Metric(math.nan, Bound(20, 80)),
                 capacity=Metric(98000),
-                power=Bound(-1000, 1000),
+                power=PowerBounds(-1000, 0, 0, 1000),
             ),
             battery_msg(
                 19,
                 soc=Metric(40, Bound(20, 80)),
                 capacity=Metric(math.nan),
-                power=Bound(-1000, 1000),
+                power=PowerBounds(-1000, 0, 0, 1000),
             ),
             battery_msg(
                 29,
                 soc=Metric(40, Bound(20, 80)),
                 capacity=Metric(float(98000)),
-                power=Bound(math.nan, math.nan),
+                power=PowerBounds(math.nan, 0, 0, math.nan),
             ),
         )
 

@@ -78,6 +78,16 @@ class Error(Result):
 
 
 @dataclasses.dataclass
+class PowerBounds:
+    """Inclusion and exclusion power bounds for requested batteries."""
+
+    inclusion_lower: float
+    exclusion_lower: float
+    exclusion_upper: float
+    inclusion_upper: float
+
+
+@dataclasses.dataclass
 class OutOfBound(Result):
     """Result returned when the power was not set because it was out of bounds.
 
@@ -85,8 +95,8 @@ class OutOfBound(Result):
     `adjust_power = False` and the requested power is not within the batteries bounds.
     """
 
-    bound: float
-    """The total power bound for the requested batteries.
+    bound: PowerBounds
+    """The power bounds for the requested batteries.
 
     If the requested power negative, then this value is the lower bound.
     Otherwise it is upper bound.

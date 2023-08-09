@@ -39,7 +39,7 @@ from ...microgrid.component import (
 from ...power import DistributionAlgorithm, DistributionResult, InvBatPair
 from ._battery_pool_status import BatteryPoolStatus, BatteryStatus
 from .request import Request
-from .result import Error, OutOfBound, PartialFailure, Result, Success
+from .result import Error, OutOfBound, PartialFailure, PowerBounds, Result, Success
 
 _logger = logging.getLogger(__name__)
 
@@ -226,6 +226,49 @@ class PowerDistributingActor:
             bat_id: None for bat_id, _ in self._bat_inv_map.items()
         }
 
+    def _get_bounds(
+        self,
+        pairs_data: list[InvBatPair],
+    ) -> PowerBounds:
+        """Get power bounds for given batteries.
+
+        Args:
+            pairs_data: list of battery and adjacent inverter data pairs.
+
+        Returns:
+            Power bounds for given batteries.
+        """
+        return PowerBounds(
+            inclusion_lower=sum(
+                max(
+                    battery.power_inclusion_lower_bound,
+                    inverter.active_power_inclusion_lower_bound,
+                )
+                for battery, inverter in pairs_data
+            ),
+            inclusion_upper=sum(
+                min(
+                    battery.power_inclusion_upper_bound,
+                    inverter.active_power_inclusion_upper_bound,
+                )
+                for battery, inverter in pairs_data
+            ),
+            exclusion_lower=sum(
+                min(
+                    battery.power_exclusion_lower_bound,
+                    inverter.active_power_exclusion_lower_bound,
+                )
+                for battery, inverter in pairs_data
+            ),
+            exclusion_upper=sum(
+                max(
+                    battery.power_exclusion_upper_bound,
+                    inverter.active_power_exclusion_upper_bound,
+                )
+                for battery, inverter in pairs_data
+            ),
+        )
+
     def _get_upper_bound(self, batteries: abc.Set[int], include_broken: bool) -> float:
         """Get total upper bound of power to be set for given batteries.
 
@@ -307,11 +350,6 @@ class PowerDistributingActor:
         await asyncio.sleep(self._wait_for_data_sec)
 
         async for request in self._requests_receiver:
-            error = self._check_request(request)
-            if error:
-                await self._send_result(request.namespace, error)
-                continue
-
             try:
                 pairs_data: List[InvBatPair] = self._get_components_data(
                     request.batteries, request.include_broken_batteries
@@ -327,6 +365,11 @@ class PowerDistributingActor:
                 await self._send_result(
                     request.namespace, Error(request=request, msg=str(error_msg))
                 )
+                continue
+
+            error = self._check_request(request, pairs_data)
+            if error:
+                await self._send_result(request.namespace, error)
                 continue
 
             try:
@@ -452,11 +495,16 @@ class PowerDistributingActor:
 
         return result
 
-    def _check_request(self, request: Request) -> Optional[Result]:
+    def _check_request(
+        self,
+        request: Request,
+        pairs_data: List[InvBatPair],
+    ) -> Optional[Result]:
         """Check whether the given request if correct.
 
         Args:
             request: request to check
+            pairs_data: list of battery and adjacent inverter data pairs.
 
         Returns:
             Result for the user if the request is wrong, None otherwise.
@@ -472,19 +520,24 @@ class PowerDistributingActor:
                 )
                 return Error(request=request, msg=msg)
 
-        if not request.adjust_power:
-            if request.power < 0:
-                bound = self._get_lower_bound(
-                    request.batteries, request.include_broken_batteries
-                )
-                if request.power < bound:
-                    return OutOfBound(request=request, bound=bound)
-            else:
-                bound = self._get_upper_bound(
-                    request.batteries, request.include_broken_batteries
-                )
-                if request.power > bound:
-                    return OutOfBound(request=request, bound=bound)
+        bounds = self._get_bounds(pairs_data)
+        if request.adjust_power:
+            # Automatic power adjustments can only bring down the requested power down
+            # to the inclusion bounds.
+            #
+            # If the requested power is in the exclusion bounds, it is NOT possible to
+            # increase it so that it is outside the exclusion bounds.
+            if bounds.exclusion_lower < request.power < bounds.exclusion_upper:
+                return OutOfBound(request=request, bound=bounds)
+        else:
+            in_lower_range = (
+                bounds.inclusion_lower <= request.power <= bounds.exclusion_lower
+            )
+            in_upper_range = (
+                bounds.exclusion_upper <= request.power <= bounds.inclusion_upper
+            )
+            if not (in_lower_range or in_upper_range):
+                return OutOfBound(request=request, bound=bounds)
 
         return None
 
