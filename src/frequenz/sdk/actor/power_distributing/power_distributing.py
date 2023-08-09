@@ -527,10 +527,7 @@ class PowerDistributingActor:
             #
             # If the requested power is in the exclusion bounds, it is NOT possible to
             # increase it so that it is outside the exclusion bounds.
-            if (
-                request.power > bounds.exclusion_lower
-                and request.power < bounds.exclusion_upper
-            ):
+            if bounds.exclusion_lower < request.power < bounds.exclusion_upper:
                 return OutOfBound(request=request, bound=bounds)
         else:
             in_lower_range = (
