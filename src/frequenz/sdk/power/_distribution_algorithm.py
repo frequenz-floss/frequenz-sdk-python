@@ -422,12 +422,8 @@ class DistributionAlgorithm:
                 left_over = power_w - distributed_power
                 if left_over > -deficit:
                     distributed_power += deficit
-                    deficit = 0.0
-                    deficits[inverter_id] = 0.0
                 elif left_over > 0.0:
-                    deficit += left_over
                     distributed_power += left_over
-                    deficits[inverter_id] = deficit
 
         left_over = power_w - distributed_power
         dist = DistributionResult(distribution, left_over)
