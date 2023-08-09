@@ -400,9 +400,9 @@ class DistributionAlgorithm:
             distribution[inverter.component_id] = excl_bound
 
         for inverter_id, deficit in deficits.items():
-            while not math.isclose(deficit, 0.0, abs_tol=1e-6) and deficit < 0.0:
+            while not is_close_to_zero(deficit) and deficit < 0.0:
                 take_from = max(excess_reserved.items(), key=lambda item: item[1])
-                if math.isclose(take_from[1], 0.0, abs_tol=1e-6) or take_from[1] < 0.0:
+                if is_close_to_zero(take_from[1]) or take_from[1] < 0.0:
                     break
                 if take_from[1] >= -deficit or math.isclose(
                     take_from[1], -deficit, abs_tol=1e-6
