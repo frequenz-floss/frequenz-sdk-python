@@ -3729,7 +3729,11 @@ still reject the request.</p>
 <span class="normal"><a href="#__codelineno-0-47">47</a></span>
 <span class="normal"><a href="#__codelineno-0-48">48</a></span>
 <span class="normal"><a href="#__codelineno-0-49">49</a></span>
-<span class="normal"><a href="#__codelineno-0-50">50</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="nd">@dataclass</span>
+<span class="normal"><a href="#__codelineno-0-50">50</a></span>
+<span class="normal"><a href="#__codelineno-0-51">51</a></span>
+<span class="normal"><a href="#__codelineno-0-52">52</a></span>
+<span class="normal"><a href="#__codelineno-0-53">53</a></span>
+<span class="normal"><a href="#__codelineno-0-54">54</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="nd">@dataclass</span>
 </span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24"></a><span class="k">class</span> <span class="nc">PowerMetrics</span><span class="p">:</span>
 </span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Power bounds metrics.&quot;&quot;&quot;</span>
 </span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26"></a>
@@ -3746,17 +3750,21 @@ still reject the request.</p>
 </span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37"></a><span class="sd">    When exclusion bounds are present, they will exclude a subset of the inclusion</span>
 </span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38"></a><span class="sd">    bounds.</span>
 </span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39"></a>
-</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40"></a><span class="sd">    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).</span>
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42"></a>
-</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43"></a>    <span class="n">exclusion_bounds</span><span class="p">:</span> <span class="n">Bounds</span>
-</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Exclusion power bounds for all batteries in the battery pool instance.</span>
-</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45"></a>
-</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46"></a><span class="sd">    This is the range within which power requests are NOT allowed by the battery pool.</span>
-</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47"></a><span class="sd">    If present, they will be a subset of the inclusion bounds.</span>
-</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48"></a>
-</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49"></a><span class="sd">    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).</span>
-</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40"></a><span class="sd">    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and</span>
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41"></a><span class="sd">    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more</span>
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42"></a><span class="sd">    details.</span>
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44"></a>
+</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45"></a>    <span class="n">exclusion_bounds</span><span class="p">:</span> <span class="n">Bounds</span>
+</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Exclusion power bounds for all batteries in the battery pool instance.</span>
+</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47"></a>
+</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48"></a><span class="sd">    This is the range within which power requests are NOT allowed by the battery pool.</span>
+</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49"></a><span class="sd">    If present, they will be a subset of the inclusion bounds.</span>
+</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50"></a>
+</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51"></a><span class="sd">    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and</span>
+</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52"></a><span class="sd">    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more</span>
+</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53"></a><span class="sd">    details.</span>
+</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
 
@@ -3789,7 +3797,9 @@ still reject the request.</p>
       <p>Exclusion power bounds for all batteries in the battery pool instance.</p>
 <p>This is the range within which power requests are NOT allowed by the battery pool.
 If present, they will be a subset of the inclusion bounds.</p>
-<p>More details <a href="https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91">here</a>.</p>
+<p>See <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-api-common/v0.3/python-reference/frequenz/api/common/metrics_pb2/#frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds"><code>frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds</code></a> and
+<a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-api-common/v0.3/python-reference/frequenz/api/common/metrics_pb2/#frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds"><code>frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds</code></a> for more
+details.</p>
   </div>
 
 </div>
@@ -3814,7 +3824,9 @@ If present, they will be a subset of the inclusion bounds.</p>
 <p>This is the range within which power requests are allowed by the battery pool.</p>
 <p>When exclusion bounds are present, they will exclude a subset of the inclusion
 bounds.</p>
-<p>More details <a href="https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91">here</a>.</p>
+<p>See <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-api-common/v0.3/python-reference/frequenz/api/common/metrics_pb2/#frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds"><code>frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds</code></a> and
+<a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-api-common/v0.3/python-reference/frequenz/api/common/metrics_pb2/#frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds"><code>frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds</code></a> for more
+details.</p>
   </div>
 
 </div>
