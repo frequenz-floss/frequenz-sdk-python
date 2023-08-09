@@ -37,7 +37,9 @@ class PowerMetrics:
     When exclusion bounds are present, they will exclude a subset of the inclusion
     bounds.
 
-    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
+    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and
+    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more
+    details.
     """
 
     exclusion_bounds: Bounds
@@ -46,6 +48,8 @@ class PowerMetrics:
     This is the range within which power requests are NOT allowed by the battery pool.
     If present, they will be a subset of the inclusion bounds.
 
-    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
+    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and
+    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more
+    details.
     """
     # pylint: enable=line-too-long
