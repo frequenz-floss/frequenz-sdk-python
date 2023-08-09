@@ -137,7 +137,9 @@ class BatteryData(ComponentData):
     This is the lower limit of the range within which power requests are allowed for the
     battery.
 
-    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
+    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and
+    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more
+    details.
     """
 
     power_exclusion_lower_bound: float
@@ -146,7 +148,9 @@ class BatteryData(ComponentData):
     This is the lower limit of the range within which power requests are not allowed for
     the battery.
 
-    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
+    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and
+    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more
+    details.
     """
 
     power_inclusion_upper_bound: float
@@ -155,7 +159,9 @@ class BatteryData(ComponentData):
     This is the upper limit of the range within which power requests are allowed for the
     battery.
 
-    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
+    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and
+    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more
+    details.
     """
 
     power_exclusion_upper_bound: float
@@ -164,7 +170,9 @@ class BatteryData(ComponentData):
     This is the upper limit of the range within which power requests are not allowed for
     the battery.
 
-    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
+    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and
+    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more
+    details.
     """
     # pylint: enable=line-too-long
 
@@ -228,7 +236,9 @@ class InverterData(ComponentData):
     This is the lower limit of the range within which power requests are allowed for the
     inverter.
 
-    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
+    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and
+    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more
+    details.
     """
 
     active_power_exclusion_lower_bound: float
@@ -237,7 +247,9 @@ class InverterData(ComponentData):
     This is the lower limit of the range within which power requests are not allowed for
     the inverter.
 
-    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
+    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and
+    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more
+    details.
     """
 
     active_power_inclusion_upper_bound: float
@@ -246,7 +258,9 @@ class InverterData(ComponentData):
     This is the upper limit of the range within which power requests are allowed for the
     inverter.
 
-    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
+    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and
+    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more
+    details.
     """
 
     active_power_exclusion_upper_bound: float
@@ -255,7 +269,9 @@ class InverterData(ComponentData):
     This is the upper limit of the range within which power requests are not allowed for
     the inverter.
 
-    More details [here](https://github.com/frequenz-floss/frequenz-api-common/blob/v0.3.0/proto/frequenz/api/common/metrics.proto#L37-L91).
+    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and
+    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more
+    details.
     """
     # pylint: enable=line-too-long
 
