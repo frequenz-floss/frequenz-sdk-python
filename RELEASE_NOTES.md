@@ -2,7 +2,7 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
+Now the microgrid API v0.15.x is being used. The SDK can only connect to microgrids using this version of the API. Inclusion and exclusion bounds in the new API are now handled by the power distributor and battery pool.
 
 ## Upgrading
 
@@ -16,7 +16,3 @@
 - The `ConfigManagingActor` constructor now can accept a `pathlib.Path` as `config_path` too (before it accepted only a `str`).
 
 - The `PowerDistributingActor` now considers exclusion bounds, when finding an optimal distribution for power between batteries.
-
-## Bug Fixes
-
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
