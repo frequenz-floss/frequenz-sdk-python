@@ -106,6 +106,7 @@ class InverterDataWrapper(InverterData):
         active_power_exclusion_lower_bound: float = math.nan,
         active_power_inclusion_upper_bound: float = math.nan,
         active_power_exclusion_upper_bound: float = math.nan,
+        frequency: float = 50.0,
         _component_state: inverter_pb.ComponentState.ValueType = (
             inverter_pb.ComponentState.COMPONENT_STATE_UNSPECIFIED
         ),
@@ -125,6 +126,7 @@ class InverterDataWrapper(InverterData):
             active_power_inclusion_upper_bound=active_power_inclusion_upper_bound,
             active_power_exclusion_upper_bound=active_power_exclusion_upper_bound,
             _component_state=_component_state,
+            frequency=frequency,
             _errors=_errors if _errors else [],
         )
 
@@ -154,6 +156,7 @@ class EvChargerDataWrapper(EVChargerData):
         active_power: float = math.nan,
         current_per_phase: Tuple[float, float, float] | None = None,
         voltage_per_phase: Tuple[float, float, float] | None = None,
+        frequency: float = 50.0,
         cable_state: EVChargerCableState = EVChargerCableState.UNSPECIFIED,
         component_state: EVChargerComponentState = EVChargerComponentState.UNSPECIFIED,
     ) -> None:
@@ -176,6 +179,7 @@ class EvChargerDataWrapper(EVChargerData):
                 if voltage_per_phase
                 else (math.nan, math.nan, math.nan)
             ),
+            frequency=frequency,
             cable_state=cable_state,
             component_state=component_state,
         )

@@ -278,6 +278,9 @@ class InverterData(ComponentData):
     """
     # pylint: enable=line-too-long
 
+    frequency: float
+    """AC frequency, in Hertz (Hz)."""
+
     _component_state: inverter_pb.ComponentState.ValueType
     """State of the inverter."""
 
@@ -303,6 +306,7 @@ class InverterData(ComponentData):
             active_power_exclusion_lower_bound=raw_power.system_exclusion_bounds.lower,
             active_power_inclusion_upper_bound=raw_power.system_inclusion_bounds.upper,
             active_power_exclusion_upper_bound=raw_power.system_exclusion_bounds.upper,
+            frequency=raw.inverter.data.ac.frequency.value,
             _component_state=raw.inverter.state.component_state,
             _errors=list(raw.inverter.errors),
         )
@@ -331,6 +335,9 @@ class EVChargerData(ComponentData):
     """The AC voltage in Volts (V) between the line and the neutral
         wire for phase/line 1,2 and 3 respectively.
     """
+
+    frequency: float
+    """AC frequency, in Hertz (Hz)."""
 
     cable_state: EVChargerCableState
     """The state of the ev charger's cable."""
@@ -366,6 +373,7 @@ class EVChargerData(ComponentData):
             component_state=EVChargerComponentState.from_pb(
                 raw.ev_charger.state.component_state
             ),
+            frequency=raw.ev_charger.data.ac.frequency.value,
         )
         ev_charger_data._set_raw(raw=raw)
         return ev_charger_data
