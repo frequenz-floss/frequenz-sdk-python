@@ -328,17 +328,24 @@ class OrderedRingBuffer(Generic[FloatArray]):
         self._gaps = sorted(self._gaps, key=lambda x: x.start.timestamp())
 
         i = 0
-        while i < len(self._gaps) - 1:
+        while i < len(self._gaps):
             w_1 = self._gaps[i]
-            w_2 = self._gaps[i + 1]
+            if i < len(self._gaps) - 1:
+                w_2 = self._gaps[i + 1]
+            else:
+                w_2 = None
+
             # Delete out-of-date gaps
             if w_1.end <= self._datetime_oldest:
                 del self._gaps[i]
+            # Update start of gap if it's rolled out of the buffer
+            elif w_1.start < self._datetime_oldest:
+                self._gaps[i].start = self._datetime_oldest
             # If w2 is a subset of w1 we can delete it
-            elif w_1.start <= w_2.start and w_1.end >= w_2.end:
+            elif w_2 and w_1.start <= w_2.start and w_1.end >= w_2.end:
                 del self._gaps[i + 1]
             # If the gaps are direct neighbors, merge them
-            elif w_1.end >= w_2.start:
+            elif w_2 and w_1.end >= w_2.start:
                 w_1.end = w_2.end
                 del self._gaps[i + 1]
             else:

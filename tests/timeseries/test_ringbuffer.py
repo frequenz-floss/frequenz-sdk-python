@@ -369,3 +369,46 @@ def test_off_by_one_gap_logic_bug() -> None:
 
     assert buffer.is_missing(times[0]) is False
     assert buffer.is_missing(times[1]) is False
+
+
+def test_cleanup_oldest_gap_timestamp() -> None:
+    """Test that gaps are updated such that they are fully contained in the buffer."""
+    buffer = OrderedRingBuffer(
+        np.empty(shape=15, dtype=float),
+        sampling_period=timedelta(seconds=1),
+        align_to=datetime(1, 1, 1, tzinfo=timezone.utc),
+    )
+
+    for i in range(10):
+        buffer.update(
+            Sample(datetime.fromtimestamp(200 + i, tz=timezone.utc), Quantity(i))
+        )
+
+    gap = Gap(
+        datetime.fromtimestamp(195, tz=timezone.utc),
+        datetime.fromtimestamp(200, tz=timezone.utc),
+    )
+
+    assert gap == buffer.gaps[0]
+
+
+def test_delete_oudated_gap() -> None:
+    """
+    Update the buffer such that the gap is no longer valid.
+    We introduce two gaps and check that the oldest is removed.
+    """
+    buffer = OrderedRingBuffer(
+        np.empty(shape=3, dtype=float),
+        sampling_period=timedelta(seconds=1),
+        align_to=datetime(1, 1, 1, tzinfo=timezone.utc),
+    )
+
+    for i in range(2):
+        buffer.update(
+            Sample(datetime.fromtimestamp(200 + i, tz=timezone.utc), Quantity(i))
+        )
+    assert len(buffer.gaps) == 1
+
+    buffer.update(Sample(datetime.fromtimestamp(202, tz=timezone.utc), Quantity(2)))
+
+    assert len(buffer.gaps) == 0

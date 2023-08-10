@@ -16,3 +16,7 @@ Now the microgrid API v0.15.x is being used. The SDK can only connect to microgr
 - The `ConfigManagingActor` constructor now can accept a `pathlib.Path` as `config_path` too (before it accepted only a `str`).
 
 - The `PowerDistributingActor` now considers exclusion bounds, when finding an optimal distribution for power between batteries.
+
+## Bug Fixes
+
+- Fixes a bug in the ring buffer updating the end timestamp of gaps when they are outdated.
