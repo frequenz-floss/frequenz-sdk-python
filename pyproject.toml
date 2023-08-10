@@ -68,7 +68,7 @@ dev-mkdocs = [
 dev-mypy = [
   "mypy == 1.4.1",
   "grpc-stubs == 1.24.12",      # This dependency introduces breaking changes in patch releases
-  "types-protobuf == 4.23.0.3",
+  "types-protobuf == 4.24.0.0",
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
