@@ -369,3 +369,24 @@ def test_off_by_one_gap_logic_bug() -> None:
 
     assert buffer.is_missing(times[0]) is False
     assert buffer.is_missing(times[1]) is False
+
+
+def test_cleanup_oldest_gap_timestamp() -> None:
+    """Test that gaps are updated such that they are fully contained in the buffer."""
+    buffer = OrderedRingBuffer(
+        np.empty(shape=15, dtype=float),
+        sampling_period=timedelta(seconds=1),
+        align_to=datetime(1, 1, 1, tzinfo=timezone.utc),
+    )
+
+    for i in range(10):
+        buffer.update(
+            Sample(datetime.fromtimestamp(200 + i, tz=timezone.utc), Quantity(i))
+        )
+
+    gap = Gap(
+        datetime.fromtimestamp(195, tz=timezone.utc),
+        datetime.fromtimestamp(200, tz=timezone.utc),
+    )
+
+    assert gap == buffer.gaps[0]
