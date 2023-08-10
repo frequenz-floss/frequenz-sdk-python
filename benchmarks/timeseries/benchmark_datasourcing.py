@@ -70,7 +70,7 @@ async def benchmark_data_sourcing(
         num_ev_chargers * len(COMPONENT_METRIC_IDS) * num_msgs_per_battery
     )
     mock_grid = MockMicrogrid(
-        grid_side_meter=False, num_values=num_msgs_per_battery, sample_rate_s=0.0
+        grid_meter=False, num_values=num_msgs_per_battery, sample_rate_s=0.0
     )
 
     mock_grid.add_ev_chargers(num_ev_chargers)

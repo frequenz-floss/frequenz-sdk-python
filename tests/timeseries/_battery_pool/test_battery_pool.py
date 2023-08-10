@@ -461,7 +461,7 @@ async def run_test_battery_status_channel(  # pylint: disable=too-many-arguments
 
 async def test_battery_pool_power(mocker: MockerFixture) -> None:
     """Test `BatteryPool.{,production,consumption}_power` methods."""
-    mockgrid = MockMicrogrid(grid_side_meter=True)
+    mockgrid = MockMicrogrid(grid_meter=True)
     mockgrid.add_batteries(2)
     await mockgrid.start(mocker)
 

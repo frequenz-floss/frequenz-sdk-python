@@ -156,7 +156,7 @@ class TestBatteryStatus:
         Args:
             mock_microgrid: mock_microgrid fixture
         """
-        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)
         await mock_microgrid.start(mocker)
 
@@ -318,7 +318,7 @@ class TestBatteryStatus:
         Args:
             mock_microgrid: mock_microgrid fixture
         """
-        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)
         await mock_microgrid.start(mocker)
 
@@ -435,7 +435,7 @@ class TestBatteryStatus:
         Args:
             mock_microgrid: mock_microgrid fixture
         """
-        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)
         await mock_microgrid.start(mocker)
 
@@ -486,7 +486,7 @@ class TestBatteryStatus:
         Args:
             mock_microgrid: mock_microgrid fixture
         """
-        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)
         await mock_microgrid.start(mocker)
 
@@ -547,7 +547,7 @@ class TestBatteryStatus:
             mock_microgrid: mock_microgrid fixture
             mocker: pytest mocker instance
         """
-        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)
         await mock_microgrid.start(mocker)
 
@@ -609,7 +609,7 @@ class TestBatteryStatus:
         Args:
             mock_microgrid: mock_microgrid fixture
         """
-        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)
         await mock_microgrid.start(mocker)
 
@@ -690,7 +690,7 @@ class TestBatteryStatusRecovery:
         self, mocker: MockerFixture
     ) -> AsyncIterator[tuple[MockMicrogrid, Receiver[Status]]]:
         """Setup a BatteryStatusTracker instance to run tests with."""
-        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(1)
         await mock_microgrid.start(mocker)
 

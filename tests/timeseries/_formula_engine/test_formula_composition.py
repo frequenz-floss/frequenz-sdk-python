@@ -25,16 +25,17 @@ class TestFormulaComposition:
         mocker: MockerFixture,
     ) -> None:
         """Test the composition of formulas."""
-        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False)
+        mockgrid.add_consumer_meters()
         mockgrid.add_batteries(3)
         mockgrid.add_solar_inverters(2)
         await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
         battery_pool = microgrid.battery_pool()
-        main_meter_recv = get_resampled_stream(
+        grid_meter_recv = get_resampled_stream(
             logical_meter._namespace,  # pylint: disable=protected-access
-            4,
+            mockgrid.meter_ids[0],
             ComponentMetricId.ACTIVE_POWER,
             Power.from_watts,
         )
@@ -53,7 +54,7 @@ class TestFormulaComposition:
         grid_pow = await grid_power_recv.receive()
         pv_pow = await pv_power_recv.receive()
         bat_pow = await battery_power_recv.receive()
-        main_pow = await main_meter_recv.receive()
+        main_pow = await grid_meter_recv.receive()
         inv_calc_pow = await inv_calc_recv.receive()
 
         assert (
@@ -98,7 +99,7 @@ class TestFormulaComposition:
 
     async def test_formula_composition_missing_pv(self, mocker: MockerFixture) -> None:
         """Test the composition of formulas with missing PV power data."""
-        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False)
         mockgrid.add_batteries(3)
         await mockgrid.start(mocker)
         battery_pool = microgrid.battery_pool()
@@ -136,7 +137,7 @@ class TestFormulaComposition:
 
     async def test_formula_composition_missing_bat(self, mocker: MockerFixture) -> None:
         """Test the composition of formulas with missing battery power data."""
-        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False)
         mockgrid.add_solar_inverters(2)
         await mockgrid.start(mocker)
         battery_pool = microgrid.battery_pool()
@@ -149,9 +150,7 @@ class TestFormulaComposition:
 
         count = 0
         for _ in range(10):
-            await mockgrid.mock_resampler.send_meter_power(
-                [10.0 + count, 12.0 + count, 14.0 + count]
-            )
+            await mockgrid.mock_resampler.send_meter_power([12.0 + count, 14.0 + count])
             await mockgrid.mock_resampler.send_non_existing_component_value()
             bat_pow = await battery_power_recv.receive()
             pv_pow = await pv_power_recv.receive()
@@ -173,7 +172,7 @@ class TestFormulaComposition:
 
     async def test_formula_composition_constant(self, mocker: MockerFixture) -> None:
         """Test the composition of formulas with constant values."""
-        mockgrid = MockMicrogrid(grid_side_meter=True)
+        mockgrid = MockMicrogrid(grid_meter=True)
         await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
@@ -243,9 +242,7 @@ class TestFormulaComposition:
 
     async def test_3_phase_formulas(self, mocker: MockerFixture) -> None:
         """Test 3 phase formulas current formulas and their composition."""
-        mockgrid = MockMicrogrid(
-            grid_side_meter=False, sample_rate_s=0.05, num_namespaces=2
-        )
+        mockgrid = MockMicrogrid(grid_meter=False, sample_rate_s=0.05, num_namespaces=2)
         mockgrid.add_batteries(3)
         mockgrid.add_ev_chargers(1)
         await mockgrid.start(mocker)
@@ -263,7 +260,6 @@ class TestFormulaComposition:
         for _ in range(10):
             await mockgrid.mock_resampler.send_meter_current(
                 [
-                    [10.0, 12.0, 14.0],
                     [10.0, 12.0, 14.0],
                     [10.0, 12.0, 14.0],
                     [10.0, 12.0, 14.0],

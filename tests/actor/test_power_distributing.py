@@ -47,7 +47,7 @@ class TestPowerDistributingActor:
 
     async def test_constructor(self, mocker: MockerFixture) -> None:
         """Test if gets all necessary data."""
-        mockgrid = MockMicrogrid(grid_side_meter=True)
+        mockgrid = MockMicrogrid(grid_meter=True)
         mockgrid.add_batteries(2)
         mockgrid.add_batteries(1, no_meter=True)
         await mockgrid.start(mocker)
@@ -68,7 +68,7 @@ class TestPowerDistributingActor:
         await mockgrid.cleanup()
 
         # Test if it works without grid side meter
-        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False)
         mockgrid.add_batteries(1)
         mockgrid.add_batteries(2, no_meter=True)
         await mockgrid.start(mocker)
@@ -108,7 +108,7 @@ class TestPowerDistributingActor:
 
     async def test_power_distributor_one_user(self, mocker: MockerFixture) -> None:
         """Test if power distribution works with single user works."""
-        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False)
         mockgrid.add_batteries(3)
         await mockgrid.start(mocker)
         await self.init_component_data(mockgrid)
@@ -157,7 +157,7 @@ class TestPowerDistributingActor:
 
     async def test_battery_soc_nan(self, mocker: MockerFixture) -> None:
         """Test if battery with SoC==NaN is not used."""
-        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False)
         mockgrid.add_batteries(3)
         await mockgrid.start(mocker)
         await self.init_component_data(mockgrid)
@@ -222,7 +222,7 @@ class TestPowerDistributingActor:
 
     async def test_battery_capacity_nan(self, mocker: MockerFixture) -> None:
         """Test battery with capacity set to NaN is not used."""
-        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False)
         mockgrid.add_batteries(3)
         await mockgrid.start(mocker)
         await self.init_component_data(mockgrid)
@@ -280,7 +280,7 @@ class TestPowerDistributingActor:
 
     async def test_battery_power_bounds_nan(self, mocker: MockerFixture) -> None:
         """Test battery with power bounds set to NaN is not used."""
-        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False)
         mockgrid.add_batteries(3)
         await mockgrid.start(mocker)
         await self.init_component_data(mockgrid)
@@ -356,7 +356,7 @@ class TestPowerDistributingActor:
         self, mocker: MockerFixture
     ) -> None:
         """Test if power distribution raises error if any battery id is invalid."""
-        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False)
         mockgrid.add_batteries(3)
         await mockgrid.start(mocker)
         await self.init_component_data(mockgrid)
@@ -404,7 +404,7 @@ class TestPowerDistributingActor:
         self, mocker: MockerFixture
     ) -> None:
         """Test if power distribution works with single user works."""
-        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False)
         mockgrid.add_batteries(3)
         await mockgrid.start(mocker)
         await self.init_component_data(mockgrid)
@@ -457,7 +457,7 @@ class TestPowerDistributingActor:
         self, mocker: MockerFixture
     ) -> None:
         """Test if power distribution works with single user works."""
-        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False)
         mockgrid.add_batteries(3)
         await mockgrid.start(mocker)
         await self.init_component_data(mockgrid)
@@ -510,7 +510,7 @@ class TestPowerDistributingActor:
         self, mocker: MockerFixture
     ) -> None:
         """Test if power distribution works with single user works."""
-        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False)
         mockgrid.add_batteries(3)
         await mockgrid.start(mocker)
         await self.init_component_data(mockgrid)
@@ -561,7 +561,7 @@ class TestPowerDistributingActor:
 
     async def test_not_all_batteries_are_working(self, mocker: MockerFixture) -> None:
         """Test if power distribution works if not all batteries are working."""
-        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False)
         mockgrid.add_batteries(3)
         await mockgrid.start(mocker)
         await self.init_component_data(mockgrid)
@@ -615,7 +615,7 @@ class TestPowerDistributingActor:
         self, mocker: MockerFixture
     ) -> None:
         """Test all batteries are used if none of them works."""
-        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False)
         mockgrid.add_batteries(3)
         await mockgrid.start(mocker)
         await self.init_component_data(mockgrid)
@@ -668,7 +668,7 @@ class TestPowerDistributingActor:
         self, mocker: MockerFixture
     ) -> None:
         """Test force request when a battery is not working."""
-        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False)
         mockgrid.add_batteries(3)
         await mockgrid.start(mocker)
         await self.init_component_data(mockgrid)
@@ -724,7 +724,7 @@ class TestPowerDistributingActor:
     ) -> None:
         """Test battery with NaN in SoC, capacity or power is used if request is forced."""
         # pylint: disable=too-many-locals
-        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False)
         mockgrid.add_batteries(3)
         await mockgrid.start(mocker)
         await self.init_component_data(mockgrid)
@@ -797,7 +797,7 @@ class TestPowerDistributingActor:
         self, mocker: MockerFixture
     ) -> None:
         """Test battery with NaN in SoC, capacity or power is used if request is forced."""
-        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False)
         mockgrid.add_batteries(3)
         await mockgrid.start(mocker)
         await self.init_component_data(mockgrid)
