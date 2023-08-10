@@ -390,3 +390,25 @@ def test_cleanup_oldest_gap_timestamp() -> None:
     )
 
     assert gap == buffer.gaps[0]
+
+
+def test_delete_oudated_gap() -> None:
+    """
+    Update the buffer such that the gap is no longer valid.
+    We introduce two gaps and check that the oldest is removed.
+    """
+    buffer = OrderedRingBuffer(
+        np.empty(shape=3, dtype=float),
+        sampling_period=timedelta(seconds=1),
+        align_to=datetime(1, 1, 1, tzinfo=timezone.utc),
+    )
+
+    for i in range(2):
+        buffer.update(
+            Sample(datetime.fromtimestamp(200 + i, tz=timezone.utc), Quantity(i))
+        )
+    assert len(buffer.gaps) == 1
+
+    buffer.update(Sample(datetime.fromtimestamp(202, tz=timezone.utc), Quantity(2)))
+
+    assert len(buffer.gaps) == 0
