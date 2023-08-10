@@ -412,18 +412,16 @@ class DistributionAlgorithm:
                     deficit += excess_reserved[take_from[0]]
                     deficits[inverter_id] = deficit
                     excess_reserved[take_from[0]] = 0.0
-
-        for inverter_id, excess in excess_reserved.items():
-            distribution[inverter_id] += excess
-            distributed_power += excess
-
-        for inverter_id, deficit in deficits.items():
             if deficit < -0.1:
                 left_over = power_w - distributed_power
                 if left_over > -deficit:
                     distributed_power += deficit
                 elif left_over > 0.0:
                     distributed_power += left_over
+
+        for inverter_id, excess in excess_reserved.items():
+            distribution[inverter_id] += excess
+            distributed_power += excess
 
         left_over = power_w - distributed_power
         dist = DistributionResult(distribution, left_over)
