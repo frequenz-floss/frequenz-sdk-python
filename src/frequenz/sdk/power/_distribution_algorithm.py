@@ -404,9 +404,7 @@ class DistributionAlgorithm:
                 take_from = max(excess_reserved.items(), key=lambda item: item[1])
                 if is_close_to_zero(take_from[1]) or take_from[1] < 0.0:
                     break
-                if take_from[1] >= -deficit or math.isclose(
-                    take_from[1], -deficit, abs_tol=1e-6
-                ):
+                if take_from[1] >= -deficit or math.isclose(take_from[1], -deficit):
                     excess_reserved[take_from[0]] += deficit
                     deficits[inverter_id] = 0.0
                     deficit = 0.0
@@ -414,22 +412,16 @@ class DistributionAlgorithm:
                     deficit += excess_reserved[take_from[0]]
                     deficits[inverter_id] = deficit
                     excess_reserved[take_from[0]] = 0.0
-
-        for inverter_id, excess in excess_reserved.items():
-            distribution[inverter_id] += excess
-            distributed_power += excess
-
-        for inverter_id, deficit in deficits.items():
             if deficit < -0.1:
                 left_over = power_w - distributed_power
                 if left_over > -deficit:
                     distributed_power += deficit
-                    deficit = 0.0
-                    deficits[inverter_id] = 0.0
                 elif left_over > 0.0:
-                    deficit += left_over
                     distributed_power += left_over
-                    deficits[inverter_id] = deficit
+
+        for inverter_id, excess in excess_reserved.items():
+            distribution[inverter_id] += excess
+            distributed_power += excess
 
         left_over = power_w - distributed_power
         dist = DistributionResult(distribution, left_over)
