@@ -266,17 +266,17 @@ class _DataPipeline:
 
     async def _start(self) -> None:
         """Start the data pipeline actors."""
+        if self._data_sourcing_actor:
+            await self._data_sourcing_actor.actor.start()
         if self._resampling_actor:
             await self._resampling_actor.actor.start()
 
     async def _stop(self) -> None:
         """Stop the data pipeline actors."""
-        # pylint: disable=protected-access
         if self._data_sourcing_actor:
-            await self._data_sourcing_actor.actor._stop()  # type: ignore
+            await self._data_sourcing_actor.actor.stop()
         if self._resampling_actor:
             await self._resampling_actor.actor.stop()
-        # pylint: enable=protected-access
 
 
 _DATA_PIPELINE: _DataPipeline | None = None
