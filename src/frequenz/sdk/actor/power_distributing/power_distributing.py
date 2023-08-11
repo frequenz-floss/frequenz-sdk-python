@@ -28,7 +28,7 @@ from frequenz.channels import Peekable, Receiver, Sender
 
 from ..._internal._math import is_close_to_zero
 from ...actor import ChannelRegistry
-from ...actor._decorator import actor
+from ...actor._actor import Actor
 from ...microgrid import ComponentGraph, connection_manager
 from ...microgrid.client import MicrogridApiClient
 from ...microgrid.component import (
@@ -83,8 +83,7 @@ class _CacheEntry:
         return time.monotonic_ns() >= self.expiry_time
 
 
-@actor
-class PowerDistributingActor:
+class PowerDistributingActor(Actor):
     # pylint: disable=too-many-instance-attributes
     """Actor to distribute the power between batteries in a microgrid.
 
@@ -125,7 +124,6 @@ class PowerDistributingActor:
         )
         from frequenz.channels import Broadcast, Receiver, Sender
         from datetime import timedelta
-        from frequenz.sdk import actor
 
         HOST = "localhost"
         PORT = 50051
@@ -145,38 +143,37 @@ class PowerDistributingActor:
 
         channel = Broadcast[Request]("power_distributor")
         channel_registry = ChannelRegistry(name="power_distributor")
-        power_distributor = PowerDistributingActor(
+        async with PowerDistributingActor(
             requests_receiver=channel.new_receiver(),
             channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
-        )
-
-        sender = channel.new_sender()
-        namespace: str = "namespace"
-        # Set power 1200W to given batteries.
-        request = Request(
-            namespace=namespace,
-            power=1200.0,
-            batteries=batteries_ids,
-            request_timeout_sec=10.0
-        )
-        await sender.send(request)
-        result_rx = channel_registry.new_receiver(namespace)
-
-        # It is recommended to use timeout when waiting for the response!
-        result: Result = await asyncio.wait_for(result_rx.receive(), timeout=10)
-
-        if isinstance(result, Success):
-            print("Command succeed")
-        elif isinstance(result, PartialFailure):
-            print(
-                f"Batteries {result.failed_batteries} failed, total failed power" \
-                f"{result.failed_power}"
+        ):
+            sender = channel.new_sender()
+            namespace: str = "namespace"
+            # Set power 1200W to given batteries.
+            request = Request(
+                namespace=namespace,
+                power=1200.0,
+                batteries=batteries_ids,
+                request_timeout_sec=10.0
             )
-        elif isinstance(result, Ignored):
-            print("Request was ignored, because of newer request")
-        elif isinstance(result, Error):
-            print(f"Request failed with error: {result.msg}")
+            await sender.send(request)
+            result_rx = channel_registry.new_receiver(namespace)
+
+            # It is recommended to use timeout when waiting for the response!
+            result: Result = await asyncio.wait_for(result_rx.receive(), timeout=10)
+
+            if isinstance(result, Success):
+                print("Command succeed")
+            elif isinstance(result, PartialFailure):
+                print(
+                    f"Batteries {result.failed_batteries} failed, total failed power" \
+                    f"{result.failed_power}"
+                )
+            elif isinstance(result, Ignored):
+                print("Request was ignored, because of newer request")
+            elif isinstance(result, Error):
+                print(f"Request failed with error: {result.msg}")
         ```
     """
 
@@ -198,6 +195,7 @@ class PowerDistributingActor:
             wait_for_data_sec: How long actor should wait before processing first
                 request. It is a time needed to collect first components data.
         """
+        super().__init__()
         self._requests_receiver = requests_receiver
         self._channel_registry = channel_registry
         self._wait_for_data_sec = wait_for_data_sec
@@ -288,7 +286,7 @@ class PowerDistributingActor:
 
         await self._result_senders[namespace].send(result)
 
-    async def run(self) -> None:
+    async def _run(self) -> None:
         """Run actor main function.
 
         It waits for new requests in task_queue and process it, and send
@@ -758,7 +756,11 @@ class PowerDistributingActor:
 
         await asyncio.gather(*tasks, return_exceptions=True)
 
-    async def _stop_actor(self) -> None:
-        """Stop all running async tasks."""
+    async def stop(self, msg: str | None = None) -> None:
+        """Stop this actor.
+
+        Args:
+            msg: The message to be passed to the tasks being cancelled.
+        """
         await self._all_battery_status.stop()
-        await self._stop()  # type: ignore # pylint: disable=no-member
+        await super().stop(msg)

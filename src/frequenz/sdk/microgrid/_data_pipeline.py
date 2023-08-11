@@ -270,6 +270,8 @@ class _DataPipeline:
             await self._data_sourcing_actor.actor.start()
         if self._resampling_actor:
             await self._resampling_actor.actor.start()
+        # The power distributing actor is started lazily when the first battery pool is
+        # created.
 
     async def _stop(self) -> None:
         """Stop the data pipeline actors."""
@@ -277,6 +279,8 @@ class _DataPipeline:
             await self._data_sourcing_actor.actor.stop()
         if self._resampling_actor:
             await self._resampling_actor.actor.stop()
+        if self._power_distributing_actor:
+            await self._power_distributing_actor.stop()
 
 
 _DATA_PIPELINE: _DataPipeline | None = None
