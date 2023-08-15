@@ -9,11 +9,7 @@ from ....microgrid import connection_manager
 from ....microgrid.component import ComponentCategory, ComponentMetricId
 from ..._quantities import Power
 from .._formula_engine import FormulaEngine
-from ._formula_generator import (
-    NON_EXISTING_COMPONENT_ID,
-    ComponentNotFound,
-    FormulaGenerator,
-)
+from ._formula_generator import NON_EXISTING_COMPONENT_ID, FormulaGenerator
 
 
 class ProducerPowerFormula(FormulaGenerator[Power]):
@@ -39,19 +35,7 @@ class ProducerPowerFormula(FormulaGenerator[Power]):
             "producer_power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
         )
         component_graph = connection_manager.get().component_graph
-        grid_component = next(
-            iter(
-                component_graph.components(component_category={ComponentCategory.GRID})
-            ),
-            None,
-        )
-
-        if grid_component is None:
-            raise ComponentNotFound("Grid component not found in the component graph.")
-
-        grid_successors = component_graph.successors(grid_component.component_id)
-        if not grid_successors:
-            raise ComponentNotFound("No components found in the component graph.")
+        grid_successors = self._get_grid_component_successors()
 
         if len(grid_successors) == 1:
             grid_meter = next(iter(grid_successors))
