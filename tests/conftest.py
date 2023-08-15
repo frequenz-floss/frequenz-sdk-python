@@ -4,7 +4,7 @@
 """Setup for all the tests."""
 import pytest
 
-from frequenz.sdk.actor import _actor, _decorator
+from frequenz.sdk.actor import _actor
 
 # Used to impose a hard time limit for some async tasks in tests so that tests don't
 # run forever in case of a bug
@@ -23,5 +23,4 @@ def disable_actor_auto_restart():  # type: ignore
     Note: Test class must derive after unittest.IsolatedAsyncioTestCase.
     Otherwise this fixture won't run.
     """
-    _decorator.BaseActor.restart_limit = 0
     _actor.Actor._restart_limit = 0  # pylint: disable=protected-access
