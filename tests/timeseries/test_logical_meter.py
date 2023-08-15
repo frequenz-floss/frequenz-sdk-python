@@ -191,6 +191,28 @@ class TestLogicalMeter:
             await pv_consumption_power_receiver.receive()
         ).value == Power.from_watts(0.0)
 
+    async def test_pv_power_no_meter(self, mocker: MockerFixture) -> None:
+        """Test the pv power formula."""
+        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid.add_solar_inverters(2, no_meter=True)
+        await mockgrid.start(mocker)
+
+        logical_meter = microgrid.logical_meter()
+        pv_power_receiver = logical_meter.pv_power.new_receiver()
+        pv_production_power_receiver = logical_meter.pv_production_power.new_receiver()
+        pv_consumption_power_receiver = (
+            logical_meter.pv_consumption_power.new_receiver()
+        )
+
+        await mockgrid.mock_resampler.send_pv_inverter_power([-1.0, -2.0])
+        assert (await pv_power_receiver.receive()).value == Power.from_watts(-3.0)
+        assert (await pv_production_power_receiver.receive()).value == Power.from_watts(
+            3.0
+        )
+        assert (
+            await pv_consumption_power_receiver.receive()
+        ).value == Power.from_watts(0.0)
+
     async def test_consumer_power_grid_meter(self, mocker: MockerFixture) -> None:
         """Test the consumer power formula with a grid meter."""
         mockgrid = MockMicrogrid(grid_side_meter=True)

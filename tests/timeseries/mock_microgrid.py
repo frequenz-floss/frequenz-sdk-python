@@ -295,26 +295,20 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                 self._connections.add(Connection(meter_id, inv_id))
             self._connections.add(Connection(inv_id, bat_id))
 
-    def add_solar_inverters(self, count: int) -> None:
+    def add_solar_inverters(self, count: int, no_meter: bool = False) -> None:
         """Add pv inverters and connected pv meters to the microgrid.
 
         Args:
             count: number of inverters to add to the microgrid.
+            no_meter: if True, do not add a meter for each inverter.
         """
         for _ in range(count):
             meter_id = self._id_increment * 10 + self.meter_id_suffix
             inv_id = self._id_increment * 10 + self.inverter_id_suffix
             self._id_increment += 1
 
-            self.meter_ids.append(meter_id)
             self.pv_inverter_ids.append(inv_id)
 
-            self._components.add(
-                Component(
-                    meter_id,
-                    ComponentCategory.METER,
-                )
-            )
             self._components.add(
                 Component(
                     inv_id,
@@ -323,9 +317,20 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                 )
             )
             self._start_inverter_streaming(inv_id)
-            self._start_meter_streaming(meter_id)
-            self._connections.add(Connection(self._connect_to, meter_id))
-            self._connections.add(Connection(meter_id, inv_id))
+
+            if no_meter:
+                self._connections.add(Connection(self._connect_to, inv_id))
+            else:
+                self.meter_ids.append(meter_id)
+                self._components.add(
+                    Component(
+                        meter_id,
+                        ComponentCategory.METER,
+                    )
+                )
+                self._start_meter_streaming(meter_id)
+                self._connections.add(Connection(self._connect_to, meter_id))
+                self._connections.add(Connection(meter_id, inv_id))
 
     def add_ev_chargers(self, count: int) -> None:
         """Add EV Chargers to the microgrid.

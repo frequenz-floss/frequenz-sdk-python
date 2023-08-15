@@ -145,6 +145,13 @@ class MockResampler:
             sample = Sample(self._next_ts, None if not value else Quantity(value))
             await chan.send(sample)
 
+    async def send_pv_inverter_power(self, values: list[float | None]) -> None:
+        """Send the given values as resampler output for PV Inverter power."""
+        assert len(values) == len(self._pv_inverter_power_senders)
+        for chan, value in zip(self._pv_inverter_power_senders, values):
+            sample = Sample(self._next_ts, None if not value else Quantity(value))
+            await chan.send(sample)
+
     async def send_evc_power(self, values: list[float | None]) -> None:
         """Send the given values as resampler output for EV Charger power."""
         assert len(values) == len(self._ev_power_senders)

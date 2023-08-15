@@ -9,15 +9,10 @@ import logging
 from collections import abc
 
 from ....microgrid import connection_manager
-from ....microgrid.component import ComponentCategory, ComponentMetricId, InverterType
+from ....microgrid.component import ComponentCategory, ComponentMetricId
 from ..._quantities import Power
 from .._formula_engine import FormulaEngine
-from ._formula_generator import (
-    NON_EXISTING_COMPONENT_ID,
-    FormulaGenerationError,
-    FormulaGenerator,
-    FormulaType,
-)
+from ._formula_generator import NON_EXISTING_COMPONENT_ID, FormulaGenerator, FormulaType
 
 _logger = logging.getLogger(__name__)
 
@@ -38,8 +33,8 @@ class PVPowerFormula(FormulaGenerator[Power]):
             "pv-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
         )
 
-        pv_meters = self._get_pv_meters()
-        if not pv_meters:
+        pv_components = self._get_pv_power_components()
+        if not pv_components:
             _logger.warning(
                 "Unable to find any PV inverters in the component graph. "
                 "Subscribing to the resampling actor with a non-existing "
@@ -55,7 +50,7 @@ class PVPowerFormula(FormulaGenerator[Power]):
 
         builder.push_oper("(")
         builder.push_oper("(")
-        for idx, comp_id in enumerate(pv_meters):
+        for idx, comp_id in enumerate(pv_components):
             if idx > 0:
                 builder.push_oper("+")
 
@@ -71,39 +66,30 @@ class PVPowerFormula(FormulaGenerator[Power]):
 
         return builder.build()
 
-    def _get_pv_meters(self) -> abc.Set[int]:
+    def _get_pv_power_components(self) -> abc.Set[int]:
+        """Get the component ids of the PV inverters or meters in the component graph.
+
+        Returns:
+            A set of component ids of the PV inverters or meters in the component graph.
+
+        Raises:
+            RuntimeError: if the grid component has no PV inverters or meters as successors.
+        """
         component_graph = connection_manager.get().component_graph
+        grid_successors = self._get_grid_component_successors()
 
-        pv_inverters = list(
-            comp
-            for comp in component_graph.components()
-            if comp.category == ComponentCategory.INVERTER
-            and comp.type == InverterType.SOLAR
-        )
-        pv_meters: set[int] = set()
+        if len(grid_successors) == 1:
+            successor = next(iter(grid_successors))
+            if successor.category != ComponentCategory.METER:
+                raise RuntimeError(
+                    "Only grid successor in the component graph is not a meter."
+                )
+            grid_successors = component_graph.successors(successor.component_id)
 
-        if not pv_inverters:
-            return pv_meters
+        pv_meters_or_inverters: set[int] = set()
 
-        for pv_inverter in pv_inverters:
-            predecessors = component_graph.predecessors(pv_inverter.component_id)
-            if len(predecessors) != 1:
-                raise FormulaGenerationError(
-                    "Expected exactly one predecessor for PV inverter "
-                    f"{pv_inverter.component_id}, but found {len(predecessors)}."
-                )
-            meter = next(iter(predecessors))
-            if meter.category != ComponentCategory.METER:
-                raise FormulaGenerationError(
-                    f"Expected predecessor of PV inverter {pv_inverter.component_id} "
-                    f"to be a meter, but found {meter.category}."
-                )
-            meter_successors = component_graph.successors(meter.component_id)
-            if len(meter_successors) != 1:
-                raise FormulaGenerationError(
-                    f"Expected exactly one successor for meter {meter.component_id}"
-                    f", connected to PV inverter {pv_inverter.component_id}"
-                    f", but found {len(meter_successors)}."
-                )
-            pv_meters.add(meter.component_id)
-        return pv_meters
+        for successor in grid_successors:
+            if component_graph.is_pv_chain(successor):
+                pv_meters_or_inverters.add(successor.component_id)
+
+        return pv_meters_or_inverters
