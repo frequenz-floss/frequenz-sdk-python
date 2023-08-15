@@ -5,11 +5,10 @@
 from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.channels.util import select, selected_from
 
-from frequenz.sdk.actor import actor, run
+from frequenz.sdk.actor import Actor, run
 
 
-@actor
-class FaultyActor:
+class FaultyActor(Actor):
     """A faulty actor that crashes as soon as it receives a message."""
 
     def __init__(
@@ -23,17 +22,16 @@ class FaultyActor:
             name: Name of the actor.
             recv: A channel receiver for int data.
         """
-        self.name = name
+        super().__init__(name=name)
         self._recv = recv
 
-    async def run(self) -> None:
+    async def _run(self) -> None:
         """Start the actor and crash upon receiving a message"""
         async for msg in self._recv:
             _ = msg / 0
 
 
-@actor
-class EchoActor:
+class EchoActor(Actor):
     """An echo actor that whatever it receives into the output channel."""
 
     def __init__(
@@ -50,13 +48,12 @@ class EchoActor:
             recv1 (Receiver[bool]): A channel receiver for test boolean data.
             recv2 (Receiver[bool]): A channel receiver for test boolean data.
         """
-        self.name = name
-
+        super().__init__(name=name)
         self._recv1 = recv1
         self._recv2 = recv2
         self._output = output
 
-    async def run(self) -> None:
+    async def _run(self) -> None:
         """Do computations depending on the selected input message.
 
         Args:
@@ -81,26 +78,23 @@ async def test_basic_actor() -> None:
 
     echo_chan: Broadcast[bool] = Broadcast("echo output")
 
-    _echo_actor = EchoActor(
+    async with EchoActor(
         "EchoActor",
         input_chan_1.new_receiver(),
         input_chan_2.new_receiver(),
         echo_chan.new_sender(),
-    )
+    ):
+        echo_rx = echo_chan.new_receiver()
 
-    echo_rx = echo_chan.new_receiver()
+        await input_chan_1.new_sender().send(True)
 
-    await input_chan_1.new_sender().send(True)
+        msg = await echo_rx.receive()
+        assert msg is True
 
-    msg = await echo_rx.receive()
-    assert msg is True
+        await input_chan_2.new_sender().send(False)
 
-    await input_chan_2.new_sender().send(False)
-
-    msg = await echo_rx.receive()
-    assert msg is False
-    # pylint: disable=protected-access,no-member
-    await _echo_actor._stop()  # type: ignore[attr-defined]
+        msg = await echo_rx.receive()
+        assert msg is False
 
 
 async def test_actor_does_not_restart() -> None:
