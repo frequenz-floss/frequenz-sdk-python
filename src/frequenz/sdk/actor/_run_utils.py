@@ -8,6 +8,7 @@ import asyncio
 import logging
 from typing import Any
 
+from ._actor import Actor
 from ._decorator import BaseActor
 
 _logger = logging.getLogger(__name__)
@@ -22,14 +23,20 @@ async def run(*actors: Any) -> None:
     Raises:
         AssertionError: if any of the actors is not an instance of BaseActor.
     """
-    # Check that each actor is an instance of BaseActor at runtime,
+    pending_tasks: set[asyncio.Task[Any]] = set()
+
+    # Check that each actor is an instance of BaseActor or Actor at runtime,
     # due to the indirection created by the actor decorator.
     for actor in actors:
-        assert isinstance(actor, BaseActor), f"{actor} is not an instance of BaseActor"
-
-    pending_tasks = set()
-    for actor in actors:
-        pending_tasks.add(asyncio.create_task(actor.join(), name=str(actor)))
+        if isinstance(actor, Actor):
+            await actor.start()
+            awaitable = actor.wait()
+        else:
+            assert isinstance(
+                actor, BaseActor
+            ), f"{actor} is not an instance of BaseActor or Actor"
+            awaitable = actor.join()  # type: ignore
+        pending_tasks.add(asyncio.create_task(awaitable, name=str(actor)))
 
     # Currently the actor decorator manages the life-cycle of the actor tasks
     while pending_tasks:
