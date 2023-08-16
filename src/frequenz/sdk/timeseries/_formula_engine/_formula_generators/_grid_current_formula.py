@@ -5,11 +5,10 @@
 
 from typing import Set
 
-from ....microgrid import connection_manager
 from ....microgrid.component import Component, ComponentCategory, ComponentMetricId
 from ..._quantities import Current
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase
-from ._formula_generator import ComponentNotFound, FormulaGenerator
+from ._formula_generator import FormulaGenerator
 
 
 class GridCurrentFormula(FormulaGenerator[Current]):
@@ -24,22 +23,7 @@ class GridCurrentFormula(FormulaGenerator[Current]):
         Raises:
             ComponentNotFound: when the component graph doesn't have a `GRID` component.
         """
-        component_graph = connection_manager.get().component_graph
-        grid_component = next(
-            (
-                comp
-                for comp in component_graph.components()
-                if comp.category == ComponentCategory.GRID
-            ),
-            None,
-        )
-
-        if grid_component is None:
-            raise ComponentNotFound(
-                "Unable to find a GRID component from the component graph."
-            )
-
-        grid_successors = component_graph.successors(grid_component.component_id)
+        grid_successors = self._get_grid_component_successors()
 
         return FormulaEngine3Phase(
             "grid-current",

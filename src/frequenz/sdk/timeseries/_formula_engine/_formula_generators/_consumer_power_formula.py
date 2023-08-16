@@ -37,20 +37,9 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
         builder = self._get_builder(
             "consumer-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
         )
-        component_graph = connection_manager.get().component_graph
-        grid_component = next(
-            (
-                comp
-                for comp in component_graph.components()
-                if comp.category == ComponentCategory.GRID
-            ),
-            None,
-        )
 
-        if grid_component is None:
-            raise ComponentNotFound("Grid component not found in the component graph.")
+        grid_successors = self._get_grid_component_successors()
 
-        grid_successors = component_graph.successors(grid_component.component_id)
         if not grid_successors:
             raise ComponentNotFound("No components found in the component graph.")
 

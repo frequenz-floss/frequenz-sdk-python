@@ -3,11 +3,10 @@
 
 """Formula generator from component graph for Grid Power."""
 
-from ....microgrid import connection_manager
 from ....microgrid.component import ComponentCategory, ComponentMetricId
 from ..._quantities import Power
 from .._formula_engine import FormulaEngine
-from ._formula_generator import ComponentNotFound, FormulaGenerator, FormulaType
+from ._formula_generator import FormulaGenerator, FormulaType
 
 
 class GridPowerFormula(FormulaGenerator[Power]):
@@ -27,22 +26,7 @@ class GridPowerFormula(FormulaGenerator[Power]):
         builder = self._get_builder(
             "grid-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
         )
-        component_graph = connection_manager.get().component_graph
-        grid_component = next(
-            (
-                comp
-                for comp in component_graph.components()
-                if comp.category == ComponentCategory.GRID
-            ),
-            None,
-        )
-
-        if grid_component is None:
-            raise ComponentNotFound(
-                "Unable to find a GRID component from the component graph."
-            )
-
-        grid_successors = component_graph.successors(grid_component.component_id)
+        grid_successors = self._get_grid_component_successors()
 
         # generate a formula that just adds values from all commponents that are
         # directly connected to the grid.  If the requested formula type is
