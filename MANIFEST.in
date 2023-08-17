@@ -1,4 +1,5 @@
 exclude .darglint
+exclude .editorconfig
 exclude .gitignore
 exclude CODEOWNERS
 exclude minimum-requirements-ci.txt
