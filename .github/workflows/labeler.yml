@@ -21,3 +21,4 @@ jobs:
         uses: actions/labeler@ac9175f8a1f3625fd0d4fb234536d26811351594  # 4.3.0
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          dot: true
