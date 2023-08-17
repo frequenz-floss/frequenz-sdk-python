@@ -79,7 +79,7 @@ class ComponentMetricsResamplingActor:
 
         # This is a temporary hack until the Sender implementation uses
         # exceptions to report errors.
-        sender = self._channel_registry.new_sender(request.get_channel_name())
+        sender = self._channel_registry.new_sender(request_channel_name)
 
         async def sink_adapter(sample: Sample[Quantity]) -> None:
             await sender.send(sample)
