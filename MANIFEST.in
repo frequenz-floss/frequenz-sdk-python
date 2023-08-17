@@ -1,11 +1,13 @@
+exclude .cookiecutter-replay.json
 exclude .darglint
 exclude .editorconfig
 exclude .gitignore
 exclude CODEOWNERS
-exclude minimum-requirements-ci.txt
+exclude CONTRIBUTING.md
+exclude mkdocs.yml
 exclude noxfile.py
 exclude src/conftest.py
 recursive-exclude .github *
-recursive-exclude benchmarks *
-recursive-exclude examples *
+recursive-exclude docs *
 recursive-exclude tests *
+recursive-include py *.pyi
