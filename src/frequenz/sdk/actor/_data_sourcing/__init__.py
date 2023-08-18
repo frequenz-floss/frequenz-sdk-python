@@ -3,8 +3,8 @@
 
 """The DataSourcingActor."""
 
+from ._component_metric_request import ComponentMetricRequest
 from .data_sourcing import DataSourcingActor
-from .microgrid_api_source import ComponentMetricRequest
 
 __all__ = [
     "ComponentMetricRequest",
