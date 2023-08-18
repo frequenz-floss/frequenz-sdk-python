@@ -3,7 +3,7 @@
 
 [build-system]
 requires = [
-  "setuptools == 67.7.2",
+  "setuptools == 68.1.0",
   "setuptools_scm[toml] == 7.1.0",
   "frequenz-repo-config[lib] == 0.5.2",
 ]
