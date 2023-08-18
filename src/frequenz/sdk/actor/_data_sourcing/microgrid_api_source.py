@@ -75,6 +75,7 @@ _MeterDataMethods: Dict[ComponentMetricId, Callable[[MeterData], float]] = {
     ComponentMetricId.VOLTAGE_PHASE_1: lambda msg: msg.voltage_per_phase[0],
     ComponentMetricId.VOLTAGE_PHASE_2: lambda msg: msg.voltage_per_phase[1],
     ComponentMetricId.VOLTAGE_PHASE_3: lambda msg: msg.voltage_per_phase[2],
+    ComponentMetricId.FREQUENCY: lambda msg: msg.frequency,
 }
 
 _BatteryDataMethods: Dict[ComponentMetricId, Callable[[BatteryData], float]] = {
@@ -111,6 +112,7 @@ _InverterDataMethods: Dict[ComponentMetricId, Callable[[InverterData], float]] =
     ComponentMetricId.ACTIVE_POWER_INCLUSION_UPPER_BOUND: lambda msg: (
         msg.active_power_inclusion_upper_bound
     ),
+    ComponentMetricId.FREQUENCY: lambda msg: msg.frequency,
 }
 
 _EVChargerDataMethods: Dict[ComponentMetricId, Callable[[EVChargerData], float]] = {
@@ -121,6 +123,7 @@ _EVChargerDataMethods: Dict[ComponentMetricId, Callable[[EVChargerData], float]]
     ComponentMetricId.VOLTAGE_PHASE_1: lambda msg: msg.voltage_per_phase[0],
     ComponentMetricId.VOLTAGE_PHASE_2: lambda msg: msg.voltage_per_phase[1],
     ComponentMetricId.VOLTAGE_PHASE_3: lambda msg: msg.voltage_per_phase[2],
+    ComponentMetricId.FREQUENCY: lambda msg: msg.frequency,
 }
 
 
