@@ -17,6 +17,8 @@ from dataclasses import dataclass
 
 from frequenz.channels import Broadcast, Sender
 
+from ..microgrid.component import Component
+from ..timeseries._grid_frequency import GridFrequency
 from . import connection_manager
 from .component import ComponentCategory
 
@@ -101,6 +103,29 @@ class _DataPipeline:
         self._logical_meter: "LogicalMeter" | None = None
         self._ev_charger_pools: dict[frozenset[int], "EVChargerPool"] = {}
         self._battery_pools: dict[frozenset[int], "BatteryPool"] = {}
+        self._frequency_pool: dict[int, GridFrequency] = {}
+
+    def frequency(self, component: Component | None = None) -> GridFrequency:
+        """Fetch the grid frequency for the microgrid.
+
+        Args:
+            component: The component to use when fetching the grid frequency.  If None,
+                the component will be fetched from the registry.
+
+        Returns:
+            A GridFrequency instance.
+        """
+        if component is None:
+            component = GridFrequency.find_frequency_component()
+
+        if component.component_id in self._frequency_pool:
+            return self._frequency_pool[component.component_id]
+
+        grid_frequency = GridFrequency(
+            self._data_sourcing_request_sender(), self._channel_registry, component
+        )
+        self._frequency_pool[component.component_id] = grid_frequency
+        return grid_frequency
 
     def logical_meter(self) -> LogicalMeter:
         """Return the logical meter instance.
@@ -294,6 +319,19 @@ async def initialize(resampler_config: ResamplerConfig) -> None:
     if _DATA_PIPELINE is not None:
         raise RuntimeError("DataPipeline is already initialized.")
     _DATA_PIPELINE = _DataPipeline(resampler_config)
+
+
+def frequency(component: Component | None = None) -> GridFrequency:
+    """Return the grid frequency.
+
+    Args:
+        component: Optional component to get the frequency for. If not specified,
+            the frequency of the grid is returned.
+
+    Returns:
+        The grid frequency.
+    """
+    return _get().frequency(component)
 
 
 def logical_meter() -> LogicalMeter:
