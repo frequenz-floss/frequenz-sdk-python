@@ -267,6 +267,21 @@ class TestLogicalMeter:
         await mockgrid.mock_resampler.send_meter_power([20.0, 2.0, 3.0, 4.0, 5.0])
         assert (await consumer_power_receiver.receive()).value == Power.from_watts(20.0)
 
+    async def test_consumer_power_no_grid_meter_no_consumer_meter(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test the consumer power formula without a grid meter."""
+        mockgrid = MockMicrogrid(grid_meter=False)
+        mockgrid.add_batteries(2)
+        mockgrid.add_solar_inverters(2)
+        await mockgrid.start(mocker)
+
+        logical_meter = microgrid.logical_meter()
+        consumer_power_receiver = logical_meter.consumer_power.new_receiver()
+
+        await mockgrid.mock_resampler.send_non_existing_component_value()
+        assert (await consumer_power_receiver.receive()).value == Power.from_watts(0.0)
+
     async def test_producer_power(self, mocker: MockerFixture) -> None:
         """Test the producer power formula."""
         mockgrid = MockMicrogrid(grid_meter=False)
