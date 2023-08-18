@@ -40,7 +40,7 @@ class PVPowerFormula(FormulaGenerator[Power]):
                 "Subscribing to the resampling actor with a non-existing "
                 "component id, so that `0` values are sent from the formula."
             )
-            # If there are no PV inverters, we have to send 0 values as the same
+            # If there are no PV inverters, we have to send 0 values at the same
             # frequency as the other streams.  So we subscribe with a non-existing
             # component id, just to get a `None` message at the resampling interval.
             builder.push_component_metric(
