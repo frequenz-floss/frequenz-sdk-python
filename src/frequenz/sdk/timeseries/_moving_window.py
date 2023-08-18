@@ -16,7 +16,7 @@ import numpy as np
 from frequenz.channels import Broadcast, Receiver, Sender
 from numpy.typing import ArrayLike
 
-from .._internal._asyncio import cancel_and_await
+from ..actor._background_service import BackgroundService
 from ._base_types import UNIX_EPOCH, Sample
 from ._quantities import Quantity
 from ._resampling import Resampler, ResamplerConfig
@@ -25,7 +25,7 @@ from ._ringbuffer import OrderedRingBuffer
 _logger = logging.getLogger(__name__)
 
 
-class MovingWindow:
+class MovingWindow(BackgroundService):
     """
     A data window that moves with the latest datapoints of a data stream.
 
@@ -72,22 +72,21 @@ class MovingWindow:
 
             send_task = asyncio.create_task(send_mock_data(resampled_data_sender))
 
-            window = MovingWindow(
+            async with MovingWindow(
                 size=timedelta(seconds=5),
                 resampled_data_recv=resampled_data_receiver,
                 input_sampling_period=timedelta(seconds=1),
-            )
+            ) as window:
+                time_start = datetime.now(tz=timezone.utc)
+                time_end = time_start + timedelta(seconds=5)
 
-            time_start = datetime.now(tz=timezone.utc)
-            time_end = time_start + timedelta(seconds=5)
+                # ... wait for 5 seconds until the buffer is filled
+                await asyncio.sleep(5)
 
-            # ... wait for 5 seconds until the buffer is filled
-            await asyncio.sleep(5)
-
-            # return an numpy array from the window
-            array = window[time_start:time_end]
-            # and use it to for example calculate the mean
-            mean = array.mean()
+                # return an numpy array from the window
+                array = window[time_start:time_end]
+                # and use it to for example calculate the mean
+                mean = array.mean()
 
         asyncio.run(run())
         ```
@@ -112,19 +111,18 @@ class MovingWindow:
 
             # create a window that stores two days of data
             # starting at 1.1.23 with samplerate=1
-            window = MovingWindow(
+            async with MovingWindow(
                 size=timedelta(days=2),
                 resampled_data_recv=resampled_data_receiver,
                 input_sampling_period=timedelta(seconds=1),
-            )
+            ) as window:
+                # wait for one full day until the buffer is filled
+                await asyncio.sleep(60*60*24)
 
-            # wait for one full day until the buffer is filled
-            await asyncio.sleep(60*60*24)
-
-            # create a polars series with one full day of data
-            time_start = datetime(2023, 1, 1, tzinfo=timezone.utc)
-            time_end = datetime(2023, 1, 2, tzinfo=timezone.utc)
-            series = pl.Series("Jan_1", window[time_start:time_end])
+                # create a polars series with one full day of data
+                time_start = datetime(2023, 1, 1, tzinfo=timezone.utc)
+                time_end = datetime(2023, 1, 2, tzinfo=timezone.utc)
+                series = pl.Series("Jan_1", window[time_start:time_end])
 
         asyncio.run(run())
         ```
@@ -137,6 +135,8 @@ class MovingWindow:
         input_sampling_period: timedelta,
         resampler_config: ResamplerConfig | None = None,
         align_to: datetime = UNIX_EPOCH,
+        *,
+        name: str | None = None,
     ) -> None:
         """
         Initialize the MovingWindow.
@@ -154,9 +154,8 @@ class MovingWindow:
             align_to: A datetime object that defines a point in time to which
                 the window is aligned to modulo window size. For further
                 information, consult the class level documentation.
-
-        Raises:
-            asyncio.CancelledError: when the task gets cancelled.
+            name: The name of this moving window. If `None`, `str(id(self))` will be
+                used. This is used mostly for debugging purposes.
         """
         assert (
             input_sampling_period.total_seconds() > 0
@@ -164,12 +163,12 @@ class MovingWindow:
         assert (
             input_sampling_period <= size
         ), "The input sampling period should be equal to or lower than the window size."
+        super().__init__(name=name)
 
         self._sampling_period = input_sampling_period
 
         self._resampler: Resampler | None = None
         self._resampler_sender: Sender[Sample[Quantity]] | None = None
-        self._resampler_task: asyncio.Task[None] | None = None
 
         if resampler_config:
             assert (
@@ -191,12 +190,14 @@ class MovingWindow:
             align_to=align_to,
         )
 
+    async def start(self) -> None:
+        """Start the MovingWindow.
+
+        This method starts the MovingWindow tasks.
+        """
         if self._resampler:
             self._configure_resampler()
-
-        self._update_window_task: asyncio.Task[None] = asyncio.create_task(
-            self._run_impl()
-        )
+        self._tasks.add(asyncio.create_task(self._run_impl(), name="update-window"))
 
     @property
     def sampling_period(self) -> timedelta:
@@ -228,12 +229,6 @@ class MovingWindow:
 
         _logger.error("Channel has been closed")
 
-    async def stop(self) -> None:
-        """Cancel the running tasks and stop the MovingWindow."""
-        await cancel_and_await(self._update_window_task)
-        if self._resampler_task:
-            await cancel_and_await(self._resampler_task)
-
     def _configure_resampler(self) -> None:
         """Configure the components needed to run the resampler."""
         assert self._resampler is not None
@@ -247,7 +242,9 @@ class MovingWindow:
         self._resampler.add_timeseries(
             "avg", resampler_channel.new_receiver(), sink_buffer
         )
-        self._resampler_task = asyncio.create_task(self._resampler.resample())
+        self._tasks.add(
+            asyncio.create_task(self._resampler.resample(), name="resample")
+        )
 
     def __len__(self) -> int:
         """

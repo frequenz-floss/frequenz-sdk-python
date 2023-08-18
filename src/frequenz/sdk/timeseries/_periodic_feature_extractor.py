@@ -82,28 +82,27 @@ class PeriodicFeatureExtractor:
         from frequenz.sdk import microgrid
         from datetime import datetime, timedelta, timezone
 
-        moving_window = MovingWindow(
+        async with MovingWindow(
             size=timedelta(days=35),
             resampled_data_recv=microgrid.logical_meter().grid_power.new_receiver(),
             input_sampling_period=timedelta(seconds=1),
-        )
+        ) as moving_window:
+            feature_extractor = PeriodicFeatureExtractor(
+                moving_window=moving_window,
+                period=timedelta(days=7),
+            )
 
-        feature_extractor = PeriodicFeatureExtractor(
-            moving_window = moving_window,
-            period=timedelta(days=7),
-        )
+            now = datetime.now(timezone.utc)
 
-        now = datetime.now(timezone.utc)
+            # create a daily weighted average for the next 24h
+            avg_24h = feature_extractor.avg(
+                now,
+                now + timedelta(hours=24),
+                weights=[0.1, 0.2, 0.3, 0.4]
+            )
 
-        # create a daily weighted average for the next 24h
-        avg_24h = feature_extractor.avg(
-            now,
-            now + timedelta(hours=24),
-            weights=[0.1, 0.2, 0.3, 0.4]
-        )
-
-        # create a daily average for Thursday March 23 2023
-        th_avg_24h = feature_extractor.avg(datetime(2023, 3, 23), datetime(2023, 3, 24))
+            # create a daily average for Thursday March 23 2023
+            th_avg_24h = feature_extractor.avg(datetime(2023, 3, 23), datetime(2023, 3, 24))
         ```
     """
 

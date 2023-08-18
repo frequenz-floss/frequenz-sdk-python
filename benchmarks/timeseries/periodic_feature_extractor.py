@@ -12,6 +12,8 @@ implementation.
 from __future__ import annotations
 
 import asyncio
+import collections.abc
+import contextlib
 import logging
 from datetime import datetime, timedelta, timezone
 from functools import partial
@@ -27,19 +29,23 @@ from frequenz.sdk.timeseries import MovingWindow, PeriodicFeatureExtractor, Samp
 from frequenz.sdk.timeseries._quantities import Quantity
 
 
-async def init_feature_extractor(period: int) -> PeriodicFeatureExtractor:
+@contextlib.asynccontextmanager
+async def init_feature_extractor(
+    period: int,
+) -> collections.abc.AsyncIterator[PeriodicFeatureExtractor]:
     """Initialize the PeriodicFeatureExtractor class."""
     # We only need the moving window to initialize the PeriodicFeatureExtractor class.
     lm_chan = Broadcast[Sample[Quantity]]("lm_net_power")
-    moving_window = MovingWindow(
+    async with MovingWindow(
         timedelta(seconds=1), lm_chan.new_receiver(), timedelta(seconds=1)
-    )
+    ) as moving_window:
+        await lm_chan.new_sender().send(
+            Sample(datetime.now(tz=timezone.utc), Quantity(0))
+        )
 
-    await lm_chan.new_sender().send(Sample(datetime.now(tz=timezone.utc), Quantity(0)))
-
-    # Initialize the PeriodicFeatureExtractor class with a period of period seconds.
-    # This works since the sampling period is set to 1 second.
-    return PeriodicFeatureExtractor(moving_window, timedelta(seconds=period))
+        # Initialize the PeriodicFeatureExtractor class with a period of period seconds.
+        # This works since the sampling period is set to 1 second.
+        yield PeriodicFeatureExtractor(moving_window, timedelta(seconds=period))
 
 
 def _calculate_avg_window(
@@ -211,22 +217,22 @@ async def main() -> None:
 
     # create a random ndarray with 29 days -5 seconds of data
     days_29_s = 29 * DAY_S
-    feature_extractor = await init_feature_extractor(10)
-    data = rng.standard_normal(days_29_s)
-    run_benchmark(data, 4, feature_extractor)
+    async with init_feature_extractor(10) as feature_extractor:
+        data = rng.standard_normal(days_29_s)
+        run_benchmark(data, 4, feature_extractor)
 
-    days_29_s = 29 * DAY_S + 3
-    data = rng.standard_normal(days_29_s)
-    run_benchmark(data, 4, feature_extractor)
+        days_29_s = 29 * DAY_S + 3
+        data = rng.standard_normal(days_29_s)
+        run_benchmark(data, 4, feature_extractor)
 
-    # create a random ndarray with 29 days +5 seconds of data
-    data = rng.standard_normal(29 * DAY_S + 5)
+        # create a random ndarray with 29 days +5 seconds of data
+        data = rng.standard_normal(29 * DAY_S + 5)
 
-    feature_extractor = await init_feature_extractor(7 * DAY_S)
-    # TEST one day window and 6 days distance. COPY (Case 3)
-    run_benchmark(data, DAY_S, feature_extractor)
-    # benchmark one day window and 6 days distance. NO COPY (Case 1)
-    run_benchmark(data[: 28 * DAY_S], DAY_S, feature_extractor)
+    async with init_feature_extractor(7 * DAY_S) as feature_extractor:
+        # TEST one day window and 6 days distance. COPY (Case 3)
+        run_benchmark(data, DAY_S, feature_extractor)
+        # benchmark one day window and 6 days distance. NO COPY (Case 1)
+        run_benchmark(data[: 28 * DAY_S], DAY_S, feature_extractor)
 
 
 logging.basicConfig(level=logging.DEBUG)
