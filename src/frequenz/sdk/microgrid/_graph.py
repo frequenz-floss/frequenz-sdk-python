@@ -266,6 +266,29 @@ class ComponentGraph(ABC):
             Whether the specified component is part of a CHP chain.
         """
 
+    @abstractmethod
+    def dfs(
+        self,
+        current_node: Component,
+        visited: Set[Component],
+        condition: Callable[[Component], bool],
+    ) -> Set[Component]:
+        """
+        Search for components that fulfill the condition in the Graph.
+
+        DFS is used for searching the graph. The graph travarsal is stopped
+        once a component fulfills the condition.
+
+        Args:
+            current_node: The current node to search from.
+            visited: The set of visited nodes.
+            condition: The condition function to check for.
+
+        Returns:
+            A set of component ids where the coresponding components fulfill
+            the condition function.
+        """
+
 
 class _MicrogridComponentGraph(ComponentGraph):
     """ComponentGraph implementation designed to work with the microgrid API.
@@ -687,6 +710,42 @@ class _MicrogridComponentGraph(ComponentGraph):
             Whether the specified component is part of a CHP chain.
         """
         return self.is_chp(component) or self.is_chp_meter(component)
+
+    def dfs(
+        self,
+        current_node: Component,
+        visited: Set[Component],
+        condition: Callable[[Component], bool],
+    ) -> Set[Component]:
+        """
+        Search for components that fulfill the condition in the Graph.
+
+        DFS is used for searching the graph. The graph travarsal is stopped
+        once a component fulfills the condition.
+
+        Args:
+            current_node: The current node to search from.
+            visited: The set of visited nodes.
+            condition: The condition function to check for.
+
+        Returns:
+            A set of component ids where the coresponding components fulfill
+            the condition function.
+        """
+        if current_node in visited:
+            return set()
+
+        visited.add(current_node)
+
+        if condition(current_node):
+            return {current_node}
+
+        component: Set[Component] = set()
+
+        for successor in self.successors(current_node.component_id):
+            component.update(self.dfs(successor, visited, condition))
+
+        return component
 
     def _validate_graph(self) -> None:
         """Check that the underlying graph data is valid.
