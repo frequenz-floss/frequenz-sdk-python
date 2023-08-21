@@ -141,11 +141,22 @@ class BackgroundService(abc.ABC):
         Raises:
             BaseExceptionGroup: If any of the tasks spawned by this service raised an
                 exception.
+
+        # noqa: DAR401 rest
         """
         if not self._tasks:
             return
         self.cancel(msg)
-        await self.wait()
+        try:
+            await self.wait()
+        except BaseExceptionGroup as exc_group:
+            # We want to ignore CancelledError here as we explicitly cancelled all the
+            # tasks.
+            _, rest = exc_group.split(asyncio.CancelledError)
+            if rest is not None:
+                # We are filtering out from an exception group, we really don't want to
+                # add the exceptions we just filtered by adding a from clause here.
+                raise rest  # pylint: disable=raise-missing-from
 
     async def __aenter__(self) -> Self:
         """Enter an async context.
@@ -197,10 +208,12 @@ class BackgroundService(abc.ABC):
 
             exceptions: list[BaseException] = []
             for task in done:
-                if task.cancelled():
-                    continue
-                if exception := task.exception():
-                    exceptions.append(exception)
+                try:
+                    # This will raise a CancelledError if the task was cancelled or any
+                    # other exception if the task raised one.
+                    _ = task.result()
+                except BaseException as error:  # pylint: disable=broad-except
+                    exceptions.append(error)
             if exceptions:
                 raise BaseExceptionGroup(
                     f"Error while stopping background service {self}", exceptions
