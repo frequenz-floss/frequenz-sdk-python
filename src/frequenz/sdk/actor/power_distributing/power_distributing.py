@@ -273,56 +273,6 @@ class PowerDistributingActor:
             ),
         )
 
-    def _get_upper_bound(self, batteries: abc.Set[int], include_broken: bool) -> float:
-        """Get total upper bound of power to be set for given batteries.
-
-        Note, output of that function doesn't guarantee that this bound will be
-        the same when the request is processed.
-
-        Args:
-            batteries: List of batteries
-            include_broken: whether all batteries in the batteries set in the
-                request must be used regardless the status.
-
-        Returns:
-            Upper bound for `set_power` operation.
-        """
-        pairs_data: List[InvBatPair] = self._get_components_data(
-            batteries, include_broken
-        )
-        return sum(
-            min(
-                battery.power_inclusion_upper_bound,
-                inverter.active_power_inclusion_upper_bound,
-            )
-            for battery, inverter in pairs_data
-        )
-
-    def _get_lower_bound(self, batteries: abc.Set[int], include_broken: bool) -> float:
-        """Get total lower bound of power to be set for given batteries.
-
-        Note, output of that function doesn't guarantee that this bound will be
-        the same when the request is processed.
-
-        Args:
-            batteries: List of batteries
-            include_broken: whether all batteries in the batteries set in the
-                request must be used regardless the status.
-
-        Returns:
-            Lower bound for `set_power` operation.
-        """
-        pairs_data: List[InvBatPair] = self._get_components_data(
-            batteries, include_broken
-        )
-        return sum(
-            max(
-                battery.power_inclusion_lower_bound,
-                inverter.active_power_inclusion_lower_bound,
-            )
-            for battery, inverter in pairs_data
-        )
-
     async def _send_result(self, namespace: str, result: Result) -> None:
         """Send result to the user.
 
