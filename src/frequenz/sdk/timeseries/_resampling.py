@@ -815,7 +815,7 @@ class _StreamingHelper:
                 If the error is in the sink, the receiving part will continue
                 working while this helper is alive.
 
-        # noqa: DAR401 recv_exception
+        [//]: # (# noqa: DAR401 recv_exception)
         """
         if self._receiving_task.done():
             if recv_exception := self._receiving_task.exception():
