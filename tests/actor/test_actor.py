@@ -328,3 +328,54 @@ async def test_does_not_restart_on_base_exception(
         ),
         (*RUN_INFO, "All 1 actor(s) finished."),
     ]
+
+
+async def test_does_not_restart_if_cancelled(
+    actor_auto_restart_once: None,  # pylint: disable=unused-argument
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Create a faulty actor and expect it not to restart when cancelled."""
+    caplog.set_level("DEBUG", logger="frequenz.sdk.actor._actor")
+    caplog.set_level("DEBUG", logger="frequenz.sdk.actor._run_utils")
+
+    input_chan_1: Broadcast[bool] = Broadcast("TestChannel1")
+    input_chan_2: Broadcast[bool] = Broadcast("TestChannel2")
+
+    echo_chan: Broadcast[bool] = Broadcast("echo output")
+    echo_rx = echo_chan.new_receiver()
+
+    actor = EchoActor(
+        "EchoActor",
+        input_chan_1.new_receiver(),
+        input_chan_2.new_receiver(),
+        echo_chan.new_sender(),
+    )
+
+    async def cancel_actor() -> None:
+        """Cancel the actor after a short delay."""
+        await input_chan_1.new_sender().send(True)
+        msg = await echo_rx.receive()
+        assert msg is True
+        assert actor.is_running is True
+
+        await input_chan_2.new_sender().send(False)
+        msg = await echo_rx.receive()
+        assert msg is False
+
+        actor.cancel()
+
+    async with asyncio.timeout(1.0):
+        async with asyncio.TaskGroup() as group:
+            group.create_task(cancel_actor(), name="cancel")
+            await run(actor)
+
+    assert actor.is_running is False
+    assert BaseTestActor.restart_count == 0
+    assert caplog.record_tuples == [
+        (*RUN_INFO, "Starting 1 actor(s)..."),
+        (*ACTOR_INFO, "Actor EchoActor[EchoActor]: Starting..."),
+        (*RUN_INFO, "Actor EchoActor[EchoActor]: Started normally."),
+        (*ACTOR_INFO, "Actor EchoActor[EchoActor]: Cancelled."),
+        (*RUN_ERROR, "Actor EchoActor[EchoActor]: Raised an exception while running."),
+        (*RUN_INFO, "All 1 actor(s) finished."),
+    ]
