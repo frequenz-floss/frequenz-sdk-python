@@ -26,6 +26,7 @@ from typing import Any, Dict, Iterable, List, Optional, Self, Set, Tuple
 import grpc
 from frequenz.channels import Peekable, Receiver, Sender
 
+from ..._internal._math import is_close_to_zero
 from ...actor import ChannelRegistry
 from ...actor._decorator import actor
 from ...microgrid import ComponentGraph, connection_manager
@@ -329,6 +330,7 @@ class PowerDistributingActor:
             try:
                 distribution = self._get_power_distribution(request, pairs_data)
             except ValueError as err:
+                _logger.exception("Couldn't distribute power")
                 error_msg = f"Couldn't distribute power, error: {str(err)}"
                 await self._send_result(
                     request.namespace, Error(request=request, msg=str(error_msg))
@@ -475,6 +477,12 @@ class PowerDistributingActor:
                 return Error(request=request, msg=msg)
 
         bounds = self._get_bounds(pairs_data)
+
+        # Zero power requests are always forwarded to the microgrid API, even if they
+        # are outside the exclusion bounds.
+        if is_close_to_zero(request.power):
+            return None
+
         if request.adjust_power:
             # Automatic power adjustments can only bring down the requested power down
             # to the inclusion bounds.

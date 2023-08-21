@@ -401,6 +401,8 @@ class DistributionAlgorithm:
 
         for inverter_id, deficit in deficits.items():
             while not is_close_to_zero(deficit) and deficit < 0.0:
+                if not excess_reserved:
+                    break
                 take_from = max(excess_reserved.items(), key=lambda item: item[1])
                 if is_close_to_zero(take_from[1]) or take_from[1] < 0.0:
                     break
