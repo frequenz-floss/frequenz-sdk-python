@@ -44,3 +44,10 @@ def disable_actor_auto_restart() -> collections.abc.Iterator[None]:
     """Disable auto-restart of actors while running tests."""
     with actor_restart_limit(0):
         yield
+
+
+@pytest.fixture
+def actor_auto_restart_once() -> collections.abc.Iterator[None]:
+    """Make actors restart only once."""
+    with actor_restart_limit(1):
+        yield
