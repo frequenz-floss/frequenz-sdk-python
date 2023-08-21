@@ -43,7 +43,7 @@ from ._distribution_algorithm import (
     InvBatPair,
 )
 from .request import Request
-from .result import Error, OutOfBound, PartialFailure, PowerBounds, Result, Success
+from .result import Error, OutOfBounds, PartialFailure, PowerBounds, Result, Success
 
 _logger = logging.getLogger(__name__)
 
@@ -482,7 +482,7 @@ class PowerDistributingActor:
             # If the requested power is in the exclusion bounds, it is NOT possible to
             # increase it so that it is outside the exclusion bounds.
             if bounds.exclusion_lower < request.power < bounds.exclusion_upper:
-                return OutOfBound(request=request, bound=bounds)
+                return OutOfBounds(request=request, bounds=bounds)
         else:
             in_lower_range = (
                 bounds.inclusion_lower <= request.power <= bounds.exclusion_lower
@@ -491,7 +491,7 @@ class PowerDistributingActor:
                 bounds.exclusion_upper <= request.power <= bounds.inclusion_upper
             )
             if not (in_lower_range or in_upper_range):
-                return OutOfBound(request=request, bound=bounds)
+                return OutOfBounds(request=request, bounds=bounds)
 
         return None
 

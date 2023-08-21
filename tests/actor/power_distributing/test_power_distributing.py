@@ -25,7 +25,7 @@ from frequenz.sdk.actor.power_distributing import (
 from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
 from frequenz.sdk.actor.power_distributing.result import (
     Error,
-    OutOfBound,
+    OutOfBounds,
     PowerBounds,
     Result,
     Success,
@@ -448,10 +448,10 @@ class TestPowerDistributingActor:
         assert len(done) == 1
 
         result = done.pop().result()
-        assert isinstance(result, OutOfBound)
+        assert isinstance(result, OutOfBounds)
         assert result is not None
         assert result.request == request
-        assert result.bound.inclusion_upper == 1000
+        assert result.bounds.inclusion_upper == 1000
 
     async def test_power_distributor_one_user_adjust_power_supply(
         self, mocker: MockerFixture
@@ -501,10 +501,10 @@ class TestPowerDistributingActor:
         assert len(done) == 1
 
         result = done.pop().result()
-        assert isinstance(result, OutOfBound)
+        assert isinstance(result, OutOfBounds)
         assert result is not None
         assert result.request == request
-        assert result.bound.inclusion_lower == -1000
+        assert result.bounds.inclusion_lower == -1000
 
     async def test_power_distributor_one_user_adjust_power_success(
         self, mocker: MockerFixture
