@@ -2,6 +2,9 @@
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
 """Setup for all the tests."""
+import collections.abc
+import contextlib
+
 import pytest
 
 from frequenz.sdk.actor import _actor
@@ -11,11 +14,33 @@ from frequenz.sdk.actor import _actor
 SAFETY_TIMEOUT = 10.0
 
 
+@contextlib.contextmanager
+def actor_restart_limit(limit: int) -> collections.abc.Iterator[None]:
+    """Temporarily set the actor restart limit to a given value.
+
+    Example:
+        ```python
+        with actor_restart_limit(0):  # No restart
+            async with MyActor() as actor:
+                # Do something with actor
+        ```
+
+    Args:
+        limit: The new limit.
+    """
+    # pylint: disable=protected-access
+    original_limit = _actor.Actor._restart_limit
+    print(
+        f"<actor_restart_limit> Changing the restart limit from {original_limit} to {limit}"
+    )
+    _actor.Actor._restart_limit = limit
+    yield
+    print(f"<actor_restart_limit> Resetting restart limit to {original_limit}")
+    _actor.Actor._restart_limit = original_limit
+
+
 @pytest.fixture(scope="session", autouse=True)
 def disable_actor_auto_restart() -> collections.abc.Iterator[None]:
     """Disable auto-restart of actors while running tests."""
-    # pylint: disable=protected-access
-    original_limit = _actor.Actor._restart_limit
-    _actor.Actor._restart_limit = 0
-    yield
-    _actor.Actor._restart_limit = original_limit
+    with actor_restart_limit(0):
+        yield
