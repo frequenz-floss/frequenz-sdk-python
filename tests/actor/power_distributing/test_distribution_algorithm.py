@@ -10,11 +10,15 @@ from typing import Dict, List, Optional
 
 from pytest import approx, raises
 
+from frequenz.sdk.actor.power_distributing._distribution_algorithm import (
+    DistributionAlgorithm,
+    DistributionResult,
+    InvBatPair,
+)
 from frequenz.sdk.actor.power_distributing.result import PowerBounds
 from frequenz.sdk.microgrid.component import BatteryData, InverterData
-from frequenz.sdk.power import DistributionAlgorithm, DistributionResult, InvBatPair
 
-from ..utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
+from ...utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
 
 
 @dataclass

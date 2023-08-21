@@ -36,8 +36,12 @@ from ...microgrid.component import (
     ComponentCategory,
     InverterData,
 )
-from ...power import DistributionAlgorithm, DistributionResult, InvBatPair
 from ._battery_pool_status import BatteryPoolStatus, BatteryStatus
+from ._distribution_algorithm import (
+    DistributionAlgorithm,
+    DistributionResult,
+    InvBatPair,
+)
 from .request import Request
 from .result import Error, OutOfBound, PartialFailure, PowerBounds, Result, Success
 

@@ -33,8 +33,8 @@ from frequenz.sdk.actor.power_distributing.result import (
 from frequenz.sdk.microgrid.component import ComponentCategory
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
-from ..conftest import SAFETY_TIMEOUT
-from ..power.test_distribution_algorithm import Bound, Metric, battery_msg, inverter_msg
+from ...conftest import SAFETY_TIMEOUT
+from .test_distribution_algorithm import Bound, Metric, battery_msg, inverter_msg
 
 T = TypeVar("T")  # Declare type variable
 
