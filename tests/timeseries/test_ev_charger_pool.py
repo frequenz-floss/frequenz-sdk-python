@@ -29,7 +29,7 @@ class TestEVChargerPool:
         """Test ev charger state updates are visible."""
 
         mockgrid = MockMicrogrid(
-            grid_side_meter=False, api_client_streaming=True, sample_rate_s=0.01
+            grid_meter=False, api_client_streaming=True, sample_rate_s=0.01
         )
         mockgrid.add_ev_chargers(5)
         await mockgrid.start(mocker)
@@ -81,7 +81,7 @@ class TestEVChargerPool:
         mocker: MockerFixture,
     ) -> None:
         """Test the ev power formula."""
-        mockgrid = MockMicrogrid(grid_side_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False)
         mockgrid.add_ev_chargers(3)
         await mockgrid.start(mocker)
 
@@ -105,7 +105,7 @@ class TestEVChargerPool:
     async def test_ev_component_data(self, mocker: MockerFixture) -> None:
         """Test the component_data method of EVChargerPool."""
         mockgrid = MockMicrogrid(
-            grid_side_meter=False,
+            grid_meter=False,
             api_client_streaming=True,
             sample_rate_s=0.05,
         )

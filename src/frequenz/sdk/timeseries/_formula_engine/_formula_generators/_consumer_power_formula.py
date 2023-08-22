@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections import abc
 
 from ....microgrid import connection_manager
@@ -12,7 +13,13 @@ from ....microgrid.component import Component, ComponentCategory, ComponentMetri
 from ..._quantities import Power
 from .._formula_engine import FormulaEngine
 from .._resampled_formula_builder import ResampledFormulaBuilder
-from ._formula_generator import ComponentNotFound, FormulaGenerator
+from ._formula_generator import (
+    NON_EXISTING_COMPONENT_ID,
+    ComponentNotFound,
+    FormulaGenerator,
+)
+
+_logger = logging.getLogger(__name__)
 
 
 class ConsumerPowerFormula(FormulaGenerator[Power]):
@@ -120,5 +127,18 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
                 builder.push_oper("+")
             is_first = False
             builder.push_component_metric(successor.component_id, nones_are_zeros=False)
+
+        if len(builder.finalize()[0]) == 0:
+            # If there are no consumer components, we have to send 0 values at the same
+            # frequency as the other streams.  So we subscribe with a non-existing
+            # component id, just to get a `None` message at the resampling interval.
+            builder.push_component_metric(
+                NON_EXISTING_COMPONENT_ID, nones_are_zeros=True
+            )
+            _logger.warning(
+                "Unable to find any consumers in the component graph. "
+                "Subscribing to the resampling actor with a non-existing "
+                "component id, so that `0` values are sent from the formula."
+            )
 
         return builder.build()

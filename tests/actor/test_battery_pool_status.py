@@ -30,7 +30,7 @@ class TestBatteryPoolStatus:
         Args:
             mock_microgrid: mock microgrid client
         """
-        mock_microgrid = MockMicrogrid(grid_side_meter=True)
+        mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)
         await mock_microgrid.start(mocker)
 

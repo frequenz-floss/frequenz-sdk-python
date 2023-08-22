@@ -19,3 +19,6 @@
   component.
   So far we only had configurations like this: Meter -> Inverter -> PV. However
   the scenario with Inverter -> PV is also possible and now handled correctly.
+- Fix `consumer_power()` not working certain configurations.
+  In microgrids without consumers and no main meter, the formula
+  would never return any values.
