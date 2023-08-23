@@ -240,6 +240,17 @@ class TestLogicalMeter:
             await pv_consumption_power_receiver.receive()
         ).value == Power.from_watts(0.0)
 
+    async def test_pv_power_no_pv_components(self, mocker: MockerFixture) -> None:
+        """Test the pv power formula without having any pv components."""
+        mockgrid = MockMicrogrid(grid_meter=True)
+        await mockgrid.start(mocker)
+
+        logical_meter = microgrid.logical_meter()
+        pv_power_receiver = logical_meter.pv_power.new_receiver()
+
+        await mockgrid.mock_resampler.send_non_existing_component_value()
+        assert (await pv_power_receiver.receive()).value == Power.zero()
+
     async def test_consumer_power_grid_meter(self, mocker: MockerFixture) -> None:
         """Test the consumer power formula with a grid meter."""
         mockgrid = MockMicrogrid(grid_meter=True)
