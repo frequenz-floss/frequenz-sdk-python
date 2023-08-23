@@ -403,6 +403,116 @@ class TestComponentGraph:
             Connection(2, 6),
         }
 
+    def test_dfs_search_two_grid_meters(self) -> None:
+        """Test DFS searching PV components in a graph with two grid meters."""
+        grid = Component(1, ComponentCategory.GRID)
+        pv_inverters = {
+            Component(4, ComponentCategory.INVERTER, InverterType.SOLAR),
+            Component(5, ComponentCategory.INVERTER, InverterType.SOLAR),
+        }
+
+        graph = gr._MicrogridComponentGraph(
+            components={
+                grid,
+                Component(2, ComponentCategory.METER),
+                Component(3, ComponentCategory.METER),
+            }.union(pv_inverters),
+            connections={
+                Connection(1, 2),
+                Connection(1, 3),
+                Connection(2, 4),
+                Connection(2, 5),
+            },
+        )
+
+        result = graph.dfs(grid, set(), graph.is_pv_inverter)
+        assert result == pv_inverters
+
+    def test_dfs_search_grid_meter(self) -> None:
+        """Test DFS searching PV components in a graph with a single grid meter."""
+        grid = Component(1, ComponentCategory.GRID)
+        pv_meters = {
+            Component(3, ComponentCategory.METER),
+            Component(4, ComponentCategory.METER),
+        }
+
+        graph = gr._MicrogridComponentGraph(
+            components={
+                grid,
+                Component(2, ComponentCategory.METER),
+                Component(5, ComponentCategory.INVERTER, InverterType.SOLAR),
+                Component(6, ComponentCategory.INVERTER, InverterType.SOLAR),
+            }.union(pv_meters),
+            connections={
+                Connection(1, 2),
+                Connection(2, 3),
+                Connection(2, 4),
+                Connection(3, 5),
+                Connection(4, 6),
+            },
+        )
+
+        result = graph.dfs(grid, set(), graph.is_pv_chain)
+        assert result == pv_meters
+
+    def test_dfs_search_no_grid_meter(self) -> None:
+        """Test DFS searching PV components in a graph with no grid meter."""
+        grid = Component(1, ComponentCategory.GRID)
+        pv_meters = {
+            Component(3, ComponentCategory.METER),
+            Component(4, ComponentCategory.METER),
+        }
+
+        graph = gr._MicrogridComponentGraph(
+            components={
+                grid,
+                Component(2, ComponentCategory.METER),
+                Component(5, ComponentCategory.INVERTER, InverterType.SOLAR),
+                Component(6, ComponentCategory.INVERTER, InverterType.SOLAR),
+            }.union(pv_meters),
+            connections={
+                Connection(1, 2),
+                Connection(1, 3),
+                Connection(1, 4),
+                Connection(3, 5),
+                Connection(4, 6),
+            },
+        )
+
+        result = graph.dfs(grid, set(), graph.is_pv_chain)
+        assert result == pv_meters
+
+    def test_dfs_search_nested_components(self) -> None:
+        """Test DFS searching PV components in a graph with nested components."""
+        grid = Component(1, ComponentCategory.GRID)
+        battery_components = {
+            Component(4, ComponentCategory.METER),
+            Component(5, ComponentCategory.METER),
+            Component(6, ComponentCategory.INVERTER, InverterType.BATTERY),
+        }
+
+        graph = gr._MicrogridComponentGraph(
+            components={
+                grid,
+                Component(2, ComponentCategory.METER),
+                Component(3, ComponentCategory.METER),
+                Component(7, ComponentCategory.INVERTER, InverterType.BATTERY),
+                Component(8, ComponentCategory.INVERTER, InverterType.BATTERY),
+            }.union(battery_components),
+            connections={
+                Connection(1, 2),
+                Connection(2, 3),
+                Connection(2, 6),
+                Connection(3, 4),
+                Connection(3, 5),
+                Connection(4, 7),
+                Connection(5, 8),
+            },
+        )
+
+        assert set() == graph.dfs(grid, set(), graph.is_pv_chain)
+        assert battery_components == graph.dfs(grid, set(), graph.is_battery_chain)
+
 
 class Test_MicrogridComponentGraph:
     """Test cases for the package-internal implementation of the ComponentGraph.

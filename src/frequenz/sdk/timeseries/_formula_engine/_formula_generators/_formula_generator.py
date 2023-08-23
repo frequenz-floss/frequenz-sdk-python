@@ -101,15 +101,15 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
         )
         return builder
 
-    def _get_grid_component_successors(self) -> set[component.Component]:
-        """Get the set of grid component successors in the component graph.
+    def _get_grid_component(self) -> component.Component:
+        """
+        Get the grid component in the component graph.
 
         Returns:
-            A set of grid component successors.
+            The first grid component found in the graph.
 
         Raises:
             ComponentNotFound: If the grid component is not found in the component graph.
-            ComponentNotFound: If no successor components are found in the component graph.
         """
         component_graph = connection_manager.get().component_graph
         grid_component = next(
@@ -120,10 +120,22 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
             ),
             None,
         )
-
         if grid_component is None:
             raise ComponentNotFound("Grid component not found in the component graph.")
 
+        return grid_component
+
+    def _get_grid_component_successors(self) -> set[component.Component]:
+        """Get the set of grid component successors in the component graph.
+
+        Returns:
+            A set of grid component successors.
+
+        Raises:
+            ComponentNotFound: If no successor components are found in the component graph.
+        """
+        grid_component = self._get_grid_component()
+        component_graph = connection_manager.get().component_graph
         grid_successors = component_graph.successors(grid_component.component_id)
 
         if not grid_successors:
