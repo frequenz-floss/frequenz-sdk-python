@@ -22,3 +22,6 @@
 - Fix `consumer_power()` not working certain configurations.
   In microgrids without consumers and no main meter, the formula
   would never return any values.
+- Fix `pv_power` not working in setups with 2 grid meters by using a new
+  reliable function to search for components in the components graph
+- Fix `consumer_power` similar to `pv_power`
