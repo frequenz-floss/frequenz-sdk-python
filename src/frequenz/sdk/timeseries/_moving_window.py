@@ -209,6 +209,19 @@ class MovingWindow(BackgroundService):
         """
         return self._sampling_period
 
+    @property
+    def capacity(self) -> int:
+        """
+        Return the capacity of the MovingWindow.
+
+        Capacity is the maximum number of samples that can be stored in the
+        MovingWindow.
+
+        Returns:
+            The capacity of the MovingWindow.
+        """
+        return self._buffer.maxlen
+
     async def _run_impl(self) -> None:
         """Awaits samples from the receiver and updates the underlying ring buffer.
 
