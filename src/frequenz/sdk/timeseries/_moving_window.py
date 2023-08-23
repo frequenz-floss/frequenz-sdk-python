@@ -246,6 +246,15 @@ class MovingWindow(BackgroundService):
             asyncio.create_task(self._resampler.resample(), name="resample")
         )
 
+    def gaps(self) -> list[Gap]:
+        """
+        Return a list of gaps in the `MovingWindow`.
+
+        Returns:
+            A list of gaps in the `MovingWindow`.
+        """
+        return self._buffer.gaps()
+
     def __len__(self) -> int:
         """
         Return the size of the `MovingWindow`s underlying buffer.

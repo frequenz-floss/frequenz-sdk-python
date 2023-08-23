@@ -44,6 +44,14 @@ class Gap:
 
         return False
 
+    def duration(self) -> timedelta:
+        """Return the length of the gap.
+
+        Returns:
+            Length of the gap.
+        """
+        return self.end - self.start
+
 
 class OrderedRingBuffer(Generic[FloatArray]):
     """Time aware ringbuffer that keeps its entries sorted by time."""
@@ -105,6 +113,15 @@ class OrderedRingBuffer(Generic[FloatArray]):
 
         Returns:
             List of gaps.
+        """
+        return self._gaps
+
+    @property
+    def gaps(self) -> List[Gap]:
+        """Return the list of gaps.
+
+        Returns:
+            The list of gaps.
         """
         return self._gaps
 
