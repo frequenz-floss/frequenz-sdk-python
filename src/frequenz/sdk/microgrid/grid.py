@@ -1,0 +1,71 @@
+# License: MIT
+# Copyright © 2023 Frequenz Energy-as-a-Service GmbH
+
+"""Grid connection point.
+
+This module provides the `Grid` type, which represents a grid connection point
+in a microgrid.
+"""
+
+import logging
+from collections.abc import Iterable
+from dataclasses import dataclass
+
+from .component import Component
+from .component._component import ComponentCategory
+
+
+@dataclass(frozen=True)
+class Grid:
+    """A grid connection point."""
+
+    max_current: float
+    """The maximum current that can course through the grid connection point, in Amperes."""
+
+
+_GRID: Grid | None = None
+
+
+def initialize(components: Iterable[Component]) -> None:
+    """Initialize the grid connection.
+
+    Args:
+        components: The components in the microgrid.
+
+    Raises:
+        RuntimeError: If there is more than 1 grid connection point in the
+            microgrid.
+    """
+    global _GRID  # pylint: disable=global-statement
+
+    grid_connections = list(
+        component
+        for component in components
+        if component.category == ComponentCategory.GRID
+    )
+
+    grid_connections_count = len(grid_connections)
+
+    if grid_connections_count == 0:
+        logging.info(
+            "No grid connection found for this microgrid. This is normal for an islanded microgrid."
+        )
+    elif grid_connections_count > 1:
+        raise RuntimeError(
+            f"Expected at most one grid connection, got {grid_connections_count}"
+        )
+    else:
+        max_current = grid_connections[0].metadata.max_current  # type: ignore
+        _GRID = Grid(max_current)
+
+
+def get() -> Grid | None:
+    """Get the grid connection.
+
+    Note that a microgrid configured as an island will not have a grid
+    connection point. For such microgrids, this function will return `None`.
+
+    Returns:
+        The grid connection.
+    """
+    return _GRID

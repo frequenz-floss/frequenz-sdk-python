@@ -102,6 +102,10 @@ This release replaces the `@actor` decorator with a new `Actor` class.
 
 - `Actor`: This new class inherits from `BackgroundService` and it replaces the `@actor` decorator.
 
+- Calling `microgrid.initialize()` now also initializes the microgrid's grid connection point as a singleton object of a newly added type `Grid`. This object can be obtained by calling `microgrid.grid.get()`. This object exposes the max current that can course through the grid connection point, which is useful for the power distribution algorithm. The max current is provided by the Microgrid API, and can be obtained by calling `microgrid.grid.get().max_current`.
+
+  Note that a microgrid is allowed to have zero or one grid connection point. Microgrids configured as islands will have zero grid connection points, and microgrids configured as grid-connected will have one grid connection point.
+
 ## Bug Fixes
 
 - Fixes a bug in the ring buffer updating the end timestamp of gaps when they are outdated.
