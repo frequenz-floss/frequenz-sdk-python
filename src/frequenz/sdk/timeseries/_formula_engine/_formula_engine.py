@@ -281,8 +281,8 @@ class FormulaEngine(
             ```
 
         Args:
-            receiver: A receiver that streams `Sample`s.
             name: A name for the formula engine.
+            receiver: A receiver that streams `Sample`s.
             create_method: A method to generate the output `Sample` value with,
                 e.g. `Power.from_watts`.
             nones_are_zeros: If `True`, `None` values in the receiver are treated as 0.
