@@ -30,6 +30,7 @@ from frequenz.api.common.metrics_pb2 import Metric, MetricAggregation
 from frequenz.api.microgrid.battery_pb2 import Battery
 from frequenz.api.microgrid.battery_pb2 import Data as BatteryData
 from frequenz.api.microgrid.ev_charger_pb2 import EvCharger
+from frequenz.api.microgrid.grid_pb2 import Metadata as GridMetadata
 from frequenz.api.microgrid.inverter_pb2 import Inverter
 from frequenz.api.microgrid.inverter_pb2 import Metadata as InverterMetadata
 from frequenz.api.microgrid.meter_pb2 import Data as MeterData
@@ -56,6 +57,8 @@ from frequenz.api.microgrid.microgrid_pb2_grpc import (
 from google.protobuf.empty_pb2 import Empty
 from google.protobuf.timestamp_pb2 import Timestamp
 from google.protobuf.wrappers_pb2 import BoolValue
+
+from frequenz.sdk.timeseries import Current
 
 
 class MockMicrogridServicer(  # pylint: disable=too-many-public-methods
@@ -89,6 +92,7 @@ class MockMicrogridServicer(  # pylint: disable=too-many-public-methods
         self,
         component_id: int,
         component_category: ComponentCategory.V,
+        max_current: Optional[Current] = None,
         inverter_type: InverterType.V = InverterType.INVERTER_TYPE_UNSPECIFIED,
     ) -> None:
         """Add a component to the mock service."""
@@ -98,6 +102,17 @@ class MockMicrogridServicer(  # pylint: disable=too-many-public-methods
                     id=component_id,
                     category=component_category,
                     inverter=InverterMetadata(type=inverter_type),
+                )
+            )
+        elif (
+            component_category == ComponentCategory.COMPONENT_CATEGORY_GRID
+            and max_current is not None
+        ):
+            self._components.append(
+                Component(
+                    id=component_id,
+                    category=component_category,
+                    grid=GridMetadata(rated_fuse_current=int(max_current.as_amperes())),
                 )
             )
         else:
