@@ -3,8 +3,6 @@
 
 """Formula generator for PV Power, from the component graph."""
 
-from __future__ import annotations
-
 import logging
 
 from ....microgrid import connection_manager
