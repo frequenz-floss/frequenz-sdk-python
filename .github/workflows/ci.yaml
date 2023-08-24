@@ -83,6 +83,31 @@ jobs:
           path: dist/
           if-no-files-found: error
 
+  test-installation:
+    name: Test package installation in different architectures
+    needs: ["build"]
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Fetch sources
+        uses: actions/checkout@v3
+      - name: Download package
+        uses: actions/download-artifact@v3
+        with:
+          name: dist-packages
+          path: dist
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up docker-buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Test Installation
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: .github/containers/test-installation/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          tags: localhost/test-installation
+          push: false
+
   test-docs:
     name: Test documentation website generation
     if: github.event_name != 'push'
@@ -121,7 +146,7 @@ jobs:
 
   publish-docs:
     name: Publish documentation website to GitHub pages
-    needs: ["nox", "build"]
+    needs: ["nox", "test-installation"]
     if: github.event_name == 'push'
     runs-on: ubuntu-20.04
     permissions:
