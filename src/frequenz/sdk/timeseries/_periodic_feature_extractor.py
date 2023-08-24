@@ -250,9 +250,6 @@ class PeriodicFeatureExtractor:
 
         Returns:
             The relative positions of the start, end and next samples.
-
-        Raises:
-            ValueError: If the start timestamp is after the end timestamp.
         """
         # The number of usable windows can change, when the current position of
         # the ringbuffer is inside one of the windows inside the MovingWindow.

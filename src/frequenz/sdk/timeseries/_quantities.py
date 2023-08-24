@@ -544,9 +544,6 @@ class Power(
 
         Returns:
             A power or energy.
-
-        Raises:
-            TypeError: If the given value is not a percentage or duration.
         """
         if isinstance(other, Percentage):
             return super().__mul__(other)
@@ -681,9 +678,6 @@ class Current(
 
         Returns:
             A current or power.
-
-        Raises:
-            TypeError: If the given value is not a percentage or voltage.
         """
         if isinstance(other, Percentage):
             return super().__mul__(other)
@@ -799,9 +793,6 @@ class Voltage(
 
         Returns:
             The calculated voltage or power.
-
-        Raises:
-            TypeError: If the given value is not a percentage or current.
         """
         if isinstance(other, Percentage):
             return super().__mul__(other)

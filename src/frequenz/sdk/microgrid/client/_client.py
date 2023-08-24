@@ -335,9 +335,6 @@ class MicrogridGrpcClient(MicrogridApiClient):
             transform: A method for transforming raw component data into the
                 desired output type.
             sender: A channel sender, to send the component data to.
-
-        Raises:
-            AioRpcError: if connection to Microgrid API cannot be established
         """
         retry_spec: RetryStrategy = self._retry_spec.copy()
         while True:
