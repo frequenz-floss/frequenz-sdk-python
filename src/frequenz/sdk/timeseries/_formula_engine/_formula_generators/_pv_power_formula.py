@@ -24,7 +24,7 @@ class PVPowerFormula(FormulaGenerator[Power]):
             A formula engine that will calculate PV power production values.
 
         Raises:
-            ComponentNotFound: if there are no PV inverters in the component graph.
+            ComponentNotFound: if there is a problem finding the needed components.
         """
         builder = self._get_builder(
             "pv-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
