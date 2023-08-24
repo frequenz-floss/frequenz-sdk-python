@@ -374,8 +374,8 @@ class _NoDefaultConstructible(type):
         """Raise a TypeError when the default constructor is called.
 
         Args:
-            _args: ignored positional arguments.
-            _kwargs: ignored keyword arguments.
+            *_args: ignored positional arguments.
+            **_kwargs: ignored keyword arguments.
 
         Raises:
             TypeError: Always.

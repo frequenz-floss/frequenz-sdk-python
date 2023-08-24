@@ -16,7 +16,7 @@ async def run(*actors: Actor) -> None:
     """Await the completion of all actors.
 
     Args:
-        actors: the actors to be awaited.
+        *actors: the actors to be awaited.
     """
     _logger.info("Starting %s actor(s)...", len(actors))
 
