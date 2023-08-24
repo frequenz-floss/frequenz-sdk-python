@@ -10,7 +10,7 @@ from typing import Dict, List, NamedTuple, Tuple
 
 from frequenz.sdk._internal._math import is_close_to_zero
 
-from ..microgrid.component import BatteryData, InverterData
+from ....microgrid.component import BatteryData, InverterData
 
 _logger = logging.getLogger(__name__)
 
@@ -147,39 +147,16 @@ class DistributionAlgorithm:
             * `Bat1.available_soc = 10`, `Bat2.available_soc = 30`
             * `Bat1.available_soc / Bat2.available_soc = 3`
 
-            We need to distribute 8000W.
+            A request power of 8000W will be distributed as follows, for different
+            values of `distribution_exponent`:
 
-            If `distribution_exponent` is:
+            | distribution_exponent | Bat1 | Bat2 |
+            |-----------------------|------|------|
+            | 0                     | 4000 | 4000 |
+            | 1                     | 2000 | 6000 |
+            | 2                     | 800  | 7200 |
+            | 3                     | 285  | 7715 |
 
-            * `0`: distribution for each battery will be the equal.
-              ```python
-              BAT1_DISTRIBUTION = 4000
-              BAT2_DISTRIBUTION = 4000
-              ```
-
-            * `1`: then `Bat2` will have 3x more power assigned then `Bat1`.
-              ```python
-              # 10 * x + 30 * x = 8000
-              X = 200
-              BAT1_DISTRIBUTION = 2000
-              BAT2_DISTRIBUTION = 6000
-              ```
-
-            * `2`: then `Bat2` will have 9x more power assigned then `Bat1`.
-              ```python
-              # 10^2 * x + 30^2 * x = 8000
-              X = 80
-              BAT1_DISTRIBUTION = 800
-              BAT2_DISTRIBUTION = 7200
-              ```
-
-            * `3`: then `Bat2` will have 27x more power assigned then `Bat1`.
-              ```python
-              # 10^3 * x + 30^3 * x = 8000
-              X = 0.285714286
-              BAT1_DISTRIBUTION = 285
-              BAT2_DISTRIBUTION = 7715
-              ```
 
             # Example 2
 
@@ -189,39 +166,15 @@ class DistributionAlgorithm:
             * `Bat1.available_soc = 30`, `Bat2.available_soc = 60`
             * `Bat1.available_soc / Bat2.available_soc = 2`
 
-            We need to distribute 900W.
+            A request power of 900W will be distributed as follows, for different
+            values of `distribution_exponent`.
 
-            If `distribution_exponent` is:
-
-            * `0`: distribution for each battery will be the same.
-              ```python
-              BAT1_DISTRIBUTION = 4500
-              BAT2_DISTRIBUTION = 450
-              ```
-
-            * `1`: then `Bat2` will have 2x more power assigned then `Bat1`.
-              ```python
-              # 30 * x + 60 * x = 900
-              X = 100
-              BAT1_DISTRIBUTION = 300
-              BAT2_DISTRIBUTION = 600
-              ```
-
-            * `2`: then `Bat2` will have 4x more power assigned then `Bat1`.
-              ```python
-              # 30^2 * x + 60^2 * x = 900
-              X = 0.2
-              BAT1_DISTRIBUTION = 180
-              BAT2_DISTRIBUTION = 720
-              ```
-
-            * `3`: then `Bat2` will have 8x more power assigned then `Bat1`.
-              ```python
-              # 30^3 * x + 60^3 * x = 900
-              X = 0.003703704
-              BAT1_DISTRIBUTION = 100
-              BAT2_DISTRIBUTION = 800
-              ```
+            | distribution_exponent | Bat1 | Bat2 |
+            |-----------------------|------|------|
+            | 0                     | 450  | 450  |
+            | 1                     | 300  | 600  |
+            | 2                     | 180  | 720  |
+            | 3                     | 100  | 800  |
 
             # Example 3
 
@@ -230,26 +183,19 @@ class DistributionAlgorithm:
             * `Bat1.soc = 44` and `Bat2.soc = 64`.
             * `Bat1.available_soc = 36 (80 - 44)`, `Bat2.available_soc = 16 (80 - 64)`
 
-            We need to distribute 900W.
+            A request power of 900W will be distributed as follows, for these values of
+            `distribution_exponent`:
 
             If `distribution_exponent` is:
 
-            * `0`: distribution for each battery will be the equal.
-              ```python
-              BAT1_DISTRIBUTION = 450
-              BAT2_DISTRIBUTION = 450
-              ```
-
-            * `0.5`: then `Bat2` will have 6/4x more power assigned then `Bat1`.
-              ```python
-              # sqrt(36) * x + sqrt(16) * x = 900
-              X = 100
-              BAT1_DISTRIBUTION = 600
-              BAT2_DISTRIBUTION = 400
-              ```
+            | distribution_exponent | Bat1 | Bat2 |
+            |-----------------------|------|------|
+            | 0                     | 450  | 450  |
+            | 0.5                   | 600  | 400  |
 
         Raises:
             ValueError: If distributor_exponent < 0
+
         """
         super().__init__()
 
@@ -401,6 +347,8 @@ class DistributionAlgorithm:
 
         for inverter_id, deficit in deficits.items():
             while not is_close_to_zero(deficit) and deficit < 0.0:
+                if not excess_reserved:
+                    break
                 take_from = max(excess_reserved.items(), key=lambda item: item[1])
                 if is_close_to_zero(take_from[1]) or take_from[1] < 0.0:
                     break

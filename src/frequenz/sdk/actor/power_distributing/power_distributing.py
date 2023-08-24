@@ -26,6 +26,7 @@ from typing import Any, Dict, Iterable, List, Optional, Self, Set, Tuple
 import grpc
 from frequenz.channels import Peekable, Receiver, Sender
 
+from ..._internal._math import is_close_to_zero
 from ...actor import ChannelRegistry
 from ...actor._decorator import actor
 from ...microgrid import ComponentGraph, connection_manager
@@ -36,10 +37,14 @@ from ...microgrid.component import (
     ComponentCategory,
     InverterData,
 )
-from ...power import DistributionAlgorithm, DistributionResult, InvBatPair
 from ._battery_pool_status import BatteryPoolStatus, BatteryStatus
+from ._distribution_algorithm import (
+    DistributionAlgorithm,
+    DistributionResult,
+    InvBatPair,
+)
 from .request import Request
-from .result import Error, OutOfBound, PartialFailure, PowerBounds, Result, Success
+from .result import Error, OutOfBounds, PartialFailure, PowerBounds, Result, Success
 
 _logger = logging.getLogger(__name__)
 
@@ -269,56 +274,6 @@ class PowerDistributingActor:
             ),
         )
 
-    def _get_upper_bound(self, batteries: abc.Set[int], include_broken: bool) -> float:
-        """Get total upper bound of power to be set for given batteries.
-
-        Note, output of that function doesn't guarantee that this bound will be
-        the same when the request is processed.
-
-        Args:
-            batteries: List of batteries
-            include_broken: whether all batteries in the batteries set in the
-                request must be used regardless the status.
-
-        Returns:
-            Upper bound for `set_power` operation.
-        """
-        pairs_data: List[InvBatPair] = self._get_components_data(
-            batteries, include_broken
-        )
-        return sum(
-            min(
-                battery.power_inclusion_upper_bound,
-                inverter.active_power_inclusion_upper_bound,
-            )
-            for battery, inverter in pairs_data
-        )
-
-    def _get_lower_bound(self, batteries: abc.Set[int], include_broken: bool) -> float:
-        """Get total lower bound of power to be set for given batteries.
-
-        Note, output of that function doesn't guarantee that this bound will be
-        the same when the request is processed.
-
-        Args:
-            batteries: List of batteries
-            include_broken: whether all batteries in the batteries set in the
-                request must be used regardless the status.
-
-        Returns:
-            Lower bound for `set_power` operation.
-        """
-        pairs_data: List[InvBatPair] = self._get_components_data(
-            batteries, include_broken
-        )
-        return sum(
-            max(
-                battery.power_inclusion_lower_bound,
-                inverter.active_power_inclusion_lower_bound,
-            )
-            for battery, inverter in pairs_data
-        )
-
     async def _send_result(self, namespace: str, result: Result) -> None:
         """Send result to the user.
 
@@ -375,6 +330,7 @@ class PowerDistributingActor:
             try:
                 distribution = self._get_power_distribution(request, pairs_data)
             except ValueError as err:
+                _logger.exception("Couldn't distribute power")
                 error_msg = f"Couldn't distribute power, error: {str(err)}"
                 await self._send_result(
                     request.namespace, Error(request=request, msg=str(error_msg))
@@ -521,6 +477,12 @@ class PowerDistributingActor:
                 return Error(request=request, msg=msg)
 
         bounds = self._get_bounds(pairs_data)
+
+        # Zero power requests are always forwarded to the microgrid API, even if they
+        # are outside the exclusion bounds.
+        if is_close_to_zero(request.power):
+            return None
+
         if request.adjust_power:
             # Automatic power adjustments can only bring down the requested power down
             # to the inclusion bounds.
@@ -528,7 +490,7 @@ class PowerDistributingActor:
             # If the requested power is in the exclusion bounds, it is NOT possible to
             # increase it so that it is outside the exclusion bounds.
             if bounds.exclusion_lower < request.power < bounds.exclusion_upper:
-                return OutOfBound(request=request, bound=bounds)
+                return OutOfBounds(request=request, bounds=bounds)
         else:
             in_lower_range = (
                 bounds.inclusion_lower <= request.power <= bounds.exclusion_lower
@@ -537,7 +499,7 @@ class PowerDistributingActor:
                 bounds.exclusion_upper <= request.power <= bounds.inclusion_upper
             )
             if not (in_lower_range or in_upper_range):
-                return OutOfBound(request=request, bound=bounds)
+                return OutOfBounds(request=request, bounds=bounds)
 
         return None
 

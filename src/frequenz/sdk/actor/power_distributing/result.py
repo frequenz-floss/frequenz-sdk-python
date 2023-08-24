@@ -88,14 +88,14 @@ class PowerBounds:
 
 
 @dataclasses.dataclass
-class OutOfBound(Result):
+class OutOfBounds(Result):
     """Result returned when the power was not set because it was out of bounds.
 
     This result happens when the originating request was done with
     `adjust_power = False` and the requested power is not within the batteries bounds.
     """
 
-    bound: PowerBounds
+    bounds: PowerBounds
     """The power bounds for the requested batteries.
 
     If the requested power negative, then this value is the lower bound.

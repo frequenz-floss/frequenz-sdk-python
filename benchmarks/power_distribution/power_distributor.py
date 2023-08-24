@@ -17,7 +17,7 @@ from frequenz.sdk.actor import ChannelRegistry, ResamplerConfig
 from frequenz.sdk.actor.power_distributing import (
     BatteryStatus,
     Error,
-    OutOfBound,
+    OutOfBounds,
     PartialFailure,
     PowerDistributingActor,
     Request,
@@ -75,7 +75,7 @@ def parse_result(result: List[List[Result]]) -> Dict[str, float]:
         Error: 0,
         Success: 0,
         PartialFailure: 0,
-        OutOfBound: 0,
+        OutOfBounds: 0,
     }
 
     for result_list in result:
@@ -86,7 +86,7 @@ def parse_result(result: List[List[Result]]) -> Dict[str, float]:
         "success_num": result_counts[Success],
         "failed_num": result_counts[PartialFailure],
         "error_num": result_counts[Error],
-        "out_of_bound": result_counts[OutOfBound],
+        "out_of_bounds": result_counts[OutOfBounds],
     }
 
 

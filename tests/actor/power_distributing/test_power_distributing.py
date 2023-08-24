@@ -25,7 +25,7 @@ from frequenz.sdk.actor.power_distributing import (
 from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
 from frequenz.sdk.actor.power_distributing.result import (
     Error,
-    OutOfBound,
+    OutOfBounds,
     PowerBounds,
     Result,
     Success,
@@ -33,8 +33,8 @@ from frequenz.sdk.actor.power_distributing.result import (
 from frequenz.sdk.microgrid.component import ComponentCategory
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
-from ..conftest import SAFETY_TIMEOUT
-from ..power.test_distribution_algorithm import Bound, Metric, battery_msg, inverter_msg
+from ...conftest import SAFETY_TIMEOUT
+from .test_distribution_algorithm import Bound, Metric, battery_msg, inverter_msg
 
 T = TypeVar("T")  # Declare type variable
 
@@ -154,6 +154,103 @@ class TestPowerDistributingActor:
         assert result.succeeded_power == approx(1000.0)
         assert result.excess_power == approx(200.0)
         assert result.request == request
+
+    async def test_power_distributor_exclusion_bounds(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test if power distributing actor rejects non-zero requests in exclusion bounds."""
+        mockgrid = MockMicrogrid(grid_meter=False)
+        mockgrid.add_batteries(2)
+        await mockgrid.start(mocker)
+        await self.init_component_data(mockgrid)
+
+        await mockgrid.mock_client.send(
+            battery_msg(
+                9,
+                soc=Metric(60, Bound(20, 80)),
+                capacity=Metric(98000),
+                power=PowerBounds(-1000, -300, 300, 1000),
+            )
+        )
+        await mockgrid.mock_client.send(
+            battery_msg(
+                19,
+                soc=Metric(60, Bound(20, 80)),
+                capacity=Metric(98000),
+                power=PowerBounds(-1000, -300, 300, 1000),
+            )
+        )
+
+        channel = Broadcast[Request]("power_distributor")
+        channel_registry = ChannelRegistry(name="power_distributor")
+
+        attrs = {
+            "get_working_batteries.return_value": microgrid.battery_pool().battery_ids
+        }
+        mocker.patch(
+            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+        )
+
+        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        distributor = PowerDistributingActor(
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
+            battery_status_sender=battery_status_channel.new_sender(),
+        )
+
+        ## zero power requests should pass through despite the exclusion bounds.
+        request = Request(
+            namespace=self._namespace,
+            power=0.0,
+            batteries={9, 19},
+            request_timeout_sec=SAFETY_TIMEOUT,
+        )
+
+        await channel.new_sender().send(request)
+        result_rx = channel_registry.new_receiver(self._namespace)
+
+        done, pending = await asyncio.wait(
+            [asyncio.create_task(result_rx.receive())],
+            timeout=SAFETY_TIMEOUT,
+        )
+
+        assert len(pending) == 0
+        assert len(done) == 1
+
+        result: Result = done.pop().result()
+        assert isinstance(result, Success)
+        assert result.succeeded_power == approx(0.0)
+        assert result.excess_power == approx(0.0)
+        assert result.request == request
+
+        ## non-zero power requests that fall within the exclusion bounds should be
+        ## rejected.
+        request = Request(
+            namespace=self._namespace,
+            power=300.0,
+            batteries={9, 19},
+            request_timeout_sec=SAFETY_TIMEOUT,
+        )
+
+        await channel.new_sender().send(request)
+        result_rx = channel_registry.new_receiver(self._namespace)
+
+        done, pending = await asyncio.wait(
+            [asyncio.create_task(result_rx.receive())],
+            timeout=SAFETY_TIMEOUT,
+        )
+
+        assert len(pending) == 0
+        assert len(done) == 1
+
+        result = done.pop().result()
+        assert isinstance(result, OutOfBounds)
+        assert result.bounds == PowerBounds(-1000, -600, 600, 1000)
+        assert result.request == request
+
+        await distributor._stop_actor()
 
     async def test_battery_soc_nan(self, mocker: MockerFixture) -> None:
         """Test if battery with SoC==NaN is not used."""
@@ -448,10 +545,10 @@ class TestPowerDistributingActor:
         assert len(done) == 1
 
         result = done.pop().result()
-        assert isinstance(result, OutOfBound)
+        assert isinstance(result, OutOfBounds)
         assert result is not None
         assert result.request == request
-        assert result.bound.inclusion_upper == 1000
+        assert result.bounds.inclusion_upper == 1000
 
     async def test_power_distributor_one_user_adjust_power_supply(
         self, mocker: MockerFixture
@@ -501,10 +598,10 @@ class TestPowerDistributingActor:
         assert len(done) == 1
 
         result = done.pop().result()
-        assert isinstance(result, OutOfBound)
+        assert isinstance(result, OutOfBounds)
         assert result is not None
         assert result.request == request
-        assert result.bound.inclusion_lower == -1000
+        assert result.bounds.inclusion_lower == -1000
 
     async def test_power_distributor_one_user_adjust_power_success(
         self, mocker: MockerFixture
