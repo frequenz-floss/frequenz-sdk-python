@@ -40,7 +40,7 @@ async def push_logical_meter_data(
 ) -> None:
     """Push data in the passed sender to mock `LogicalMeter` behaviour.
 
-    Starting with the First of January 2023.
+    Starting with UNIX_EPOCH.
 
     Args:
         sender: Sender for pushing resampled samples to the `MovingWindow`.
