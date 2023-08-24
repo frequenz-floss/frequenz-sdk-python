@@ -25,6 +25,8 @@ class PVPowerFormula(FormulaGenerator[Power]):
 
         Raises:
             ComponentNotFound: if there is a problem finding the needed components.
+            RuntimeError: if the grid component has no PV inverters or meters as
+                successors.
         """
         builder = self._get_builder(
             "pv-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
