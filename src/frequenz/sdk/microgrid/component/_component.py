@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 import frequenz.api.common.components_pb2 as components_pb
+import frequenz.api.microgrid.grid_pb2 as grid_pb
 import frequenz.api.microgrid.inverter_pb2 as inverter_pb
 
 
@@ -106,12 +107,36 @@ def _component_category_from_protobuf(
 
 
 @dataclass(frozen=True)
+class ComponentMetadata:
+    """Base class for component metadata classes."""
+
+
+@dataclass(frozen=True)
+class GridMetadata(ComponentMetadata):
+    """Metadata for a grid connection point."""
+
+    max_current: float
+    """maximum current rating of the grid connection point in amps."""
+
+
+def _component_metadata_from_protobuf(
+    component_category: components_pb.ComponentCategory.ValueType,
+    component_metadata: grid_pb.Metadata,
+) -> GridMetadata | None:
+    if component_category == components_pb.ComponentCategory.COMPONENT_CATEGORY_GRID:
+        return GridMetadata(float(component_metadata.rated_fuse_current))
+
+    return None
+
+
+@dataclass(frozen=True)
 class Component:
     """Metadata for a single microgrid component."""
 
     component_id: int
     category: ComponentCategory
     type: ComponentType | None = None
+    metadata: ComponentMetadata | None = None
 
     def is_valid(self) -> bool:
         """Check if this instance contains valid data.
