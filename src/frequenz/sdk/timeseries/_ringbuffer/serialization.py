@@ -58,7 +58,7 @@ def dump(
         file_format_version: Version of the file format, optional.
 
     Raises:
-        I/O related exceptions when the file cannot be written.
+        OSError: When the file cannot be opened or written.
     """
     with open(path, mode="wb+") as fileobj:
         pickle.dump((file_format_version, ringbuffer), fileobj)
