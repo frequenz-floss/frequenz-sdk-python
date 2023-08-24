@@ -3,10 +3,7 @@
 
 """Formula generator for PV Power, from the component graph."""
 
-from __future__ import annotations
-
 import logging
-from collections import abc
 
 from ....microgrid import connection_manager
 from ....microgrid.component import ComponentCategory, ComponentMetricId
@@ -33,14 +30,20 @@ class PVPowerFormula(FormulaGenerator[Power]):
             "pv-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
         )
 
-        pv_components = self._get_pv_power_components()
+        component_graph = connection_manager.get().component_graph
+        pv_components = component_graph.dfs(
+            self._get_grid_component(),
+            set(),
+            component_graph.is_pv_chain,
+        )
+
         if not pv_components:
             _logger.warning(
-                "Unable to find any PV inverters in the component graph. "
+                "Unable to find any PV components in the component graph. "
                 "Subscribing to the resampling actor with a non-existing "
                 "component id, so that `0` values are sent from the formula."
             )
-            # If there are no PV inverters, we have to send 0 values at the same
+            # If there are no PV components, we have to send 0 values at the same
             # frequency as the other streams.  So we subscribe with a non-existing
             # component id, just to get a `None` message at the resampling interval.
             builder.push_component_metric(
@@ -50,11 +53,15 @@ class PVPowerFormula(FormulaGenerator[Power]):
 
         builder.push_oper("(")
         builder.push_oper("(")
-        for idx, comp_id in enumerate(pv_components):
+        for idx, component in enumerate(pv_components):
             if idx > 0:
                 builder.push_oper("+")
 
-            builder.push_component_metric(comp_id, nones_are_zeros=True)
+            # should only be the case if the component is not a meter
+            builder.push_component_metric(
+                component.component_id,
+                nones_are_zeros=component.category != ComponentCategory.METER,
+            )
         builder.push_oper(")")
         if self._config.formula_type == FormulaType.PRODUCTION:
             builder.push_oper("*")
@@ -65,31 +72,3 @@ class PVPowerFormula(FormulaGenerator[Power]):
             builder.push_clipper(0.0, None)
 
         return builder.build()
-
-    def _get_pv_power_components(self) -> abc.Set[int]:
-        """Get the component ids of the PV inverters or meters in the component graph.
-
-        Returns:
-            A set of component ids of the PV inverters or meters in the component graph.
-
-        Raises:
-            RuntimeError: if the grid component has no PV inverters or meters as successors.
-        """
-        component_graph = connection_manager.get().component_graph
-        grid_successors = self._get_grid_component_successors()
-
-        if len(grid_successors) == 1:
-            successor = next(iter(grid_successors))
-            if successor.category != ComponentCategory.METER:
-                raise RuntimeError(
-                    "Only grid successor in the component graph is not a meter."
-                )
-            grid_successors = component_graph.successors(successor.component_id)
-
-        pv_meters_or_inverters: set[int] = set()
-
-        for successor in grid_successors:
-            if component_graph.is_pv_chain(successor):
-                pv_meters_or_inverters.add(successor.component_id)
-
-        return pv_meters_or_inverters

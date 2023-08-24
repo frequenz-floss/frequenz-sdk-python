@@ -240,6 +240,17 @@ class TestLogicalMeter:
             await pv_consumption_power_receiver.receive()
         ).value == Power.from_watts(0.0)
 
+    async def test_pv_power_no_pv_components(self, mocker: MockerFixture) -> None:
+        """Test the pv power formula without having any pv components."""
+        mockgrid = MockMicrogrid(grid_meter=True)
+        await mockgrid.start(mocker)
+
+        logical_meter = microgrid.logical_meter()
+        pv_power_receiver = logical_meter.pv_power.new_receiver()
+
+        await mockgrid.mock_resampler.send_non_existing_component_value()
+        assert (await pv_power_receiver.receive()).value == Power.zero()
+
     async def test_consumer_power_grid_meter(self, mocker: MockerFixture) -> None:
         """Test the consumer power formula with a grid meter."""
         mockgrid = MockMicrogrid(grid_meter=True)
@@ -313,15 +324,12 @@ class TestLogicalMeter:
     ) -> None:
         """Test the producer power formula without pv and without consumer meter."""
         mockgrid = MockMicrogrid(grid_meter=False)
-        mockgrid.add_chps(1)
+        mockgrid.add_chps(1, True)
         await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
         producer_power_receiver = logical_meter.producer_power.new_receiver()
 
-        # As there is only one meter in the microgrid, the formula interprets it
-        # as main meter instead of chp meter, so it reads the power from the
-        # chp component directly.
         await mockgrid.mock_resampler.send_chp_power([2.0])
         assert (await producer_power_receiver.receive()).value == Power.from_watts(2.0)
 
