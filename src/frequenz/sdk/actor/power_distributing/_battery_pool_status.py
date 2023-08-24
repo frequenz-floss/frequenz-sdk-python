@@ -70,7 +70,7 @@ class BatteryPoolStatus:
     Send set of working and uncertain batteries, when the any battery change status.
     """
 
-    def __init__(
+    def __init__(  # noqa: DOC502 (RuntimeError is raised indirectly by BatteryStatus)
         self,
         battery_ids: Set[int],
         battery_status_sender: Sender[BatteryStatus],

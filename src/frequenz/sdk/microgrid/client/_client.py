@@ -443,7 +443,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
                 f", not a {expected_category}."
             )
 
-    async def meter_data(
+    async def meter_data(  # noqa: DOC502 (ValueError is raised indirectly by _expect_category)
         self,
         component_id: int,
         maxsize: int = RECEIVER_MAX_SIZE,
@@ -473,7 +473,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
             MeterData.from_proto,
         ).new_receiver(maxsize=maxsize)
 
-    async def battery_data(
+    async def battery_data(  # noqa: DOC502 (ValueError is raised indirectly by _expect_category)
         self,
         component_id: int,
         maxsize: int = RECEIVER_MAX_SIZE,
@@ -503,7 +503,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
             BatteryData.from_proto,
         ).new_receiver(maxsize=maxsize)
 
-    async def inverter_data(
+    async def inverter_data(  # noqa: DOC502 (ValueError is raised indirectly by _expect_category)
         self,
         component_id: int,
         maxsize: int = RECEIVER_MAX_SIZE,
@@ -533,7 +533,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
             InverterData.from_proto,
         ).new_receiver(maxsize=maxsize)
 
-    async def ev_charger_data(
+    async def ev_charger_data(  # noqa: DOC502 (ValueError is raised indirectly by _expect_category)
         self,
         component_id: int,
         maxsize: int = RECEIVER_MAX_SIZE,

@@ -169,7 +169,7 @@ class LatestBatteryMetricsFetcher(LatestMetricsFetcher[BatteryData]):
     """Subscribe for the latest battery data using MicrogridApiClient."""
 
     @classmethod
-    async def async_new(
+    async def async_new(  # noqa: DOC502 (ValueError is raised indirectly super.async_new)
         cls,
         component_id: int,
         metrics: Iterable[ComponentMetricId],
@@ -220,7 +220,7 @@ class LatestInverterMetricsFetcher(LatestMetricsFetcher[InverterData]):
     """Subscribe for the latest inverter data using MicrogridApiClient."""
 
     @classmethod
-    async def async_new(
+    async def async_new(  # noqa: DOC502 (ValueError is raised indirectly by super.async_new)
         cls,
         component_id: int,
         metrics: Iterable[ComponentMetricId],
