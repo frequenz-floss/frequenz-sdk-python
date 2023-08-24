@@ -262,13 +262,13 @@ class Quantity:
         return difference
 
     def __mul__(self, percent: Percentage) -> Self:
-        """Return the product of this quantity and a percentage.
+        """Scale this quantity by a percentage.
 
         Args:
-            percent: The percentage.
+            percent: The percentage by which to scale this quantity.
 
         Returns:
-            The product of this quantity and a percentage.
+            The scaled quantity.
         """
         if not isinstance(percent, Percentage):
             return NotImplemented
@@ -522,10 +522,10 @@ class Power(
 
     @overload  # type: ignore
     def __mul__(self, other: Percentage) -> Self:
-        """Return a power from multiplying this power by the given percentage.
+        """Scale this power by a percentage.
 
         Args:
-            other: The percentage to multiply by.
+            other: The percentage by which to scale this power.
 
         Returns:
             The scaled power.
@@ -668,10 +668,10 @@ class Current(
 
     @overload  # type: ignore
     def __mul__(self, other: Percentage) -> Self:
-        """Return a power from multiplying this power by the given percentage.
+        """Scale this current by a percentage.
 
         Args:
-            other: The percentage to multiply by.
+            other: The percentage by which to scale this current.
 
         Returns:
             The scaled current.
@@ -789,10 +789,10 @@ class Voltage(
 
     @overload  # type: ignore
     def __mul__(self, other: Percentage) -> Self:
-        """Return a power from multiplying this power by the given percentage.
+        """Scale this voltage by a percentage.
 
         Args:
-            other: The percentage to multiply by.
+            other: The percentage by which to scale this voltage.
 
         Returns:
             The scaled voltage.
