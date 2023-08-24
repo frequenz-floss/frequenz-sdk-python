@@ -53,6 +53,9 @@ class ComponentData(ABC):
 
         Args:
             raw: raw component data as decoded from the wire.
+
+        Returns:
+            The instance created from the protobuf message.
         """
 
 

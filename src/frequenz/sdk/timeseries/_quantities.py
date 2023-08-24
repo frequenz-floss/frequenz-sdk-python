@@ -526,6 +526,9 @@ class Power(
 
         Args:
             other: The percentage to multiply by.
+
+        Returns:
+            The scaled power.
         """
 
     @overload
@@ -534,6 +537,9 @@ class Power(
 
         Args:
             other: The duration to multiply by.
+
+        Returns:
+            The calculated energy.
         """
 
     def __mul__(self, other: Percentage | timedelta) -> Self | Energy:
@@ -560,6 +566,9 @@ class Power(
 
         Args:
             other: The current to divide by.
+
+        Returns:
+            A voltage from dividing this power by the a current.
         """
 
     @overload
@@ -568,6 +577,9 @@ class Power(
 
         Args:
             other: The voltage to divide by.
+
+        Returns:
+            A current from dividing this power by a voltage.
         """
 
     def __truediv__(self, other: Current | Voltage) -> Voltage | Current:
@@ -660,6 +672,9 @@ class Current(
 
         Args:
             other: The percentage to multiply by.
+
+        Returns:
+            The scaled current.
         """
 
     @overload
@@ -668,6 +683,9 @@ class Current(
 
         Args:
             other: The voltage.
+
+        Returns:
+            The calculated power.
         """
 
     def __mul__(self, other: Percentage | Voltage) -> Self | Power:
@@ -775,6 +793,9 @@ class Voltage(
 
         Args:
             other: The percentage to multiply by.
+
+        Returns:
+            The scaled voltage.
         """
 
     @overload
@@ -783,6 +804,9 @@ class Voltage(
 
         Args:
             other: The current to multiply the voltage with.
+
+        Returns:
+            The calculated power.
         """
 
     def __mul__(self, other: Percentage | Current) -> Self | Power:
@@ -894,6 +918,9 @@ class Energy(
 
         Args:
             other: The duration to divide by.
+
+        Returns:
+            A power from dividing this energy by the given duration.
         """
 
     @overload
@@ -902,6 +929,9 @@ class Energy(
 
         Args:
             other: The power to divide by.
+
+        Returns:
+            A duration from dividing this energy by the given power.
         """
 
     def __truediv__(self, other: timedelta | Power) -> Power | timedelta:
