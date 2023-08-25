@@ -26,6 +26,8 @@ from typing import Any, Dict, Iterable, List, Optional, Self, Set, Tuple
 import grpc
 from frequenz.channels import Peekable, Receiver, Sender
 
+from frequenz.sdk.timeseries._quantities import Power
+
 from ..._internal._math import is_close_to_zero
 from ...actor import ChannelRegistry
 from ...actor._actor import Actor
@@ -291,19 +293,19 @@ class PowerDistributingActor(Actor):
                 succeed_batteries = set(battery_distribution.keys()) - failed_batteries
                 response = PartialFailure(
                     request=request,
-                    succeeded_power=distributed_power_value,
+                    succeeded_power=Power.from_watts(distributed_power_value),
                     succeeded_batteries=succeed_batteries,
-                    failed_power=failed_power,
+                    failed_power=Power.from_watts(failed_power),
                     failed_batteries=failed_batteries,
-                    excess_power=distribution.remaining_power,
+                    excess_power=Power.from_watts(distribution.remaining_power),
                 )
             else:
                 succeed_batteries = set(battery_distribution.keys())
                 response = Success(
                     request=request,
-                    succeeded_power=distributed_power_value,
+                    succeeded_power=Power.from_watts(distributed_power_value),
                     succeeded_batteries=succeed_batteries,
-                    excess_power=distribution.remaining_power,
+                    excess_power=Power.from_watts(distribution.remaining_power),
                 )
 
             asyncio.gather(

@@ -12,7 +12,6 @@ from typing import TypeVar
 from unittest.mock import AsyncMock, MagicMock
 
 from frequenz.channels import Broadcast
-from pytest import approx
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
@@ -31,6 +30,7 @@ from frequenz.sdk.actor.power_distributing.result import (
     Success,
 )
 from frequenz.sdk.microgrid.component import ComponentCategory
+from frequenz.sdk.timeseries._quantities import Power
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
 from ...conftest import SAFETY_TIMEOUT
@@ -143,8 +143,8 @@ class TestPowerDistributingActor:
 
         result: Result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeeded_power == approx(1000.0)
-        assert result.excess_power == approx(200.0)
+        assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
+        assert result.excess_power.isclose(Power.from_watts(200.0))
         assert result.request == request
 
     async def test_power_distributor_exclusion_bounds(
@@ -212,8 +212,8 @@ class TestPowerDistributingActor:
 
             result: Result = done.pop().result()
             assert isinstance(result, Success)
-            assert result.succeeded_power == approx(0.0)
-            assert result.excess_power == approx(0.0)
+            assert result.succeeded_power.isclose(Power.zero(), abs_tol=1e-9)
+            assert result.excess_power.isclose(Power.zero(), abs_tol=1e-9)
             assert result.request == request
 
             ## non-zero power requests that fall within the exclusion bounds should be
@@ -300,8 +300,8 @@ class TestPowerDistributingActor:
         result: Result = done.pop().result()
         assert isinstance(result, Success)
         assert result.succeeded_batteries == {19}
-        assert result.succeeded_power == approx(500.0)
-        assert result.excess_power == approx(700.0)
+        assert result.succeeded_power.isclose(Power.from_watts(500.0))
+        assert result.excess_power.isclose(Power.from_watts(700.0))
         assert result.request == request
 
     async def test_battery_capacity_nan(self, mocker: MockerFixture) -> None:
@@ -356,8 +356,8 @@ class TestPowerDistributingActor:
         result: Result = done.pop().result()
         assert isinstance(result, Success)
         assert result.succeeded_batteries == {19}
-        assert result.succeeded_power == approx(500.0)
-        assert result.excess_power == approx(700.0)
+        assert result.succeeded_power.isclose(Power.from_watts(500.0))
+        assert result.excess_power.isclose(Power.from_watts(700.0))
         assert result.request == request
 
     async def test_battery_power_bounds_nan(self, mocker: MockerFixture) -> None:
@@ -428,8 +428,8 @@ class TestPowerDistributingActor:
         result: Result = done.pop().result()
         assert isinstance(result, Success)
         assert result.succeeded_batteries == {19}
-        assert result.succeeded_power == approx(1000.0)
-        assert result.excess_power == approx(200.0)
+        assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
+        assert result.excess_power.isclose(Power.from_watts(200.0))
         assert result.request == request
 
     async def test_power_distributor_invalid_battery_id(
@@ -627,8 +627,8 @@ class TestPowerDistributingActor:
 
         result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeeded_power == approx(1000.0)
-        assert result.excess_power == approx(0.0)
+        assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
+        assert result.excess_power.isclose(Power.zero(), abs_tol=1e-9)
         assert result.request == request
 
     async def test_not_all_batteries_are_working(self, mocker: MockerFixture) -> None:
@@ -676,8 +676,8 @@ class TestPowerDistributingActor:
             result = done.pop().result()
             assert isinstance(result, Success)
             assert result.succeeded_batteries == {19}
-            assert result.excess_power == approx(700.0)
-            assert result.succeeded_power == approx(500.0)
+            assert result.excess_power.isclose(Power.from_watts(700.0))
+            assert result.succeeded_power.isclose(Power.from_watts(500.0))
             assert result.request == request
 
     async def test_use_all_batteries_none_is_working(
@@ -726,8 +726,8 @@ class TestPowerDistributingActor:
             result = done.pop().result()
             assert isinstance(result, Success)
             assert result.succeeded_batteries == {9, 19}
-            assert result.excess_power == approx(200.0)
-            assert result.succeeded_power == approx(1000.0)
+            assert result.excess_power.isclose(Power.from_watts(200.0))
+            assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
             assert result.request == request
 
     async def test_force_request_a_battery_is_not_working(
@@ -778,8 +778,8 @@ class TestPowerDistributingActor:
             result = done.pop().result()
             assert isinstance(result, Success)
             assert result.succeeded_batteries == {9, 19}
-            assert result.excess_power == approx(200.0)
-            assert result.succeeded_power == approx(1000.0)
+            assert result.excess_power.isclose(Power.from_watts(200.0))
+            assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
             assert result.request == request
 
     async def test_force_request_battery_nan_value_non_cached(
@@ -849,8 +849,8 @@ class TestPowerDistributingActor:
             result: Result = done.pop().result()
             assert isinstance(result, Success)
             assert result.succeeded_batteries == batteries
-            assert result.succeeded_power == approx(1199.9999)
-            assert result.excess_power == approx(0.0)
+            assert result.succeeded_power.isclose(Power.from_kilowatts(1.2))
+            assert result.excess_power.isclose(Power.zero(), abs_tol=1e-9)
             assert result.request == request
 
     async def test_force_request_batteries_nan_values_cached(
@@ -900,8 +900,8 @@ class TestPowerDistributingActor:
                 result: Result = done.pop().result()
                 assert isinstance(result, Success)
                 assert result.succeeded_batteries == batteries
-                assert result.succeeded_power == approx(1199.9999)
-                assert result.excess_power == approx(0.0)
+                assert result.succeeded_power.isclose(Power.from_kilowatts(1.2))
+                assert result.excess_power.isclose(Power.zero(), abs_tol=1e-9)
                 assert result.request == request
 
             batteries_data = (
