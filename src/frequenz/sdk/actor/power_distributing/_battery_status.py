@@ -22,9 +22,9 @@ from frequenz.api.microgrid.inverter_pb2 import ComponentState as InverterCompon
 from frequenz.channels import Receiver, Sender
 from frequenz.channels.util import Timer, select, selected_from
 
-from frequenz.sdk._internal._asyncio import cancel_and_await
-from frequenz.sdk.microgrid import connection_manager
-from frequenz.sdk.microgrid.component import (
+from ..._internal._asyncio import cancel_and_await
+from ...microgrid import connection_manager
+from ...microgrid.component import (
     BatteryData,
     ComponentCategory,
     ComponentData,
