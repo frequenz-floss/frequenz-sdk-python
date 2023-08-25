@@ -6,32 +6,39 @@
 
 import asyncio
 import logging
-from typing import Any
 
-from ._decorator import BaseActor
+from ._actor import Actor
 
 _logger = logging.getLogger(__name__)
 
 
-async def run(*actors: Any) -> None:
+async def run(*actors: Actor) -> None:
     """Await the completion of all actors.
 
     Args:
         actors: the actors to be awaited.
-
-    Raises:
-        AssertionError: if any of the actors is not an instance of BaseActor.
     """
-    # Check that each actor is an instance of BaseActor at runtime,
-    # due to the indirection created by the actor decorator.
-    for actor in actors:
-        assert isinstance(actor, BaseActor), f"{actor} is not an instance of BaseActor"
+    _logger.info("Starting %s actor(s)...", len(actors))
+    await _wait_tasks(
+        set(asyncio.create_task(a.start(), name=str(a)) for a in actors),
+        "starting",
+        "started",
+    )
 
-    pending_tasks = set()
-    for actor in actors:
-        pending_tasks.add(asyncio.create_task(actor.join(), name=str(actor)))
+    # Wait until all actors are done
+    await _wait_tasks(
+        set(asyncio.create_task(a.wait(), name=str(a)) for a in actors),
+        "running",
+        "finished",
+    )
 
-    # Currently the actor decorator manages the life-cycle of the actor tasks
+    _logger.info("All %s actor(s) finished.", len(actors))
+
+
+async def _wait_tasks(
+    tasks: set[asyncio.Task[None]], error_str: str, success_str: str
+) -> None:
+    pending_tasks = tasks
     while pending_tasks:
         done_tasks, pending_tasks = await asyncio.wait(
             pending_tasks, return_when=asyncio.FIRST_COMPLETED
@@ -42,12 +49,19 @@ async def run(*actors: Any) -> None:
             # Cancellation needs to be checked first, otherwise the other methods
             # could raise a CancelledError
             if task.cancelled():
-                _logger.info("The actor %s was cancelled", task.get_name())
+                _logger.info(
+                    "Actor %s: Cancelled while %s.",
+                    task.get_name(),
+                    error_str,
+                )
             elif exception := task.exception():
                 _logger.error(
-                    "The actor %s was finished due to an uncaught exception",
+                    "Actor %s: Raised an exception while %s.",
                     task.get_name(),
+                    error_str,
                     exc_info=exception,
                 )
             else:
-                _logger.info("The actor %s finished normally", task.get_name())
+                _logger.info(
+                    "Actor %s: %s normally.", task.get_name(), success_str.capitalize()
+                )

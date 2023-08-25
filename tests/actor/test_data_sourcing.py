@@ -57,41 +57,41 @@ class TestDataSourcingActor:
 
         registry = ChannelRegistry(name="test-registry")
 
-        DataSourcingActor(req_chan.new_receiver(), registry)
-        active_power_request = ComponentMetricRequest(
-            "test-namespace", 4, ComponentMetricId.ACTIVE_POWER, None
-        )
-        active_power_recv = registry.new_receiver(
-            active_power_request.get_channel_name()
-        )
-        await req_sender.send(active_power_request)
+        async with DataSourcingActor(req_chan.new_receiver(), registry):
+            active_power_request = ComponentMetricRequest(
+                "test-namespace", 4, ComponentMetricId.ACTIVE_POWER, None
+            )
+            active_power_recv = registry.new_receiver(
+                active_power_request.get_channel_name()
+            )
+            await req_sender.send(active_power_request)
 
-        soc_request = ComponentMetricRequest(
-            "test-namespace", 9, ComponentMetricId.SOC, None
-        )
-        soc_recv = registry.new_receiver(soc_request.get_channel_name())
-        await req_sender.send(soc_request)
+            soc_request = ComponentMetricRequest(
+                "test-namespace", 9, ComponentMetricId.SOC, None
+            )
+            soc_recv = registry.new_receiver(soc_request.get_channel_name())
+            await req_sender.send(soc_request)
 
-        soc2_request = ComponentMetricRequest(
-            "test-namespace", 9, ComponentMetricId.SOC, None
-        )
-        soc2_recv = registry.new_receiver(soc2_request.get_channel_name())
-        await req_sender.send(soc2_request)
+            soc2_request = ComponentMetricRequest(
+                "test-namespace", 9, ComponentMetricId.SOC, None
+            )
+            soc2_recv = registry.new_receiver(soc2_request.get_channel_name())
+            await req_sender.send(soc2_request)
 
-        for _ in range(3):
-            sample = await soc_recv.receive()
-            assert sample is not None
-            assert 9.0 == sample.value.base_value
+            for _ in range(3):
+                sample = await soc_recv.receive()
+                assert sample is not None
+                assert 9.0 == sample.value.base_value
 
-            sample = await soc2_recv.receive()
-            assert sample is not None
-            assert 9.0 == sample.value.base_value
+                sample = await soc2_recv.receive()
+                assert sample is not None
+                assert 9.0 == sample.value.base_value
 
-            sample = await active_power_recv.receive()
-            assert sample is not None
-            assert 100.0 == sample.value.base_value
+                sample = await active_power_recv.receive()
+                assert sample is not None
+                assert 100.0 == sample.value.base_value
 
-        assert await server.graceful_shutdown()
-        connection_manager._CONNECTION_MANAGER = (  # pylint: disable=protected-access
-            None
-        )
+            assert await server.graceful_shutdown()
+            connection_manager._CONNECTION_MANAGER = (  # pylint: disable=protected-access
+                None
+            )

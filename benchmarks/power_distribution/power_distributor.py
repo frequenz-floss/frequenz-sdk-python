@@ -108,19 +108,16 @@ async def run_test(  # pylint: disable=too-many-locals
     power_request_channel = Broadcast[Request]("power-request")
     battery_status_channel = Broadcast[BatteryStatus]("battery-status")
     channel_registry = ChannelRegistry(name="power_distributor")
-    distributor = PowerDistributingActor(
+    async with PowerDistributingActor(
         channel_registry=channel_registry,
         requests_receiver=power_request_channel.new_receiver(),
         battery_status_sender=battery_status_channel.new_sender(),
-    )
+    ):
+        tasks: List[Coroutine[Any, Any, List[Result]]] = []
+        tasks.append(send_requests(batteries, num_requests))
 
-    tasks: List[Coroutine[Any, Any, List[Result]]] = []
-    tasks.append(send_requests(batteries, num_requests))
-
-    result = await asyncio.gather(*tasks)
-    exec_time = timeit.default_timer() - start
-
-    await distributor._stop()  # type: ignore # pylint: disable=no-member, protected-access
+        result = await asyncio.gather(*tasks)
+        exec_time = timeit.default_timer() - start
 
     summary = parse_result(result)
     summary["num_requests"] = num_requests

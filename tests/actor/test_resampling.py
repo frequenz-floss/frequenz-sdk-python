@@ -122,7 +122,7 @@ async def test_single_request(
     resampling_req_chan = Broadcast[ComponentMetricRequest]("resample-req")
     resampling_req_sender = resampling_req_chan.new_sender()
 
-    resampling_actor = ComponentMetricsResamplingActor(
+    async with ComponentMetricsResamplingActor(
         channel_registry=channel_registry,
         data_sourcing_request_sender=data_source_req_chan.new_sender(),
         resampling_request_receiver=resampling_req_chan.new_receiver(),
@@ -130,31 +130,29 @@ async def test_single_request(
             resampling_period=timedelta(seconds=0.2),
             max_data_age_in_periods=2,
         ),
-    )
+    ) as resampling_actor:
+        subs_req = ComponentMetricRequest(
+            namespace="Resampling",
+            component_id=9,
+            metric_id=ComponentMetricId.SOC,
+            start_time=None,
+        )
 
-    subs_req = ComponentMetricRequest(
-        namespace="Resampling",
-        component_id=9,
-        metric_id=ComponentMetricId.SOC,
-        start_time=None,
-    )
+        await resampling_req_sender.send(subs_req)
+        data_source_req = await data_source_req_recv.receive()
+        assert data_source_req is not None
+        assert data_source_req == dataclasses.replace(
+            subs_req, namespace="Resampling:Source"
+        )
 
-    await resampling_req_sender.send(subs_req)
-    data_source_req = await data_source_req_recv.receive()
-    assert data_source_req is not None
-    assert data_source_req == dataclasses.replace(
-        subs_req, namespace="Resampling:Source"
-    )
+        await _assert_resampling_works(
+            channel_registry,
+            fake_time,
+            resampling_chan_name=subs_req.get_channel_name(),
+            data_source_chan_name=data_source_req.get_channel_name(),
+        )
 
-    await _assert_resampling_works(
-        channel_registry,
-        fake_time,
-        resampling_chan_name=subs_req.get_channel_name(),
-        data_source_chan_name=data_source_req.get_channel_name(),
-    )
-
-    await resampling_actor._stop()  # type: ignore # pylint: disable=no-member,protected-access
-    await resampling_actor._resampler.stop()  # pylint: disable=protected-access
+        await resampling_actor._resampler.stop()  # pylint: disable=protected-access
 
 
 async def test_duplicate_request(
@@ -168,7 +166,7 @@ async def test_duplicate_request(
     resampling_req_chan = Broadcast[ComponentMetricRequest]("resample-req")
     resampling_req_sender = resampling_req_chan.new_sender()
 
-    resampling_actor = ComponentMetricsResamplingActor(
+    async with ComponentMetricsResamplingActor(
         channel_registry=channel_registry,
         data_sourcing_request_sender=data_source_req_chan.new_sender(),
         resampling_request_receiver=resampling_req_chan.new_receiver(),
@@ -176,29 +174,27 @@ async def test_duplicate_request(
             resampling_period=timedelta(seconds=0.2),
             max_data_age_in_periods=2,
         ),
-    )
+    ) as resampling_actor:
+        subs_req = ComponentMetricRequest(
+            namespace="Resampling",
+            component_id=9,
+            metric_id=ComponentMetricId.SOC,
+            start_time=None,
+        )
 
-    subs_req = ComponentMetricRequest(
-        namespace="Resampling",
-        component_id=9,
-        metric_id=ComponentMetricId.SOC,
-        start_time=None,
-    )
+        await resampling_req_sender.send(subs_req)
+        data_source_req = await data_source_req_recv.receive()
 
-    await resampling_req_sender.send(subs_req)
-    data_source_req = await data_source_req_recv.receive()
+        # Send duplicate request
+        await resampling_req_sender.send(subs_req)
+        with pytest.raises(asyncio.TimeoutError):
+            await asyncio.wait_for(data_source_req_recv.receive(), timeout=0.1)
 
-    # Send duplicate request
-    await resampling_req_sender.send(subs_req)
-    with pytest.raises(asyncio.TimeoutError):
-        await asyncio.wait_for(data_source_req_recv.receive(), timeout=0.1)
+        await _assert_resampling_works(
+            channel_registry,
+            fake_time,
+            resampling_chan_name=subs_req.get_channel_name(),
+            data_source_chan_name=data_source_req.get_channel_name(),
+        )
 
-    await _assert_resampling_works(
-        channel_registry,
-        fake_time,
-        resampling_chan_name=subs_req.get_channel_name(),
-        data_source_chan_name=data_source_req.get_channel_name(),
-    )
-
-    await resampling_actor._stop()  # type: ignore # pylint: disable=no-member,protected-access
-    await resampling_actor._resampler.stop()  # pylint: disable=protected-access
+        await resampling_actor._resampler.stop()  # pylint: disable=protected-access

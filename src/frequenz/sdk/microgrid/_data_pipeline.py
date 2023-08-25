@@ -50,12 +50,14 @@ A larger buffer size means that the DataSourcing and Resampling actors don't dro
 requests and will be able to keep up with higher request rates in larger installations.
 """
 
+_T = typing.TypeVar("_T")
+
 
 @dataclass
-class _ActorInfo:
+class _ActorInfo(typing.Generic[_T]):
     """Holds instances of core data pipeline actors and their request channels."""
 
-    actor: "DataSourcingActor | ComponentMetricsResamplingActor"
+    actor: _T
     channel: Broadcast["ComponentMetricRequest"]
 
 
@@ -82,8 +84,10 @@ class _DataPipeline:
 
         self._channel_registry = ChannelRegistry(name="Data Pipeline Registry")
 
-        self._data_sourcing_actor: _ActorInfo | None = None
-        self._resampling_actor: _ActorInfo | None = None
+        self._data_sourcing_actor: _ActorInfo[DataSourcingActor] | None = None
+        self._resampling_actor: _ActorInfo[
+            ComponentMetricsResamplingActor
+        ] | None = None
 
         self._battery_status_channel = Broadcast["BatteryStatus"](
             "battery-status", resend_latest=True
@@ -260,20 +264,29 @@ class _DataPipeline:
             self._resampling_actor = _ActorInfo(actor, channel)
         return self._resampling_actor.channel.new_sender()
 
+    async def _start(self) -> None:
+        """Start the data pipeline actors."""
+        if self._data_sourcing_actor:
+            await self._data_sourcing_actor.actor.start()
+        if self._resampling_actor:
+            await self._resampling_actor.actor.start()
+        # The power distributing actor is started lazily when the first battery pool is
+        # created.
+
     async def _stop(self) -> None:
         """Stop the data pipeline actors."""
-        # pylint: disable=protected-access
         if self._data_sourcing_actor:
-            await self._data_sourcing_actor.actor._stop()  # type: ignore
+            await self._data_sourcing_actor.actor.stop()
         if self._resampling_actor:
-            await self._resampling_actor.actor._stop()  # type: ignore
-        # pylint: enable=protected-access
+            await self._resampling_actor.actor.stop()
+        if self._power_distributing_actor:
+            await self._power_distributing_actor.stop()
 
 
 _DATA_PIPELINE: _DataPipeline | None = None
 
 
-def initialize(resampler_config: ResamplerConfig) -> None:
+async def initialize(resampler_config: ResamplerConfig) -> None:
     """Initialize a `DataPipeline` instance.
 
     Args:
@@ -287,6 +300,7 @@ def initialize(resampler_config: ResamplerConfig) -> None:
     if _DATA_PIPELINE is not None:
         raise RuntimeError("DataPipeline is already initialized.")
     _DATA_PIPELINE = _DataPipeline(resampler_config)
+    await _DATA_PIPELINE._start()  # pylint: disable=protected-access
 
 
 def logical_meter() -> LogicalMeter:

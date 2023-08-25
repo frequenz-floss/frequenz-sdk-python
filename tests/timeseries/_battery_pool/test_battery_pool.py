@@ -136,7 +136,7 @@ async def setup_all_batteries(mocker: MockerFixture) -> AsyncIterator[SetupArgs]
     min_update_interval: float = 0.2
     # pylint: disable=protected-access
     microgrid._data_pipeline._DATA_PIPELINE = None
-    microgrid._data_pipeline.initialize(
+    await microgrid._data_pipeline.initialize(
         ResamplerConfig(resampling_period=timedelta(seconds=min_update_interval))
     )
     streamer = MockComponentDataStreamer(mock_microgrid)
@@ -188,7 +188,7 @@ async def setup_batteries_pool(mocker: MockerFixture) -> AsyncIterator[SetupArgs
     min_update_interval: float = 0.2
     # pylint: disable=protected-access
     microgrid._data_pipeline._DATA_PIPELINE = None
-    microgrid._data_pipeline.initialize(
+    await microgrid._data_pipeline.initialize(
         ResamplerConfig(resampling_period=timedelta(seconds=min_update_interval))
     )
 

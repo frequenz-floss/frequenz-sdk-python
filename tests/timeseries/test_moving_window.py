@@ -75,15 +75,17 @@ def init_moving_window(
 async def test_access_window_by_index() -> None:
     """Test indexing a window by integer index"""
     window, sender = init_moving_window(timedelta(seconds=1))
-    await push_logical_meter_data(sender, [1])
-    assert np.array_equal(window[0], 1.0)
+    async with window:
+        await push_logical_meter_data(sender, [1])
+        assert np.array_equal(window[0], 1.0)
 
 
 async def test_access_window_by_timestamp() -> None:
     """Test indexing a window by timestamp"""
     window, sender = init_moving_window(timedelta(seconds=1))
-    await push_logical_meter_data(sender, [1])
-    assert np.array_equal(window[UNIX_EPOCH], 1.0)
+    async with window:
+        await push_logical_meter_data(sender, [1])
+        assert np.array_equal(window[UNIX_EPOCH], 1.0)
 
 
 async def test_access_window_by_int_slice() -> None:
@@ -94,35 +96,39 @@ async def test_access_window_by_int_slice() -> None:
     since the push_lm_data function is starting with the same initial timestamp.
     """
     window, sender = init_moving_window(timedelta(seconds=14))
-    await push_logical_meter_data(sender, range(0, 5))
-    assert np.array_equal(window[3:5], np.array([3.0, 4.0]))
+    async with window:
+        await push_logical_meter_data(sender, range(0, 5))
+        assert np.array_equal(window[3:5], np.array([3.0, 4.0]))
 
-    data = [1, 2, 2.5, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1]
-    await push_logical_meter_data(sender, data)
-    assert np.array_equal(window[5:14], np.array(data[5:14]))
+        data = [1, 2, 2.5, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1]
+        await push_logical_meter_data(sender, data)
+        assert np.array_equal(window[5:14], np.array(data[5:14]))
 
 
 async def test_access_window_by_ts_slice() -> None:
     """Test accessing a subwindow with a timestamp slice"""
     window, sender = init_moving_window(timedelta(seconds=5))
-    await push_logical_meter_data(sender, range(0, 5))
-    time_start = UNIX_EPOCH + timedelta(seconds=3)
-    time_end = time_start + timedelta(seconds=2)
-    assert np.array_equal(window[time_start:time_end], np.array([3.0, 4.0]))  # type: ignore
+    async with window:
+        await push_logical_meter_data(sender, range(0, 5))
+        time_start = UNIX_EPOCH + timedelta(seconds=3)
+        time_end = time_start + timedelta(seconds=2)
+        assert np.array_equal(window[time_start:time_end], np.array([3.0, 4.0]))  # type: ignore
 
 
 async def test_access_empty_window() -> None:
     """Test accessing an empty window, should throw IndexError"""
     window, _ = init_moving_window(timedelta(seconds=5))
-    with pytest.raises(IndexError, match=r"^The buffer is empty\.$"):
-        _ = window[42]
+    async with window:
+        with pytest.raises(IndexError, match=r"^The buffer is empty\.$"):
+            _ = window[42]
 
 
 async def test_window_size() -> None:
     """Test the size of the window."""
     window, sender = init_moving_window(timedelta(seconds=5))
-    await push_logical_meter_data(sender, range(0, 20))
-    assert len(window) == 5
+    async with window:
+        await push_logical_meter_data(sender, range(0, 20))
+        assert len(window) == 5
 
 
 # pylint: disable=redefined-outer-name
@@ -136,21 +142,20 @@ async def test_resampling_window(fake_time: time_machine.Coordinates) -> None:
     output_sampling = timedelta(seconds=2)
     resampler_config = ResamplerConfig(resampling_period=output_sampling)
 
-    window = MovingWindow(
+    async with MovingWindow(
         size=window_size,
         resampled_data_recv=channel.new_receiver(),
         input_sampling_period=input_sampling,
         resampler_config=resampler_config,
-    )
+    ) as window:
+        stream_values = [4.0, 8.0, 2.0, 6.0, 5.0] * 100
+        for value in stream_values:
+            timestamp = datetime.now(tz=timezone.utc)
+            sample = Sample(timestamp, Quantity(float(value)))
+            await sender.send(sample)
+            await asyncio.sleep(0.1)
+            fake_time.shift(0.1)
 
-    stream_values = [4.0, 8.0, 2.0, 6.0, 5.0] * 100
-    for value in stream_values:
-        timestamp = datetime.now(tz=timezone.utc)
-        sample = Sample(timestamp, Quantity(float(value)))
-        await sender.send(sample)
-        await asyncio.sleep(0.1)
-        fake_time.shift(0.1)
-
-    assert len(window) == window_size / output_sampling
-    for value in window:  # type: ignore
-        assert 4.9 < value < 5.1
+        assert len(window) == window_size / output_sampling
+        for value in window:  # type: ignore
+            assert 4.9 < value < 5.1

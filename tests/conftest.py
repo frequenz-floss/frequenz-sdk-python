@@ -2,25 +2,52 @@
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
 """Setup for all the tests."""
+import collections.abc
+import contextlib
+
 import pytest
 
-from frequenz.sdk.actor import _decorator
+from frequenz.sdk.actor import _actor
 
 # Used to impose a hard time limit for some async tasks in tests so that tests don't
 # run forever in case of a bug
 SAFETY_TIMEOUT = 10.0
 
 
-@pytest.fixture(scope="session", autouse=True)
-def disable_actor_auto_restart():  # type: ignore
-    """Disable auto-restart of actors while running tests.
+@contextlib.contextmanager
+def actor_restart_limit(limit: int) -> collections.abc.Iterator[None]:
+    """Temporarily set the actor restart limit to a given value.
 
-    At some point we had a version that would set the limit back to the
-    original value but it doesn't work because some actors will keep running
-    even after the end of the session and fail after the original value was
-    reestablished, getting into an infinite loop again.
+    Example:
+        ```python
+        with actor_restart_limit(0):  # No restart
+            async with MyActor() as actor:
+                # Do something with actor
+        ```
 
-    Note: Test class must derive after unittest.IsolatedAsyncioTestCase.
-    Otherwise this fixture won't run.
+    Args:
+        limit: The new limit.
     """
-    _decorator.BaseActor.restart_limit = 0
+    # pylint: disable=protected-access
+    original_limit = _actor.Actor._restart_limit
+    print(
+        f"<actor_restart_limit> Changing the restart limit from {original_limit} to {limit}"
+    )
+    _actor.Actor._restart_limit = limit
+    yield
+    print(f"<actor_restart_limit> Resetting restart limit to {original_limit}")
+    _actor.Actor._restart_limit = original_limit
+
+
+@pytest.fixture(scope="session", autouse=True)
+def disable_actor_auto_restart() -> collections.abc.Iterator[None]:
+    """Disable auto-restart of actors while running tests."""
+    with actor_restart_limit(0):
+        yield
+
+
+@pytest.fixture
+def actor_auto_restart_once() -> collections.abc.Iterator[None]:
+    """Make actors restart only once."""
+    with actor_restart_limit(1):
+        yield

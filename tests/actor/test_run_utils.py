@@ -11,7 +11,7 @@ import async_solipsism
 import pytest
 import time_machine
 
-from frequenz.sdk.actor import actor, run
+from frequenz.sdk.actor import Actor, run
 
 
 # Setting 'autouse' has no effect as this method replaces the event loop for all tests in the file.
@@ -30,8 +30,7 @@ def fake_time() -> Iterator[time_machine.Coordinates]:
         yield traveller
 
 
-@actor
-class FaultyActor:
+class FaultyActor(Actor):
     """A test faulty actor."""
 
     def __init__(self, name: str) -> None:
@@ -40,10 +39,10 @@ class FaultyActor:
         Args:
             name: the name of the faulty actor.
         """
-        self.name = name
+        super().__init__(name=name)
         self.is_cancelled = False
 
-    async def run(self) -> None:
+    async def _run(self) -> None:
         """Run the faulty actor.
 
         Raises:
@@ -53,8 +52,7 @@ class FaultyActor:
         raise asyncio.CancelledError(f"Faulty Actor {self.name} failed")
 
 
-@actor
-class SleepyActor:
+class SleepyActor(Actor):
     """A test actor that sleeps a short time."""
 
     def __init__(self, name: str, sleep_duration: float) -> None:
@@ -64,11 +62,11 @@ class SleepyActor:
             name: the name of the sleepy actor.
             sleep_duration: the virtual duration to sleep while running.
         """
-        self.name = name
+        super().__init__(name=name)
         self.sleep_duration = sleep_duration
         self.is_joined = False
 
-    async def run(self) -> None:
+    async def _run(self) -> None:
         """Run the sleepy actor."""
         while time.time() < self.sleep_duration:
             await asyncio.sleep(0.1)

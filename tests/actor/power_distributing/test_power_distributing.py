@@ -55,16 +55,13 @@ class TestPowerDistributingActor:
         channel = Broadcast[Request]("power_distributor")
         channel_registry = ChannelRegistry(name="power_distributor")
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
-        distributor = PowerDistributingActor(
+        async with PowerDistributingActor(
             requests_receiver=channel.new_receiver(),
             channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
-        )
-
-        assert distributor._bat_inv_map == {9: 8, 19: 18, 29: 28}
-        assert distributor._inv_bat_map == {8: 9, 18: 19, 28: 29}
-
-        await distributor._stop_actor()
+        ) as distributor:
+            assert distributor._bat_inv_map == {9: 8, 19: 18, 29: 28}
+            assert distributor._inv_bat_map == {8: 9, 18: 19, 28: 29}
         await mockgrid.cleanup()
 
         # Test if it works without grid side meter
@@ -72,16 +69,13 @@ class TestPowerDistributingActor:
         mockgrid.add_batteries(1)
         mockgrid.add_batteries(2, no_meter=True)
         await mockgrid.start(mocker)
-        distributor = PowerDistributingActor(
+        async with PowerDistributingActor(
             requests_receiver=channel.new_receiver(),
             channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
-        )
-
-        assert distributor._bat_inv_map == {9: 8, 19: 18, 29: 28}
-        assert distributor._inv_bat_map == {8: 9, 18: 19, 28: 29}
-
-        await distributor._stop_actor()
+        ) as distributor:
+            assert distributor._bat_inv_map == {9: 8, 19: 18, 29: 28}
+            assert distributor._inv_bat_map == {8: 9, 18: 19, 28: 29}
         await mockgrid.cleanup()
 
     async def init_component_data(self, mockgrid: MockMicrogrid) -> None:
@@ -131,20 +125,18 @@ class TestPowerDistributingActor:
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
-        distributor = PowerDistributingActor(
+        async with PowerDistributingActor(
             requests_receiver=channel.new_receiver(),
             channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
-        )
+        ):
+            await channel.new_sender().send(request)
+            result_rx = channel_registry.new_receiver(self._namespace)
 
-        await channel.new_sender().send(request)
-        result_rx = channel_registry.new_receiver(self._namespace)
-
-        done, pending = await asyncio.wait(
-            [asyncio.create_task(result_rx.receive())],
-            timeout=SAFETY_TIMEOUT,
-        )
-        await distributor._stop_actor()
+            done, pending = await asyncio.wait(
+                [asyncio.create_task(result_rx.receive())],
+                timeout=SAFETY_TIMEOUT,
+            )
 
         assert len(pending) == 0
         assert len(done) == 1
@@ -194,63 +186,60 @@ class TestPowerDistributingActor:
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
-        distributor = PowerDistributingActor(
+        async with PowerDistributingActor(
             requests_receiver=channel.new_receiver(),
             channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
-        )
+        ):
+            ## zero power requests should pass through despite the exclusion bounds.
+            request = Request(
+                namespace=self._namespace,
+                power=0.0,
+                batteries={9, 19},
+                request_timeout_sec=SAFETY_TIMEOUT,
+            )
 
-        ## zero power requests should pass through despite the exclusion bounds.
-        request = Request(
-            namespace=self._namespace,
-            power=0.0,
-            batteries={9, 19},
-            request_timeout_sec=SAFETY_TIMEOUT,
-        )
+            await channel.new_sender().send(request)
+            result_rx = channel_registry.new_receiver(self._namespace)
 
-        await channel.new_sender().send(request)
-        result_rx = channel_registry.new_receiver(self._namespace)
+            done, pending = await asyncio.wait(
+                [asyncio.create_task(result_rx.receive())],
+                timeout=SAFETY_TIMEOUT,
+            )
 
-        done, pending = await asyncio.wait(
-            [asyncio.create_task(result_rx.receive())],
-            timeout=SAFETY_TIMEOUT,
-        )
+            assert len(pending) == 0
+            assert len(done) == 1
 
-        assert len(pending) == 0
-        assert len(done) == 1
+            result: Result = done.pop().result()
+            assert isinstance(result, Success)
+            assert result.succeeded_power == approx(0.0)
+            assert result.excess_power == approx(0.0)
+            assert result.request == request
 
-        result: Result = done.pop().result()
-        assert isinstance(result, Success)
-        assert result.succeeded_power == approx(0.0)
-        assert result.excess_power == approx(0.0)
-        assert result.request == request
+            ## non-zero power requests that fall within the exclusion bounds should be
+            ## rejected.
+            request = Request(
+                namespace=self._namespace,
+                power=300.0,
+                batteries={9, 19},
+                request_timeout_sec=SAFETY_TIMEOUT,
+            )
 
-        ## non-zero power requests that fall within the exclusion bounds should be
-        ## rejected.
-        request = Request(
-            namespace=self._namespace,
-            power=300.0,
-            batteries={9, 19},
-            request_timeout_sec=SAFETY_TIMEOUT,
-        )
+            await channel.new_sender().send(request)
+            result_rx = channel_registry.new_receiver(self._namespace)
 
-        await channel.new_sender().send(request)
-        result_rx = channel_registry.new_receiver(self._namespace)
+            done, pending = await asyncio.wait(
+                [asyncio.create_task(result_rx.receive())],
+                timeout=SAFETY_TIMEOUT,
+            )
 
-        done, pending = await asyncio.wait(
-            [asyncio.create_task(result_rx.receive())],
-            timeout=SAFETY_TIMEOUT,
-        )
+            assert len(pending) == 0
+            assert len(done) == 1
 
-        assert len(pending) == 0
-        assert len(done) == 1
-
-        result = done.pop().result()
-        assert isinstance(result, OutOfBounds)
-        assert result.bounds == PowerBounds(-1000, -600, 600, 1000)
-        assert result.request == request
-
-        await distributor._stop_actor()
+            result = done.pop().result()
+            assert isinstance(result, OutOfBounds)
+            assert result.bounds == PowerBounds(-1000, -600, 600, 1000)
+            assert result.request == request
 
     async def test_battery_soc_nan(self, mocker: MockerFixture) -> None:
         """Test if battery with SoC==NaN is not used."""
@@ -286,26 +275,24 @@ class TestPowerDistributingActor:
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
-        distributor = PowerDistributingActor(
+        async with PowerDistributingActor(
             requests_receiver=channel.new_receiver(),
             channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
-        )
+        ):
+            attrs = {"get_working_batteries.return_value": request.batteries}
+            mocker.patch(
+                "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+                return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+            )
 
-        attrs = {"get_working_batteries.return_value": request.batteries}
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
-        )
+            await channel.new_sender().send(request)
+            result_rx = channel_registry.new_receiver(self._namespace)
 
-        await channel.new_sender().send(request)
-        result_rx = channel_registry.new_receiver(self._namespace)
-
-        done, pending = await asyncio.wait(
-            [asyncio.create_task(result_rx.receive())],
-            timeout=SAFETY_TIMEOUT,
-        )
-        await distributor._stop_actor()
+            done, pending = await asyncio.wait(
+                [asyncio.create_task(result_rx.receive())],
+                timeout=SAFETY_TIMEOUT,
+            )
 
         assert len(pending) == 0
         assert len(done) == 1
@@ -350,20 +337,18 @@ class TestPowerDistributingActor:
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
-        distributor = PowerDistributingActor(
+        async with PowerDistributingActor(
             requests_receiver=channel.new_receiver(),
             channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
-        )
+        ):
+            await channel.new_sender().send(request)
+            result_rx = channel_registry.new_receiver(self._namespace)
 
-        await channel.new_sender().send(request)
-        result_rx = channel_registry.new_receiver(self._namespace)
-
-        done, pending = await asyncio.wait(
-            [asyncio.create_task(result_rx.receive())],
-            timeout=SAFETY_TIMEOUT,
-        )
-        await distributor._stop_actor()
+            done, pending = await asyncio.wait(
+                [asyncio.create_task(result_rx.receive())],
+                timeout=SAFETY_TIMEOUT,
+            )
 
         assert len(pending) == 0
         assert len(done) == 1
@@ -424,20 +409,18 @@ class TestPowerDistributingActor:
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
-        distributor = PowerDistributingActor(
+        async with PowerDistributingActor(
             requests_receiver=channel.new_receiver(),
             channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
-        )
+        ):
+            await channel.new_sender().send(request)
+            result_rx = channel_registry.new_receiver(self._namespace)
 
-        await channel.new_sender().send(request)
-        result_rx = channel_registry.new_receiver(self._namespace)
-
-        done, pending = await asyncio.wait(
-            [asyncio.create_task(result_rx.receive())],
-            timeout=SAFETY_TIMEOUT,
-        )
-        await distributor._stop_actor()
+            done, pending = await asyncio.wait(
+                [asyncio.create_task(result_rx.receive())],
+                timeout=SAFETY_TIMEOUT,
+            )
 
         assert len(pending) == 0
         assert len(done) == 1
@@ -475,20 +458,18 @@ class TestPowerDistributingActor:
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
-        distributor = PowerDistributingActor(
+        async with PowerDistributingActor(
             requests_receiver=channel.new_receiver(),
             channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
-        )
+        ):
+            await channel.new_sender().send(request)
+            result_rx = channel_registry.new_receiver(self._namespace)
 
-        await channel.new_sender().send(request)
-        result_rx = channel_registry.new_receiver(self._namespace)
-
-        done, _ = await asyncio.wait(
-            [asyncio.create_task(result_rx.receive())],
-            timeout=SAFETY_TIMEOUT,
-        )
-        await distributor._stop_actor()
+            done, _ = await asyncio.wait(
+                [asyncio.create_task(result_rx.receive())],
+                timeout=SAFETY_TIMEOUT,
+            )
 
         assert len(done) == 1
         result: Result = done.pop().result()
@@ -526,20 +507,18 @@ class TestPowerDistributingActor:
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
-        distributor = PowerDistributingActor(
+        async with PowerDistributingActor(
             requests_receiver=channel.new_receiver(),
             channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
-        )
+        ):
+            await channel.new_sender().send(request)
+            result_rx = channel_registry.new_receiver(self._namespace)
 
-        await channel.new_sender().send(request)
-        result_rx = channel_registry.new_receiver(self._namespace)
-
-        done, pending = await asyncio.wait(
-            [asyncio.create_task(result_rx.receive())],
-            timeout=SAFETY_TIMEOUT,
-        )
-        await distributor._stop_actor()
+            done, pending = await asyncio.wait(
+                [asyncio.create_task(result_rx.receive())],
+                timeout=SAFETY_TIMEOUT,
+            )
 
         assert len(pending) == 0
         assert len(done) == 1
@@ -579,20 +558,18 @@ class TestPowerDistributingActor:
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
-        distributor = PowerDistributingActor(
+        async with PowerDistributingActor(
             requests_receiver=channel.new_receiver(),
             channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
-        )
+        ):
+            await channel.new_sender().send(request)
+            result_rx = channel_registry.new_receiver(self._namespace)
 
-        await channel.new_sender().send(request)
-        result_rx = channel_registry.new_receiver(self._namespace)
-
-        done, pending = await asyncio.wait(
-            [asyncio.create_task(result_rx.receive())],
-            timeout=SAFETY_TIMEOUT,
-        )
-        await distributor._stop_actor()
+            done, pending = await asyncio.wait(
+                [asyncio.create_task(result_rx.receive())],
+                timeout=SAFETY_TIMEOUT,
+            )
 
         assert len(pending) == 0
         assert len(done) == 1
@@ -632,20 +609,18 @@ class TestPowerDistributingActor:
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
-        distributor = PowerDistributingActor(
+        async with PowerDistributingActor(
             requests_receiver=channel.new_receiver(),
             channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
-        )
+        ):
+            await channel.new_sender().send(request)
+            result_rx = channel_registry.new_receiver(self._namespace)
 
-        await channel.new_sender().send(request)
-        result_rx = channel_registry.new_receiver(self._namespace)
-
-        done, pending = await asyncio.wait(
-            [asyncio.create_task(result_rx.receive())],
-            timeout=SAFETY_TIMEOUT,
-        )
-        await distributor._stop_actor()
+            done, pending = await asyncio.wait(
+                [asyncio.create_task(result_rx.receive())],
+                timeout=SAFETY_TIMEOUT,
+            )
 
         assert len(pending) == 0
         assert len(done) == 1
@@ -676,37 +651,34 @@ class TestPowerDistributingActor:
         channel = Broadcast[Request]("power_distributor")
         channel_registry = ChannelRegistry(name="power_distributor")
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
-        distributor = PowerDistributingActor(
+        async with PowerDistributingActor(
             requests_receiver=channel.new_receiver(),
             channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
-        )
+        ):
+            request = Request(
+                namespace=self._namespace,
+                power=1200.0,
+                batteries=batteries,
+                request_timeout_sec=SAFETY_TIMEOUT,
+            )
 
-        request = Request(
-            namespace=self._namespace,
-            power=1200.0,
-            batteries=batteries,
-            request_timeout_sec=SAFETY_TIMEOUT,
-        )
+            await channel.new_sender().send(request)
+            result_rx = channel_registry.new_receiver(self._namespace)
 
-        await channel.new_sender().send(request)
-        result_rx = channel_registry.new_receiver(self._namespace)
+            done, pending = await asyncio.wait(
+                [asyncio.create_task(result_rx.receive())],
+                timeout=SAFETY_TIMEOUT,
+            )
 
-        done, pending = await asyncio.wait(
-            [asyncio.create_task(result_rx.receive())],
-            timeout=SAFETY_TIMEOUT,
-        )
-
-        assert len(pending) == 0
-        assert len(done) == 1
-        result = done.pop().result()
-        assert isinstance(result, Success)
-        assert result.succeeded_batteries == {19}
-        assert result.excess_power == approx(700.0)
-        assert result.succeeded_power == approx(500.0)
-        assert result.request == request
-
-        await distributor._stop_actor()
+            assert len(pending) == 0
+            assert len(done) == 1
+            result = done.pop().result()
+            assert isinstance(result, Success)
+            assert result.succeeded_batteries == {19}
+            assert result.excess_power == approx(700.0)
+            assert result.succeeded_power == approx(500.0)
+            assert result.request == request
 
     async def test_use_all_batteries_none_is_working(
         self, mocker: MockerFixture
@@ -728,38 +700,35 @@ class TestPowerDistributingActor:
         channel = Broadcast[Request]("power_distributor")
         channel_registry = ChannelRegistry(name="power_distributor")
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
-        distributor = PowerDistributingActor(
+        async with PowerDistributingActor(
             requests_receiver=channel.new_receiver(),
             channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
-        )
+        ):
+            request = Request(
+                namespace=self._namespace,
+                power=1200.0,
+                batteries={9, 19},
+                request_timeout_sec=SAFETY_TIMEOUT,
+                include_broken_batteries=True,
+            )
 
-        request = Request(
-            namespace=self._namespace,
-            power=1200.0,
-            batteries={9, 19},
-            request_timeout_sec=SAFETY_TIMEOUT,
-            include_broken_batteries=True,
-        )
+            await channel.new_sender().send(request)
+            result_rx = channel_registry.new_receiver(self._namespace)
 
-        await channel.new_sender().send(request)
-        result_rx = channel_registry.new_receiver(self._namespace)
+            done, pending = await asyncio.wait(
+                [asyncio.create_task(result_rx.receive())],
+                timeout=SAFETY_TIMEOUT,
+            )
 
-        done, pending = await asyncio.wait(
-            [asyncio.create_task(result_rx.receive())],
-            timeout=SAFETY_TIMEOUT,
-        )
-
-        assert len(pending) == 0
-        assert len(done) == 1
-        result = done.pop().result()
-        assert isinstance(result, Success)
-        assert result.succeeded_batteries == {9, 19}
-        assert result.excess_power == approx(200.0)
-        assert result.succeeded_power == approx(1000.0)
-        assert result.request == request
-
-        await distributor._stop_actor()
+            assert len(pending) == 0
+            assert len(done) == 1
+            result = done.pop().result()
+            assert isinstance(result, Success)
+            assert result.succeeded_batteries == {9, 19}
+            assert result.excess_power == approx(200.0)
+            assert result.succeeded_power == approx(1000.0)
+            assert result.request == request
 
     async def test_force_request_a_battery_is_not_working(
         self, mocker: MockerFixture
@@ -783,38 +752,35 @@ class TestPowerDistributingActor:
         channel = Broadcast[Request]("power_distributor")
         channel_registry = ChannelRegistry(name="power_distributor")
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
-        distributor = PowerDistributingActor(
+        async with PowerDistributingActor(
             requests_receiver=channel.new_receiver(),
             channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
-        )
+        ):
+            request = Request(
+                namespace=self._namespace,
+                power=1200.0,
+                batteries=batteries,
+                request_timeout_sec=SAFETY_TIMEOUT,
+                include_broken_batteries=True,
+            )
 
-        request = Request(
-            namespace=self._namespace,
-            power=1200.0,
-            batteries=batteries,
-            request_timeout_sec=SAFETY_TIMEOUT,
-            include_broken_batteries=True,
-        )
+            await channel.new_sender().send(request)
+            result_rx = channel_registry.new_receiver(self._namespace)
 
-        await channel.new_sender().send(request)
-        result_rx = channel_registry.new_receiver(self._namespace)
+            done, pending = await asyncio.wait(
+                [asyncio.create_task(result_rx.receive())],
+                timeout=SAFETY_TIMEOUT,
+            )
 
-        done, pending = await asyncio.wait(
-            [asyncio.create_task(result_rx.receive())],
-            timeout=SAFETY_TIMEOUT,
-        )
-
-        assert len(pending) == 0
-        assert len(done) == 1
-        result = done.pop().result()
-        assert isinstance(result, Success)
-        assert result.succeeded_batteries == {9, 19}
-        assert result.excess_power == approx(200.0)
-        assert result.succeeded_power == approx(1000.0)
-        assert result.request == request
-
-        await distributor._stop_actor()
+            assert len(pending) == 0
+            assert len(done) == 1
+            result = done.pop().result()
+            assert isinstance(result, Success)
+            assert result.succeeded_batteries == {9, 19}
+            assert result.excess_power == approx(200.0)
+            assert result.succeeded_power == approx(1000.0)
+            assert result.request == request
 
     async def test_force_request_battery_nan_value_non_cached(
         self, mocker: MockerFixture
@@ -839,56 +805,53 @@ class TestPowerDistributingActor:
         channel = Broadcast[Request]("power_distributor")
         channel_registry = ChannelRegistry(name="power_distributor")
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
-        distributor = PowerDistributingActor(
+        async with PowerDistributingActor(
             requests_receiver=channel.new_receiver(),
             channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
-        )
+        ):
+            request = Request(
+                namespace=self._namespace,
+                power=1200.0,
+                batteries=batteries,
+                request_timeout_sec=SAFETY_TIMEOUT,
+                include_broken_batteries=True,
+            )
 
-        request = Request(
-            namespace=self._namespace,
-            power=1200.0,
-            batteries=batteries,
-            request_timeout_sec=SAFETY_TIMEOUT,
-            include_broken_batteries=True,
-        )
+            batteries_data = (
+                battery_msg(
+                    9,
+                    soc=Metric(math.nan, Bound(20, 80)),
+                    capacity=Metric(math.nan),
+                    power=PowerBounds(-1000, 0, 0, 1000),
+                ),
+                battery_msg(
+                    19,
+                    soc=Metric(40, Bound(20, 80)),
+                    capacity=Metric(math.nan),
+                    power=PowerBounds(-1000, 0, 0, 1000),
+                ),
+            )
 
-        batteries_data = (
-            battery_msg(
-                9,
-                soc=Metric(math.nan, Bound(20, 80)),
-                capacity=Metric(math.nan),
-                power=PowerBounds(-1000, 0, 0, 1000),
-            ),
-            battery_msg(
-                19,
-                soc=Metric(40, Bound(20, 80)),
-                capacity=Metric(math.nan),
-                power=PowerBounds(-1000, 0, 0, 1000),
-            ),
-        )
+            for battery in batteries_data:
+                await mockgrid.mock_client.send(battery)
 
-        for battery in batteries_data:
-            await mockgrid.mock_client.send(battery)
+            await channel.new_sender().send(request)
+            result_rx = channel_registry.new_receiver(self._namespace)
 
-        await channel.new_sender().send(request)
-        result_rx = channel_registry.new_receiver(self._namespace)
+            done, pending = await asyncio.wait(
+                [asyncio.create_task(result_rx.receive())],
+                timeout=SAFETY_TIMEOUT,
+            )
 
-        done, pending = await asyncio.wait(
-            [asyncio.create_task(result_rx.receive())],
-            timeout=SAFETY_TIMEOUT,
-        )
-
-        assert len(pending) == 0
-        assert len(done) == 1
-        result: Result = done.pop().result()
-        assert isinstance(result, Success)
-        assert result.succeeded_batteries == batteries
-        assert result.succeeded_power == approx(1199.9999)
-        assert result.excess_power == approx(0.0)
-        assert result.request == request
-
-        await distributor._stop_actor()
+            assert len(pending) == 0
+            assert len(done) == 1
+            result: Result = done.pop().result()
+            assert isinstance(result, Success)
+            assert result.succeeded_batteries == batteries
+            assert result.succeeded_power == approx(1199.9999)
+            assert result.excess_power == approx(0.0)
+            assert result.request == request
 
     async def test_force_request_batteries_nan_values_cached(
         self, mocker: MockerFixture
@@ -912,67 +875,64 @@ class TestPowerDistributingActor:
         channel = Broadcast[Request]("power_distributor")
         channel_registry = ChannelRegistry(name="power_distributor")
         battery_status_channel = Broadcast[BatteryStatus]("battery_status")
-        distributor = PowerDistributingActor(
+        async with PowerDistributingActor(
             requests_receiver=channel.new_receiver(),
             channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
-        )
-
-        request = Request(
-            namespace=self._namespace,
-            power=1200.0,
-            batteries=batteries,
-            request_timeout_sec=SAFETY_TIMEOUT,
-            include_broken_batteries=True,
-        )
-
-        result_rx = channel_registry.new_receiver(self._namespace)
-
-        async def test_result() -> None:
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+        ):
+            request = Request(
+                namespace=self._namespace,
+                power=1200.0,
+                batteries=batteries,
+                request_timeout_sec=SAFETY_TIMEOUT,
+                include_broken_batteries=True,
             )
-            assert len(pending) == 0
-            assert len(done) == 1
-            result: Result = done.pop().result()
-            assert isinstance(result, Success)
-            assert result.succeeded_batteries == batteries
-            assert result.succeeded_power == approx(1199.9999)
-            assert result.excess_power == approx(0.0)
-            assert result.request == request
 
-        batteries_data = (
-            battery_msg(
-                9,
-                soc=Metric(math.nan, Bound(20, 80)),
-                capacity=Metric(98000),
-                power=PowerBounds(-1000, 0, 0, 1000),
-            ),
-            battery_msg(
-                19,
-                soc=Metric(40, Bound(20, 80)),
-                capacity=Metric(math.nan),
-                power=PowerBounds(-1000, 0, 0, 1000),
-            ),
-            battery_msg(
-                29,
-                soc=Metric(40, Bound(20, 80)),
-                capacity=Metric(float(98000)),
-                power=PowerBounds(math.nan, 0, 0, math.nan),
-            ),
-        )
+            result_rx = channel_registry.new_receiver(self._namespace)
 
-        # This request is needed to set the battery metrics cache to have valid
-        # metrics so that the distribution algorithm can be used in the next
-        # request where the batteries report NaN in the metrics.
-        await channel.new_sender().send(request)
-        await test_result()
+            async def test_result() -> None:
+                done, pending = await asyncio.wait(
+                    [asyncio.create_task(result_rx.receive())],
+                    timeout=SAFETY_TIMEOUT,
+                )
+                assert len(pending) == 0
+                assert len(done) == 1
+                result: Result = done.pop().result()
+                assert isinstance(result, Success)
+                assert result.succeeded_batteries == batteries
+                assert result.succeeded_power == approx(1199.9999)
+                assert result.excess_power == approx(0.0)
+                assert result.request == request
 
-        for battery in batteries_data:
-            await mockgrid.mock_client.send(battery)
+            batteries_data = (
+                battery_msg(
+                    9,
+                    soc=Metric(math.nan, Bound(20, 80)),
+                    capacity=Metric(98000),
+                    power=PowerBounds(-1000, 0, 0, 1000),
+                ),
+                battery_msg(
+                    19,
+                    soc=Metric(40, Bound(20, 80)),
+                    capacity=Metric(math.nan),
+                    power=PowerBounds(-1000, 0, 0, 1000),
+                ),
+                battery_msg(
+                    29,
+                    soc=Metric(40, Bound(20, 80)),
+                    capacity=Metric(float(98000)),
+                    power=PowerBounds(math.nan, 0, 0, math.nan),
+                ),
+            )
 
-        await channel.new_sender().send(request)
-        await test_result()
+            # This request is needed to set the battery metrics cache to have valid
+            # metrics so that the distribution algorithm can be used in the next
+            # request where the batteries report NaN in the metrics.
+            await channel.new_sender().send(request)
+            await test_result()
 
-        await distributor._stop_actor()
+            for battery in batteries_data:
+                await mockgrid.mock_client.send(battery)
+
+            await channel.new_sender().send(request)
+            await test_result()
