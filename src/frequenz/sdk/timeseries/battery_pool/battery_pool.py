@@ -143,7 +143,7 @@ class BatteryPool:
         await self._power_distributing_sender.send(
             Request(
                 namespace=self._power_distributing_namespace,
-                power=power.as_watts(),
+                power=power,
                 batteries=self._batteries,
                 adjust_power=adjust_power,
                 request_timeout=request_timeout,
@@ -184,13 +184,12 @@ class BatteryPool:
         Raises:
             ValueError: If the given power is negative.
         """
-        as_watts = power.as_watts()
-        if as_watts < 0.0:
+        if power < Power.zero():
             raise ValueError("Charge power must be positive.")
         await self._power_distributing_sender.send(
             Request(
                 namespace=self._power_distributing_namespace,
-                power=as_watts,
+                power=power,
                 batteries=self._batteries,
                 adjust_power=adjust_power,
                 request_timeout=request_timeout,
@@ -231,13 +230,12 @@ class BatteryPool:
         Raises:
             ValueError: If the given power is negative.
         """
-        as_watts = power.as_watts()
-        if as_watts < 0.0:
+        if power < Power.zero():
             raise ValueError("Discharge power must be positive.")
         await self._power_distributing_sender.send(
             Request(
                 namespace=self._power_distributing_namespace,
-                power=-as_watts,
+                power=-power,
                 batteries=self._batteries,
                 adjust_power=adjust_power,
                 request_timeout=request_timeout,

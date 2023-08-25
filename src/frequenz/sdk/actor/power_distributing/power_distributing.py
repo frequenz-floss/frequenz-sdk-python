@@ -273,7 +273,9 @@ class PowerDistributingActor(Actor):
                 )
                 continue
 
-            distributed_power_value = request.power - distribution.remaining_power
+            distributed_power_value = (
+                request.power.as_watts() - distribution.remaining_power
+            )
             battery_distribution = {
                 self._inv_bat_map[bat_id]: dist
                 for bat_id, dist in distribution.distribution.items()
@@ -369,11 +371,11 @@ class PowerDistributingActor(Actor):
 
         if request.include_broken_batteries and not available_bat_ids:
             return self.distribution_algorithm.distribute_power_equally(
-                request.power, unavailable_inv_ids
+                request.power.as_watts(), unavailable_inv_ids
             )
 
         result = self.distribution_algorithm.distribute_power(
-            request.power, inv_bat_pairs
+            request.power.as_watts(), inv_bat_pairs
         )
 
         if request.include_broken_batteries and unavailable_inv_ids:
@@ -414,9 +416,11 @@ class PowerDistributingActor(Actor):
 
         bounds = self._get_bounds(pairs_data)
 
+        power = request.power.as_watts()
+
         # Zero power requests are always forwarded to the microgrid API, even if they
         # are outside the exclusion bounds.
-        if is_close_to_zero(request.power):
+        if is_close_to_zero(power):
             return None
 
         if request.adjust_power:
@@ -425,15 +429,11 @@ class PowerDistributingActor(Actor):
             #
             # If the requested power is in the exclusion bounds, it is NOT possible to
             # increase it so that it is outside the exclusion bounds.
-            if bounds.exclusion_lower < request.power < bounds.exclusion_upper:
+            if bounds.exclusion_lower < power < bounds.exclusion_upper:
                 return OutOfBounds(request=request, bounds=bounds)
         else:
-            in_lower_range = (
-                bounds.inclusion_lower <= request.power <= bounds.exclusion_lower
-            )
-            in_upper_range = (
-                bounds.exclusion_upper <= request.power <= bounds.inclusion_upper
-            )
+            in_lower_range = bounds.inclusion_lower <= power <= bounds.exclusion_lower
+            in_upper_range = bounds.exclusion_upper <= power <= bounds.inclusion_upper
             if not (in_lower_range or in_upper_range):
                 return OutOfBounds(request=request, bounds=bounds)
 

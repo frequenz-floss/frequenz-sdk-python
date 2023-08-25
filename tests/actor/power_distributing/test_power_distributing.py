@@ -112,7 +112,7 @@ class TestPowerDistributingActor:
 
         request = Request(
             namespace=self._namespace,
-            power=1200.0,
+            power=Power.from_kilowatts(1.2),
             batteries={9, 19},
             request_timeout=SAFETY_TIMEOUT,
         )
@@ -194,7 +194,7 @@ class TestPowerDistributingActor:
             ## zero power requests should pass through despite the exclusion bounds.
             request = Request(
                 namespace=self._namespace,
-                power=0.0,
+                power=Power.zero(),
                 batteries={9, 19},
                 request_timeout=SAFETY_TIMEOUT,
             )
@@ -220,7 +220,7 @@ class TestPowerDistributingActor:
             ## rejected.
             request = Request(
                 namespace=self._namespace,
-                power=300.0,
+                power=Power.from_watts(300.0),
                 batteries={9, 19},
                 request_timeout=SAFETY_TIMEOUT,
             )
@@ -262,7 +262,7 @@ class TestPowerDistributingActor:
 
         request = Request(
             namespace=self._namespace,
-            power=1200.0,
+            power=Power.from_kilowatts(1.2),
             batteries={9, 19},
             request_timeout=SAFETY_TIMEOUT,
         )
@@ -325,7 +325,7 @@ class TestPowerDistributingActor:
 
         request = Request(
             namespace=self._namespace,
-            power=1200.0,
+            power=Power.from_kilowatts(1.2),
             batteries={9, 19},
             request_timeout=SAFETY_TIMEOUT,
         )
@@ -397,7 +397,7 @@ class TestPowerDistributingActor:
 
         request = Request(
             namespace=self._namespace,
-            power=1200.0,
+            power=Power.from_kilowatts(1.2),
             batteries={9, 19},
             request_timeout=SAFETY_TIMEOUT,
         )
@@ -445,7 +445,7 @@ class TestPowerDistributingActor:
         channel_registry = ChannelRegistry(name="power_distributor")
         request = Request(
             namespace=self._namespace,
-            power=1200.0,
+            power=Power.from_kilowatts(1.2),
             batteries={9, 100},
             request_timeout=SAFETY_TIMEOUT,
         )
@@ -492,7 +492,7 @@ class TestPowerDistributingActor:
 
         request = Request(
             namespace=self._namespace,
-            power=1200.0,
+            power=Power.from_kilowatts(1.2),
             batteries={9, 19},
             request_timeout=SAFETY_TIMEOUT,
             adjust_power=False,
@@ -543,7 +543,7 @@ class TestPowerDistributingActor:
 
         request = Request(
             namespace=self._namespace,
-            power=-1200.0,
+            power=-Power.from_kilowatts(1.2),
             batteries={9, 19},
             request_timeout=SAFETY_TIMEOUT,
             adjust_power=False,
@@ -594,7 +594,7 @@ class TestPowerDistributingActor:
 
         request = Request(
             namespace=self._namespace,
-            power=1000.0,
+            power=Power.from_kilowatts(1.0),
             batteries={9, 19},
             request_timeout=SAFETY_TIMEOUT,
             adjust_power=False,
@@ -658,7 +658,7 @@ class TestPowerDistributingActor:
         ):
             request = Request(
                 namespace=self._namespace,
-                power=1200.0,
+                power=Power.from_kilowatts(1.2),
                 batteries=batteries,
                 request_timeout=SAFETY_TIMEOUT,
             )
@@ -707,7 +707,7 @@ class TestPowerDistributingActor:
         ):
             request = Request(
                 namespace=self._namespace,
-                power=1200.0,
+                power=Power.from_kilowatts(1.2),
                 batteries={9, 19},
                 request_timeout=SAFETY_TIMEOUT,
                 include_broken_batteries=True,
@@ -759,7 +759,7 @@ class TestPowerDistributingActor:
         ):
             request = Request(
                 namespace=self._namespace,
-                power=1200.0,
+                power=Power.from_kilowatts(1.2),
                 batteries=batteries,
                 request_timeout=SAFETY_TIMEOUT,
                 include_broken_batteries=True,
@@ -812,7 +812,7 @@ class TestPowerDistributingActor:
         ):
             request = Request(
                 namespace=self._namespace,
-                power=1200.0,
+                power=Power.from_kilowatts(1.2),
                 batteries=batteries,
                 request_timeout=SAFETY_TIMEOUT,
                 include_broken_batteries=True,
@@ -882,7 +882,7 @@ class TestPowerDistributingActor:
         ):
             request = Request(
                 namespace=self._namespace,
-                power=1200.0,
+                power=Power.from_kilowatts(1.2),
                 batteries=batteries,
                 request_timeout=SAFETY_TIMEOUT,
                 include_broken_batteries=True,
