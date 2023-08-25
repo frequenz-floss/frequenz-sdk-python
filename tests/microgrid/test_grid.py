@@ -7,7 +7,9 @@ Tests for the `Grid` module.
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.microgrid.component import Component, ComponentCategory, GridMetadata
+from frequenz.sdk.microgrid.fuse import Fuse
 from frequenz.sdk.microgrid.grid import Grid
+from frequenz.sdk.timeseries import Current
 
 
 async def test_grid() -> None:
@@ -53,7 +55,11 @@ async def test_grid() -> None:
     microgrid.grid.initialize(components)
 
     grid = microgrid.grid.get()
-    assert grid == Grid(max_current=123.0)
 
-    max_current = grid.max_current
-    assert max_current == 123.0
+    expected_fuse_current = Current.from_amperes(123.0)
+    expected_fuse = Fuse(expected_fuse_current)
+
+    assert grid == Grid(fuse=expected_fuse)
+
+    fuse_current = grid.fuse.max_current
+    assert fuse_current == expected_fuse_current

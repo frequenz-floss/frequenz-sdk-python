@@ -11,16 +11,18 @@ import logging
 from collections.abc import Iterable
 from dataclasses import dataclass
 
+from ..timeseries import Current
 from .component import Component
 from .component._component import ComponentCategory
+from .fuse import Fuse
 
 
 @dataclass(frozen=True)
 class Grid:
     """A grid connection point."""
 
-    max_current: float
-    """The maximum current that can course through the grid connection point, in Amperes."""
+    fuse: Fuse
+    """The fuse protecting the grid connection point."""
 
 
 _GRID: Grid | None = None
@@ -56,7 +58,8 @@ def initialize(components: Iterable[Component]) -> None:
         )
     else:
         max_current = grid_connections[0].metadata.max_current  # type: ignore
-        _GRID = Grid(max_current)
+        fuse = Fuse(Current.from_amperes(max_current))
+        _GRID = Grid(fuse)
 
 
 def get() -> Grid | None:
