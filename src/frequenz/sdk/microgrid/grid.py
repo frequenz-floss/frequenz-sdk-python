@@ -11,7 +11,6 @@ import logging
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-from ..timeseries import Current
 from .component import Component
 from .component._component import ComponentCategory
 from .fuse import Fuse
@@ -36,7 +35,8 @@ def initialize(components: Iterable[Component]) -> None:
 
     Raises:
         RuntimeError: If there is more than 1 grid connection point in the
-            microgrid.
+            microgrid, or if the grid connection point is not initialized,
+            or if the grid connection point does not have a fuse.
     """
     global _GRID  # pylint: disable=global-statement
 
@@ -57,8 +57,14 @@ def initialize(components: Iterable[Component]) -> None:
             f"Expected at most one grid connection, got {grid_connections_count}"
         )
     else:
-        max_current = grid_connections[0].metadata.max_current  # type: ignore
-        fuse = Fuse(Current.from_amperes(max_current))
+        if grid_connections[0].metadata is None:
+            raise RuntimeError("Grid metadata is None")
+
+        fuse = grid_connections[0].metadata.fuse
+
+        if fuse is None:
+            raise RuntimeError("Grid fuse is None")
+
         _GRID = Grid(fuse)
 
 

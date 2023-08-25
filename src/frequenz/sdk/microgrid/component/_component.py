@@ -12,6 +12,9 @@ import frequenz.api.common.components_pb2 as components_pb
 import frequenz.api.microgrid.grid_pb2 as grid_pb
 import frequenz.api.microgrid.inverter_pb2 as inverter_pb
 
+from ...timeseries import Current
+from ..fuse import Fuse
+
 
 class ComponentType(Enum):
     """A base class from which individual component types are derived."""
@@ -110,13 +113,13 @@ def _component_category_from_protobuf(
 class ComponentMetadata:
     """Base class for component metadata classes."""
 
+    fuse: Fuse | None = None
+    """The fuse at the grid connection point."""
+
 
 @dataclass(frozen=True)
 class GridMetadata(ComponentMetadata):
     """Metadata for a grid connection point."""
-
-    max_current: float
-    """maximum current rating of the grid connection point in amps."""
 
 
 def _component_metadata_from_protobuf(
@@ -124,7 +127,9 @@ def _component_metadata_from_protobuf(
     component_metadata: grid_pb.Metadata,
 ) -> GridMetadata | None:
     if component_category == components_pb.ComponentCategory.COMPONENT_CATEGORY_GRID:
-        return GridMetadata(float(component_metadata.rated_fuse_current))
+        max_current = Current.from_amperes(component_metadata.rated_fuse_current)
+        fuse = Fuse(max_current)
+        return GridMetadata(fuse)
 
     return None
 

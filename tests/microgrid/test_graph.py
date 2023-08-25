@@ -24,6 +24,8 @@ from frequenz.sdk.microgrid.component import (
     GridMetadata,
     InverterType,
 )
+from frequenz.sdk.microgrid.fuse import Fuse
+from frequenz.sdk.timeseries import Current
 
 from .mock_api import MockGrpcServer, MockMicrogridServicer
 
@@ -821,6 +823,9 @@ class Test_MicrogridComponentGraph:
         servicer.set_connections([(101, 111), (111, 131)])
         await graph.refresh_from_api(client)
 
+        grid_max_current = Current.zero()
+        grid_fuse = Fuse(grid_max_current)
+
         # Note: we need to add GriMetadata as a dict here, because that's what
         # the ComponentGraph does too, and we need to be able to compare the
         # two graphs.
@@ -829,7 +834,7 @@ class Test_MicrogridComponentGraph:
                 101,
                 ComponentCategory.GRID,
                 None,
-                asdict(GridMetadata(max_current=0.0)),  # type: ignore
+                asdict(GridMetadata(fuse=grid_fuse)),  # type: ignore
             ),
             Component(111, ComponentCategory.METER),
             Component(131, ComponentCategory.EV_CHARGER),
@@ -855,12 +860,13 @@ class Test_MicrogridComponentGraph:
         )
         servicer.set_connections([(707, 717), (717, 727), (727, 737), (717, 747)])
         await graph.refresh_from_api(client)
+
         expected = {
             Component(
                 707,
                 ComponentCategory.GRID,
                 None,
-                asdict(GridMetadata(max_current=0.0)),  # type: ignore
+                asdict(GridMetadata(fuse=grid_fuse)),  # type: ignore
             ),
             Component(717, ComponentCategory.METER),
             Component(727, ComponentCategory.INVERTER, InverterType.NONE),

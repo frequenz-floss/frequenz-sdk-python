@@ -31,9 +31,12 @@ async def test_grid() -> None:
 
     # validate that the microgrid initialization fails when there are multiple
     # grid connection points.
+    fuse_current = Current.from_amperes(123.0)
+    fuse = Fuse(fuse_current)
+
     components = [
-        Component(1, ComponentCategory.GRID, None, GridMetadata(123.0)),
-        Component(2, ComponentCategory.GRID, None, GridMetadata(345.0)),
+        Component(1, ComponentCategory.GRID, None, GridMetadata(fuse)),
+        Component(2, ComponentCategory.GRID, None, GridMetadata(fuse)),
         Component(3, ComponentCategory.METER),
     ]
 
@@ -48,7 +51,7 @@ async def test_grid() -> None:
 
     # validate that microgrids with one grid connection are accepted.
     components = [
-        Component(1, ComponentCategory.GRID, None, GridMetadata(123.0)),
+        Component(1, ComponentCategory.GRID, None, GridMetadata(fuse)),
         Component(2, ComponentCategory.METER),
     ]
 

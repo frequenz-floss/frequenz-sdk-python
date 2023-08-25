@@ -26,6 +26,7 @@ from frequenz.sdk.microgrid.component import (
     InverterType,
     MeterData,
 )
+from frequenz.sdk.microgrid.fuse import Fuse
 from frequenz.sdk.timeseries import Current
 
 from . import mock_api
@@ -125,13 +126,16 @@ class TestMicrogridGrpcClient:
                 Current.from_amperes(123.0),
             )
 
+            grid_max_current = Current.from_amperes(123.0)
+            grid_fuse = Fuse(grid_max_current)
+
             assert set(await microgrid.components()) == {
                 Component(100, ComponentCategory.NONE),
                 Component(
                     101,
                     ComponentCategory.GRID,
                     None,
-                    GridMetadata(max_current=123.0),
+                    GridMetadata(fuse=grid_fuse),
                 ),
                 Component(104, ComponentCategory.METER),
                 Component(105, ComponentCategory.INVERTER, InverterType.NONE),
