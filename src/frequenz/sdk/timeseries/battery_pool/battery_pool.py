@@ -146,7 +146,7 @@ class BatteryPool:
                 power=power.as_watts(),
                 batteries=self._batteries,
                 adjust_power=adjust_power,
-                request_timeout_sec=request_timeout.total_seconds(),
+                request_timeout=request_timeout,
                 include_broken_batteries=include_broken_batteries,
             )
         )
@@ -193,7 +193,7 @@ class BatteryPool:
                 power=as_watts,
                 batteries=self._batteries,
                 adjust_power=adjust_power,
-                request_timeout_sec=request_timeout.total_seconds(),
+                request_timeout=request_timeout,
                 include_broken_batteries=include_broken_batteries,
             )
         )
@@ -240,7 +240,7 @@ class BatteryPool:
                 power=-as_watts,
                 batteries=self._batteries,
                 adjust_power=adjust_power,
-                request_timeout_sec=request_timeout.total_seconds(),
+                request_timeout=request_timeout,
                 include_broken_batteries=include_broken_batteries,
             )
         )

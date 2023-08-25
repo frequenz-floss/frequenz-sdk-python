@@ -4,6 +4,7 @@
 """Setup for all the tests."""
 import collections.abc
 import contextlib
+from datetime import timedelta
 
 import pytest
 
@@ -11,7 +12,7 @@ from frequenz.sdk.actor import _actor
 
 # Used to impose a hard time limit for some async tasks in tests so that tests don't
 # run forever in case of a bug
-SAFETY_TIMEOUT = 10.0
+SAFETY_TIMEOUT = timedelta(seconds=10.0)
 
 
 @contextlib.contextmanager

@@ -98,7 +98,7 @@ class PowerDistributingActor(Actor):
 
     It is recommended to wait for PowerDistributingActor output with timeout. Otherwise if
     the processing function fails then the response will never come.
-    The timeout should be Result:request_timeout_sec + time for processing the request.
+    The timeout should be Result:request_timeout + time for processing the request.
 
     Edge cases:
     * If there are 2 requests to be processed for the same subset of batteries, then
@@ -285,7 +285,7 @@ class PowerDistributingActor(Actor):
             )
 
             failed_power, failed_batteries = await self._set_distributed_power(
-                api, distribution, request.request_timeout_sec
+                api, distribution, request.request_timeout
             )
 
             response: Success | PartialFailure
@@ -321,14 +321,14 @@ class PowerDistributingActor(Actor):
         self,
         api: MicrogridApiClient,
         distribution: DistributionResult,
-        timeout_sec: float,
+        timeout: timedelta,
     ) -> Tuple[float, Set[int]]:
         """Send distributed power to the inverters.
 
         Args:
             api: Microgrid api client
             distribution: Distribution result
-            timeout_sec: How long wait for the response
+            timeout: How long wait for the response
 
         Returns:
             Tuple where first element is total failed power, and the second element
@@ -341,13 +341,13 @@ class PowerDistributingActor(Actor):
 
         _, pending = await asyncio.wait(
             tasks.values(),
-            timeout=timeout_sec,
+            timeout=timeout.total_seconds(),
             return_when=ALL_COMPLETED,
         )
 
         await self._cancel_tasks(pending)
 
-        return self._parse_result(tasks, distribution.distribution, timeout_sec)
+        return self._parse_result(tasks, distribution.distribution, timeout)
 
     def _get_power_distribution(
         self, request: Request, inv_bat_pairs: List[InvBatPair]
@@ -632,7 +632,7 @@ class PowerDistributingActor(Actor):
         self,
         tasks: Dict[int, asyncio.Task[None]],
         distribution: Dict[int, float],
-        request_timeout_sec: float,
+        request_timeout: timedelta,
     ) -> Tuple[float, Set[int]]:
         """Parse the results of `set_power` requests.
 
@@ -644,7 +644,7 @@ class PowerDistributingActor(Actor):
                 set the power for this inverter. Each task should be finished or cancelled.
             distribution: A dictionary where the key is the inverter ID and the value is how much
                 power was set to the corresponding inverter.
-            request_timeout_sec: The timeout that was used for the request.
+            request_timeout: The timeout that was used for the request.
 
         Returns:
             A tuple where the first element is the total failed power, and the second element is
@@ -678,7 +678,7 @@ class PowerDistributingActor(Actor):
                 _logger.warning(
                     "Battery %d didn't respond in %f sec. Mark it as broken.",
                     battery_id,
-                    request_timeout_sec,
+                    request_timeout.total_seconds(),
                 )
 
         return failed_power, failed_batteries

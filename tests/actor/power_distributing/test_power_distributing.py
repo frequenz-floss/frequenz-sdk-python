@@ -114,7 +114,7 @@ class TestPowerDistributingActor:
             namespace=self._namespace,
             power=1200.0,
             batteries={9, 19},
-            request_timeout_sec=SAFETY_TIMEOUT,
+            request_timeout=SAFETY_TIMEOUT,
         )
 
         attrs = {"get_working_batteries.return_value": request.batteries}
@@ -135,7 +135,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
         assert len(pending) == 0
@@ -196,7 +196,7 @@ class TestPowerDistributingActor:
                 namespace=self._namespace,
                 power=0.0,
                 batteries={9, 19},
-                request_timeout_sec=SAFETY_TIMEOUT,
+                request_timeout=SAFETY_TIMEOUT,
             )
 
             await channel.new_sender().send(request)
@@ -204,7 +204,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
             assert len(pending) == 0
@@ -222,7 +222,7 @@ class TestPowerDistributingActor:
                 namespace=self._namespace,
                 power=300.0,
                 batteries={9, 19},
-                request_timeout_sec=SAFETY_TIMEOUT,
+                request_timeout=SAFETY_TIMEOUT,
             )
 
             await channel.new_sender().send(request)
@@ -230,7 +230,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
             assert len(pending) == 0
@@ -264,7 +264,7 @@ class TestPowerDistributingActor:
             namespace=self._namespace,
             power=1200.0,
             batteries={9, 19},
-            request_timeout_sec=SAFETY_TIMEOUT,
+            request_timeout=SAFETY_TIMEOUT,
         )
 
         attrs = {"get_working_batteries.return_value": request.batteries}
@@ -291,7 +291,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
         assert len(pending) == 0
@@ -327,7 +327,7 @@ class TestPowerDistributingActor:
             namespace=self._namespace,
             power=1200.0,
             batteries={9, 19},
-            request_timeout_sec=SAFETY_TIMEOUT,
+            request_timeout=SAFETY_TIMEOUT,
         )
         attrs = {"get_working_batteries.return_value": request.batteries}
         mocker.patch(
@@ -347,7 +347,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
         assert len(pending) == 0
@@ -399,7 +399,7 @@ class TestPowerDistributingActor:
             namespace=self._namespace,
             power=1200.0,
             batteries={9, 19},
-            request_timeout_sec=SAFETY_TIMEOUT,
+            request_timeout=SAFETY_TIMEOUT,
         )
         attrs = {"get_working_batteries.return_value": request.batteries}
         mocker.patch(
@@ -419,7 +419,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
         assert len(pending) == 0
@@ -447,7 +447,7 @@ class TestPowerDistributingActor:
             namespace=self._namespace,
             power=1200.0,
             batteries={9, 100},
-            request_timeout_sec=SAFETY_TIMEOUT,
+            request_timeout=SAFETY_TIMEOUT,
         )
 
         attrs = {"get_working_batteries.return_value": request.batteries}
@@ -468,7 +468,7 @@ class TestPowerDistributingActor:
 
             done, _ = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
         assert len(done) == 1
@@ -494,7 +494,7 @@ class TestPowerDistributingActor:
             namespace=self._namespace,
             power=1200.0,
             batteries={9, 19},
-            request_timeout_sec=SAFETY_TIMEOUT,
+            request_timeout=SAFETY_TIMEOUT,
             adjust_power=False,
         )
 
@@ -517,7 +517,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
         assert len(pending) == 0
@@ -545,7 +545,7 @@ class TestPowerDistributingActor:
             namespace=self._namespace,
             power=-1200.0,
             batteries={9, 19},
-            request_timeout_sec=SAFETY_TIMEOUT,
+            request_timeout=SAFETY_TIMEOUT,
             adjust_power=False,
         )
 
@@ -568,7 +568,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
         assert len(pending) == 0
@@ -596,7 +596,7 @@ class TestPowerDistributingActor:
             namespace=self._namespace,
             power=1000.0,
             batteries={9, 19},
-            request_timeout_sec=SAFETY_TIMEOUT,
+            request_timeout=SAFETY_TIMEOUT,
             adjust_power=False,
         )
 
@@ -619,7 +619,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
         assert len(pending) == 0
@@ -660,7 +660,7 @@ class TestPowerDistributingActor:
                 namespace=self._namespace,
                 power=1200.0,
                 batteries=batteries,
-                request_timeout_sec=SAFETY_TIMEOUT,
+                request_timeout=SAFETY_TIMEOUT,
             )
 
             await channel.new_sender().send(request)
@@ -668,7 +668,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
             assert len(pending) == 0
@@ -709,7 +709,7 @@ class TestPowerDistributingActor:
                 namespace=self._namespace,
                 power=1200.0,
                 batteries={9, 19},
-                request_timeout_sec=SAFETY_TIMEOUT,
+                request_timeout=SAFETY_TIMEOUT,
                 include_broken_batteries=True,
             )
 
@@ -718,7 +718,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
             assert len(pending) == 0
@@ -761,7 +761,7 @@ class TestPowerDistributingActor:
                 namespace=self._namespace,
                 power=1200.0,
                 batteries=batteries,
-                request_timeout_sec=SAFETY_TIMEOUT,
+                request_timeout=SAFETY_TIMEOUT,
                 include_broken_batteries=True,
             )
 
@@ -770,7 +770,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
             assert len(pending) == 0
@@ -814,7 +814,7 @@ class TestPowerDistributingActor:
                 namespace=self._namespace,
                 power=1200.0,
                 batteries=batteries,
-                request_timeout_sec=SAFETY_TIMEOUT,
+                request_timeout=SAFETY_TIMEOUT,
                 include_broken_batteries=True,
             )
 
@@ -841,7 +841,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
             assert len(pending) == 0
@@ -884,7 +884,7 @@ class TestPowerDistributingActor:
                 namespace=self._namespace,
                 power=1200.0,
                 batteries=batteries,
-                request_timeout_sec=SAFETY_TIMEOUT,
+                request_timeout=SAFETY_TIMEOUT,
                 include_broken_batteries=True,
             )
 
@@ -893,7 +893,7 @@ class TestPowerDistributingActor:
             async def test_result() -> None:
                 done, pending = await asyncio.wait(
                     [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT,
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
                 )
                 assert len(pending) == 0
                 assert len(done) == 1
