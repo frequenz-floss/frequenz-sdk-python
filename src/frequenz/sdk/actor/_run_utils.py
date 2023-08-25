@@ -19,26 +19,16 @@ async def run(*actors: Actor) -> None:
         actors: the actors to be awaited.
     """
     _logger.info("Starting %s actor(s)...", len(actors))
-    await _wait_tasks(
-        set(asyncio.create_task(a.start(), name=str(a)) for a in actors),
-        "starting",
-        "started",
-    )
+
+    for actor in actors:
+        if actor.is_running:
+            _logger.info("Actor %s: Already running, skipping start.", actor)
+        else:
+            _logger.info("Actor %s: Starting...", actor)
+            actor.start()
 
     # Wait until all actors are done
-    await _wait_tasks(
-        set(asyncio.create_task(a.wait(), name=str(a)) for a in actors),
-        "running",
-        "finished",
-    )
-
-    _logger.info("All %s actor(s) finished.", len(actors))
-
-
-async def _wait_tasks(
-    tasks: set[asyncio.Task[None]], error_str: str, success_str: str
-) -> None:
-    pending_tasks = tasks
+    pending_tasks = set(asyncio.create_task(a.wait(), name=str(a)) for a in actors)
     while pending_tasks:
         done_tasks, pending_tasks = await asyncio.wait(
             pending_tasks, return_when=asyncio.FIRST_COMPLETED
@@ -49,19 +39,14 @@ async def _wait_tasks(
             # Cancellation needs to be checked first, otherwise the other methods
             # could raise a CancelledError
             if task.cancelled():
-                _logger.info(
-                    "Actor %s: Cancelled while %s.",
-                    task.get_name(),
-                    error_str,
-                )
+                _logger.info("Actor %s: Cancelled while running.", task.get_name())
             elif exception := task.exception():
                 _logger.error(
-                    "Actor %s: Raised an exception while %s.",
+                    "Actor %s: Raised an exception while running.",
                     task.get_name(),
-                    error_str,
                     exc_info=exception,
                 )
             else:
-                _logger.info(
-                    "Actor %s: %s normally.", task.get_name(), success_str.capitalize()
-                )
+                _logger.info("Actor %s: Finished normally.", task.get_name())
+
+    _logger.info("All %s actor(s) finished.", len(actors))

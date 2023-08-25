@@ -149,7 +149,7 @@ class Actor(BackgroundService, abc.ABC):
         This is mostly used for testing purposes and shouldn't be set in production.
     """
 
-    async def start(self) -> None:
+    def start(self) -> None:
         """Start this actor.
 
         If this actor is already running, this method does nothing.
@@ -172,7 +172,7 @@ class Actor(BackgroundService, abc.ABC):
                 the maximum number of restarts.
             BaseException: If this actor's `_run()` raises any other `BaseException`.
         """
-        _logger.info("Actor %s: Starting...", self)
+        _logger.info("Actor %s: Started.", self)
         n_restarts = 0
         while True:
             try:

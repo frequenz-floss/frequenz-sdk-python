@@ -190,7 +190,7 @@ class MovingWindow(BackgroundService):
             align_to=align_to,
         )
 
-    async def start(self) -> None:
+    def start(self) -> None:
         """Start the MovingWindow.
 
         This method starts the MovingWindow tasks.

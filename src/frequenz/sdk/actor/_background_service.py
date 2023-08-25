@@ -46,7 +46,7 @@ class BackgroundService(abc.ABC):
                 super().__init__(name=name)
                 self._resolution_s = resolution_s
 
-            async def start(self) -> None:
+            def start(self) -> None:
                 self._tasks.add(asyncio.create_task(self._tick()))
 
             async def _tick(self) -> None:
@@ -61,7 +61,7 @@ class BackgroundService(abc.ABC):
 
             # Manual start/stop (only use if necessary, as cleanup is more complicated)
             clock = Clock(resolution_s=1)
-            await clock.start()
+            clock.start()
             await asyncio.sleep(5)
             await clock.stop()
 
@@ -80,7 +80,7 @@ class BackgroundService(abc.ABC):
         self._tasks: set[asyncio.Task[Any]] = set()
 
     @abc.abstractmethod
-    async def start(self) -> None:
+    def start(self) -> None:
         """Start this background service."""
 
     @property
@@ -166,7 +166,7 @@ class BackgroundService(abc.ABC):
         Returns:
             This background service.
         """
-        await self.start()
+        self.start()
         return self
 
     async def __aexit__(
