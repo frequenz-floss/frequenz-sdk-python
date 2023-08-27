@@ -82,6 +82,14 @@ This release replaces the `@actor` decorator with a new `Actor` class.
 
 - The base actors (`ConfigManagingActor`, `ComponentMetricsResamplingActor`, `DataSourcingActor`, `PowerDistributingActor`) now inherit from the new `Actor` class, if you are using them directly, you need to start them manually with `await actor.start()` and you might need to do some other adjustments.
 
+- The `BatteryPool.power_distribution_results` method has been enhanced to provide power distribution results in the form of `Power` objects, replacing the previous use of `float` values.
+
+- In the `Request` class:
+  * The attribute `request_timeout_sec` has been updated and is now named `request_timeout` and it is represented by a `timedelta` object rather than a `float`.
+  * The attribute `power` is now presented as a `Power` object, as opposed to a `float`.
+
+- Within the `EVChargerPool.set_bounds` method, the parameter `max_amps` has been redefined as `max_current`, and it is now represented using a `Current` object instead of a `float`.
+
 ## New Features
 
 - DFS for compentent graph
