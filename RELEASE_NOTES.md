@@ -106,6 +106,6 @@ This release replaces the `@actor` decorator with a new `Actor` class.
 
 - Fix `pv_power` not working in setups with 2 grid meters by using a new reliable function to search for components in the components graph
 
-- Fix `consumer_power` similar to `pv_power`
+- Fix `consumer_power` and `producer_power` similar to `pv_power`
 
 - Zero value requests received by the `PowerDistributingActor` will now always be accepted, even when there are non-zero exclusion bounds.
