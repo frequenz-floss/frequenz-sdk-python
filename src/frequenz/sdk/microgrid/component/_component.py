@@ -125,6 +125,14 @@ class Component:
             self.component_id > 0 and any(t == self.category for t in ComponentCategory)
         ) or (self.component_id == 0 and self.category == ComponentCategory.GRID)
 
+    def __hash__(self) -> int:
+        """Compute a hash of this instance, obtained by hashing the `component_id` field.
+
+        Returns:
+            Hash of this instance.
+        """
+        return hash(self.component_id)
+
 
 class ComponentMetricId(Enum):
     """An enum representing the various metrics available in the microgrid."""
