@@ -2132,7 +2132,7 @@
 </span><span id="__span-0-240"><a id="__codelineno-0-240" name="__codelineno-0-240"></a>
 </span><span id="__span-0-241"><a id="__codelineno-0-241" name="__codelineno-0-241"></a>        <span class="k">return</span> <span class="n">output_chan</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
 </span><span id="__span-0-242"><a id="__codelineno-0-242" name="__codelineno-0-242"></a>
-</span><span id="__span-0-243"><a id="__codelineno-0-243" name="__codelineno-0-243"></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">set_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_amps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-243"><a id="__codelineno-0-243" name="__codelineno-0-243"></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">set_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_current</span><span class="p">:</span> <span class="n">Current</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="__span-0-244"><a id="__codelineno-0-244" name="__codelineno-0-244"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Send given max current bound for the given EV Charger to the microgrid API.</span>
 </span><span id="__span-0-245"><a id="__codelineno-0-245" name="__codelineno-0-245"></a>
 </span><span id="__span-0-246"><a id="__codelineno-0-246" name="__codelineno-0-246"></a><span class="sd">        Bounds are used to limit the max current drawn by an EV, although the exact</span>
@@ -2140,11 +2140,11 @@
 </span><span id="__span-0-248"><a id="__codelineno-0-248" name="__codelineno-0-248"></a>
 </span><span id="__span-0-249"><a id="__codelineno-0-249" name="__codelineno-0-249"></a><span class="sd">        Args:</span>
 </span><span id="__span-0-250"><a id="__codelineno-0-250" name="__codelineno-0-250"></a><span class="sd">            component_id: ID of EV Charger to set the current bounds to.</span>
-</span><span id="__span-0-251"><a id="__codelineno-0-251" name="__codelineno-0-251"></a><span class="sd">            max_amps: maximum current in amps, that an EV can draw from this EV Charger.</span>
+</span><span id="__span-0-251"><a id="__codelineno-0-251" name="__codelineno-0-251"></a><span class="sd">            max_current: maximum current that an EV can draw from this EV Charger.</span>
 </span><span id="__span-0-252"><a id="__codelineno-0-252" name="__codelineno-0-252"></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="__span-0-253"><a id="__codelineno-0-253" name="__codelineno-0-253"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds_setter</span><span class="p">:</span>
 </span><span id="__span-0-254"><a id="__codelineno-0-254" name="__codelineno-0-254"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_bounds_setter</span> <span class="o">=</span> <span class="n">BoundsSetter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_repeat_interval</span><span class="p">)</span>
-</span><span id="__span-0-255"><a id="__codelineno-0-255" name="__codelineno-0-255"></a>        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds_setter</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">component_id</span><span class="p">,</span> <span class="n">max_amps</span><span class="p">)</span>
+</span><span id="__span-0-255"><a id="__codelineno-0-255" name="__codelineno-0-255"></a>        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds_setter</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">component_id</span><span class="p">,</span> <span class="n">max_current</span><span class="o">.</span><span class="n">as_amperes</span><span class="p">())</span>
 </span><span id="__span-0-256"><a id="__codelineno-0-256" name="__codelineno-0-256"></a>
 </span><span id="__span-0-257"><a id="__codelineno-0-257" name="__codelineno-0-257"></a>    <span class="k">def</span> <span class="nf">new_bounds_sender</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sender</span><span class="p">[</span><span class="n">ComponentCurrentLimit</span><span class="p">]:</span>
 </span><span id="__span-0-258"><a id="__codelineno-0-258" name="__codelineno-0-258"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a `Sender` for setting EV Charger current bounds with.</span>
@@ -2950,7 +2950,7 @@ value will be determined by the EV.</p>
 
 
 <h6 id="frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.set_bounds" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">set_bounds</span><span class="p">(</span><span class="n">component_id</span><span class="p">,</span> <span class="n">max_amps</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">set_bounds</span><span class="p">(</span><span class="n">component_id</span><span class="p">,</span> <span class="n">max_current</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-async"><code>async</code></small>
@@ -2990,15 +2990,15 @@ value will be determined by the EV.</p>
           </td>
         </tr>
         <tr>
-          <td><code>max_amps</code></td>
+          <td><code>max_current</code></td>
           <td class="doc-param-details">
             <div class="doc-md-description">
-              <p>maximum current in amps, that an EV can draw from this EV Charger.</p>
+              <p>maximum current that an EV can draw from this EV Charger.</p>
             </div>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Current" href="../#frequenz.sdk.timeseries.Current">Current</a></code>
                 </span>
             </p>
           </td>
@@ -3020,7 +3020,7 @@ value will be determined by the EV.</p>
 <span class="normal"><a href="#__codelineno-0-252">252</a></span>
 <span class="normal"><a href="#__codelineno-0-253">253</a></span>
 <span class="normal"><a href="#__codelineno-0-254">254</a></span>
-<span class="normal"><a href="#__codelineno-0-255">255</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-243"><a id="__codelineno-0-243" name="__codelineno-0-243"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">set_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_amps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal"><a href="#__codelineno-0-255">255</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-243"><a id="__codelineno-0-243" name="__codelineno-0-243"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">set_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_current</span><span class="p">:</span> <span class="n">Current</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="__span-0-244"><a id="__codelineno-0-244" name="__codelineno-0-244"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Send given max current bound for the given EV Charger to the microgrid API.</span>
 </span><span id="__span-0-245"><a id="__codelineno-0-245" name="__codelineno-0-245"></a>
 </span><span id="__span-0-246"><a id="__codelineno-0-246" name="__codelineno-0-246"></a><span class="sd">    Bounds are used to limit the max current drawn by an EV, although the exact</span>
@@ -3028,11 +3028,11 @@ value will be determined by the EV.</p>
 </span><span id="__span-0-248"><a id="__codelineno-0-248" name="__codelineno-0-248"></a>
 </span><span id="__span-0-249"><a id="__codelineno-0-249" name="__codelineno-0-249"></a><span class="sd">    Args:</span>
 </span><span id="__span-0-250"><a id="__codelineno-0-250" name="__codelineno-0-250"></a><span class="sd">        component_id: ID of EV Charger to set the current bounds to.</span>
-</span><span id="__span-0-251"><a id="__codelineno-0-251" name="__codelineno-0-251"></a><span class="sd">        max_amps: maximum current in amps, that an EV can draw from this EV Charger.</span>
+</span><span id="__span-0-251"><a id="__codelineno-0-251" name="__codelineno-0-251"></a><span class="sd">        max_current: maximum current that an EV can draw from this EV Charger.</span>
 </span><span id="__span-0-252"><a id="__codelineno-0-252" name="__codelineno-0-252"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="__span-0-253"><a id="__codelineno-0-253" name="__codelineno-0-253"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds_setter</span><span class="p">:</span>
 </span><span id="__span-0-254"><a id="__codelineno-0-254" name="__codelineno-0-254"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_bounds_setter</span> <span class="o">=</span> <span class="n">BoundsSetter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_repeat_interval</span><span class="p">)</span>
-</span><span id="__span-0-255"><a id="__codelineno-0-255" name="__codelineno-0-255"></a>    <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds_setter</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">component_id</span><span class="p">,</span> <span class="n">max_amps</span><span class="p">)</span>
+</span><span id="__span-0-255"><a id="__codelineno-0-255" name="__codelineno-0-255"></a>    <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds_setter</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">component_id</span><span class="p">,</span> <span class="n">max_current</span><span class="o">.</span><span class="n">as_amperes</span><span class="p">())</span>
 </span></code></pre></div></td></tr></table></div>
           </details>
   </div>
