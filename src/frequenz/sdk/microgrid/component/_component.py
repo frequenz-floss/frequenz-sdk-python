@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 import frequenz.api.common.components_pb2 as components_pb
 import frequenz.api.microgrid.inverter_pb2 as inverter_pb
@@ -32,7 +31,7 @@ class InverterType(ComponentType):
 def _component_type_from_protobuf(
     component_category: components_pb.ComponentCategory.ValueType,
     component_metadata: inverter_pb.Metadata,
-) -> Optional[ComponentType]:
+) -> ComponentType | None:
     """Convert a protobuf InverterType message to Component enum.
 
     For internal-only use by the `microgrid` package.
@@ -112,7 +111,7 @@ class Component:
 
     component_id: int
     category: ComponentCategory
-    type: Optional[ComponentType] = None
+    type: ComponentType | None = None
 
     def is_valid(self) -> bool:
         """Check if this instance contains valid data.
