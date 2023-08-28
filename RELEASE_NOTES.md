@@ -84,7 +84,7 @@ This release replaces the `@actor` decorator with a new `Actor` class.
 
 ## New Features
 
-- DFS for compentent graph
+- Added `DFS` to the component graph
 
 - `BackgroundService`: This new abstract base class can be used to write other classes that runs one or more tasks in the background. It provides a consistent API to start and stop these services and also takes care of the handling of the background tasks. It can also work as an `async` context manager, giving the service a deterministic lifetime and guaranteed cleanup.
 
@@ -106,6 +106,6 @@ This release replaces the `@actor` decorator with a new `Actor` class.
 
 - Fix `pv_power` not working in setups with 2 grid meters by using a new reliable function to search for components in the components graph
 
-- Fix `consumer_power` similar to `pv_power`
+- Fix `consumer_power` and `producer_power` similar to `pv_power`
 
 - Zero value requests received by the `PowerDistributingActor` will now always be accepted, even when there are non-zero exclusion bounds.

@@ -3,10 +3,7 @@
 
 """Formula generator from component graph for Consumer Power."""
 
-from __future__ import annotations
-
 import logging
-from collections import abc
 
 from ....microgrid import connection_manager
 from ....microgrid.component import Component, ComponentCategory, ComponentMetricId
@@ -50,95 +47,140 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
         if not grid_successors:
             raise ComponentNotFound("No components found in the component graph.")
 
-        if len(grid_successors) == 1:
-            grid_meter = next(iter(grid_successors))
-            if grid_meter.category != ComponentCategory.METER:
-                raise RuntimeError(
-                    "Only grid successor in the component graph is not a meter."
-                )
-            return self._gen_with_grid_meter(builder, grid_meter)
-        return self._gen_without_grid_meter(builder, grid_successors)
+        component_graph = connection_manager.get().component_graph
+        if all(
+            successor.category == ComponentCategory.METER
+            and not component_graph.is_battery_chain(successor)
+            and not component_graph.is_chp_chain(successor)
+            and not component_graph.is_pv_chain(successor)
+            and not component_graph.is_ev_charger_chain(successor)
+            for successor in grid_successors
+        ):
+            return self._gen_with_grid_meter(builder, grid_successors)
+
+        return self._gen_without_grid_meter(builder, self._get_grid_component())
 
     def _gen_with_grid_meter(
         self,
         builder: ResampledFormulaBuilder[Power],
-        grid_meter: Component,
+        grid_meters: set[Component],
     ) -> FormulaEngine[Power]:
         """Generate formula for calculating consumer power with grid meter.
 
         Args:
             builder: The formula engine builder.
-            grid_meter: The grid meter component.
+            grid_meters: The grid meter component.
 
         Returns:
             A formula engine that will calculate the consumer power.
         """
+        assert grid_meters
         component_graph = connection_manager.get().component_graph
-        successors = component_graph.successors(grid_meter.component_id)
 
-        builder.push_component_metric(grid_meter.component_id, nones_are_zeros=False)
+        def non_consumer_component(component: Component) -> bool:
+            """
+            Check if a component is not a consumer component.
 
-        for successor in successors:
+            Args:
+                component: The component to check.
+
+            Returns:
+                True if the component is not a consumer component, False otherwise.
+            """
             # If the component graph supports additional types of grid successors in the
             # future, additional checks need to be added here.
-            if (
-                component_graph.is_battery_chain(successor)
-                or component_graph.is_chp_chain(successor)
-                or component_graph.is_pv_chain(successor)
-                or component_graph.is_ev_charger_chain(successor)
-            ):
+            return (
+                component_graph.is_battery_chain(component)
+                or component_graph.is_chp_chain(component)
+                or component_graph.is_pv_chain(component)
+                or component_graph.is_ev_charger_chain(component)
+            )
+
+        # join all non consumer components reachable from the different grid meters
+        non_consumer_components: set[Component] = set()
+        for grid_meter in grid_meters:
+            non_consumer_components = non_consumer_components.union(
+                component_graph.dfs(grid_meter, set(), non_consumer_component)
+            )
+
+        # push all grid meters
+        for idx, grid_meter in enumerate(grid_meters):
+            if idx > 0:
                 builder.push_oper("-")
-                nones_are_zeros = True
-                if successor.category == ComponentCategory.METER:
-                    nones_are_zeros = False
-                builder.push_component_metric(
-                    successor.component_id, nones_are_zeros=nones_are_zeros
-                )
+            builder.push_component_metric(
+                grid_meter.component_id, nones_are_zeros=False
+            )
+
+        # push all non consumer components and subtract them from the grid meters
+        for component in non_consumer_components:
+            builder.push_oper("-")
+            builder.push_component_metric(
+                component.component_id,
+                nones_are_zeros=component.category != ComponentCategory.METER,
+            )
 
         return builder.build()
 
     def _gen_without_grid_meter(
         self,
         builder: ResampledFormulaBuilder[Power],
-        grid_successors: abc.Iterable[Component],
+        grid: Component,
     ) -> FormulaEngine[Power]:
         """Generate formula for calculating consumer power without a grid meter.
 
         Args:
             builder: The formula engine builder.
-            grid_successors: The grid successors.
+            grid: The grid component.
 
         Returns:
             A formula engine that will calculate the consumer power.
         """
-        component_graph = connection_manager.get().component_graph
-        is_first = True
-        for successor in grid_successors:
+
+        def consumer_component(component: Component) -> bool:
+            """
+            Check if a component is a consumer component.
+
+            Args:
+                component: The component to check.
+
+            Returns:
+                True if the component is a consumer component, False otherwise.
+            """
             # If the component graph supports additional types of grid successors in the
             # future, additional checks need to be added here.
-            if (
-                component_graph.is_battery_chain(successor)
-                or component_graph.is_chp_chain(successor)
-                or component_graph.is_pv_chain(successor)
-                or component_graph.is_ev_charger_chain(successor)
-            ):
-                continue
-            if not is_first:
-                builder.push_oper("+")
-            is_first = False
-            builder.push_component_metric(successor.component_id, nones_are_zeros=False)
+            return (
+                component.category
+                in {ComponentCategory.METER, ComponentCategory.INVERTER}
+                and not component_graph.is_battery_chain(component)
+                and not component_graph.is_chp_chain(component)
+                and not component_graph.is_pv_chain(component)
+                and not component_graph.is_ev_charger_chain(component)
+            )
 
-        if len(builder.finalize()[0]) == 0:
+        component_graph = connection_manager.get().component_graph
+        consumer_components = component_graph.dfs(grid, set(), consumer_component)
+
+        if not consumer_components:
+            _logger.warning(
+                "Unable to find any consumers in the component graph. "
+                "Subscribing to the resampling actor with a non-existing "
+                "component id, so that `0` values are sent from the formula."
+            )
             # If there are no consumer components, we have to send 0 values at the same
             # frequency as the other streams.  So we subscribe with a non-existing
             # component id, just to get a `None` message at the resampling interval.
             builder.push_component_metric(
                 NON_EXISTING_COMPONENT_ID, nones_are_zeros=True
             )
-            _logger.warning(
-                "Unable to find any consumers in the component graph. "
-                "Subscribing to the resampling actor with a non-existing "
-                "component id, so that `0` values are sent from the formula."
+            return builder.build()
+
+        for idx, component in enumerate(consumer_components):
+            if idx > 0:
+                builder.push_oper("+")
+
+            builder.push_component_metric(
+                component.component_id,
+                nones_are_zeros=component.category != ComponentCategory.METER,
             )
 
         return builder.build()
