@@ -6,6 +6,9 @@ from __future__ import annotations
 
 import dataclasses
 from collections import abc
+from datetime import timedelta
+
+from ...timeseries._quantities import Power
 
 
 @dataclasses.dataclass
@@ -19,13 +22,13 @@ class Request:
     channel registry.
     """
 
-    power: float
-    """The requested power in watts."""
+    power: Power
+    """The requested power."""
 
     batteries: abc.Set[int]
     """The component ids of the batteries to be used for this request."""
 
-    request_timeout_sec: float = 5.0
+    request_timeout: timedelta = timedelta(seconds=5.0)
     """The maximum amount of time to wait for the request to be fulfilled."""
 
     adjust_power: bool = True

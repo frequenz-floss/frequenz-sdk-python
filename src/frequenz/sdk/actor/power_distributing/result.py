@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import dataclasses
 
+from frequenz.sdk.timeseries._quantities import Power
+
 from .request import Request
 
 
@@ -34,13 +36,13 @@ class Result(_BaseResultMixin):
 class _BaseSuccessMixin:
     """Result returned when setting the power succeed for all batteries."""
 
-    succeeded_power: float
+    succeeded_power: Power
     """The part of the requested power that was successfully set."""
 
     succeeded_batteries: set[int]
     """The subset of batteries for which power was set successfully."""
 
-    excess_power: float
+    excess_power: Power
     """The part of the requested power that could not be fulfilled.
 
     This happens when the requested power is outside the available power bounds.
@@ -62,7 +64,7 @@ class Success(_BaseSuccessMixin, Result):  # Order matters here. See above.
 class PartialFailure(_BaseSuccessMixin, Result):
     """Result returned when any battery failed to perform the request."""
 
-    failed_power: float
+    failed_power: Power
     """The part of the requested power that failed to be set."""
 
     failed_batteries: set[int]

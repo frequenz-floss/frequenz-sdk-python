@@ -12,7 +12,6 @@ from typing import TypeVar
 from unittest.mock import AsyncMock, MagicMock
 
 from frequenz.channels import Broadcast
-from pytest import approx
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
@@ -31,6 +30,7 @@ from frequenz.sdk.actor.power_distributing.result import (
     Success,
 )
 from frequenz.sdk.microgrid.component import ComponentCategory
+from frequenz.sdk.timeseries._quantities import Power
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
 from ...conftest import SAFETY_TIMEOUT
@@ -112,9 +112,9 @@ class TestPowerDistributingActor:
 
         request = Request(
             namespace=self._namespace,
-            power=1200.0,
+            power=Power.from_kilowatts(1.2),
             batteries={9, 19},
-            request_timeout_sec=SAFETY_TIMEOUT,
+            request_timeout=SAFETY_TIMEOUT,
         )
 
         attrs = {"get_working_batteries.return_value": request.batteries}
@@ -135,7 +135,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
         assert len(pending) == 0
@@ -143,8 +143,8 @@ class TestPowerDistributingActor:
 
         result: Result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeeded_power == approx(1000.0)
-        assert result.excess_power == approx(200.0)
+        assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
+        assert result.excess_power.isclose(Power.from_watts(200.0))
         assert result.request == request
 
     async def test_power_distributor_exclusion_bounds(
@@ -194,9 +194,9 @@ class TestPowerDistributingActor:
             ## zero power requests should pass through despite the exclusion bounds.
             request = Request(
                 namespace=self._namespace,
-                power=0.0,
+                power=Power.zero(),
                 batteries={9, 19},
-                request_timeout_sec=SAFETY_TIMEOUT,
+                request_timeout=SAFETY_TIMEOUT,
             )
 
             await channel.new_sender().send(request)
@@ -204,7 +204,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
             assert len(pending) == 0
@@ -212,17 +212,17 @@ class TestPowerDistributingActor:
 
             result: Result = done.pop().result()
             assert isinstance(result, Success)
-            assert result.succeeded_power == approx(0.0)
-            assert result.excess_power == approx(0.0)
+            assert result.succeeded_power.isclose(Power.zero(), abs_tol=1e-9)
+            assert result.excess_power.isclose(Power.zero(), abs_tol=1e-9)
             assert result.request == request
 
             ## non-zero power requests that fall within the exclusion bounds should be
             ## rejected.
             request = Request(
                 namespace=self._namespace,
-                power=300.0,
+                power=Power.from_watts(300.0),
                 batteries={9, 19},
-                request_timeout_sec=SAFETY_TIMEOUT,
+                request_timeout=SAFETY_TIMEOUT,
             )
 
             await channel.new_sender().send(request)
@@ -230,7 +230,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
             assert len(pending) == 0
@@ -262,9 +262,9 @@ class TestPowerDistributingActor:
 
         request = Request(
             namespace=self._namespace,
-            power=1200.0,
+            power=Power.from_kilowatts(1.2),
             batteries={9, 19},
-            request_timeout_sec=SAFETY_TIMEOUT,
+            request_timeout=SAFETY_TIMEOUT,
         )
 
         attrs = {"get_working_batteries.return_value": request.batteries}
@@ -291,7 +291,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
         assert len(pending) == 0
@@ -300,8 +300,8 @@ class TestPowerDistributingActor:
         result: Result = done.pop().result()
         assert isinstance(result, Success)
         assert result.succeeded_batteries == {19}
-        assert result.succeeded_power == approx(500.0)
-        assert result.excess_power == approx(700.0)
+        assert result.succeeded_power.isclose(Power.from_watts(500.0))
+        assert result.excess_power.isclose(Power.from_watts(700.0))
         assert result.request == request
 
     async def test_battery_capacity_nan(self, mocker: MockerFixture) -> None:
@@ -325,9 +325,9 @@ class TestPowerDistributingActor:
 
         request = Request(
             namespace=self._namespace,
-            power=1200.0,
+            power=Power.from_kilowatts(1.2),
             batteries={9, 19},
-            request_timeout_sec=SAFETY_TIMEOUT,
+            request_timeout=SAFETY_TIMEOUT,
         )
         attrs = {"get_working_batteries.return_value": request.batteries}
         mocker.patch(
@@ -347,7 +347,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
         assert len(pending) == 0
@@ -356,8 +356,8 @@ class TestPowerDistributingActor:
         result: Result = done.pop().result()
         assert isinstance(result, Success)
         assert result.succeeded_batteries == {19}
-        assert result.succeeded_power == approx(500.0)
-        assert result.excess_power == approx(700.0)
+        assert result.succeeded_power.isclose(Power.from_watts(500.0))
+        assert result.excess_power.isclose(Power.from_watts(700.0))
         assert result.request == request
 
     async def test_battery_power_bounds_nan(self, mocker: MockerFixture) -> None:
@@ -397,9 +397,9 @@ class TestPowerDistributingActor:
 
         request = Request(
             namespace=self._namespace,
-            power=1200.0,
+            power=Power.from_kilowatts(1.2),
             batteries={9, 19},
-            request_timeout_sec=SAFETY_TIMEOUT,
+            request_timeout=SAFETY_TIMEOUT,
         )
         attrs = {"get_working_batteries.return_value": request.batteries}
         mocker.patch(
@@ -419,7 +419,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
         assert len(pending) == 0
@@ -428,8 +428,8 @@ class TestPowerDistributingActor:
         result: Result = done.pop().result()
         assert isinstance(result, Success)
         assert result.succeeded_batteries == {19}
-        assert result.succeeded_power == approx(1000.0)
-        assert result.excess_power == approx(200.0)
+        assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
+        assert result.excess_power.isclose(Power.from_watts(200.0))
         assert result.request == request
 
     async def test_power_distributor_invalid_battery_id(
@@ -445,9 +445,9 @@ class TestPowerDistributingActor:
         channel_registry = ChannelRegistry(name="power_distributor")
         request = Request(
             namespace=self._namespace,
-            power=1200.0,
+            power=Power.from_kilowatts(1.2),
             batteries={9, 100},
-            request_timeout_sec=SAFETY_TIMEOUT,
+            request_timeout=SAFETY_TIMEOUT,
         )
 
         attrs = {"get_working_batteries.return_value": request.batteries}
@@ -468,7 +468,7 @@ class TestPowerDistributingActor:
 
             done, _ = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
         assert len(done) == 1
@@ -492,9 +492,9 @@ class TestPowerDistributingActor:
 
         request = Request(
             namespace=self._namespace,
-            power=1200.0,
+            power=Power.from_kilowatts(1.2),
             batteries={9, 19},
-            request_timeout_sec=SAFETY_TIMEOUT,
+            request_timeout=SAFETY_TIMEOUT,
             adjust_power=False,
         )
 
@@ -517,7 +517,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
         assert len(pending) == 0
@@ -543,9 +543,9 @@ class TestPowerDistributingActor:
 
         request = Request(
             namespace=self._namespace,
-            power=-1200.0,
+            power=-Power.from_kilowatts(1.2),
             batteries={9, 19},
-            request_timeout_sec=SAFETY_TIMEOUT,
+            request_timeout=SAFETY_TIMEOUT,
             adjust_power=False,
         )
 
@@ -568,7 +568,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
         assert len(pending) == 0
@@ -594,9 +594,9 @@ class TestPowerDistributingActor:
 
         request = Request(
             namespace=self._namespace,
-            power=1000.0,
+            power=Power.from_kilowatts(1.0),
             batteries={9, 19},
-            request_timeout_sec=SAFETY_TIMEOUT,
+            request_timeout=SAFETY_TIMEOUT,
             adjust_power=False,
         )
 
@@ -619,7 +619,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
         assert len(pending) == 0
@@ -627,8 +627,8 @@ class TestPowerDistributingActor:
 
         result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeeded_power == approx(1000.0)
-        assert result.excess_power == approx(0.0)
+        assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
+        assert result.excess_power.isclose(Power.zero(), abs_tol=1e-9)
         assert result.request == request
 
     async def test_not_all_batteries_are_working(self, mocker: MockerFixture) -> None:
@@ -658,9 +658,9 @@ class TestPowerDistributingActor:
         ):
             request = Request(
                 namespace=self._namespace,
-                power=1200.0,
+                power=Power.from_kilowatts(1.2),
                 batteries=batteries,
-                request_timeout_sec=SAFETY_TIMEOUT,
+                request_timeout=SAFETY_TIMEOUT,
             )
 
             await channel.new_sender().send(request)
@@ -668,7 +668,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
             assert len(pending) == 0
@@ -676,8 +676,8 @@ class TestPowerDistributingActor:
             result = done.pop().result()
             assert isinstance(result, Success)
             assert result.succeeded_batteries == {19}
-            assert result.excess_power == approx(700.0)
-            assert result.succeeded_power == approx(500.0)
+            assert result.excess_power.isclose(Power.from_watts(700.0))
+            assert result.succeeded_power.isclose(Power.from_watts(500.0))
             assert result.request == request
 
     async def test_use_all_batteries_none_is_working(
@@ -707,9 +707,9 @@ class TestPowerDistributingActor:
         ):
             request = Request(
                 namespace=self._namespace,
-                power=1200.0,
+                power=Power.from_kilowatts(1.2),
                 batteries={9, 19},
-                request_timeout_sec=SAFETY_TIMEOUT,
+                request_timeout=SAFETY_TIMEOUT,
                 include_broken_batteries=True,
             )
 
@@ -718,7 +718,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
             assert len(pending) == 0
@@ -726,8 +726,8 @@ class TestPowerDistributingActor:
             result = done.pop().result()
             assert isinstance(result, Success)
             assert result.succeeded_batteries == {9, 19}
-            assert result.excess_power == approx(200.0)
-            assert result.succeeded_power == approx(1000.0)
+            assert result.excess_power.isclose(Power.from_watts(200.0))
+            assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
             assert result.request == request
 
     async def test_force_request_a_battery_is_not_working(
@@ -759,9 +759,9 @@ class TestPowerDistributingActor:
         ):
             request = Request(
                 namespace=self._namespace,
-                power=1200.0,
+                power=Power.from_kilowatts(1.2),
                 batteries=batteries,
-                request_timeout_sec=SAFETY_TIMEOUT,
+                request_timeout=SAFETY_TIMEOUT,
                 include_broken_batteries=True,
             )
 
@@ -770,7 +770,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
             assert len(pending) == 0
@@ -778,8 +778,8 @@ class TestPowerDistributingActor:
             result = done.pop().result()
             assert isinstance(result, Success)
             assert result.succeeded_batteries == {9, 19}
-            assert result.excess_power == approx(200.0)
-            assert result.succeeded_power == approx(1000.0)
+            assert result.excess_power.isclose(Power.from_watts(200.0))
+            assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
             assert result.request == request
 
     async def test_force_request_battery_nan_value_non_cached(
@@ -812,9 +812,9 @@ class TestPowerDistributingActor:
         ):
             request = Request(
                 namespace=self._namespace,
-                power=1200.0,
+                power=Power.from_kilowatts(1.2),
                 batteries=batteries,
-                request_timeout_sec=SAFETY_TIMEOUT,
+                request_timeout=SAFETY_TIMEOUT,
                 include_broken_batteries=True,
             )
 
@@ -841,7 +841,7 @@ class TestPowerDistributingActor:
 
             done, pending = await asyncio.wait(
                 [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT,
+                timeout=SAFETY_TIMEOUT.total_seconds(),
             )
 
             assert len(pending) == 0
@@ -849,8 +849,8 @@ class TestPowerDistributingActor:
             result: Result = done.pop().result()
             assert isinstance(result, Success)
             assert result.succeeded_batteries == batteries
-            assert result.succeeded_power == approx(1199.9999)
-            assert result.excess_power == approx(0.0)
+            assert result.succeeded_power.isclose(Power.from_kilowatts(1.2))
+            assert result.excess_power.isclose(Power.zero(), abs_tol=1e-9)
             assert result.request == request
 
     async def test_force_request_batteries_nan_values_cached(
@@ -882,9 +882,9 @@ class TestPowerDistributingActor:
         ):
             request = Request(
                 namespace=self._namespace,
-                power=1200.0,
+                power=Power.from_kilowatts(1.2),
                 batteries=batteries,
-                request_timeout_sec=SAFETY_TIMEOUT,
+                request_timeout=SAFETY_TIMEOUT,
                 include_broken_batteries=True,
             )
 
@@ -893,15 +893,15 @@ class TestPowerDistributingActor:
             async def test_result() -> None:
                 done, pending = await asyncio.wait(
                     [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT,
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
                 )
                 assert len(pending) == 0
                 assert len(done) == 1
                 result: Result = done.pop().result()
                 assert isinstance(result, Success)
                 assert result.succeeded_batteries == batteries
-                assert result.succeeded_power == approx(1199.9999)
-                assert result.excess_power == approx(0.0)
+                assert result.succeeded_power.isclose(Power.from_kilowatts(1.2))
+                assert result.excess_power.isclose(Power.zero(), abs_tol=1e-9)
                 assert result.request == request
 
             batteries_data = (

@@ -240,7 +240,7 @@ class EVChargerPool:
 
         return output_chan.new_receiver()
 
-    async def set_bounds(self, component_id: int, max_amps: float) -> None:
+    async def set_bounds(self, component_id: int, max_current: Current) -> None:
         """Send given max current bound for the given EV Charger to the microgrid API.
 
         Bounds are used to limit the max current drawn by an EV, although the exact
@@ -248,11 +248,11 @@ class EVChargerPool:
 
         Args:
             component_id: ID of EV Charger to set the current bounds to.
-            max_amps: maximum current in amps, that an EV can draw from this EV Charger.
+            max_current: maximum current that an EV can draw from this EV Charger.
         """
         if not self._bounds_setter:
             self._bounds_setter = BoundsSetter(self._repeat_interval)
-        await self._bounds_setter.set(component_id, max_amps)
+        await self._bounds_setter.set(component_id, max_current.as_amperes())
 
     def new_bounds_sender(self) -> Sender[ComponentCurrentLimit]:
         """Return a `Sender` for setting EV Charger current bounds with.

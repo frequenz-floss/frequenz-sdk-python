@@ -26,6 +26,8 @@ from typing import Any, Dict, Iterable, List, Optional, Self, Set, Tuple
 import grpc
 from frequenz.channels import Peekable, Receiver, Sender
 
+from frequenz.sdk.timeseries._quantities import Power
+
 from ..._internal._math import is_close_to_zero
 from ...actor import ChannelRegistry
 from ...actor._actor import Actor
@@ -96,7 +98,7 @@ class PowerDistributingActor(Actor):
 
     It is recommended to wait for PowerDistributingActor output with timeout. Otherwise if
     the processing function fails then the response will never come.
-    The timeout should be Result:request_timeout_sec + time for processing the request.
+    The timeout should be Result:request_timeout + time for processing the request.
 
     Edge cases:
     * If there are 2 requests to be processed for the same subset of batteries, then
@@ -271,7 +273,9 @@ class PowerDistributingActor(Actor):
                 )
                 continue
 
-            distributed_power_value = request.power - distribution.remaining_power
+            distributed_power_value = (
+                request.power.as_watts() - distribution.remaining_power
+            )
             battery_distribution = {
                 self._inv_bat_map[bat_id]: dist
                 for bat_id, dist in distribution.distribution.items()
@@ -283,7 +287,7 @@ class PowerDistributingActor(Actor):
             )
 
             failed_power, failed_batteries = await self._set_distributed_power(
-                api, distribution, request.request_timeout_sec
+                api, distribution, request.request_timeout
             )
 
             response: Success | PartialFailure
@@ -291,19 +295,19 @@ class PowerDistributingActor(Actor):
                 succeed_batteries = set(battery_distribution.keys()) - failed_batteries
                 response = PartialFailure(
                     request=request,
-                    succeeded_power=distributed_power_value,
+                    succeeded_power=Power.from_watts(distributed_power_value),
                     succeeded_batteries=succeed_batteries,
-                    failed_power=failed_power,
+                    failed_power=Power.from_watts(failed_power),
                     failed_batteries=failed_batteries,
-                    excess_power=distribution.remaining_power,
+                    excess_power=Power.from_watts(distribution.remaining_power),
                 )
             else:
                 succeed_batteries = set(battery_distribution.keys())
                 response = Success(
                     request=request,
-                    succeeded_power=distributed_power_value,
+                    succeeded_power=Power.from_watts(distributed_power_value),
                     succeeded_batteries=succeed_batteries,
-                    excess_power=distribution.remaining_power,
+                    excess_power=Power.from_watts(distribution.remaining_power),
                 )
 
             asyncio.gather(
@@ -319,14 +323,14 @@ class PowerDistributingActor(Actor):
         self,
         api: MicrogridApiClient,
         distribution: DistributionResult,
-        timeout_sec: float,
+        timeout: timedelta,
     ) -> Tuple[float, Set[int]]:
         """Send distributed power to the inverters.
 
         Args:
             api: Microgrid api client
             distribution: Distribution result
-            timeout_sec: How long wait for the response
+            timeout: How long wait for the response
 
         Returns:
             Tuple where first element is total failed power, and the second element
@@ -339,13 +343,13 @@ class PowerDistributingActor(Actor):
 
         _, pending = await asyncio.wait(
             tasks.values(),
-            timeout=timeout_sec,
+            timeout=timeout.total_seconds(),
             return_when=ALL_COMPLETED,
         )
 
         await self._cancel_tasks(pending)
 
-        return self._parse_result(tasks, distribution.distribution, timeout_sec)
+        return self._parse_result(tasks, distribution.distribution, timeout)
 
     def _get_power_distribution(
         self, request: Request, inv_bat_pairs: List[InvBatPair]
@@ -367,11 +371,11 @@ class PowerDistributingActor(Actor):
 
         if request.include_broken_batteries and not available_bat_ids:
             return self.distribution_algorithm.distribute_power_equally(
-                request.power, unavailable_inv_ids
+                request.power.as_watts(), unavailable_inv_ids
             )
 
         result = self.distribution_algorithm.distribute_power(
-            request.power, inv_bat_pairs
+            request.power.as_watts(), inv_bat_pairs
         )
 
         if request.include_broken_batteries and unavailable_inv_ids:
@@ -412,9 +416,11 @@ class PowerDistributingActor(Actor):
 
         bounds = self._get_bounds(pairs_data)
 
+        power = request.power.as_watts()
+
         # Zero power requests are always forwarded to the microgrid API, even if they
         # are outside the exclusion bounds.
-        if is_close_to_zero(request.power):
+        if is_close_to_zero(power):
             return None
 
         if request.adjust_power:
@@ -423,15 +429,11 @@ class PowerDistributingActor(Actor):
             #
             # If the requested power is in the exclusion bounds, it is NOT possible to
             # increase it so that it is outside the exclusion bounds.
-            if bounds.exclusion_lower < request.power < bounds.exclusion_upper:
+            if bounds.exclusion_lower < power < bounds.exclusion_upper:
                 return OutOfBounds(request=request, bounds=bounds)
         else:
-            in_lower_range = (
-                bounds.inclusion_lower <= request.power <= bounds.exclusion_lower
-            )
-            in_upper_range = (
-                bounds.exclusion_upper <= request.power <= bounds.inclusion_upper
-            )
+            in_lower_range = bounds.inclusion_lower <= power <= bounds.exclusion_lower
+            in_upper_range = bounds.exclusion_upper <= power <= bounds.inclusion_upper
             if not (in_lower_range or in_upper_range):
                 return OutOfBounds(request=request, bounds=bounds)
 
@@ -630,7 +632,7 @@ class PowerDistributingActor(Actor):
         self,
         tasks: Dict[int, asyncio.Task[None]],
         distribution: Dict[int, float],
-        request_timeout_sec: float,
+        request_timeout: timedelta,
     ) -> Tuple[float, Set[int]]:
         """Parse the results of `set_power` requests.
 
@@ -642,7 +644,7 @@ class PowerDistributingActor(Actor):
                 set the power for this inverter. Each task should be finished or cancelled.
             distribution: A dictionary where the key is the inverter ID and the value is how much
                 power was set to the corresponding inverter.
-            request_timeout_sec: The timeout that was used for the request.
+            request_timeout: The timeout that was used for the request.
 
         Returns:
             A tuple where the first element is the total failed power, and the second element is
@@ -676,7 +678,7 @@ class PowerDistributingActor(Actor):
                 _logger.warning(
                     "Battery %d didn't respond in %f sec. Mark it as broken.",
                     battery_id,
-                    request_timeout_sec,
+                    request_timeout.total_seconds(),
                 )
 
         return failed_power, failed_batteries
