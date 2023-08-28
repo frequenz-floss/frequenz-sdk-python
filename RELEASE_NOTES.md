@@ -84,7 +84,7 @@ This release replaces the `@actor` decorator with a new `Actor` class.
 
 ## New Features
 
-- DFS for compentent graph
+- Added `DFS` to the component graph
 
 - `BackgroundService`: This new abstract base class can be used to write other classes that runs one or more tasks in the background. It provides a consistent API to start and stop these services and also takes care of the handling of the background tasks. It can also work as an `async` context manager, giving the service a deterministic lifetime and guaranteed cleanup.
 
