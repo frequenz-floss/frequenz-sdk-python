@@ -55,6 +55,7 @@ class FormulaEnginePool:
         self,
         formula: str,
         component_metric_id: ComponentMetricId,
+        *,
         nones_are_zeros: bool = False,
     ) -> FormulaEngine[Quantity]:
         """Get a receiver for a manual formula.
@@ -81,7 +82,7 @@ class FormulaEnginePool:
             component_metric_id,
             Quantity,
         )
-        formula_engine = builder.from_string(formula, nones_are_zeros)
+        formula_engine = builder.from_string(formula, nones_are_zeros=nones_are_zeros)
         self._string_engines[channel_key] = formula_engine
 
         return formula_engine

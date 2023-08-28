@@ -123,6 +123,7 @@ class LogicalMeter:
         self,
         formula: str,
         component_metric_id: ComponentMetricId,
+        *,
         nones_are_zeros: bool = False,
     ) -> FormulaEngine[Quantity]:
         """Start execution of the given formula.
@@ -144,7 +145,7 @@ class LogicalMeter:
             A FormulaEngine that applies the formula and streams values.
         """
         return self._formula_pool.from_string(
-            formula, component_metric_id, nones_are_zeros
+            formula, component_metric_id, nones_are_zeros=nones_are_zeros
         )
 
     @property

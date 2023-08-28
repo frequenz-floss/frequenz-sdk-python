@@ -65,7 +65,7 @@ class TestFormulaEngine:
                 builder.push_metric(
                     f"#{token.value}",
                     channels[token.value].new_receiver(),
-                    nones_are_zeros,
+                    nones_are_zeros=nones_are_zeros,
                 )
             elif token.type == TokenType.OPER:
                 builder.push_oper(token.value)
@@ -345,7 +345,7 @@ class TestFormulaEngineComposition:
             for ctr in range(num_items)
         ]
         builder = make_builder(*l1_engines)
-        engine = builder.build("l2 formula", nones_are_zeros)
+        engine = builder.build("l2 formula", nones_are_zeros=nones_are_zeros)
         result_chan = engine.new_receiver()
 
         now = datetime.now()
@@ -651,11 +651,15 @@ class TestConstantValue:
         sender_2 = channel_2.new_sender()
 
         builder = FormulaBuilder("test_constant_value", create_method=Quantity)
-        builder.push_metric("channel_1", channel_1.new_receiver(), False)
+        builder.push_metric(
+            "channel_1", channel_1.new_receiver(), nones_are_zeros=False
+        )
         builder.push_oper("+")
         builder.push_constant(2.0)
         builder.push_oper("*")
-        builder.push_metric("channel_2", channel_2.new_receiver(), False)
+        builder.push_metric(
+            "channel_2", channel_2.new_receiver(), nones_are_zeros=False
+        )
 
         engine = builder.build()
 
@@ -672,12 +676,16 @@ class TestConstantValue:
 
         builder = FormulaBuilder("test_constant_value", create_method=Quantity)
         builder.push_oper("(")
-        builder.push_metric("channel_1", channel_1.new_receiver(), False)
+        builder.push_metric(
+            "channel_1", channel_1.new_receiver(), nones_are_zeros=False
+        )
         builder.push_oper("+")
         builder.push_constant(2.0)
         builder.push_oper(")")
         builder.push_oper("*")
-        builder.push_metric("channel_2", channel_2.new_receiver(), False)
+        builder.push_metric(
+            "channel_2", channel_2.new_receiver(), nones_are_zeros=False
+        )
 
         engine = builder.build()
 
@@ -705,9 +713,13 @@ class TestClipper:
         sender_2 = channel_2.new_sender()
 
         builder = FormulaBuilder("test_clipper", create_method=Quantity)
-        builder.push_metric("channel_1", channel_1.new_receiver(), False)
+        builder.push_metric(
+            "channel_1", channel_1.new_receiver(), nones_are_zeros=False
+        )
         builder.push_oper("+")
-        builder.push_metric("channel_2", channel_2.new_receiver(), False)
+        builder.push_metric(
+            "channel_2", channel_2.new_receiver(), nones_are_zeros=False
+        )
         builder.push_clipper(0.0, 100.0)
         engine = builder.build()
 
@@ -728,9 +740,13 @@ class TestClipper:
 
         builder = FormulaBuilder("test_clipper", create_method=Quantity)
         builder.push_oper("(")
-        builder.push_metric("channel_1", channel_1.new_receiver(), False)
+        builder.push_metric(
+            "channel_1", channel_1.new_receiver(), nones_are_zeros=False
+        )
         builder.push_oper("+")
-        builder.push_metric("channel_2", channel_2.new_receiver(), False)
+        builder.push_metric(
+            "channel_2", channel_2.new_receiver(), nones_are_zeros=False
+        )
         builder.push_oper(")")
         builder.push_clipper(0.0, 100.0)
         engine = builder.build()
@@ -763,9 +779,13 @@ class TestFormulaOutputTyping:
         sender_2 = channel_2.new_sender()
 
         builder = FormulaBuilder("test_typing", create_method=Power.from_watts)
-        builder.push_metric("channel_1", channel_1.new_receiver(), False)
+        builder.push_metric(
+            "channel_1", channel_1.new_receiver(), nones_are_zeros=False
+        )
         builder.push_oper("+")
-        builder.push_metric("channel_2", channel_2.new_receiver(), False)
+        builder.push_metric(
+            "channel_2", channel_2.new_receiver(), nones_are_zeros=False
+        )
         engine = builder.build()
 
         results_rx = engine.new_receiver()
@@ -787,7 +807,7 @@ class TestFromReceiver:
         sender = channel.new_sender()
 
         builder = FormulaBuilder("test_from_receiver", create_method=Power.from_watts)
-        builder.push_metric("channel_1", channel.new_receiver(), False)
+        builder.push_metric("channel_1", channel.new_receiver(), nones_are_zeros=False)
         engine = builder.build()
 
         engine_from_receiver = FormulaEngine.from_receiver(

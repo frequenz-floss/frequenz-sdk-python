@@ -90,6 +90,8 @@ This release replaces the `@actor` decorator with a new `Actor` class.
 
 - Within the `EVChargerPool.set_bounds` method, the parameter `max_amps` has been redefined as `max_current`, and it is now represented using a `Current` object instead of a `float`.
 
+- The argument `nones_are_zeros` in `FormulaEngine` and related classes and methods is now a keyword-only argument.
+
 ## New Features
 
 - Added `DFS` to the component graph
