@@ -215,6 +215,7 @@ class _DataPipeline:
             channel_registry=self._channel_registry,
             battery_status_sender=self._battery_status_channel.new_sender(),
         )
+        self._power_distributing_actor.start()
 
     def _data_sourcing_request_sender(self) -> Sender[ComponentMetricRequest]:
         """Return a Sender for sending requests to the data sourcing actor.
@@ -237,6 +238,7 @@ class _DataPipeline:
                 registry=self._channel_registry,
             )
             self._data_sourcing_actor = _ActorInfo(actor, channel)
+            self._data_sourcing_actor.actor.start()
         return self._data_sourcing_actor.channel.new_sender()
 
     def _resampling_request_sender(self) -> Sender[ComponentMetricRequest]:
@@ -262,16 +264,8 @@ class _DataPipeline:
                 config=self._resampler_config,
             )
             self._resampling_actor = _ActorInfo(actor, channel)
+            self._resampling_actor.actor.start()
         return self._resampling_actor.channel.new_sender()
-
-    async def _start(self) -> None:
-        """Start the data pipeline actors."""
-        if self._data_sourcing_actor:
-            await self._data_sourcing_actor.actor.start()
-        if self._resampling_actor:
-            await self._resampling_actor.actor.start()
-        # The power distributing actor is started lazily when the first battery pool is
-        # created.
 
     async def _stop(self) -> None:
         """Stop the data pipeline actors."""
@@ -300,7 +294,6 @@ async def initialize(resampler_config: ResamplerConfig) -> None:
     if _DATA_PIPELINE is not None:
         raise RuntimeError("DataPipeline is already initialized.")
     _DATA_PIPELINE = _DataPipeline(resampler_config)
-    await _DATA_PIPELINE._start()  # pylint: disable=protected-access
 
 
 def logical_meter() -> LogicalMeter:
