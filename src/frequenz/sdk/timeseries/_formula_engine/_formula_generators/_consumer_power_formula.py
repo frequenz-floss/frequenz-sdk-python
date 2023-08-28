@@ -1,4 +1,4 @@
-# Litense: MIT
+# License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
 """Formula generator from component graph for Consumer Power."""
