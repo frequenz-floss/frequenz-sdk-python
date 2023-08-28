@@ -3,8 +3,6 @@
 
 """Formula generator from component graph for Consumer Power."""
 
-from __future__ import annotations
-
 import logging
 
 from ....microgrid import connection_manager
