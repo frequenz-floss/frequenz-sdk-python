@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import math
 from abc import ABC, abstractmethod
-from typing import Generic
+from typing import Generic, Optional, Sequence
 
 from frequenz.channels import Receiver
 
@@ -207,6 +207,15 @@ class Averager(Generic[QuantityT], FormulaStep):
         """
         self._fetchers: list[MetricFetcher[QuantityT]] = fetchers
 
+    @property
+    def fetchers(self) -> Sequence[MetricFetcher[QuantityT]]:
+        """Return the metric fetchers.
+
+        Returns:
+            The metric fetchers.
+        """
+        return self._fetchers
+
     def __repr__(self) -> str:
         """Return a string representation of the step.
 
@@ -255,6 +264,15 @@ class ConstantValue(FormulaStep):
         """
         self._value = value
 
+    @property
+    def value(self) -> float:
+        """Return the constant value.
+
+        Returns:
+            The constant value.
+        """
+        return self._value
+
     def __repr__(self) -> str:
         """Return a string representation of the step.
 
@@ -284,6 +302,24 @@ class Clipper(FormulaStep):
         """
         self._min_val = min_val
         self._max_val = max_val
+
+    @property
+    def min_value(self) -> float | None:
+        """Return the minimum value.
+
+        Returns:
+            The minimum value.
+        """
+        return self._min_val
+
+    @property
+    def max_value(self) -> float | None:
+        """Return the maximum value.
+
+        Returns:
+            The maximum value.
+        """
+        return self._max_val
 
     def __repr__(self) -> str:
         """Return a string representation of the step.
@@ -328,6 +364,23 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
         self._stream: Receiver[Sample[QuantityT]] = stream
         self._next_value: Sample[QuantityT] | None = None
         self._nones_are_zeros = nones_are_zeros
+
+    @property
+    def stream(self) -> Receiver[Sample[QuantityT]]:
+        """Return the stream from which to fetch values.
+
+        Returns:
+            The stream from which to fetch values.
+        """
+        return self._stream
+
+    def stream_name(self) -> str:
+        """Return the name of the stream.
+
+        Returns:
+            The name of the stream.
+        """
+        return str(self._stream.__doc__)
 
     async def fetch_next(self) -> Sample[QuantityT] | None:
         """Fetch the next value from the stream.

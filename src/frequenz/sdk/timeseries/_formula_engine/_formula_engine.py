@@ -1,6 +1,8 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
+# pylint: disable=too-many-lines
+
 """A formula engine that can apply formulas on streaming data."""
 
 from __future__ import annotations
@@ -18,6 +20,7 @@ from ..._internal._asyncio import cancel_and_await
 from .. import Sample, Sample3Phase
 from .._quantities import Quantity, QuantityT
 from ._formula_evaluator import FormulaEvaluator
+from ._formula_formatter import FormulaFormatter
 from ._formula_steps import (
     Adder,
     Averager,
@@ -303,6 +306,19 @@ class FormulaEngine(
                 )
             else:
                 await sender.send(msg)
+
+    def __str__(self) -> str:
+        """Return a string representation of the formula.
+
+        Returns:
+            A string representation of the formula.
+        """
+        steps = (
+            self._builder._build_stack
+            if len(self._builder._build_stack) > 0
+            else self._builder._steps
+        )
+        return FormulaFormatter.format(steps)
 
     def new_receiver(
         self, name: str | None = None, max_size: int = 50
@@ -618,6 +634,15 @@ class FormulaBuilder(Generic[QuantityT]):
             self._steps.append(self._build_stack.pop())
 
         return self._steps, self._metric_fetchers
+
+    def __str__(self) -> str:
+        """Return a string representation of the formula.
+
+        Returns:
+            A string representation of the formula.
+        """
+        steps = self._steps if len(self._steps) > 0 else self._build_stack
+        return FormulaFormatter.format(steps)
 
     def build(self) -> FormulaEngine[QuantityT]:
         """Create a formula engine with the steps and fetchers that have been pushed.
