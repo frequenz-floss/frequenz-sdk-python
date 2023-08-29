@@ -115,6 +115,10 @@ That said, if you want to test the actual website in **your fork**, you can
 always use `mike deploy --push --remote your-fork-remote`, and then access the
 GitHub pages produced for your fork.
 
+##  Cross-Arch Testing
+
+This project has built-in support for testing across multiple architectures. Currently, our CI conducts tests on `aarch64` machines using QEMU emulation. We also have the flexibility to expand this support to include additional architectures in the future. For more information, see [Cross-Arch Testing](.github/containers/nox-cross-arch/README.md).
+
 ## Releasing
 
 These are the steps to create a new release:
