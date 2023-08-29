@@ -266,7 +266,6 @@ class OrderedRingBuffer(Generic[FloatArray]):
 
         Will return a copy in the following cases:
         * The requested time period is crossing the start/end of the buffer.
-        * The requested time period contains missing entries.
         * The force_copy parameter was set to True (default False).
 
         The first case can be avoided by using the appropriate
@@ -308,10 +307,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
                 assert False, f"Unknown _buffer type: {type(self._buffer)}"
             return self._buffer[start_index:]
 
-        # Return a copy if there are none-values in the data
-        if force_copy or any(
-            map(lambda gap: gap.contains(start) or gap.contains(end), self._gaps)
-        ):
+        if force_copy:
             return deepcopy(self[start_index:end_index])
 
         return self[start_index:end_index]

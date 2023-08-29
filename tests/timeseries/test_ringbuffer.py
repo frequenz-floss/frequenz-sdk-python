@@ -519,6 +519,6 @@ def test_window() -> None:
     assert [0, np.nan, 2] == list(win)
     buffer._buffer[1] = 1  # pylint: disable=protected-access
     # Test whether the window is a view or a copy
-    assert [0, 1, 2] == list(win)  # NB: second element should be NaN according to docs
+    assert [0, 1, 2] == list(win)
     win = buffer.window(dt(0), dt(3), force_copy=False)
     assert [0, 1, 2] == list(win)
