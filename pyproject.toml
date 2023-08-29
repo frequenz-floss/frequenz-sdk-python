@@ -135,6 +135,13 @@ testpaths = ["tests", "src"]
 asyncio_mode = "auto"
 required_plugins = ["pytest-asyncio", "pytest-mock"]
 
+[tool.mypy]
+explicit_package_bases = true
+namespace_packages = true
+no_incremental = true
+packages = ["frequenz.sdk"]
+strict = true
+
 [[tool.mypy.overrides]]
 module = [
   "async_solipsism",
