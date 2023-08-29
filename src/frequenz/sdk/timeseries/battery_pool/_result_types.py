@@ -29,7 +29,7 @@ class PowerMetrics:
     """Timestamp of the metrics."""
 
     # pylint: disable=line-too-long
-    inclusion_bounds: Bounds
+    inclusion_bounds: Bounds | None
     """Inclusion power bounds for all batteries in the battery pool instance.
 
     This is the range within which power requests are allowed by the battery pool.
@@ -42,7 +42,7 @@ class PowerMetrics:
     details.
     """
 
-    exclusion_bounds: Bounds
+    exclusion_bounds: Bounds | None
     """Exclusion power bounds for all batteries in the battery pool instance.
 
     This is the range within which power requests are NOT allowed by the battery pool.
