@@ -304,6 +304,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         end: datetime | int | None,
         *,
         force_copy: bool = True,
+        fill_value: float | None = np.nan,
     ) -> FloatArray:
         """Request a copy or view on the data between start timestamp and end timestamp.
 
@@ -326,13 +327,21 @@ class OrderedRingBuffer(Generic[FloatArray]):
             end: end time of the window.
             force_copy: optional, default True. If True, will always create a
                 copy of the data.
+            fill_value: If not None, will use this value to fill missing values.
+                If missing values should be filled, force_copy must be True.
+                Defaults to NaN to avoid returning outdated data unexpectedly.
 
         Raises:
             IndexError: When start and end are not both datetime or index.
+            ValueError: When fill_value is not None and force_copy is False.
 
         Returns:
             The requested window
         """
+        # We don't want to modify the original buffer
+        if fill_value is not None and not force_copy:
+            raise ValueError("fill_value only supported for force_copy=True")
+
         if self.count_covered() == 0:
             return np.array([]) if isinstance(self._buffer, np.ndarray) else []
 
@@ -359,7 +368,48 @@ class OrderedRingBuffer(Generic[FloatArray]):
         start_pos = self.to_internal_index(start)
         end_pos = self.to_internal_index(end)
 
-        return self._wrapped_buffer_window(self._buffer, start_pos, end_pos, force_copy)
+        window = self._wrapped_buffer_window(
+            self._buffer, start_pos, end_pos, force_copy
+        )
+
+        if fill_value is not None:
+            window = self._fill_gaps(window, fill_value, start, self.gaps)
+        return window
+
+    def _fill_gaps(
+        self,
+        data: FloatArray,
+        fill_value: float,
+        oldest_timestamp: datetime,
+        gaps: list[Gap],
+    ) -> FloatArray:
+        """Fill the gaps in the data with the given fill_value.
+
+        Args:
+            data: The data to fill.
+            fill_value: The value to fill the gaps with.
+            oldest_timestamp: The oldest timestamp in the data.
+            gaps: List of gaps to fill.
+
+        Returns:
+            The filled data.
+        """
+        assert isinstance(
+            data, (np.ndarray, list)
+        ), f"Unsupported data type {type(data)}"
+        for gap in gaps:
+            start_index = (gap.start - oldest_timestamp) // self._sampling_period
+            end_index = (gap.end - oldest_timestamp) // self._sampling_period
+            start_index = max(start_index, 0)
+            end_index = min(end_index, len(data))
+            if start_index < end_index:
+                if isinstance(data, np.ndarray):
+                    data[start_index:end_index] = fill_value
+                elif isinstance(data, list):
+                    data[start_index:end_index] = [fill_value] * (
+                        end_index - start_index
+                    )
+        return data
 
     @staticmethod
     def _wrapped_buffer_window(
