@@ -209,6 +209,7 @@ class FormulaEngine(
         name: str,
         receiver: Receiver[Sample[QuantityT]],
         create_method: Callable[[float], QuantityT],
+        *,
         nones_are_zeros: bool = False,
     ) -> FormulaEngine[QuantityT]:
         """
@@ -471,6 +472,7 @@ class FormulaBuilder(Generic[QuantityT]):
         self,
         name: str,
         data_stream: Receiver[Sample[QuantityT]],
+        *,
         nones_are_zeros: bool,
     ) -> None:
         """Push a metric receiver into the engine.
@@ -482,7 +484,7 @@ class FormulaBuilder(Generic[QuantityT]):
                 False, the returned value will be a None.
         """
         fetcher = self._metric_fetchers.setdefault(
-            name, MetricFetcher(name, data_stream, nones_are_zeros)
+            name, MetricFetcher(name, data_stream, nones_are_zeros=nones_are_zeros)
         )
         self._steps.append(fetcher)
 
@@ -554,7 +556,8 @@ class FormulaBuilder(Generic[QuantityT]):
         fetchers: List[MetricFetcher[QuantityT]] = []
         for metric in metrics:
             fetcher = self._metric_fetchers.setdefault(
-                metric[0], MetricFetcher(*metric)
+                metric[0],
+                MetricFetcher(metric[0], metric[1], nones_are_zeros=metric[2]),
             )
             fetchers.append(fetcher)
         self._steps.append(Averager(fetchers))
@@ -806,7 +809,7 @@ class HigherOrderFormulaBuilder(Generic[QuantityT], _BaseHOFormulaBuilder[Quanti
     """A specialization of the _BaseHOFormulaBuilder for `FormulaReceiver`."""
 
     def build(
-        self, name: str, nones_are_zeros: bool = False
+        self, name: str, *, nones_are_zeros: bool = False
     ) -> FormulaEngine[QuantityT]:
         """Build a `FormulaEngine` instance from the builder.
 
@@ -825,7 +828,7 @@ class HigherOrderFormulaBuilder(Generic[QuantityT], _BaseHOFormulaBuilder[Quanti
                 builder.push_metric(
                     value._name,  # pylint: disable=protected-access
                     value.new_receiver(),
-                    nones_are_zeros,
+                    nones_are_zeros=nones_are_zeros,
                 )
             elif typ == TokenType.OPER:
                 assert isinstance(value, str)
@@ -844,7 +847,7 @@ class HigherOrderFormulaBuilder3Phase(
     """A specialization of the _BaseHOFormulaBuilder for `FormulaReceiver3Phase`."""
 
     def build(
-        self, name: str, nones_are_zeros: bool = False
+        self, name: str, *, nones_are_zeros: bool = False
     ) -> FormulaEngine3Phase[QuantityT]:
         """Build a `FormulaEngine3Phase` instance from the builder.
 
@@ -870,7 +873,7 @@ class HigherOrderFormulaBuilder3Phase(
                         value._streams[  # pylint: disable=protected-access
                             phase
                         ].new_receiver(),
-                        nones_are_zeros,
+                        nones_are_zeros=nones_are_zeros,
                     )
             elif typ == TokenType.OPER:
                 assert isinstance(value, str)

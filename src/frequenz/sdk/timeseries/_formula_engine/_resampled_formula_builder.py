@@ -84,11 +84,12 @@ class ResampledFormulaBuilder(Generic[QuantityT], FormulaBuilder[QuantityT]):
                 False, the returned value will be a None.
         """
         receiver = self._get_resampled_receiver(component_id, self._metric_id)
-        self.push_metric(f"#{component_id}", receiver, nones_are_zeros)
+        self.push_metric(f"#{component_id}", receiver, nones_are_zeros=nones_are_zeros)
 
     def from_string(
         self,
         formula: str,
+        *,
         nones_are_zeros: bool,
     ) -> FormulaEngine[QuantityT]:
         """Construct a `FormulaEngine` from the given formula string.

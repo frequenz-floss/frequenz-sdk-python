@@ -268,6 +268,7 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
         self,
         name: str,
         stream: Receiver[Sample[QuantityT]],
+        *,
         nones_are_zeros: bool,
     ) -> None:
         """Create a `MetricFetcher` instance.
