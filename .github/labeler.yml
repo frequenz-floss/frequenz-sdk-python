@@ -33,6 +33,7 @@
   - "src/frequenz/sdk/power/**"
 
 "part:tests":
+  - "**/conftest.py"
   - "tests/**"
 
 "part:tooling":
@@ -40,6 +41,8 @@
   - "**/*.toml"
   - "**/*.yaml"
   - "**/*.yml"
+  - "**/conftest.py"
+  - ".editorconfig"
   - ".git*"
   - ".git*/**"
   - "docs/*.py"

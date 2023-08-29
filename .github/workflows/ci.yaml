@@ -37,6 +37,8 @@ jobs:
     steps:
       - name: Fetch sources
         uses: actions/checkout@v3
+        with:
+          submodules: true
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -61,6 +63,8 @@ jobs:
     steps:
       - name: Fetch sources
         uses: actions/checkout@v3
+        with:
+          submodules: true
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -115,6 +119,8 @@ jobs:
     steps:
       - name: Fetch sources
         uses: actions/checkout@v3
+        with:
+          submodules: true
 
       - name: Setup Git user and e-mail
         uses: frequenz-floss/setup-git-user@v2
@@ -192,6 +198,8 @@ jobs:
       - name: Fetch sources
         if: steps.mike-metadata.outputs.version
         uses: actions/checkout@v3
+        with:
+          submodules: true
 
       - name: Setup Git user and e-mail
         if: steps.mike-metadata.outputs.version

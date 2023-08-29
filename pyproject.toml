@@ -3,9 +3,9 @@
 
 [build-system]
 requires = [
-  "setuptools == 67.7.2",
+  "setuptools == 68.1.0",
   "setuptools_scm[toml] == 7.1.0",
-  "frequenz-repo-config[lib] == 0.4.0",
+  "frequenz-repo-config[lib] == 0.5.2",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -63,7 +63,7 @@ dev-mkdocs = [
   "mkdocs-material == 9.2.5",
   "mkdocs-section-index == 0.3.5",
   "mkdocstrings[python] == 0.22.0",
-  "frequenz-repo-config[lib] == 0.4.0",
+  "frequenz-repo-config[lib] == 0.5.2",
 ]
 dev-mypy = [
   "mypy == 1.5.1",
@@ -72,7 +72,7 @@ dev-mypy = [
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
-dev-noxfile = ["nox == 2023.4.22", "frequenz-repo-config[lib] == 0.4.0"]
+dev-noxfile = ["nox == 2023.4.22", "frequenz-repo-config[lib] == 0.5.2"]
 dev-pylint = [
   "pylint == 2.17.5",
   # For checking the noxfile, docs/ script, and tests
@@ -80,6 +80,7 @@ dev-pylint = [
 ]
 dev-pytest = [
   "pytest == 7.4.0",
+  "frequenz-repo-config[extra-lint-examples] == 0.5.2",
   "pytest-mock == 3.11.1",
   "pytest-asyncio == 0.21.1",
   "time-machine == 2.12.0",
@@ -133,6 +134,13 @@ max-attributes = 12
 testpaths = ["tests", "src"]
 asyncio_mode = "auto"
 required_plugins = ["pytest-asyncio", "pytest-mock"]
+
+[tool.mypy]
+explicit_package_bases = true
+namespace_packages = true
+no_incremental = true
+packages = ["frequenz.sdk"]
+strict = true
 
 [[tool.mypy.overrides]]
 module = [

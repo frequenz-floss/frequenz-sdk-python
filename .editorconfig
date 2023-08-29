@@ -1,0 +1,26 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+end_of_line = lf
+insert_final_newline = true
+
+# Set default charset, indent style and trimming of whitespace
+[{.editorconfig,CODEOWNERS,LICENSE,*.{in,json,md,proto,py,pyi,toml,yaml,yml}}]
+charset = utf-8
+indent_style = space
+trim_trailing_whitespace = true
+
+# 4 space indentation
+[*.{py,pyi}]
+indent_size = 4
+
+# 2 space indentation
+[{.editorconfig,CODEOWNERS,LICENSE,*.{in,json,proto,toml,yaml,yml}}]
+indent_size = 2
+
+# No indentation size specified for *.md because different blocks have
+# different indentation rules

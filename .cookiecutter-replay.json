@@ -1,6 +1,6 @@
 {
   "cookiecutter": {
-    "Introduction": "]\n\nWelcome to repo-config Cookiecutter template!\n\nThis template will help you to create a new repository for your project. You will be asked to provide some information about your project.\n\nHere is an explanation of what each variable is for and will be used for:\n\n* `type`: The type of repository. It must be chosen from the list.\n\n* `name`: The name of the project. This will be used to build defaults for\n  other inputs, such as `title`, `python_package`, etc. It should be one word,\n  using only alphanumeric characters (and starting with a letter). It can\n  include also `_` and `-` which will be handled differently when building\n  other variables from it (replaced by spaces in titles for example).\n\n* `description`: A short description of the project. It will be used as the\n  description in the `README.md`, `pyproject.toml`, `mkdocs.yml`, etc.\n\n* `title`: A human-readable name or title for the project. It will be used in\n  the `README.md`, `CONTRIBUTING.md`, and other files to refer to the project,\n  as well as the site title in `mkdocs.yml`.\n\n* `keywords`: A comma-separated list of keywords that will be used in the\n  `pyproject.toml` file. If left untouched, it will use only some predefined\n  keywords. If anything else is entered, it will be **added** to the default\n  keywords.\n\n* `github_org`: The GitHub handle of the organization where the project will\n  reside. This will be used to generate links to the project on GitHub.\n\n* `license`: Currently, only two options are provided: `MIT`, which should be\n  used for open-source projects, and `Proprietary`, which should be used for\n  closed-source projects. This will be added to file headers and used as the\n  license in `pyproject.toml`.\n\n* `author_name`, `author_email`: The name and email address of the author of\n  the project. They will be used in the copyright notice in file headers and\n  as the author in `pyproject.toml`.\n\n* `python_package`: The Python package in which this project will reside. All\n  files provided by this project should be located in this package. This needs\n  to be a list of valid Python identifiers separated by dots. The source file\n  structure will be derived from this. For example, `frequenz.actor.example`\n  will generate files in `src/frequenz/actor/example`.\n\n* `pypi_package_name`: The name of the PyPI/wheel/distribution package. This\n  should be consistent with the `python_package`, usually replacing `.` with\n  `-`. For example, `frequenz-actor-example`.\n\n* `github_repo_name`: The handle of the GitHub repository where the project\n  will reside. This will be used to generate links to the project on GitHub and\n  as the top-level directory name.\n\n* `default_codeowners`: A space-separated list of GitHub teams (`@org/team`) or\n  users (`@user`) that will be the default code owners for this project. This\n  will be used to build the `CODEOWNERS` file. Please refer to the [code owners\n  documentation] for more details on the valid syntax.\n\n[code owners documentation]: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners\n\n\n[Please press any key to continue",
+    "Introduction": "",
     "type": "lib",
     "name": "sdk",
     "description": "A development kit to interact with the Frequenz development platform",
@@ -14,43 +14,6 @@
     "pypi_package_name": "frequenz-sdk",
     "github_repo_name": "frequenz-sdk-python",
     "default_codeowners": "@frequenz-floss/python-sdk-team",
-    "_extensions": [
-      "jinja2_time.TimeExtension",
-      "local_extensions.as_identifier",
-      "local_extensions.default_codeowners",
-      "local_extensions.github_repo_name",
-      "local_extensions.introduction",
-      "local_extensions.keywords",
-      "local_extensions.pypi_package_name",
-      "local_extensions.python_package",
-      "local_extensions.src_path",
-      "local_extensions.title"
-    ],
-    "_template": "gh:frequenz-floss/frequenz-repo-config-python",
-  },
-  "_cookiecutter": {
-    "Introduction": "{{cookiecutter | introduction}}",
-    "type": [
-      "actor",
-      "api",
-      "app",
-      "lib",
-      "model"
-    ],
-    "name": null,
-    "description": null,
-    "title": "{{cookiecutter | title}}",
-    "keywords": "(comma separated: 'frequenz', <type> and <name> are included automatically)",
-    "github_org": "frequenz-floss",
-    "license": [
-      "MIT",
-      "Proprietary"
-    ],
-    "author_name": "Frequenz Energy-as-a-Service GmbH",
-    "author_email": "floss@frequenz.com",
-    "python_package": "{{cookiecutter | python_package}}",
-    "pypi_package_name": "{{cookiecutter | pypi_package_name}}",
-    "github_repo_name": "{{cookiecutter | github_repo_name}}",
-    "default_codeowners": "(like @some-org/some-team; defaults to a team based on the repo type)"
+    "_template": "gh:frequenz-floss/frequenz-repo-config-python"
   }
 }
