@@ -54,7 +54,7 @@ dev-docstrings = [
   "darglint == 1.8.1",
   "tomli == 2.0.1",      # Needed by pydocstyle to read pyproject.toml
 ]
-dev-examples = ["polars == 0.18.13"]
+dev-examples = ["polars == 0.18.15"]
 dev-formatting = ["black == 23.7.0", "isort == 5.12.0"]
 dev-mkdocs = [
   "mike == 1.1.2",
