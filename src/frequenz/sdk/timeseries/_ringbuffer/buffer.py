@@ -257,6 +257,33 @@ class OrderedRingBuffer(Generic[FloatArray]):
             )
         )
 
+    def get_timestamp(self, index: int) -> datetime | None:
+        """Convert the given index to the underlying timestamp.
+
+        Index 0 corresponds to the oldest timestamp in the buffer.
+        If negative indices are used, the newest timestamp is used as reference.
+
+        !!!warning
+
+            The resulting timestamp can be outside the range of the buffer.
+
+        Args:
+            index: Index to convert.
+
+        Returns:
+            Datetime index where the value for the given index can be found.
+                Or None if the buffer is empty.
+        """
+        if self.oldest_timestamp is None:
+            return None
+        assert self.newest_timestamp is not None
+        ref_ts = (
+            self.oldest_timestamp
+            if index >= 0
+            else self.newest_timestamp + self._sampling_period
+        )
+        return ref_ts + index * self._sampling_period
+
     def window(
         self, start: datetime, end: datetime, *, force_copy: bool = True
     ) -> FloatArray:

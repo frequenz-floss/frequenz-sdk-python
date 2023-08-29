@@ -590,3 +590,28 @@ def test_wrapped_buffer_window() -> None:
     assert [3, 9] == list(res2_view)
     assert [3, 4] == list(res2_copy)
     assert [4, 0] == list(res3_copy)
+
+
+def test_get_timestamp() -> None:
+    """Test the get_timestamp function."""
+    buffer = OrderedRingBuffer(
+        np.empty(shape=5, dtype=float),
+        sampling_period=timedelta(seconds=1),
+    )
+    for i in range(5):
+        buffer.update(Sample(dt(i), Quantity(i)))
+    assert dt(4) == buffer.get_timestamp(-1)
+    assert dt(0) == buffer.get_timestamp(-5)
+    assert dt(-1) == buffer.get_timestamp(-6)
+    assert dt(0) == buffer.get_timestamp(0)
+    assert dt(5) == buffer.get_timestamp(5)
+    assert dt(6) == buffer.get_timestamp(6)
+
+    for i in range(10, 15):
+        buffer.update(Sample(dt(i), Quantity(i)))
+    assert dt(14) == buffer.get_timestamp(-1)
+    assert dt(10) == buffer.get_timestamp(-5)
+    assert dt(9) == buffer.get_timestamp(-6)
+    assert dt(10) == buffer.get_timestamp(0)
+    assert dt(15) == buffer.get_timestamp(5)
+    assert dt(16) == buffer.get_timestamp(6)
