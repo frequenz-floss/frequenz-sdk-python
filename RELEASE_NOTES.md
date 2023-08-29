@@ -71,7 +71,7 @@ This release replaces the `@actor` decorator with a new `Actor` class.
   await run(actor, other_actor)  # Start and await for all the actors
   ```
 
-- The `MovingWindow` is now a `BackgroundService`, so it needs to be started manually with `await window.start()`. It is recommended to use it as an `async` context manager if possible though:
+- The `MovingWindow` is now a `BackgroundService`, so it needs to be started manually with `window.start()`. It is recommended to use it as an `async` context manager if possible though:
 
     ```python
     async with MovingWindow(...) as window:
@@ -80,7 +80,7 @@ This release replaces the `@actor` decorator with a new `Actor` class.
     # The moving window is stopped here
     ```
 
-- The base actors (`ConfigManagingActor`, `ComponentMetricsResamplingActor`, `DataSourcingActor`, `PowerDistributingActor`) now inherit from the new `Actor` class, if you are using them directly, you need to start them manually with `await actor.start()` and you might need to do some other adjustments.
+- The base actors (`ConfigManagingActor`, `ComponentMetricsResamplingActor`, `DataSourcingActor`, `PowerDistributingActor`) now inherit from the new `Actor` class, if you are using them directly, you need to start them manually with `actor.start()` and you might need to do some other adjustments.
 
 - The `BatteryPool.power_distribution_results` method has been enhanced to provide power distribution results in the form of `Power` objects, replacing the previous use of `float` values.
 

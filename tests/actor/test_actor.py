@@ -175,7 +175,7 @@ async def test_basic_actor(caplog: pytest.LogCaptureFixture) -> None:
         original_tasks = set(actor.tasks)
 
         # Start is a no-op if already started
-        await actor.start()
+        actor.start()
         assert actor.is_running is True
         assert original_tasks == set(actor.tasks)
 
@@ -192,7 +192,7 @@ async def test_basic_actor(caplog: pytest.LogCaptureFixture) -> None:
     assert actor.is_running is False
     assert BaseTestActor.restart_count == 0
     assert caplog.record_tuples == [
-        (*ACTOR_INFO, "Actor EchoActor[EchoActor]: Starting..."),
+        (*ACTOR_INFO, "Actor EchoActor[EchoActor]: Started."),
         (*ACTOR_INFO, "Actor EchoActor[EchoActor]: Cancelled."),
     ]
 
@@ -222,12 +222,14 @@ async def test_restart_on_unhandled_exception(
                 await channel.new_sender().send(i)
 
             await run(actor)
+            await actor.wait()
 
     assert actor.is_running is False
     assert BaseTestActor.restart_count == restart_limit
     expected_log = [
         (*RUN_INFO, "Starting 1 actor(s)..."),
-        (*ACTOR_INFO, "Actor RaiseExceptionActor[test]: Starting..."),
+        (*RUN_INFO, "Actor RaiseExceptionActor[test]: Starting..."),
+        (*ACTOR_INFO, "Actor RaiseExceptionActor[test]: Started."),
     ]
     for i in range(restart_limit):
         expected_log.extend(
@@ -252,10 +254,6 @@ async def test_restart_on_unhandled_exception(
                 *ACTOR_INFO,
                 "Actor RaiseExceptionActor[test]: Maximum restarts attempted "
                 f"({restart_limit}/{restart_limit}), bailing out...",
-            ),
-            (
-                *RUN_INFO,
-                "Actor RaiseExceptionActor[test]: Started normally.",
             ),
             (
                 *RUN_ERROR,
@@ -286,10 +284,10 @@ async def test_does_not_restart_on_normal_exit(
     assert BaseTestActor.restart_count == 0
     assert caplog.record_tuples == [
         (*RUN_INFO, "Starting 1 actor(s)..."),
-        (*ACTOR_INFO, "Actor NopActor[test]: Starting..."),
+        (*RUN_INFO, "Actor NopActor[test]: Starting..."),
+        (*ACTOR_INFO, "Actor NopActor[test]: Started."),
         (*ACTOR_INFO, "Actor NopActor[test]: _run() returned without error."),
         (*ACTOR_INFO, "Actor NopActor[test]: Stopped."),
-        (*RUN_INFO, "Actor NopActor[test]: Started normally."),
         (*RUN_INFO, "Actor NopActor[test]: Finished normally."),
         (*RUN_INFO, "All 1 actor(s) finished."),
     ]
@@ -319,9 +317,9 @@ async def test_does_not_restart_on_base_exception(
     assert BaseTestActor.restart_count == 0
     assert caplog.record_tuples == [
         (*RUN_INFO, "Starting 1 actor(s)..."),
-        (*ACTOR_INFO, "Actor RaiseBaseExceptionActor[test]: Starting..."),
+        (*RUN_INFO, "Actor RaiseBaseExceptionActor[test]: Starting..."),
+        (*ACTOR_INFO, "Actor RaiseBaseExceptionActor[test]: Started."),
         (*ACTOR_ERROR, "Actor RaiseBaseExceptionActor[test]: Raised a BaseException."),
-        (*RUN_INFO, "Actor RaiseBaseExceptionActor[test]: Started normally."),
         (
             *RUN_ERROR,
             "Actor RaiseBaseExceptionActor[test]: Raised an exception while running.",
@@ -373,8 +371,8 @@ async def test_does_not_restart_if_cancelled(
     assert BaseTestActor.restart_count == 0
     assert caplog.record_tuples == [
         (*RUN_INFO, "Starting 1 actor(s)..."),
-        (*ACTOR_INFO, "Actor EchoActor[EchoActor]: Starting..."),
-        (*RUN_INFO, "Actor EchoActor[EchoActor]: Started normally."),
+        (*RUN_INFO, "Actor EchoActor[EchoActor]: Starting..."),
+        (*ACTOR_INFO, "Actor EchoActor[EchoActor]: Started."),
         (*ACTOR_INFO, "Actor EchoActor[EchoActor]: Cancelled."),
         (*RUN_ERROR, "Actor EchoActor[EchoActor]: Raised an exception while running."),
         (*RUN_INFO, "All 1 actor(s) finished."),

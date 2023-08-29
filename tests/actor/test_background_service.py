@@ -36,7 +36,7 @@ class FakeService(BackgroundService):
         self._sleep = sleep
         self._exc = exc
 
-    async def start(self) -> None:
+    def start(self) -> None:
         """Start this service."""
 
         async def nop() -> None:
@@ -76,7 +76,7 @@ async def test_start_await() -> None:
     await fake_service.stop()
     assert fake_service.is_running is False
 
-    await fake_service.start()
+    fake_service.start()
     assert fake_service.is_running is True
 
     # Should stop immediately
@@ -96,7 +96,7 @@ async def test_start_stop() -> None:
     await fake_service.stop()
     assert fake_service.is_running is False
 
-    await fake_service.start()
+    fake_service.start()
     assert fake_service.is_running is True
 
     await asyncio.sleep(1.0)
@@ -119,7 +119,7 @@ async def test_start_and_crash(
     assert fake_service.name == "test"
     assert fake_service.is_running is False
 
-    await fake_service.start()
+    fake_service.start()
     with pytest.raises(BaseExceptionGroup) as exc_info:
         match method:
             case "await":
@@ -146,7 +146,8 @@ async def test_async_context_manager() -> None:
     async with FakeService(name="test", sleep=1.0) as fake_service:
         assert fake_service.is_running is True
         # Is a no-op if the service is running
-        await fake_service.start()
+        fake_service.start()
+        await asyncio.sleep(0)
         assert fake_service.is_running is True
 
     assert fake_service.is_running is False
