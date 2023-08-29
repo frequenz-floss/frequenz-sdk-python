@@ -16,6 +16,7 @@ from frequenz.sdk import microgrid
 from frequenz.sdk._internal._asyncio import cancel_and_await
 from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.microgrid import _data_pipeline
+from frequenz.sdk.microgrid._graph import _MicrogridComponentGraph
 from frequenz.sdk.microgrid.client import Connection
 from frequenz.sdk.microgrid.component import (
     Component,
@@ -53,16 +54,17 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        grid_meter: bool,
+        grid_meter: bool | None = None,
         api_client_streaming: bool = False,
         num_values: int = 2000,
         sample_rate_s: float = 0.01,
         num_namespaces: int = 1,
+        graph: _MicrogridComponentGraph | None = None,
     ):
         """Create a new instance.
 
         Args:
-            grid_meter: whether there is a meter successor of the GRID component.
+            grid_meter: optional, whether there is a meter successor of the GRID component.
             api_client_streaming: whether the mock client should be configured to stream
                 raw data from the API client.
             num_values: number of values to generate for each component.
@@ -71,14 +73,27 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                 to.  Useful in tests where multiple namespaces (logical_meter,
                 battery_pool, etc) are used, and the same metric is used by formulas in
                 different namespaces.
+            graph: optional, a graph of components to use instead of the default grid
+                layout. If specified, grid_meter must be None.
         """
-        self._components: Set[Component] = set(
-            [
-                Component(1, ComponentCategory.GRID),
-            ]
+        if grid_meter is not None and graph is not None:
+            raise ValueError("grid_meter and graph are mutually exclusive")
+
+        self._components: Set[Component] = (
+            set(
+                [
+                    Component(1, ComponentCategory.GRID),
+                ]
+            )
+            if graph is None
+            else graph.components()
         )
-        self._connections: Set[Connection] = set()
-        self._id_increment = 0
+
+        self._connections: Set[Connection] = (
+            set() if graph is None else graph.connections()
+        )
+
+        self._id_increment = 0 if graph is None else len(self._components)
         self._api_client_streaming = api_client_streaming
         self._num_values = num_values
         self._sample_rate_s = sample_rate_s
@@ -86,13 +101,48 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
         self._connect_to = self.grid_id
 
-        self.chp_ids: list[int] = []
-        self.battery_inverter_ids: list[int] = []
-        self.pv_inverter_ids: list[int] = []
-        self.battery_ids: list[int] = []
-        self.evc_ids: list[int] = []
-        self.meter_ids: list[int] = []
-        self.bat_inv_map: dict[int, int] = {}
+        def filter_comp(category: ComponentCategory) -> list[int]:
+            if graph is None:
+                return []
+            return list(
+                map(
+                    lambda c: c.component_id,
+                    graph.components(component_category=set([category])),
+                )
+            )
+
+        def inverters(comp_type: InverterType) -> list[int]:
+            if graph is None:
+                return []
+
+            return [
+                c.component_id
+                for c in graph.components(
+                    component_category=set([ComponentCategory.INVERTER])
+                )
+                if c.type == comp_type
+            ]
+
+        self.chp_ids: list[int] = filter_comp(ComponentCategory.CHP)
+        self.battery_ids: list[int] = filter_comp(ComponentCategory.BATTERY)
+        self.evc_ids: list[int] = filter_comp(ComponentCategory.EV_CHARGER)
+        self.meter_ids: list[int] = filter_comp(ComponentCategory.METER)
+
+        self.battery_inverter_ids: list[int] = inverters(InverterType.BATTERY)
+        self.pv_inverter_ids: list[int] = inverters(InverterType.SOLAR)
+
+        self.bat_inv_map: dict[int, int] = (
+            {}
+            if graph is None
+            else {
+                # Hacky, ignores multiple batteries behind one inverter
+                list(graph.successors(c.component_id))[0].component_id: c.component_id
+                for c in graph.components(
+                    component_category=set([ComponentCategory.INVERTER])
+                )
+                if c.type == InverterType.BATTERY
+            }
+        )
 
         self.evc_component_states: dict[int, EVChargerComponentState] = {}
         self.evc_cable_states: dict[int, EVChargerCableState] = {}
