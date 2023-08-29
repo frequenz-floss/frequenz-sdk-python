@@ -168,7 +168,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
             value = sample.value.base_value
         else:
             value = np.nan
-        self._buffer[self.datetime_to_index(timestamp)] = value
+        self._buffer[self.to_internal_index(timestamp)] = value
 
         self._update_gaps(timestamp, prev_newest, not self.has_value(sample))
 
@@ -221,10 +221,12 @@ class OrderedRingBuffer(Generic[FloatArray]):
 
         return self.time_bound_newest
 
-    def datetime_to_index(
+    def to_internal_index(
         self, timestamp: datetime, allow_outside_range: bool = False
     ) -> int:
-        """Convert the given timestamp to an index.
+        """Convert the given timestamp to the position in the buffer.
+
+        !!! Note: This method is meant for advanced use cases and should not generally be used.
 
         Args:
             timestamp: Timestamp to convert.
@@ -258,10 +260,10 @@ class OrderedRingBuffer(Generic[FloatArray]):
     def window(
         self, start: datetime, end: datetime, *, force_copy: bool = True
     ) -> FloatArray:
-        """Request a view on the data between start timestamp and end timestamp.
+        """Request a copy or view on the data between start timestamp and end timestamp.
 
-        If the data is not used immediately it could be overwritten.
         Always request a copy if you keep the data around for longer.
+        Otherwise, if the data is not used immediately it could be overwritten.
 
         Will return a copy in the following cases:
         * The requested time period is crossing the start/end of the buffer.
@@ -294,12 +296,10 @@ class OrderedRingBuffer(Generic[FloatArray]):
         if start == end:
             return np.array([]) if isinstance(self._buffer, np.ndarray) else []
 
-        start_index = self.datetime_to_index(start)
-        end_index = self.datetime_to_index(end)
+        start_pos = self.to_internal_index(start)
+        end_pos = self.to_internal_index(end)
 
-        return self._wrapped_buffer_window(
-            self._buffer, start_index, end_index, force_copy
-        )
+        return self._wrapped_buffer_window(self._buffer, start_pos, end_pos, force_copy)
 
     @staticmethod
     def _wrapped_buffer_window(
@@ -562,10 +562,10 @@ class OrderedRingBuffer(Generic[FloatArray]):
             ),
         )
 
-        start_index = self.datetime_to_index(self._datetime_oldest)
-        end_index = self.datetime_to_index(self._datetime_newest)
+        start_pos = self.to_internal_index(self._datetime_oldest)
+        end_pos = self.to_internal_index(self._datetime_newest)
 
-        if end_index < start_index:
-            return len(self._buffer) - start_index + end_index + 1 - sum_missing_entries
+        if end_pos < start_pos:
+            return len(self._buffer) - start_pos + end_pos + 1 - sum_missing_entries
 
-        return end_index + 1 - start_index - sum_missing_entries
+        return end_pos + 1 - start_pos - sum_missing_entries

@@ -11,8 +11,9 @@
 ## New Features
 
 - A tutorial section and a getting started tutorial
-
-- Remove `__setitem__` method from `OrderedRingBuffer` to enforce usage of the dedicated `update` method only.
+- In `OrderedRingBuffer`:
+  - Rename `datetime_to_index` to `to_internal_index` to avoid confusion between the internal index and the external index.
+  - Remove `__setitem__` method to enforce usage of dedicated `update` method only.
 
 ## Bug Fixes
 
