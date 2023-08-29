@@ -32,9 +32,17 @@ jobs:
           - ubuntu-20.04
         python:
           - "3.11"
+        nox-session:
+          # To speed things up a bit we use the special ci_checks_max session
+          # that uses the same venv to run multiple linting sessions
+          - "ci_checks_max"
+          - "pytest_min"
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: Print environment (debug)
+        run: env
+
       - name: Fetch sources
         uses: actions/checkout@v3
         with:
@@ -50,11 +58,25 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e .[dev-noxfile]
+          pip freeze
+
+      - name: Create nox venv
+        env:
+          NOX_SESSION: ${{ matrix.nox-session }}
+        run: nox --install-only -e "$NOX_SESSION"
+
+      - name: Print pip freeze for nox venv (debug)
+        env:
+          NOX_SESSION: ${{ matrix.nox-session }}
+        run: |
+          . ".nox/$NOX_SESSION/bin/activate"
+          pip freeze
+          deactivate
 
       - name: Run nox
-        # To speed things up a bit we use the special ci_checks_max session
-        # that uses the same venv to run multiple linting sessions
-        run: nox -e ci_checks_max pytest_min
+        env:
+          NOX_SESSION: ${{ matrix.nox-session }}
+        run: nox -R -e "$NOX_SESSION"
         timeout-minutes: 10
 
   build:
@@ -76,6 +98,7 @@ jobs:
         run: |
           python -m pip install -U pip
           python -m pip install -U build
+          pip freeze
 
       - name: Build the source and binary distribution
         run: python -m build
@@ -135,6 +158,7 @@ jobs:
         run: |
           python -m pip install -U pip
           python -m pip install .[dev-mkdocs]
+          pip freeze
 
       - name: Generate the documentation
         env:
@@ -217,6 +241,7 @@ jobs:
         run: |
           python -m pip install -U pip
           python -m pip install .[dev-mkdocs]
+          pip freeze
 
       - name: Fetch the gh-pages branch
         if: steps.mike-metadata.outputs.version
