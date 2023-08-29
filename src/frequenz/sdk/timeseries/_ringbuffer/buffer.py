@@ -257,7 +257,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         )
 
     def window(
-        self, start: datetime, end: datetime, force_copy: bool = False
+        self, start: datetime, end: datetime, *, force_copy: bool = True
     ) -> FloatArray:
         """Request a view on the data between start timestamp and end timestamp.
 
@@ -266,7 +266,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
 
         Will return a copy in the following cases:
         * The requested time period is crossing the start/end of the buffer.
-        * The force_copy parameter was set to True (default False).
+        * The force_copy parameter was set to True (default True).
 
         The first case can be avoided by using the appropriate
         `align_to` value in the constructor so that the data lines up
@@ -278,7 +278,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         Args:
             start: start time of the window.
             end: end time of the window.
-            force_copy: optional, default False. If True, will always create a
+            force_copy: optional, default True. If True, will always create a
                 copy of the data.
 
         Raises:
