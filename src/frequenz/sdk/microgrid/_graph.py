@@ -491,6 +491,7 @@ class _MicrogridComponentGraph(ComponentGraph):
         try:
             _provisional.validate()
         except Exception as err:
+            _logger.error("Failed to parse component graph: %s", err)
             raise InvalidGraphError(
                 "Cannot populate component graph from provided input!"
             ) from err
