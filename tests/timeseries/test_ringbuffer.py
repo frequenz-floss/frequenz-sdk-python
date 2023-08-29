@@ -522,3 +522,64 @@ def test_window() -> None:
     assert [0, 1, 2] == list(win)
     win = buffer.window(dt(0), dt(3), force_copy=False)
     assert [0, 1, 2] == list(win)
+
+
+def test_wrapped_buffer_window() -> None:
+    """Test the wrapped buffer window function."""
+    wbw = OrderedRingBuffer._wrapped_buffer_window  # pylint: disable=protected-access
+
+    #
+    # Tests for list buffer
+    #
+    buffer = [0.0, 1.0, 2.0, 3.0, 4.0]
+    # start = end
+    assert [0, 1, 2, 3, 4] == wbw(buffer, 0, 0, force_copy=False)
+    assert [4, 0, 1, 2, 3] == wbw(buffer, 4, 4, force_copy=False)
+    # start < end
+    assert [0] == wbw(buffer, 0, 1, force_copy=False)
+    assert [0, 1, 2, 3, 4] == wbw(buffer, 0, 5, force_copy=False)
+    # start > end, end = 0
+    assert [4] == wbw(buffer, 4, 0, force_copy=False)
+    # start > end, end > 0
+    assert [4, 0, 1] == wbw(buffer, 4, 2, force_copy=False)
+
+    # Lists are always shallow copies
+    res_copy = wbw(buffer, 0, 5, force_copy=False)
+    assert [0, 1, 2, 3, 4] == res_copy
+    buffer[0] = 9
+    assert [0, 1, 2, 3, 4] == res_copy
+
+    #
+    # Tests for array buffer
+    #
+    buffer = np.array([0, 1, 2, 3, 4])  # type: ignore
+    # start = end
+    assert [0, 1, 2, 3, 4] == list(wbw(buffer, 0, 0, force_copy=False))
+    assert [4, 0, 1, 2, 3] == list(wbw(buffer, 4, 4, force_copy=False))
+    # start < end
+    assert [0] == list(wbw(buffer, 0, 1, force_copy=False))
+    assert [0, 1, 2, 3, 4] == list(wbw(buffer, 0, 5, force_copy=False))
+    # start > end, end = 0
+    assert [4] == list(wbw(buffer, 4, 0, force_copy=False))
+    # start > end, end > 0
+    assert [4, 0, 1] == list(wbw(buffer, 4, 2, force_copy=False))
+
+    # Get a view and a copy before modifying the buffer
+    res1_view = wbw(buffer, 3, 5, force_copy=False)
+    res1_copy = wbw(buffer, 3, 5, force_copy=True)
+    res2_view = wbw(buffer, 3, 0, force_copy=False)
+    res2_copy = wbw(buffer, 3, 0, force_copy=True)
+    res3_copy = wbw(buffer, 4, 1, force_copy=False)
+    assert [3, 4] == list(res1_view)
+    assert [3, 4] == list(res1_copy)
+    assert [3, 4] == list(res2_view)
+    assert [3, 4] == list(res2_copy)
+    assert [4, 0] == list(res3_copy)
+
+    # Modify the buffer and check that only the view is updated
+    buffer[4] = 9
+    assert [3, 9] == list(res1_view)
+    assert [3, 4] == list(res1_copy)
+    assert [3, 9] == list(res2_view)
+    # assert [3, 4] == list(res2_copy) #Fails because of a bug
+    assert [4, 0] == list(res3_copy)

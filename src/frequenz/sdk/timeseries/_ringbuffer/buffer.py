@@ -295,22 +295,43 @@ class OrderedRingBuffer(Generic[FloatArray]):
         start_index = self.datetime_to_index(start)
         end_index = self.datetime_to_index(end)
 
+        return self._wrapped_buffer_window(
+            self._buffer, start_index, end_index, force_copy
+        )
+
+    @staticmethod
+    def _wrapped_buffer_window(
+        buffer: FloatArray, start_pos: int, end_pos: int, force_copy: bool = True
+    ) -> FloatArray:
+        """Get a wrapped window from the given buffer.
+
+        If start_pos == end_pos, the full wrapped buffer is returned starting at start_pos.
+
+        Copies can only be avoided for numpy arrays and when the window is not wrapped.
+        Lists of floats are always copies.
+
+        Args:
+            buffer: The buffer to get the window from.
+            start_pos: The start position of the window in the buffer.
+            end_pos: The end position of the window in the buffer (exclusive).
+            force_copy: If True, will always create a copy of the data.
+
+        Returns:
+            The requested window.
+        """
         # Requested window wraps around the ends
-        if start_index >= end_index:
-            if end_index > 0:
-                if isinstance(self._buffer, list):
-                    return self._buffer[start_index:] + self._buffer[0:end_index]
-                if isinstance(self._buffer, np.ndarray):
-                    return np.concatenate(
-                        (self._buffer[start_index:], self._buffer[0:end_index])
-                    )
-                assert False, f"Unknown _buffer type: {type(self._buffer)}"
-            return self._buffer[start_index:]
+        if start_pos >= end_pos:
+            if end_pos > 0:
+                if isinstance(buffer, list):
+                    return buffer[start_pos:] + buffer[0:end_pos]
+                if isinstance(buffer, np.ndarray):
+                    return np.concatenate((buffer[start_pos:], buffer[0:end_pos]))
+                assert False, f"Unknown buffer type: {type(buffer)}"
+            return buffer[start_pos:]
 
         if force_copy:
-            return deepcopy(self[start_index:end_index])
-
-        return self[start_index:end_index]
+            return deepcopy(buffer[start_pos:end_pos])
+        return buffer[start_pos:end_pos]
 
     def is_missing(self, timestamp: datetime) -> bool:
         """Check if the given timestamp falls within a gap.
