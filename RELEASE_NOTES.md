@@ -119,3 +119,5 @@ This release replaces the `@actor` decorator with a new `Actor` class.
 - Fix `consumer_power` and `producer_power` similar to `pv_power`
 
 - Zero value requests received by the `PowerDistributingActor` will now always be accepted, even when there are non-zero exclusion bounds.
+
+- Hold on to a reference to all streaming tasks in the microgrid API client, so they don't get garbage collected.
