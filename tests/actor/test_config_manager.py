@@ -22,7 +22,7 @@ class Item(BaseModel):
 
 
 def create_content(number: int) -> str:
-    """Utility function to create content to be written to a config file."""
+    """Create content to be written to a config file."""
     return f"""
     logging_lvl = "ERROR"
     var1 = "0"
