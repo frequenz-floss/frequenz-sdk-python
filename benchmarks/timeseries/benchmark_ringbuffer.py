@@ -39,8 +39,7 @@ def test_days(days: int, buffer: OrderedRingBuffer[Any]) -> None:
     basetime = datetime(2022, 1, 1, tzinfo=timezone.utc)
 
     for day in range(days):
-        # pylint: disable=unused-variable
-        minutes = buffer.window(
+        _ = buffer.window(
             basetime + timedelta(days=day), basetime + timedelta(days=day + 1)
         )
 
