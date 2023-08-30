@@ -55,6 +55,7 @@ async def test_grid() -> None:
     microgrid.grid.initialize(components)
 
     grid = microgrid.grid.get()
+    assert grid is not None
 
     expected_fuse_current = Current.from_amperes(123.0)
     expected_fuse = Fuse(expected_fuse_current)
