@@ -190,6 +190,9 @@ class GraphGenerator:
 
         Returns:
             a tuple containing the components and connections of the graph.
+
+        Raises:
+            ValueError: if the input is invalid.
         """
 
         def inverter_type(category: ComponentCategory) -> InverterType | None:

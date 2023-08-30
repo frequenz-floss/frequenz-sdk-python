@@ -75,6 +75,9 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                 different namespaces.
             graph: optional, a graph of components to use instead of the default grid
                 layout. If specified, grid_meter must be None.
+
+        Raises:
+            ValueError: if both grid_meter and graph are specified.
         """
         if grid_meter is not None and graph is not None:
             raise ValueError("grid_meter and graph are mutually exclusive")

@@ -45,6 +45,9 @@ def benchmark_serialization(
     Args:
         ringbuffer: Ringbuffer to benchmark to serialize.
         iterations: amount of iterations to run.
+
+    Returns:
+        Average time to dump and load the ringbuffer.
     """
     total = 0.0
     for _ in range(iterations):
