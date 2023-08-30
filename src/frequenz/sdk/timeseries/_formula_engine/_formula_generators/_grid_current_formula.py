@@ -14,7 +14,8 @@ from ._formula_generator import FormulaGenerator
 class GridCurrentFormula(FormulaGenerator[Current]):
     """Create a formula engine from the component graph for calculating grid current."""
 
-    def generate(  # noqa: DOC502 (ComponentNotFound is raised indirectly by _get_grid_component_successors)
+    def generate(  # noqa: DOC502
+        # ComponentNotFound is raised indirectly by _get_grid_component_successors
         self,
     ) -> FormulaEngine3Phase[Current]:
         """Generate a formula for calculating grid current from the component graph.

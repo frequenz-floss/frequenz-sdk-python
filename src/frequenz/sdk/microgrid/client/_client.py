@@ -621,12 +621,14 @@ class MicrogridGrpcClient(MicrogridApiClient):
         if lower > 0:
             raise ValueError(f"Lower bound {upper} must be less than or equal to 0.")
 
+        target_metric = (
+            microgrid_pb.SetBoundsParam.TargetMetric.TARGET_METRIC_POWER_ACTIVE
+        )
         try:
             self.api.AddInclusionBounds(
                 microgrid_pb.SetBoundsParam(
                     component_id=component_id,
-                    # pylint: disable=no-member,line-too-long
-                    target_metric=microgrid_pb.SetBoundsParam.TargetMetric.TARGET_METRIC_POWER_ACTIVE,
+                    target_metric=target_metric,
                     bounds=metrics_pb.Bounds(lower=lower, upper=upper),
                 ),
             )

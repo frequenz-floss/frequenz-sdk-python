@@ -12,7 +12,8 @@ from ._formula_generator import FormulaGenerator, FormulaType
 class GridPowerFormula(FormulaGenerator[Power]):
     """Creates a formula engine from the component graph for calculating grid power."""
 
-    def generate(  # noqa: DOC502 (ComponentNotFound is raised indirectly by _get_grid_component_successors)
+    def generate(  # noqa: DOC502
+        # * ComponentNotFound is raised indirectly by _get_grid_component_successors
         self,
     ) -> FormulaEngine[Power]:
         """Generate a formula for calculating grid power from the component graph.
