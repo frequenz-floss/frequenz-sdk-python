@@ -27,7 +27,6 @@ class TestEVChargerPool:
 
     async def test_state_updates(self, mocker: MockerFixture) -> None:
         """Test ev charger state updates are visible."""
-
         mockgrid = MockMicrogrid(
             grid_meter=False, api_client_streaming=True, sample_rate_s=0.01
         )

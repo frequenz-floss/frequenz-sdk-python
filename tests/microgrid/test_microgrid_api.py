@@ -165,7 +165,6 @@ class TestMicrogridApi:
             components: components
             connections: connections
         """
-
         microgrid_client = MagicMock()
         microgrid_client.components = AsyncMock(return_value=[])
         microgrid_client.connections = AsyncMock(return_value=[])

@@ -30,7 +30,6 @@ def event_loop() -> Iterator[async_solipsism.EventLoop]:
 
 async def test_actors_started(mocker: MockerFixture) -> None:
     """Test that the datasourcing, resampling and power distributing actors are started."""
-
     datapipeline = _DataPipeline(
         resampler_config=ResamplerConfig(resampling_period=timedelta(seconds=1))
     )

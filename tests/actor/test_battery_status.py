@@ -64,7 +64,6 @@ def battery_data(  # pylint: disable=too-many-arguments
     Returns:
         BatteryData with given arguments.
     """
-
     return BatteryDataWrapper(
         component_id=component_id,
         capacity=capacity,
@@ -98,7 +97,6 @@ def inverter_data(
     Returns:
         InverterData with given arguments.
     """
-
     return InverterDataWrapper(
         component_id=component_id,
         timestamp=datetime.now(tz=timezone.utc) if timestamp is None else timestamp,
@@ -887,7 +885,6 @@ class TestBatteryStatusRecovery:
         setup_tracker: tuple[MockMicrogrid, Receiver[Status]],
     ) -> None:
         """Test recovery after critical error."""
-
         mock_microgrid, status_receiver = setup_tracker
 
         await self._send_healthy_inverter(mock_microgrid)

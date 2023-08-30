@@ -14,7 +14,6 @@ from frequenz.sdk.timeseries import Current
 
 async def test_grid() -> None:
     """Test the grid connection module."""
-
     # The tests here need to be in this exact sequence, because the grid connection
     # is a singleton. Once it gets created, it stays in memory for the duration of
     # the tests, unless we explicitly delete it.

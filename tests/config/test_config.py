@@ -117,7 +117,6 @@ class TestConfig:
         self, key: str, expected_type: Any, value: Any, conf_vars: dict[str, Any]
     ) -> None:
         """Test get_as function with proper arguments."""
-
         config = Config(conf_vars=conf_vars)
         result = config.get_as(key, expected_type)
         assert result == value
@@ -162,7 +161,6 @@ class TestConfig:
         conf_vars: dict[str, Any],
     ) -> None:
         """Test get_as function with proper arguments."""
-
         config = Config(conf_vars=conf_vars)
         result = config.get_dict(key_prefix, expected_values_type)
         assert result == value
@@ -179,7 +177,6 @@ class TestConfig:
         self, key_prefix: str, expected_values_type: Any, conf_vars: dict[str, Any]
     ) -> None:
         """Test get_as function with proper arguments."""
-
         config = Config(conf_vars=conf_vars)
 
         err_msg_re = (

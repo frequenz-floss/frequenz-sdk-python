@@ -115,7 +115,6 @@ async def test_single_request(
     fake_time: time_machine.Coordinates,
 ) -> None:
     """Run main functions that initializes and creates everything."""
-
     channel_registry = ChannelRegistry(name="test")
     data_source_req_chan = Broadcast[ComponentMetricRequest]("data-source-req")
     data_source_req_recv = data_source_req_chan.new_receiver()
@@ -159,7 +158,6 @@ async def test_duplicate_request(
     fake_time: time_machine.Coordinates,
 ) -> None:
     """Run main functions that initializes and creates everything."""
-
     channel_registry = ChannelRegistry(name="test")
     data_source_req_chan = Broadcast[ComponentMetricRequest]("data-source-req")
     data_source_req_recv = data_source_req_chan.new_receiver()

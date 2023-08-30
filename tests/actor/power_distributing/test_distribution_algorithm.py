@@ -129,7 +129,6 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         self, num: int, capacity: List[float]
     ) -> List[InvBatPair]:
         """Create components with given capacity."""
-
         components: List[InvBatPair] = []
         for i in range(0, num):
             battery_data = BatteryDataWrapper(
