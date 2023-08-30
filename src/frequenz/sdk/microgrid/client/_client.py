@@ -36,6 +36,7 @@ from ..component import (
 )
 from ..component._component import (
     _component_category_from_protobuf,
+    _component_metadata_from_protobuf,
     _component_type_from_protobuf,
 )
 from ._connection import Connection
@@ -255,6 +256,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
                 c.id,
                 _component_category_from_protobuf(c.category),
                 _component_type_from_protobuf(c.category, c.inverter),
+                _component_metadata_from_protobuf(c.category, c.grid),
             ),
             components_only,
         )

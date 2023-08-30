@@ -7,10 +7,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 import frequenz.api.common.components_pb2 as components_pb
+import frequenz.api.microgrid.grid_pb2 as grid_pb
 import frequenz.api.microgrid.inverter_pb2 as inverter_pb
+
+from ...timeseries import Current
+from ..fuse import Fuse
 
 
 class ComponentType(Enum):
@@ -32,7 +35,7 @@ class InverterType(ComponentType):
 def _component_type_from_protobuf(
     component_category: components_pb.ComponentCategory.ValueType,
     component_metadata: inverter_pb.Metadata,
-) -> Optional[ComponentType]:
+) -> ComponentType | None:
     """Convert a protobuf InverterType message to Component enum.
 
     For internal-only use by the `microgrid` package.
@@ -107,12 +110,38 @@ def _component_category_from_protobuf(
 
 
 @dataclass(frozen=True)
+class ComponentMetadata:
+    """Base class for component metadata classes."""
+
+    fuse: Fuse | None = None
+    """The fuse at the grid connection point."""
+
+
+@dataclass(frozen=True)
+class GridMetadata(ComponentMetadata):
+    """Metadata for a grid connection point."""
+
+
+def _component_metadata_from_protobuf(
+    component_category: components_pb.ComponentCategory.ValueType,
+    component_metadata: grid_pb.Metadata,
+) -> GridMetadata | None:
+    if component_category == components_pb.ComponentCategory.COMPONENT_CATEGORY_GRID:
+        max_current = Current.from_amperes(component_metadata.rated_fuse_current)
+        fuse = Fuse(max_current)
+        return GridMetadata(fuse)
+
+    return None
+
+
+@dataclass(frozen=True)
 class Component:
     """Metadata for a single microgrid component."""
 
     component_id: int
     category: ComponentCategory
-    type: Optional[ComponentType] = None
+    type: ComponentType | None = None
+    metadata: ComponentMetadata | None = None
 
     def is_valid(self) -> bool:
         """Check if this instance contains valid data.
@@ -124,6 +153,14 @@ class Component:
         return (
             self.component_id > 0 and any(t == self.category for t in ComponentCategory)
         ) or (self.component_id == 0 and self.category == ComponentCategory.GRID)
+
+    def __hash__(self) -> int:
+        """Compute a hash of this instance, obtained by hashing the `component_id` field.
+
+        Returns:
+            Hash of this instance.
+        """
+        return hash(self.component_id)
 
 
 class ComponentMetricId(Enum):

@@ -18,7 +18,14 @@ import pytest
 
 import frequenz.sdk.microgrid._graph as gr
 from frequenz.sdk.microgrid.client import Connection, MicrogridGrpcClient
-from frequenz.sdk.microgrid.component import Component, ComponentCategory, InverterType
+from frequenz.sdk.microgrid.component import (
+    Component,
+    ComponentCategory,
+    GridMetadata,
+    InverterType,
+)
+from frequenz.sdk.microgrid.fuse import Fuse
+from frequenz.sdk.timeseries import Current
 
 from .mock_api import MockGrpcServer, MockMicrogridServicer
 
@@ -816,8 +823,19 @@ class Test_MicrogridComponentGraph:
         servicer.set_connections([(101, 111), (111, 131)])
         await graph.refresh_from_api(client)
 
+        grid_max_current = Current.zero()
+        grid_fuse = Fuse(grid_max_current)
+
+        # Note: we need to add GriMetadata as a dict here, because that's what
+        # the ComponentGraph does too, and we need to be able to compare the
+        # two graphs.
         expected = {
-            Component(101, ComponentCategory.GRID),
+            Component(
+                101,
+                ComponentCategory.GRID,
+                None,
+                asdict(GridMetadata(fuse=grid_fuse)),  # type: ignore
+            ),
             Component(111, ComponentCategory.METER),
             Component(131, ComponentCategory.EV_CHARGER),
         }
@@ -842,8 +860,14 @@ class Test_MicrogridComponentGraph:
         )
         servicer.set_connections([(707, 717), (717, 727), (727, 737), (717, 747)])
         await graph.refresh_from_api(client)
+
         expected = {
-            Component(707, ComponentCategory.GRID),
+            Component(
+                707,
+                ComponentCategory.GRID,
+                None,
+                asdict(GridMetadata(fuse=grid_fuse)),  # type: ignore
+            ),
             Component(717, ComponentCategory.METER),
             Component(727, ComponentCategory.INVERTER, InverterType.NONE),
             Component(737, ComponentCategory.BATTERY),
@@ -1146,7 +1170,7 @@ class Test_MicrogridComponentGraph:
             gr.InvalidGraphError,
             match=r"Grid endpoint 1 has graph predecessors: \[Component"
             r"\(component_id=99, category=<ComponentCategory.METER: 2>, "
-            r"type=None\)\]",
+            r"type=None, metadata=None\)\]",
         ) as _err_predecessors:
             graph._validate_grid_endpoint()
 
