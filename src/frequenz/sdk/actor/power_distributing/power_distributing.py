@@ -217,7 +217,7 @@ class PowerDistributingActor(Actor):
             namespace: namespace of the sender, to identify the result channel with.
             result: Result to send out.
         """
-        if not namespace in self._result_senders:
+        if namespace not in self._result_senders:
             self._result_senders[namespace] = self._channel_registry.new_sender(
                 namespace
             )

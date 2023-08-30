@@ -61,7 +61,7 @@ class Quantity:
             ValueError: If the given exponent_unit_map does not contain a base unit
                 (exponent 0).
         """
-        if not 0 in exponent_unit_map:
+        if 0 not in exponent_unit_map:
             raise ValueError("Expected a base unit for the type (for exponent 0)")
         cls._exponent_unit_map = exponent_unit_map
         super().__init_subclass__()
