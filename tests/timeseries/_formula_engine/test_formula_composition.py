@@ -176,11 +176,11 @@ class TestFormulaComposition:
         await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
-        engine_min = logical_meter.grid_power._min(  # pylint: disable=protected-access
+        engine_min = logical_meter.grid_power.min(  # pylint: disable=protected-access
             Power.zero()
         ).build("grid_power_min")
         engine_min_rx = engine_min.new_receiver()
-        engine_max = logical_meter.grid_power._max(  # pylint: disable=protected-access
+        engine_max = logical_meter.grid_power.max(  # pylint: disable=protected-access
             Power.zero()
         ).build("grid_power_max")
         engine_max_rx = engine_max.new_receiver()
