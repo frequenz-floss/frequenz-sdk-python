@@ -411,11 +411,11 @@ class TestMicrogridGrpcClient:
             )
 
             with pytest.raises(ValueError):
-                ## should raise a ValueError for missing component_id
+                # should raise a ValueError for missing component_id
                 await microgrid.meter_data(20)
 
             with pytest.raises(ValueError):
-                ## should raise a ValueError for wrong component category
+                # should raise a ValueError for wrong component category
                 await microgrid.meter_data(38)
             peekable = (await microgrid.meter_data(83)).into_peekable()
             await asyncio.sleep(0.2)
@@ -444,11 +444,11 @@ class TestMicrogridGrpcClient:
             )
 
             with pytest.raises(ValueError):
-                ## should raise a ValueError for missing component_id
+                # should raise a ValueError for missing component_id
                 await microgrid.meter_data(20)
 
             with pytest.raises(ValueError):
-                ## should raise a ValueError for wrong component category
+                # should raise a ValueError for wrong component category
                 await microgrid.meter_data(38)
             peekable = (await microgrid.battery_data(83)).into_peekable()
             await asyncio.sleep(0.2)
@@ -477,11 +477,11 @@ class TestMicrogridGrpcClient:
             )
 
             with pytest.raises(ValueError):
-                ## should raise a ValueError for missing component_id
+                # should raise a ValueError for missing component_id
                 await microgrid.meter_data(20)
 
             with pytest.raises(ValueError):
-                ## should raise a ValueError for wrong component category
+                # should raise a ValueError for wrong component category
                 await microgrid.meter_data(38)
             peekable = (await microgrid.inverter_data(83)).into_peekable()
             await asyncio.sleep(0.2)
@@ -510,11 +510,11 @@ class TestMicrogridGrpcClient:
             )
 
             with pytest.raises(ValueError):
-                ## should raise a ValueError for missing component_id
+                # should raise a ValueError for missing component_id
                 await microgrid.meter_data(20)
 
             with pytest.raises(ValueError):
-                ## should raise a ValueError for wrong component category
+                # should raise a ValueError for wrong component category
                 await microgrid.meter_data(38)
             peekable = (await microgrid.ev_charger_data(83)).into_peekable()
             await asyncio.sleep(0.2)

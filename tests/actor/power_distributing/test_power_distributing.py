@@ -191,7 +191,7 @@ class TestPowerDistributingActor:
             channel_registry=channel_registry,
             battery_status_sender=battery_status_channel.new_sender(),
         ):
-            ## zero power requests should pass through despite the exclusion bounds.
+            # zero power requests should pass through despite the exclusion bounds.
             request = Request(
                 namespace=self._namespace,
                 power=Power.zero(),
@@ -216,8 +216,8 @@ class TestPowerDistributingActor:
             assert result.excess_power.isclose(Power.zero(), abs_tol=1e-9)
             assert result.request == request
 
-            ## non-zero power requests that fall within the exclusion bounds should be
-            ## rejected.
+            # non-zero power requests that fall within the exclusion bounds should be
+            # rejected.
             request = Request(
                 namespace=self._namespace,
                 power=Power.from_watts(300.0),
