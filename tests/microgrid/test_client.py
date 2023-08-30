@@ -604,8 +604,11 @@ class TestMicrogridGrpcClient:
 
         assert len(expected_bounds) == len(servicer.get_bounds())
 
-        #  pylint:disable=unnecessary-lambda-assignment
-        sort_key = lambda bound: bound.target_metric
+        def sort_key(
+            bound: microgrid_pb.SetBoundsParam,
+        ) -> microgrid_pb.SetBoundsParam.TargetMetric.ValueType:
+            return bound.target_metric
+
         assert sorted(servicer.get_bounds(), key=sort_key) == sorted(
             expected_bounds, key=sort_key
         )
