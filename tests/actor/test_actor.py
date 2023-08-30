@@ -122,9 +122,9 @@ class EchoActor(BaseTestActor):
         """Create an `EchoActor` instance.
 
         Args:
-            name (str): Name of the actor.
-            recv1 (Receiver[bool]): A channel receiver for test boolean data.
-            recv2 (Receiver[bool]): A channel receiver for test boolean data.
+            name: Name of the actor.
+            recv1: A channel receiver for test boolean data.
+            recv2: A channel receiver for test boolean data.
         """
         super().__init__(name=name)
         self._recv1 = recv1
@@ -135,7 +135,7 @@ class EchoActor(BaseTestActor):
         """Do computations depending on the selected input message.
 
         Args:
-            output (Sender[OT]): A channel sender, to send actor's results to.
+            output: A channel sender, to send actor's results to.
         """
         print(f"{self} started")
         self.inc_restart_count()
