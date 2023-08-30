@@ -142,6 +142,10 @@ disable = [
   # pylint's unsubscriptable check is buggy and is not needed because
   # it is a type-check, for which we already have mypy.
   "unsubscriptable-object",
+  # Checked by flake8
+  "line-too-long",
+  "unused-variable",
+  "unnecessary-lambda-assignment",
 ]
 
 [tool.pylint.design]
