@@ -20,7 +20,7 @@ from .test_battery_status import battery_data, inverter_data
 
 # pylint: disable=protected-access
 class TestBatteryPoolStatus:
-    """Tests for BatteryPoolStatus"""
+    """Tests for BatteryPoolStatus."""
 
     async def test_batteries_status(self, mocker: MockerFixture) -> None:
         """Basic tests for BatteryPoolStatus.

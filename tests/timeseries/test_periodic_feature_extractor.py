@@ -74,9 +74,7 @@ async def init_feature_extractor_no_data(
 
 
 async def test_interval_shifting() -> None:
-    """
-    Test if a interval is properly shifted into a moving window
-    """
+    """Test if a interval is properly shifted into a moving window."""
     async with init_feature_extractor(
         [1, 2, 2, 1, 1, 1, 2, 2, 1, 1], timedelta(seconds=5)
     ) as feature_extractor:

@@ -62,7 +62,7 @@ def event_loop() -> Iterator[async_solipsism.EventLoop]:
 def get_components(
     mock_microgrid: MockMicrogridClient, component_category: ComponentCategory
 ) -> set[int]:
-    """Get components of given category from mock microgrid
+    """Get components of given category from mock microgrid.
 
     Args:
         mock_microgrid: mock microgrid

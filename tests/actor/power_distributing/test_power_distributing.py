@@ -1,7 +1,7 @@
 # License: MIT
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
-"""Tests power distributor"""
+"""Tests power distributor."""
 
 from __future__ import annotations
 
@@ -41,7 +41,7 @@ T = TypeVar("T")  # Declare type variable
 
 class TestPowerDistributingActor:
     # pylint: disable=protected-access
-    """Test tool to distribute power"""
+    """Test tool to distribute power."""
 
     _namespace = "power_distributor"
 

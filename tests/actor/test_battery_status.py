@@ -149,7 +149,7 @@ class TestBatteryStatus:
     async def test_sync_update_status_with_messages(
         self, mocker: MockerFixture
     ) -> None:
-        """Test if messages changes battery status/
+        """Test if messages changes battery status.
 
         Tests uses FakeSelect to test status in sync way.
         Otherwise we would have lots of async calls and waiting.
@@ -539,7 +539,7 @@ class TestBatteryStatus:
 
     @time_machine.travel("2022-01-01 00:00 UTC", tick=False)
     async def test_timers(self, mocker: MockerFixture) -> None:
-        """Test if messages changes battery status/
+        """Test if messages changes battery status.
 
         Tests uses FakeSelect to test status in sync way.
         Otherwise we would have lots of async calls and waiting.
@@ -689,7 +689,7 @@ class TestBatteryStatusRecovery:
     async def setup_tracker(
         self, mocker: MockerFixture
     ) -> AsyncIterator[tuple[MockMicrogrid, Receiver[Status]]]:
-        """Setup a BatteryStatusTracker instance to run tests with."""
+        """Set a BatteryStatusTracker instance up to run tests with."""
         mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(1)
         await mock_microgrid.start(mocker)

@@ -23,7 +23,7 @@ from ...utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrap
 
 @dataclass
 class Bound:
-    """Class to create protobuf Bound"""
+    """Class to create protobuf Bound."""
 
     lower: float
     upper: float
@@ -31,7 +31,7 @@ class Bound:
 
 @dataclass
 class Metric:
-    """Class to create protobuf Metric"""
+    """Class to create protobuf Metric."""
 
     now: Optional[float]
     bound: Optional[Bound] = None
@@ -277,7 +277,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         assert result.remaining_power == approx(0.0)
 
     def test_distribute_power_three_batteries_3(self) -> None:
-        """Test with batteries with no capacity"""
+        """Test with batteries with no capacity."""
         capacity: List[float] = [0, 49000, 0]
         components = self.create_components_with_capacity(3, capacity)
 
@@ -568,7 +568,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         assert result.remaining_power == approx(200.0)
 
     def test_consumption_three_batteries_5(self) -> None:
-        """Test what if some batteries has invalid SoC and capacity"""
+        """Test what if some batteries has invalid SoC and capacity."""
         capacity: List[Metric] = [Metric(98000), Metric(49000), Metric(0.0)]
         soc: List[Metric] = [
             Metric(80.0, Bound(0, 50)),

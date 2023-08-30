@@ -47,7 +47,7 @@ class NopActor(BaseTestActor):
         super().__init__(name="test")
 
     async def _run(self) -> None:
-        """Start the actor and crash upon receiving a message"""
+        """Start the actor and crash upon receiving a message."""
         print(f"{self} started")
         self.inc_restart_count()
         print(f"{self} done")
@@ -69,7 +69,7 @@ class RaiseExceptionActor(BaseTestActor):
         self._recv = recv
 
     async def _run(self) -> None:
-        """Start the actor and crash upon receiving a message"""
+        """Start the actor and crash upon receiving a message."""
         print(f"{self} started")
         self.inc_restart_count()
         async for msg in self._recv:
@@ -94,7 +94,7 @@ class RaiseBaseExceptionActor(BaseTestActor):
         self._recv = recv
 
     async def _run(self) -> None:
-        """Start the actor and crash upon receiving a message"""
+        """Start the actor and crash upon receiving a message."""
         print(f"{self} started")
         self.inc_restart_count()
         async for _ in self._recv:
