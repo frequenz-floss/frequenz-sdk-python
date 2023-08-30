@@ -45,7 +45,6 @@ from frequenz.api.microgrid.microgrid_pb2 import (
     ConnectionFilter,
     ConnectionList,
     MicrogridMetadata,
-    PowerLevelParam,
     SetBoundsParam,
     SetPowerActiveParam,
     SetPowerReactiveParam,
