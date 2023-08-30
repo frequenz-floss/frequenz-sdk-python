@@ -10,7 +10,7 @@ import math
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Iterable, Optional, Set, TypeVar, Union
+from typing import Iterable, Optional, Set, Union
 
 # pylint: disable=no-name-in-module
 from frequenz.api.microgrid.battery_pb2 import ComponentState as BatteryComponentState
@@ -58,9 +58,6 @@ class SetPowerResult:
 
     failed: Iterable[int]
     """Set of the batteries that failed."""
-
-
-T = TypeVar("T")
 
 
 @dataclass
