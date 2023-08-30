@@ -132,11 +132,7 @@ class EchoActor(BaseTestActor):
         self._output = output
 
     async def _run(self) -> None:
-        """Do computations depending on the selected input message.
-
-        Args:
-            output: A channel sender, to send actor's results to.
-        """
+        """Do computations depending on the selected input message."""
         print(f"{self} started")
         self.inc_restart_count()
 

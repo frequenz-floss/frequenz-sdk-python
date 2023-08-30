@@ -64,7 +64,6 @@ def _calculate_avg_window(
         feature_extractor: The instance of the PeriodicFeatureExtractor to use.
         window: The window to calculate the average over.
         window_size: The size of the window to calculate the average over.
-        weights: The weights to use for the average calculation.
 
     Returns:
         The averaged window.

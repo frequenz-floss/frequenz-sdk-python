@@ -36,7 +36,6 @@ async def send_requests(batteries: Set[int], request_num: int) -> List[Result]:
     """Send requests to the PowerDistributingActor and wait for the response.
 
     Args:
-        user: user that should send request
         batteries: set of batteries where the power should be set
         request_num: number of requests that should be send
 
