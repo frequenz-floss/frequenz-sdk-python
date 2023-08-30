@@ -141,6 +141,7 @@ class _InsecureConnectionManager(ConnectionManager):
 
 
 _CONNECTION_MANAGER: Optional[ConnectionManager] = None
+"""The ConnectionManager singleton instance."""
 
 
 async def initialize(host: str, port: int) -> None:

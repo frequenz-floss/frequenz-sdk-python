@@ -84,9 +84,16 @@ class PowerBounds:
     """Inclusion and exclusion power bounds for requested batteries."""
 
     inclusion_lower: float
+    """The lower value of the inclusion power bounds for the requested batteries."""
+
     exclusion_lower: float
+    """The lower value of the exclusion power bounds for the requested batteries."""
+
     exclusion_upper: float
+    """The upper value of the exclusion power bounds for the requested batteries."""
+
     inclusion_upper: float
+    """The upper value of the inclusion power bounds for the requested batteries."""
 
 
 @dataclasses.dataclass

@@ -22,6 +22,7 @@ QuantityT = TypeVar(
     "Percentage",
     "Temperature",
 )
+"""Type variable for representing various quantity types."""
 
 
 class Quantity:

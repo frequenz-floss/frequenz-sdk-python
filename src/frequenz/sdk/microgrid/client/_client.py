@@ -42,8 +42,8 @@ from ..component._component import (
 from ._connection import Connection
 from ._retry import LinearBackoff, RetryStrategy
 
-# Default timeout applied to all gRPC calls
 DEFAULT_GRPC_CALL_TIMEOUT = 60.0
+"""The default timeout for gRPC calls made by this client (in seconds)."""
 
 # A generic type for representing various component data types, used in the
 # generic function `MicrogridGrpcClient._component_data_task` that fetches
@@ -55,6 +55,7 @@ _GenericComponentData = TypeVar(
     InverterData,
     EVChargerData,
 )
+"""Type variable for representing various component data types."""
 
 _logger = logging.getLogger(__name__)
 
@@ -215,7 +216,11 @@ class MicrogridGrpcClient(MicrogridApiClient):
                 method gets lost.
         """
         self.target = target
+        """The location (as "host:port") of the microgrid API gRPC server."""
+
         self.api = MicrogridStub(grpc_channel)
+        """The gRPC stub for the microgrid API."""
+
         self._component_streams: Dict[int, Broadcast[Any]] = {}
         self._streaming_tasks: Dict[int, asyncio.Task[None]] = {}
         self._retry_spec = retry_spec

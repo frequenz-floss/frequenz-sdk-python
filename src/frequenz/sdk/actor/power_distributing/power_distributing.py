@@ -146,9 +146,16 @@ class PowerDistributingActor(Actor):
 
         # NOTE: power_distributor_exponent should be received from ConfigManager
         self.power_distributor_exponent: float = 1.0
+        """The exponent for the power distribution algorithm.
+
+        The exponent determines how fast the batteries should strive to the
+        equal SoC level.
+        """
+
         self.distribution_algorithm = DistributionAlgorithm(
             self.power_distributor_exponent
         )
+        """The distribution algorithm used to distribute power between batteries."""
 
         self._bat_inv_map, self._inv_bat_map = self._get_components_pairs(
             connection_manager.get().component_graph

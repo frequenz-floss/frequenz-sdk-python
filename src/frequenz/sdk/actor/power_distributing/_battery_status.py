@@ -78,7 +78,10 @@ class _ComponentStreamStatus:
 @dataclass
 class _BlockingStatus:
     min_duration_sec: float
+    """The minimum blocking duration (in seconds)."""
+
     max_duration_sec: float
+    """The maximum blocking duration (in seconds)."""
 
     def __post_init__(self) -> None:
         assert self.min_duration_sec <= self.max_duration_sec, (
@@ -86,7 +89,10 @@ class _BlockingStatus:
             f"than maximum blocking duration ({self.max_duration_sec})"
         )
         self.last_blocking_duration_sec: float = self.min_duration_sec
+        """Last blocking duration (in seconds)."""  # pylint: disable=pointless-string-statement
+
         self.blocked_until: Optional[datetime] = None
+        """Until when battery is blocked."""  # pylint: disable=pointless-string-statement
 
     def block(self) -> float:
         """Block battery.
@@ -147,21 +153,34 @@ class BatteryStatusTracker:
     Status updates are sent out only when there is a status change.
     """
 
-    # Class attributes
     _battery_valid_relay: Set[BatteryRelayState.ValueType] = {
         BatteryRelayState.RELAY_STATE_CLOSED
     }
+    """The list of valid relay states of a battery.
+
+    A working battery in any other battery relay state will be reported as failing.
+    """
+
     _battery_valid_state: Set[BatteryComponentState.ValueType] = {
         BatteryComponentState.COMPONENT_STATE_IDLE,
         BatteryComponentState.COMPONENT_STATE_CHARGING,
         BatteryComponentState.COMPONENT_STATE_DISCHARGING,
     }
+    """The list of valid states of a battery.
+
+    A working battery in any other battery state will be reported as failing.
+    """
+
     _inverter_valid_state: Set[InverterComponentState.ValueType] = {
         InverterComponentState.COMPONENT_STATE_STANDBY,
         InverterComponentState.COMPONENT_STATE_IDLE,
         InverterComponentState.COMPONENT_STATE_CHARGING,
         InverterComponentState.COMPONENT_STATE_DISCHARGING,
     }
+    """The list of valid states of an inverter.
+
+    A working inverter in any other inverter state will be reported as failing.
+    """
 
     def __init__(  # pylint: disable=too-many-arguments
         self,

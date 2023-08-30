@@ -31,6 +31,14 @@ class ComponentNotFound(FormulaGenerationError):
 
 
 NON_EXISTING_COMPONENT_ID = sys.maxsize
+"""The component ID for non-existent components in the components graph.
+
+The non-existing component ID is commonly used in scenarios where a formula
+engine requires a component ID but there are no available components in the
+graph to associate with it. Thus, the non-existing component ID is subscribed
+instead so that the formula engine can send `None` or `0` values at the same
+frequency as the other streams.
+"""
 
 
 class FormulaType(Enum):
@@ -57,7 +65,10 @@ class FormulaGeneratorConfig:
     """Config for formula generators."""
 
     component_ids: abc.Set[int] | None = None
+    """The component IDs to use for generating the formula."""
+
     formula_type: FormulaType = FormulaType.PASSIVE_SIGN_CONVENTION
+    """The type of formula output."""
 
 
 class FormulaGenerator(ABC, Generic[QuantityT]):

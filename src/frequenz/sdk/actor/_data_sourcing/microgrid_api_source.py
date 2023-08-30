@@ -141,8 +141,13 @@ class MicrogridApiSource:
                 instance.
         """
         self._comp_categories_cache: Dict[int, ComponentCategory] = {}
+
         self.comp_data_receivers: Dict[int, Receiver[Any]] = {}
+        """The dictionary of component IDs to data receivers."""
+
         self.comp_data_tasks: Dict[int, asyncio.Task[None]] = {}
+        """The dictionary of component IDs to asyncio tasks."""
+
         self._registry = registry
         self._req_streaming_metrics: Dict[
             int, Dict[ComponentMetricId, List[ComponentMetricRequest]]

@@ -24,7 +24,10 @@ class ComponentCurrentLimit:
     """A current limit, to be sent to the EV Charger."""
 
     component_id: int
+    """The component ID of the EV Charger."""
+
     max_amps: float
+    """The maximum current in amps, that an EV can draw from this EV Charger."""
 
 
 class BoundsSetter:
@@ -35,6 +38,7 @@ class BoundsSetter:
     """
 
     _NUM_PHASES = 3
+    """Number of phases in the microgrid."""
 
     def __init__(self, repeat_interval: timedelta) -> None:
         """Create a `BoundsSetter` instance.

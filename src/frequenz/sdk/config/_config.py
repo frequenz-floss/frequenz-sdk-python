@@ -12,6 +12,7 @@ from pydantic import ValidationError, parse_raw_as  # pylint: disable=no-name-in
 _logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
+"""Type variable for validating configuration values."""
 
 
 class Config:
