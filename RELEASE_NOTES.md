@@ -102,6 +102,12 @@ This release replaces the `@actor` decorator with a new `Actor` class.
 
 - `Actor`: This new class inherits from `BackgroundService` and it replaces the `@actor` decorator.
 
+- Newly added `min` and `max` functions for Formulas. They can be used as follows:
+
+    ```python
+    formula1.min(formula2)
+    ```
+
 ## Bug Fixes
 
 - Fixes a bug in the ring buffer updating the end timestamp of gaps when they are outdated.

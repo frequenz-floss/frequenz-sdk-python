@@ -35,7 +35,9 @@ from ._formula_steps import (
     ConstantValue,
     Divider,
     FormulaStep,
+    Maximizer,
     MetricFetcher,
+    Minimizer,
     Multiplier,
     OpenParen,
     Subtractor,
@@ -45,12 +47,14 @@ from ._tokenizer import TokenType
 _logger = logging.Logger(__name__)
 
 _operator_precedence = {
-    "(": 0,
-    "/": 1,
-    "*": 2,
-    "-": 3,
-    "+": 4,
-    ")": 5,
+    "max": 0,
+    "min": 1,
+    "(": 2,
+    "/": 3,
+    "*": 4,
+    "-": 5,
+    "+": 6,
+    ")": 7,
 }
 
 
@@ -167,6 +171,36 @@ class _ComposableFormulaEngine(
                 into a formula engine.
         """
         return self._higher_order_builder(self, self._create_method) / other  # type: ignore
+
+    def _max(
+        self, other: _GenericEngine | _GenericHigherOrderBuilder | QuantityT
+    ) -> _GenericHigherOrderBuilder:
+        """Return a formula engine that outputs the maximum of `self` and `other`.
+
+        Args:
+            other: A formula receiver, a formula builder or a QuantityT instance
+                corresponding to a sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return self._higher_order_builder(self, self._create_method).max(other)  # type: ignore
+
+    def _min(
+        self, other: _GenericEngine | _GenericHigherOrderBuilder | QuantityT
+    ) -> _GenericHigherOrderBuilder:
+        """Return a formula engine that outputs the minimum of `self` and `other`.
+
+        Args:
+            other: A formula receiver, a formula builder or a QuantityT instance
+                corresponding to a sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return self._higher_order_builder(self, self._create_method).min(other)  # type: ignore
 
 
 class FormulaEngine(
@@ -467,6 +501,10 @@ class FormulaBuilder(Generic[QuantityT]):
             self._build_stack.append(Divider())
         elif oper == "(":
             self._build_stack.append(OpenParen())
+        elif oper == "max":
+            self._build_stack.append(Maximizer())
+        elif oper == "min":
+            self._build_stack.append(Minimizer())
 
     def push_metric(
         self,
@@ -653,15 +691,15 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         self._steps.append((TokenType.OPER, ")"))
         self._steps.append((TokenType.OPER, oper))
 
-        # pylint: disable=protected-access
         if isinstance(other, (FormulaEngine, FormulaEngine3Phase)):
             self._steps.append((TokenType.COMPONENT_METRIC, other))
-        elif isinstance(other, (Quantity, float)):
+        elif isinstance(other, (Quantity, float, int)):
             match oper:
-                case "+" | "-":
+                case "+" | "-" | "max" | "min":
                     if not isinstance(other, Quantity):
                         raise RuntimeError(
-                            f"A Quantity must be provided for addition or subtraction to {other}"
+                            "A Quantity must be provided for addition,"
+                            f" subtraction, min or max to {other}"
                         )
                 case "*" | "/":
                     if not isinstance(other, (float, int)):
@@ -671,9 +709,8 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
             self._steps.append((TokenType.CONSTANT, other))
         elif isinstance(other, _BaseHOFormulaBuilder):
             self._steps.append((TokenType.OPER, "("))
-            self._steps.extend(other._steps)
+            self._steps.extend(other._steps)  # pylint: disable=protected-access
             self._steps.append((TokenType.OPER, ")"))
-        # pylint: enable=protected-access
         else:
             raise RuntimeError(f"Can't build a formula from: {other}")
         assert isinstance(
@@ -803,6 +840,66 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
                 into a formula engine.
         """
         return self._push("/", other)
+
+    @overload
+    def max(
+        self, other: _CompositionType1Phase
+    ) -> HigherOrderFormulaBuilder[QuantityT]:
+        ...
+
+    @overload
+    def max(
+        self, other: _CompositionType3Phase | QuantityT
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
+        ...
+
+    def max(
+        self, other: _CompositionType | QuantityT
+    ) -> (
+        HigherOrderFormulaBuilder[QuantityT]
+        | HigherOrderFormulaBuilder3Phase[QuantityT]
+    ):
+        """Return a formula builder that calculates the maximum of `self` and `other`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return self._push("max", other)
+
+    @overload
+    def min(
+        self, other: _CompositionType1Phase
+    ) -> HigherOrderFormulaBuilder[QuantityT]:
+        ...
+
+    @overload
+    def min(
+        self, other: _CompositionType3Phase | QuantityT
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
+        ...
+
+    def min(
+        self, other: _CompositionType | QuantityT
+    ) -> (
+        HigherOrderFormulaBuilder[QuantityT]
+        | HigherOrderFormulaBuilder3Phase[QuantityT]
+    ):
+        """Return a formula builder that calculates the minimum of `self` and `other`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return self._push("min", other)
 
 
 class HigherOrderFormulaBuilder(Generic[QuantityT], _BaseHOFormulaBuilder[QuantityT]):

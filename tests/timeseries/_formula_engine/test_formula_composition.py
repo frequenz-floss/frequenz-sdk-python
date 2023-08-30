@@ -170,6 +170,51 @@ class TestFormulaComposition:
 
         assert count == 10
 
+    async def test_formula_composition_min_max(self, mocker: MockerFixture) -> None:
+        """Test the composition of formulas with min/max values."""
+        mockgrid = MockMicrogrid(grid_meter=True)
+        await mockgrid.start(mocker)
+
+        logical_meter = microgrid.logical_meter()
+        engine_min = logical_meter.grid_power._min(  # pylint: disable=protected-access
+            Power.zero()
+        ).build("grid_power_min")
+        engine_min_rx = engine_min.new_receiver()
+        engine_max = logical_meter.grid_power._max(  # pylint: disable=protected-access
+            Power.zero()
+        ).build("grid_power_max")
+        engine_max_rx = engine_max.new_receiver()
+
+        await mockgrid.mock_resampler.send_meter_power([100.0])
+
+        # Test min
+        min_pow = await engine_min_rx.receive()
+        assert min_pow and min_pow.value and min_pow.value.isclose(Power.zero())
+
+        # Test max
+        max_pow = await engine_max_rx.receive()
+        assert (
+            max_pow and max_pow.value and max_pow.value.isclose(Power.from_watts(100.0))
+        )
+
+        await mockgrid.mock_resampler.send_meter_power([-100.0])
+
+        # Test min
+        min_pow = await engine_min_rx.receive()
+        assert (
+            min_pow
+            and min_pow.value
+            and min_pow.value.isclose(Power.from_watts(-100.0))
+        )
+
+        # Test max
+        max_pow = await engine_max_rx.receive()
+        assert max_pow and max_pow.value and max_pow.value.isclose(Power.zero())
+
+        await engine_min._stop()  # pylint: disable=protected-access
+        await mockgrid.cleanup()
+        await logical_meter.stop()
+
     async def test_formula_composition_constant(self, mocker: MockerFixture) -> None:
         """Test the composition of formulas with constant values."""
         mockgrid = MockMicrogrid(grid_meter=True)
