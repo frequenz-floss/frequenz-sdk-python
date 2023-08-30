@@ -57,7 +57,7 @@ class ComponentMetricFetcher(AsyncConstructible, ABC):
         Returns:
             This class instance.
         """
-        self: ComponentMetricFetcher = ComponentMetricFetcher.__new__(cls)
+        self: Self = cls.__new__(cls)
         self._component_id = component_id
         self._metrics = metrics
         return self
@@ -94,7 +94,7 @@ class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
         Returns:
             This class instance
         """
-        self: LatestMetricsFetcher[T] = await super().async_new(component_id, metrics)
+        self: Self = await super().async_new(component_id, metrics)
 
         for metric in metrics:
             # pylint: disable=protected-access
