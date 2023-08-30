@@ -1184,7 +1184,7 @@ class Test_MicrogridComponentGraph:
             match=r"Grid endpoint 1 has graph predecessors: \[Component"
             r"\(component_id=99, category=<ComponentCategory.METER: 2>, "
             r"type=None, metadata=None\)\]",
-        ) as _err_predecessors:
+        ):
             graph._validate_grid_endpoint()
 
         # grid endpoint has no successors
