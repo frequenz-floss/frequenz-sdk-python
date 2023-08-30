@@ -50,8 +50,7 @@ def battery_msg(  # pylint: disable=too-many-arguments
         component_id: id of that component
         capacity: capacity
         soc: soc
-        power_supply: supply bound
-        power_consumption: consumption bound
+        power: power bounds
         timestamp: timestamp of the message
 
     Returns:
@@ -80,8 +79,7 @@ def inverter_msg(
 
     Args:
         component_id: id of that component
-        power_supply: Supply bound
-        power_consumption: Consumption bound inverter
+        power: Power bounds
         timestamp: Timestamp from the message
 
     Returns:
@@ -109,9 +107,7 @@ def create_components(
         num: Number of components
         capacity: Capacity for each battery
         soc: SoC for each battery
-        soc_bounds: SoC bounds for each battery
-        supply_bounds: Supply bounds for each battery and inverter
-        consumption_bounds: Consumption bounds for each battery and inverter
+        power: Power bounds for each battery and inverter
 
     Returns:
         List of the components

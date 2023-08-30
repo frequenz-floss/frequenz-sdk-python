@@ -229,9 +229,9 @@ class MockMicrogridClient:
         """Create mock of MicrogridApiClient.
 
         Args:
-            bat_channel: battery channels to be returned from
+            bat_channels: battery channels to be returned from
                 MicrogridApiClient.battery_data.
-            inv_channel: inverter channels to be returned from
+            inv_channels: inverter channels to be returned from
                 MicrogridApiClient.inverter_data.
             meter_channels: meter channels to be returned from
                 MicrogridApiClient.meter_data.

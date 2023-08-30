@@ -28,7 +28,7 @@ class TestBatteryPoolStatus:
         BatteryStatusTracker is more tested in its own unit tests.
 
         Args:
-            mock_microgrid: mock microgrid client
+            mocker: Pytest mocker fixture.
         """
         mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)

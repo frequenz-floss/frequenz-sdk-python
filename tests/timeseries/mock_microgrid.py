@@ -465,7 +465,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         """Send raw battery data from the mock microgrid.
 
         Args:
-            values: list of soc values for each battery.
+            socs: list of soc values for each battery.
         """
         assert len(socs) == len(self.battery_ids)
         timestamp = datetime.now(tz=timezone.utc)

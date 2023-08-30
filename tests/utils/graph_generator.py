@@ -186,7 +186,7 @@ class GraphGenerator:
 
         Args:
             parent: the parent component.
-            components: the components to convert to a graph.
+            children: the children components.
 
         Returns:
             a tuple containing the components and connections of the graph.

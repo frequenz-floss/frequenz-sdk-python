@@ -168,7 +168,7 @@ def run_benchmark(
         The return value is discarded such that it can be used by timit.
 
         Args:
-            a: The array containing all data.
+            array: The array containing all data.
             window_size: The size of the window.
             feature_extractor: An instance of the PeriodicFeatureExtractor.
         """
@@ -185,7 +185,7 @@ def run_benchmark(
         The return value is discarded such that it can be used by timit.
 
         Args:
-            a: The array containing all data.
+            array: The array containing all data.
             window_size: The size of the window.
             feature_extractor: An instance of the PeriodicFeatureExtractor.
         """

@@ -155,7 +155,7 @@ class TestBatteryStatus:
         Otherwise we would have lots of async calls and waiting.
 
         Args:
-            mock_microgrid: mock_microgrid fixture
+            mocker: Pytest mocker fixture.
         """
         mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)
@@ -317,7 +317,7 @@ class TestBatteryStatus:
         Otherwise we would have lots of async calls and waiting.
 
         Args:
-            mock_microgrid: mock_microgrid fixture
+            mocker: Pytest mocker fixture.
         """
         mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)
@@ -434,7 +434,7 @@ class TestBatteryStatus:
         Otherwise we would have lots of async calls and waiting.
 
         Args:
-            mock_microgrid: mock_microgrid fixture
+            mocker: Pytest mocker fixture.
         """
         mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)
@@ -485,7 +485,7 @@ class TestBatteryStatus:
         Otherwise we would have lots of async calls and waiting.
 
         Args:
-            mock_microgrid: mock_microgrid fixture
+            mocker: Pytest mocker fixture.
         """
         mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)
@@ -545,8 +545,7 @@ class TestBatteryStatus:
         Otherwise we would have lots of async calls and waiting.
 
         Args:
-            mock_microgrid: mock_microgrid fixture
-            mocker: pytest mocker instance
+            mocker: Pytest mocker fixture.
         """
         mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)
@@ -608,7 +607,7 @@ class TestBatteryStatus:
         """Test if status changes.
 
         Args:
-            mock_microgrid: mock_microgrid fixture
+            mocker: Pytest mocker fixture.
         """
         mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)
