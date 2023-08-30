@@ -64,6 +64,7 @@ class TestComponentGraph:
 
     @pytest.fixture()
     def sample_input_components(self) -> Set[Component]:
+        """Create a sample set of components for testing purposes."""
         return {
             Component(11, ComponentCategory.GRID),
             Component(21, ComponentCategory.METER),
@@ -74,6 +75,7 @@ class TestComponentGraph:
 
     @pytest.fixture()
     def sample_input_connections(self) -> Set[Connection]:
+        """Create a sample set of connections for testing purposes."""
         return {
             Connection(11, 21),
             Connection(21, 41),
@@ -95,6 +97,7 @@ class TestComponentGraph:
         return _graph_implementation
 
     def test_without_filters(self) -> None:
+        """Test the graph component query without filters."""
         _graph_implementation = gr._MicrogridComponentGraph()
         graph: gr.ComponentGraph = _graph_implementation
 
@@ -210,6 +213,7 @@ class TestComponentGraph:
     def test_filter_graph_components_by_id(
         self, sample_graph: gr.ComponentGraph, ids: Set[int], expected: Set[Component]
     ) -> None:
+        """Test the graph component query with component ID filter."""
         # with component_id filter specified, we get back only components whose ID
         # matches one of the specified values
         assert len(sample_graph.components(component_id=ids)) == len(expected)
@@ -260,6 +264,7 @@ class TestComponentGraph:
         types: Set[ComponentCategory],
         expected: Set[Component],
     ) -> None:
+        """Test the graph component query with component category filter."""
         # with component_id filter specified, we get back only components whose ID
         # matches one of the specified values
         assert len(sample_graph.components(component_category=types)) == len(expected)
@@ -292,6 +297,7 @@ class TestComponentGraph:
         types: Set[ComponentCategory],
         expected: Set[Component],
     ) -> None:
+        """Test the graph component query with composite filter."""
         # when both filters are applied, they are combined via AND logic, i.e.
         # the component must have one of the specified IDs and be of one of
         # the specified types
@@ -306,11 +312,13 @@ class TestComponentGraph:
     def test_components_without_filters(
         self, sample_input_components: Set[Component], sample_graph: gr.ComponentGraph
     ) -> None:
+        """Test the graph component query without filters."""
         # without any filter applied, we get back all the components in the graph
         assert len(sample_graph.components()) == len(sample_input_components)
         assert sample_graph.components() == sample_input_components
 
     def test_connection_filters(self) -> None:
+        """Test the graph connection query with filters."""
         _graph_implementation = gr._MicrogridComponentGraph(
             components={
                 Component(1, ComponentCategory.GRID),
@@ -528,6 +536,7 @@ class Test_MicrogridComponentGraph:
     """
 
     def test___init__(self) -> None:
+        """Test the constructor."""
         # it is possible to instantiate an empty graph, but
         # it will not be considered valid until it has been
         # populated with components and connections
@@ -604,6 +613,7 @@ class Test_MicrogridComponentGraph:
             )
 
     def test_refresh_from(self) -> None:
+        """Test the refresh_from method."""
         graph = gr._MicrogridComponentGraph()
         assert set(graph.components()) == set()
         assert list(graph.connections()) == []
@@ -765,6 +775,7 @@ class Test_MicrogridComponentGraph:
         graph.validate()
 
     async def test_refresh_from_api(self) -> None:
+        """Test the refresh_from_api method."""
         graph = gr._MicrogridComponentGraph()
         assert graph.components() == set()
         assert graph.connections() == set()
@@ -885,6 +896,7 @@ class Test_MicrogridComponentGraph:
         assert await server.graceful_shutdown()
 
     def test_validate(self) -> None:
+        """Test the validate method."""
         # `validate` will fail if any of the following are the case:
         #
         #   * the graph data is not valid
@@ -953,6 +965,7 @@ class Test_MicrogridComponentGraph:
             graph.validate()
 
     def test__validate_graph(self) -> None:
+        """Test the _validate_graph method."""
         # to ensure clean testing of the individual method,
         # we cheat by setting underlying graph data directly
 
@@ -1003,6 +1016,7 @@ class Test_MicrogridComponentGraph:
             graph._validate_graph()
 
     def test__validate_graph_root(self) -> None:
+        """Test the _validate_graph_root method."""
         # to ensure clean testing of the individual method,
         # we cheat by setting underlying graph data directly
 
@@ -1125,6 +1139,7 @@ class Test_MicrogridComponentGraph:
         graph._validate_graph_root()
 
     def test__validate_grid_endpoint(self) -> None:
+        """Test the _validate_grid_endpoint method."""
         # to ensure clean testing of the individual method,
         # we cheat by setting underlying graph data directly
 
@@ -1194,6 +1209,7 @@ class Test_MicrogridComponentGraph:
         graph._validate_grid_endpoint()
 
     def test__validate_intermediary_components(self) -> None:
+        """Test the _validate_intermediary_components method."""
         # to ensure clean testing of the individual method,
         # we cheat by setting underlying graph data directly
 
@@ -1247,6 +1263,7 @@ class Test_MicrogridComponentGraph:
         graph._validate_intermediary_components()
 
     def test__validate_leaf_components(self) -> None:
+        """Test the _validate_leaf_components method."""
         # to ensure clean testing of the individual method,
         # we cheat by setting underlying graph data directly
 
@@ -1336,6 +1353,7 @@ class Test_MicrogridComponentGraph:
         graph._validate_leaf_components()
 
     def test_graph_correction(self) -> None:
+        """Test the graph correction functionality."""
         # Simple test cases for our built-in graph correction
         # functionality.  We test only with `refresh_from`:
         # for `refresh_from_api` it suffices to test that any
