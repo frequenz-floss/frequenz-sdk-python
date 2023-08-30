@@ -125,6 +125,7 @@ class EchoActor(BaseTestActor):
             name: Name of the actor.
             recv1: A channel receiver for test boolean data.
             recv2: A channel receiver for test boolean data.
+            output: A channel sender for output test boolean data.
         """
         super().__init__(name=name)
         self._recv1 = recv1
@@ -203,6 +204,7 @@ async def test_restart_on_unhandled_exception(
 
     Args:
         restart_limit: The restart limit to use.
+        caplog: The log capture fixture.
     """
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._actor")
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._run_utils")

@@ -59,6 +59,7 @@ def battery_data(  # pylint: disable=too-many-arguments
         component_state: Component state.
             Defaults to BatteryState.COMPONENT_STATE_CHARGING.
         errors: List of the components error. By default empty list will be created.
+        capacity: Battery capacity.
 
     Returns:
         BatteryData with given arguments.

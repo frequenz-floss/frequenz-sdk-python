@@ -304,6 +304,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
         Args:
             count: number of CHPs to add.
+            no_meters: if True, do not add a meter for each CHP.
         """
         for _ in range(count):
             meter_id = self._id_increment * 10 + self.meter_id_suffix

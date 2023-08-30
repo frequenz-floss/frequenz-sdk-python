@@ -112,6 +112,7 @@ def _calculate_avg_window_py(
         Args:
             window: The buffer that is used for the average calculation.
             window_size: The size of the window in samples.
+            period: The distance between two succeeding intervals in samples.
 
         Returns:
             The number of windows that are fully contained in the MovingWindow.

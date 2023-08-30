@@ -185,6 +185,7 @@ class GraphGenerator:
         """Convert a list of components to a graph.
 
         Args:
+            parent: the parent component.
             components: the components to convert to a graph.
 
         Returns:
