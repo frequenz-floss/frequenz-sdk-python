@@ -10,7 +10,7 @@ import logging
 import math
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
-from typing import Any, Generic, Iterable, Optional, Set, TypeVar
+from typing import Any, Generic, Iterable, Optional, Self, Set, TypeVar
 
 from frequenz.channels import ChannelClosedError, Receiver
 
@@ -44,7 +44,7 @@ class ComponentMetricFetcher(AsyncConstructible, ABC):
     @classmethod
     async def async_new(
         cls, component_id: int, metrics: Iterable[ComponentMetricId]
-    ) -> Self:  # type: ignore[name-defined] # pylint: disable=undefined-variable
+    ) -> Self:
         """Create an instance of this class.
 
         Subscribe for the given component metrics and return them if method
@@ -78,7 +78,7 @@ class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
         cls,
         component_id: int,
         metrics: Iterable[ComponentMetricId],
-    ) -> Self:  # type: ignore[name-defined] # pylint: disable=undefined-variable:
+    ) -> Self:
         """Create instance of this class.
 
         Subscribe for the requested component data and fetch only the latest component
