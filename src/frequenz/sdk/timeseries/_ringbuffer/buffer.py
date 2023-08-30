@@ -375,7 +375,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
             # Otherwise, make the gap smaller
             else:
                 gap.start = timestamp + self._sampling_period
-        # Is the timestamp at the end? Shrinken by one then
+        # Is the timestamp at the end? Shrink by one then
         elif gap.end - self._sampling_period == timestamp:
             gap.end = timestamp
         # Otherwise it must be in the middle and we need to create a new

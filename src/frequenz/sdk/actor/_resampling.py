@@ -43,7 +43,7 @@ class ComponentMetricsResamplingActor(Actor):
                 the [`DataSourcingActor`][frequenz.sdk.actor.DataSourcingActor]
                 to subscribe to component metrics.
             resampling_request_receiver: The receiver to use to receive new
-                resampmling subscription requests.
+                resampling subscription requests.
             config: The configuration for the resampler.
             name: The name of the actor. If `None`, `str(id(self))` will be used. This
                 is used mostly for debugging purposes.

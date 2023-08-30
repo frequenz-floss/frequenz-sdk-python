@@ -5,4 +5,4 @@
 
 
 class FormulaEngineError(Exception):
-    """An error occured while fetching metrics or applying the formula on them."""
+    """An error occurred while fetching metrics or applying the formula on them."""

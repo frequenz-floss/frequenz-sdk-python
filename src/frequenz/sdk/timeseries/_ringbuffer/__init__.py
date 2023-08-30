@@ -1,7 +1,7 @@
 # License: MIT
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
-"""Ringbuffer implementation & utilties."""
+"""Ringbuffer implementation & utilities."""
 
 from .buffer import Gap, OrderedRingBuffer
 from .serialization import dump, load
