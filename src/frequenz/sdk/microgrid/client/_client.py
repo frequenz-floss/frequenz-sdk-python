@@ -197,6 +197,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
         self.target = target
         self.api = MicrogridStub(grpc_channel)
         self._component_streams: Dict[int, Broadcast[Any]] = {}
+        self._streaming_tasks: Dict[int, asyncio.Task[None]] = {}
         self._retry_spec = retry_spec
 
     async def components(self) -> Iterable[Component]:
@@ -375,7 +376,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
         chan = Broadcast[_GenericComponentData](task_name)
         self._component_streams[component_id] = chan
 
-        asyncio.create_task(
+        self._streaming_tasks[component_id] = asyncio.create_task(
             self._component_data_task(
                 component_id,
                 transform,
