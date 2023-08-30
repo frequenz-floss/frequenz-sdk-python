@@ -236,9 +236,10 @@ async def test_feature_extractor() -> None:  # pylint: disable=too-many-statemen
 
 
 async def test_profiler_calculate_np() -> None:
-    """
-    Test the calculation of the average using a numpy array and compare it
-    against the pure python method with the same functionality.
+    """Test calculating the average with numpy and a pure python version.
+
+    Calculate the average using a numpy array and compare the run time against the pure
+    python method with the same functionality.
     """
     data = np.array([2, 2.5, 1, 1, 1, 2])
     async with init_feature_extractor_no_data(4) as feature_extractor:
