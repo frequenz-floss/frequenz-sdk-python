@@ -1,9 +1,7 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""
-Tests for the microgrid Connection type.
-"""
+"""Tests for the microgrid Connection type."""
 
 from frequenz.sdk.microgrid import client
 

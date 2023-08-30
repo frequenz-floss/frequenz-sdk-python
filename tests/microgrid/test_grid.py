@@ -1,9 +1,7 @@
 # License: MIT
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
-"""
-Tests for the `Grid` module.
-"""
+"""Tests for the `Grid` module."""
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.microgrid.component import Component, ComponentCategory, GridMetadata

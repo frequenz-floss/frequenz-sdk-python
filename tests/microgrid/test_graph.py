@@ -1,9 +1,7 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""
-Tests for the microgrid component graph.
-"""
+"""Tests for the microgrid component graph."""
 
 # pylint: disable=too-many-lines,use-implicit-booleaness-not-comparison
 # pylint: disable=invalid-name,missing-function-docstring,too-many-statements

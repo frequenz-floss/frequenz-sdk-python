@@ -1,9 +1,7 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""
-Tests for the microgrid mock api.
-"""
+"""Tests for the microgrid mock api."""
 
 # pylint: disable=missing-function-docstring,use-implicit-booleaness-not-comparison
 # pylint: disable=invalid-name,no-name-in-module,no-member

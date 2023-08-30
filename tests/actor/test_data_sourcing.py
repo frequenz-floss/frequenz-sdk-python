@@ -1,9 +1,7 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""
-Tests for the DataSourcingActor.
-"""
+"""Tests for the DataSourcingActor."""
 
 from frequenz.api.common import components_pb2 as components_pb
 from frequenz.channels import Broadcast

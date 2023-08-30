@@ -1,9 +1,7 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""
-Tests for the microgrid component wrapper.
-"""
+"""Tests for the microgrid component wrapper."""
 
 import frequenz.api.common.components_pb2 as components_pb
 import pytest

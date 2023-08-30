@@ -38,8 +38,8 @@ def fake_time() -> Iterator[time_machine.Coordinates]:
 async def push_logical_meter_data(
     sender: Sender[Sample[Quantity]], test_seq: Sequence[float]
 ) -> None:
-    """
-    Push data in the passed sender to mock `LogicalMeter` behaviour.
+    """Push data in the passed sender to mock `LogicalMeter` behaviour.
+
     Starting with the First of January 2023.
 
     Args:
