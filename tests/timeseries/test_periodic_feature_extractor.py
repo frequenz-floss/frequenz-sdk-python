@@ -3,8 +3,8 @@
 
 """Tests for the timeseries averager."""
 
-import collections.abc
 import contextlib
+from collections.abc import AsyncIterator
 from datetime import datetime, timedelta, timezone
 from typing import List
 
@@ -28,7 +28,7 @@ from tests.timeseries.test_moving_window import (
 @contextlib.asynccontextmanager
 async def init_feature_extractor(
     data: List[float], period: timedelta
-) -> collections.abc.AsyncIterator[PeriodicFeatureExtractor]:
+) -> AsyncIterator[PeriodicFeatureExtractor]:
     """
     Initialize a PeriodicFeatureExtractor with a `MovingWindow` that contains the data.
 
@@ -36,7 +36,7 @@ async def init_feature_extractor(
         data: The data that is pushed into the moving window.
         period: The distance between two successive windows.
 
-    Returns:
+    Yields:
         PeriodicFeatureExtractor
     """
     window, sender = init_moving_window(timedelta(seconds=len(data)))
@@ -48,14 +48,14 @@ async def init_feature_extractor(
 @contextlib.asynccontextmanager
 async def init_feature_extractor_no_data(
     period: int,
-) -> collections.abc.AsyncIterator[PeriodicFeatureExtractor]:
+) -> AsyncIterator[PeriodicFeatureExtractor]:
     """
     Initialize a PeriodicFeatureExtractor with a `MovingWindow` that contains no data.
 
     Args:
         period: The distance between two successive windows.
 
-    Returns:
+    Yields:
         PeriodicFeatureExtractor
     """
     # We only need the moving window to initialize the PeriodicFeatureExtractor class.
