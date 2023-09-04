@@ -15,6 +15,7 @@ import pytest
 from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._quantities import Quantity
 from frequenz.sdk.timeseries._ringbuffer import Gap, OrderedRingBuffer
+from frequenz.sdk.timeseries._ringbuffer.buffer import FloatArray
 
 FIVE_MINUTES = timedelta(minutes=5)
 ONE_MINUTE = timedelta(minutes=1)
@@ -494,3 +495,30 @@ def test_delete_oudated_gap() -> None:
     buffer.update(Sample(datetime.fromtimestamp(202, tz=timezone.utc), Quantity(2)))
 
     assert len(buffer.gaps) == 0
+
+
+def get_orb(data: FloatArray) -> OrderedRingBuffer[FloatArray]:
+    """Get OrderedRingBuffer with data.
+
+    Args:
+        data: Data to fill the buffer with.
+
+    Returns:
+        OrderedRingBuffer with data.
+    """
+    buffer = OrderedRingBuffer(data, ONE_SECOND)
+    for i, d in enumerate(data):  # pylint: disable=invalid-name
+        buffer.update(Sample(dt(i), Quantity(d) if d is not None else None))
+    return buffer
+
+
+def test_window() -> None:
+    """Test the window function."""
+    buffer = get_orb(np.array([0, None, 2, 3, 4]))
+    win = buffer.window(dt(0), dt(3), force_copy=False)
+    assert [0, np.nan, 2] == list(win)
+    buffer._buffer[1] = 1  # pylint: disable=protected-access
+    # Test whether the window is a view or a copy
+    assert [0, 1, 2] == list(win)  # NB: second element should be NaN according to docs
+    win = buffer.window(dt(0), dt(3), force_copy=False)
+    assert [0, 1, 2] == list(win)
