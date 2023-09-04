@@ -581,5 +581,5 @@ def test_wrapped_buffer_window() -> None:
     assert [3, 9] == list(res1_view)
     assert [3, 4] == list(res1_copy)
     assert [3, 9] == list(res2_view)
-    # assert [3, 4] == list(res2_copy) #Fails because of a bug
+    assert [3, 4] == list(res2_copy)
     assert [4, 0] == list(res3_copy)

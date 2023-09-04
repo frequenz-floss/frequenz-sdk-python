@@ -301,7 +301,10 @@ class OrderedRingBuffer(Generic[FloatArray]):
 
     @staticmethod
     def _wrapped_buffer_window(
-        buffer: FloatArray, start_pos: int, end_pos: int, force_copy: bool = True
+        buffer: FloatArray,
+        start_pos: int,
+        end_pos: int,
+        force_copy: bool = True,
     ) -> FloatArray:
         """Get a wrapped window from the given buffer.
 
@@ -321,17 +324,20 @@ class OrderedRingBuffer(Generic[FloatArray]):
         """
         # Requested window wraps around the ends
         if start_pos >= end_pos:
+            if isinstance(buffer, list):
+                return buffer[start_pos:] + buffer[0:end_pos]
+            assert isinstance(
+                buffer, np.ndarray
+            ), f"Unsupported buffer type: {type(buffer)}"
             if end_pos > 0:
-                if isinstance(buffer, list):
-                    return buffer[start_pos:] + buffer[0:end_pos]
-                if isinstance(buffer, np.ndarray):
-                    return np.concatenate((buffer[start_pos:], buffer[0:end_pos]))
-                assert False, f"Unknown buffer type: {type(buffer)}"
-            return buffer[start_pos:]
+                return np.concatenate((buffer[start_pos:], buffer[0:end_pos]))
+            arr = buffer[start_pos:]
+        else:
+            arr = buffer[start_pos:end_pos]
 
         if force_copy:
-            return deepcopy(buffer[start_pos:end_pos])
-        return buffer[start_pos:end_pos]
+            return deepcopy(arr)
+        return arr
 
     def is_missing(self, timestamp: datetime) -> bool:
         """Check if the given timestamp falls within a gap.
