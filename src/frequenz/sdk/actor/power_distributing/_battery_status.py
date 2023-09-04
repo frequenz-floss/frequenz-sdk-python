@@ -83,16 +83,18 @@ class _BlockingStatus:
     max_duration_sec: float
     """The maximum blocking duration (in seconds)."""
 
+    last_blocking_duration_sec: float = 0.0
+    """Last blocking duration (in seconds)."""
+
+    blocked_until: datetime | None = None
+    """Until when the battery is blocked."""
+
     def __post_init__(self) -> None:
         assert self.min_duration_sec <= self.max_duration_sec, (
             f"Minimum blocking duration ({self.min_duration_sec}) cannot be greater "
             f"than maximum blocking duration ({self.max_duration_sec})"
         )
-        self.last_blocking_duration_sec: float = self.min_duration_sec
-        """Last blocking duration (in seconds)."""  # pylint: disable=pointless-string-statement
-
-        self.blocked_until: Optional[datetime] = None
-        """Until when battery is blocked."""  # pylint: disable=pointless-string-statement
+        self.last_blocking_duration_sec = self.min_duration_sec
 
     def block(self) -> float:
         """Block battery.
