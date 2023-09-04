@@ -26,6 +26,10 @@
   - NaN values are treated as missing when gaps are determined in the `OrderedRingBuffer`.
   - Provide access to `capacity` (maximum number of elements) in `MovingWindow`.
   - Methods to retrieve oldest and newest timestamp of valid samples are added to both.
+  - `MovingWindow` exposes underlying buffers `window` method.
+  - `OrderedRingBuffer.window`:
+    - By default returns a copy.
+    - Can also return a view if the window contains `None` values and if `force_copy` is set to `True`.
 
 - Now when printing `FormulaEngine` for debugging purposes the the formula will be shown in infix notation, which should be easier to read.
 
@@ -35,4 +39,7 @@
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+- `OrderedRingBuffer.window`:
+  - Fixed `force_copy` option for specific case.
+  - Removed buggy enforcement of copies when None values in queried window.
+  - Fixed behavior for start equals end case.
