@@ -104,11 +104,52 @@ async def test_access_window_by_int_slice() -> None:
     async with window:
         await push_logical_meter_data(sender, range(0, 5))
         assert np.array_equal(window[3:5], np.array([3.0, 4.0]))
-        with pytest.raises(IndexError):
-            window.window(3, 5)  # type: ignore
+        assert np.array_equal(window.window(3, 5), np.array([3.0, 4.0]))
+
         data = [1, 2, 2.5, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1]
         await push_logical_meter_data(sender, data)
         assert np.array_equal(window[5:14], np.array(data[5:14]))
+        assert np.array_equal(window.window(5, 14), np.array(data[5:14]))
+
+    window, sender = init_moving_window(timedelta(seconds=5))
+
+    def test_eq(expected: list[float], start: int | None, end: int | None) -> None:
+        assert np.allclose(
+            window.window(start, end), np.array(expected), equal_nan=True
+        )
+
+    async with window:
+        test_eq([], 0, 1)
+
+        # Incomplete window
+        await push_logical_meter_data(sender, [0.0, 1.0])
+        test_eq([0.0, 1.0], 0, 2)
+        test_eq([0.0, 1.0], 0, 9)
+        test_eq([0.0, 1.0], 0, None)
+        test_eq([0.0, 1.0], -9, None)
+        test_eq([0.0, 1.0], None, None)
+        test_eq([0.0], -2, -1)
+        test_eq([1.0], -1, None)
+
+        # Incomplete window with gap
+        await push_logical_meter_data(
+            sender, [3.0], start_ts=UNIX_EPOCH + timedelta(seconds=3)
+        )
+        test_eq([0.0, 1.0], 0, 2)
+        # gap fill not supported yet:
+        # test_eq([0.0, 1.0, np.nan, 3.0], 0, None)
+        # test_eq([0.0, 1.0, np.nan, 3.0], -9, None)
+        # test_eq([np.nan, 3.0], -2, None)
+
+        # Complete window
+        await push_logical_meter_data(sender, [0.0, 1.0, 2.0, 3.0, 4.0])
+        test_eq([0.0, 1.0], 0, 2)
+        test_eq([3.0, 4.0], -2, None)
+
+        # Complete window with nan
+        await push_logical_meter_data(sender, [0.0, 1.0, np.nan])
+        test_eq([0.0, 1.0, np.nan], 0, 3)
+        test_eq([np.nan, 3.0, 4.0], -3, None)
 
 
 async def test_access_window_by_ts_slice() -> None:
