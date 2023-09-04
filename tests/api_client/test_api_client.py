@@ -14,6 +14,11 @@ class FakeApiClient(ApiClient):
 
     @classmethod
     def api_major_version(cls) -> int:
+        """Return the major version of the API supported by the client.
+
+        Returns:
+            The major version of the API supported by the client.
+        """
         # Specifying the targeted API version here.
         return 1
 
@@ -42,16 +47,20 @@ class FakeGrpcClient(FakeApiClient):
 
     @classmethod
     def api_type(cls) -> ApiProtocol:
+        """Return the API type."""
         # Specifying the API protocol here as gRPC.
         return ApiProtocol.GRPC
 
     async def connect(self, connection_params: str) -> None:
+        """Connect to the API."""
         self.is_connected = True
 
     async def disconnect(self) -> None:
+        """Disconnect from the API."""
         self.is_connected = False
 
     def get_data(self) -> str:
+        """Get data from the API."""
         return "grpc data"
 
 
@@ -62,16 +71,20 @@ class FakeRestClient(FakeApiClient):
 
     @classmethod
     def api_type(cls) -> ApiProtocol:
+        """Return the API type."""
         # Same as `FakeGrpcClient`, but targeting REST protocol here.
         return ApiProtocol.REST
 
     async def connect(self, connection_params: str) -> None:
+        """Connect to the API."""
         self.is_connected = True
 
     async def disconnect(self) -> None:
+        """Disconnect from the API."""
         self.is_connected = False
 
     def get_data(self) -> str:
+        """Get data from the API."""
         return "rest data"
 
 

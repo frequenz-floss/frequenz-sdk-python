@@ -21,7 +21,11 @@ class ProducerPowerFormula(FormulaGenerator[Power]):
     which are CHP and PV.
     """
 
-    def generate(self) -> FormulaEngine[Power]:
+    def generate(  # noqa: DOC502
+        # * ComponentNotFound is raised indirectly by _get_grid_component()
+        # * RuntimeError is raised indirectly by connection_manager.get()
+        self,
+    ) -> FormulaEngine[Power]:
         """Generate formula for calculating producer power from the component graph.
 
         Returns:

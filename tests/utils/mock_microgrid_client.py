@@ -229,11 +229,14 @@ class MockMicrogridClient:
         """Create mock of MicrogridApiClient.
 
         Args:
-            components: set of components.
-            bat_channel: battery channels to be returned from
+            bat_channels: battery channels to be returned from
                 MicrogridApiClient.battery_data.
-            inv_channel: inverter channels to be returned from
+            inv_channels: inverter channels to be returned from
                 MicrogridApiClient.inverter_data.
+            meter_channels: meter channels to be returned from
+                MicrogridApiClient.meter_data.
+            ev_charger_channels: ev_charger channels to be returned from
+                MicrogridApiClient.ev_charger_data.
 
         Returns:
             Magic mock instance of MicrogridApiClient.
@@ -275,6 +278,7 @@ class MockMicrogridClient:
         Args:
             component_id: component_id
             channels: Broadcast channels
+            maxsize: Max size of the channel
 
         Returns:
             Receiver from the given channels.
@@ -294,6 +298,7 @@ class MockMicrogridClient:
         Args:
             component_id: component_id
             channels: Broadcast channels
+            maxsize: Max size of the channel
 
         Returns:
             Receiver from the given channels.
@@ -313,6 +318,7 @@ class MockMicrogridClient:
         Args:
             component_id: component_id
             channels: Broadcast channels
+            maxsize: Max size of the channel
 
         Returns:
             Receiver from the given channels.
@@ -332,6 +338,7 @@ class MockMicrogridClient:
         Args:
             component_id: component_id
             channels: Broadcast channels
+            maxsize: Max size of the channel
 
         Returns:
             Receiver from the given channels.

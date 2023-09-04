@@ -2,8 +2,8 @@
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
 """Setup for all the tests."""
-import collections.abc
 import contextlib
+from collections.abc import Iterator
 from datetime import timedelta
 
 import pytest
@@ -16,7 +16,7 @@ SAFETY_TIMEOUT = timedelta(seconds=10.0)
 
 
 @contextlib.contextmanager
-def actor_restart_limit(limit: int) -> collections.abc.Iterator[None]:
+def actor_restart_limit(limit: int) -> Iterator[None]:
     """Temporarily set the actor restart limit to a given value.
 
     Example:
@@ -41,14 +41,14 @@ def actor_restart_limit(limit: int) -> collections.abc.Iterator[None]:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def disable_actor_auto_restart() -> collections.abc.Iterator[None]:
+def disable_actor_auto_restart() -> Iterator[None]:
     """Disable auto-restart of actors while running tests."""
     with actor_restart_limit(0):
         yield
 
 
 @pytest.fixture
-def actor_auto_restart_once() -> collections.abc.Iterator[None]:
+def actor_auto_restart_once() -> Iterator[None]:
     """Make actors restart only once."""
     with actor_restart_limit(1):
         yield

@@ -20,7 +20,7 @@ from .test_battery_status import battery_data, inverter_data
 
 # pylint: disable=protected-access
 class TestBatteryPoolStatus:
-    """Tests for BatteryPoolStatus"""
+    """Tests for BatteryPoolStatus."""
 
     async def test_batteries_status(self, mocker: MockerFixture) -> None:
         """Basic tests for BatteryPoolStatus.
@@ -28,7 +28,7 @@ class TestBatteryPoolStatus:
         BatteryStatusTracker is more tested in its own unit tests.
 
         Args:
-            mock_microgrid: mock microgrid client
+            mocker: Pytest mocker fixture.
         """
         mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)

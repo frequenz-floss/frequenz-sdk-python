@@ -643,7 +643,6 @@ class TestConstantValue:
 
     async def test_constant_value(self) -> None:
         """Test using constant values in formulas."""
-
         channel_1 = Broadcast[Sample[Quantity]]("channel_1")
         channel_2 = Broadcast[Sample[Quantity]]("channel_2")
 

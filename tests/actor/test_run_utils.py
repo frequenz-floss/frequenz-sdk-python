@@ -77,7 +77,6 @@ class SleepyActor(Actor):
 # pylint: disable=redefined-outer-name
 async def test_all_actors_done(fake_time: time_machine.Coordinates) -> None:
     """Test the completion of all actors."""
-
     sleepy_actor_1 = SleepyActor("sleepy_actor_1", sleep_duration=1.0)
     sleepy_actor_2 = SleepyActor("sleepy_actor_2", sleep_duration=2.0)
 
@@ -110,7 +109,6 @@ async def test_all_actors_done(fake_time: time_machine.Coordinates) -> None:
 
 async def test_actors_cancelled() -> None:
     """Test the completion of actors being cancelled."""
-
     faulty_actors = [FaultyActor(f"faulty_actor_{idx}") for idx in range(5)]
 
     await asyncio.wait_for(run(*faulty_actors), timeout=1.0)

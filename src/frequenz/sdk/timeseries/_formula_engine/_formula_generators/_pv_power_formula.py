@@ -17,14 +17,20 @@ _logger = logging.getLogger(__name__)
 class PVPowerFormula(FormulaGenerator[Power]):
     """Creates a formula engine for calculating the PV power production."""
 
-    def generate(self) -> FormulaEngine[Power]:
+    def generate(  # noqa: DOC502
+        # * ComponentNotFound is raised indirectly by _get_pv_power_components
+        # * RuntimeError is also raised indirectly by _get_pv_power_components
+        self,
+    ) -> FormulaEngine[Power]:
         """Make a formula for the PV power production of a microgrid.
 
         Returns:
             A formula engine that will calculate PV power production values.
 
         Raises:
-            ComponentNotFound: if there are no PV inverters in the component graph.
+            ComponentNotFound: if there is a problem finding the needed components.
+            RuntimeError: if the grid component has no PV inverters or meters as
+                successors.
         """
         builder = self._get_builder(
             "pv-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts

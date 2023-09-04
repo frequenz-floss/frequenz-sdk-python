@@ -75,6 +75,9 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                 different namespaces.
             graph: optional, a graph of components to use instead of the default grid
                 layout. If specified, grid_meter must be None.
+
+        Raises:
+            ValueError: if both grid_meter and graph are specified.
         """
         if grid_meter is not None and graph is not None:
             raise ValueError("grid_meter and graph are mutually exclusive")
@@ -304,6 +307,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
         Args:
             count: number of CHPs to add.
+            no_meters: if True, do not add a meter for each CHP.
         """
         for _ in range(count):
             meter_id = self._id_increment * 10 + self.meter_id_suffix
@@ -464,7 +468,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         """Send raw battery data from the mock microgrid.
 
         Args:
-            values: list of soc values for each battery.
+            socs: list of soc values for each battery.
         """
         assert len(socs) == len(self.battery_ids)
         timestamp = datetime.now(tz=timezone.utc)

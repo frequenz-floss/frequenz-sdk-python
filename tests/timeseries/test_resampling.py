@@ -1,9 +1,7 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""
-Tests for the `TimeSeriesResampler`
-"""
+"""Tests for the `TimeSeriesResampler` class."""
 
 from __future__ import annotations
 

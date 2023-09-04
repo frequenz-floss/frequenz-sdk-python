@@ -1,7 +1,7 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""Test for Config"""
+"""Test for Config."""
 import pathlib
 import re
 
@@ -16,14 +16,14 @@ from frequenz.sdk.config import Config
 
 
 class Item(BaseModel):
-    """Test item"""
+    """Test item."""
 
     item_id: int
     name: str
 
 
 class TestConfig:
-    """Test for Config"""
+    """Test for Config."""
 
     conf_path = "sdk/config.toml"
     conf_content = """
@@ -61,7 +61,7 @@ class TestConfig:
             return tomllib.load(file)
 
     def test_get(self, conf_vars: dict[str, Any]) -> None:
-        """Test get function"""
+        """Test get function."""
         config = Config(conf_vars=conf_vars)
 
         assert config.get("logging_lvl") == "DEBUG"
@@ -70,7 +70,7 @@ class TestConfig:
         assert config.get("var2", default=0) == 0
 
     def test_getitem(self, conf_vars: dict[str, Any]) -> None:
-        """Test getitem function"""
+        """Test getitem function."""
         config = Config(conf_vars=conf_vars)
 
         assert config["logging_lvl"] == "DEBUG"
@@ -79,7 +79,7 @@ class TestConfig:
             assert config["var2"]
 
     def test_contains(self, conf_vars: dict[str, Any]) -> None:
-        """Test contains function"""
+        """Test contains function."""
         config = Config(conf_vars=conf_vars)
 
         assert "logging_lvl" in config
@@ -116,8 +116,7 @@ class TestConfig:
     def test_get_as_success(
         self, key: str, expected_type: Any, value: Any, conf_vars: dict[str, Any]
     ) -> None:
-        """Test get_as function with proper arguments"""
-
+        """Test get_as function with proper arguments."""
         config = Config(conf_vars=conf_vars)
         result = config.get_as(key, expected_type)
         assert result == value
@@ -136,7 +135,7 @@ class TestConfig:
     def test_get_as_validation_error(
         self, key: str, expected_type: Any, conf_vars: dict[str, Any]
     ) -> None:
-        """Test get_as function which raise ValidationError"""
+        """Test get_as function which raise ValidationError."""
         config = Config(conf_vars=conf_vars)
 
         err_msg = (
@@ -161,8 +160,7 @@ class TestConfig:
         value: Any,
         conf_vars: dict[str, Any],
     ) -> None:
-        """Test get_as function with proper arguments"""
-
+        """Test get_as function with proper arguments."""
         config = Config(conf_vars=conf_vars)
         result = config.get_dict(key_prefix, expected_values_type)
         assert result == value
@@ -178,8 +176,7 @@ class TestConfig:
     def test_get_dict_success(
         self, key_prefix: str, expected_values_type: Any, conf_vars: dict[str, Any]
     ) -> None:
-        """Test get_as function with proper arguments"""
-
+        """Test get_as function with proper arguments."""
         config = Config(conf_vars=conf_vars)
 
         err_msg_re = (

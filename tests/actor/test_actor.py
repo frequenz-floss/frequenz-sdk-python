@@ -47,7 +47,7 @@ class NopActor(BaseTestActor):
         super().__init__(name="test")
 
     async def _run(self) -> None:
-        """Start the actor and crash upon receiving a message"""
+        """Start the actor and crash upon receiving a message."""
         print(f"{self} started")
         self.inc_restart_count()
         print(f"{self} done")
@@ -69,7 +69,7 @@ class RaiseExceptionActor(BaseTestActor):
         self._recv = recv
 
     async def _run(self) -> None:
-        """Start the actor and crash upon receiving a message"""
+        """Start the actor and crash upon receiving a message."""
         print(f"{self} started")
         self.inc_restart_count()
         async for msg in self._recv:
@@ -94,7 +94,7 @@ class RaiseBaseExceptionActor(BaseTestActor):
         self._recv = recv
 
     async def _run(self) -> None:
-        """Start the actor and crash upon receiving a message"""
+        """Start the actor and crash upon receiving a message."""
         print(f"{self} started")
         self.inc_restart_count()
         async for _ in self._recv:
@@ -122,9 +122,10 @@ class EchoActor(BaseTestActor):
         """Create an `EchoActor` instance.
 
         Args:
-            name (str): Name of the actor.
-            recv1 (Receiver[bool]): A channel receiver for test boolean data.
-            recv2 (Receiver[bool]): A channel receiver for test boolean data.
+            name: Name of the actor.
+            recv1: A channel receiver for test boolean data.
+            recv2: A channel receiver for test boolean data.
+            output: A channel sender for output test boolean data.
         """
         super().__init__(name=name)
         self._recv1 = recv1
@@ -132,11 +133,7 @@ class EchoActor(BaseTestActor):
         self._output = output
 
     async def _run(self) -> None:
-        """Do computations depending on the selected input message.
-
-        Args:
-            output (Sender[OT]): A channel sender, to send actor's results to.
-        """
+        """Do computations depending on the selected input message."""
         print(f"{self} started")
         self.inc_restart_count()
 
@@ -207,6 +204,7 @@ async def test_restart_on_unhandled_exception(
 
     Args:
         restart_limit: The restart limit to use.
+        caplog: The log capture fixture.
     """
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._actor")
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._run_utils")

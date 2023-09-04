@@ -55,9 +55,6 @@ class ComponentMetricsData:
         Args:
             metric: metric id
 
-        Raises:
-            KeyError: If given metric is not stored in the object.
-
         Returns:
             Value of the metric.
         """

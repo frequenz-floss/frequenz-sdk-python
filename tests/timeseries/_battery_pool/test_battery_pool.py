@@ -62,7 +62,7 @@ def event_loop() -> Iterator[async_solipsism.EventLoop]:
 def get_components(
     mock_microgrid: MockMicrogridClient, component_category: ComponentCategory
 ) -> set[int]:
-    """Get components of given category from mock microgrid
+    """Get components of given category from mock microgrid.
 
     Args:
         mock_microgrid: mock microgrid
@@ -301,7 +301,7 @@ async def test_battery_pool_capacity(setup_batteries_pool: SetupArgs) -> None:
     """Test capacity metric for battery pool with subset of components in the microgrid.
 
     Args:
-        setup_all_batteries: Fixture that creates needed microgrid tools.
+        setup_batteries_pool: Fixture that creates needed microgrid tools.
     """
     await run_capacity_test(setup_batteries_pool)
 
@@ -319,7 +319,7 @@ async def test_battery_pool_soc(setup_batteries_pool: SetupArgs) -> None:
     """Test soc metric for battery pool with subset of components in the microgrid.
 
     Args:
-        setup_all_batteries: Fixture that creates needed microgrid tools.
+        setup_batteries_pool: Fixture that creates needed microgrid tools.
     """
     await run_soc_test(setup_batteries_pool)
 
@@ -337,7 +337,7 @@ async def test_battery_pool_power_bounds(setup_batteries_pool: SetupArgs) -> Non
     """Test power bounds metric for battery pool with subset of components in the microgrid.
 
     Args:
-        setup_all_batteries: Fixture that creates needed microgrid tools.
+        setup_batteries_pool: Fixture that creates needed microgrid tools.
     """
     await run_power_bounds_test(setup_batteries_pool)
 
@@ -355,7 +355,7 @@ async def test_battery_pool_temperature(setup_batteries_pool: SetupArgs) -> None
     """Test temperature for battery pool with subset of components in the microgrid.
 
     Args:
-        setup_all_batteries: Fixture that creates needed microgrid tools.
+        setup_batteries_pool: Fixture that creates needed microgrid tools.
     """
     await run_temperature_test(setup_batteries_pool)
 

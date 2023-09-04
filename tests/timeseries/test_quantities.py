@@ -407,7 +407,7 @@ def test_neg() -> None:
 
 
 def test_inf() -> None:
-    """Test proper formating when using inf in quantities"""
+    """Test proper formating when using inf in quantities."""
     assert f"{Power.from_watts(float('inf'))}" == "inf W"
     assert f"{Power.from_watts(float('-inf'))}" == "-inf W"
 
@@ -428,7 +428,7 @@ def test_inf() -> None:
 
 
 def test_nan() -> None:
-    """Test proper formating when using nan in quantities"""
+    """Test proper formating when using nan in quantities."""
     assert f"{Power.from_watts(float('nan'))}" == "nan W"
     assert f"{Voltage.from_volts(float('nan'))}" == "nan V"
     assert f"{Current.from_amperes(float('nan'))}" == "nan A"

@@ -1,9 +1,7 @@
 # License: MIT
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
-"""
-Tests for the `Grid` module.
-"""
+"""Tests for the `Grid` module."""
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.microgrid.component import Component, ComponentCategory, GridMetadata
@@ -14,7 +12,6 @@ from frequenz.sdk.timeseries import Current
 
 async def test_grid() -> None:
     """Test the grid connection module."""
-
     # The tests here need to be in this exact sequence, because the grid connection
     # is a singleton. Once it gets created, it stays in memory for the duration of
     # the tests, unless we explicitly delete it.
@@ -58,6 +55,7 @@ async def test_grid() -> None:
     microgrid.grid.initialize(components)
 
     grid = microgrid.grid.get()
+    assert grid is not None
 
     expected_fuse_current = Current.from_amperes(123.0)
     expected_fuse = Fuse(expected_fuse_current)

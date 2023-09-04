@@ -1,9 +1,7 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""
-Tests for the microgrid mock api.
-"""
+"""Tests for the microgrid mock api."""
 
 # pylint: disable=missing-function-docstring,use-implicit-booleaness-not-comparison
 # pylint: disable=invalid-name,no-name-in-module,no-member
@@ -25,6 +23,7 @@ from . import mock_api
 
 
 def test_MockMicrogridServicer() -> None:
+    """Test the MockMicrogridServicer."""
     api = mock_api.MockMicrogridServicer()
     service_context_mock = Mock(spec=grpc.ServicerContext)
     assert (
@@ -213,6 +212,7 @@ def test_MockMicrogridServicer() -> None:
 
 
 async def test_MockGrpcServer() -> None:
+    """Test the MockGrpcServer."""
     servicer1 = mock_api.MockMicrogridServicer(
         components=[
             (1, ComponentCategory.COMPONENT_CATEGORY_GRID),

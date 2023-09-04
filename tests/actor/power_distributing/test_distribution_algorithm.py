@@ -23,7 +23,7 @@ from ...utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrap
 
 @dataclass
 class Bound:
-    """Class to create protobuf Bound"""
+    """Class to create protobuf Bound."""
 
     lower: float
     upper: float
@@ -31,7 +31,7 @@ class Bound:
 
 @dataclass
 class Metric:
-    """Class to create protobuf Metric"""
+    """Class to create protobuf Metric."""
 
     now: Optional[float]
     bound: Optional[Bound] = None
@@ -50,8 +50,7 @@ def battery_msg(  # pylint: disable=too-many-arguments
         component_id: id of that component
         capacity: capacity
         soc: soc
-        power_supply: supply bound
-        power_consumption: consumption bound
+        power: power bounds
         timestamp: timestamp of the message
 
     Returns:
@@ -80,8 +79,7 @@ def inverter_msg(
 
     Args:
         component_id: id of that component
-        power_supply: Supply bound
-        power_consumption: Consumption bound inverter
+        power: Power bounds
         timestamp: Timestamp from the message
 
     Returns:
@@ -109,9 +107,7 @@ def create_components(
         num: Number of components
         capacity: Capacity for each battery
         soc: SoC for each battery
-        soc_bounds: SoC bounds for each battery
-        supply_bounds: Supply bounds for each battery and inverter
-        consumption_bounds: Consumption bounds for each battery and inverter
+        power: Power bounds for each battery and inverter
 
     Returns:
         List of the components
@@ -133,7 +129,6 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         self, num: int, capacity: List[float]
     ) -> List[InvBatPair]:
         """Create components with given capacity."""
-
         components: List[InvBatPair] = []
         for i in range(0, num):
             battery_data = BatteryDataWrapper(
@@ -281,7 +276,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         assert result.remaining_power == approx(0.0)
 
     def test_distribute_power_three_batteries_3(self) -> None:
-        """Test with batteries with no capacity"""
+        """Test with batteries with no capacity."""
         capacity: List[float] = [0, 49000, 0]
         components = self.create_components_with_capacity(3, capacity)
 
@@ -572,7 +567,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         assert result.remaining_power == approx(200.0)
 
     def test_consumption_three_batteries_5(self) -> None:
-        """Test what if some batteries has invalid SoC and capacity"""
+        """Test what if some batteries has invalid SoC and capacity."""
         capacity: List[Metric] = [Metric(98000), Metric(49000), Metric(0.0)]
         soc: List[Metric] = [
             Metric(80.0, Bound(0, 50)),

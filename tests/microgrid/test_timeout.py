@@ -39,7 +39,7 @@ GRPC_SERVER_DELAY: float = 0.3
     "frequenz.sdk.microgrid.client._client.DEFAULT_GRPC_CALL_TIMEOUT", GRPC_CALL_TIMEOUT
 )
 async def test_components_timeout(mocker: MockerFixture) -> None:
-    """Test if the components() method properly raises AioRpcError"""
+    """Test if the components() method properly raises AioRpcError."""
     servicer = MockMicrogridServicer()
 
     def mock_list_components(
@@ -66,7 +66,7 @@ async def test_components_timeout(mocker: MockerFixture) -> None:
     "frequenz.sdk.microgrid.client._client.DEFAULT_GRPC_CALL_TIMEOUT", GRPC_CALL_TIMEOUT
 )
 async def test_connections_timeout(mocker: MockerFixture) -> None:
-    """Test if the connections() method properly raises AioRpcError"""
+    """Test if the connections() method properly raises AioRpcError."""
     servicer = MockMicrogridServicer()
 
     def mock_list_connections(
@@ -93,7 +93,7 @@ async def test_connections_timeout(mocker: MockerFixture) -> None:
     "frequenz.sdk.microgrid.client._client.DEFAULT_GRPC_CALL_TIMEOUT", GRPC_CALL_TIMEOUT
 )
 async def test_set_power_timeout(mocker: MockerFixture) -> None:
-    """Test if the set_power() method properly raises AioRpcError"""
+    """Test if the set_power() method properly raises AioRpcError."""
     servicer = MockMicrogridServicer()
 
     def mock_set_power(

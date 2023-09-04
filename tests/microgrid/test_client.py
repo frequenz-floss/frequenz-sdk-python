@@ -1,9 +1,7 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""
-Tests for the microgrid client thin wrapper.
-"""
+"""Tests for the microgrid client thin wrapper."""
 
 import asyncio
 
@@ -36,8 +34,11 @@ from . import mock_api
 
 
 class TestMicrogridGrpcClient:
+    """Tests for the microgrid client thin wrapper."""
+
     @staticmethod
     def create_client(port: int) -> client.MicrogridApiClient:
+        """Create a client for the mock API server."""
         return client.MicrogridGrpcClient(
             grpc.aio.insecure_channel(f"[::]:{port}"),
             f"[::]:{port}",
@@ -45,6 +46,7 @@ class TestMicrogridGrpcClient:
         )
 
     async def test_components(self) -> None:
+        """Test the components() method."""
         servicer = mock_api.MockMicrogridServicer()
         server = mock_api.MockGrpcServer(servicer, port=57899)
         await server.start()
@@ -167,6 +169,7 @@ class TestMicrogridGrpcClient:
             assert await server.graceful_shutdown()
 
     async def test_connections(self) -> None:
+        """Test the connections() method."""
         servicer = mock_api.MockMicrogridServicer()
         server = mock_api.MockGrpcServer(servicer, port=57898)
         await server.start()
@@ -392,6 +395,7 @@ class TestMicrogridGrpcClient:
             assert await server.graceful_shutdown()
 
     async def test_meter_data(self) -> None:
+        """Test the meter_data() method."""
         servicer = mock_api.MockMicrogridServicer()
         server = mock_api.MockGrpcServer(servicer, port=57899)
         await server.start()
@@ -407,11 +411,11 @@ class TestMicrogridGrpcClient:
             )
 
             with pytest.raises(ValueError):
-                ## should raise a ValueError for missing component_id
+                # should raise a ValueError for missing component_id
                 await microgrid.meter_data(20)
 
             with pytest.raises(ValueError):
-                ## should raise a ValueError for wrong component category
+                # should raise a ValueError for wrong component category
                 await microgrid.meter_data(38)
             peekable = (await microgrid.meter_data(83)).into_peekable()
             await asyncio.sleep(0.2)
@@ -424,6 +428,7 @@ class TestMicrogridGrpcClient:
         assert latest.component_id == 83
 
     async def test_battery_data(self) -> None:
+        """Test the battery_data() method."""
         servicer = mock_api.MockMicrogridServicer()
         server = mock_api.MockGrpcServer(servicer, port=57899)
         await server.start()
@@ -439,11 +444,11 @@ class TestMicrogridGrpcClient:
             )
 
             with pytest.raises(ValueError):
-                ## should raise a ValueError for missing component_id
+                # should raise a ValueError for missing component_id
                 await microgrid.meter_data(20)
 
             with pytest.raises(ValueError):
-                ## should raise a ValueError for wrong component category
+                # should raise a ValueError for wrong component category
                 await microgrid.meter_data(38)
             peekable = (await microgrid.battery_data(83)).into_peekable()
             await asyncio.sleep(0.2)
@@ -456,6 +461,7 @@ class TestMicrogridGrpcClient:
         assert latest.component_id == 83
 
     async def test_inverter_data(self) -> None:
+        """Test the inverter_data() method."""
         servicer = mock_api.MockMicrogridServicer()
         server = mock_api.MockGrpcServer(servicer, port=57899)
         await server.start()
@@ -471,11 +477,11 @@ class TestMicrogridGrpcClient:
             )
 
             with pytest.raises(ValueError):
-                ## should raise a ValueError for missing component_id
+                # should raise a ValueError for missing component_id
                 await microgrid.meter_data(20)
 
             with pytest.raises(ValueError):
-                ## should raise a ValueError for wrong component category
+                # should raise a ValueError for wrong component category
                 await microgrid.meter_data(38)
             peekable = (await microgrid.inverter_data(83)).into_peekable()
             await asyncio.sleep(0.2)
@@ -488,6 +494,7 @@ class TestMicrogridGrpcClient:
         assert latest.component_id == 83
 
     async def test_ev_charger_data(self) -> None:
+        """Test the ev_charger_data() method."""
         servicer = mock_api.MockMicrogridServicer()
         server = mock_api.MockGrpcServer(servicer, port=57899)
         await server.start()
@@ -503,11 +510,11 @@ class TestMicrogridGrpcClient:
             )
 
             with pytest.raises(ValueError):
-                ## should raise a ValueError for missing component_id
+                # should raise a ValueError for missing component_id
                 await microgrid.meter_data(20)
 
             with pytest.raises(ValueError):
-                ## should raise a ValueError for wrong component category
+                # should raise a ValueError for wrong component category
                 await microgrid.meter_data(38)
             peekable = (await microgrid.ev_charger_data(83)).into_peekable()
             await asyncio.sleep(0.2)
@@ -565,6 +572,7 @@ class TestMicrogridGrpcClient:
             assert await server.graceful_shutdown()
 
     async def test_set_bounds(self) -> None:
+        """Check if set_bounds is able to set bounds for component."""
         servicer = mock_api.MockMicrogridServicer()
         server = mock_api.MockGrpcServer(servicer, port=57899)
         await server.start()
@@ -596,8 +604,11 @@ class TestMicrogridGrpcClient:
 
         assert len(expected_bounds) == len(servicer.get_bounds())
 
-        #  pylint:disable=unnecessary-lambda-assignment
-        sort_key = lambda bound: bound.target_metric
+        def sort_key(
+            bound: microgrid_pb.SetBoundsParam,
+        ) -> microgrid_pb.SetBoundsParam.TargetMetric.ValueType:
+            return bound.target_metric
+
         assert sorted(servicer.get_bounds(), key=sort_key) == sorted(
             expected_bounds, key=sort_key
         )

@@ -25,7 +25,9 @@ _logger = logging.getLogger(__name__)
 class CHPPowerFormula(FormulaGenerator[Power]):
     """Formula generator for CHP Power."""
 
-    def generate(self) -> FormulaEngine[Power]:
+    def generate(  # noqa: DOC502 (FormulaGenerationError is raised indirectly by _get_chp_meters)
+        self,
+    ) -> FormulaEngine[Power]:
         """Make a formula for the cumulative CHP power of a microgrid.
 
         The calculation is performed by adding the active power measurements from

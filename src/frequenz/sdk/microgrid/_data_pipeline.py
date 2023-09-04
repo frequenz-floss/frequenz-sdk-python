@@ -33,7 +33,7 @@ if typing.TYPE_CHECKING:
         DataSourcingActor,
         ResamplerConfig,
     )
-    from ..actor.power_distributing import (
+    from ..actor.power_distributing import (  # noqa: F401 (imports used by string type hints)
         BatteryStatus,
         PowerDistributingActor,
         Request,

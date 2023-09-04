@@ -5,7 +5,7 @@
 requires = [
   "setuptools == 68.1.0",
   "setuptools_scm[toml] == 7.1.0",
-  "frequenz-repo-config[lib] == 0.5.2",
+  "frequenz-repo-config[lib] == 0.6.1",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -49,10 +49,12 @@ name = "Frequenz Energy-as-a-Service GmbH"
 email = "floss@frequenz.com"
 
 [project.optional-dependencies]
-dev-docstrings = [
+dev-flake8 = [
+  "flake8 == 6.1.0",
+  "flake8-docstrings == 1.7.0",
+  "flake8-pyproject == 1.2.3",  # For reading the flake8 config from pyproject.toml
+  "pydoclint == 0.3.1",
   "pydocstyle == 6.3.0",
-  "darglint == 1.8.1",
-  "tomli == 2.0.1",      # Needed by pydocstyle to read pyproject.toml
 ]
 dev-examples = ["polars == 0.18.15"]
 dev-formatting = ["black == 23.7.0", "isort == 5.12.0"]
@@ -63,16 +65,23 @@ dev-mkdocs = [
   "mkdocs-material == 9.2.5",
   "mkdocs-section-index == 0.3.5",
   "mkdocstrings[python] == 0.22.0",
-  "frequenz-repo-config[lib] == 0.5.2",
+  "frequenz-repo-config[lib] == 0.6.1",
 ]
 dev-mypy = [
   "mypy == 1.5.1",
-  "grpc-stubs == 1.24.12",      # This dependency introduces breaking changes in patch releases
+  "grpc-stubs == 1.24.12",              # This dependency introduces breaking changes in patch releases
+  "types-Markdown == 3.4.2.10",
+  "types-PyYAML == 6.0.12.11",
+  "types-Pygments == 2.16.0.0",
+  "types-colorama == 0.4.15.12",
   "types-protobuf == 4.24.0.1",
+  "types-python-dateutil == 2.8.19.14",
+  "types-pytz == 2023.3.0.1",
+  "types-setuptools == 68.1.0.0",
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
-dev-noxfile = ["nox == 2023.4.22", "frequenz-repo-config[lib] == 0.5.2"]
+dev-noxfile = ["nox == 2023.4.22", "frequenz-repo-config[lib] == 0.6.1"]
 dev-pylint = [
   "pylint == 2.17.5",
   # For checking the noxfile, docs/ script, and tests
@@ -80,18 +89,16 @@ dev-pylint = [
 ]
 dev-pytest = [
   "pytest == 7.4.0",
-  "frequenz-repo-config[extra-lint-examples] == 0.5.2",
+  "frequenz-repo-config[extra-lint-examples] == 0.6.1",
   "pytest-mock == 3.11.1",
   "pytest-asyncio == 0.21.1",
   "time-machine == 2.12.0",
   "async-solipsism == 0.5",
   # For checking docstring code examples
-  "sybil == 5.0.3",
-  "pylint == 2.17.5",
   "frequenz-sdk[dev-examples]",
 ]
 dev = [
-  "frequenz-sdk[dev-mkdocs,dev-docstrings,dev-formatting,dev-mkdocs,dev-mypy,dev-noxfile,dev-pylint,dev-pytest]",
+  "frequenz-sdk[dev-mkdocs,dev-flake8,dev-formatting,dev-mkdocs,dev-mypy,dev-noxfile,dev-pylint,dev-pytest]",
 ]
 
 [project.urls]
@@ -110,6 +117,23 @@ profile = "black"
 line_length = 88
 src_paths = ["benchmarks", "examples", "src", "tests"]
 
+[tool.flake8]
+# We give some flexibility to go over 88, there are cases like long URLs or
+# code in documenation that have extra indentation. Black will still take care
+# of making everything that can be 88 wide, 88 wide.
+max-line-length = 100
+extend-ignore = [
+  "E203", # Whitespace before ':' (conflicts with black)
+  "W503", # Line break before binary operator (conflicts with black)
+]
+# pydoclint options
+style = "google"
+allow-init-docstring = true
+arg-type-hints-in-docstring = false
+arg-type-hints-in-signature = true
+check-return-types = false
+check-yield-types = false
+
 [tool.pylint.similarities]
 ignore-comments = ['yes']
 ignore-docstrings = ['yes']
@@ -125,6 +149,10 @@ disable = [
   # pylint's unsubscriptable check is buggy and is not needed because
   # it is a type-check, for which we already have mypy.
   "unsubscriptable-object",
+  # Checked by flake8
+  "line-too-long",
+  "unused-variable",
+  "unnecessary-lambda-assignment",
 ]
 
 [tool.pylint.design]

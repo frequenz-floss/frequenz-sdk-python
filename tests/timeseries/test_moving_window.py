@@ -38,8 +38,8 @@ def fake_time() -> Iterator[time_machine.Coordinates]:
 async def push_logical_meter_data(
     sender: Sender[Sample[Quantity]], test_seq: Sequence[float]
 ) -> None:
-    """
-    Push data in the passed sender to mock `LogicalMeter` behaviour.
+    """Push data in the passed sender to mock `LogicalMeter` behaviour.
+
     Starting with the First of January 2023.
 
     Args:
@@ -57,8 +57,7 @@ async def push_logical_meter_data(
 def init_moving_window(
     size: timedelta,
 ) -> Tuple[MovingWindow, Sender[Sample[Quantity]]]:
-    """
-    Initialize the moving window with given shape
+    """Initialize the moving window with given shape.
 
     Args:
         size: The size of the `MovingWindow`
@@ -73,7 +72,7 @@ def init_moving_window(
 
 
 async def test_access_window_by_index() -> None:
-    """Test indexing a window by integer index"""
+    """Test indexing a window by integer index."""
     window, sender = init_moving_window(timedelta(seconds=1))
     async with window:
         await push_logical_meter_data(sender, [1])
@@ -81,7 +80,7 @@ async def test_access_window_by_index() -> None:
 
 
 async def test_access_window_by_timestamp() -> None:
-    """Test indexing a window by timestamp"""
+    """Test indexing a window by timestamp."""
     window, sender = init_moving_window(timedelta(seconds=1))
     async with window:
         await push_logical_meter_data(sender, [1])
@@ -89,8 +88,7 @@ async def test_access_window_by_timestamp() -> None:
 
 
 async def test_access_window_by_int_slice() -> None:
-    """
-    Test accessing a subwindow with an integer slice
+    """Test accessing a subwindow with an integer slice.
 
     Note that the second test is overwriting the data of the first test.
     since the push_lm_data function is starting with the same initial timestamp.
@@ -106,7 +104,7 @@ async def test_access_window_by_int_slice() -> None:
 
 
 async def test_access_window_by_ts_slice() -> None:
-    """Test accessing a subwindow with a timestamp slice"""
+    """Test accessing a subwindow with a timestamp slice."""
     window, sender = init_moving_window(timedelta(seconds=5))
     async with window:
         await push_logical_meter_data(sender, range(0, 5))
@@ -116,7 +114,7 @@ async def test_access_window_by_ts_slice() -> None:
 
 
 async def test_access_empty_window() -> None:
-    """Test accessing an empty window, should throw IndexError"""
+    """Test accessing an empty window, should throw IndexError."""
     window, _ = init_moving_window(timedelta(seconds=5))
     async with window:
         with pytest.raises(IndexError, match=r"^The buffer is empty\.$"):

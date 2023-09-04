@@ -488,6 +488,9 @@ class OrderedRingBuffer(Generic[FloatArray]):
 
         Args:
             index_or_slice: Index of the requested data.
+
+        Returns:
+            The requested value.
         """
 
     @overload
@@ -499,6 +502,9 @@ class OrderedRingBuffer(Generic[FloatArray]):
 
         Args:
             index_or_slice: Slice specification of where the requested data is.
+
+        Returns:
+            The requested slice.
         """
 
     def __getitem__(self, index_or_slice: SupportsIndex | slice) -> float | FloatArray:

@@ -185,10 +185,14 @@ class GraphGenerator:
         """Convert a list of components to a graph.
 
         Args:
-            components: the components to convert to a graph.
+            parent: the parent component.
+            children: the children components.
 
         Returns:
             a tuple containing the components and connections of the graph.
+
+        Raises:
+            ValueError: if the input is invalid.
         """
 
         def inverter_type(category: ComponentCategory) -> InverterType | None:

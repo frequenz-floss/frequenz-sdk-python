@@ -1,7 +1,7 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""Test for ConfigManager"""
+"""Test for ConfigManager."""
 import pathlib
 
 import pytest
@@ -15,14 +15,14 @@ from frequenz.sdk.config import Config
 
 
 class Item(BaseModel):
-    """Test item"""
+    """Test item."""
 
     item_id: int
     name: str
 
 
 def create_content(number: int) -> str:
-    """Utility function to create content to be written to a config file."""
+    """Create content to be written to a config file."""
     return f"""
     logging_lvl = "ERROR"
     var1 = "0"
@@ -31,7 +31,7 @@ def create_content(number: int) -> str:
 
 
 class TestActorConfigManager:
-    """Test for ConfigManager"""
+    """Test for ConfigManager."""
 
     conf_path = "sdk/config.toml"
     conf_content = """
@@ -71,11 +71,12 @@ class TestActorConfigManager:
         return file_path
 
     async def test_update(self, config_file: pathlib.Path) -> None:
-        """
-        Test ConfigManager by checking if:
+        """Test ConfigManager.
+
+        Check if:
+
         - the initial content of the content file is correct
-        - the config file modifications are picked up and the new content
-            is correct
+        - the config file modifications are picked up and the new content is correct
         """
         config_channel: Broadcast[Config] = Broadcast(
             "Config Channel", resend_latest=True

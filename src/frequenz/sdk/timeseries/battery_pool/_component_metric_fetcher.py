@@ -10,7 +10,7 @@ import logging
 import math
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
-from typing import Any, Generic, Iterable, Optional, Set, TypeVar
+from typing import Any, Generic, Iterable, Optional, Self, Set, TypeVar
 
 from frequenz.channels import ChannelClosedError, Receiver
 
@@ -44,7 +44,7 @@ class ComponentMetricFetcher(AsyncConstructible, ABC):
     @classmethod
     async def async_new(
         cls, component_id: int, metrics: Iterable[ComponentMetricId]
-    ) -> Self:  # type: ignore[name-defined] # pylint: disable=undefined-variable
+    ) -> Self:
         """Create an instance of this class.
 
         Subscribe for the given component metrics and return them if method
@@ -57,7 +57,7 @@ class ComponentMetricFetcher(AsyncConstructible, ABC):
         Returns:
             This class instance.
         """
-        self: ComponentMetricFetcher = ComponentMetricFetcher.__new__(cls)
+        self: Self = cls.__new__(cls)
         self._component_id = component_id
         self._metrics = metrics
         return self
@@ -78,7 +78,7 @@ class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
         cls,
         component_id: int,
         metrics: Iterable[ComponentMetricId],
-    ) -> Self:  # type: ignore[name-defined] # pylint: disable=undefined-variable:
+    ) -> Self:
         """Create instance of this class.
 
         Subscribe for the requested component data and fetch only the latest component
@@ -94,7 +94,7 @@ class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
         Returns:
             This class instance
         """
-        self: LatestMetricsFetcher[T] = await super().async_new(component_id, metrics)
+        self: Self = await super().async_new(component_id, metrics)
 
         for metric in metrics:
             # pylint: disable=protected-access
@@ -169,7 +169,7 @@ class LatestBatteryMetricsFetcher(LatestMetricsFetcher[BatteryData]):
     """Subscribe for the latest battery data using MicrogridApiClient."""
 
     @classmethod
-    async def async_new(
+    async def async_new(  # noqa: DOC502 (ValueError is raised indirectly super.async_new)
         cls,
         component_id: int,
         metrics: Iterable[ComponentMetricId],
@@ -220,7 +220,7 @@ class LatestInverterMetricsFetcher(LatestMetricsFetcher[InverterData]):
     """Subscribe for the latest inverter data using MicrogridApiClient."""
 
     @classmethod
-    async def async_new(
+    async def async_new(  # noqa: DOC502 (ValueError is raised indirectly by super.async_new)
         cls,
         component_id: int,
         metrics: Iterable[ComponentMetricId],

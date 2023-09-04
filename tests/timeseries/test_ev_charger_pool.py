@@ -27,7 +27,6 @@ class TestEVChargerPool:
 
     async def test_state_updates(self, mocker: MockerFixture) -> None:
         """Test ev charger state updates are visible."""
-
         mockgrid = MockMicrogrid(
             grid_meter=False, api_client_streaming=True, sample_rate_s=0.01
         )
@@ -47,26 +46,26 @@ class TestEVChargerPool:
             for comp_id, exp_state in expected.items():
                 assert state_tracker.get(comp_id) == exp_state
 
-        ## check that all chargers are in idle state.
+        # check that all chargers are in idle state.
         expected_states = {evc_id: EVChargerState.IDLE for evc_id in mockgrid.evc_ids}
         assert len(expected_states) == 5
         await check_states(expected_states)
 
-        ## check that EV_PLUGGED state gets set
+        # check that EV_PLUGGED state gets set
         evc_2_id = mockgrid.evc_ids[2]
         mockgrid.evc_cable_states[evc_2_id] = EVChargerCableState.EV_PLUGGED
         mockgrid.evc_component_states[evc_2_id] = EVChargerComponentState.READY
         expected_states[evc_2_id] = EVChargerState.EV_PLUGGED
         await check_states(expected_states)
 
-        ## check that EV_LOCKED state gets set
+        # check that EV_LOCKED state gets set
         evc_3_id = mockgrid.evc_ids[3]
         mockgrid.evc_cable_states[evc_3_id] = EVChargerCableState.EV_LOCKED
         mockgrid.evc_component_states[evc_3_id] = EVChargerComponentState.READY
         expected_states[evc_3_id] = EVChargerState.EV_LOCKED
         await check_states(expected_states)
 
-        ## check that ERROR state gets set
+        # check that ERROR state gets set
         evc_1_id = mockgrid.evc_ids[1]
         mockgrid.evc_cable_states[evc_1_id] = EVChargerCableState.EV_LOCKED
         mockgrid.evc_component_states[evc_1_id] = EVChargerComponentState.ERROR

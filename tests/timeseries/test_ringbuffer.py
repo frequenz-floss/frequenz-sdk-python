@@ -393,8 +393,8 @@ def test_cleanup_oldest_gap_timestamp() -> None:
 
 
 def test_delete_oudated_gap() -> None:
-    """
-    Update the buffer such that the gap is no longer valid.
+    """Test updating the buffer such that the gap is no longer valid.
+
     We introduce two gaps and check that the oldest is removed.
     """
     buffer = OrderedRingBuffer(

@@ -59,11 +59,11 @@ def battery_data(  # pylint: disable=too-many-arguments
         component_state: Component state.
             Defaults to BatteryState.COMPONENT_STATE_CHARGING.
         errors: List of the components error. By default empty list will be created.
+        capacity: Battery capacity.
 
     Returns:
         BatteryData with given arguments.
     """
-
     return BatteryDataWrapper(
         component_id=component_id,
         capacity=capacity,
@@ -97,7 +97,6 @@ def inverter_data(
     Returns:
         InverterData with given arguments.
     """
-
     return InverterDataWrapper(
         component_id=component_id,
         timestamp=datetime.now(tz=timezone.utc) if timestamp is None else timestamp,
@@ -148,13 +147,13 @@ class TestBatteryStatus:
     async def test_sync_update_status_with_messages(
         self, mocker: MockerFixture
     ) -> None:
-        """Test if messages changes battery status/
+        """Test if messages changes battery status.
 
         Tests uses FakeSelect to test status in sync way.
         Otherwise we would have lots of async calls and waiting.
 
         Args:
-            mock_microgrid: mock_microgrid fixture
+            mocker: Pytest mocker fixture.
         """
         mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)
@@ -316,7 +315,7 @@ class TestBatteryStatus:
         Otherwise we would have lots of async calls and waiting.
 
         Args:
-            mock_microgrid: mock_microgrid fixture
+            mocker: Pytest mocker fixture.
         """
         mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)
@@ -433,7 +432,7 @@ class TestBatteryStatus:
         Otherwise we would have lots of async calls and waiting.
 
         Args:
-            mock_microgrid: mock_microgrid fixture
+            mocker: Pytest mocker fixture.
         """
         mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)
@@ -484,7 +483,7 @@ class TestBatteryStatus:
         Otherwise we would have lots of async calls and waiting.
 
         Args:
-            mock_microgrid: mock_microgrid fixture
+            mocker: Pytest mocker fixture.
         """
         mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)
@@ -538,14 +537,13 @@ class TestBatteryStatus:
 
     @time_machine.travel("2022-01-01 00:00 UTC", tick=False)
     async def test_timers(self, mocker: MockerFixture) -> None:
-        """Test if messages changes battery status/
+        """Test if messages changes battery status.
 
         Tests uses FakeSelect to test status in sync way.
         Otherwise we would have lots of async calls and waiting.
 
         Args:
-            mock_microgrid: mock_microgrid fixture
-            mocker: pytest mocker instance
+            mocker: Pytest mocker fixture.
         """
         mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)
@@ -607,7 +605,7 @@ class TestBatteryStatus:
         """Test if status changes.
 
         Args:
-            mock_microgrid: mock_microgrid fixture
+            mocker: Pytest mocker fixture.
         """
         mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(3)
@@ -689,7 +687,7 @@ class TestBatteryStatusRecovery:
     async def setup_tracker(
         self, mocker: MockerFixture
     ) -> AsyncIterator[tuple[MockMicrogrid, Receiver[Status]]]:
-        """Setup a BatteryStatusTracker instance to run tests with."""
+        """Set a BatteryStatusTracker instance up to run tests with."""
         mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(1)
         await mock_microgrid.start(mocker)
@@ -887,7 +885,6 @@ class TestBatteryStatusRecovery:
         setup_tracker: tuple[MockMicrogrid, Receiver[Status]],
     ) -> None:
         """Test recovery after critical error."""
-
         mock_microgrid, status_receiver = setup_tracker
 
         await self._send_healthy_inverter(mock_microgrid)

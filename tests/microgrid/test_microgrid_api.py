@@ -1,7 +1,8 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""Tests of MicrogridApi"""
+"""Tests of MicrogridApi."""
+
 import asyncio
 from asyncio.tasks import ALL_COMPLETED
 from typing import List
@@ -164,7 +165,6 @@ class TestMicrogridApi:
             components: components
             connections: connections
         """
-
         microgrid_client = MagicMock()
         microgrid_client.components = AsyncMock(return_value=[])
         microgrid_client.connections = AsyncMock(return_value=[])

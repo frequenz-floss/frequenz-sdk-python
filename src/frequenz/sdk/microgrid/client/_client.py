@@ -335,9 +335,6 @@ class MicrogridGrpcClient(MicrogridApiClient):
             transform: A method for transforming raw component data into the
                 desired output type.
             sender: A channel sender, to send the component data to.
-
-        Raises:
-            AioRpcError: if connection to Microgrid API cannot be established
         """
         retry_spec: RetryStrategy = self._retry_spec.copy()
         while True:
@@ -446,7 +443,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
                 f", not a {expected_category}."
             )
 
-    async def meter_data(
+    async def meter_data(  # noqa: DOC502 (ValueError is raised indirectly by _expect_category)
         self,
         component_id: int,
         maxsize: int = RECEIVER_MAX_SIZE,
@@ -476,7 +473,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
             MeterData.from_proto,
         ).new_receiver(maxsize=maxsize)
 
-    async def battery_data(
+    async def battery_data(  # noqa: DOC502 (ValueError is raised indirectly by _expect_category)
         self,
         component_id: int,
         maxsize: int = RECEIVER_MAX_SIZE,
@@ -506,7 +503,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
             BatteryData.from_proto,
         ).new_receiver(maxsize=maxsize)
 
-    async def inverter_data(
+    async def inverter_data(  # noqa: DOC502 (ValueError is raised indirectly by _expect_category)
         self,
         component_id: int,
         maxsize: int = RECEIVER_MAX_SIZE,
@@ -536,7 +533,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
             InverterData.from_proto,
         ).new_receiver(maxsize=maxsize)
 
-    async def ev_charger_data(
+    async def ev_charger_data(  # noqa: DOC502 (ValueError is raised indirectly by _expect_category)
         self,
         component_id: int,
         maxsize: int = RECEIVER_MAX_SIZE,
@@ -624,12 +621,14 @@ class MicrogridGrpcClient(MicrogridApiClient):
         if lower > 0:
             raise ValueError(f"Lower bound {upper} must be less than or equal to 0.")
 
+        target_metric = (
+            microgrid_pb.SetBoundsParam.TargetMetric.TARGET_METRIC_POWER_ACTIVE
+        )
         try:
             self.api.AddInclusionBounds(
                 microgrid_pb.SetBoundsParam(
                     component_id=component_id,
-                    # pylint: disable=no-member,line-too-long
-                    target_metric=microgrid_pb.SetBoundsParam.TargetMetric.TARGET_METRIC_POWER_ACTIVE,
+                    target_metric=target_metric,
                     bounds=metrics_pb.Bounds(lower=lower, upper=upper),
                 ),
             )

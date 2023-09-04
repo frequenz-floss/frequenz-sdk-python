@@ -457,9 +457,6 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
 
         Args:
             batteries: What batteries should be used for calculation.
-
-        Raises:
-            ValueError: If no battery has adjacent inverter.
         """
         self._bat_inv_map = battery_inverter_mapping(batteries)
         used_batteries = set(self._bat_inv_map.keys())

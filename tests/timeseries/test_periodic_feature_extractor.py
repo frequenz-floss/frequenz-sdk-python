@@ -3,8 +3,8 @@
 
 """Tests for the timeseries averager."""
 
-import collections.abc
 import contextlib
+from collections.abc import AsyncIterator
 from datetime import datetime, timedelta, timezone
 from typing import List
 
@@ -28,7 +28,7 @@ from tests.timeseries.test_moving_window import (
 @contextlib.asynccontextmanager
 async def init_feature_extractor(
     data: List[float], period: timedelta
-) -> collections.abc.AsyncIterator[PeriodicFeatureExtractor]:
+) -> AsyncIterator[PeriodicFeatureExtractor]:
     """
     Initialize a PeriodicFeatureExtractor with a `MovingWindow` that contains the data.
 
@@ -36,7 +36,7 @@ async def init_feature_extractor(
         data: The data that is pushed into the moving window.
         period: The distance between two successive windows.
 
-    Returns:
+    Yields:
         PeriodicFeatureExtractor
     """
     window, sender = init_moving_window(timedelta(seconds=len(data)))
@@ -48,14 +48,14 @@ async def init_feature_extractor(
 @contextlib.asynccontextmanager
 async def init_feature_extractor_no_data(
     period: int,
-) -> collections.abc.AsyncIterator[PeriodicFeatureExtractor]:
+) -> AsyncIterator[PeriodicFeatureExtractor]:
     """
     Initialize a PeriodicFeatureExtractor with a `MovingWindow` that contains no data.
 
     Args:
         period: The distance between two successive windows.
 
-    Returns:
+    Yields:
         PeriodicFeatureExtractor
     """
     # We only need the moving window to initialize the PeriodicFeatureExtractor class.
@@ -74,9 +74,7 @@ async def init_feature_extractor_no_data(
 
 
 async def test_interval_shifting() -> None:
-    """
-    Test if a interval is properly shifted into a moving window
-    """
+    """Test if a interval is properly shifted into a moving window."""
     async with init_feature_extractor(
         [1, 2, 2, 1, 1, 1, 2, 2, 1, 1], timedelta(seconds=5)
     ) as feature_extractor:
@@ -238,9 +236,10 @@ async def test_feature_extractor() -> None:  # pylint: disable=too-many-statemen
 
 
 async def test_profiler_calculate_np() -> None:
-    """
-    Test the calculation of the average using a numpy array and compare it
-    against the pure python method with the same functionality.
+    """Test calculating the average with numpy and a pure python version.
+
+    Calculate the average using a numpy array and compare the run time against the pure
+    python method with the same functionality.
     """
     data = np.array([2, 2.5, 1, 1, 1, 2])
     async with init_feature_extractor_no_data(4) as feature_extractor:
