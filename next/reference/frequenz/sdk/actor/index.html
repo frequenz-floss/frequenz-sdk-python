@@ -5308,7 +5308,7 @@ reading too.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3/library/collections.abc.html#module-collections.abc">abc</a>.<a class="autorefs autorefs-external" title="collections.abc.Set" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Set">Set</a>[<a class="autorefs autorefs-external" title="frequenz.channels.util.FileWatcher" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.14/reference/frequenz/channels/util/#frequenz.channels.util.FileWatcher">FileWatcher</a>.<a class="autorefs autorefs-external" title="frequenz.channels.util.FileWatcher.EventType" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.14/reference/frequenz/channels/util/#frequenz.channels.util._file_watcher.FileWatcher.EventType">EventType</a>]</code>
+                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3/library/collections.abc.html#module-collections.abc">abc</a>.<a class="autorefs autorefs-external" title="collections.abc.Set" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Set">Set</a>[<a class="autorefs autorefs-external" title="frequenz.channels.util.FileWatcher.EventType" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.14/reference/frequenz/channels/util/#frequenz.channels.util._file_watcher.FileWatcher.EventType">EventType</a>]</code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
@@ -6335,7 +6335,7 @@ logs, so buffers don't grow too big inadvertently.</p>
     </thead>
     <tbody>
         <tr>
-          <td><code>actors</code></td>
+          <td><code>*actors</code></td>
           <td class="doc-param-details">
             <div class="doc-md-description">
               <p>the actors to be awaited.</p>
@@ -6398,7 +6398,7 @@ logs, so buffers don't grow too big inadvertently.</p>
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Await the completion of all actors.</span>
 </span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17"></a>
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18"></a><span class="sd">    Args:</span>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19"></a><span class="sd">        actors: the actors to be awaited.</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19"></a><span class="sd">        *actors: the actors to be awaited.</span>
 </span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21"></a>    <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting </span><span class="si">%s</span><span class="s2"> actor(s)...&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">actors</span><span class="p">))</span>
 </span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22"></a>
