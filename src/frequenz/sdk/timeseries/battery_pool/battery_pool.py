@@ -345,10 +345,11 @@ class BatteryPool:
     def soc(self) -> MetricAggregator[Sample[Percentage]]:
         """Fetch the normalized average weighted-by-capacity SoC values for the pool.
 
-        The values are normalized to the 0-100% range and clamped if the SoC is out of
-        bounds.
+        The SoC values are normalized to the 0-100% range and clamped if they are out
+        of bounds. Only values from working batteries with operational inverters are
+        considered in the calculation.
 
-        Average soc is calculated with the formula:
+        Average SoC is calculated using the formula:
         ```
         working_batteries: Set[BatteryData] # working batteries from the battery pool
 
@@ -364,15 +365,16 @@ class BatteryPool:
         average_soc = used_capacity/total_capacity
         ```
 
-        `None` values will be sent if there are no components to calculate the metric
-        with.
+        `None` values will be sent if there are no working batteries with operational
+        inverters to calculate the metric with.
 
         A receiver from the MetricAggregator can be obtained by calling the
         `new_receiver` method.
 
         Returns:
-            A MetricAggregator that will calculate and stream the aggregate soc of
-                all batteries in the pool.
+            A MetricAggregator that will calculate and stream the aggregate SoC of all
+                batteries in the pool, considering only working batteries with
+                operational inverters.
         """
         method_name = SendOnUpdate.name() + "_" + SoCCalculator.name()
 
@@ -406,7 +408,10 @@ class BatteryPool:
 
     @property
     def capacity(self) -> MetricAggregator[Sample[Energy]]:
-        """Get receiver to receive new capacity metrics when they change.
+        """Get a receiver to receive new capacity metrics when they change.
+
+        The reported capacity values consider only working batteries with operational
+        inverters.
 
         Calculated with the formula:
         ```
@@ -417,14 +422,16 @@ class BatteryPool:
         )
         ```
 
-        None will be send if there is no component to calculate metrics.
+        `None` will be sent if there are no working batteries with operational
+        inverters to calculate metrics.
 
         A receiver from the MetricAggregator can be obtained by calling the
         `new_receiver` method.
 
         Returns:
             A MetricAggregator that will calculate and stream the capacity of all
-                batteries in the pool.
+                batteries in the pool, considering only working batteries with
+                operational inverters.
         """
         method_name = SendOnUpdate.name() + "_" + CapacityCalculator.name()
 
