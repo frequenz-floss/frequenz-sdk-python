@@ -241,6 +241,34 @@ class MovingWindow(BackgroundService):
         """
         return self._buffer.maxlen
 
+    def window(
+        self,
+        start: datetime,
+        end: datetime,
+        *,
+        force_copy: bool = True,
+    ) -> ArrayLike:
+        """
+        Return an array containing the samples in the given time interval.
+
+        Args:
+            start: The start of the time interval. Only datetime objects are supported.
+            end: The end of the time interval. Only datetime objects are supported.
+            force_copy: If `True`, the returned array is a copy of the underlying
+                data. Otherwise, if possible, a view of the underlying data is
+                returned.
+
+        Returns:
+            An array containing the samples in the given time interval.
+
+        Raises:
+            IndexError: if `start` or `end` are not datetime objects.
+        """
+        if not isinstance(start, datetime) or not isinstance(end, datetime):
+            raise IndexError("Only datetime objects are supported as start and end.")
+
+        return self._buffer.window(start, end, force_copy=force_copy)
+
     async def _run_impl(self) -> None:
         """Awaits samples from the receiver and updates the underlying ring buffer.
 

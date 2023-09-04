@@ -66,6 +66,18 @@ def init_moving_window(
     return window, lm_tx
 
 
+def dt(i: int) -> datetime:  # pylint: disable=invalid-name
+    """Create datetime objects from indices.
+
+    Args:
+        i: Index to create datetime from.
+
+    Returns:
+        Datetime object.
+    """
+    return datetime.fromtimestamp(i, tz=timezone.utc)
+
+
 async def test_access_window_by_index() -> None:
     """Test indexing a window by integer index."""
     window, sender = init_moving_window(timedelta(seconds=1))
@@ -92,7 +104,8 @@ async def test_access_window_by_int_slice() -> None:
     async with window:
         await push_logical_meter_data(sender, range(0, 5))
         assert np.array_equal(window[3:5], np.array([3.0, 4.0]))
-
+        with pytest.raises(IndexError):
+            window.window(3, 5)  # type: ignore
         data = [1, 2, 2.5, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1]
         await push_logical_meter_data(sender, data)
         assert np.array_equal(window[5:14], np.array(data[5:14]))
@@ -106,6 +119,15 @@ async def test_access_window_by_ts_slice() -> None:
         time_start = UNIX_EPOCH + timedelta(seconds=3)
         time_end = time_start + timedelta(seconds=2)
         assert np.array_equal(window[time_start:time_end], np.array([3.0, 4.0]))  # type: ignore
+        assert np.array_equal(window.window(dt(3), dt(5)), np.array([3.0, 4.0]))
+        assert np.array_equal(window.window(dt(3), dt(3)), np.array([]))
+        # Window only supports slicing with ascending indices within allowed range
+        with pytest.raises(IndexError):
+            window.window(dt(3), dt(1))
+        with pytest.raises(IndexError):
+            window.window(dt(3), dt(6))
+        with pytest.raises(IndexError):
+            window.window(dt(-1), dt(5))
 
 
 async def test_access_empty_window() -> None:
