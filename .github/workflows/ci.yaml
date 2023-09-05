@@ -140,17 +140,37 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
+      # Cache pip downloads
+      - name: Cache pip downloads
+        uses: actions/cache@v3
+        with:
+          path: /tmp/pip-cache
+          key: nox-${{ matrix.nox-session }}-${{ matrix.arch }}-${{ matrix.os }}-${{ matrix.python }}-${{ hashFiles('**/pyproject.toml') }}
+
+      # This ensures that the docker container has access to the pip cache.
+      # Changing the user in the docker-run step causes it to fail due to
+      # incorrect permissions. Setting the ownership of the pip cache to root
+      # before running is a workaround to this issue.
+      - name: Set pip cache owners to root for docker
+        run: if [[ -e /tmp/pip-cache ]]; then sudo chown -R root:root /tmp/pip-cache; fi
+
       - name: Run nox
         run: |
           docker run \
             --rm \
             -v $(pwd):/${{ github.workspace }} \
+            -v /tmp/pip-cache:/root/.cache/pip \
             -w ${{ github.workspace }} \
             --net=host \
             --platform linux/${{ matrix.arch }} \
             localhost/nox-cross-arch:latest \
             nox -e ${{ matrix.nox-session }}
         timeout-minutes: 30
+
+      # This ensures that the runner has access to the pip cache.
+      - name: Reset pip cache ownership
+        if: always()
+        run: sudo chown -R $USER:$USER /tmp/pip-cache
 
   build:
     name: Build distribution packages
