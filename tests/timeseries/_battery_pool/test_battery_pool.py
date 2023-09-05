@@ -419,6 +419,9 @@ async def run_test_battery_status_channel(  # pylint: disable=too-many-arguments
         all_pool_result: result metric if all batteries in pool are working
         only_first_battery_result: result metric if only first battery in pool is
             working
+
+    Raises:
+        ValueError: If the received message is not an instance of PowerMetrics or Sample.
     """
     assert len(batteries_in_pool) == 2
 
@@ -438,7 +441,13 @@ async def run_test_battery_status_channel(  # pylint: disable=too-many-arguments
     msg = await asyncio.wait_for(
         battery_pool_metric_receiver.receive(), timeout=waiting_time_sec
     )
-    assert msg is None
+    if isinstance(msg, PowerMetrics):
+        assert msg.inclusion_bounds is None
+        assert msg.exclusion_bounds is None
+    elif isinstance(msg, Sample):
+        assert msg.value is None
+    else:
+        raise ValueError("Expected an instance of PowerMetrics or Sample")
 
     # One battery in uncertain state.
     await battery_status_sender.send(
@@ -662,7 +671,7 @@ async def run_capacity_test(setup_args: SetupArgs) -> None:
     await streamer.stop_streaming(batteries_in_pool[0])
     await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.2)
     msg = await asyncio.wait_for(capacity_receiver.receive(), timeout=waiting_time_sec)
-    assert msg is None
+    assert isinstance(msg, Sample) and msg.value is None
 
     # One battery started sending data.
     latest_data = streamer.get_current_component_data(batteries_in_pool[0])
@@ -740,7 +749,7 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
         Scenario(
             batteries_in_pool[1],
             {"soc": math.nan},
-            None,
+            Sample(now, None),
         ),
         Scenario(
             batteries_in_pool[1],
@@ -751,7 +760,7 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
         Scenario(
             batteries_in_pool[0],
             {"capacity": 0, "soc_lower_bound": 10.0, "soc_upper_bound": 100.0},
-            None,
+            Sample(now, None),
             wait_for_result=False,
         ),
         # Test zero division error
@@ -795,7 +804,7 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
     await streamer.stop_streaming(batteries_in_pool[0])
     await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.2)
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
-    assert msg is None
+    assert isinstance(msg, Sample) and msg.value is None
 
     # One battery started sending data.
     latest_data = streamer.get_current_component_data(batteries_in_pool[0])
@@ -885,7 +894,11 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 "active_power_inclusion_upper_bound": 9000,
                 "active_power_exclusion_upper_bound": 250,
             },
-            expected_result=None,
+            expected_result=PowerMetrics(
+                now,
+                None,
+                None,
+            ),
             wait_for_result=False,
         ),
         Scenario(
@@ -995,7 +1008,11 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 "power_inclusion_lower_bound": math.nan,
                 "power_inclusion_upper_bound": math.nan,
             },
-            None,
+            PowerMetrics(
+                now,
+                None,
+                None,
+            ),
         ),
         Scenario(
             batteries_in_pool[0],
@@ -1121,7 +1138,11 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
     await streamer.stop_streaming(bat_inv_map[batteries_in_pool[1]])
     await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.2)
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
-    assert msg is None
+    assert (
+        isinstance(msg, PowerMetrics)
+        and msg.inclusion_bounds is None
+        and msg.exclusion_bounds is None
+    )
 
     # One battery started sending data.
     latest_data = streamer.get_current_component_data(batteries_in_pool[0])
@@ -1201,7 +1222,7 @@ async def run_temperature_test(  # pylint: disable=too-many-locals
         Scenario(
             bat_1,
             {"temperature": math.nan},
-            None,
+            Sample(now, None),
         ),
         Scenario(
             bat_0,
@@ -1238,7 +1259,7 @@ async def run_temperature_test(  # pylint: disable=too-many-locals
     await streamer.stop_streaming(bat_0)
     await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.2)
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
-    assert msg is None
+    assert isinstance(msg, Sample) and msg.value is None
 
     # one battery started sending data.
     latest_data = streamer.get_current_component_data(bat_1)

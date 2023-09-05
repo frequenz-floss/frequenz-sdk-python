@@ -8,6 +8,8 @@
 
 <!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
 
+- The battery pool metric methods no longer return `None` when no batteries are available. Instead, the value of the `Sample` or `PowerMetric` is set to `None`.
+
 ## New Features
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->

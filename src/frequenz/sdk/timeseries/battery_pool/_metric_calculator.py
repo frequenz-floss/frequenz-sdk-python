@@ -124,7 +124,7 @@ class MetricCalculator(ABC, Generic[T]):
         self,
         metrics_data: dict[int, ComponentMetricsData],
         working_batteries: set[int],
-    ) -> T | None:
+    ) -> T:
         """Aggregate the metrics_data and calculate high level metric.
 
         Missing components will be ignored. Formula will be calculated for all
@@ -191,7 +191,7 @@ class CapacityCalculator(MetricCalculator[Sample[Energy]]):
         self,
         metrics_data: dict[int, ComponentMetricsData],
         working_batteries: set[int],
-    ) -> Sample[Energy] | None:
+    ) -> Sample[Energy]:
         """Aggregate the metrics_data and calculate high level metric.
 
         Missing components will be ignored. Formula will be calculated for all
@@ -229,7 +229,7 @@ class CapacityCalculator(MetricCalculator[Sample[Energy]]):
             total_capacity += usable_capacity
 
         return (
-            None
+            Sample(datetime.now(tz=timezone.utc), None)
             if timestamp == _MIN_TIMESTAMP
             else Sample[Energy](timestamp, Energy.from_watt_hours(total_capacity))
         )
@@ -281,7 +281,7 @@ class TemperatureCalculator(MetricCalculator[Sample[Temperature]]):
         self,
         metrics_data: dict[int, ComponentMetricsData],
         working_batteries: set[int],
-    ) -> Sample[Temperature] | None:
+    ) -> Sample[Temperature]:
         """Aggregate the metrics_data and calculate high level metric for temperature.
 
         Missing components will be ignored. Formula will be calculated for all
@@ -312,7 +312,7 @@ class TemperatureCalculator(MetricCalculator[Sample[Temperature]]):
             temperature_sum += temperature
             temperature_count += 1
         if timestamp == _MIN_TIMESTAMP:
-            return None
+            return Sample(datetime.now(tz=timezone.utc), None)
 
         temperature_avg = temperature_sum / temperature_count
 
@@ -371,7 +371,7 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
         self,
         metrics_data: dict[int, ComponentMetricsData],
         working_batteries: set[int],
-    ) -> Sample[Percentage] | None:
+    ) -> Sample[Percentage]:
         """Aggregate the metrics_data and calculate high level metric.
 
         Missing components will be ignored. Formula will be calculated for all
@@ -432,7 +432,7 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
             total_capacity_x100 += usable_capacity_x100
 
         if timestamp == _MIN_TIMESTAMP:
-            return None
+            return Sample(datetime.now(tz=timezone.utc), None)
 
         # To avoid zero division error
         if total_capacity_x100 == 0:
@@ -598,7 +598,7 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
         self,
         metrics_data: dict[int, ComponentMetricsData],
         working_batteries: set[int],
-    ) -> PowerMetrics | None:
+    ) -> PowerMetrics:
         """Aggregate the metrics_data and calculate high level metric.
 
         Missing components will be ignored. Formula will be calculated for all
@@ -642,7 +642,11 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
                 exclusion_bounds_lower += min(exclusion_lower_bounds)
 
         if timestamp == _MIN_TIMESTAMP:
-            return None
+            return PowerMetrics(
+                timestamp=datetime.now(tz=timezone.utc),
+                inclusion_bounds=None,
+                exclusion_bounds=None,
+            )
 
         return PowerMetrics(
             timestamp=timestamp,
