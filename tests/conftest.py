@@ -7,6 +7,7 @@ from collections.abc import Iterator
 from datetime import timedelta
 
 import pytest
+import time_machine
 
 from frequenz.sdk.actor import _actor
 
@@ -52,3 +53,10 @@ def actor_auto_restart_once() -> Iterator[None]:
     """Make actors restart only once."""
     with actor_restart_limit(1):
         yield
+
+
+@pytest.fixture
+def fake_time() -> Iterator[time_machine.Coordinates]:
+    """Replace real time with a time machine that doesn't automatically tick."""
+    with time_machine.travel(0, tick=False) as traveller:
+        yield traveller

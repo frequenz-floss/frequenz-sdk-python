@@ -48,13 +48,6 @@ def event_loop() -> Iterator[async_solipsism.EventLoop]:
 
 
 @pytest.fixture
-def fake_time() -> Iterator[time_machine.Coordinates]:
-    """Replace real time with a time machine that doesn't automatically tick."""
-    with time_machine.travel(0, tick=False) as traveller:
-        yield traveller
-
-
-@pytest.fixture
 async def source_chan() -> AsyncIterator[Broadcast[Sample[Quantity]]]:
     """Create a broadcast channel of samples."""
     chan = Broadcast[Sample[Quantity]]("test")
