@@ -761,7 +761,7 @@ class _MicrogridComponentGraph(ComponentGraph):
         if self._graph.number_of_edges() == 0:
             raise InvalidGraphError("No connections in component graph!")
 
-        if not nx.is_tree(self._graph):
+        if not nx.is_directed_acyclic_graph(self._graph):
             raise InvalidGraphError("Component graph is not a tree!")
 
         # node[0] is required by the graph definition
