@@ -140,14 +140,6 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-      # Cache nox downloads
-      - name: Cache nox downloads
-        uses: actions/cache@v3
-        with:
-          path: |
-            .nox/${{ matrix.nox-session }}
-          key: nox-${{ matrix.nox-session }}-${{ matrix.arch }}-${{ matrix.os }}-${{ matrix.python }}-${{ hashFiles('**/pyproject.toml') }}
-
       - name: Run nox
         run: |
           docker run \
@@ -157,7 +149,7 @@ jobs:
             --net=host \
             --platform linux/${{ matrix.arch }} \
             localhost/nox-cross-arch:latest \
-            nox -R -e ${{ matrix.nox-session }}
+            nox -e ${{ matrix.nox-session }}
         timeout-minutes: 30
 
   build:
