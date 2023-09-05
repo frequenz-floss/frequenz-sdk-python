@@ -249,7 +249,7 @@ jobs:
 
   publish-docs:
     name: Publish documentation website to GitHub pages
-    needs: ["nox", "test-installation"]
+    needs: ["nox", "nox-cross-arch", "test-installation"]
     if: github.event_name == 'push'
     runs-on: ubuntu-20.04
     permissions:
