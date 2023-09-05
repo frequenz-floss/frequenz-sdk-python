@@ -229,16 +229,16 @@ def test_gaps() -> None:
     assert len(buffer.gaps) == 2
 
     buffer.update(Sample(dt(3), Quantity(np.nan)))
-    assert len(buffer) == 4  # should be 3
-    assert len(buffer.gaps) == 1  # should be 2
+    assert len(buffer) == 3
+    assert len(buffer.gaps) == 2
 
     buffer.update(Sample(dt(2), Quantity(np.nan)))
-    assert len(buffer) == 4  # should be 2
-    assert len(buffer.gaps) == 1  # should be 2
+    assert len(buffer) == 2
+    assert len(buffer.gaps) == 2
 
     buffer.update(Sample(dt(3), Quantity(3)))
-    assert len(buffer) == 4  # should be 3
-    assert len(buffer.gaps) == 1  # should be 2
+    assert len(buffer) == 3
+    assert len(buffer.gaps) == 2
 
     buffer.update(Sample(dt(2), Quantity(2)))
     assert len(buffer) == 4
