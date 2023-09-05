@@ -12,6 +12,8 @@
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->
 
+- Remove `__setitem__` method from `OrderedRingBuffer` to enforce usage of the dedicated `update` method only.
+
 ## Bug Fixes
 
 <!-- Here goes notable bug fixes that are worth a special mention or explanation -->
