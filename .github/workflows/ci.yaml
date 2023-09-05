@@ -97,6 +97,7 @@ jobs:
           - "3.11"
         nox-session:
           - "pytest_min"
+          - "pytest_max"
     runs-on: ${{ matrix.os }}
 
     steps:
