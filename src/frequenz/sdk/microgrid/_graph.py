@@ -896,7 +896,6 @@ class _MicrogridComponentGraph(ComponentGraph):
                 component_category={
                     ComponentCategory.BATTERY,
                     ComponentCategory.EV_CHARGER,
-                    ComponentCategory.PV_ARRAY,
                 }
             )
         )

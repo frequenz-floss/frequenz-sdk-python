@@ -97,11 +97,6 @@ class ComponentCategory(Enum):
     CHP = components_pb.ComponentCategory.COMPONENT_CATEGORY_CHP
     """CHP component."""
 
-    # Types not yet supported by the API but which can be inferred
-    # from available graph info.
-    PV_ARRAY = 1000001
-    """PV array component."""
-
 
 def _component_category_from_protobuf(
     component_category: components_pb.ComponentCategory.ValueType,

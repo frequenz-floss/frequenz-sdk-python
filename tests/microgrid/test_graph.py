@@ -1286,13 +1286,6 @@ class Test_MicrogridComponentGraph:
         ):
             graph._validate_leaf_components()
 
-        graph._graph.clear()
-        graph._graph.add_node(5, **asdict(Component(5, ComponentCategory.PV_ARRAY)))
-        with pytest.raises(
-            gr.InvalidGraphError, match="Leaf components without graph predecessors"
-        ):
-            graph._validate_leaf_components()
-
         # successors present for at least one leaf node
         graph._graph.clear()
         graph._graph.add_nodes_from(
@@ -1323,20 +1316,6 @@ class Test_MicrogridComponentGraph:
         ):
             graph._validate_leaf_components()
 
-        graph._graph.clear()
-        graph._graph.add_nodes_from(
-            [
-                (1, asdict(Component(1, ComponentCategory.GRID))),
-                (4, asdict(Component(4, ComponentCategory.EV_CHARGER))),
-                (5, asdict(Component(5, ComponentCategory.PV_ARRAY))),
-            ]
-        )
-        graph._graph.add_edges_from([(1, 5), (5, 4)])
-        with pytest.raises(
-            gr.InvalidGraphError, match="Leaf components with graph successors"
-        ):
-            graph._validate_leaf_components()
-
         # all leaf nodes have at least one predecessor
         # and no successors
         graph._graph.clear()
@@ -1346,10 +1325,9 @@ class Test_MicrogridComponentGraph:
                 (2, asdict(Component(2, ComponentCategory.METER))),
                 (3, asdict(Component(3, ComponentCategory.BATTERY))),
                 (4, asdict(Component(4, ComponentCategory.EV_CHARGER))),
-                (5, asdict(Component(5, ComponentCategory.PV_ARRAY))),
             ]
         )
-        graph._graph.add_edges_from([(1, 2), (1, 3), (1, 4), (1, 5)])
+        graph._graph.add_edges_from([(1, 2), (1, 3), (1, 4)])
         graph._validate_leaf_components()
 
     def test_graph_correction(self) -> None:
