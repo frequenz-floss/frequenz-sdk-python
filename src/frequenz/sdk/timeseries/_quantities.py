@@ -22,6 +22,7 @@ QuantityT = TypeVar(
     "Percentage",
     "Temperature",
 )
+"""Type variable for representing various quantity types."""
 
 
 class Quantity:
@@ -168,7 +169,7 @@ class Quantity:
         If specified, must be of this form: `[0].{precision}`.  If a 0 is not given, the
         trailing zeros will be omitted.  If no precision is given, the default is 3.
 
-        The returned string will use the unit that will result in the maxium precision,
+        The returned string will use the unit that will result in the maximum precision,
         based on the magnitude of the value.
 
         Example:

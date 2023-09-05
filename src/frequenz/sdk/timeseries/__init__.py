@@ -15,7 +15,7 @@ All the data produced by this package is always periodic and aligned to the
 Classes normally take a (re)sampling period as and argument and, optionally, an
 `align_to` argument.
 
-This means timestamps are always separated exaclty by a period, and that this
+This means timestamps are always separated exactly by a period, and that this
 timestamp falls always at multiples of the period, starting at the `align_to`.
 
 This ensures that the data is predictable and consistent among restarts.

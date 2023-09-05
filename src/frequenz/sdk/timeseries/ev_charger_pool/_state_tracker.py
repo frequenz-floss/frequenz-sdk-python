@@ -22,15 +22,25 @@ from ...microgrid.component import (
 
 
 class EVChargerState(Enum):
-    """State of individual ev charger."""
+    """State of individual EV charger."""
 
     UNSPECIFIED = "UNSPECIFIED"
+    """The state is unspecified."""
+
     MISSING = "MISSING"
+    """The EV Charger is missing."""
 
     IDLE = "IDLE"
+    """The EV Charger is idle."""
+
     EV_PLUGGED = "EV_PLUGGED"
+    """The EV Charger has an EV plugged in."""
+
     EV_LOCKED = "EV_LOCKED"
+    """The EV Charger has an EV plugged in and locked."""
+
     ERROR = "ERROR"
+    """The EV Charger is in an error state."""
 
     @classmethod
     def from_ev_charger_data(cls, data: EVChargerData) -> EVChargerState:

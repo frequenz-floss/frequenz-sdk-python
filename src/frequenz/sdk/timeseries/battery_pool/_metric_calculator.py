@@ -18,7 +18,9 @@ from ._component_metrics import ComponentMetricsData
 from ._result_types import Bounds, PowerMetrics
 
 _logger = logging.getLogger(__name__)
+
 _MIN_TIMESTAMP = datetime.min.replace(tzinfo=timezone.utc)
+"""Minimal timestamp that can be used in the formula."""
 
 
 def battery_inverter_mapping(batteries: Iterable[int]) -> dict[int, int]:
@@ -61,6 +63,7 @@ def battery_inverter_mapping(batteries: Iterable[int]) -> dict[int, int]:
 # Formula output types class have no common interface
 # Print all possible types here.
 T = TypeVar("T", Sample[Percentage], Sample[Energy], PowerMetrics, Sample[Temperature])
+"""Type variable of the formula output."""
 
 
 class MetricCalculator(ABC, Generic[T]):

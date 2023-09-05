@@ -33,6 +33,7 @@ from ._component_metrics import ComponentMetricsData
 _logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=ComponentData)
+"""Type variable for component data."""
 
 
 class ComponentMetricFetcher(AsyncConstructible, ABC):

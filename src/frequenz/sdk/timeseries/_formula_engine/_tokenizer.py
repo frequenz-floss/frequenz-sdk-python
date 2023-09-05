@@ -79,8 +79,13 @@ class TokenType(Enum):
     """Represents the types of tokens the Tokenizer can return."""
 
     COMPONENT_METRIC = 0
+    """A component metric ID."""
+
     CONSTANT = 1
+    """A constant value."""
+
     OPER = 2
+    """An operator."""
 
 
 @dataclass
@@ -88,7 +93,10 @@ class Token:
     """Represents a Token returned by the Tokenizer."""
 
     type: TokenType
+    """The type of the token."""
+
     value: str
+    """The value associated to the token."""
 
 
 class Tokenizer:

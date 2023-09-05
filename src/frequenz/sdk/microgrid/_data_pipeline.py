@@ -51,6 +51,7 @@ requests and will be able to keep up with higher request rates in larger install
 """
 
 _T = typing.TypeVar("_T")
+"""Type variable for generic actor types."""
 
 
 @dataclass
@@ -58,7 +59,10 @@ class _ActorInfo(typing.Generic[_T]):
     """Holds instances of core data pipeline actors and their request channels."""
 
     actor: _T
+    """The actor instance."""
+
     channel: Broadcast["ComponentMetricRequest"]
+    """The request channel for the actor."""
 
 
 class _DataPipeline:

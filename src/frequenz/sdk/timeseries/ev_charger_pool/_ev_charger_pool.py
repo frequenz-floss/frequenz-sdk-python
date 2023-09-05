@@ -43,8 +43,13 @@ class EVChargerData:
     """Data for an EV Charger, including the 3-phase current and the component state."""
 
     component_id: int
+    """The component ID of the EV Charger."""
+
     current: Sample3Phase[Current]
+    """The 3-phase current of the EV Charger."""
+
     state: EVChargerState
+    """The state of the EV Charger."""
 
 
 class EVChargerPool:

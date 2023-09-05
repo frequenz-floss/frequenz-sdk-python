@@ -11,8 +11,13 @@ class ApiProtocol(Enum):
     """Enumerated values of supported API types."""
 
     GRPC = 1
+    """gRPC API."""
+
     REST = 2
+    """REST API."""
+
     FILESYSTEM = 3
+    """Filesystem API."""
 
 
 class ApiClient(ABC):

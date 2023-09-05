@@ -141,8 +141,13 @@ class MicrogridApiSource:
                 instance.
         """
         self._comp_categories_cache: Dict[int, ComponentCategory] = {}
+
         self.comp_data_receivers: Dict[int, Receiver[Any]] = {}
+        """The dictionary of component IDs to data receivers."""
+
         self.comp_data_tasks: Dict[int, asyncio.Task[None]] = {}
+        """The dictionary of component IDs to asyncio tasks."""
+
         self._registry = registry
         self._req_streaming_metrics: Dict[
             int, Dict[ComponentMetricId, List[ComponentMetricRequest]]
@@ -343,10 +348,10 @@ class MicrogridApiSource:
                 self._get_data_extraction_method(category, metric),
                 [
                     self._registry.new_sender(request.get_channel_name())
-                    for request in reqlist
+                    for request in req_list
                 ],
             )
-            for (metric, reqlist) in requests.items()
+            for (metric, req_list) in requests.items()
         ]
 
     async def _handle_data_stream(

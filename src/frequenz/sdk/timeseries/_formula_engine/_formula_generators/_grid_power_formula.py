@@ -29,7 +29,7 @@ class GridPowerFormula(FormulaGenerator[Power]):
         )
         grid_successors = self._get_grid_component_successors()
 
-        # generate a formula that just adds values from all commponents that are
+        # generate a formula that just adds values from all components that are
         # directly connected to the grid.  If the requested formula type is
         # `PASSIVE_SIGN_CONVENTION`, there is nothing more to do.  If the requested
         # formula type is `PRODUCTION`, the formula output is negated, then clipped to

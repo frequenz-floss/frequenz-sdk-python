@@ -11,7 +11,10 @@ from copy import deepcopy
 from typing import Iterator, Optional
 
 DEFAULT_RETRY_INTERVAL = 3.0
+"""Default retry interval, in seconds."""
+
 DEFAULT_RETRY_JITTER = 1.0
+"""Default retry jitter, in seconds."""
 
 
 class RetryStrategy(ABC):
@@ -114,8 +117,13 @@ class ExponentialBackoff(RetryStrategy):
     """Provides methods for calculating the exponential interval between retries."""
 
     DEFAULT_INTERVAL = DEFAULT_RETRY_INTERVAL
+    """Default retry interval, in seconds."""
+
     DEFAULT_MAX_INTERVAL = 60.0
+    """Default maximum retry interval, in seconds."""
+
     DEFAULT_MULTIPLIER = 2.0
+    """Default multiplier for exponential increment."""
 
     # pylint: disable=too-many-arguments
     def __init__(

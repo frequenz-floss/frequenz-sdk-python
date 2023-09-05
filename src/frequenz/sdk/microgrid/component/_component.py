@@ -27,9 +27,16 @@ class InverterType(ComponentType):
     """Enum representing inverter types."""
 
     NONE = inverter_pb.Type.TYPE_UNSPECIFIED
+    """Unspecified inverter type."""
+
     BATTERY = inverter_pb.Type.TYPE_BATTERY
+    """Battery inverter."""
+
     SOLAR = inverter_pb.Type.TYPE_SOLAR
+    """Solar inverter."""
+
     HYBRID = inverter_pb.Type.TYPE_HYBRID
+    """Hybrid inverter."""
 
 
 def _component_type_from_protobuf(
@@ -70,16 +77,25 @@ class ComponentCategory(Enum):
     """Possible types of microgrid component."""
 
     NONE = components_pb.ComponentCategory.COMPONENT_CATEGORY_UNSPECIFIED
-    GRID = components_pb.ComponentCategory.COMPONENT_CATEGORY_GRID
-    METER = components_pb.ComponentCategory.COMPONENT_CATEGORY_METER
-    INVERTER = components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
-    BATTERY = components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
-    EV_CHARGER = components_pb.ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER
-    CHP = components_pb.ComponentCategory.COMPONENT_CATEGORY_CHP
+    """Unspecified component category."""
 
-    # types not yet supported by the API but which can be inferred
-    # from available graph info
-    PV_ARRAY = 1000001
+    GRID = components_pb.ComponentCategory.COMPONENT_CATEGORY_GRID
+    """Grid component."""
+
+    METER = components_pb.ComponentCategory.COMPONENT_CATEGORY_METER
+    """Meter component."""
+
+    INVERTER = components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
+    """Inverter component."""
+
+    BATTERY = components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
+    """Battery component."""
+
+    EV_CHARGER = components_pb.ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER
+    """EV charger component."""
+
+    CHP = components_pb.ComponentCategory.COMPONENT_CATEGORY_CHP
+    """CHP component."""
 
 
 def _component_category_from_protobuf(
@@ -139,9 +155,16 @@ class Component:
     """Metadata for a single microgrid component."""
 
     component_id: int
+    """The ID of this component."""
+
     category: ComponentCategory
+    """The category of this component."""
+
     type: ComponentType | None = None
+    """The type of this component."""
+
     metadata: ComponentMetadata | None = None
+    """The metadata of this component."""
 
     def is_valid(self) -> bool:
         """Check if this instance contains valid data.
@@ -167,28 +190,48 @@ class ComponentMetricId(Enum):
     """An enum representing the various metrics available in the microgrid."""
 
     ACTIVE_POWER = "active_power"
+    """Active power."""
 
     CURRENT_PHASE_1 = "current_phase_1"
+    """Current in phase 1."""
     CURRENT_PHASE_2 = "current_phase_2"
+    """Current in phase 2."""
     CURRENT_PHASE_3 = "current_phase_3"
+    """Current in phase 3."""
 
     VOLTAGE_PHASE_1 = "voltage_phase_1"
+    """Voltage in phase 1."""
     VOLTAGE_PHASE_2 = "voltage_phase_2"
+    """Voltage in phase 2."""
     VOLTAGE_PHASE_3 = "voltage_phase_3"
+    """Voltage in phase 3."""
 
     SOC = "soc"
+    """State of charge."""
     SOC_LOWER_BOUND = "soc_lower_bound"
+    """Lower bound of state of charge."""
     SOC_UPPER_BOUND = "soc_upper_bound"
+    """Upper bound of state of charge."""
     CAPACITY = "capacity"
+    """Capacity."""
 
     POWER_INCLUSION_LOWER_BOUND = "power_inclusion_lower_bound"
+    """Power inclusion lower bound."""
     POWER_EXCLUSION_LOWER_BOUND = "power_exclusion_lower_bound"
+    """Power exclusion lower bound."""
     POWER_EXCLUSION_UPPER_BOUND = "power_exclusion_upper_bound"
+    """Power exclusion upper bound."""
     POWER_INCLUSION_UPPER_BOUND = "power_inclusion_upper_bound"
+    """Power inclusion upper bound."""
 
     ACTIVE_POWER_INCLUSION_LOWER_BOUND = "active_power_inclusion_lower_bound"
+    """Active power inclusion lower bound."""
     ACTIVE_POWER_EXCLUSION_LOWER_BOUND = "active_power_exclusion_lower_bound"
+    """Active power exclusion lower bound."""
     ACTIVE_POWER_EXCLUSION_UPPER_BOUND = "active_power_exclusion_upper_bound"
+    """Active power exclusion upper bound."""
     ACTIVE_POWER_INCLUSION_UPPER_BOUND = "active_power_inclusion_upper_bound"
+    """Active power inclusion upper bound."""
 
     TEMPERATURE = "temperature"
+    """Temperature."""

@@ -35,7 +35,6 @@ class TestMicrogridApi:
                 Component(1, ComponentCategory.GRID),
                 Component(4, ComponentCategory.METER),
                 Component(5, ComponentCategory.METER),
-                Component(6, ComponentCategory.PV_ARRAY),
                 Component(7, ComponentCategory.METER),
                 Component(8, ComponentCategory.INVERTER),
                 Component(9, ComponentCategory.BATTERY),
@@ -68,7 +67,6 @@ class TestMicrogridApi:
             [
                 Connection(1, 4),
                 Connection(1, 5),
-                Connection(5, 6),
                 Connection(1, 7),
                 Connection(7, 8),
                 Connection(8, 9),

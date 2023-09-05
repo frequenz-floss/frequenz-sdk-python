@@ -180,7 +180,7 @@ class BatteryData(ComponentData):
     # pylint: enable=line-too-long
 
     temperature: float
-    """The (average) temperature reported by the battery, in Celcius (°C)."""
+    """The (average) temperature reported by the battery, in Celsius (°C)."""
 
     _relay_state: battery_pb.RelayState.ValueType
     """State of the battery relay."""

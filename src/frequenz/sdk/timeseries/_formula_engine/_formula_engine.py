@@ -56,7 +56,7 @@ _operator_precedence = {
     "+": 6,
     ")": 7,
 }
-
+"""The dictionary of operator precedence for the shunting yard algorithm."""
 
 _CompositionType = Union[
     "FormulaEngine",

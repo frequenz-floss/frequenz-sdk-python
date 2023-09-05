@@ -18,6 +18,7 @@ from .._base_types import UNIX_EPOCH, Sample
 from .._quantities import QuantityT
 
 FloatArray = TypeVar("FloatArray", List[float], npt.NDArray[np.float64])
+"""Type variable of the buffer container."""
 
 
 @dataclass
@@ -48,7 +49,10 @@ class OrderedRingBuffer(Generic[FloatArray]):
     """Time aware ringbuffer that keeps its entries sorted by time."""
 
     _DATETIME_MIN = datetime.min.replace(tzinfo=timezone.utc)
+    """The minimum representable datetime value."""
+
     _DATETIME_MAX = datetime.max.replace(tzinfo=timezone.utc)
+    """The maximum representable datetime value."""
 
     def __init__(
         self,
@@ -375,7 +379,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
             # Otherwise, make the gap smaller
             else:
                 gap.start = timestamp + self._sampling_period
-        # Is the timestamp at the end? Shrinken by one then
+        # Is the timestamp at the end? Shrink by one then
         elif gap.end - self._sampling_period == timestamp:
             gap.end = timestamp
         # Otherwise it must be in the middle and we need to create a new

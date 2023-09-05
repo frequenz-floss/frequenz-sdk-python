@@ -15,7 +15,7 @@ async def cancel_and_await(task: asyncio.Task[Any]) -> None:
 
     Exits immediately if the task is already done.
 
-    The `CancelledError` is suppresed, but any other exception will be propagated.
+    The `CancelledError` is suppressed, but any other exception will be propagated.
 
     Args:
         task: The task to be cancelled and waited for.

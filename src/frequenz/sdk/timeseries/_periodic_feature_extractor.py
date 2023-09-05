@@ -35,10 +35,10 @@ class RelativePositions:
     Holds the relative positions of a window in a buffer.
 
     When calculating a profile the user has to pass two datetime objects which
-    are determaning a window. It's allowed that this window is not contained in
+    are determining a window. It's allowed that this window is not contained in
     the historical data buffer.
     In order to calculate the profile the window is shifted to the first
-    position in the buffer where it occurrs first and represented by indexes
+    position in the buffer where it occurs first and represented by indexes
     relative to the oldest sample in the buffer.
     """
 
@@ -260,7 +260,7 @@ class PeriodicFeatureExtractor:
         # the current position is inside that window or the window that would
         # be overwritten next.
         #
-        # Move the window to its first appereance in the MovingWindow relative
+        # Move the window to its first appearance in the MovingWindow relative
         # to the oldest sample stored in the MovingWindow.
         #
         # In other words the oldest stored sample is considered to have index 0.
@@ -367,7 +367,7 @@ class PeriodicFeatureExtractor:
         """
         Create a reshaped numpy array from the MovingWindow.
 
-        The reshaped array is a two dimemsional array, where one dimension is
+        The reshaped array is a two dimensional array, where one dimension is
         the window_size and the other the number of windows returned by the
         `_get_buffer_bounds` method.
 

@@ -11,8 +11,8 @@ from os.path import exists
 
 from .buffer import FloatArray, OrderedRingBuffer
 
-# Version of the latest file dumping/loading format
 FILE_FORMAT_VERSION: int = 1
+"""Version of the latest file dumping/loading format."""
 
 
 def load(path: str) -> OrderedRingBuffer[FloatArray] | None:

@@ -11,7 +11,14 @@ class SingletonMeta(type):
     """This is a thread-safe implementation of Singleton."""
 
     _instances: Dict[Any, type] = {}
+    """The dictionary of instances of the singleton classes."""
+
     _lock: Lock = Lock()
+    """The lock to ensure thread safety.
+
+    The lock to acquire when creating a singleton instance, preventing
+    multiple threads from creating instances simultaneously.
+    """
 
     def __call__(cls, *args: Any, **kwargs: Any) -> type:
         """Overload function call operator to return the singleton instance.

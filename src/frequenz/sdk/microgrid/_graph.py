@@ -721,7 +721,7 @@ class _MicrogridComponentGraph(ComponentGraph):
         """
         Search for components that fulfill the condition in the Graph.
 
-        DFS is used for searching the graph. The graph travarsal is stopped
+        DFS is used for searching the graph. The graph traversal is stopped
         once a component fulfills the condition.
 
         Args:
@@ -730,7 +730,7 @@ class _MicrogridComponentGraph(ComponentGraph):
             condition: The condition function to check for.
 
         Returns:
-            A set of component ids where the coresponding components fulfill
+            A set of component ids where the corresponding components fulfill
             the condition function.
         """
         if current_node in visited:
@@ -896,7 +896,6 @@ class _MicrogridComponentGraph(ComponentGraph):
                 component_category={
                     ComponentCategory.BATTERY,
                     ComponentCategory.EV_CHARGER,
-                    ComponentCategory.PV_ARRAY,
                 }
             )
         )
