@@ -2,45 +2,47 @@
 
 ### Component
 
-A device in the microgrid. For example, inverter, battery, meter, etc.
+A device within the microgrid, such as an inverter, battery, meter, and more.
 
 ### Component ID
 
-A way to identify a particular instance of a component. It is always a `int`.
+A numeric identifier uniquely representing an instance of a component. It is always of type `int`.
 
-For example: Battery with component ID 5.
+For example, a battery an have a component ID **5**.
 
-## Component data
+## Component Data
 
 ### Metric
 
-A measurable characteristic of a component.
+A quantifiable attribute of a component.
 
-For example: the capacity of a battery.
+For example, the metric **capacity** of a battery.
 
-### Measurement  / Sample value
+### Measurement / Sample Value
 
-An individual value measured from a component instance metric. It is always `float` but it is expressed in some particular unit.
+An individual numeric value obtained from a metric of a component instance. It is consistently of type `float`, but it is often expressed in specific units.
 
-In the context of a Sample (see below) this is usually referred to as a *sample value*.
+In the context of a sample, this is commonly referred to as a *sample value*.
 
-For example: A measurement of the capacity of battery with component ID 5 can be 400. The unit is typically Watt-hour (Wh).
+For example, a measurement of the capacity of a battery with component ID 5 can be **400**, typically measured in Watt-hours (Wh).
 
 ### Timestamp
 
-A point in time. It is always a `datetime`.
+A specific point in time, always represented as a `datetime` with a `timezone` attached.
+
+For example, **2022-01-01 22:00:00.000 UTC**.
 
 ### Sample
 
-A measurement taken at a particular point in time: a tuple `(timestamp, measurement)`, or simply `(timestamp, value)`.
+A measurement recorded at a particular timestamp, typically represented as a tuple `(timestamp, value)`.
 
-For example: Getting the measurement of 400 from the capacity of a battery at 2022-01-01 22:00:00.000 UTC would be a sample (2022-01-01 22:00:00.000 UTC, 400).
+For example, recording a measurement of 400 from the capacity of a battery at 2022-01-01 22:00:00.000 UTC would constitute a sample **`(2022-01-01 22:00:00.000 UTC, 400)`**.
 
-### Timeseries
+### Time Series / Timeseries
 
-A sequence of *Samples*. Normally time series should be sorted by timestamp and timestamps should be separated at regular intervals, but there can be also irregular (event-based) time series (in this case there could even possibly be multiple values with the same timestamp).
+A sequence of samples, often organized by timestamp and typically with regular intervals. However, irregular (event-based) time series are also possible.
 
-For example: Getting the measurement from the capacity of a battery at 2022-01-01 22:00:00.000 UTC every second for 5 seconds would be a timeseries like:
+For example, a time series representing measurements of a battery's capacity at 2022-01-01 22:00:00.000 UTC every second for 5 seconds would appear as follows:
 
 ```
 (2022-01-01 22:00:00.000 UTC, 400)
@@ -52,52 +54,68 @@ For example: Getting the measurement from the capacity of a battery at 2022-01-0
 
 ### Metric ID
 
-A way to identify a component's metric. Usually a `str`.
+An identifier for a component's metric, typically a string (`str`).
 
-For example, the metric ID of the capacity of a battery is just `capacity`.
+For example, the metric ID for the capacity of a battery is simply **`capacity`**.
 
-### Timeseries ID
+### Time Series ID / Timeseries ID
 
-A way to identify a timeseries that comes from a metric of a particular component instance. Usually a `str`, but coming from the tuple (component ID, metric ID) for components.
+An identifier for a time series originating from a metric of a specific component instance. Typically a string (`str`) derived from the tuple `(component ID, metric ID)` for components.
 
-For example: A timeseries for the capacity of battery with component ID 5 has ID (component_id, metric_id) (or `f"{component_id}_{metric_id}"`).
+For example, a time series for the capacity of a battery with component ID 5 has the ID **(component_id, metric_id)** (or **`f"{component_id}_{metric_id}"`**).
 
 ## Metrics
 
-### SoC - State of Charge
+### SoC (State of Charge)
 
-The level of charge of a battery relative to its capacity. The units of SoC are percentage points and it is calculated as the ratio
-between the remaining energy in the battery at a given time and the maximum possible energy with the same state of health conditions. [Source](https://epicpower.es/wp-content/uploads/2020/08/AN028_SoC-SoH-SoP-definitions_v3.pdf)
+The level of charge of a battery relative to its capacity, expressed in percentage points. Calculated as the ratio between the remaining energy in the battery at a given time and the maximum possible energy under similar health conditions. [Source](https://epicpower.es/wp-content/uploads/2020/08/AN028_SoC-SoH-SoP-definitions_v3.pdf)
 
-### SoP - State of Power
+### SoP (State of Power)
 
-The ratio of peak power to nominal power. The peak power, based on present battery-pack conditions, is the maximum power that may be maintained constant for T seconds without violating preset operational design limits on battery voltage, SOC, power, or current.
+The ratio of peak power to nominal power. Peak power is the maximum power that can be sustained for a specific duration without violating preset operational design limits on battery voltage, SsC, power, or current.
 
-This indicator is very important to ensure that the charge or discharge power does not exceed certain limits with the aim of using the battery as good as possible to extend its life expectancy. Also, in peak power applications this indicator can turn useful to define conditions in the battery to be able to make big charges or discharges.
+This indicator is crucial to ensure that charge or discharge power remains within specific limits, optimizing the battery's lifespan. It is particularly useful in peak power applications to define battery conditions for substantial charges or discharges.
 
-The state of power depends highly on the state of charge, the capacity of the battery and its initial features, chemistry and battery voltage.  [Source](https://epicpower.es/wp-content/uploads/2020/08/AN028_SoC-SoH-SoP-definitions_v3.pdf)
+The state of power depends on the state of charge, battery capacity, initial characteristics, chemistry, and battery voltage. [Source](https://epicpower.es/wp-content/uploads/2020/08/AN028_SoC-SoH-SoP-definitions_v3.pdf)
 
 ## Microgrid Power Terminology
-In the SDK, the terminology used for quantities such as power of individual microgrid components follows `{component}_{quantity}` for total quantities and `{component}_{consumption,production}_{quantity}` for clipped quantities, respectively. Valid components are: `grid`, `battery`, `ev_charger`, `consumer` and active components `pv`, `chp` and `wind`.
 
-The SDK exposes following power metrics:
+Within the SDK, the terminology used for quantities, such as the power of individual microgrid components, follows the pattern `{component}_{quantity}` for total values and `{component}_{consumption,production}_{quantity}` for clipped values. Valid components include `grid`, `battery`, `ev_charger`, `consumer`, and active components `pv`, `chp`, and `wind`.
 
-* **grid_power**: Can be positive (consumption from the grid) or negative (production into the grid).
+The SDK provides the following power metrics IDs.
 
-* **{battery,ev_charger}_power**: Can be positive (charge battery) or negative (discharge battery). Equivalently for EV charging station.
+### `grid_power`
 
-* **{pv,chp,wind}_power**: Active components, the power from local (renewable) generation. Negative, if electric power is generated, otherwise zero or positive in case of self-consumption of the generator. Alternative terms: generation, supply, source.
+Can be positive (indicating consumption from the grid) or negative (indicating production into the grid).
 
-* **consumer_power**: This aggregates the remaining parts not covered by the above components. Under normal circumstances this is expected to correspond to the gross consumption of the site excluding active parts and battery. The implementation still supports negative values to also handle exotic site topologies (e.g. unidentified generators) and sudden short-term effects.  The term `consumer` was deliberately chosen to indicate that this component is expected to predominantly consume electric power. Under normal circumstances there should be no active sources in this component and the metrics `consumer_{consumption,production}_power` would not be used. Alternative terms: load, demand, sink.
+### `{battery,ev_charger}_power`
 
+Can be positive (indicating battery charging) or negative (indicating battery discharging). This also applies to EV charging stations.
 
-In addition to that, for each of the above there will two additional metrics:
+### `{pv,chp,wind}_power`
 
-* **{component}_consumption_power**: Positive power value if {component}_power is positive, otherwise zero.
-* **{component}_production_power**: Positive power value if {component}_power is negative, otherwise zero.
+Pertaining to active components, this represents power generated from local (renewable) sources. It is negative when electricity is generated, otherwise zero or positive in case of self-consumption. Alternative terms include generation, supply, and source.
 
-Other terminology found in microgrid literature but not exposed by the SDK:
+### `consumer_power`
 
-* **_Gross consumption_**: Consumption before accounting for any local generation from solar, wind or CHP.
-* **_Net consumption/load_**: This term traditionally refers to the difference between the gross electricity consumption and the local generation (like PV production). This is the electricity consumption that needs to be met by the battery or from the main grid. This means `consumer_power + {pv,chp,wind}_power` (note that latter is negative when electricity is produced). Since this term caused confusion in the past, it's not exposed by the SDK.
-* **_Residual consumption/load_**: In microgrid context sometimes used as the remaining difference between the net consumption and the battery power, i.e. what we define as grid power.
+Aggregates components not covered above. Under typical circumstances, this corresponds to the site's gross consumption, excluding active parts and the battery. The term 'consumer' implies that this component predominantly consumes electric power. It can support negative values for exotic site topologies or short-term effects.
+
+### `{component}_consumption_power`
+
+Positive power value if `{component}_power` is positive, otherwise zero.
+
+### `{component}_production_power`
+
+Positive power value if `{component}_power` is negative, otherwise zero.
+
+### Gross Consumption
+
+Consumption before accounting for any local generation from solar, wind or CHP. Not exposed by the SDK.
+
+### Net Consumption / Load
+
+This term traditionally refers to the difference between the gross electricity consumption and the local generation (like PV production). This is the electricity consumption that needs to be met by the battery or from the main grid. This means `consumer_power + {pv,chp,wind}_power` (note that latter is negative when electricity is produced). Since this term caused confusion in the past, it's not exposed by the SDK. Not exposed by the SDK.
+
+### Residual Consumption / Load
+
+In microgrid context sometimes used as the remaining difference between the net consumption and the battery power, i.e. what we define as grid power. Not exposed by the SDK.
