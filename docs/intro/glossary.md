@@ -1,3 +1,9 @@
+# Glossary
+
+This glossary provides definitions for common terminology used in the SDK,
+focusing on microgrid components, metrics, measurements, and power-related
+terms.
+
 ## Microgrid
 
 ### Component
