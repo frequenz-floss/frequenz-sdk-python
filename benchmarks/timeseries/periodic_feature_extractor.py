@@ -9,7 +9,6 @@ the performance of a numpy implementation with a python
 implementation.
 """
 
-from __future__ import annotations
 
 import asyncio
 import collections.abc

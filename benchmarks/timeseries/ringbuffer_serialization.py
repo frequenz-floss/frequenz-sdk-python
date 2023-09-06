@@ -3,7 +3,6 @@
 
 """Benchmarks the serialization of the `OrderedRingBuffer` class."""
 
-from __future__ import annotations
 
 import fnmatch
 import os

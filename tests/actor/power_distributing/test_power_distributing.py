@@ -3,7 +3,6 @@
 
 """Tests power distributor."""
 
-from __future__ import annotations
 
 import asyncio
 import math

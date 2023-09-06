@@ -2,7 +2,7 @@
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
 """Module that defines how to aggregate metrics from battery-inverter components."""
-from __future__ import annotations
+
 
 import logging
 from abc import ABC, abstractmethod

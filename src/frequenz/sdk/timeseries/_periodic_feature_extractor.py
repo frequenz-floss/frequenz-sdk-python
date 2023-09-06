@@ -12,7 +12,6 @@ underlying buffer, e.g. the moving window, with the same start and end time
 modulo a fixed period.
 """
 
-from __future__ import annotations
 
 import logging
 from dataclasses import dataclass

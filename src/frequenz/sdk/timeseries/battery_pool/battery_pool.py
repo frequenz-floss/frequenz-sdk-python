@@ -3,7 +3,6 @@
 
 """User interface for requesting aggregated battery-inverter data."""
 
-from __future__ import annotations
 
 import asyncio
 import uuid

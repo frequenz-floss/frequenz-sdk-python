@@ -3,7 +3,6 @@
 
 """Memory allocation benchmark for the ringbuffer."""
 
-from __future__ import annotations
 
 import argparse
 import tracemalloc

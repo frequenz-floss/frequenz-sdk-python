@@ -2,7 +2,7 @@
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
 """Tool for mocking streams of component data."""
-from __future__ import annotations
+
 
 import asyncio
 from dataclasses import replace

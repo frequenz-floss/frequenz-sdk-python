@@ -3,7 +3,6 @@
 
 """Base class for formula generators that use the component graphs."""
 
-from __future__ import annotations
 
 import sys
 from abc import ABC, abstractmethod

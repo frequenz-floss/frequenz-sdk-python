@@ -3,7 +3,6 @@
 
 """Ringbuffer implementation with focus on time & memory efficiency."""
 
-from __future__ import annotations
 
 from collections.abc import Iterable
 from copy import deepcopy

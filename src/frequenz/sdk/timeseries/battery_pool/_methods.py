@@ -2,7 +2,7 @@
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
 """Methods for processing battery-inverter data."""
-from __future__ import annotations
+
 
 import asyncio
 import logging

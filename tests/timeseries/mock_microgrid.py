@@ -3,7 +3,6 @@
 
 """A configurable mock microgrid for testing logical meter formulas."""
 
-from __future__ import annotations
 
 import asyncio
 import typing

@@ -2,7 +2,6 @@
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 """Class to return battery status."""
 
-from __future__ import annotations
 
 import asyncio
 import logging

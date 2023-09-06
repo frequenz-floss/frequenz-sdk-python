@@ -3,7 +3,6 @@
 
 """Tests for the `TimeSeriesResampler` class."""
 
-from __future__ import annotations
 
 import asyncio
 import logging

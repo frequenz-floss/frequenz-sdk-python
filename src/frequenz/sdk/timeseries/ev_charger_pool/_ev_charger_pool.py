@@ -3,7 +3,6 @@
 
 """Interactions with pools of EV Chargers."""
 
-from __future__ import annotations
 
 import asyncio
 import logging

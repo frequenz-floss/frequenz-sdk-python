@@ -3,7 +3,6 @@
 
 """Script with an example how to use BatteryPool."""
 
-from __future__ import annotations
 
 import asyncio
 import logging

@@ -3,7 +3,6 @@
 
 """Formula generator from component graph for CHP Power."""
 
-from __future__ import annotations
 
 import logging
 from collections import abc

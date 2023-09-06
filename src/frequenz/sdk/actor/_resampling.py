@@ -3,7 +3,6 @@
 
 """An actor to resample microgrid component metrics."""
 
-from __future__ import annotations
 
 import asyncio
 import dataclasses

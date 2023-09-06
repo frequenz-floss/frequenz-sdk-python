@@ -3,7 +3,6 @@
 
 """Tests for the `SerializableRingBuffer` class."""
 
-from __future__ import annotations
 
 import random
 from datetime import datetime, timedelta, timezone

@@ -11,7 +11,6 @@ amount power to charge/discharge.
 Purpose of this actor is to keep SoC level of each component at the equal level.
 """
 
-from __future__ import annotations
 
 import asyncio
 import logging
