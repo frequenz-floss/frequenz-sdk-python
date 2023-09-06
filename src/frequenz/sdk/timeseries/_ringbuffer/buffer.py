@@ -624,7 +624,3 @@ class OrderedRingBuffer(Generic[FloatArray]):
             return len(self._buffer) - start_index + end_index + 1 - sum_missing_entries
 
         return end_index + 1 - start_index - sum_missing_entries
-
-    def __len__(self) -> int:
-        """Return the count of valid items that this container currently holds."""
-        return self.count_valid()
