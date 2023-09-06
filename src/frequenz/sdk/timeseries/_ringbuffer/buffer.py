@@ -108,6 +108,17 @@ class OrderedRingBuffer(Generic[FloatArray]):
         """
         return self._gaps
 
+    def has_value(self, sample: Sample[QuantityT]) -> bool:
+        """Check if a sample has a value and it's not NaN.
+
+        Args:
+            sample: sample to check.
+
+        Returns:
+            True if the sample has a value and it's not NaN.
+        """
+        return not (sample.value is None or sample.value.isnan())
+
     @property
     def maxlen(self) -> int:
         """Get the max length.
@@ -154,10 +165,14 @@ class OrderedRingBuffer(Generic[FloatArray]):
         )
 
         # Update data
-        value: float = np.nan if sample.value is None else sample.value.base_value
+        if self.has_value(sample):
+            assert sample.value is not None
+            value = sample.value.base_value
+        else:
+            value = np.nan
         self._buffer[self.datetime_to_index(timestamp)] = value
 
-        self._update_gaps(timestamp, prev_newest, sample.value is None)
+        self._update_gaps(timestamp, prev_newest, not self.has_value(sample))
 
     @property
     def time_bound_oldest(self) -> datetime:
