@@ -4,15 +4,117 @@ This glossary provides definitions for common terminology used in the SDK,
 focusing on microgrid components, metrics, measurements, and power-related
 terms.
 
+## Common Acronyms
+
+### AC
+
+Alternating current. See the [Wikipedia article](https://en.wikipedia.org/wiki/Alternating_current) for more details.
+
+### BMS
+
+Battery management system. See the [Wikipedia article](https://en.wikipedia.org/wiki/Battery_management_system) for more details.
+
+### CHP
+
+Combined heat and power. See the [Wikipedia article](https://en.wikipedia.org/wiki/Combined_heat_and_power) for more details.
+
+### DC
+
+Direct current. See the [Wikipedia article](https://en.wikipedia.org/wiki/Direct_current) for more details.
+
+### EV
+
+Electric vehicle. See the [Wikipedia article](https://en.wikipedia.org/wiki/Electric_vehicle) for more details.
+
+### PV
+
+Photovoltaic. See the [Wikipedia article](https://en.wikipedia.org/wiki/Photovoltaics) for more details.
+
+In the SDK it is normally used as a synonym for [solar panel](#solar-panel).
+
+### SoC
+
+[State of charge](#state-of-charge). See the [Wikipedia article](https://en.wikipedia.org/wiki/State_of_charge) for more details.
+
+### SoP
+
+[State of power](#state-of-power).
+
 ## Microgrid
+
+### Component Category
+
+The category [components](#component) of a [microgrid](#microgrid) belong to.
+
+[Components](#component) of the same category have the same characteristics (for example offer the same set of [metrics](#metric)).
+
+#### Battery
+
+A storage system for electrical energy.
+
+#### CHP Plant
+
+A generator that produces combined heat and power ([CHP](#chp)). Usually powered via combustion of some form of fuel.
+
+#### Converter
+
+A [DC](#dc)-DC converter.
+
+#### EV Charger
+
+A station for charging [EVs](#ev).
+
+#### Electrolyzer
+
+An device that converts water into hydrogen and oxygen.
+
+#### Grid
+
+A point where the local [microgrid](#microgrid) is connected to the public electricity grid.
+
+#### Inverter
+
+A device or circuitry that converts [DC](#dc) electricity to [AC](#ac) electricity.
+
+#### Meter
+
+A device for measuring electrical [metrics](#metrics) (for example current, voltage, etc.).
+
+#### PV Array
+
+A collection of [PV](#pv) panels.
+
+#### Pre-charge module
+
+A device that gradually ramp the [DC](#dc) voltage up to prevent any potential damage to sensitive electrical components, like capacitors.
+
+While many [inverters](#inverter) and [batteries](#battery) come equipped with in-built pre-charging mechanisms, some may lack this feature. In such cases, external pre-charging modules can be used.
+
+#### Relay
+
+A device that generally have two states: open (connected) and closed (disconnected).
+
+They are generally placed in front of another [component](#component), e.g., an [inverter](#inverter), to control whether the component is connected to the [microgrid](#microgrid) or not.
+
+#### Sensor
+
+A device for [measuring](#measurement] ambient [metrics](#metric) (for example temperature, humidity, etc.).
+
+#### Solar Panel
+
+A panel with [PV](#pv) cells that generates [DC](#dc) electricity from sunlight.
+
+#### Wind Turbine
+
+A device that converts the wind's kinetic energy into electrical energy.
 
 ### Component
 
-A device within the [microgrid](#microgrid), such as an inverter, battery, meter, and more.
+A device (of a particular [category](#component-category)) within a [microgrid](#microgrid).
 
 ### Component ID
 
-A numeric identifier uniquely representing an instance of a [component](#component). It is always of type `int`.
+A numeric identifier uniquely representing an instance of a [component](#component) in a particular[microgrid](#microgrid). It is always of type `int`.
 
 For example, a battery an have a component ID **5**.
 
@@ -70,7 +172,9 @@ Same as [time series](#time-series).
 
 An identifier for a [component](#component)'s [metric](#metric), typically a string (`str`).
 
-For example, the metric ID for the capacity of a battery is simply **`capacity`**.
+Components belonging to the same [category](#component-category) have the same set of metric IDs.
+
+For example, the metric ID for the capacity of a [battery](#battery) is simply **`capacity`**.
 
 ### Time Series ID
 
@@ -86,11 +190,11 @@ Same as [time series ID](#time-series-id).
 
 ### Gross Consumption
 
-Consumption before accounting for any local generation from solar, wind or CHP.
+Consumption before accounting for any local generation from [solar](#solar-panel), [wind](#wind-turbine) or [CHP](#chp-plant).
 
 ### Net Consumption
 
-This term traditionally refers to the difference between the [gross consumption](#gross-consumption) and the local generation (like PV production). It iss the electricity consumption that needs to be met by the battery or from the main grid.
+This term traditionally refers to the difference between the [gross consumption](#gross-consumption) and the local generation (like [PV](#pv) production). It is the electricity consumption that needs to be provided by the [battery](#battery) or from the public [grid](#grid).
 
 ### Net Load
 
@@ -98,17 +202,17 @@ Same as [net consumption](#net-consumption).
 
 ### Residual Consumption
 
-In [microgrid](#microgrid) context sometimes used as the remaining difference between the net consumption and the battery power, i.e. what we define as grid power.
+In [microgrid](#microgrid) context sometimes used as the remaining difference between the [net consumption](#net-consumption) and the [battery](#battery) power, i.e. what we define as [grid power](#grid_power).
 
 ### Residual Load
 
 Same as [residual consumption](#residual-consumption).
 
-### SoC (State of Charge)
+### State of Charge
 
-The level of charge of a battery relative to its capacity, expressed in percentage points. Calculated as the ratio between the remaining energy in the battery at a given time and the maximum possible energy under similar health conditions. [Source](https://epicpower.es/wp-content/uploads/2020/08/AN028_SoC-SoH-SoP-definitions_v3.pdf)
+The level of charge of a [battery](#battery) relative to its capacity, expressed in percentage points. Calculated as the ratio between the remaining energy in the battery at a given time and the maximum possible energy under similar health conditions. [Source](https://epicpower.es/wp-content/uploads/2020/08/AN028_SoC-SoH-SoP-definitions_v3.pdf)
 
-### SoP (State of Power)
+### State of Power
 
 The ratio of peak power to nominal power. Peak power is the maximum power that can be sustained for a specific duration without violating preset operational design limits on battery voltage, SsC, power, or current.
 
@@ -130,7 +234,7 @@ Can be positive (indicating consumption from the grid) or negative (indicating p
 
 ### `{battery,ev_charger}_power`
 
-Can be positive (indicating battery charging) or negative (indicating battery discharging). This also applies to EV charging stations.
+Can be positive (indicating [battery](#battery) charging) or negative (indicating battery discharging). This also applies to [EV charging](#ev-charger) stations.
 
 ### `{pv,chp,wind}_power`
 
@@ -138,7 +242,7 @@ Pertaining to active [components](#component), this represents power generated f
 
 ### `consumer_power`
 
-Aggregates components not covered above. Under typical circumstances, this corresponds to the site's gross consumption, excluding active parts and the battery. The term 'consumer' implies that this component predominantly consumes electric power. It can support negative values for exotic site topologies or short-term effects.
+Aggregates [components](#component) not covered above. Under typical circumstances, this corresponds to the site's [gross consumption](#gross-consumption), excluding active parts and the [battery](#battery). The term 'consumer' implies that this component predominantly consumes electric power. It can support negative values for exotic site topologies or short-term effects.
 
 ### `{component}_consumption_power`
 
