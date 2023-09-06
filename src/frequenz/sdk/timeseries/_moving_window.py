@@ -376,7 +376,7 @@ class MovingWindow(BackgroundService):
         if isinstance(key, slice):
             if isinstance(key.start, int) or isinstance(key.stop, int):
                 if key.start is None or key.stop is None:
-                    key = slice(slice(key.start, key.stop).indices(self.__len__()))
+                    key = slice(slice(key.start, key.stop).indices(self.count_valid()))
             elif isinstance(key.start, datetime) or isinstance(key.stop, datetime):
                 if key.start is None:
                     key = slice(self._buffer.time_bound_oldest, key.stop)
