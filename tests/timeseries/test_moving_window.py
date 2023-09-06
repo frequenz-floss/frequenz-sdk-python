@@ -36,7 +36,9 @@ def fake_time() -> Iterator[time_machine.Coordinates]:
 
 
 async def push_logical_meter_data(
-    sender: Sender[Sample[Quantity]], test_seq: Sequence[float]
+    sender: Sender[Sample[Quantity]],
+    test_seq: Sequence[float],
+    start_ts: datetime = UNIX_EPOCH,
 ) -> None:
     """Push data in the passed sender to mock `LogicalMeter` behaviour.
 
@@ -45,8 +47,8 @@ async def push_logical_meter_data(
     Args:
         sender: Sender for pushing resampled samples to the `MovingWindow`.
         test_seq: The Sequence that is pushed into the `MovingWindow`.
+        start_ts: The start timestamp of the `MovingWindow`.
     """
-    start_ts: datetime = UNIX_EPOCH
     for i, j in zip(test_seq, range(0, len(test_seq))):
         timestamp = start_ts + timedelta(seconds=j)
         await sender.send(Sample(timestamp, Quantity(float(i))))
@@ -165,3 +167,14 @@ async def test_resampling_window(fake_time: time_machine.Coordinates) -> None:
         assert len(window) == window_size / output_sampling
         for value in window:  # type: ignore
             assert 4.9 < value < 5.1
+
+
+async def test_timestamps() -> None:
+    """Test indexing a window by timestamp."""
+    window, sender = init_moving_window(timedelta(seconds=5))
+    async with window:
+        await push_logical_meter_data(
+            sender, [1, 2], start_ts=UNIX_EPOCH + timedelta(seconds=1)
+        )
+        assert window.oldest_timestamp == UNIX_EPOCH + timedelta(seconds=1)
+        assert window.newest_timestamp == UNIX_EPOCH + timedelta(seconds=2)
