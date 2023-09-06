@@ -315,15 +315,6 @@ class MovingWindow(BackgroundService):
         """
         return self._buffer.count_valid()
 
-    def __len__(self) -> int:
-        """
-        Return the size of the `MovingWindow`s underlying buffer.
-
-        Returns:
-            The size of the `MovingWindow`.
-        """
-        return self.count_valid()
-
     @overload
     def __getitem__(self, key: SupportsIndex) -> float:
         """See the main __getitem__ method.
