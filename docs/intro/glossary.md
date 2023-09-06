@@ -8,11 +8,11 @@ terms.
 
 ### Component
 
-A device within the microgrid, such as an inverter, battery, meter, and more.
+A device within the [microgrid](#microgrid), such as an inverter, battery, meter, and more.
 
 ### Component ID
 
-A numeric identifier uniquely representing an instance of a component. It is always of type `int`.
+A numeric identifier uniquely representing an instance of a [component](#component). It is always of type `int`.
 
 For example, a battery an have a component ID **5**.
 
@@ -20,13 +20,13 @@ For example, a battery an have a component ID **5**.
 
 ### Metric
 
-A quantifiable attribute of a component.
+A quantifiable attribute of a [component](#component).
 
 For example, the metric **capacity** of a battery.
 
-### Measurement / Sample Value
+### Measurement
 
-An individual numeric value obtained from a metric of a component instance. It is consistently of type `float`, but it is often expressed in specific units.
+An individual numeric value obtained from a [metric](#metric) of a [component](#component) instance. It is consistently of type `float`, but it is often expressed in specific units.
 
 In the context of a sample, this is commonly referred to as a *sample value*.
 
@@ -40,13 +40,17 @@ For example, **2022-01-01 22:00:00.000 UTC**.
 
 ### Sample
 
-A measurement recorded at a particular timestamp, typically represented as a tuple `(timestamp, value)`.
+A [measurement](#measurement) recorded at a particular [timestamp](#timestamp), typically represented as a tuple `(timestamp, value)`.
 
 For example, recording a measurement of 400 from the capacity of a battery at 2022-01-01 22:00:00.000 UTC would constitute a sample **`(2022-01-01 22:00:00.000 UTC, 400)`**.
 
-### Time Series / Timeseries
+#### Sample Value
 
-A sequence of samples, often organized by timestamp and typically with regular intervals. However, irregular (event-based) time series are also possible.
+A [measurement](#measurement) stored in a [sample](#sample).
+
+### Time Series
+
+A sequence of [samples](#sample), often organized by [timestamp](#timestamp) and typically with regular intervals. However, irregular (event-based) time series are also possible.
 
 For example, a time series representing measurements of a battery's capacity at 2022-01-01 22:00:00.000 UTC every second for 5 seconds would appear as follows:
 
@@ -58,17 +62,25 @@ For example, a time series representing measurements of a battery's capacity at 
 (2022-01-01 22:00:04.000 UTC, 403)
 ```
 
+### Timeseries
+
+Same as [time series](#time-series).
+
 ### Metric ID
 
-An identifier for a component's metric, typically a string (`str`).
+An identifier for a [component](#component)'s [metric](#metric), typically a string (`str`).
 
 For example, the metric ID for the capacity of a battery is simply **`capacity`**.
 
-### Time Series ID / Timeseries ID
+### Time Series ID
 
-An identifier for a time series originating from a metric of a specific component instance. Typically a string (`str`) derived from the tuple `(component ID, metric ID)` for components.
+An identifier for a [time series](#time-series) originating from a [metric](#metric) of a specific component. Typically a string (`str`) derived from the tuple **([component ID](#component-id), [metric ID](#metric-id))** for [components](#component).
 
 For example, a time series for the capacity of a battery with component ID 5 has the ID **(component_id, metric_id)** (or **`f"{component_id}_{metric_id}"`**).
+
+### Timeseries ID
+
+Same as [time series ID](#time-series-id).
 
 ## Metrics
 
@@ -76,13 +88,21 @@ For example, a time series for the capacity of a battery with component ID 5 has
 
 Consumption before accounting for any local generation from solar, wind or CHP.
 
-### Net Consumption / Load
+### Net Consumption
 
-This term traditionally refers to the difference between the gross consumption and the local generation (like PV production). It iss the electricity consumption that needs to be met by the battery or from the main grid.
+This term traditionally refers to the difference between the [gross consumption](#gross-consumption) and the local generation (like PV production). It iss the electricity consumption that needs to be met by the battery or from the main grid.
 
-### Residual Consumption / Load
+### Net Load
 
-In microgrid context sometimes used as the remaining difference between the net consumption and the battery power, i.e. what we define as grid power.
+Same as [net consumption](#net-consumption).
+
+### Residual Consumption
+
+In [microgrid](#microgrid) context sometimes used as the remaining difference between the net consumption and the battery power, i.e. what we define as grid power.
+
+### Residual Load
+
+Same as [residual consumption](#residual-consumption).
 
 ### SoC (State of Charge)
 
@@ -98,7 +118,9 @@ The state of power depends on the state of charge, battery capacity, initial cha
 
 ## Microgrid Power Terminology
 
-Within the SDK, the terminology used for quantities, such as the power of individual microgrid components, follows the pattern `{component}_{quantity}` for total values and `{component}_{consumption,production}_{quantity}` for clipped values. Valid components include `grid`, `battery`, `ev_charger`, `consumer`, and active components `pv`, `chp`, and `wind`.
+Within the SDK, the terminology used for [measurements](#measurement), such as the power of individual [microgrid](#microgrid) [components](#component), follow the pattern `{component}_{quantity}` for total values and `{component}_{consumption,production}_{quantity}` for clipped values.
+
+Valid components include `grid`, `battery`, `ev_charger`, `consumer`, and active components `pv`, `chp`, and `wind`.
 
 The SDK provides the following power metrics IDs.
 
@@ -112,7 +134,7 @@ Can be positive (indicating battery charging) or negative (indicating battery di
 
 ### `{pv,chp,wind}_power`
 
-Pertaining to active components, this represents power generated from local (renewable) sources. It is negative when electricity is generated, otherwise zero or positive in case of self-consumption. Alternative terms include generation, supply, and source.
+Pertaining to active [components](#component), this represents power generated from local (renewable) sources. It is negative when electricity is generated, otherwise zero or positive in case of self-consumption. Alternative terms include generation, supply, and source.
 
 ### `consumer_power`
 
