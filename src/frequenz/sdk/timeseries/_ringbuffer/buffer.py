@@ -594,11 +594,11 @@ class OrderedRingBuffer(Generic[FloatArray]):
         """
         return self._buffer.__getitem__(index_or_slice)
 
-    def __len__(self) -> int:
-        """Return the amount of items that this container currently holds.
+    def count_valid(self) -> int:
+        """Count the number of valid items that this buffer currently holds.
 
         Returns:
-            The length.
+            The number of valid items in this buffer.
         """
         if self._datetime_newest == self._DATETIME_MIN:
             return 0
@@ -624,3 +624,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
             return len(self._buffer) - start_index + end_index + 1 - sum_missing_entries
 
         return end_index + 1 - start_index - sum_missing_entries
+
+    def __len__(self) -> int:
+        """Return the count of valid items that this container currently holds."""
+        return self.count_valid()
