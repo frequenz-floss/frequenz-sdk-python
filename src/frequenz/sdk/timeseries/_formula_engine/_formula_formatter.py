@@ -244,7 +244,9 @@ class FormulaFormatter:
                 case OpenParen():
                     pass  # We gently ignore this one.
 
-        assert len(self._stack) == 1
+        assert (
+            len(self._stack) == 1
+        ), f"The formula {postfix_expr} is not valid. Evaluation stack left-over: {self._stack}"
         return self._stack[0].value
 
     def _format_binary(self, operator: Operator) -> None:
