@@ -49,7 +49,8 @@ class BatteryPool:
         channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         batteries_status_receiver: Receiver[BatteryStatus],
-        power_distributing_sender: Sender[Request],
+        power_distributing_requests_sender: Sender[Request],
+        power_distributing_results_receiver: Receiver[Result],
         min_update_interval: timedelta,
         batteries_id: Set[int] | None = None,
     ) -> None:
@@ -66,8 +67,10 @@ class BatteryPool:
                 It should send information when any battery changed status.
                 Battery status should include status of the inverter adjacent to this
                 battery.
-            power_distributing_sender: A Channel sender for sending power requests to
-                the power distributing actor.
+            power_distributing_requests_sender: A Channel sender for sending power
+                requests to the power distributing actor.
+            power_distributing_results_receiver: A Channel receiver for receiving
+                results from the power distributing actor.
             min_update_interval: Some metrics in BatteryPool are send only when they
                 change. For these metrics min_update_interval is the minimum time
                 interval between the following messages.
@@ -96,12 +99,12 @@ class BatteryPool:
 
         self._min_update_interval = min_update_interval
 
-        self._power_distributing_sender = power_distributing_sender
-        self._active_methods: dict[str, MetricAggregator[Any]] = {}
+        self._power_distributing_requests_sender = power_distributing_requests_sender
+        self._power_distributing_results_receiver = power_distributing_results_receiver
 
+        self._active_methods: dict[str, MetricAggregator[Any]] = {}
         self._namespace: str = f"battery-pool-{self._batteries}-{uuid.uuid4()}"
         self._power_distributing_namespace: str = f"power-distributor-{self._namespace}"
-        self._channel_registry: ChannelRegistry = channel_registry
         self._formula_pool: FormulaEnginePool = FormulaEnginePool(
             self._namespace,
             channel_registry,
@@ -139,9 +142,8 @@ class BatteryPool:
                 power will be set for all working batteries, as the microgrid API may
                 still reject the request.
         """
-        await self._power_distributing_sender.send(
+        await self._power_distributing_requests_sender.send(
             Request(
-                namespace=self._power_distributing_namespace,
                 power=power,
                 batteries=self._batteries,
                 adjust_power=adjust_power,
@@ -185,9 +187,8 @@ class BatteryPool:
         """
         if power < Power.zero():
             raise ValueError("Charge power must be positive.")
-        await self._power_distributing_sender.send(
+        await self._power_distributing_requests_sender.send(
             Request(
-                namespace=self._power_distributing_namespace,
                 power=power,
                 batteries=self._batteries,
                 adjust_power=adjust_power,
@@ -231,9 +232,8 @@ class BatteryPool:
         """
         if power < Power.zero():
             raise ValueError("Discharge power must be positive.")
-        await self._power_distributing_sender.send(
+        await self._power_distributing_requests_sender.send(
             Request(
-                namespace=self._power_distributing_namespace,
                 power=-power,
                 batteries=self._batteries,
                 adjust_power=adjust_power,
@@ -248,7 +248,7 @@ class BatteryPool:
         Returns:
             A receiver for the power distribution results.
         """
-        return self._channel_registry.new_receiver(self._power_distributing_namespace)
+        return self._power_distributing_results_receiver
 
     @property
     def battery_ids(self) -> Set[int]:

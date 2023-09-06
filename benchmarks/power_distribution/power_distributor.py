@@ -14,7 +14,7 @@ from typing import Any
 from frequenz.channels import Broadcast
 
 from frequenz.sdk import microgrid
-from frequenz.sdk.actor import ChannelRegistry, ResamplerConfig
+from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.actor.power_distributing import (
     BatteryStatus,
     Error,
@@ -107,10 +107,10 @@ async def run_test(  # pylint: disable=too-many-locals
 
     power_request_channel = Broadcast[Request]("power-request")
     battery_status_channel = Broadcast[BatteryStatus]("battery-status")
-    channel_registry = ChannelRegistry(name="power_distributor")
+    power_result_channel = Broadcast[Result]("power-result")
     async with PowerDistributingActor(
-        channel_registry=channel_registry,
         requests_receiver=power_request_channel.new_receiver(),
+        results_sender=power_result_channel.new_sender(),
         battery_status_sender=battery_status_channel.new_sender(),
     ):
         tasks: list[Coroutine[Any, Any, list[Result]]] = []

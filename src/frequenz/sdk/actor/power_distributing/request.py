@@ -14,13 +14,6 @@ from ...timeseries._quantities import Power
 class Request:
     """Request to set power to the `PowerDistributingActor`."""
 
-    namespace: str
-    """The namespace of the request.
-
-    This will be used to identify the channel for sending the response into, in the
-    channel registry.
-    """
-
     power: Power
     """The requested power."""
 

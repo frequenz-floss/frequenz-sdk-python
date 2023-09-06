@@ -35,6 +35,7 @@ if typing.TYPE_CHECKING:
         BatteryStatus,
         PowerDistributingActor,
         Request,
+        Result,
     )
     from ..timeseries.battery_pool import BatteryPool
     from ..timeseries.ev_charger_pool import EVChargerPool
@@ -89,8 +90,11 @@ class _DataPipeline:
         self._battery_status_channel = Broadcast["BatteryStatus"](
             "battery-status", resend_latest=True
         )
-        self._power_distribution_channel = Broadcast["Request"](
-            "Power Distributing Actor, Broadcast Channel"
+        self._power_distribution_requests_channel = Broadcast["Request"](
+            "Power Distributing Actor, Requests Broadcast Channel"
+        )
+        self._power_distribution_results_channel = Broadcast["Result"](
+            "Power Distributing Actor, Results Broadcast Channel"
         )
 
         self._power_distributing_actor: PowerDistributingActor | None = None
@@ -203,7 +207,12 @@ class _DataPipeline:
                 batteries_status_receiver=self._battery_status_channel.new_receiver(
                     maxsize=1
                 ),
-                power_distributing_sender=self._power_distribution_channel.new_sender(),
+                power_distributing_requests_sender=(
+                    self._power_distribution_requests_channel.new_sender()
+                ),
+                power_distributing_results_receiver=(
+                    self._power_distribution_results_channel.new_receiver()
+                ),
                 min_update_interval=self._resampler_config.resampling_period,
                 batteries_id=battery_ids,
             )
@@ -231,8 +240,8 @@ class _DataPipeline:
         # Until the PowerManager is implemented, support for multiple use-case actors
         # will not be available in the high level interface.
         self._power_distributing_actor = PowerDistributingActor(
-            requests_receiver=self._power_distribution_channel.new_receiver(),
-            channel_registry=self._channel_registry,
+            requests_receiver=self._power_distribution_requests_channel.new_receiver(),
+            results_sender=self._power_distribution_results_channel.new_sender(),
             battery_status_sender=self._battery_status_channel.new_sender(),
         )
         self._power_distributing_actor.start()

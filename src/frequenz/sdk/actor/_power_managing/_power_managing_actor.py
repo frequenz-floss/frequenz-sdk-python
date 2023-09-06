@@ -11,8 +11,8 @@ import typing
 from frequenz.channels import Receiver, Sender
 from typing_extensions import override
 
+from .. import power_distributing
 from .._actor import Actor
-from ..power_distributing.request import Request
 from ._base_classes import Algorithm, BaseAlgorithm, Proposal
 from ._matryoshka import Matryoshka
 
@@ -28,20 +28,21 @@ class PowerManagingActor(Actor):
     def __init__(
         self,
         proposals_receiver: Receiver[Proposal],
-        power_distributing_sender: Sender[Request],
+        power_distributing_requests_sender: Sender[power_distributing.Request],
         algorithm: Algorithm = Algorithm.MATRYOSHKA,
     ):
         """Create a new instance of the power manager.
 
         Args:
             proposals_receiver: The receiver for proposals.
-            power_distributing_sender: The sender for power distribution requests.
+            power_distributing_requests_sender: The sender for power distribution
+                requests.
             algorithm: The power management algorithm to use.
 
         Raises:
             NotImplementedError: When an unknown algorithm is given.
         """
-        self._power_distributing_sender = power_distributing_sender
+        self._power_distributing_requests_sender = power_distributing_requests_sender
         self._proposals_receiver = proposals_receiver
         if algorithm is not Algorithm.MATRYOSHKA:
             raise NotImplementedError(
@@ -62,6 +63,6 @@ class PowerManagingActor(Actor):
         algorithm: BaseAlgorithm = Matryoshka()
         async for proposal in self._proposals_receiver:
             target_power = algorithm.handle_proposal(proposal)
-            await self._power_distributing_sender.send(
-                Request(proposal.source_id, target_power, proposal.battery_ids)
+            await self._power_distributing_requests_sender.send(
+                power_distributing.Request(target_power, proposal.battery_ids)
             )
