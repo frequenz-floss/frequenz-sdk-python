@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import AsyncIterator, Iterator
 from datetime import datetime, timedelta, timezone
-from typing import AsyncIterator, Iterator
 from unittest.mock import AsyncMock, MagicMock
 
 import async_solipsism

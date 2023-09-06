@@ -140,7 +140,7 @@ class _InsecureConnectionManager(ConnectionManager):
         await self._graph.refresh_from_api(self._api)
 
 
-_CONNECTION_MANAGER: Optional[ConnectionManager] = None
+_CONNECTION_MANAGER: ConnectionManager | None = None
 """The ConnectionManager singleton instance."""
 
 

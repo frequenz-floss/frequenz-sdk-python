@@ -31,7 +31,7 @@ class ComponentData(ABC):
     # data from a protobuf message. The whole protobuf message is stored as the `raw`
     # attribute. When `ComponentData` is not instantiated from a protobuf message,
     # i.e. using the constructor, `raw` will be set to `None`.
-    raw: Optional[microgrid_pb.ComponentData] = field(default=None, init=False)
+    raw: microgrid_pb.ComponentData | None = field(default=None, init=False)
     """Raw component data as decoded from the wire."""
 
     def _set_raw(self, raw: microgrid_pb.ComponentData) -> None:
@@ -69,13 +69,13 @@ class MeterData(ComponentData):
             -ve current means supply into the grid.
     """
 
-    current_per_phase: Tuple[float, float, float]
+    current_per_phase: tuple[float, float, float]
     """AC current in Amperes (A) for phase/line 1,2 and 3 respectively.
             +ve current means consumption, away from the grid.
             -ve current means supply into the grid.
     """
 
-    voltage_per_phase: Tuple[float, float, float]
+    voltage_per_phase: tuple[float, float, float]
     """The ac voltage in volts (v) between the line and the neutral wire for phase/line
         1,2 and 3 respectively.
     """
@@ -188,7 +188,7 @@ class BatteryData(ComponentData):
     _component_state: battery_pb.ComponentState.ValueType
     """State of the battery."""
 
-    _errors: List[battery_pb.Error]
+    _errors: list[battery_pb.Error]
     """List of errors in protobuf struct."""
 
     @classmethod
@@ -284,7 +284,7 @@ class InverterData(ComponentData):
     _component_state: inverter_pb.ComponentState.ValueType
     """State of the inverter."""
 
-    _errors: List[inverter_pb.Error]
+    _errors: list[inverter_pb.Error]
     """List of errors from the component."""
 
     @classmethod
@@ -325,13 +325,13 @@ class EVChargerData(ComponentData):
         -ve current means supply into the grid.
     """
 
-    current_per_phase: Tuple[float, float, float]
+    current_per_phase: tuple[float, float, float]
     """AC current in Amperes (A) for phase/line 1,2 and 3 respectively.
         +ve current means consumption, away from the grid.
         -ve current means supply into the grid.
     """
 
-    voltage_per_phase: Tuple[float, float, float]
+    voltage_per_phase: tuple[float, float, float]
     """The AC voltage in Volts (V) between the line and the neutral
         wire for phase/line 1,2 and 3 respectively.
     """

@@ -28,7 +28,7 @@ class InvBatPair(NamedTuple):
 class DistributionResult:
     """Distribution result."""
 
-    distribution: Dict[int, float]
+    distribution: dict[int, float]
     """The power to be set for each inverter.
 
     The key is inverter ID, and the value is the power that should be set for
@@ -202,7 +202,7 @@ class DistributionAlgorithm:
             raise ValueError("Distribution factor should be float >= 0.")
         self._distributor_exponent: float = distributor_exponent
 
-    def _total_capacity(self, components: List[InvBatPair]) -> float:
+    def _total_capacity(self, components: list[InvBatPair]) -> float:
         """Sum capacity between all batteries in the components list.
 
         Args:
@@ -224,10 +224,10 @@ class DistributionAlgorithm:
 
     def _compute_battery_availability_ratio(
         self,
-        components: List[InvBatPair],
-        available_soc: Dict[int, float],
-        excl_bounds: Dict[int, float],
-    ) -> Tuple[List[Tuple[InvBatPair, float, float]], float]:
+        components: list[InvBatPair],
+        available_soc: dict[int, float],
+        excl_bounds: dict[int, float],
+    ) -> tuple[list[tuple[InvBatPair, float, float]], float]:
         r"""Compute battery ratio and the total sum of all of them.
 
         battery_availability_ratio = capacity_ratio[i] * available_soc[i]
@@ -249,7 +249,7 @@ class DistributionAlgorithm:
                 of all battery ratios in the list.
         """
         total_capacity = self._total_capacity(components)
-        battery_availability_ratio: List[Tuple[InvBatPair, float, float]] = []
+        battery_availability_ratio: list[tuple[InvBatPair, float, float]] = []
         total_battery_availability_ratio: float = 0.0
 
         for pair in components:
@@ -273,11 +273,11 @@ class DistributionAlgorithm:
 
     def _distribute_power(  # pylint: disable=too-many-arguments
         self,
-        components: List[InvBatPair],
+        components: list[InvBatPair],
         power_w: float,
-        available_soc: Dict[int, float],
-        incl_bounds: Dict[int, float],
-        excl_bounds: Dict[int, float],
+        available_soc: dict[int, float],
+        incl_bounds: dict[int, float],
+        excl_bounds: dict[int, float],
     ) -> DistributionResult:
         # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         """Distribute power between given components.
@@ -304,7 +304,7 @@ class DistributionAlgorithm:
             components, available_soc, excl_bounds
         )
 
-        distribution: Dict[int, float] = {}
+        distribution: dict[int, float] = {}
         # sum_ratio == 0 means that all batteries are fully charged / discharged
         if is_close_to_zero(sum_ratio):
             distribution = {inverter.component_id: 0 for _, inverter in components}
@@ -379,8 +379,8 @@ class DistributionAlgorithm:
 
     def _greedy_distribute_remaining_power(
         self,
-        distribution: Dict[int, float],
-        upper_bounds: Dict[int, float],
+        distribution: dict[int, float],
+        upper_bounds: dict[int, float],
         remaining_power: float,
     ) -> DistributionResult:
         """Add remaining power greedily to the given distribution.
@@ -399,7 +399,7 @@ class DistributionAlgorithm:
         if is_close_to_zero(remaining_power):
             return DistributionResult(distribution, remaining_power)
 
-        new_distribution: Dict[int, float] = {}
+        new_distribution: dict[int, float] = {}
 
         for inverter_id, power in distribution.items():
             if is_close_to_zero(remaining_power) or is_close_to_zero(power):
@@ -434,7 +434,7 @@ class DistributionAlgorithm:
         )
 
     def distribute_power(
-        self, power: float, components: List[InvBatPair]
+        self, power: float, components: list[InvBatPair]
     ) -> DistributionResult:
         """Distribute given power between given components.
 
@@ -451,7 +451,7 @@ class DistributionAlgorithm:
         return self._distribute_supply_power(power, components)
 
     def _distribute_consume_power(
-        self, power_w: float, components: List[InvBatPair]
+        self, power_w: float, components: list[InvBatPair]
     ) -> DistributionResult:
         """Distribute power between the given components.
 
@@ -470,14 +470,14 @@ class DistributionAlgorithm:
         # If SoC exceeded bound then remaining SoC should be 0.
         # Otherwise algorithm would try to supply power from that battery
         # in order to keep equal SoC level.
-        available_soc: Dict[int, float] = {}
+        available_soc: dict[int, float] = {}
         for battery, _ in components:
             available_soc[battery.component_id] = max(
                 0.0, battery.soc_upper_bound - battery.soc
             )
 
-        incl_bounds: Dict[int, float] = {}
-        excl_bounds: Dict[int, float] = {}
+        incl_bounds: dict[int, float] = {}
+        excl_bounds: dict[int, float] = {}
         for battery, inverter in components:
             # We can supply/consume with int only
             incl_bounds[inverter.component_id] = min(
@@ -494,7 +494,7 @@ class DistributionAlgorithm:
         )
 
     def _distribute_supply_power(
-        self, power_w: float, components: List[InvBatPair]
+        self, power_w: float, components: list[InvBatPair]
     ) -> DistributionResult:
         """Distribute power between the given components.
 
@@ -510,14 +510,14 @@ class DistributionAlgorithm:
         Returns:
             Distribution result.
         """
-        available_soc: Dict[int, float] = {}
+        available_soc: dict[int, float] = {}
         for battery, _ in components:
             available_soc[battery.component_id] = max(
                 0.0, battery.soc - battery.soc_lower_bound
             )
 
-        incl_bounds: Dict[int, float] = {}
-        excl_bounds: Dict[int, float] = {}
+        incl_bounds: dict[int, float] = {}
+        excl_bounds: dict[int, float] = {}
         for battery, inverter in components:
             incl_bounds[inverter.component_id] = -1 * max(
                 inverter.active_power_inclusion_lower_bound,

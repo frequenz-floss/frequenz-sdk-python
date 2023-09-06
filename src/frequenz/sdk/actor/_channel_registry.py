@@ -22,7 +22,7 @@ class ChannelRegistry:
             name: A unique name for the registry.
         """
         self._name = name
-        self._channels: Dict[str, Broadcast[Any]] = {}
+        self._channels: dict[str, Broadcast[Any]] = {}
 
     def new_sender(self, key: str) -> Sender[Any]:
         """Get a sender to a dynamically created channel with the given key.

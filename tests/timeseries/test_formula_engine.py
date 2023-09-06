@@ -4,8 +4,9 @@
 """Tests for the FormulaEngine and the Tokenizer."""
 
 import asyncio
+from collections.abc import Callable
 from datetime import datetime
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from frequenz.channels import Broadcast, Receiver
 
@@ -52,11 +53,11 @@ class TestFormulaEngine:
         self,
         formula: str,
         postfix: str,
-        io_pairs: List[Tuple[List[Optional[float]], Optional[float]]],
+        io_pairs: list[tuple[list[float | None], float | None]],
         nones_are_zeros: bool = False,
     ) -> None:
         """Run a formula test."""
-        channels: Dict[str, Broadcast[Sample[Quantity]]] = {}
+        channels: dict[str, Broadcast[Sample[Quantity]]] = {}
         builder = FormulaBuilder("test_formula", Quantity)
         for token in Tokenizer(formula):
             if token.type == TokenType.COMPONENT_METRIC:
@@ -316,7 +317,7 @@ class TestFormulaEngineComposition:
     async def run_test(  # pylint: disable=too-many-locals
         self,
         num_items: int,
-        make_builder: Union[
+        make_builder: (
             Callable[
                 [
                     FormulaEngine[Quantity],
@@ -324,8 +325,8 @@ class TestFormulaEngineComposition:
                     FormulaEngine[Quantity],
                 ],
                 HigherOrderFormulaBuilder[Quantity],
-            ],
-            Callable[
+            ]
+            | Callable[
                 [
                     FormulaEngine[Quantity],
                     FormulaEngine[Quantity],
@@ -333,9 +334,9 @@ class TestFormulaEngineComposition:
                     FormulaEngine[Quantity],
                 ],
                 HigherOrderFormulaBuilder[Quantity],
-            ],
-        ],
-        io_pairs: List[Tuple[List[Optional[float]], Optional[float]]],
+            ]
+        ),
+        io_pairs: list[tuple[list[float | None], float | None]],
         nones_are_zeros: bool = False,
     ) -> None:
         """Run a test with the specs provided."""
@@ -576,12 +577,12 @@ class TestFormulaAverager:
 
     async def run_test(
         self,
-        components: List[str],
-        io_pairs: List[Tuple[List[Optional[float]], Optional[float]]],
+        components: list[str],
+        io_pairs: list[tuple[list[float | None], float | None]],
     ) -> None:
         """Run a formula test."""
-        channels: Dict[str, Broadcast[Sample[Quantity]]] = {}
-        streams: List[Tuple[str, Receiver[Sample[Quantity]], bool]] = []
+        channels: dict[str, Broadcast[Sample[Quantity]]] = {}
+        streams: list[tuple[str, Receiver[Sample[Quantity]], bool]] = []
         builder = FormulaBuilder("test_averager", create_method=Quantity)
         for comp_id in components:
             if comp_id not in channels:

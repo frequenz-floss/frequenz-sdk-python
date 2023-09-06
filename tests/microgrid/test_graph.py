@@ -29,10 +29,10 @@ from .mock_api import MockGrpcServer, MockMicrogridServicer
 
 
 def _check_predecessors_and_successors(graph: gr.ComponentGraph) -> None:
-    expected_predecessors: Dict[int, Set[Component]] = {}
-    expected_successors: Dict[int, Set[Component]] = {}
+    expected_predecessors: dict[int, set[Component]] = {}
+    expected_successors: dict[int, set[Component]] = {}
 
-    components: Dict[int, Component] = {
+    components: dict[int, Component] = {
         component.component_id: component for component in graph.components()
     }
 
@@ -63,7 +63,7 @@ class TestComponentGraph:
     """
 
     @pytest.fixture()
-    def sample_input_components(self) -> Set[Component]:
+    def sample_input_components(self) -> set[Component]:
         """Create a sample set of components for testing purposes."""
         return {
             Component(11, ComponentCategory.GRID),
@@ -74,7 +74,7 @@ class TestComponentGraph:
         }
 
     @pytest.fixture()
-    def sample_input_connections(self) -> Set[Connection]:
+    def sample_input_connections(self) -> set[Connection]:
         """Create a sample set of connections for testing purposes."""
         return {
             Connection(11, 21),
@@ -86,8 +86,8 @@ class TestComponentGraph:
     @pytest.fixture()
     def sample_graph(
         self,
-        sample_input_components: Set[Component],
-        sample_input_connections: Set[Connection],
+        sample_input_components: set[Component],
+        sample_input_connections: set[Connection],
     ) -> gr.ComponentGraph:
         """Create a sample graph for testing purposes."""
         _graph_implementation = gr._MicrogridComponentGraph(
@@ -211,7 +211,7 @@ class TestComponentGraph:
         ],
     )
     def test_filter_graph_components_by_id(
-        self, sample_graph: gr.ComponentGraph, ids: Set[int], expected: Set[Component]
+        self, sample_graph: gr.ComponentGraph, ids: set[int], expected: set[Component]
     ) -> None:
         """Test the graph component query with component ID filter."""
         # with component_id filter specified, we get back only components whose ID
@@ -261,8 +261,8 @@ class TestComponentGraph:
     def test_filter_graph_components_by_type(
         self,
         sample_graph: gr.ComponentGraph,
-        types: Set[ComponentCategory],
-        expected: Set[Component],
+        types: set[ComponentCategory],
+        expected: set[Component],
     ) -> None:
         """Test the graph component query with component category filter."""
         # with component_id filter specified, we get back only components whose ID
@@ -293,9 +293,9 @@ class TestComponentGraph:
     def test_filter_graph_components_with_composite_filter(
         self,
         sample_graph: gr.ComponentGraph,
-        ids: Set[int],
-        types: Set[ComponentCategory],
-        expected: Set[Component],
+        ids: set[int],
+        types: set[ComponentCategory],
+        expected: set[Component],
     ) -> None:
         """Test the graph component query with composite filter."""
         # when both filters are applied, they are combined via AND logic, i.e.
@@ -310,7 +310,7 @@ class TestComponentGraph:
         )
 
     def test_components_without_filters(
-        self, sample_input_components: Set[Component], sample_graph: gr.ComponentGraph
+        self, sample_input_components: set[Component], sample_graph: gr.ComponentGraph
     ) -> None:
         """Test the graph component query without filters."""
         # without any filter applied, we get back all the components in the graph

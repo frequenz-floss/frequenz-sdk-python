@@ -154,8 +154,8 @@ class EvChargerDataWrapper(EVChargerData):
         component_id: int,
         timestamp: datetime,
         active_power: float = math.nan,
-        current_per_phase: Tuple[float, float, float] | None = None,
-        voltage_per_phase: Tuple[float, float, float] | None = None,
+        current_per_phase: tuple[float, float, float] | None = None,
+        voltage_per_phase: tuple[float, float, float] | None = None,
         frequency: float = 50.0,
         cable_state: EVChargerCableState = EVChargerCableState.UNSPECIFIED,
         component_state: EVChargerComponentState = EVChargerComponentState.UNSPECIFIED,
@@ -208,8 +208,8 @@ class MeterDataWrapper(MeterData):
         component_id: int,
         timestamp: datetime,
         active_power: float = math.nan,
-        current_per_phase: Tuple[float, float, float] | None = None,
-        voltage_per_phase: Tuple[float, float, float] | None = None,
+        current_per_phase: tuple[float, float, float] | None = None,
+        voltage_per_phase: tuple[float, float, float] | None = None,
         frequency: float = math.nan,
     ) -> None:
         """Initialize the MeterDataWrapper.

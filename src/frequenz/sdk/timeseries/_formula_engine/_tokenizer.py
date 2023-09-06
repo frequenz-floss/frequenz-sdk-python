@@ -64,7 +64,7 @@ class StringIter:
             return char
         raise StopIteration()
 
-    def peek(self) -> Optional[str]:
+    def peek(self) -> str | None:
         """Return the next character in the raw string, without consuming it.
 
         Returns:

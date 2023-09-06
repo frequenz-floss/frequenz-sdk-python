@@ -4,9 +4,10 @@
 
 import asyncio
 import math
+from collections.abc import AsyncIterator, Iterable
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import AsyncIterator, Generic, Iterable, List, Optional, TypeVar
+from typing import Generic, List, Optional, TypeVar
 
 import pytest
 import time_machine
@@ -38,10 +39,10 @@ from ..utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapp
 
 def battery_data(  # pylint: disable=too-many-arguments
     component_id: int,
-    timestamp: Optional[datetime] = None,
+    timestamp: datetime | None = None,
     relay_state: BatteryRelayState.ValueType = BatteryRelayState.RELAY_STATE_CLOSED,
     component_state: BatteryState.ValueType = BatteryState.COMPONENT_STATE_CHARGING,
-    errors: Optional[Iterable[BatteryError]] = None,
+    errors: Iterable[BatteryError] | None = None,
     capacity: float = 0,
 ) -> BatteryData:
     """Create BatteryData with given arguments.
@@ -76,9 +77,9 @@ def battery_data(  # pylint: disable=too-many-arguments
 
 def inverter_data(
     component_id: int,
-    timestamp: Optional[datetime] = None,
+    timestamp: datetime | None = None,
     component_state: InverterState.ValueType = InverterState.COMPONENT_STATE_CHARGING,
-    errors: Optional[List[InverterError]] = None,
+    errors: list[InverterError] | None = None,
 ) -> InverterData:
     """Create InverterData with given arguments.
 

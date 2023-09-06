@@ -79,7 +79,7 @@ def _calculate_avg_window_py(
     feature_extractor: PeriodicFeatureExtractor,
     window: NDArray[np.float_],
     window_size: int,
-    weights: List[float] | None = None,
+    weights: list[float] | None = None,
 ) -> NDArray[np.float_]:
     """
     Plain python version of the average calculator.

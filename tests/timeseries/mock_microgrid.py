@@ -7,8 +7,9 @@ from __future__ import annotations
 
 import asyncio
 import typing
+from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
-from typing import Callable, Set
+from typing import Set
 
 from pytest_mock import MockerFixture
 
@@ -82,17 +83,15 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         if grid_meter is not None and graph is not None:
             raise ValueError("grid_meter and graph are mutually exclusive")
 
-        self._components: Set[Component] = (
-            set(
-                [
-                    Component(1, ComponentCategory.GRID),
-                ]
-            )
+        self._components: set[Component] = (
+            {
+                Component(1, ComponentCategory.GRID),
+            }
             if graph is None
             else graph.components()
         )
 
-        self._connections: Set[Connection] = (
+        self._connections: set[Connection] = (
             set() if graph is None else graph.connections()
         )
 
@@ -110,7 +109,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             return list(
                 map(
                     lambda c: c.component_id,
-                    graph.components(component_category=set([category])),
+                    graph.components(component_category={category}),
                 )
             )
 
@@ -121,7 +120,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             return [
                 c.component_id
                 for c in graph.components(
-                    component_category=set([ComponentCategory.INVERTER])
+                    component_category={ComponentCategory.INVERTER}
                 )
                 if c.type == comp_type
             ]
@@ -141,7 +140,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                 # Hacky, ignores multiple batteries behind one inverter
                 list(graph.successors(c.component_id))[0].component_id: c.component_id
                 for c in graph.components(
-                    component_category=set([ComponentCategory.INVERTER])
+                    component_category={ComponentCategory.INVERTER}
                 )
                 if c.type == InverterType.BATTERY
             }

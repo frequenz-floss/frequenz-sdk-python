@@ -32,7 +32,7 @@ async def main() -> None:
     )
 
     battery_pool = microgrid.battery_pool()
-    receivers: Dict[str, Receiver[Any]] = {
+    receivers: dict[str, Receiver[Any]] = {
         "soc": battery_pool.soc.new_receiver(maxsize=1),
         "capacity": battery_pool.capacity.new_receiver(maxsize=1),
         "power_bounds": battery_pool.power_bounds.new_receiver(maxsize=1),

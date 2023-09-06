@@ -17,7 +17,7 @@ import numpy.typing as npt
 from .._base_types import UNIX_EPOCH, Sample
 from .._quantities import QuantityT
 
-FloatArray = TypeVar("FloatArray", List[float], npt.NDArray[np.float64])
+FloatArray = TypeVar("FloatArray", list[float], npt.NDArray[np.float64])
 """Type variable of the buffer container."""
 
 
@@ -98,7 +98,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         return self._sampling_period
 
     @property
-    def gaps(self) -> List[Gap]:
+    def gaps(self) -> list[Gap]:
         """Get the list of ranges for which no values were provided.
 
         See definition of dataclass @Gaps for more info.

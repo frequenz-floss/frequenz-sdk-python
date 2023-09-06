@@ -27,7 +27,7 @@ from tests.timeseries.test_moving_window import (
 
 @contextlib.asynccontextmanager
 async def init_feature_extractor(
-    data: List[float], period: timedelta
+    data: list[float], period: timedelta
 ) -> AsyncIterator[PeriodicFeatureExtractor]:
     """
     Initialize a PeriodicFeatureExtractor with a `MovingWindow` that contains the data.
@@ -114,7 +114,7 @@ async def test_feature_extractor() -> None:  # pylint: disable=too-many-statemen
     start = UNIX_EPOCH + timedelta(seconds=1)
     end = start + timedelta(seconds=2)
 
-    data: List[float] = [1, 2, 2.5, 1, 1, 1, 2, 2, 1, 1, 2, 2]
+    data: list[float] = [1, 2, 2.5, 1, 1, 1, 2, 2, 1, 1, 2, 2]
 
     async with init_feature_extractor(data, timedelta(seconds=3)) as feature_extractor:
         assert np.allclose(feature_extractor.avg(start, end), [5 / 3, 4 / 3])
@@ -122,18 +122,18 @@ async def test_feature_extractor() -> None:  # pylint: disable=too-many-statemen
     async with init_feature_extractor(data, timedelta(seconds=4)) as feature_extractor:
         assert np.allclose(feature_extractor.avg(start, end), [1, 2])
 
-    data: List[float] = [1, 2, 2.5, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1]  # type: ignore[no-redef]
+    data: list[float] = [1, 2, 2.5, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1]  # type: ignore[no-redef]
 
     async with init_feature_extractor(data, timedelta(seconds=5)) as feature_extractor:
         assert np.allclose(feature_extractor.avg(start, end), [1.5, 1.5])
 
     async def _test_fun(  # pylint: disable=too-many-arguments
-        data: List[float],
+        data: list[float],
         period: int,
         start: int,
         end: int,
-        expected: List[float],
-        weights: List[float] | None = None,
+        expected: list[float],
+        weights: list[float] | None = None,
     ) -> None:
         async with init_feature_extractor(
             data, timedelta(seconds=period)
@@ -149,20 +149,20 @@ async def test_feature_extractor() -> None:  # pylint: disable=too-many-statemen
         period: int,
         start: int,
         end: int,
-        expected: List[float],
-        weights: List[float] | None = None,
+        expected: list[float],
+        weights: list[float] | None = None,
     ) -> None:
-        data: List[float] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        data: list[float] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         await _test_fun(data, period, start, end, expected, weights)
 
     async def test_011(
         period: int,
         start: int,
         end: int,
-        expected: List[float],
-        weights: List[float] | None = None,
+        expected: list[float],
+        weights: list[float] | None = None,
     ) -> None:
-        data: List[float] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        data: list[float] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
         await _test_fun(data, period, start, end, expected, weights)
 
     # empty time period

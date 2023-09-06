@@ -23,13 +23,13 @@ _logger = logging.getLogger(__name__)
 class BatteryStatus:
     """Status of the batteries."""
 
-    working: Set[int]
+    working: set[int]
     """Set of working battery ids."""
 
-    uncertain: Set[int]
+    uncertain: set[int]
     """Set of batteries that should be used only if there are no working batteries."""
 
-    def get_working_batteries(self, batteries: abc.Set[int]) -> Set[int]:
+    def get_working_batteries(self, batteries: abc.Set[int]) -> set[int]:
         """From the given set of batteries return working batteries.
 
         Args:
@@ -72,7 +72,7 @@ class BatteryPoolStatus:
 
     def __init__(  # noqa: DOC502 (RuntimeError is raised indirectly by BatteryStatus)
         self,
-        battery_ids: Set[int],
+        battery_ids: set[int],
         battery_status_sender: Sender[BatteryStatus],
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
@@ -101,11 +101,11 @@ class BatteryPoolStatus:
         set_power_result_channel = Broadcast[SetPowerResult]("battery_request_status")
         self._set_power_result_sender = set_power_result_channel.new_sender()
 
-        self._batteries: Dict[str, BatteryStatusTracker] = {}
+        self._batteries: dict[str, BatteryStatusTracker] = {}
 
         # Receivers for individual battery statuses are needed to create a `MergeNamed`
         # object.
-        receivers: Dict[str, Receiver[Status]] = {}
+        receivers: dict[str, Receiver[Status]] = {}
 
         for battery_id in battery_ids:
             channel = _BatteryStatusChannelHelper(battery_id)
@@ -188,7 +188,7 @@ class BatteryPoolStatus:
             await battery_status_sender.send(self._current_status)
 
     async def update_status(
-        self, succeed_batteries: Set[int], failed_batteries: Set[int]
+        self, succeed_batteries: set[int], failed_batteries: set[int]
     ) -> None:
         """Notify which batteries succeed and failed in the request.
 
@@ -204,7 +204,7 @@ class BatteryPoolStatus:
             SetPowerResult(succeed_batteries, failed_batteries)
         )
 
-    def get_working_batteries(self, batteries: abc.Set[int]) -> Set[int]:
+    def get_working_batteries(self, batteries: abc.Set[int]) -> set[int]:
         """From the given set of batteries get working.
 
         Args:

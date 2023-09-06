@@ -5,7 +5,8 @@
 
 import asyncio
 import logging
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from collections.abc import Callable
+from typing import Any, Dict, List, Optional, Tuple
 
 from frequenz.channels import Receiver, Sender
 
@@ -23,7 +24,7 @@ from ...timeseries._quantities import Quantity
 from .._channel_registry import ChannelRegistry
 from ._component_metric_request import ComponentMetricRequest
 
-_MeterDataMethods: Dict[ComponentMetricId, Callable[[MeterData], float]] = {
+_MeterDataMethods: dict[ComponentMetricId, Callable[[MeterData], float]] = {
     ComponentMetricId.ACTIVE_POWER: lambda msg: msg.active_power,
     ComponentMetricId.CURRENT_PHASE_1: lambda msg: msg.current_per_phase[0],
     ComponentMetricId.CURRENT_PHASE_2: lambda msg: msg.current_per_phase[1],
@@ -34,7 +35,7 @@ _MeterDataMethods: Dict[ComponentMetricId, Callable[[MeterData], float]] = {
     ComponentMetricId.FREQUENCY: lambda msg: msg.frequency,
 }
 
-_BatteryDataMethods: Dict[ComponentMetricId, Callable[[BatteryData], float]] = {
+_BatteryDataMethods: dict[ComponentMetricId, Callable[[BatteryData], float]] = {
     ComponentMetricId.SOC: lambda msg: msg.soc,
     ComponentMetricId.SOC_LOWER_BOUND: lambda msg: msg.soc_lower_bound,
     ComponentMetricId.SOC_UPPER_BOUND: lambda msg: msg.soc_upper_bound,
@@ -54,7 +55,7 @@ _BatteryDataMethods: Dict[ComponentMetricId, Callable[[BatteryData], float]] = {
     ComponentMetricId.TEMPERATURE: lambda msg: msg.temperature,
 }
 
-_InverterDataMethods: Dict[ComponentMetricId, Callable[[InverterData], float]] = {
+_InverterDataMethods: dict[ComponentMetricId, Callable[[InverterData], float]] = {
     ComponentMetricId.ACTIVE_POWER: lambda msg: msg.active_power,
     ComponentMetricId.ACTIVE_POWER_INCLUSION_LOWER_BOUND: lambda msg: (
         msg.active_power_inclusion_lower_bound
@@ -71,7 +72,7 @@ _InverterDataMethods: Dict[ComponentMetricId, Callable[[InverterData], float]] =
     ComponentMetricId.FREQUENCY: lambda msg: msg.frequency,
 }
 
-_EVChargerDataMethods: Dict[ComponentMetricId, Callable[[EVChargerData], float]] = {
+_EVChargerDataMethods: dict[ComponentMetricId, Callable[[EVChargerData], float]] = {
     ComponentMetricId.ACTIVE_POWER: lambda msg: msg.active_power,
     ComponentMetricId.CURRENT_PHASE_1: lambda msg: msg.current_per_phase[0],
     ComponentMetricId.CURRENT_PHASE_2: lambda msg: msg.current_per_phase[1],
@@ -99,22 +100,20 @@ class MicrogridApiSource:
             registry: A channel registry.  To be replaced by a singleton
                 instance.
         """
-        self._comp_categories_cache: Dict[int, ComponentCategory] = {}
+        self._comp_categories_cache: dict[int, ComponentCategory] = {}
 
-        self.comp_data_receivers: Dict[int, Receiver[Any]] = {}
+        self.comp_data_receivers: dict[int, Receiver[Any]] = {}
         """The dictionary of component IDs to data receivers."""
 
-        self.comp_data_tasks: Dict[int, asyncio.Task[None]] = {}
+        self.comp_data_tasks: dict[int, asyncio.Task[None]] = {}
         """The dictionary of component IDs to asyncio tasks."""
 
         self._registry = registry
-        self._req_streaming_metrics: Dict[
-            int, Dict[ComponentMetricId, List[ComponentMetricRequest]]
+        self._req_streaming_metrics: dict[
+            int, dict[ComponentMetricId, list[ComponentMetricRequest]]
         ] = {}
 
-    async def _get_component_category(
-        self, comp_id: int
-    ) -> Optional[ComponentCategory]:
+    async def _get_component_category(self, comp_id: int) -> ComponentCategory | None:
         """Get the component category of the given component.
 
         Args:
@@ -139,7 +138,7 @@ class MicrogridApiSource:
     async def _check_battery_request(
         self,
         comp_id: int,
-        requests: Dict[ComponentMetricId, List[ComponentMetricRequest]],
+        requests: dict[ComponentMetricId, list[ComponentMetricRequest]],
     ) -> None:
         """Check if the requests are valid Battery metrics.
 
@@ -162,7 +161,7 @@ class MicrogridApiSource:
     async def _check_ev_charger_request(
         self,
         comp_id: int,
-        requests: Dict[ComponentMetricId, List[ComponentMetricRequest]],
+        requests: dict[ComponentMetricId, list[ComponentMetricRequest]],
     ) -> None:
         """Check if the requests are valid EV Charger metrics.
 
@@ -185,7 +184,7 @@ class MicrogridApiSource:
     async def _check_inverter_request(
         self,
         comp_id: int,
-        requests: Dict[ComponentMetricId, List[ComponentMetricRequest]],
+        requests: dict[ComponentMetricId, list[ComponentMetricRequest]],
     ) -> None:
         """Check if the requests are valid Inverter metrics.
 
@@ -208,7 +207,7 @@ class MicrogridApiSource:
     async def _check_meter_request(
         self,
         comp_id: int,
-        requests: Dict[ComponentMetricId, List[ComponentMetricRequest]],
+        requests: dict[ComponentMetricId, list[ComponentMetricRequest]],
     ) -> None:
         """Check if the requests are valid Meter metrics.
 
@@ -232,7 +231,7 @@ class MicrogridApiSource:
         self,
         comp_id: int,
         category: ComponentCategory,
-        requests: Dict[ComponentMetricId, List[ComponentMetricRequest]],
+        requests: dict[ComponentMetricId, list[ComponentMetricRequest]],
     ) -> None:
         """Check if the requested component and metrics are valid.
 
@@ -289,8 +288,8 @@ class MicrogridApiSource:
     def _get_metric_senders(
         self,
         category: ComponentCategory,
-        requests: Dict[ComponentMetricId, List[ComponentMetricRequest]],
-    ) -> List[Tuple[Callable[[Any], float], List[Sender[Sample[Quantity]]]]]:
+        requests: dict[ComponentMetricId, list[ComponentMetricRequest]],
+    ) -> list[tuple[Callable[[Any], float], list[Sender[Sample[Quantity]]]]]:
         """Get channel senders from the channel registry for each requested metric.
 
         Args:

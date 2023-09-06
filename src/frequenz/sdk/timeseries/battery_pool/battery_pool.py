@@ -7,9 +7,9 @@ from __future__ import annotations
 
 import asyncio
 import uuid
-from collections.abc import Set
+from collections.abc import Awaitable, Set
 from datetime import timedelta
-from typing import Any, Awaitable
+from typing import Any
 
 from frequenz.channels import Receiver, Sender
 

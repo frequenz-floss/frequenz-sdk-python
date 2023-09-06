@@ -97,7 +97,7 @@ class BoundsSetter:
         meter_data = (
             await api_client.meter_data(next(iter(meters)).component_id)
         ).into_peekable()
-        latest_bound: Dict[int, ComponentCurrentLimit] = {}
+        latest_bound: dict[int, ComponentCurrentLimit] = {}
 
         bound_chan = self._bounds_rx
         timer = Timer.timeout(timedelta(self._repeat_interval.total_seconds()))

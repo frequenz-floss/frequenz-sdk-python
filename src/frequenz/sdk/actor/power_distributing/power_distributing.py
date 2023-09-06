@@ -18,10 +18,11 @@ import logging
 import time
 from asyncio.tasks import ALL_COMPLETED
 from collections import abc
+from collections.abc import Iterable
 from dataclasses import dataclass, replace
 from datetime import timedelta
 from math import isnan
-from typing import Any, Dict, Iterable, List, Optional, Self, Set, Tuple
+from typing import Any, Dict, List, Optional, Self, Set, Tuple
 
 import grpc
 from frequenz.channels import Peekable, Receiver, Sender
@@ -137,7 +138,7 @@ class PowerDistributingActor(Actor):
         self._requests_receiver = requests_receiver
         self._channel_registry = channel_registry
         self._wait_for_data_sec = wait_for_data_sec
-        self._result_senders: Dict[str, Sender[Result]] = {}
+        self._result_senders: dict[str, Sender[Result]] = {}
         """Dictionary of result senders for each request namespace.
 
         They are for channels owned by the channel registry, we just hold a reference
@@ -160,8 +161,8 @@ class PowerDistributingActor(Actor):
         self._bat_inv_map, self._inv_bat_map = self._get_components_pairs(
             connection_manager.get().component_graph
         )
-        self._battery_receivers: Dict[int, Peekable[BatteryData]] = {}
-        self._inverter_receivers: Dict[int, Peekable[InverterData]] = {}
+        self._battery_receivers: dict[int, Peekable[BatteryData]] = {}
+        self._inverter_receivers: dict[int, Peekable[InverterData]] = {}
 
         self._all_battery_status = BatteryPoolStatus(
             battery_ids=set(self._bat_inv_map.keys()),
@@ -249,7 +250,7 @@ class PowerDistributingActor(Actor):
 
         async for request in self._requests_receiver:
             try:
-                pairs_data: List[InvBatPair] = self._get_components_data(
+                pairs_data: list[InvBatPair] = self._get_components_data(
                     request.batteries, request.include_broken_batteries
                 )
             except KeyError as err:
@@ -331,7 +332,7 @@ class PowerDistributingActor(Actor):
         api: MicrogridApiClient,
         distribution: DistributionResult,
         timeout: timedelta,
-    ) -> Tuple[float, Set[int]]:
+    ) -> tuple[float, set[int]]:
         """Send distributed power to the inverters.
 
         Args:
@@ -359,7 +360,7 @@ class PowerDistributingActor(Actor):
         return self._parse_result(tasks, distribution.distribution, timeout)
 
     def _get_power_distribution(
-        self, request: Request, inv_bat_pairs: List[InvBatPair]
+        self, request: Request, inv_bat_pairs: list[InvBatPair]
     ) -> DistributionResult:
         """Get power distribution result for the batteries in the request.
 
@@ -399,8 +400,8 @@ class PowerDistributingActor(Actor):
     def _check_request(
         self,
         request: Request,
-        pairs_data: List[InvBatPair],
-    ) -> Optional[Result]:
+        pairs_data: list[InvBatPair],
+    ) -> Result | None:
         """Check whether the given request if correct.
 
         Args:
@@ -448,7 +449,7 @@ class PowerDistributingActor(Actor):
 
     def _get_components_pairs(
         self, component_graph: ComponentGraph
-    ) -> Tuple[Dict[int, int], Dict[int, int]]:
+    ) -> tuple[dict[int, int], dict[int, int]]:
         """Create maps between battery and adjacent inverter.
 
         Args:
@@ -459,15 +460,15 @@ class PowerDistributingActor(Actor):
                 second element of the tuple is map between inverter and adjacent
                 battery.
         """
-        bat_inv_map: Dict[int, int] = {}
-        inv_bat_map: Dict[int, int] = {}
+        bat_inv_map: dict[int, int] = {}
+        inv_bat_map: dict[int, int] = {}
 
         batteries: Iterable[Component] = component_graph.components(
             component_category={ComponentCategory.BATTERY}
         )
 
         for battery in batteries:
-            inverters: List[Component] = [
+            inverters: list[Component] = [
                 component
                 for component in component_graph.predecessors(battery.component_id)
                 if component.category == ComponentCategory.INVERTER
@@ -490,7 +491,7 @@ class PowerDistributingActor(Actor):
 
     def _get_components_data(
         self, batteries: abc.Set[int], include_broken: bool
-    ) -> List[InvBatPair]:
+    ) -> list[InvBatPair]:
         """Get data for the given batteries and adjacent inverters.
 
         Args:
@@ -504,7 +505,7 @@ class PowerDistributingActor(Actor):
         Returns:
             Pairs of battery and adjacent inverter data.
         """
-        pairs_data: List[InvBatPair] = []
+        pairs_data: list[InvBatPair] = []
         working_batteries = (
             batteries
             if include_broken
@@ -539,7 +540,7 @@ class PowerDistributingActor(Actor):
 
     def _get_battery_inverter_data(
         self, battery_id: int, inverter_id: int
-    ) -> Optional[InvBatPair]:
+    ) -> InvBatPair | None:
         """Get battery and inverter data if they are correct.
 
         Each float data from the microgrid can be "NaN".
@@ -637,10 +638,10 @@ class PowerDistributingActor(Actor):
 
     def _parse_result(
         self,
-        tasks: Dict[int, asyncio.Task[None]],
-        distribution: Dict[int, float],
+        tasks: dict[int, asyncio.Task[None]],
+        distribution: dict[int, float],
         request_timeout: timedelta,
-    ) -> Tuple[float, Set[int]]:
+    ) -> tuple[float, set[int]]:
         """Parse the results of `set_power` requests.
 
         Check if any task has failed and determine the reason for failure.
@@ -658,7 +659,7 @@ class PowerDistributingActor(Actor):
             the set of batteries that failed.
         """
         failed_power: float = 0.0
-        failed_batteries: Set[int] = set()
+        failed_batteries: set[int] = set()
 
         for inverter_id, aws in tasks.items():
             battery_id = self._inv_bat_map[inverter_id]

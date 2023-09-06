@@ -46,7 +46,7 @@ class GridCurrentFormula(FormulaGenerator[Current]):
 
     def _gen_phase_formula(
         self,
-        grid_successors: Set[Component],
+        grid_successors: set[Component],
         metric_id: ComponentMetricId,
     ) -> FormulaEngine[Current]:
         builder = self._get_builder("grid-current", metric_id, Current.from_amperes)

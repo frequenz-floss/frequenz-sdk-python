@@ -3,9 +3,9 @@
 
 """Benchmark resampling."""
 
+from collections.abc import Sequence
 from datetime import datetime, timedelta, timezone
 from timeit import timeit
-from typing import Sequence
 
 from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._quantities import Quantity

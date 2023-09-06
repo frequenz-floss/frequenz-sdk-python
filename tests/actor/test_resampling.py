@@ -4,8 +4,8 @@
 """Frequenz Python SDK resampling example."""
 import asyncio
 import dataclasses
+from collections.abc import Iterator
 from datetime import datetime, timedelta, timezone
-from typing import Iterator
 
 import async_solipsism
 import pytest

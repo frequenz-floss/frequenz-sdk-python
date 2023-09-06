@@ -131,7 +131,7 @@ async def benchmark_data_sourcing(
         )
 
 
-def parse_args() -> Tuple[int, int, bool]:
+def parse_args() -> tuple[int, int, bool]:
     """Parse the command line arguments.
 
     Returns:
