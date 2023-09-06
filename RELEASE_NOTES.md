@@ -24,6 +24,8 @@
 
 - NaN values are treated as missing when gaps are determined in the `OrderedRingBuffer`.
 
+- A new class `FormulaFormatter` has been added to format formulas from `FormulaEngine`. For convenience, `FormulaEngine` now provides an `__str__` override that makes use of this to make formulas more intuitively introspectible.
+
 ## Bug Fixes
 
 <!-- Here goes notable bug fixes that are worth a special mention or explanation -->
