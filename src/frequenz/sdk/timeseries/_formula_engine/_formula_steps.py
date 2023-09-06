@@ -7,13 +7,12 @@ from __future__ import annotations
 
 import math
 from abc import ABC, abstractmethod
-from typing import Generic, Sequence
+from typing import Generic
 
 from frequenz.channels import Receiver
 
 from .. import Sample
 from .._quantities import QuantityT
-from ._exceptions import FormulaEngineError
 
 
 class FormulaStep(ABC):
@@ -194,63 +193,6 @@ class OpenParen(FormulaStep):
 
     def apply(self, _: list[float]) -> None:
         """No-op."""
-
-
-class Averager(Generic[QuantityT], FormulaStep):
-    """A formula step for calculating average."""
-
-    def __init__(self, fetchers: list[MetricFetcher[QuantityT]]) -> None:
-        """Create an `Averager` instance.
-
-        Args:
-            fetchers: MetricFetchers for the metrics that need to be averaged.
-        """
-        self._fetchers: list[MetricFetcher[QuantityT]] = fetchers
-
-    @property
-    def fetchers(self) -> Sequence[MetricFetcher[QuantityT]]:
-        """Return the metric fetchers.
-
-        Returns:
-            The metric fetchers.
-        """
-        return self._fetchers
-
-    def __repr__(self) -> str:
-        """Return a string representation of the step.
-
-        Returns:
-            A string representation of the step.
-        """
-        return f"avg({', '.join(repr(f) for f in self._fetchers)})"
-
-    def apply(self, eval_stack: list[float]) -> None:
-        """Calculate average of given metrics, push the average to the eval_stack.
-
-        Args:
-            eval_stack: An evaluation stack, to append the calculated average to.
-
-        Raises:
-            FormulaEngineError: when metric fetchers are unable to fetch values.
-        """
-        value_count = 0
-        total = 0.0
-        for fetcher in self._fetchers:
-            next_val = fetcher.value
-            if next_val is None:
-                raise FormulaEngineError(
-                    "Unable to fetch a value from the resampling actor."
-                )
-            if next_val.value is None:
-                continue
-            value_count += 1
-            total += next_val.value.base_value
-        if value_count == 0:
-            avg = 0.0
-        else:
-            avg = total / value_count
-
-        eval_stack.append(avg)
 
 
 class ConstantValue(FormulaStep):

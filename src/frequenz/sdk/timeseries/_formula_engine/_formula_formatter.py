@@ -9,7 +9,6 @@ import enum
 
 from ._formula_steps import (
     Adder,
-    Averager,
     Clipper,
     ConstantValue,
     Divider,
@@ -200,12 +199,6 @@ class FormulaFormatter:
                     self._format_binary(Operator.MULTIPLICATION)
                 case Divider():
                     self._format_binary(Operator.DIVISION)
-                case Averager():
-                    value = (
-                        # pylint: disable=protected-access
-                        f"avg({', '.join(self.format([f]) for f in step.fetchers)})"
-                    )
-                    self._stack.append(StackItem(value, OperatorPrecedence.PRIMARY, 1))
                 case Clipper():
                     the_value = self._stack.pop()
                     min_value = step.min_value if step.min_value is not None else "-inf"

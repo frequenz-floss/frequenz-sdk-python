@@ -33,6 +33,8 @@
 
 - The `min` and `max` functions in the `FormulaEngine` are now public. Note that the same functions have been public in the builder.
 
+- Drop `Averager` from `FormulaEngine`.
+
 ## Bug Fixes
 
 <!-- Here goes notable bug fixes that are worth a special mention or explanation -->
