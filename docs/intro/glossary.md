@@ -72,6 +72,18 @@ For example, a time series for the capacity of a battery with component ID 5 has
 
 ## Metrics
 
+### Gross Consumption
+
+Consumption before accounting for any local generation from solar, wind or CHP.
+
+### Net Consumption / Load
+
+This term traditionally refers to the difference between the gross consumption and the local generation (like PV production). It iss the electricity consumption that needs to be met by the battery or from the main grid.
+
+### Residual Consumption / Load
+
+In microgrid context sometimes used as the remaining difference between the net consumption and the battery power, i.e. what we define as grid power.
+
 ### SoC (State of Charge)
 
 The level of charge of a battery relative to its capacity, expressed in percentage points. Calculated as the ratio between the remaining energy in the battery at a given time and the maximum possible energy under similar health conditions. [Source](https://epicpower.es/wp-content/uploads/2020/08/AN028_SoC-SoH-SoP-definitions_v3.pdf)
@@ -113,15 +125,3 @@ Positive power value if `{component}_power` is positive, otherwise zero.
 ### `{component}_production_power`
 
 Positive power value if `{component}_power` is negative, otherwise zero.
-
-### Gross Consumption
-
-Consumption before accounting for any local generation from solar, wind or CHP. Not exposed by the SDK.
-
-### Net Consumption / Load
-
-This term traditionally refers to the difference between the gross electricity consumption and the local generation (like PV production). This is the electricity consumption that needs to be met by the battery or from the main grid. This means `consumer_power + {pv,chp,wind}_power` (note that latter is negative when electricity is produced). Since this term caused confusion in the past, it's not exposed by the SDK. Not exposed by the SDK.
-
-### Residual Consumption / Load
-
-In microgrid context sometimes used as the remaining difference between the net consumption and the battery power, i.e. what we define as grid power. Not exposed by the SDK.
