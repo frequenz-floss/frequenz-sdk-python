@@ -42,6 +42,8 @@ In the SDK it is normally used as a synonym for [solar panel](#solar-panel).
 
 ## Microgrid
 
+A local electrical grid that connects a set of different [types of components](#component-category) together. It can be connected to the public [grid](#grid), or be completely isolated, in which case it is known as an island.
+
 ### Component Category
 
 The category [components](#component) of a [microgrid](#microgrid) belong to.
