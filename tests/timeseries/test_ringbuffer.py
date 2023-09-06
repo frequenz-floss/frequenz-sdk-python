@@ -210,18 +210,21 @@ def test_gaps() -> None:  # pylint: disable=too-many-statements
     assert buffer.oldest_timestamp is None
     assert buffer.newest_timestamp is None
     assert buffer.count_valid() == 0
+    assert buffer.count_covered() == 0
     assert len(buffer.gaps) == 0
 
     buffer.update(Sample(dt(0), Quantity(0)))
     assert buffer.oldest_timestamp == dt(0)
     assert buffer.newest_timestamp == dt(0)
     assert buffer.count_valid() == 1
+    assert buffer.count_covered() == 1
     assert len(buffer.gaps) == 1
 
     buffer.update(Sample(dt(6), Quantity(0)))
     assert buffer.oldest_timestamp == dt(6)
     assert buffer.newest_timestamp == dt(6)
     assert buffer.count_valid() == 1
+    assert buffer.count_covered() == 1
     assert len(buffer.gaps) == 1
 
     buffer.update(Sample(dt(2), Quantity(2)))
@@ -230,48 +233,57 @@ def test_gaps() -> None:  # pylint: disable=too-many-statements
     assert buffer.oldest_timestamp == dt(2)
     assert buffer.newest_timestamp == dt(6)
     assert buffer.count_valid() == 4
+    assert buffer.count_covered() == 5
     assert len(buffer.gaps) == 1
 
     buffer.update(Sample(dt(3), None))
     assert buffer.oldest_timestamp == dt(2)
     assert buffer.newest_timestamp == dt(6)
     assert buffer.count_valid() == 3
+    assert buffer.count_covered() == 5
     assert len(buffer.gaps) == 2
 
     buffer.update(Sample(dt(3), Quantity(np.nan)))
     assert buffer.oldest_timestamp == dt(2)
     assert buffer.newest_timestamp == dt(6)
     assert buffer.count_valid() == 3
+    assert buffer.count_covered() == 5
     assert len(buffer.gaps) == 2
 
     buffer.update(Sample(dt(2), Quantity(np.nan)))
     assert buffer.oldest_timestamp == dt(4)
     assert buffer.newest_timestamp == dt(6)
     assert buffer.count_valid() == 2
+    assert buffer.count_covered() == 3
     assert len(buffer.gaps) == 2
 
     buffer.update(Sample(dt(3), Quantity(3)))
     assert buffer.oldest_timestamp == dt(3)
     assert buffer.newest_timestamp == dt(6)
     assert buffer.count_valid() == 3
+    assert buffer.count_covered() == 4
     assert len(buffer.gaps) == 2
 
     buffer.update(Sample(dt(2), Quantity(2)))
     assert buffer.oldest_timestamp == dt(2)
     assert buffer.newest_timestamp == dt(6)
     assert buffer.count_valid() == 4
+    assert buffer.count_covered() == 5
     assert len(buffer.gaps) == 1
 
     buffer.update(Sample(dt(5), Quantity(5)))
     assert buffer.oldest_timestamp == dt(2)
     assert buffer.newest_timestamp == dt(6)
     assert buffer.count_valid() == 5
+    assert buffer.count_covered() == 5
     assert len(buffer.gaps) == 0
 
+    # whole range gap suffers from sdk#646
     buffer.update(Sample(dt(99), None))
     assert buffer.oldest_timestamp == dt(95)  # bug: should be None
     assert buffer.newest_timestamp == dt(99)  # bug: should be None
     assert buffer.count_valid() == 4  # bug: should be 0 (whole range gap)
+    assert buffer.count_covered() == 5  # bug: should be 0
     assert len(buffer.gaps) == 1
 
 
