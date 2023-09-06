@@ -9,7 +9,6 @@ import asyncio
 import typing
 from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
-from typing import Set
 
 from pytest_mock import MockerFixture
 

@@ -4,7 +4,7 @@
 """Definition of Singleton metaclass."""
 
 from threading import Lock
-from typing import Any, Dict
+from typing import Any
 
 
 class SingletonMeta(type):

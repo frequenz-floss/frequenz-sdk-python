@@ -10,7 +10,6 @@ component graph.
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Optional
 
 import grpc.aio as grpcaio
 

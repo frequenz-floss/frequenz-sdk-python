@@ -6,7 +6,7 @@
 import random
 import timeit
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, TypeVar
+from typing import Any, TypeVar
 
 import numpy as np
 

@@ -7,7 +7,7 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable, Iterable
-from typing import Any, Dict, Optional, Set, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 import grpc
 from frequenz.api.common import components_pb2 as components_pb

@@ -22,7 +22,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass, replace
 from datetime import timedelta
 from math import isnan
-from typing import Any, Dict, List, Optional, Self, Set, Tuple
+from typing import Any, Self
 
 import grpc
 from frequenz.channels import Peekable, Receiver, Sender

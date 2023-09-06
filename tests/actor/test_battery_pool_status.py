@@ -3,7 +3,6 @@
 """Tests for BatteryPoolStatus."""
 
 import asyncio
-from typing import Set
 
 from frequenz.channels import Broadcast
 from pytest_mock import MockerFixture

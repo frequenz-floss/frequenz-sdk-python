@@ -6,7 +6,7 @@
 import asyncio
 import logging
 from collections.abc import Callable
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from frequenz.channels import Receiver, Sender
 

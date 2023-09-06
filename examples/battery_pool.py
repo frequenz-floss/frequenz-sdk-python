@@ -8,7 +8,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import timedelta
-from typing import Any, Dict
+from typing import Any
 
 from frequenz.channels import Receiver
 from frequenz.channels.util import MergeNamed

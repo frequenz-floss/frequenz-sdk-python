@@ -9,7 +9,7 @@ import random
 import timeit
 from collections.abc import Coroutine
 from datetime import timedelta
-from typing import Any, Dict, List, Set  # pylint: disable=unused-import
+from typing import Any
 
 from frequenz.channels import Broadcast
 

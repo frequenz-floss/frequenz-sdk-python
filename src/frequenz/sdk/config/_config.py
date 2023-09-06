@@ -4,7 +4,7 @@
 """Read and update config variables."""
 
 import logging
-from typing import Any, Dict, Optional, TypeVar
+from typing import Any, TypeVar
 
 # pylint not finding parse_raw_as is a false positive
 from pydantic import ValidationError, parse_raw_as  # pylint: disable=no-name-in-module

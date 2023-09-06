@@ -9,7 +9,6 @@ import random
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from copy import deepcopy
-from typing import Optional
 
 DEFAULT_RETRY_INTERVAL = 3.0
 """Default retry interval, in seconds."""

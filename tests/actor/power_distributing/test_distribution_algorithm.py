@@ -6,7 +6,6 @@
 import math
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
 
 from pytest import approx, raises
 

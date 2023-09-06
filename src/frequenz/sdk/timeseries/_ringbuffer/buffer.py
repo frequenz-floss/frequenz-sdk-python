@@ -9,7 +9,7 @@ from collections.abc import Iterable
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Generic, List, SupportsFloat, SupportsIndex, TypeVar, overload
+from typing import Generic, SupportsFloat, SupportsIndex, TypeVar, overload
 
 import numpy as np
 import numpy.typing as npt

@@ -6,7 +6,6 @@
 import contextlib
 from collections.abc import AsyncIterator
 from datetime import datetime, timedelta, timezone
-from typing import List
 
 import numpy as np
 import pytest

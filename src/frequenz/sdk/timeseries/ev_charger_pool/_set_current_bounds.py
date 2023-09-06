@@ -7,7 +7,6 @@ import asyncio
 import logging
 from dataclasses import dataclass
 from datetime import timedelta
-from typing import Dict
 
 from frequenz.channels import Broadcast, Sender
 from frequenz.channels.util import Timer, select, selected_from

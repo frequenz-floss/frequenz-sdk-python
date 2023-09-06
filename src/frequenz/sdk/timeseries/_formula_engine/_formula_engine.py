@@ -10,7 +10,7 @@ import logging
 from abc import ABC
 from collections import deque
 from collections.abc import Callable
-from typing import Dict, Generic, List, Optional, Tuple, Type, TypeVar, Union, overload
+from typing import Generic, TypeVar, Union, overload
 
 from frequenz.channels import Broadcast, Receiver
 

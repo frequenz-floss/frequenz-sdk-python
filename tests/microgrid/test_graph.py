@@ -8,7 +8,6 @@
 # pylint: disable=too-many-lines,protected-access,no-member
 
 from dataclasses import asdict
-from typing import Dict, Set
 
 import frequenz.api.common.components_pb2 as components_pb
 import grpc

@@ -7,7 +7,6 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import List, Optional, Tuple
 
 import frequenz.api.microgrid.battery_pb2 as battery_pb
 import frequenz.api.microgrid.inverter_pb2 as inverter_pb

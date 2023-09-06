@@ -7,7 +7,7 @@ import math
 from collections.abc import AsyncIterator, Iterable
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Generic, List, Optional, TypeVar
+from typing import Generic, TypeVar
 
 import pytest
 import time_machine

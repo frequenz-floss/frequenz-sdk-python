@@ -14,7 +14,6 @@ from collections import deque
 from collections.abc import AsyncIterator, Callable, Coroutine, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Optional
 
 from frequenz.channels.util import Timer
 from frequenz.channels.util._timer import _to_microseconds

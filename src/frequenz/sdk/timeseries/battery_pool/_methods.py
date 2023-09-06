@@ -8,7 +8,7 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta, timezone
-from typing import Generic, Optional
+from typing import Generic
 
 from frequenz.channels import Broadcast, Receiver
 

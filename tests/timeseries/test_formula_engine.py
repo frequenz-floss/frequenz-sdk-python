@@ -6,7 +6,6 @@
 import asyncio
 from collections.abc import Callable
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple, Union
 
 from frequenz.channels import Broadcast, Receiver
 

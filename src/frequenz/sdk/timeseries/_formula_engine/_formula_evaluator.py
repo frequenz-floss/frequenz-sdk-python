@@ -7,7 +7,7 @@ import asyncio
 from collections.abc import Callable
 from datetime import datetime
 from math import isinf, isnan
-from typing import Dict, Generic, List, Optional, Set
+from typing import Generic
 
 from .. import Sample
 from .._quantities import QuantityT

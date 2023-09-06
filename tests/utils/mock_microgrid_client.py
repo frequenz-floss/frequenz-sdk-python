@@ -3,7 +3,7 @@
 
 """Mock microgrid definition."""
 from functools import partial
-from typing import Any, Dict, Set
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 from frequenz.channels import Broadcast, Receiver

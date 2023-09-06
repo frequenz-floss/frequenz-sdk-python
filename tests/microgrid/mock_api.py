@@ -15,7 +15,6 @@ from collections.abc import Iterable, Iterator
 
 # pylint: disable=invalid-name,no-name-in-module,unused-import
 from concurrent import futures
-from typing import List, Optional, Tuple
 
 import grpc
 from frequenz.api.common.components_pb2 import (

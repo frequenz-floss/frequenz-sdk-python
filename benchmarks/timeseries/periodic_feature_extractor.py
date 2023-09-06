@@ -18,7 +18,6 @@ import logging
 from datetime import datetime, timedelta, timezone
 from functools import partial
 from timeit import timeit
-from typing import List
 
 import numpy as np
 from frequenz.channels import Broadcast

@@ -11,7 +11,7 @@ import math
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from datetime import datetime, timezone
-from typing import Any, Generic, Optional, Self, Set, TypeVar
+from typing import Any, Generic, Self, TypeVar
 
 from frequenz.channels import ChannelClosedError, Receiver
 

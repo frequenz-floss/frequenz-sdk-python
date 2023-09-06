@@ -8,7 +8,6 @@ import asyncio
 import logging
 from collections import abc
 from dataclasses import dataclass
-from typing import Dict, Set
 
 from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.channels.util import MergeNamed

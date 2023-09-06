@@ -3,8 +3,6 @@
 
 """Formula generator from component graph for 3-phase Grid Current."""
 
-from typing import Set
-
 from ....microgrid.component import Component, ComponentCategory, ComponentMetricId
 from ..._quantities import Current
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase

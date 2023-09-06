@@ -3,7 +3,7 @@
 
 """A class that would dynamically create, own and provide access to channels."""
 
-from typing import Any, Dict
+from typing import Any
 
 from frequenz.channels import Broadcast, Receiver, Sender
 

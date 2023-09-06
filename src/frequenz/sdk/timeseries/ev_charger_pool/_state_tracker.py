@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import asyncio
 from enum import Enum
-from typing import Optional
 
 from frequenz.channels import Receiver
 from frequenz.channels.util import Merge

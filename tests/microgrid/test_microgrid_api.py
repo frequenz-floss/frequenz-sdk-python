@@ -5,7 +5,6 @@
 
 import asyncio
 from asyncio.tasks import ALL_COMPLETED
-from typing import List
 from unittest import mock
 from unittest.mock import AsyncMock, MagicMock
 

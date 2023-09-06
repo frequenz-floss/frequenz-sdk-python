@@ -14,7 +14,7 @@ import asyncio
 import sys
 import tracemalloc
 from time import perf_counter
-from typing import Any, Tuple
+from typing import Any
 
 from frequenz.channels import Broadcast, Receiver, ReceiverStoppedError
 

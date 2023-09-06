@@ -17,7 +17,6 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import List, Tuple
 
 import numpy as np
 from numpy.typing import NDArray

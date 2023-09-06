@@ -6,7 +6,6 @@
 import asyncio
 from collections.abc import Iterator, Sequence
 from datetime import datetime, timedelta, timezone
-from typing import Tuple
 
 import async_solipsism
 import numpy as np

@@ -15,7 +15,6 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, replace
 from datetime import datetime
-from typing import Tuple
 
 import frequenz.api.microgrid.battery_pb2 as battery_pb
 import frequenz.api.microgrid.inverter_pb2 as inverter_pb
