@@ -206,6 +206,8 @@ class ComponentMetricId(Enum):
     VOLTAGE_PHASE_3 = "voltage_phase_3"
     """Voltage in phase 3."""
 
+    FREQUENCY = "frequency"
+
     SOC = "soc"
     """State of charge."""
     SOC_LOWER_BOUND = "soc_lower_bound"

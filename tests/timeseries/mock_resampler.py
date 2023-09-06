@@ -58,11 +58,25 @@ class MockResampler:
                 ]
             return senders
 
+        def frequency_senders(
+            comp_ids: list[int],
+        ) -> list[Sender[Sample[Quantity]]]:
+            senders: list[Sender[Sample[Quantity]]] = []
+            for comp_id in comp_ids:
+                name = f"{comp_id}:{ComponentMetricId.FREQUENCY}"
+                senders.append(self._channel_registry.new_sender(name))
+                self._basic_receivers[name] = [
+                    self._channel_registry.new_receiver(name) for _ in range(namespaces)
+                ]
+            return senders
+
         self._bat_inverter_power_senders = power_senders(bat_inverter_ids)
+        self._bat_inverter_frequency_senders = frequency_senders(bat_inverter_ids)
         self._pv_inverter_power_senders = power_senders(pv_inverter_ids)
         self._ev_power_senders = power_senders(evc_ids)
         self._chp_power_senders = power_senders(chp_ids)
         self._meter_power_senders = power_senders(meter_ids)
+        self._meter_frequency_senders = frequency_senders(meter_ids)
         self._non_existing_component_sender = power_senders(
             [NON_EXISTING_COMPONENT_ID]
         )[0]
@@ -156,6 +170,20 @@ class MockResampler:
         """Send the given values as resampler output for PV Inverter power."""
         assert len(values) == len(self._pv_inverter_power_senders)
         for chan, value in zip(self._pv_inverter_power_senders, values):
+            sample = Sample(self._next_ts, None if not value else Quantity(value))
+            await chan.send(sample)
+
+    async def send_meter_frequency(self, values: list[float | None]) -> None:
+        """Send the given values as resampler output for meter frequency."""
+        assert len(values) == len(self._meter_frequency_senders)
+        for sender, value in zip(self._meter_frequency_senders, values):
+            sample = Sample(self._next_ts, None if not value else Quantity(value))
+            await sender.send(sample)
+
+    async def send_bat_inverter_frequency(self, values: list[float | None]) -> None:
+        """Send the given values as resampler output for battery inverter frequency."""
+        assert len(values) == len(self._bat_inverter_frequency_senders)
+        for chan, value in zip(self._bat_inverter_frequency_senders, values):
             sample = Sample(self._next_ts, None if not value else Quantity(value))
             await chan.send(sample)
 

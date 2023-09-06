@@ -5,8 +5,6 @@
 
 import asyncio
 import logging
-from dataclasses import dataclass
-from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from frequenz.channels import Receiver, Sender
@@ -23,49 +21,7 @@ from ...microgrid.component import (
 from ...timeseries import Sample
 from ...timeseries._quantities import Quantity
 from .._channel_registry import ChannelRegistry
-
-
-@dataclass
-class ComponentMetricRequest:
-    """A request object to start streaming a metric for a component."""
-
-    namespace: str
-    """The namespace that this request belongs to.
-
-    Metric requests with a shared namespace enable the reuse of channels within
-    that namespace.
-
-    If for example, an actor making a multiple requests, uses the name of the
-    actor as the namespace, then requests from the actor will get reused when
-    possible.
-    """
-
-    component_id: int
-    """The ID of the requested component."""
-
-    metric_id: ComponentMetricId
-    """The ID of the requested component's metric."""
-
-    start_time: Optional[datetime]
-    """The start time from which data is required.
-
-    When None, we will stream only live data.
-    """
-
-    def get_channel_name(self) -> str:
-        """Return a channel name constructed from Self.
-
-        This channel name can be used by the sending side and receiving sides to
-        identify the right channel from the ChannelRegistry.
-
-        Returns:
-            A string denoting a channel name.
-        """
-        return (
-            f"component-stream::{self.component_id}::{self.metric_id.name}::"
-            f"{self.start_time}::{self.namespace}"
-        )
-
+from ._component_metric_request import ComponentMetricRequest
 
 _MeterDataMethods: Dict[ComponentMetricId, Callable[[MeterData], float]] = {
     ComponentMetricId.ACTIVE_POWER: lambda msg: msg.active_power,
@@ -75,6 +31,7 @@ _MeterDataMethods: Dict[ComponentMetricId, Callable[[MeterData], float]] = {
     ComponentMetricId.VOLTAGE_PHASE_1: lambda msg: msg.voltage_per_phase[0],
     ComponentMetricId.VOLTAGE_PHASE_2: lambda msg: msg.voltage_per_phase[1],
     ComponentMetricId.VOLTAGE_PHASE_3: lambda msg: msg.voltage_per_phase[2],
+    ComponentMetricId.FREQUENCY: lambda msg: msg.frequency,
 }
 
 _BatteryDataMethods: Dict[ComponentMetricId, Callable[[BatteryData], float]] = {
@@ -111,6 +68,7 @@ _InverterDataMethods: Dict[ComponentMetricId, Callable[[InverterData], float]] =
     ComponentMetricId.ACTIVE_POWER_INCLUSION_UPPER_BOUND: lambda msg: (
         msg.active_power_inclusion_upper_bound
     ),
+    ComponentMetricId.FREQUENCY: lambda msg: msg.frequency,
 }
 
 _EVChargerDataMethods: Dict[ComponentMetricId, Callable[[EVChargerData], float]] = {
@@ -121,6 +79,7 @@ _EVChargerDataMethods: Dict[ComponentMetricId, Callable[[EVChargerData], float]]
     ComponentMetricId.VOLTAGE_PHASE_1: lambda msg: msg.voltage_per_phase[0],
     ComponentMetricId.VOLTAGE_PHASE_2: lambda msg: msg.voltage_per_phase[1],
     ComponentMetricId.VOLTAGE_PHASE_3: lambda msg: msg.voltage_per_phase[2],
+    ComponentMetricId.FREQUENCY: lambda msg: msg.frequency,
 }
 
 

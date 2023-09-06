@@ -18,6 +18,8 @@
 
   Note that a microgrid is allowed to have zero or one grid connection point. Microgrids configured as islands will have zero grid connection points, and microgrids configured as grid-connected will have one grid connection point.
 
+- A new method `microgrid.frequeny()` was added to allow easy access to the current frequency of the grid.
+
 - A new class `Fuse` has been added to represent fuses. This class has a member variable `max_current` which represents the maximum current that can course through the fuse. If the current flowing through a fuse is greater than this limit, then the fuse will break the circuit.
 
 
