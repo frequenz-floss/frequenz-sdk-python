@@ -24,6 +24,7 @@ theme:
   features:
     - content.code.annotate
     - content.code.copy
+    - navigation.indexes
     - navigation.instant
     - navigation.tabs
     - navigation.top
@@ -115,7 +116,6 @@ plugins:
             - https://typing-extensions.readthedocs.io/en/stable/objects.inv
             - https://watchfiles.helpmanual.io/objects.inv
   - search
-  - section-index
 
 # Preview controls
 watch:

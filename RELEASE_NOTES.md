@@ -14,4 +14,4 @@
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+- Fix the **API Reference** link in the documentation website navigation bar.
