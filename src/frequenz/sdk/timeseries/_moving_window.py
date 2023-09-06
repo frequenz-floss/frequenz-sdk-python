@@ -306,6 +306,15 @@ class MovingWindow(BackgroundService):
             asyncio.create_task(self._resampler.resample(), name="resample")
         )
 
+    def count_valid(self) -> int:
+        """
+        Count the number of valid samples in this `MovingWindow`.
+
+        Returns:
+            The number of valid samples in this `MovingWindow`.
+        """
+        return self._buffer.count_valid()
+
     def __len__(self) -> int:
         """
         Return the size of the `MovingWindow`s underlying buffer.
@@ -313,7 +322,7 @@ class MovingWindow(BackgroundService):
         Returns:
             The size of the `MovingWindow`.
         """
-        return self._buffer.count_valid()
+        return self.count_valid()
 
     @overload
     def __getitem__(self, key: SupportsIndex) -> float:
