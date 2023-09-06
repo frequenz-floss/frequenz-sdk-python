@@ -26,10 +26,10 @@ from ._formula_steps import (
 class OperatorPrecedence(enum.Enum):
     """The precedence of an operator."""
 
+    ADDITION = 1
     SUBTRACTION = 1
-    ADDITION = 2
-    DIVISION = 3
-    MULTIPLICATION = 4
+    MULTIPLICATION = 2
+    DIVISION = 2
     PRIMARY = 9
 
     def __lt__(self, other: OperatorPrecedence) -> bool:
@@ -43,37 +43,66 @@ class OperatorPrecedence(enum.Enum):
         """
         return self.value < other.value
 
+    def __le__(self, other: OperatorPrecedence) -> bool:
+        """Test the precedence of this operator is less than or equal to the other operator.
+
+        Args:
+            other: The other operator (on the right-hand side).
+
+        Returns:
+            Whether the precedence of this operator is less than or equal to the other operator.
+        """
+        return self.value <= other.value
+
+
+class Operator(enum.Enum):
+    """The precedence of an operator."""
+
+    ADDITION = "+"
+    SUBTRACTION = "-"
+    MULTIPLICATION = "*"
+    DIVISION = "/"
+
+    @property
+    def precedence(self) -> OperatorPrecedence:
+        """Return the precedence of this operator.
+
+        Returns:
+            The precedence of this operator.
+        """
+        match self:
+            case Operator.SUBTRACTION:
+                return OperatorPrecedence.SUBTRACTION
+            case Operator.ADDITION:
+                return OperatorPrecedence.ADDITION
+            case Operator.DIVISION:
+                return OperatorPrecedence.DIVISION
+            case Operator.MULTIPLICATION:
+                return OperatorPrecedence.MULTIPLICATION
+
     def __str__(self) -> str:
         """Return the string representation of the operator precedence.
 
         Returns:
             The string representation of the operator precedence.
         """
-        match self:
-            case OperatorPrecedence.SUBTRACTION:
-                return "-"
-            case OperatorPrecedence.ADDITION:
-                return "+"
-            case OperatorPrecedence.DIVISION:
-                return "/"
-            case OperatorPrecedence.MULTIPLICATION:
-                return "*"
-            case OperatorPrecedence.PRIMARY:
-                return "primary"
+        return str(self.value)
 
 
 class StackItem:
     """Stack item for the formula formatter."""
 
-    def __init__(self, value: str, precedence: OperatorPrecedence):
+    def __init__(self, value: str, precedence: OperatorPrecedence, num_steps: int):
         """Initialize the StackItem.
 
         Args:
             value: The value of the stack item.
             precedence: The precedence of the stack item.
+            num_steps: The number of steps of the stack item.
         """
         self.value = value
         self.precedence = precedence
+        self.num_steps = num_steps
 
     def __str__(self) -> str:
         """Return the string representation of the stack item.
@@ -83,7 +112,7 @@ class StackItem:
         Returns:
             str: The string representation of the stack item.
         """
-        return f'("{self.value}", {self.precedence})'
+        return f'("{self.value}", {self.precedence}, {self.num_steps})'
 
     def as_left_value(self, outer_precedence: OperatorPrecedence) -> str:
         """Return the value of the stack item with parentheses if necessary.
@@ -105,12 +134,14 @@ class StackItem:
         Returns:
             str: The value of the stack item with parentheses if necessary.
         """
+        if self.num_steps > 1:
+            return (
+                f"({self.value})" if self.precedence <= outer_precedence else self.value
+            )
         return f"({self.value})" if self.precedence < outer_precedence else self.value
 
     @staticmethod
-    def create_binary(
-        lhs: StackItem, operator: OperatorPrecedence, rhs: StackItem
-    ) -> StackItem:
+    def create_binary(lhs: StackItem, operator: Operator, rhs: StackItem) -> StackItem:
         """Create a binary stack item.
 
         Args:
@@ -121,10 +152,11 @@ class StackItem:
         Returns:
             StackItem: The binary stack item.
         """
-        pred = OperatorPrecedence(operator)
+        pred = OperatorPrecedence(operator.precedence)
         return StackItem(
             f"{lhs.as_left_value(pred)} {operator} {rhs.as_right_value(pred)}",
             pred,
+            lhs.num_steps + 1 + rhs.num_steps,
         )
 
     @staticmethod
@@ -137,7 +169,7 @@ class StackItem:
         Returns:
             StackItem: The literal stack item.
         """
-        return StackItem(str(value), OperatorPrecedence.PRIMARY)
+        return StackItem(str(value), OperatorPrecedence.PRIMARY, 1)
 
 
 class FormulaFormatter:
@@ -174,49 +206,48 @@ class FormulaFormatter:
                 case ConstantValue():
                     self._stack.append(StackItem.create_primary(step.value))
                 case Adder():
-                    self._format_binary(OperatorPrecedence.ADDITION)
+                    self._format_binary(Operator.ADDITION)
                 case Subtractor():
-                    self._format_binary(OperatorPrecedence.SUBTRACTION)
+                    self._format_binary(Operator.SUBTRACTION)
                 case Multiplier():
-                    self._format_binary(OperatorPrecedence.MULTIPLICATION)
+                    self._format_binary(Operator.MULTIPLICATION)
                 case Divider():
-                    self._format_binary(OperatorPrecedence.DIVISION)
+                    self._format_binary(Operator.DIVISION)
                 case Averager():
                     value = (
                         # pylint: disable=protected-access
                         f"avg({', '.join(self._format([f]) for f in step.fetchers)})"
                     )
-                    self._stack.append(StackItem(value, OperatorPrecedence.PRIMARY))
+                    self._stack.append(StackItem(value, OperatorPrecedence.PRIMARY, 1))
                 case Clipper():
                     the_value = self._stack.pop()
                     min_value = step.min_value if step.min_value is not None else "-inf"
                     max_value = step.max_value if step.max_value is not None else "inf"
                     value = f"clip({min_value}, {the_value.value}, {max_value})"
-                    self._stack.append(StackItem(value, OperatorPrecedence.PRIMARY))
+                    self._stack.append(StackItem(value, OperatorPrecedence.PRIMARY, 1))
                 case Maximizer():
                     left, right = self._pop_two_from_stack()
                     value = f"max({left.value}, {right.value})"
-                    self._stack.append(StackItem(value, OperatorPrecedence.PRIMARY))
+                    self._stack.append(StackItem(value, OperatorPrecedence.PRIMARY, 1))
                 case Minimizer():
                     left, right = self._pop_two_from_stack()
                     value = f"min({left.value}, {right.value})"
-                    self._stack.append(StackItem(value, OperatorPrecedence.PRIMARY))
+                    self._stack.append(StackItem(value, OperatorPrecedence.PRIMARY, 1))
                 case MetricFetcher():
                     metric_fetcher = step
+                    value = metric_fetcher._name  # pylint: disable=protected-access
                     if engine_reference := getattr(
                         metric_fetcher.stream, "_engine_reference", None
                     ):
-                        value = str(engine_reference)
-                    else:
-                        value = metric_fetcher._name  # pylint: disable=protected-access
-                    self._stack.append(StackItem(value, OperatorPrecedence.PRIMARY))
+                        value = f"[{value}]({str(engine_reference)})"
+                    self._stack.append(StackItem(value, OperatorPrecedence.PRIMARY, 1))
                 case OpenParen():
                     pass  # We gently ignore this one.
 
         assert len(self._stack) == 1
         return self._stack[0].value
 
-    def _format_binary(self, operator: OperatorPrecedence) -> None:
+    def _format_binary(self, operator: Operator) -> None:
         """Format a binary operation.
 
         Pops the arguments of the binary expression from the stack

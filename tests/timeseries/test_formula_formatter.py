@@ -9,6 +9,7 @@ import logging
 from frequenz.channels import Broadcast
 from pytest_mock import MockerFixture
 
+from frequenz.sdk import microgrid
 from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._formula_engine._formula_engine import FormulaBuilder
 from frequenz.sdk.timeseries._formula_engine._formula_formatter import FormulaFormatter
@@ -22,7 +23,6 @@ from frequenz.sdk.timeseries._formula_engine._formula_steps import (
 )
 from frequenz.sdk.timeseries._formula_engine._tokenizer import Tokenizer, TokenType
 from frequenz.sdk.timeseries._quantities import Percentage, Quantity
-from frequenz.sdk import microgrid
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
 LOGGER = logging.getLogger(__name__)
@@ -68,9 +68,7 @@ def reconstruct(formula: str) -> str:
     steps = build_formula(formula)
     reconstructed = FormulaFormatter.format(steps)
     if formula != reconstructed:
-        LOGGER.debug(
-            "Formula: input %s != output %s, steps: {steps}", formula, reconstructed
-        )
+        LOGGER.debug("Formula: input %s != output %s", formula, reconstructed)
     return reconstructed
 
 
@@ -90,6 +88,17 @@ class TestFormulaFormatter:
         assert reconstruct("(#2 - #3) - #4") == "#2 - #3 - #4"
         assert reconstruct("#2 - #3 - #4") == "#2 - #3 - #4"
         assert reconstruct("(#2 - #3) * #4") == "(#2 - #3) * #4"
+
+    def test_rhs_precedence(self) -> None:
+        """Test that the right-hand side of a binary operation is wrapped in parentheses if needed."""
+        assert reconstruct("#2 + #3") == "#2 + #3"
+        assert reconstruct("#2 - #3") == "#2 - #3"
+        assert reconstruct("#2 + #3 + #4") == "#2 + #3 + #4"
+        assert reconstruct("#2 - #3 - #4") == "#2 - #3 - #4"
+        assert reconstruct("#2 - #3 * #4") == "#2 - #3 * #4"
+        assert reconstruct("#2 - (#3 * #4)") == "#2 - #3 * #4"
+        assert reconstruct("#2 - (#3 - #4)") == "#2 - (#3 - #4)"
+        assert reconstruct("#2 - (#3 + #4)") == "#2 - (#3 + #4)"
 
     def test_rhs_parenthesis(self) -> None:
         """Test that the right-hand side of a binary operation is wrapped in parentheses."""
@@ -116,11 +125,18 @@ class TestFormulaFormatter:
         mockgrid = MockMicrogrid(grid_meter=False)
         mockgrid.add_batteries(3)
         mockgrid.add_ev_chargers(1)
-        mockgrid.add_solar_inverters(1)
+        mockgrid.add_solar_inverters(2)
         await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
-        assert str(logical_meter.grid_power) == '#36 + #7 + #47 + #17 + #27'
+        assert str(logical_meter.grid_power) == "#36 + #7 + #47 + #17 + #57 + #27"
 
-        composed_formula = (logical_meter.grid_power - logical_meter.pv_power).build('grid_minus_pv')
-        assert str(composed_formula) == '#36 + #7 + #47 + #17 + #27 - #47'
+        composed_formula = (logical_meter.grid_power - logical_meter.pv_power).build(
+            "grid_minus_pv"
+        )
+        assert (
+            str(composed_formula)
+            == "[grid-power](#36 + #7 + #47 + #17 + #57 + #27) - [pv-power](#57 + #47)"
+        )
+
+        await mockgrid.cleanup()
