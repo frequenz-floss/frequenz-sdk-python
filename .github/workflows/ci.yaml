@@ -164,7 +164,7 @@ jobs:
             --net=host \
             --platform linux/${{ matrix.arch }} \
             localhost/nox-cross-arch:latest \
-            nox -e ${{ matrix.nox-session }}
+            bash -c "pip install -e .[dev-noxfile]; nox --install-only -e ${{ matrix.nox-session }}; pip freeze; nox -e ${{ matrix.nox-session }}"
         timeout-minutes: 30
 
       # This ensures that the runner has access to the pip cache.
