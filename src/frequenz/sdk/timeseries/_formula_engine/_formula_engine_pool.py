@@ -124,7 +124,7 @@ class FormulaEnginePool:
     def from_3_phase_current_formula_generator(
         self,
         channel_key: str,
-        generator: Type[FormulaGenerator[Current]],
+        generator: type[FormulaGenerator[Current]],
         config: FormulaGeneratorConfig = FormulaGeneratorConfig(),
     ) -> FormulaEngine3Phase[Current]:
         """Get a receiver for a formula from a generator.

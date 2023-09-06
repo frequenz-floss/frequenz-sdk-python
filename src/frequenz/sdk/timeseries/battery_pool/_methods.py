@@ -89,7 +89,7 @@ class SendOnUpdate(MetricAggregator[T]):
         self._working_batteries: set[int] = working_batteries.intersection(
             metric_calculator.batteries
         )
-        self._result_channel: Broadcast[T | None] = Broadcast[Optional[T]](
+        self._result_channel: Broadcast[T | None] = Broadcast[T | None](
             name=SendOnUpdate.name() + "_" + metric_calculator.name(),
             resend_latest=True,
         )

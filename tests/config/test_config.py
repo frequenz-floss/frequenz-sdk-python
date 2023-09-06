@@ -110,7 +110,7 @@ class TestConfig:
             ("list_non_strict_bool", list[str], ["false", "0", "true", "1"]),
             ("item_data", list[Item], [Item(item_id=1, name="My Item")]),
             ("dict_str_int", dict[str, int], {"a": 1, "b": 2, "c": 3}),
-            ("var_none", Optional[float], None),
+            ("var_none", float | None, None),
         ],
     )
     def test_get_as_success(
