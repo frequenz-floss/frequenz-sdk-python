@@ -313,7 +313,7 @@ class MovingWindow(BackgroundService):
         Returns:
             The size of the `MovingWindow`.
         """
-        return len(self._buffer)
+        return self._buffer.count_valid()
 
     @overload
     def __getitem__(self, key: SupportsIndex) -> float:
@@ -362,7 +362,7 @@ class MovingWindow(BackgroundService):
             A float if the key is a number or a timestamp.
             an numpy array if the key is a slice.
         """
-        if len(self._buffer) == 0:
+        if self._buffer.count_valid() == 0:
             raise IndexError("The buffer is empty.")
         if isinstance(key, slice):
             if isinstance(key.start, int) or isinstance(key.stop, int):
