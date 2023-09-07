@@ -120,6 +120,10 @@ A numeric identifier uniquely representing an instance of a [component](#compone
 
 For example, a battery an have a component ID **5**.
 
+### Island
+
+A [microgrid](#microgrid) that is not connected to the public electricity [grid](#grid).
+
 ## Component Data
 
 ### Metric
