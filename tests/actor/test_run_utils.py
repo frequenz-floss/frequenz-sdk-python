@@ -23,13 +23,6 @@ def event_loop() -> Iterator[async_solipsism.EventLoop]:
     loop.close()
 
 
-@pytest.fixture
-def fake_time() -> Iterator[time_machine.Coordinates]:
-    """Replace real time with a time machine that doesn't automatically tick."""
-    with time_machine.travel(0, tick=False) as traveller:
-        yield traveller
-
-
 class FaultyActor(Actor):
     """A test faulty actor."""
 
