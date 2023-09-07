@@ -179,20 +179,7 @@ class FormulaFormatter:
         """Initialize the FormulaFormatter."""
         self._stack = list[StackItem]()
 
-    @classmethod
-    def format(cls, postfix_expr: list[FormulaStep]) -> str:
-        """Return the formula as a string in infix notation.
-
-        Args:
-            postfix_expr: The steps of the formula in postfix notation order.
-
-        Returns:
-            str: The formula in infix notation.
-        """
-        formatter = FormulaFormatter()
-        return formatter._format(postfix_expr)
-
-    def _format(self, postfix_expr: list[FormulaStep]) -> str:
+    def format(self, postfix_expr: list[FormulaStep]) -> str:
         """Format the postfix expression to infix notation.
 
         Args:
@@ -216,7 +203,7 @@ class FormulaFormatter:
                 case Averager():
                     value = (
                         # pylint: disable=protected-access
-                        f"avg({', '.join(self._format([f]) for f in step.fetchers)})"
+                        f"avg({', '.join(self.format([f]) for f in step.fetchers)})"
                     )
                     self._stack.append(StackItem(value, OperatorPrecedence.PRIMARY, 1))
                 case Clipper():
@@ -270,3 +257,16 @@ class FormulaFormatter:
         right = self._stack.pop()
         left = self._stack.pop()
         return left, right
+
+
+def format_formula(postfix_expr: list[FormulaStep]) -> str:
+    """Return the formula as a string in infix notation.
+
+    Args:
+        postfix_expr: The steps of the formula in postfix notation order.
+
+    Returns:
+        str: The formula in infix notation.
+    """
+    formatter = FormulaFormatter()
+    return formatter.format(postfix_expr)

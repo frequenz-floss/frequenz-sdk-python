@@ -20,7 +20,7 @@ from ..._internal._asyncio import cancel_and_await
 from .. import Sample, Sample3Phase
 from .._quantities import Quantity, QuantityT
 from ._formula_evaluator import FormulaEvaluator
-from ._formula_formatter import FormulaFormatter
+from ._formula_formatter import format_formula
 from ._formula_steps import (
     Adder,
     Averager,
@@ -318,7 +318,7 @@ class FormulaEngine(
             if len(self._builder._build_stack) > 0
             else self._builder._steps
         )
-        return FormulaFormatter.format(steps)
+        return format_formula(steps)
 
     def new_receiver(
         self, name: str | None = None, max_size: int = 50
@@ -642,7 +642,7 @@ class FormulaBuilder(Generic[QuantityT]):
             A string representation of the formula.
         """
         steps = self._steps if len(self._steps) > 0 else self._build_stack
-        return FormulaFormatter.format(steps)
+        return format_formula(steps)
 
     def build(self) -> FormulaEngine[QuantityT]:
         """Create a formula engine with the steps and fetchers that have been pushed.

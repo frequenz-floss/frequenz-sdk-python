@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import math
 from abc import ABC, abstractmethod
-from typing import Generic, Optional, Sequence
+from typing import Generic, Sequence
 
 from frequenz.channels import Receiver
 
