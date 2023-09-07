@@ -239,35 +239,3 @@ The ratio of peak power to nominal power. Peak power is the maximum power that c
 This indicator is crucial to ensure that charge or discharge power remains within specific limits, optimizing the battery's lifespan. It is particularly useful in peak power applications to define battery conditions for substantial charges or discharges.
 
 The state of power depends on the state of charge, battery capacity, initial characteristics, chemistry, and battery voltage. [Source](https://epicpower.es/wp-content/uploads/2020/08/AN028_SoC-SoH-SoP-definitions_v3.pdf)
-
-## Microgrid Power Terminology
-
-Within the SDK, the terminology used for [measurements](#measurement), such as the power of individual [microgrid](#microgrid) [components](#component), follow the pattern `{component}_{quantity}` for total values and `{component}_{consumption,production}_{quantity}` for clipped values.
-
-Valid components include `grid`, `battery`, `ev_charger`, `consumer`, and active components `pv`, `chp`, and `wind`.
-
-The SDK provides the following power metrics IDs.
-
-### `grid_power`
-
-Can be positive (indicating consumption from the grid) or negative (indicating production into the grid).
-
-### `{battery,ev_charger}_power`
-
-Can be positive (indicating [battery](#battery) charging) or negative (indicating battery discharging). This also applies to [EV charging](#ev-charger) stations.
-
-### `{pv,chp,wind}_power`
-
-Pertaining to active [components](#component), this represents power generated from local (renewable) sources. It is negative when electricity is generated, otherwise zero or positive in case of self-consumption. Alternative terms include generation, supply, and source.
-
-### `consumer_power`
-
-Aggregates [components](#component) not covered above. Under typical circumstances, this corresponds to the site's [gross consumption](#gross-consumption), excluding active parts and the [battery](#battery). The term 'consumer' implies that this component predominantly consumes electric power. It can support negative values for exotic site topologies or short-term effects.
-
-### `{component}_consumption_power`
-
-Positive power value if `{component}_power` is positive, otherwise zero.
-
-### `{component}_production_power`
-
-Positive power value if `{component}_power` is negative, otherwise zero.
