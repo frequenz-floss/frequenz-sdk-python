@@ -5,7 +5,7 @@
 
 import asyncio
 import time
-from typing import Iterator
+from collections.abc import Iterator
 
 import async_solipsism
 import pytest

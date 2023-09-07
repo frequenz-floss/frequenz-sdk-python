@@ -7,8 +7,9 @@ import asyncio
 import csv
 import random
 import timeit
+from collections.abc import Coroutine
 from datetime import timedelta
-from typing import Any, Coroutine, Dict, List, Set  # pylint: disable=unused-import
+from typing import Any
 
 from frequenz.channels import Broadcast
 
@@ -32,7 +33,7 @@ HOST = "microgrid.sandbox.api.frequenz.io"
 PORT = 61060
 
 
-async def send_requests(batteries: Set[int], request_num: int) -> List[Result]:
+async def send_requests(batteries: set[int], request_num: int) -> list[Result]:
     """Send requests to the PowerDistributingActor and wait for the response.
 
     Args:
@@ -47,7 +48,7 @@ async def send_requests(batteries: Set[int], request_num: int) -> List[Result]:
     """
     battery_pool = microgrid.battery_pool(batteries)
     results_rx = battery_pool.power_distribution_results()
-    result: List[Result] = []
+    result: list[Result] = []
     for _ in range(request_num):
         await battery_pool.set_power(Power(float(random.randrange(100000, 1000000))))
         try:
@@ -61,7 +62,7 @@ async def send_requests(batteries: Set[int], request_num: int) -> List[Result]:
     return result
 
 
-def parse_result(result: List[List[Result]]) -> Dict[str, float]:
+def parse_result(result: list[list[Result]]) -> dict[str, float]:
     """Parse result.
 
     Args:
@@ -91,8 +92,8 @@ def parse_result(result: List[List[Result]]) -> Dict[str, float]:
 
 async def run_test(  # pylint: disable=too-many-locals
     num_requests: int,
-    batteries: Set[int],
-) -> Dict[str, Any]:
+    batteries: set[int],
+) -> dict[str, Any]:
     """Run test.
 
     Args:
@@ -112,7 +113,7 @@ async def run_test(  # pylint: disable=too-many-locals
         requests_receiver=power_request_channel.new_receiver(),
         battery_status_sender=battery_status_channel.new_sender(),
     ):
-        tasks: List[Coroutine[Any, Any, List[Result]]] = []
+        tasks: list[Coroutine[Any, Any, list[Result]]] = []
         tasks.append(send_requests(batteries, num_requests))
 
         result = await asyncio.gather(*tasks)
@@ -133,7 +134,7 @@ async def run() -> None:
         HOST, PORT, ResamplerConfig(resampling_period=timedelta(seconds=1.0))
     )
 
-    all_batteries: Set[Component] = connection_manager.get().component_graph.components(
+    all_batteries: set[Component] = connection_manager.get().component_graph.components(
         component_category={ComponentCategory.BATTERY}
     )
     batteries_ids = {c.component_id for c in all_batteries}

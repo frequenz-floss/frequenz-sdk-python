@@ -6,7 +6,6 @@
 import math
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
 
 from pytest import approx, raises
 
@@ -33,8 +32,8 @@ class Bound:
 class Metric:
     """Class to create protobuf Metric."""
 
-    now: Optional[float]
-    bound: Optional[Bound] = None
+    now: float | None
+    bound: Bound | None = None
 
 
 def battery_msg(  # pylint: disable=too-many-arguments
@@ -97,10 +96,10 @@ def inverter_msg(
 
 def create_components(
     num: int,
-    capacity: List[Metric],
-    soc: List[Metric],
-    power: List[PowerBounds],
-) -> List[InvBatPair]:
+    capacity: list[Metric],
+    soc: list[Metric],
+    power: list[PowerBounds],
+) -> list[InvBatPair]:
     """Create components with given arguments.
 
     Args:
@@ -112,7 +111,7 @@ def create_components(
     Returns:
         List of the components
     """
-    components: List[InvBatPair] = []
+    components: list[InvBatPair] = []
     for i in range(0, num):
         battery = battery_msg(2 * i, capacity[i], soc[i], power[2 * i])
         inverter = inverter_msg(2 * i + 1, power[2 * i + 1])
@@ -126,10 +125,10 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
     # pylint: disable=protected-access
 
     def create_components_with_capacity(
-        self, num: int, capacity: List[float]
-    ) -> List[InvBatPair]:
+        self, num: int, capacity: list[float]
+    ) -> list[InvBatPair]:
         """Create components with given capacity."""
-        components: List[InvBatPair] = []
+        components: list[InvBatPair] = []
         for i in range(0, num):
             battery_data = BatteryDataWrapper(
                 component_id=2 * i,
@@ -153,7 +152,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_total_capacity(self) -> None:
         """Test if capacity is computed properly."""
-        capacity: List[float] = list(range(4))
+        capacity: list[float] = list(range(4))
         components = self.create_components_with_capacity(4, capacity)
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
@@ -162,12 +161,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_distribute_power_one_battery(self) -> None:
         """Distribute power between one battery."""
-        capacity: List[float] = [98000]
+        capacity: list[float] = [98000]
         components = self.create_components_with_capacity(1, capacity)
 
-        available_soc: Dict[int, float] = {0: 40}
-        incl_bounds: Dict[int, float] = {1: 500}
-        excl_bounds: Dict[int, float] = {1: 0}
+        available_soc: dict[int, float] = {0: 40}
+        incl_bounds: dict[int, float] = {1: 500}
+        excl_bounds: dict[int, float] = {1: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
@@ -183,12 +182,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         First battery has two times more SoC to use, so first battery should have more
         power assigned.
         """
-        capacity: List[float] = [98000, 98000]
+        capacity: list[float] = [98000, 98000]
         components = self.create_components_with_capacity(2, capacity)
 
-        available_soc: Dict[int, float] = {0: 40, 2: 20}
-        incl_bounds: Dict[int, float] = {1: 500, 3: 500}
-        excl_bounds: Dict[int, float] = {1: 0, 3: 0}
+        available_soc: dict[int, float] = {0: 40, 2: 20}
+        incl_bounds: dict[int, float] = {1: 500, 3: 500}
+        excl_bounds: dict[int, float] = {1: 0, 3: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
@@ -204,12 +203,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         First battery has two times less capacity to use, so first
         battery should be have two times less power.
         """
-        capacity: List[float] = [49000, 98000]
+        capacity: list[float] = [49000, 98000]
         components = self.create_components_with_capacity(2, capacity)
 
-        available_soc: Dict[int, float] = {0: 20, 2: 20}
-        incl_bounds: Dict[int, float] = {1: 500, 3: 500}
-        excl_bounds: Dict[int, float] = {1: 0, 3: 0}
+        available_soc: dict[int, float] = {0: 20, 2: 20}
+        incl_bounds: dict[int, float] = {1: 500, 3: 500}
+        excl_bounds: dict[int, float] = {1: 0, 3: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
@@ -226,12 +225,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         two times more SoC. So the distributed power should be equal
         for each battery.
         """
-        capacity: List[float] = [49000, 98000]
+        capacity: list[float] = [49000, 98000]
         components = self.create_components_with_capacity(2, capacity)
 
-        available_soc: Dict[int, float] = {0: 40, 2: 20}
-        incl_bounds: Dict[int, float] = {1: 250, 3: 330}
-        excl_bounds: Dict[int, float] = {1: 0, 3: 0}
+        available_soc: dict[int, float] = {0: 40, 2: 20}
+        incl_bounds: dict[int, float] = {1: 250, 3: 330}
+        excl_bounds: dict[int, float] = {1: 0, 3: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
@@ -243,12 +242,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_distribute_power_three_batteries(self) -> None:
         """Test whether the distribution works ok for more batteries."""
-        capacity: List[float] = [49000, 98000, 49000]
+        capacity: list[float] = [49000, 98000, 49000]
         components = self.create_components_with_capacity(3, capacity)
 
-        available_soc: Dict[int, float] = {0: 40, 2: 20, 4: 20}
-        incl_bounds: Dict[int, float] = {1: 1000, 3: 3400, 5: 3550}
-        excl_bounds: Dict[int, float] = {1: 0, 3: 0, 5: 0}
+        available_soc: dict[int, float] = {0: 40, 2: 20, 4: 20}
+        incl_bounds: dict[int, float] = {1: 1000, 3: 3400, 5: 3550}
+        excl_bounds: dict[int, float] = {1: 0, 3: 0, 5: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
@@ -260,12 +259,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_distribute_power_three_batteries_2(self) -> None:
         """Test whether the power which couldn't be distributed is correct."""
-        capacity: List[float] = [98000, 49000, 49000]
+        capacity: list[float] = [98000, 49000, 49000]
         components = self.create_components_with_capacity(3, capacity)
 
-        available_soc: Dict[int, float] = {0: 80, 2: 10, 4: 20}
-        incl_bounds: Dict[int, float] = {1: 400, 3: 3400, 5: 300}
-        excl_bounds: Dict[int, float] = {1: 0, 3: 0, 5: 0}
+        available_soc: dict[int, float] = {0: 80, 2: 10, 4: 20}
+        incl_bounds: dict[int, float] = {1: 400, 3: 3400, 5: 300}
+        excl_bounds: dict[int, float] = {1: 0, 3: 0, 5: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
@@ -277,12 +276,12 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_distribute_power_three_batteries_3(self) -> None:
         """Test with batteries with no capacity."""
-        capacity: List[float] = [0, 49000, 0]
+        capacity: list[float] = [0, 49000, 0]
         components = self.create_components_with_capacity(3, capacity)
 
-        available_soc: Dict[int, float] = {0: 80, 2: 10, 4: 20}
-        incl_bounds: Dict[int, float] = {1: 500, 3: 300, 5: 300}
-        excl_bounds: Dict[int, float] = {1: 0, 3: 0, 5: 0}
+        available_soc: dict[int, float] = {0: 80, 2: 10, 4: 20}
+        incl_bounds: dict[int, float] = {1: 500, 3: 300, 5: 300}
+        excl_bounds: dict[int, float] = {1: 0, 3: 0, 5: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
@@ -295,9 +294,9 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
     # Test distribute supply power
     def test_supply_three_batteries_1(self) -> None:
         """Test distribute supply power for batteries with different SoC."""
-        capacity: List[Metric] = [Metric(49000), Metric(49000), Metric(49000)]
+        capacity: list[Metric] = [Metric(49000), Metric(49000), Metric(49000)]
 
-        soc: List[Metric] = [
+        soc: list[Metric] = [
             Metric(20.0, Bound(0, 60)),
             Metric(60.0, Bound(20, 80)),
             Metric(80.0, Bound(20, 80)),
@@ -322,8 +321,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_supply_three_batteries_2(self) -> None:
         """Test distribute supply power."""
-        capacity: List[Metric] = [Metric(98000), Metric(49000), Metric(49000)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(49000), Metric(49000)]
+        soc: list[Metric] = [
             Metric(20.0, Bound(0, 50)),
             Metric(60.0, Bound(20, 80)),
             Metric(80.0, Bound(20, 80)),
@@ -347,8 +346,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_supply_three_batteries_3(self) -> None:
         """Distribute supply power with small upper bounds."""
-        capacity: List[Metric] = [Metric(98000), Metric(49000), Metric(49000)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(49000), Metric(49000)]
+        soc: list[Metric] = [
             Metric(20.0, Bound(0, 50)),
             Metric(60.0, Bound(20, 80)),
             Metric(80.0, Bound(20, 80)),
@@ -372,8 +371,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_supply_three_batteries_4(self) -> None:
         """Distribute supply power with small upper bounds."""
-        capacity: List[Metric] = [Metric(98000), Metric(49000), Metric(49000)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(49000), Metric(49000)]
+        soc: list[Metric] = [
             Metric(20.0, Bound(0, 50)),
             Metric(60.0, Bound(20, 80)),
             Metric(80.0, Bound(20, 80)),
@@ -397,8 +396,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_supply_three_batteries_5(self) -> None:
         """Test no capacity."""
-        capacity: List[Metric] = [Metric(98000), Metric(49000), Metric(0.0)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(49000), Metric(0.0)]
+        soc: list[Metric] = [
             Metric(20.0, Bound(40, 90)),
             Metric(60.0, Bound(20, 80)),
             Metric(80.0, Bound(20, 80)),
@@ -422,8 +421,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_supply_two_batteries_1(self) -> None:
         """Distribute supply power between two batteries."""
-        capacity: List[Metric] = [Metric(98000), Metric(98000)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(98000)]
+        soc: list[Metric] = [
             Metric(25.0, Bound(0, 80)),
             Metric(25.0, Bound(20, 80)),
         ]
@@ -445,8 +444,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_supply_two_batteries_2(self) -> None:
         """Distribute supply power between two batteries."""
-        capacity: List[Metric] = [Metric(98000), Metric(98000)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(98000)]
+        soc: list[Metric] = [
             Metric(75.0, Bound(0, 80)),
             Metric(75.0, Bound(20, 80)),
         ]
@@ -468,8 +467,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
     # Test consumption power distribution
     def test_consumption_three_batteries_1(self) -> None:
         """Distribute consume power."""
-        capacity: List[Metric] = [Metric(49000), Metric(49000), Metric(49000)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(49000), Metric(49000), Metric(49000)]
+        soc: list[Metric] = [
             Metric(80.0, Bound(0, 100)),
             Metric(40.0, Bound(20, 80)),
             Metric(20.0, Bound(20, 80)),
@@ -493,8 +492,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_consumption_three_batteries_2(self) -> None:
         """Distribute consume power."""
-        capacity: List[Metric] = [Metric(98000), Metric(49000), Metric(49000)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(49000), Metric(49000)]
+        soc: list[Metric] = [
             Metric(80.0, Bound(0, 100)),
             Metric(40.0, Bound(20, 80)),
             Metric(20.0, Bound(20, 80)),
@@ -518,8 +517,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_consumption_three_batteries_3(self) -> None:
         """Distribute consume power with small bounds."""
-        capacity: List[Metric] = [Metric(98000), Metric(49000), Metric(49000)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(49000), Metric(49000)]
+        soc: list[Metric] = [
             Metric(80.0, Bound(0, 100)),
             Metric(40.0, Bound(20, 80)),
             Metric(20.0, Bound(20, 80)),
@@ -543,8 +542,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_consumption_three_batteries_4(self) -> None:
         """Distribute consume power with small upper bounds."""
-        capacity: List[Metric] = [Metric(98000), Metric(49000), Metric(49000)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(49000), Metric(49000)]
+        soc: list[Metric] = [
             Metric(80.0, Bound(0, 100)),
             Metric(40.0, Bound(20, 80)),
             Metric(20.0, Bound(20, 80)),
@@ -568,8 +567,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_consumption_three_batteries_5(self) -> None:
         """Test what if some batteries has invalid SoC and capacity."""
-        capacity: List[Metric] = [Metric(98000), Metric(49000), Metric(0.0)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(49000), Metric(0.0)]
+        soc: list[Metric] = [
             Metric(80.0, Bound(0, 50)),
             Metric(40.0, Bound(20, 80)),
             Metric(20.0, Bound(20, 80)),
@@ -593,8 +592,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_consumption_three_batteries_6(self) -> None:
         """Distribute consume power."""
-        capacity: List[Metric] = [Metric(98000), Metric(49000), Metric(49000)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(49000), Metric(49000)]
+        soc: list[Metric] = [
             Metric(50.0, Bound(0, 50)),
             Metric(40.0, Bound(20, 80)),
             Metric(20.0, Bound(20, 80)),
@@ -618,8 +617,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_consumption_three_batteries_7(self) -> None:
         """Distribute consume power."""
-        capacity: List[Metric] = [Metric(98000), Metric(49000), Metric(49000)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(49000), Metric(49000)]
+        soc: list[Metric] = [
             Metric(20.0, Bound(0, 80)),
             Metric(79.6, Bound(20, 80)),
             Metric(80.0, Bound(20, 80)),
@@ -643,8 +642,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_consumption_two_batteries_1(self) -> None:
         """Distribute consume power."""
-        capacity: List[Metric] = [Metric(98000), Metric(98000)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(98000)]
+        soc: list[Metric] = [
             Metric(75.0, Bound(20, 80)),
             Metric(75.0, Bound(0, 100)),
         ]
@@ -665,8 +664,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_consumption_two_batteries_distribution_exponent(self) -> None:
         """Distribute consume power."""
-        capacity: List[Metric] = [Metric(98000), Metric(98000)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(98000)]
+        soc: list[Metric] = [
             Metric(70.0, Bound(20, 80)),
             Metric(50.0, Bound(20, 80)),
         ]
@@ -699,8 +698,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_consumption_two_batteries_distribution_exponent_1(self) -> None:
         """Distribute consume power."""
-        capacity: List[Metric] = [Metric(98000), Metric(98000)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(98000)]
+        soc: list[Metric] = [
             Metric(50.0, Bound(20, 80)),
             Metric(20.0, Bound(20, 80)),
         ]
@@ -751,8 +750,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_supply_two_batteries_distribution_exponent(self) -> None:
         """Distribute power."""
-        capacity: List[Metric] = [Metric(98000), Metric(98000)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(98000)]
+        soc: list[Metric] = [
             Metric(30.0, Bound(20, 80)),
             Metric(50.0, Bound(20, 80)),
         ]
@@ -785,8 +784,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_supply_two_batteries_distribution_exponent_1(self) -> None:
         """Distribute power."""
-        capacity: List[Metric] = [Metric(98000), Metric(98000)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(98000)]
+        soc: list[Metric] = [
             Metric(50.0, Bound(20, 80)),
             Metric(80.0, Bound(20, 80)),
         ]
@@ -819,8 +818,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_supply_three_batteries_distribution_exponent_2(self) -> None:
         """Distribute power."""
-        capacity: List[Metric] = [Metric(98000), Metric(98000), Metric(98000)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(98000), Metric(98000)]
+        soc: list[Metric] = [
             Metric(50.0, Bound(20, 80)),
             Metric(65.0, Bound(20, 80)),
             Metric(80.0, Bound(20, 80)),
@@ -862,8 +861,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_supply_three_batteries_distribution_exponent_3(self) -> None:
         """Distribute power."""
-        capacity: List[Metric] = [Metric(98000), Metric(98000), Metric(98000)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(98000), Metric(98000)]
+        soc: list[Metric] = [
             Metric(56.0, Bound(20, 80)),  # available SoC 36
             Metric(36.0, Bound(20, 80)),  # available SoC 16
             Metric(29.0, Bound(20, 80)),  # available SoC 9
@@ -893,8 +892,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     def test_supply_two_batteries_distribution_exponent_less_then_1(self) -> None:
         """Distribute power."""
-        capacity: List[Metric] = [Metric(98000), Metric(98000)]
-        soc: List[Metric] = [
+        capacity: list[Metric] = [Metric(98000), Metric(98000)]
+        soc: list[Metric] = [
             Metric(44.0, Bound(20, 80)),
             Metric(64.0, Bound(20, 80)),
         ]
@@ -959,8 +958,8 @@ class TestDistWithExclBounds:
         |   -3200 | -1000, -1000, -1000    |      -200 |
 
         """
-        capacities: List[Metric] = [Metric(10000), Metric(10000), Metric(10000)]
-        soc: List[Metric] = [
+        capacities: list[Metric] = [Metric(10000), Metric(10000), Metric(10000)]
+        soc: list[Metric] = [
             Metric(30.0, Bound(10, 90)),
             Metric(50.0, Bound(10, 90)),
             Metric(70.0, Bound(10, 90)),
@@ -1052,8 +1051,8 @@ class TestDistWithExclBounds:
         |    3500 | 1000, 1000, 1000          |       500 |
         |   -3500 | -1000, -1000, -1000       |      -500 |
         """
-        capacities: List[Metric] = [Metric(10000), Metric(10000), Metric(10000)]
-        soc: List[Metric] = [
+        capacities: list[Metric] = [Metric(10000), Metric(10000), Metric(10000)]
+        soc: list[Metric] = [
             Metric(50.0, Bound(10, 90)),
             Metric(50.0, Bound(10, 90)),
             Metric(70.0, Bound(10, 90)),
@@ -1153,8 +1152,8 @@ class TestDistWithExclBounds:
         |   -3500 | -1000, -1000, -1000       |      -500 |
         |    3500 | 1000, 1000, 1000          |       500 |
         """
-        capacities: List[Metric] = [Metric(10000), Metric(10000), Metric(10000)]
-        soc: List[Metric] = [
+        capacities: list[Metric] = [Metric(10000), Metric(10000), Metric(10000)]
+        soc: list[Metric] = [
             Metric(50.0, Bound(10, 90)),
             Metric(50.0, Bound(10, 90)),
             Metric(70.0, Bound(10, 90)),

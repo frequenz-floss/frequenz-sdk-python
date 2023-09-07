@@ -4,9 +4,8 @@
 """A builder for creating formula engines that operate on resampled component metrics."""
 
 
-from __future__ import annotations
-
-from typing import Callable, Generic
+from collections.abc import Callable
+from typing import Generic
 
 from frequenz.channels import Receiver, Sender
 

@@ -9,18 +9,8 @@ import asyncio
 import logging
 from abc import ABC
 from collections import deque
-from typing import (
-    Callable,
-    Dict,
-    Generic,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-    overload,
-)
+from collections.abc import Callable
+from typing import Generic, TypeVar, Union, overload
 
 from frequenz.channels import Broadcast, Receiver
 
@@ -102,7 +92,7 @@ class _ComposableFormulaEngine(
     """A base class for formula engines."""
 
     _create_method: Callable[[float], QuantityT]
-    _higher_order_builder: Type[_GenericHigherOrderBuilder]
+    _higher_order_builder: type[_GenericHigherOrderBuilder]
     _task: asyncio.Task[None] | None = None
 
     async def _stop(self) -> None:
@@ -315,7 +305,7 @@ class FormulaEngine(
                 await sender.send(msg)
 
     def new_receiver(
-        self, name: Optional[str] = None, max_size: int = 50
+        self, name: str | None = None, max_size: int = 50
     ) -> Receiver[Sample[QuantityT]]:
         """Create a new receiver that streams the output of the formula engine.
 
@@ -361,7 +351,7 @@ class FormulaEngine3Phase(
         self,
         name: str,
         create_method: Callable[[float], QuantityT],
-        phase_streams: Tuple[
+        phase_streams: tuple[
             FormulaEngine[QuantityT],
             FormulaEngine[QuantityT],
             FormulaEngine[QuantityT],
@@ -411,7 +401,7 @@ class FormulaEngine3Phase(
                 await sender.send(msg)
 
     def new_receiver(
-        self, name: Optional[str] = None, max_size: int = 50
+        self, name: str | None = None, max_size: int = 50
     ) -> Receiver[Sample3Phase[QuantityT]]:
         """Create a new receiver that streams the output of the formula engine.
 
@@ -467,9 +457,9 @@ class FormulaBuilder(Generic[QuantityT]):
         """
         self._name = name
         self._create_method: Callable[[float], QuantityT] = create_method
-        self._build_stack: List[FormulaStep] = []
-        self._steps: List[FormulaStep] = []
-        self._metric_fetchers: Dict[str, MetricFetcher[QuantityT]] = {}
+        self._build_stack: list[FormulaStep] = []
+        self._steps: list[FormulaStep] = []
+        self._metric_fetchers: dict[str, MetricFetcher[QuantityT]] = {}
 
     def push_oper(self, oper: str) -> None:
         """Push an operator into the engine.
@@ -584,14 +574,14 @@ class FormulaBuilder(Generic[QuantityT]):
         self._steps.append(Clipper(min_value, max_value))
 
     def push_average(
-        self, metrics: List[Tuple[str, Receiver[Sample[QuantityT]], bool]]
+        self, metrics: list[tuple[str, Receiver[Sample[QuantityT]], bool]]
     ) -> None:
         """Push an average calculator into the engine.
 
         Args:
             metrics: list of arguments to pass to each `MetricFetcher`.
         """
-        fetchers: List[MetricFetcher[QuantityT]] = []
+        fetchers: list[MetricFetcher[QuantityT]] = []
         for metric in metrics:
             fetcher = self._metric_fetchers.setdefault(
                 metric[0],

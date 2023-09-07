@@ -5,15 +5,15 @@
 
 # pylint: disable=too-many-lines
 
-from __future__ import annotations
 
 import asyncio
 import dataclasses
 import logging
 import math
+from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass, is_dataclass, replace
 from datetime import datetime, timedelta, timezone
-from typing import Any, AsyncIterator, Generic, Iterator, TypeVar
+from typing import Any, Generic, TypeVar
 
 import async_solipsism
 import pytest

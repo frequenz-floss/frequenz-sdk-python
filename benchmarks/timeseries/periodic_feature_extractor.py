@@ -9,7 +9,6 @@ the performance of a numpy implementation with a python
 implementation.
 """
 
-from __future__ import annotations
 
 import asyncio
 import collections.abc
@@ -18,7 +17,6 @@ import logging
 from datetime import datetime, timedelta, timezone
 from functools import partial
 from timeit import timeit
-from typing import List
 
 import numpy as np
 from frequenz.channels import Broadcast
@@ -79,7 +77,7 @@ def _calculate_avg_window_py(
     feature_extractor: PeriodicFeatureExtractor,
     window: NDArray[np.float_],
     window_size: int,
-    weights: List[float] | None = None,
+    weights: list[float] | None = None,
 ) -> NDArray[np.float_]:
     """
     Plain python version of the average calculator.

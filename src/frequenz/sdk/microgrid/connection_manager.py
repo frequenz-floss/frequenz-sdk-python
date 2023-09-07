@@ -10,7 +10,6 @@ component graph.
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Optional
 
 import grpc.aio as grpcaio
 
@@ -140,7 +139,7 @@ class _InsecureConnectionManager(ConnectionManager):
         await self._graph.refresh_from_api(self._api)
 
 
-_CONNECTION_MANAGER: Optional[ConnectionManager] = None
+_CONNECTION_MANAGER: ConnectionManager | None = None
 """The ConnectionManager singleton instance."""
 
 

@@ -2,13 +2,13 @@
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
 """Methods for processing battery-inverter data."""
-from __future__ import annotations
+
 
 import asyncio
 import logging
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta, timezone
-from typing import Generic, Optional
+from typing import Generic
 
 from frequenz.channels import Broadcast, Receiver
 
@@ -89,7 +89,7 @@ class SendOnUpdate(MetricAggregator[T]):
         self._working_batteries: set[int] = working_batteries.intersection(
             metric_calculator.batteries
         )
-        self._result_channel: Broadcast[Optional[T]] = Broadcast[Optional[T]](
+        self._result_channel: Broadcast[T | None] = Broadcast[T | None](
             name=SendOnUpdate.name() + "_" + metric_calculator.name(),
             resend_latest=True,
         )

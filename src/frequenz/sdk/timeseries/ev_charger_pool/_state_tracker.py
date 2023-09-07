@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import asyncio
 from enum import Enum
-from typing import Optional
 
 from frequenz.channels import Receiver
 from frequenz.channels.util import Merge
@@ -88,7 +87,7 @@ class StateTracker:
         """
         self._component_ids = component_ids
         self._task: asyncio.Task[None] = asyncio.create_task(self._run())
-        self._merged_stream: Optional[Merge[EVChargerData]] = None
+        self._merged_stream: Merge[EVChargerData] | None = None
 
         # Initialize all components to the `MISSING` state.  This will change as data
         # starts arriving from the individual components.

@@ -4,9 +4,10 @@
 """Timeseries basic types."""
 
 import functools
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Callable, Generic, Iterator, Self, overload
+from typing import Generic, Self, overload
 
 from ._quantities import QuantityT
 

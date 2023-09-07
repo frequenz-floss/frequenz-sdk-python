@@ -5,7 +5,6 @@
 
 import asyncio
 from asyncio.tasks import ALL_COMPLETED
-from typing import List
 from unittest import mock
 from unittest.mock import AsyncMock, MagicMock
 
@@ -21,7 +20,7 @@ class TestMicrogridApi:
 
     # ignore mypy: Untyped decorator makes function "components" untyped
     @pytest.fixture
-    def components(self) -> List[List[Component]]:
+    def components(self) -> list[list[Component]]:
         """Get components in the graph.
 
         Override this method to create a graph with different components.
@@ -54,7 +53,7 @@ class TestMicrogridApi:
 
     # ignore mypy: Untyped decorator makes function "components" untyped
     @pytest.fixture
-    def connections(self) -> List[List[Connection]]:
+    def connections(self) -> list[list[Connection]]:
         """Get connections between components in the graph.
 
         Override this method to create a graph with different connections.
@@ -87,8 +86,8 @@ class TestMicrogridApi:
     async def test_connection_manager(
         self,
         _: MagicMock,
-        components: List[List[Component]],
-        connections: List[List[Connection]],
+        components: list[list[Component]],
+        connections: list[list[Connection]],
     ) -> None:
         """Test microgrid api.
 
@@ -153,8 +152,8 @@ class TestMicrogridApi:
     async def test_connection_manager_another_method(
         self,
         _: MagicMock,
-        components: List[List[Component]],
-        connections: List[List[Connection]],
+        components: list[list[Component]],
+        connections: list[list[Connection]],
     ) -> None:
         """Test if the api was not deallocated.
 

@@ -63,7 +63,7 @@ class _ActorInfo(typing.Generic[_T]):
     actor: _T
     """The actor instance."""
 
-    channel: Broadcast["ComponentMetricRequest"]
+    channel: Broadcast[ComponentMetricRequest]
     """The request channel for the actor."""
 
 
@@ -102,11 +102,11 @@ class _DataPipeline:
             "Power Distributing Actor, Broadcast Channel"
         )
 
-        self._power_distributing_actor: "PowerDistributingActor" | None = None
+        self._power_distributing_actor: PowerDistributingActor | None = None
 
-        self._logical_meter: "LogicalMeter" | None = None
-        self._ev_charger_pools: dict[frozenset[int], "EVChargerPool"] = {}
-        self._battery_pools: dict[frozenset[int], "BatteryPool"] = {}
+        self._logical_meter: LogicalMeter | None = None
+        self._ev_charger_pools: dict[frozenset[int], EVChargerPool] = {}
+        self._battery_pools: dict[frozenset[int], BatteryPool] = {}
         self._frequency_pool: dict[int, GridFrequency] = {}
 
     def frequency(self, component: Component | None = None) -> GridFrequency:

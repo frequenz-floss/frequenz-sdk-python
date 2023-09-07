@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import random
 from abc import ABC, abstractmethod
+from collections.abc import Iterator
 from copy import deepcopy
-from typing import Iterator, Optional
 
 DEFAULT_RETRY_INTERVAL = 3.0
 """Default retry interval, in seconds."""
@@ -20,11 +20,11 @@ DEFAULT_RETRY_JITTER = 1.0
 class RetryStrategy(ABC):
     """Interface for implementing retry strategies."""
 
-    _limit: Optional[int]
+    _limit: int | None
     _count: int
 
     @abstractmethod
-    def next_interval(self) -> Optional[float]:
+    def next_interval(self) -> float | None:
         """Return the time to wait before the next retry.
 
         Returns `None` if the retry limit has been reached, and no more retries
@@ -82,7 +82,7 @@ class LinearBackoff(RetryStrategy):
         self,
         interval: float = DEFAULT_RETRY_INTERVAL,
         jitter: float = DEFAULT_RETRY_JITTER,
-        limit: Optional[int] = None,
+        limit: int | None = None,
     ) -> None:
         """Create a `LinearBackoff` instance.
 
@@ -98,7 +98,7 @@ class LinearBackoff(RetryStrategy):
 
         self._count = 0
 
-    def next_interval(self) -> Optional[float]:
+    def next_interval(self) -> float | None:
         """Return the time to wait before the next retry.
 
         Returns `None` if the retry limit has been reached, and no more retries
@@ -132,7 +132,7 @@ class ExponentialBackoff(RetryStrategy):
         max_interval: float = DEFAULT_MAX_INTERVAL,
         multiplier: float = DEFAULT_MULTIPLIER,
         jitter: float = DEFAULT_RETRY_JITTER,
-        limit: Optional[int] = None,
+        limit: int | None = None,
     ) -> None:
         """Create a `ExponentialBackoff` instance.
 
@@ -153,7 +153,7 @@ class ExponentialBackoff(RetryStrategy):
 
         self._count = 0
 
-    def next_interval(self) -> Optional[float]:
+    def next_interval(self) -> float | None:
         """Return the time to wait before the next retry.
 
         Returns `None` if the retry limit has been reached, and no more retries

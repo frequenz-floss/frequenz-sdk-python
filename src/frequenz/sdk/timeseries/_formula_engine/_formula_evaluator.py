@@ -4,9 +4,10 @@
 """A post-fix formula evaluator that operates on `Sample` receivers."""
 
 import asyncio
+from collections.abc import Callable
 from datetime import datetime
 from math import isinf, isnan
-from typing import Callable, Dict, Generic, List, Optional, Set
+from typing import Generic
 
 from .. import Sample
 from .._quantities import QuantityT
@@ -19,8 +20,8 @@ class FormulaEvaluator(Generic[QuantityT]):
     def __init__(
         self,
         name: str,
-        steps: List[FormulaStep],
-        metric_fetchers: Dict[str, MetricFetcher[QuantityT]],
+        steps: list[FormulaStep],
+        metric_fetchers: dict[str, MetricFetcher[QuantityT]],
         create_method: Callable[[float], QuantityT],
     ) -> None:
         """Create a `FormulaEngine` instance.
@@ -35,12 +36,12 @@ class FormulaEvaluator(Generic[QuantityT]):
         """
         self._name = name
         self._steps = steps
-        self._metric_fetchers: Dict[str, MetricFetcher[QuantityT]] = metric_fetchers
+        self._metric_fetchers: dict[str, MetricFetcher[QuantityT]] = metric_fetchers
         self._first_run = True
         self._create_method: Callable[[float], QuantityT] = create_method
 
     async def _synchronize_metric_timestamps(
-        self, metrics: Set[asyncio.Task[Optional[Sample[QuantityT]]]]
+        self, metrics: set[asyncio.Task[Sample[QuantityT] | None]]
     ) -> datetime:
         """Synchronize the metric streams.
 
@@ -59,7 +60,7 @@ class FormulaEvaluator(Generic[QuantityT]):
             RuntimeError: when some streams have no value, or when the synchronization
                 of timestamps fails.
         """
-        metrics_by_ts: Dict[datetime, list[str]] = {}
+        metrics_by_ts: dict[datetime, list[str]] = {}
         for metric in metrics:
             result = metric.result()
             name = metric.get_name()
@@ -97,7 +98,7 @@ class FormulaEvaluator(Generic[QuantityT]):
             RuntimeError: if some samples didn't arrive, or if formula application
                 failed.
         """
-        eval_stack: List[float] = []
+        eval_stack: list[float] = []
         ready_metrics, pending = await asyncio.wait(
             [
                 asyncio.create_task(fetcher.fetch_next(), name=name)

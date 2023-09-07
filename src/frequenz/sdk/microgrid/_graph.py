@@ -24,8 +24,8 @@ flow of power.
 import asyncio
 import logging
 from abc import ABC, abstractmethod
+from collections.abc import Callable, Iterable
 from dataclasses import asdict
-from typing import Callable, Iterable, List, Optional, Set
 
 import networkx as nx
 
@@ -45,9 +45,9 @@ class ComponentGraph(ABC):
     @abstractmethod
     def components(
         self,
-        component_id: Optional[Set[int]] = None,
-        component_category: Optional[Set[ComponentCategory]] = None,
-    ) -> Set[Component]:
+        component_id: set[int] | None = None,
+        component_category: set[ComponentCategory] | None = None,
+    ) -> set[Component]:
         """Fetch the components of the microgrid.
 
         Args:
@@ -63,9 +63,9 @@ class ComponentGraph(ABC):
     @abstractmethod
     def connections(
         self,
-        start: Optional[Set[int]] = None,
-        end: Optional[Set[int]] = None,
-    ) -> Set[Connection]:
+        start: set[int] | None = None,
+        end: set[int] | None = None,
+    ) -> set[Connection]:
         """Fetch the connections between microgrid components.
 
         Args:
@@ -80,7 +80,7 @@ class ComponentGraph(ABC):
         """
 
     @abstractmethod
-    def predecessors(self, component_id: int) -> Set[Component]:
+    def predecessors(self, component_id: int) -> set[Component]:
         """Fetch the graph predecessors of the specified component.
 
         Args:
@@ -97,7 +97,7 @@ class ComponentGraph(ABC):
         """
 
     @abstractmethod
-    def successors(self, component_id: int) -> Set[Component]:
+    def successors(self, component_id: int) -> set[Component]:
         """Fetch the graph successors of the specified component.
 
         Args:
@@ -270,9 +270,9 @@ class ComponentGraph(ABC):
     def dfs(
         self,
         current_node: Component,
-        visited: Set[Component],
+        visited: set[Component],
         condition: Callable[[Component], bool],
-    ) -> Set[Component]:
+    ) -> set[Component]:
         """
         Search for components that fulfill the condition in the Graph.
 
@@ -298,8 +298,8 @@ class _MicrogridComponentGraph(ComponentGraph):
 
     def __init__(
         self,
-        components: Optional[Set[Component]] = None,
-        connections: Optional[Set[Connection]] = None,
+        components: set[Component] | None = None,
+        connections: set[Connection] | None = None,
     ) -> None:
         """Initialize the component graph.
 
@@ -331,9 +331,9 @@ class _MicrogridComponentGraph(ComponentGraph):
 
     def components(
         self,
-        component_id: Optional[Set[int]] = None,
-        component_category: Optional[Set[ComponentCategory]] = None,
-    ) -> Set[Component]:
+        component_id: set[int] | None = None,
+        component_category: set[ComponentCategory] | None = None,
+    ) -> set[Component]:
         """Fetch the components of the microgrid.
 
         Args:
@@ -355,16 +355,16 @@ class _MicrogridComponentGraph(ComponentGraph):
             selection = map(lambda idx: Component(**self._graph.nodes[idx]), valid_ids)
 
         if component_category is not None:
-            types: Set[ComponentCategory] = component_category
+            types: set[ComponentCategory] = component_category
             selection = filter(lambda c: c.category in types, selection)
 
         return set(selection)
 
     def connections(
         self,
-        start: Optional[Set[int]] = None,
-        end: Optional[Set[int]] = None,
-    ) -> Set[Connection]:
+        start: set[int] | None = None,
+        end: set[int] | None = None,
+    ) -> set[Connection]:
         """Fetch the connections between microgrid components.
 
         Args:
@@ -386,12 +386,12 @@ class _MicrogridComponentGraph(ComponentGraph):
         else:
             selection = self._graph.out_edges(start)
             if end is not None:
-                end_ids: Set[int] = end
+                end_ids: set[int] = end
                 selection = filter(lambda c: c[1] in end_ids, selection)
 
         return set(map(lambda c: Connection(c[0], c[1]), selection))
 
-    def predecessors(self, component_id: int) -> Set[Component]:
+    def predecessors(self, component_id: int) -> set[Component]:
         """Fetch the graph predecessors of the specified component.
 
         Args:
@@ -417,7 +417,7 @@ class _MicrogridComponentGraph(ComponentGraph):
             map(lambda idx: Component(**self._graph.nodes[idx]), predecessors_ids)
         )
 
-    def successors(self, component_id: int) -> Set[Component]:
+    def successors(self, component_id: int) -> set[Component]:
         """Fetch the graph successors of the specified component.
 
         Args:
@@ -443,9 +443,9 @@ class _MicrogridComponentGraph(ComponentGraph):
 
     def refresh_from(
         self,
-        components: Set[Component],
-        connections: Set[Connection],
-        correct_errors: Optional[Callable[["_MicrogridComponentGraph"], None]] = None,
+        components: set[Component],
+        connections: set[Connection],
+        correct_errors: Callable[["_MicrogridComponentGraph"], None] | None = None,
     ) -> None:
         """Refresh the graph from the provided list of components and connections.
 
@@ -503,7 +503,7 @@ class _MicrogridComponentGraph(ComponentGraph):
     async def refresh_from_api(
         self,
         api: MicrogridApiClient,
-        correct_errors: Optional[Callable[["_MicrogridComponentGraph"], None]] = None,
+        correct_errors: Callable[["_MicrogridComponentGraph"], None] | None = None,
     ) -> None:
         """Refresh the contents of a component graph from the remote API.
 
@@ -715,9 +715,9 @@ class _MicrogridComponentGraph(ComponentGraph):
     def dfs(
         self,
         current_node: Component,
-        visited: Set[Component],
+        visited: set[Component],
         condition: Callable[[Component], bool],
-    ) -> Set[Component]:
+    ) -> set[Component]:
         """
         Search for components that fulfill the condition in the Graph.
 
@@ -741,7 +741,7 @@ class _MicrogridComponentGraph(ComponentGraph):
         if condition(current_node):
             return {current_node}
 
-        component: Set[Component] = set()
+        component: set[Component] = set()
 
         for successor in self.successors(current_node.component_id):
             component.update(self.dfs(successor, visited, condition))
@@ -766,7 +766,7 @@ class _MicrogridComponentGraph(ComponentGraph):
 
         # node[0] is required by the graph definition
         # If any node has not node[1], then it will not pass validations step.
-        undefined: List[int] = [
+        undefined: list[int] = [
             node[0] for node in self._graph.nodes(data=True) if len(node[1]) == 0
         ]
 

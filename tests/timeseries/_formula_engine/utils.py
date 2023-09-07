@@ -3,10 +3,9 @@
 
 """Utils for testing formula engines."""
 
-from __future__ import annotations
 
+from collections.abc import Callable
 from math import isclose
-from typing import Callable
 
 from frequenz.channels import Receiver
 

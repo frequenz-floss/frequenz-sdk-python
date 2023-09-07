@@ -2,15 +2,14 @@
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 """Class to return battery status."""
 
-from __future__ import annotations
 
 import asyncio
 import logging
 import math
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Iterable, Optional, Set, Union
 
 # pylint: disable=no-name-in-module
 from frequenz.api.microgrid.battery_pb2 import ComponentState as BatteryComponentState
@@ -155,7 +154,7 @@ class BatteryStatusTracker:
     Status updates are sent out only when there is a status change.
     """
 
-    _battery_valid_relay: Set[BatteryRelayState.ValueType] = {
+    _battery_valid_relay: set[BatteryRelayState.ValueType] = {
         BatteryRelayState.RELAY_STATE_CLOSED
     }
     """The list of valid relay states of a battery.
@@ -163,7 +162,7 @@ class BatteryStatusTracker:
     A working battery in any other battery relay state will be reported as failing.
     """
 
-    _battery_valid_state: Set[BatteryComponentState.ValueType] = {
+    _battery_valid_state: set[BatteryComponentState.ValueType] = {
         BatteryComponentState.COMPONENT_STATE_IDLE,
         BatteryComponentState.COMPONENT_STATE_CHARGING,
         BatteryComponentState.COMPONENT_STATE_DISCHARGING,
@@ -173,7 +172,7 @@ class BatteryStatusTracker:
     A working battery in any other battery state will be reported as failing.
     """
 
-    _inverter_valid_state: Set[InverterComponentState.ValueType] = {
+    _inverter_valid_state: set[InverterComponentState.ValueType] = {
         InverterComponentState.COMPONENT_STATE_STANDBY,
         InverterComponentState.COMPONENT_STATE_IDLE,
         InverterComponentState.COMPONENT_STATE_CHARGING,
@@ -302,7 +301,7 @@ class BatteryStatusTracker:
                 self._inverter.last_msg_timestamp,
             )
 
-    def _get_new_status_if_changed(self) -> Optional[Status]:
+    def _get_new_status_if_changed(self) -> Status | None:
         current_status = self._get_current_status()
         if self._last_status != current_status:
             self._last_status = current_status
@@ -433,7 +432,7 @@ class BatteryStatusTracker:
             return False
         return True
 
-    def _no_critical_error(self, msg: Union[BatteryData, InverterData]) -> bool:
+    def _no_critical_error(self, msg: BatteryData | InverterData) -> bool:
         """Check if battery or inverter message has any critical error.
 
         Args:
@@ -544,7 +543,7 @@ class BatteryStatusTracker:
 
         return not is_outdated
 
-    def _find_adjacent_inverter_id(self, battery_id: int) -> Optional[int]:
+    def _find_adjacent_inverter_id(self, battery_id: int) -> int | None:
         """Find inverter adjacent to this battery.
 
         Args:

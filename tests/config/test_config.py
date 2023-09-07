@@ -7,7 +7,7 @@ import re
 
 # pylint: disable = no-name-in-module
 import tomllib
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 import pytest
 from pydantic import BaseModel, StrictBool, StrictFloat, StrictInt
@@ -101,16 +101,16 @@ class TestConfig:
             ("var_bool", bool, True),
             ("var1", bool, 1),
             ("var_bool", StrictBool, True),
-            ("list_int", List[int], [1, 2, 3]),
-            ("list_int", List[StrictInt], [1, 2, 3]),
-            ("list_float", List[int], [1, 2, 3]),
-            ("list_int", List[float], [1.0, 2.0, 3.0]),
-            ("list_float", List[float], [1, 2.0, 3.5]),
-            ("list_non_strict_bool", List[bool], 2 * [False] + 2 * [True]),
-            ("list_non_strict_bool", List[str], ["false", "0", "true", "1"]),
-            ("item_data", List[Item], [Item(item_id=1, name="My Item")]),
-            ("dict_str_int", Dict[str, int], {"a": 1, "b": 2, "c": 3}),
-            ("var_none", Optional[float], None),
+            ("list_int", list[int], [1, 2, 3]),
+            ("list_int", list[StrictInt], [1, 2, 3]),
+            ("list_float", list[int], [1, 2, 3]),
+            ("list_int", list[float], [1.0, 2.0, 3.0]),
+            ("list_float", list[float], [1, 2.0, 3.5]),
+            ("list_non_strict_bool", list[bool], 2 * [False] + 2 * [True]),
+            ("list_non_strict_bool", list[str], ["false", "0", "true", "1"]),
+            ("item_data", list[Item], [Item(item_id=1, name="My Item")]),
+            ("dict_str_int", dict[str, int], {"a": 1, "b": 2, "c": 3}),
+            ("var_none", float | None, None),
         ],
     )
     def test_get_as_success(
@@ -127,9 +127,9 @@ class TestConfig:
             ("var_float", StrictInt),
             ("var_int", StrictFloat),
             ("var1", StrictBool),
-            ("list_float", List[StrictInt]),
-            ("list_int", List[StrictFloat]),
-            ("list_non_strict_bool", List[int]),
+            ("list_float", list[StrictInt]),
+            ("list_int", list[StrictFloat]),
+            ("list_non_strict_bool", list[int]),
         ],
     )
     def test_get_as_validation_error(
@@ -150,7 +150,7 @@ class TestConfig:
         "key_prefix, expected_values_type, value",
         [
             ("my_dict_", str, {"key1": "value1"}),
-            ("my_dict2_", Set[int], {"key1": {1, 2, 3}, "key2": {3}}),
+            ("my_dict2_", set[int], {"key1": {1, 2, 3}, "key2": {3}}),
         ],
     )
     def test_get_dict_values_success(
@@ -170,7 +170,7 @@ class TestConfig:
         [
             ("my_dict_", int),
             ("my_dict2_", int),
-            ("my_dict3_", Set[int]),
+            ("my_dict3_", set[int]),
         ],
     )
     def test_get_dict_success(

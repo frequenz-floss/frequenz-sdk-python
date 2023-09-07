@@ -3,14 +3,14 @@
 
 """Base class for formula generators that use the component graphs."""
 
-from __future__ import annotations
 
 import sys
 from abc import ABC, abstractmethod
 from collections import abc
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Generic
+from typing import Generic
 
 from frequenz.channels import Sender
 

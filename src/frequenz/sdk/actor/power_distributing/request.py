@@ -2,7 +2,6 @@
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 """Definition of the user request."""
 
-from __future__ import annotations
 
 import dataclasses
 from collections import abc

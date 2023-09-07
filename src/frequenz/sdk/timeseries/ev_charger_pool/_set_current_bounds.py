@@ -7,7 +7,6 @@ import asyncio
 import logging
 from dataclasses import dataclass
 from datetime import timedelta
-from typing import Dict
 
 from frequenz.channels import Broadcast, Sender
 from frequenz.channels.util import Timer, select, selected_from
@@ -97,7 +96,7 @@ class BoundsSetter:
         meter_data = (
             await api_client.meter_data(next(iter(meters)).component_id)
         ).into_peekable()
-        latest_bound: Dict[int, ComponentCurrentLimit] = {}
+        latest_bound: dict[int, ComponentCurrentLimit] = {}
 
         bound_chan = self._bounds_rx
         timer = Timer.timeout(timedelta(self._repeat_interval.total_seconds()))

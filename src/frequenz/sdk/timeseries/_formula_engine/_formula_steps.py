@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import math
 from abc import ABC, abstractmethod
-from typing import Generic, List, Optional
+from typing import Generic
 
 from frequenz.channels import Receiver
 
@@ -32,7 +32,7 @@ class FormulaStep(ABC):
         """
 
     @abstractmethod
-    def apply(self, eval_stack: List[float]) -> None:
+    def apply(self, eval_stack: list[float]) -> None:
         """Apply a formula operation on the eval_stack.
 
         Args:
@@ -51,7 +51,7 @@ class Adder(FormulaStep):
         """
         return "+"
 
-    def apply(self, eval_stack: List[float]) -> None:
+    def apply(self, eval_stack: list[float]) -> None:
         """Extract two values from the stack, add them, push the result back in.
 
         Args:
@@ -74,7 +74,7 @@ class Subtractor(FormulaStep):
         """
         return "-"
 
-    def apply(self, eval_stack: List[float]) -> None:
+    def apply(self, eval_stack: list[float]) -> None:
         """Extract two values from the stack, subtract them, push the result back in.
 
         Args:
@@ -97,7 +97,7 @@ class Multiplier(FormulaStep):
         """
         return "*"
 
-    def apply(self, eval_stack: List[float]) -> None:
+    def apply(self, eval_stack: list[float]) -> None:
         """Extract two values from the stack, multiply them, push the result back in.
 
         Args:
@@ -120,7 +120,7 @@ class Divider(FormulaStep):
         """
         return "/"
 
-    def apply(self, eval_stack: List[float]) -> None:
+    def apply(self, eval_stack: list[float]) -> None:
         """Extract two values from the stack, divide them, push the result back in.
 
         Args:
@@ -143,7 +143,7 @@ class Maximizer(FormulaStep):
         """
         return "max"
 
-    def apply(self, eval_stack: List[float]) -> None:
+    def apply(self, eval_stack: list[float]) -> None:
         """Extract two values from the stack and pushes back the maximum.
 
         Args:
@@ -166,7 +166,7 @@ class Minimizer(FormulaStep):
         """
         return "min"
 
-    def apply(self, eval_stack: List[float]) -> None:
+    def apply(self, eval_stack: list[float]) -> None:
         """Extract two values from the stack and pushes back the minimum.
 
         Args:
@@ -192,14 +192,14 @@ class OpenParen(FormulaStep):
         """
         return "("
 
-    def apply(self, _: List[float]) -> None:
+    def apply(self, _: list[float]) -> None:
         """No-op."""
 
 
 class Averager(Generic[QuantityT], FormulaStep):
     """A formula step for calculating average."""
 
-    def __init__(self, fetchers: List[MetricFetcher[QuantityT]]) -> None:
+    def __init__(self, fetchers: list[MetricFetcher[QuantityT]]) -> None:
         """Create an `Averager` instance.
 
         Args:
@@ -215,7 +215,7 @@ class Averager(Generic[QuantityT], FormulaStep):
         """
         return f"avg({', '.join(repr(f) for f in self._fetchers)})"
 
-    def apply(self, eval_stack: List[float]) -> None:
+    def apply(self, eval_stack: list[float]) -> None:
         """Calculate average of given metrics, push the average to the eval_stack.
 
         Args:
@@ -263,7 +263,7 @@ class ConstantValue(FormulaStep):
         """
         return str(self._value)
 
-    def apply(self, eval_stack: List[float]) -> None:
+    def apply(self, eval_stack: list[float]) -> None:
         """Push the constant value to the eval_stack.
 
         Args:
@@ -293,7 +293,7 @@ class Clipper(FormulaStep):
         """
         return f"clip({self._min_val}, {self._max_val})"
 
-    def apply(self, eval_stack: List[float]) -> None:
+    def apply(self, eval_stack: list[float]) -> None:
         """Clip the value at the top of the eval_stack.
 
         Args:
@@ -326,10 +326,10 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
         """
         self._name = name
         self._stream: Receiver[Sample[QuantityT]] = stream
-        self._next_value: Optional[Sample[QuantityT]] = None
+        self._next_value: Sample[QuantityT] | None = None
         self._nones_are_zeros = nones_are_zeros
 
-    async def fetch_next(self) -> Optional[Sample[QuantityT]]:
+    async def fetch_next(self) -> Sample[QuantityT] | None:
         """Fetch the next value from the stream.
 
         To be called before each call to `apply`.
@@ -341,7 +341,7 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
         return self._next_value
 
     @property
-    def value(self) -> Optional[Sample[QuantityT]]:
+    def value(self) -> Sample[QuantityT] | None:
         """Get the next value in the stream.
 
         Returns:
@@ -357,7 +357,7 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
         """
         return self._name
 
-    def apply(self, eval_stack: List[float]) -> None:
+    def apply(self, eval_stack: list[float]) -> None:
         """Push the latest value from the stream into the evaluation stack.
 
         Args:

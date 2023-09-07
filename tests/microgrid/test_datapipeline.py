@@ -4,8 +4,8 @@
 """Basic tests for the DataPipeline."""
 
 import asyncio
+from collections.abc import Iterator
 from datetime import timedelta
-from typing import Iterator
 
 import async_solipsism
 import pytest
@@ -54,14 +54,12 @@ async def test_actors_started(mocker: MockerFixture) -> None:
     assert datapipeline._power_distributing_actor is None
 
     mock_client = MockMicrogridClient(
-        set(
-            [
-                Component(1, ComponentCategory.GRID),
-                Component(4, ComponentCategory.INVERTER, InverterType.BATTERY),
-                Component(15, ComponentCategory.BATTERY),
-            ]
-        ),
-        connections=set([Connection(1, 4), Connection(4, 15)]),
+        {
+            Component(1, ComponentCategory.GRID),
+            Component(4, ComponentCategory.INVERTER, InverterType.BATTERY),
+            Component(15, ComponentCategory.BATTERY),
+        },
+        connections={Connection(1, 4), Connection(4, 15)},
     )
     mock_client.initialize(mocker)
 

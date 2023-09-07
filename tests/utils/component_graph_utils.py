@@ -2,7 +2,7 @@
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
 """Utils for tests that uses component graph."""
-from __future__ import annotations
+
 
 from dataclasses import dataclass
 

@@ -12,12 +12,10 @@ underlying buffer, e.g. the moving window, with the same start and end time
 modulo a fixed period.
 """
 
-from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import List, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
@@ -291,7 +289,7 @@ class PeriodicFeatureExtractor:
 
     def _get_buffer_bounds(
         self, start: datetime, end: datetime
-    ) -> Tuple[int, int, int]:
+    ) -> tuple[int, int, int]:
         """
         Get the bounds of the ringbuffer used for further operations.
 
@@ -363,7 +361,7 @@ class PeriodicFeatureExtractor:
 
     def _get_reshaped_np_array(
         self, start: datetime, end: datetime
-    ) -> Tuple[NDArray[np.float_], int]:
+    ) -> tuple[NDArray[np.float_], int]:
         """
         Create a reshaped numpy array from the MovingWindow.
 
@@ -393,7 +391,7 @@ class PeriodicFeatureExtractor:
         return (self._reshape_np_array(window_array, window_size), window_size)
 
     def avg(
-        self, start: datetime, end: datetime, weights: List[float] | None = None
+        self, start: datetime, end: datetime, weights: list[float] | None = None
     ) -> NDArray[np.float_]:
         """
         Create the average window out of the window defined by `start` and `end`.

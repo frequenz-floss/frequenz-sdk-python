@@ -11,9 +11,9 @@ import logging
 import math
 from bisect import bisect
 from collections import deque
+from collections.abc import AsyncIterator, Callable, Coroutine, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import AsyncIterator, Callable, Coroutine, Optional, Sequence
 
 from frequenz.channels.util import Timer
 from frequenz.channels.util._timer import _to_microseconds
@@ -324,7 +324,7 @@ class ResamplingError(RuntimeError):
 class SourceProperties:
     """Properties of a resampling source."""
 
-    sampling_start: Optional[datetime] = None
+    sampling_start: datetime | None = None
     """The time when resampling started for this source.
 
     `None` means it didn't started yet.
@@ -333,7 +333,7 @@ class SourceProperties:
     received_samples: int = 0
     """Total samples received by this source so far."""
 
-    sampling_period: Optional[timedelta] = None
+    sampling_period: timedelta | None = None
     """The sampling period of this source.
 
     This means we receive (on average) one sample for this source every

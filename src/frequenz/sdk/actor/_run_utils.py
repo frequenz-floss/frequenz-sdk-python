@@ -28,7 +28,7 @@ async def run(*actors: Actor) -> None:
             actor.start()
 
     # Wait until all actors are done
-    pending_tasks = set(asyncio.create_task(a.wait(), name=str(a)) for a in actors)
+    pending_tasks = {asyncio.create_task(a.wait(), name=str(a)) for a in actors}
     while pending_tasks:
         done_tasks, pending_tasks = await asyncio.wait(
             pending_tasks, return_when=asyncio.FIRST_COMPLETED

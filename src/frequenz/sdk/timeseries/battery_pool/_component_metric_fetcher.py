@@ -9,8 +9,9 @@ import asyncio
 import logging
 import math
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from datetime import datetime, timezone
-from typing import Any, Generic, Iterable, Optional, Self, Set, TypeVar
+from typing import Any, Generic, Self, TypeVar
 
 from frequenz.channels import ChannelClosedError, Receiver
 
@@ -64,7 +65,7 @@ class ComponentMetricFetcher(AsyncConstructible, ABC):
         return self
 
     @abstractmethod
-    async def fetch_next(self) -> Optional[ComponentMetricsData]:
+    async def fetch_next(self) -> ComponentMetricsData | None:
         """Fetch metrics for this component."""
 
 
@@ -108,7 +109,7 @@ class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
         self._max_waiting_time = MAX_BATTERY_DATA_AGE_SEC
         return self
 
-    async def fetch_next(self) -> Optional[ComponentMetricsData]:
+    async def fetch_next(self) -> ComponentMetricsData | None:
         """Fetch the latest component metrics.
 
         Returns:
@@ -147,7 +148,7 @@ class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
         ...
 
     @abstractmethod
-    def _supported_metrics(self) -> Set[ComponentMetricId]:
+    def _supported_metrics(self) -> set[ComponentMetricId]:
         ...
 
     @abstractmethod
@@ -195,7 +196,7 @@ class LatestBatteryMetricsFetcher(LatestMetricsFetcher[BatteryData]):
         )
         return self
 
-    def _supported_metrics(self) -> Set[ComponentMetricId]:
+    def _supported_metrics(self) -> set[ComponentMetricId]:
         return set(_BatteryDataMethods.keys())
 
     def _extract_metric(self, data: BatteryData, mid: ComponentMetricId) -> float:
@@ -246,7 +247,7 @@ class LatestInverterMetricsFetcher(LatestMetricsFetcher[InverterData]):
         )
         return self
 
-    def _supported_metrics(self) -> Set[ComponentMetricId]:
+    def _supported_metrics(self) -> set[ComponentMetricId]:
         return set(_InverterDataMethods.keys())
 
     def _extract_metric(self, data: InverterData, mid: ComponentMetricId) -> float:

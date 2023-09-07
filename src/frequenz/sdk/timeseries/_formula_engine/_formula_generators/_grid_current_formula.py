@@ -3,8 +3,6 @@
 
 """Formula generator from component graph for 3-phase Grid Current."""
 
-from typing import Set
-
 from ....microgrid.component import Component, ComponentCategory, ComponentMetricId
 from ..._quantities import Current
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase
@@ -46,7 +44,7 @@ class GridCurrentFormula(FormulaGenerator[Current]):
 
     def _gen_phase_formula(
         self,
-        grid_successors: Set[Component],
+        grid_successors: set[Component],
         metric_id: ComponentMetricId,
     ) -> FormulaEngine[Current]:
         builder = self._get_builder("grid-current", metric_id, Current.from_amperes)

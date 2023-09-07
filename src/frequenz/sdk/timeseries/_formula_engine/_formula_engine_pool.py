@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Type
+from typing import TYPE_CHECKING
 
 from frequenz.channels import Sender
 
@@ -90,7 +90,7 @@ class FormulaEnginePool:
     def from_power_formula_generator(
         self,
         channel_key: str,
-        generator: Type[FormulaGenerator[Power]],
+        generator: type[FormulaGenerator[Power]],
         config: FormulaGeneratorConfig = FormulaGeneratorConfig(),
     ) -> FormulaEngine[Power]:
         """Get a receiver for a formula from a generator.
@@ -124,7 +124,7 @@ class FormulaEnginePool:
     def from_3_phase_current_formula_generator(
         self,
         channel_key: str,
-        generator: "Type[FormulaGenerator[Current]]",
+        generator: type[FormulaGenerator[Current]],
         config: FormulaGeneratorConfig = FormulaGeneratorConfig(),
     ) -> FormulaEngine3Phase[Current]:
         """Get a receiver for a formula from a generator.

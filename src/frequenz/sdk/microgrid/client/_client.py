@@ -6,17 +6,8 @@
 import asyncio
 import logging
 from abc import ABC, abstractmethod
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Dict,
-    Iterable,
-    Optional,
-    Set,
-    TypeVar,
-    cast,
-)
+from collections.abc import Awaitable, Callable, Iterable
+from typing import Any, TypeVar, cast
 
 import grpc
 from frequenz.api.common import components_pb2 as components_pb
@@ -74,8 +65,8 @@ class MicrogridApiClient(ABC):
     @abstractmethod
     async def connections(
         self,
-        starts: Optional[Set[int]] = None,
-        ends: Optional[Set[int]] = None,
+        starts: set[int] | None = None,
+        ends: set[int] | None = None,
     ) -> Iterable[Connection]:
         """Fetch the connections between components in the microgrid.
 
@@ -221,8 +212,8 @@ class MicrogridGrpcClient(MicrogridApiClient):
         self.api = MicrogridStub(grpc_channel)
         """The gRPC stub for the microgrid API."""
 
-        self._component_streams: Dict[int, Broadcast[Any]] = {}
-        self._streaming_tasks: Dict[int, asyncio.Task[None]] = {}
+        self._component_streams: dict[int, Broadcast[Any]] = {}
+        self._streaming_tasks: dict[int, asyncio.Task[None]] = {}
         self._retry_spec = retry_spec
 
     async def components(self) -> Iterable[Component]:
@@ -270,8 +261,8 @@ class MicrogridGrpcClient(MicrogridApiClient):
 
     async def connections(
         self,
-        starts: Optional[Set[int]] = None,
-        ends: Optional[Set[int]] = None,
+        starts: set[int] | None = None,
+        ends: set[int] | None = None,
     ) -> Iterable[Connection]:
         """Fetch the connections between components in the microgrid.
 

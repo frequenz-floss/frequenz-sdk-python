@@ -3,7 +3,6 @@
 """Tests for BatteryPoolStatus."""
 
 import asyncio
-from typing import Set
 
 from frequenz.channels import Broadcast
 from pytest_mock import MockerFixture
@@ -50,7 +49,7 @@ class TestBatteryPoolStatus:
         )
         await asyncio.sleep(0.1)
 
-        expected_working: Set[int] = set()
+        expected_working: set[int] = set()
         assert batteries_status.get_working_batteries(batteries) == expected_working
 
         batteries_list = list(batteries)

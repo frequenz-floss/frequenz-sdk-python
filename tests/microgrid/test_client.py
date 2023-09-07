@@ -252,7 +252,7 @@ class TestMicrogridGrpcClient:
 
             # passing empty sets is the same as passing `None`,
             # filter is ignored
-            assert set(await microgrid.connections(starts=set([]), ends=set([]))) == {
+            assert set(await microgrid.connections(starts=set(), ends=set())) == {
                 Connection(1, 2),
                 Connection(2, 3),
                 Connection(2, 4),

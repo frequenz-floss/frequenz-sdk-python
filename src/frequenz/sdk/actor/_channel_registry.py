@@ -3,7 +3,7 @@
 
 """A class that would dynamically create, own and provide access to channels."""
 
-from typing import Any, Dict
+from typing import Any
 
 from frequenz.channels import Broadcast, Receiver, Sender
 
@@ -22,7 +22,7 @@ class ChannelRegistry:
             name: A unique name for the registry.
         """
         self._name = name
-        self._channels: Dict[str, Broadcast[Any]] = {}
+        self._channels: dict[str, Broadcast[Any]] = {}
 
     def new_sender(self, key: str) -> Sender[Any]:
         """Get a sender to a dynamically created channel with the given key.

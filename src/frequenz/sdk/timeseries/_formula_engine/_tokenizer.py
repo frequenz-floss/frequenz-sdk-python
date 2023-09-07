@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 
 class StringIter:
@@ -64,7 +63,7 @@ class StringIter:
             return char
         raise StopIteration()
 
-    def peek(self) -> Optional[str]:
+    def peek(self) -> str | None:
         """Return the next character in the raw string, without consuming it.
 
         Returns:

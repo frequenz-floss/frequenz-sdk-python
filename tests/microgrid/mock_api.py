@@ -11,10 +11,10 @@ all framework code, as API integration should be highly encapsulated.
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Iterable, Iterator
 
 # pylint: disable=invalid-name,no-name-in-module,unused-import
 from concurrent import futures
-from typing import Iterable, Iterator, List, Optional, Tuple
 
 import grpc
 from frequenz.api.common.components_pb2 import (
@@ -72,26 +72,26 @@ class MockMicrogridServicer(  # pylint: disable=too-many-public-methods
 
     def __init__(
         self,
-        components: Optional[List[Tuple[int, ComponentCategory.V]]] = None,
-        connections: Optional[List[Tuple[int, int]]] = None,
+        components: list[tuple[int, ComponentCategory.V]] | None = None,
+        connections: list[tuple[int, int]] | None = None,
     ) -> None:
         """Create a MockMicrogridServicer instance."""
-        self._components: List[Component] = []
-        self._connections: List[Connection] = []
-        self._bounds: List[SetBoundsParam] = []
+        self._components: list[Component] = []
+        self._connections: list[Connection] = []
+        self._bounds: list[SetBoundsParam] = []
 
         if components is not None:
             self.set_components(components)
         if connections is not None:
             self.set_connections(connections)
 
-        self._latest_power: Optional[SetPowerActiveParam] = None
+        self._latest_power: SetPowerActiveParam | None = None
 
     def add_component(
         self,
         component_id: int,
         component_category: ComponentCategory.V,
-        max_current: Optional[Current] = None,
+        max_current: Current | None = None,
         inverter_type: InverterType.V = InverterType.INVERTER_TYPE_UNSPECIFIED,
     ) -> None:
         """Add a component to the mock service."""
@@ -123,14 +123,14 @@ class MockMicrogridServicer(  # pylint: disable=too-many-public-methods
         """Add a connection to the mock service."""
         self._connections.append(Connection(start=start, end=end))
 
-    def set_components(self, components: List[Tuple[int, ComponentCategory.V]]) -> None:
+    def set_components(self, components: list[tuple[int, ComponentCategory.V]]) -> None:
         """Set components to mock service, dropping existing."""
         self._components.clear()
         self._components.extend(
             map(lambda c: Component(id=c[0], category=c[1]), components)
         )
 
-    def set_connections(self, connections: List[Tuple[int, int]]) -> None:
+    def set_connections(self, connections: list[tuple[int, int]]) -> None:
         """Set connections to mock service, dropping existing."""
         self._connections.clear()
         self._connections.extend(
@@ -142,7 +142,7 @@ class MockMicrogridServicer(  # pylint: disable=too-many-public-methods
         """Get argumetns of the latest charge request."""
         return self._latest_power
 
-    def get_bounds(self) -> List[SetBoundsParam]:
+    def get_bounds(self) -> list[SetBoundsParam]:
         """Return the list of received bounds."""
         return self._bounds
 
@@ -299,11 +299,11 @@ class MockGrpcServer:
         """Start the server."""
         await self._server.start()
 
-    async def _stop(self, grace: Optional[float]) -> None:
+    async def _stop(self, grace: float | None) -> None:
         """Stop the server."""
         await self._server.stop(grace)
 
-    async def _wait_for_termination(self, timeout: Optional[float] = None) -> None:
+    async def _wait_for_termination(self, timeout: float | None = None) -> None:
         """Wait for termination."""
         await self._server.wait_for_termination(timeout)
 

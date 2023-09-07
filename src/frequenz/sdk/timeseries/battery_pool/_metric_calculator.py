@@ -2,13 +2,13 @@
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
 """Module that defines how to aggregate metrics from battery-inverter components."""
-from __future__ import annotations
+
 
 import logging
 from abc import ABC, abstractmethod
-from collections.abc import Mapping, Set
+from collections.abc import Iterable, Mapping, Set
 from datetime import datetime, timezone
-from typing import Generic, Iterable, TypeVar
+from typing import Generic, TypeVar
 
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory, ComponentMetricId, InverterType

@@ -3,7 +3,6 @@
 
 """Tests for the `EVChargerPool`."""
 
-from __future__ import annotations
 
 import asyncio
 

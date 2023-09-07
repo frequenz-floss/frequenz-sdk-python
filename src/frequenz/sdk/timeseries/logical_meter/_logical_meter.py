@@ -3,7 +3,6 @@
 
 """A logical meter for calculating high level metrics for a microgrid."""
 
-from __future__ import annotations
 
 import uuid
 

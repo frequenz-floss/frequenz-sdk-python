@@ -4,7 +4,7 @@
 """Ringbuffer dumping & loading functions."""
 
 # For use of the class type hint inside the class itself.
-from __future__ import annotations
+
 
 import pickle
 from os.path import exists

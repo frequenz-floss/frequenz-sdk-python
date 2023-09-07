@@ -14,7 +14,7 @@ import asyncio
 import sys
 import tracemalloc
 from time import perf_counter
-from typing import Any, Tuple
+from typing import Any
 
 from frequenz.channels import Broadcast, Receiver, ReceiverStoppedError
 
@@ -131,7 +131,7 @@ async def benchmark_data_sourcing(
         )
 
 
-def parse_args() -> Tuple[int, int, bool]:
+def parse_args() -> tuple[int, int, bool]:
     """Parse the command line arguments.
 
     Returns:
