@@ -25,9 +25,6 @@ from frequenz.sdk.timeseries._formula_engine._tokenizer import Tokenizer, TokenT
 from frequenz.sdk.timeseries._quantities import Percentage, Quantity
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
-LOGGER = logging.getLogger(__name__)
-
-
 def build_formula(formula: str) -> list[FormulaStep]:
     """Parse the formula and returns the steps.
 
@@ -68,7 +65,7 @@ def reconstruct(formula: str) -> str:
     steps = build_formula(formula)
     reconstructed = FormulaFormatter.format(steps)
     if formula != reconstructed:
-        LOGGER.debug("Formula: input %s != output %s", formula, reconstructed)
+        print(f"Formula: input {formula} != output {reconstructed}")
     return reconstructed
 
 
