@@ -26,6 +26,10 @@ Direct current. See the [Wikipedia article](https://en.wikipedia.org/wiki/Direct
 
 Electric vehicle. See the [Wikipedia article](https://en.wikipedia.org/wiki/Electric_vehicle) for more details.
 
+### PSC
+
+Passive sign convention. See the [Wikipedia article](https://en.wikipedia.org/wiki/Passive_sign_convention) for more details.
+
 ### PV
 
 Photovoltaic. See the [Wikipedia article](https://en.wikipedia.org/wiki/Photovoltaics) for more details.
@@ -194,6 +198,7 @@ Same as [time series ID](#time-series-id).
 
 ## Metrics
 
+All metrics related to power, energy, current, etc. use the [PSC](#psc) to determine the sign of the value.
 ### Gross Consumption
 
 Consumption before accounting for any local generation from [solar](#solar-panel), [wind](#wind-turbine) or [CHP](#chp-plant).
