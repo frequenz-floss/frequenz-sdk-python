@@ -199,17 +199,26 @@ Same as [time series ID](#time-series-id).
 ## Metrics
 
 All metrics related to power, energy, current, etc. use the [PSC](#psc) to determine the sign of the value.
+
+### Consumption
+
+The amount of electricity flowing into a [component](#component). It is the clipped positive value when using the [PSC](#psc), so if the electricity is flowing out of the component instead, this will be zero.
+
 ### Gross Consumption
 
-Consumption before accounting for any local generation from [solar](#solar-panel), [wind](#wind-turbine) or [CHP](#chp-plant).
+[Consumption](#consumption) before accounting for any local generation from [solar](#solar-panel), [wind](#wind-turbine) or [CHP](#chp-plant).
 
 ### Net Consumption
 
-This term traditionally refers to the difference between the [gross consumption](#gross-consumption) and the local generation (like [PV](#pv) production). It is the electricity consumption that needs to be provided by the [battery](#battery) or from the public [grid](#grid).
+This term traditionally refers to the difference between the [gross consumption](#gross-consumption) and the local generation (like [PV](#pv) [production](#production)). It is the electricity [consumption](#consumption) that needs to be provided by the [battery](#battery) or from the public [grid](#grid).
 
 ### Net Load
 
 Same as [net consumption](#net-consumption).
+
+### Production
+
+The amount of electricity flowing out of a [component](#component). It is the clipped negative value when using the [PSC](#psc), so if the electricity is flowing into the component instead, this will be zero.
 
 ### Residual Consumption
 
