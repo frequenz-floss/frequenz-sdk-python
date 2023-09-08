@@ -76,7 +76,7 @@ A station for charging [EVs](#ev).
 
 #### Electrolyzer
 
-An device that converts water into hydrogen and oxygen.
+A device that converts water into hydrogen and oxygen.
 
 #### Grid
 
@@ -126,7 +126,7 @@ A device (of a particular [category](#component-category)) within a [microgrid](
 
 A numeric identifier uniquely representing an instance of a [component](#component) in a particular[microgrid](#microgrid). It is always of type `int`.
 
-For example, a battery an have a component ID **5**.
+For example, a battery with a component ID of **5**.
 
 ### Island
 
@@ -289,4 +289,4 @@ The ratio of peak power to nominal power. Peak power is the maximum power that c
 
 This indicator is crucial to ensure that charge or discharge power remains within specific limits, optimizing the battery's lifespan. It is particularly useful in peak power applications to define battery conditions for substantial charges or discharges.
 
-The state of power depends on the state of charge, battery capacity, initial characteristics, chemistry, and battery voltage. [Source](https://epicpower.es/wp-content/uploads/2020/08/AN028_SoC-SoH-SoP-definitions_v3.pdf)
+The state of power depends on the state of charge, battery capacity, initial characteristics, chemistry, and battery voltage, as well as external factors like temperature and humidity, which can also have a significant impact on it. [Source](https://epicpower.es/wp-content/uploads/2020/08/AN028_SoC-SoH-SoP-definitions_v3.pdf)
