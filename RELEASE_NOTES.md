@@ -24,6 +24,8 @@
 
 - NaN values are treated as missing when gaps are determined in the `OrderedRingBuffer`.
 
+- Now when printing `FormulaEngine` for debugging purposes the the formula will be shown in infix notation, which should be easier to read.
+
 ## Bug Fixes
 
 <!-- Here goes notable bug fixes that are worth a special mention or explanation -->
