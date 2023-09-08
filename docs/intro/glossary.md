@@ -208,6 +208,10 @@ The amount of electricity flowing into a [component](#component). It is the clip
 
 [Consumption](#consumption) before accounting for any local generation from [solar](#solar-panel), [wind](#wind-turbine) or [CHP](#chp-plant).
 
+### Instantaneous Power
+
+Same as [power](#power).
+
 ### Load
 
 Typically refers to a device that [consume](#consumption) electricity, but also to the amount of electricity [consumed](#consumption) by such a device.
@@ -222,6 +226,42 @@ This term traditionally refers to the difference between the [gross consumption]
 ### Net Load
 
 Same as [net consumption](#net-consumption).
+
+### Power
+
+The rate of energy transfer, i.e. the amount of energy transferred per unit of time. It is typically measured in Watts (W).
+
+For [AC](#ac) electricity, there are three types of power: [active](#active-power), [reactive](#reactive-power), and [apparent](#apparent-power) (P, Q and |S| respectively in [power triangle](#power-triangle)).
+
+See the [Wikipedia article](https://en.wikipedia.org/wiki/AC_power) for more information.
+
+#### Power Triangle
+
+The visual representation of the relationship between the three types of [power](#power) and the [phase](#phase).
+
+![Power triangle](../img/power-triangle.svg)
+
+([CC-BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/deed.en), [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Cmplxpower.svg))
+
+#### Active Power
+
+The power that is actually consumed by the [load](#load). It is the real part of the [apparent power](#apparent-power), P in the [power triangle](#power-triangle).
+
+#### Apparent Power
+
+The power that is actually supplied to the [load](#load). The magnitude of the vector sum of the [active](#active-power) and [reactive](#reactive-power) power, |S| in the [power-triangle](#power-triangle).
+
+#### Phase
+
+The angle of difference (in degrees) between current and voltage in an [AC](#ac) circuit, φ in the [power triangle](#power-triangle).
+
+#### Reactive Power
+
+The power that is not consumed by the [load](#load), but is alternately stored and returned to the source. It is the imaginary part of the [apparent power](#apparent-power), Q in the [power triangle](#power-triangle).
+
+#### Real Power
+
+Same as [active power](#active-power).
 
 ### Production
 
