@@ -106,7 +106,7 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
         # push all grid meters
         for idx, grid_meter in enumerate(grid_meters):
             if idx > 0:
-                builder.push_oper("-")
+                builder.push_oper("+")
             builder.push_component_metric(
                 grid_meter.component_id, nones_are_zeros=False
             )
