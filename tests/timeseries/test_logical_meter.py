@@ -17,7 +17,7 @@ from .mock_microgrid import MockMicrogrid
 # pylint: disable=too-many-locals
 
 
-class TestLogicalMeter:
+class TestLogicalMeter:  # pylint: disable=too-many-public-methods
     """Tests for the logical meter."""
 
     async def test_grid_power_1(self, mocker: MockerFixture) -> None:
@@ -277,6 +277,22 @@ class TestLogicalMeter:
 
         await mockgrid.mock_resampler.send_meter_power([20.0, 2.0, 3.0, 4.0, 5.0])
         assert (await consumer_power_receiver.receive()).value == Power.from_watts(20.0)
+
+    async def test_consumer_power_2_grid_meters(
+        self,
+        mocker: MockerFixture,
+    ) -> None:
+        """Test the grid power formula with grid meters."""
+        mockgrid = MockMicrogrid(grid_meter=False)
+        # with no further sucessor these will be detected as grid meters
+        mockgrid.add_consumer_meters(2)
+        await mockgrid.start(mocker)
+
+        logical_meter = microgrid.logical_meter()
+        grid_consumption_recv = logical_meter.grid_consumption_power.new_receiver()
+
+        await mockgrid.mock_resampler.send_meter_power([1.0, 2.0])
+        assert (await grid_consumption_recv.receive()).value == Power.from_watts(3.0)
 
     async def test_consumer_power_no_grid_meter_no_consumer_meter(
         self, mocker: MockerFixture
