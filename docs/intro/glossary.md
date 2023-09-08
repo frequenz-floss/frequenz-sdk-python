@@ -132,6 +132,10 @@ For example, a battery with a component ID of **5**.
 
 A [microgrid](#microgrid) that is not connected to the public electricity [grid](#grid).
 
+### Passive Sign Convention
+
+A convention for the direction of power flow in a circuit. When the electricity is flowing into a [component](#component) the value is positive, and when it is flowing out of a component the value is negative.
+
 ## Component Data
 
 ### Metric
