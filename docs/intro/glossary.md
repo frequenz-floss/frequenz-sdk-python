@@ -64,7 +64,11 @@ A generator that produces combined heat and power ([CHP](#chp)). Usually powered
 
 #### Converter
 
-A [DC](#dc)-DC converter.
+Generally refers to [DC-to-DC converter](#dc-to-dc-converter).
+
+#### DC-to-DC Converter
+
+An electronic circuit or electromechanical device that converts a source of [DC](#dc) from one voltage level to another.
 
 #### EV Charger
 
