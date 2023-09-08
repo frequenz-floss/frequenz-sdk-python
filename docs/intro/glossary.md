@@ -1,8 +1,7 @@
 # Glossary
 
-This glossary provides definitions for common terminology used in the SDK,
-focusing on microgrid components, metrics, measurements, and power-related
-terms.
+This glossary provides definitions for common terminology used in the Frequenz SDK,
+focusing on microgrid components, metrics, measurements, and power-related terms.
 
 ## Common Acronyms
 
@@ -124,7 +123,7 @@ A device (of a particular [category](#component-category)) within a [microgrid](
 
 ### Component ID
 
-A numeric identifier uniquely representing an instance of a [component](#component) in a particular[microgrid](#microgrid). It is always of type `int`.
+A numeric identifier uniquely representing an instance of a [component](#component) in a particular [microgrid](#microgrid). It is always of type `int`.
 
 For example, a battery with a component ID of **5**.
 
@@ -293,7 +292,7 @@ The level of charge of a [battery](#battery) relative to its capacity, expressed
 
 ### State of Power
 
-The ratio of peak power to nominal power. Peak power is the maximum power that can be sustained for a specific duration without violating preset operational design limits on battery voltage, SsC, power, or current.
+The ratio of peak power to nominal power. Peak power is the maximum power that can be sustained for a specific duration without violating preset operational design limits on battery voltage, SoC, power, or current.
 
 This indicator is crucial to ensure that charge or discharge power remains within specific limits, optimizing the battery's lifespan. It is particularly useful in peak power applications to define battery conditions for substantial charges or discharges.
 
