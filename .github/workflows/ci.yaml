@@ -172,6 +172,22 @@ jobs:
         if: always()
         run: sudo chown -R $USER:$USER /tmp/pip-cache
 
+  # This job runs if `nox-cross-arch` ran and succeeded.
+  # This is required because, when the `nox-cross-arch` job is skipped, its
+  # inner matrix is not expanded, and branch protection rules on the
+  # inner-matrix jobs get stuck. So instead of `nox-cross-arch`, this job can be
+  # used in the branch protection rules.
+  # At the time of writing this, there is an ongoing discussion about this here:
+  # https://github.com/orgs/community/discussions/9141
+  nox-cross-arch-all:
+    name: Cross-arch tests with nox
+    needs: ["nox-cross-arch"]
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Return true
+        run: true
+
+
   build:
     name: Build distribution packages
     runs-on: ubuntu-20.04
@@ -269,7 +285,7 @@ jobs:
 
   publish-docs:
     name: Publish documentation website to GitHub pages
-    needs: ["nox", "nox-cross-arch", "test-installation"]
+    needs: ["nox", "nox-cross-arch-all", "test-installation"]
     if: github.event_name == 'push'
     runs-on: ubuntu-20.04
     permissions:
