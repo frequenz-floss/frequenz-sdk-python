@@ -208,6 +208,13 @@ The amount of electricity flowing into a [component](#component). It is the clip
 
 [Consumption](#consumption) before accounting for any local generation from [solar](#solar-panel), [wind](#wind-turbine) or [CHP](#chp-plant).
 
+### Load
+
+Typically refers to a device that [consume](#consumption) electricity, but also to the amount of electricity [consumed](#consumption) by such a device.
+In a [microgrid](#microgrid) context, it is often used to refer to all the electrical devices that are doing active work, for example a light bulb, a motor, a cooler, etc.
+
+When using the [PSC](#psc), this is the same as [consumption](#consumption) and it is a positive value. If a *load* [generates](#production) electricity instead, it is a negative value but it wouldn't typically be called a *load*.
+
 ### Net Consumption
 
 This term traditionally refers to the difference between the [gross consumption](#gross-consumption) and the local generation (like [PV](#pv) [production](#production)). It is the electricity [consumption](#consumption) that needs to be provided by the [battery](#battery) or from the public [grid](#grid).
