@@ -245,7 +245,7 @@ See the [Wikipedia article](https://en.wikipedia.org/wiki/AC_power) for more inf
 
 #### Power Triangle
 
-The visual representation of the relationship between the three types of [power](#power) and the [phase](#phase).
+The visual representation of the relationship between the three types of [AC](#ac) [power](#power) and [phase of voltage relative to current](#phase-of-voltage-relative-to-current).
 
 ![Power triangle](../img/power-triangle.svg)
 
@@ -253,19 +253,23 @@ The visual representation of the relationship between the three types of [power]
 
 #### Active Power
 
-The power that is actually consumed by the [load](#load). It is the real part of the [apparent power](#apparent-power), P in the [power triangle](#power-triangle).
+The [AC](#ac) power that is actually consumed by the [load](#load). It is the real part of the [apparent power](#apparent-power), P in the [power triangle](#power-triangle).
 
 #### Apparent Power
 
-The power that is actually supplied to the [load](#load). The magnitude of the vector sum of the [active](#active-power) and [reactive](#reactive-power) power, |S| in the [power-triangle](#power-triangle).
+The [AC](#ac) power that is actually supplied to the [load](#load). The magnitude of the vector sum of the [active](#active-power) and [reactive](#reactive-power) power, |S| in the [power-triangle](#power-triangle).
 
-#### Phase
+#### Phase of Voltage Relative to Current
 
 The angle of difference (in degrees) between current and voltage in an [AC](#ac) circuit, φ in the [power triangle](#power-triangle).
 
+#### Power Factor
+
+The ratio of real power to apparent power in an [AC](#ac) circuit. Can be obtained by computing the cosine of  [φ](#phase-of-voltage-relative-to-current), in the [power triangle](#power-triangle). See the [Wikipedia article](https://en.wikipedia.org/wiki/Power_factor) for more details.
+
 #### Reactive Power
 
-The power that is not consumed by the [load](#load), but is alternately stored and returned to the source. It is the imaginary part of the [apparent power](#apparent-power), Q in the [power triangle](#power-triangle).
+The [AC](#ac) power that is not consumed by the [load](#load), but is alternately stored and returned to the source. It is the imaginary part of the [apparent power](#apparent-power), Q in the [power triangle](#power-triangle).
 
 #### Real Power
 
