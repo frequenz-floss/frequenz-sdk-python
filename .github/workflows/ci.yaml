@@ -30,6 +30,7 @@ jobs:
       matrix:
         os:
           - ubuntu-20.04
+          - macos-latest
         python:
           - "3.11"
         nox-session:
@@ -190,7 +191,13 @@ jobs:
 
   build:
     name: Build distribution packages
-    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-20.04
+          - macos-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Fetch sources
         uses: actions/checkout@v3
@@ -212,7 +219,9 @@ jobs:
       - name: Build the source and binary distribution
         run: python -m build
 
+        # It is sufficient to upload only once
       - name: Upload distribution files
+        if: ${{ matrix.os == 'ubuntu-20.04' }}
         uses: actions/upload-artifact@v3
         with:
           name: dist-packages
