@@ -189,9 +189,38 @@ class OrderedRingBuffer(Generic[FloatArray]):
         Return the time bounds of the ring buffer.
 
         Returns:
-            The timestamp of the newest sample of the ring buffer.
+            The timestamp of the newest sample of the ring buffer
+            or None if the buffer is empty.
         """
         return self._datetime_newest
+
+    @property
+    def oldest_timestamp(self) -> datetime | None:
+        """Return the oldest timestamp in the buffer.
+
+        Returns:
+            The oldest timestamp in the buffer
+            or None if the buffer is empty.
+        """
+        if len(self) == 0:
+            return None
+
+        if self.is_missing(self.time_bound_oldest):
+            return min(g.end for g in self.gaps)
+
+        return self.time_bound_oldest
+
+    @property
+    def newest_timestamp(self) -> datetime | None:
+        """Return the newest timestamp in the buffer.
+
+        Returns:
+            The newest timestamp in the buffer.
+        """
+        if len(self) == 0:
+            return None
+
+        return self.time_bound_newest
 
     def datetime_to_index(
         self, timestamp: datetime, allow_outside_range: bool = False

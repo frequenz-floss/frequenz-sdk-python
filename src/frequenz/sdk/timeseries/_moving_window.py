@@ -208,6 +208,39 @@ class MovingWindow(BackgroundService):
         """
         return self._sampling_period
 
+    @property
+    def oldest_timestamp(self) -> datetime | None:
+        """
+        Return the oldest timestamp of the MovingWindow.
+
+        Returns:
+            The oldest timestamp of the MovingWindow or None if the buffer is empty.
+        """
+        return self._buffer.oldest_timestamp
+
+    @property
+    def newest_timestamp(self) -> datetime | None:
+        """
+        Return the newest timestamp of the MovingWindow.
+
+        Returns:
+            The newest timestamp of the MovingWindow or None if the buffer is empty.
+        """
+        return self._buffer.newest_timestamp
+
+    @property
+    def capacity(self) -> int:
+        """
+        Return the capacity of the MovingWindow.
+
+        Capacity is the maximum number of samples that can be stored in the
+        MovingWindow.
+
+        Returns:
+            The capacity of the MovingWindow.
+        """
+        return self._buffer.maxlen
+
     async def _run_impl(self) -> None:
         """Awaits samples from the receiver and updates the underlying ring buffer.
 
