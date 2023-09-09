@@ -30,7 +30,7 @@ _logger = logging.getLogger(__name__)
 #
 # pylint: disable=import-outside-toplevel
 if typing.TYPE_CHECKING:
-    from ..actor import ComponentMetricRequest, ResamplerConfig
+    from ..actor import ComponentMetricRequest, ResamplerConfig, _power_managing
     from ..actor.power_distributing import (  # noqa: F401 (imports used by string type hints)
         BatteryStatus,
         PowerDistributingActor,
@@ -61,7 +61,7 @@ class _ActorInfo:
     """The request channel for the actor."""
 
 
-class _DataPipeline:
+class _DataPipeline:  # pylint: disable=too-many-instance-attributes
     """Create, connect and own instances of data pipeline components.
 
     Provides SDK users direct access to higher level components of the data pipeline,
@@ -97,7 +97,12 @@ class _DataPipeline:
             "Power Distributing Actor, Results Broadcast Channel"
         )
 
+        self._power_management_proposals_channel: Broadcast[
+            _power_managing.Proposal
+        ] = Broadcast("Power Managing Actor, Requests Broadcast Channel")
+
         self._power_distributing_actor: PowerDistributingActor | None = None
+        self._power_managing_actor: _power_managing.PowerManagingActor | None = None
 
         self._logical_meter: LogicalMeter | None = None
         self._ev_charger_pools: dict[frozenset[int], EVChargerPool] = {}
@@ -192,8 +197,8 @@ class _DataPipeline:
         """
         from ..timeseries.battery_pool import BatteryPool
 
-        if not self._power_distributing_actor:
-            self._start_power_distributing_actor()
+        if not self._power_managing_actor:
+            self._start_power_managing_actor()
 
         # We use frozenset to make a hashable key from the input set.
         key: frozenset[int] = frozenset()
@@ -218,6 +223,36 @@ class _DataPipeline:
             )
 
         return self._battery_pools[key]
+
+    def _start_power_managing_actor(self) -> None:
+        """Start the power managing actor if it is not already running."""
+        if self._power_managing_actor:
+            return
+
+        component_graph = connection_manager.get().component_graph
+        # Currently the power managing actor only supports batteries.  The below
+        # constraint needs to be relaxed if the actor is extended to support other
+        # components.
+        if not component_graph.components(
+            component_category={ComponentCategory.BATTERY}
+        ):
+            _logger.warning(
+                "No batteries found in the component graph. "
+                "The power managing actor will not be started."
+            )
+            return
+
+        self._start_power_distributing_actor()
+
+        from ..actor._power_managing._power_managing_actor import PowerManagingActor
+
+        self._power_managing_actor = PowerManagingActor(
+            proposals_receiver=self._power_management_proposals_channel.new_receiver(),
+            power_distributing_requests_sender=(
+                self._power_distribution_requests_channel.new_sender()
+            ),
+        )
+        self._power_managing_actor.start()
 
     def _start_power_distributing_actor(self) -> None:
         """Start the power distributing actor if it is not already running."""
