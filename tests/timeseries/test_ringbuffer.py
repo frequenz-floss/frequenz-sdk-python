@@ -522,6 +522,13 @@ def test_window() -> None:
     assert [0, 1, 2] == list(win)
     win = buffer.window(dt(0), dt(3), force_copy=False)
     assert [0, 1, 2] == list(win)
+    # Empty array
+    assert 0 == buffer.window(dt(1), dt(1)).size
+
+    buffer = get_orb([0.0, 1.0, 2.0, 3.0, 4.0])  # type: ignore
+    assert [0, 1, 2] == buffer.window(dt(0), dt(3))
+    assert [] == buffer.window(dt(0), dt(0))
+    assert [] == buffer.window(dt(1), dt(1))
 
 
 def test_wrapped_buffer_window() -> None:

@@ -292,6 +292,9 @@ class OrderedRingBuffer(Generic[FloatArray]):
                 f"end parameter {end} has to predate start parameter {start}"
             )
 
+        if start == end:
+            return np.array([]) if isinstance(self._buffer, np.ndarray) else []
+
         start_index = self.datetime_to_index(start)
         end_index = self.datetime_to_index(end)
 
