@@ -573,55 +573,29 @@ class PowerDistributingActor(Actor):
             )
             return None
 
-        not_replaceable_metrics = [
+        crucial_metrics_bat = [
             battery_data.soc,
             battery_data.soc_lower_bound,
             battery_data.soc_upper_bound,
-            # We could replace capacity with 0, but it won't change distribution.
-            # This battery will be ignored in distribution anyway.
             battery_data.capacity,
+            battery_data.power_inclusion_lower_bound,
+            battery_data.power_inclusion_upper_bound,
         ]
-        if any(map(isnan, not_replaceable_metrics)):
+        if any(map(isnan, crucial_metrics_bat)):
             _logger.debug("Some metrics for battery %d are NaN", battery_id)
             return None
 
-        replaceable_metrics = [
-            battery_data.power_inclusion_lower_bound,
-            battery_data.power_inclusion_upper_bound,
+        crucial_metrics_inv = [
             inverter_data.active_power_inclusion_lower_bound,
             inverter_data.active_power_inclusion_upper_bound,
         ]
 
         # If all values are ok then return them.
-        if not any(map(isnan, replaceable_metrics)):
-            inv_bat_pair = InvBatPair(battery_data, inverter_data)
-            self._cached_metrics[battery_id] = _CacheEntry.from_ttl(inv_bat_pair)
-            return inv_bat_pair
+        if any(map(isnan, crucial_metrics_inv)):
+            _logger.debug("Some metrics for inverter %d are NaN", inverter_id)
+            return None
 
-        # Replace NaN with the corresponding value in the adjacent component.
-        # If both metrics are None, return None to ignore this battery.
-        replaceable_pairs = [
-            ("power_inclusion_lower_bound", "active_power_inclusion_lower_bound"),
-            ("power_inclusion_upper_bound", "active_power_inclusion_upper_bound"),
-        ]
-
-        battery_new_metrics = {}
-        inverter_new_metrics = {}
-        for bat_attr, inv_attr in replaceable_pairs:
-            bat_bound = getattr(battery_data, bat_attr)
-            inv_bound = getattr(inverter_data, inv_attr)
-            if isnan(bat_bound) and isnan(inv_bound):
-                _logger.debug("Some metrics for battery %d are NaN", battery_id)
-                return None
-            if isnan(bat_bound):
-                battery_new_metrics[bat_attr] = inv_bound
-            elif isnan(inv_bound):
-                inverter_new_metrics[inv_attr] = bat_bound
-
-        inv_bat_pair = InvBatPair(
-            replace(battery_data, **battery_new_metrics),
-            replace(inverter_data, **inverter_new_metrics),
-        )
+        inv_bat_pair = InvBatPair(battery_data, inverter_data)
         self._cached_metrics[battery_id] = _CacheEntry.from_ttl(inv_bat_pair)
         return inv_bat_pair
 

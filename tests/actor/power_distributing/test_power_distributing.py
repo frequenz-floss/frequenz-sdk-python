@@ -366,11 +366,10 @@ class TestPowerDistributingActor:
         await mockgrid.start(mocker)
         await self.init_component_data(mockgrid)
 
-        # Battery 19 should work even if his inverter sends NaN
         await mockgrid.mock_client.send(
             inverter_msg(
                 18,
-                power=PowerBounds(math.nan, 0, 0, math.nan),
+                power=PowerBounds(-1000, 0, 0, 1000),
             )
         )
 
