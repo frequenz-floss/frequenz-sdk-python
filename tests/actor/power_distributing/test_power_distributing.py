@@ -100,7 +100,7 @@ class TestPowerDistributingActor:
             )
 
     async def test_power_distributor_one_user(self, mocker: MockerFixture) -> None:
-        """Test if power distribution works with single user works."""
+        """Test if power distribution works with a single user."""
         mockgrid = MockMicrogrid(grid_meter=False)
         mockgrid.add_batteries(3)
         await mockgrid.start(mocker)
@@ -374,7 +374,7 @@ class TestPowerDistributingActor:
             )
         )
 
-        # Battery 106 should not work because both battery and inverter sends NaN
+        # Battery 9 should not work because both battery and inverter sends NaN
         await mockgrid.mock_client.send(
             inverter_msg(
                 8,
