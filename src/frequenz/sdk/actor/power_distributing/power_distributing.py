@@ -18,10 +18,10 @@ import time
 from asyncio.tasks import ALL_COMPLETED
 from collections import abc
 from collections.abc import Iterable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from datetime import timedelta
 from math import isnan
-from typing import Any, Self
+from typing import Any, Self, TypeVar, cast
 
 import grpc
 from frequenz.channels import Peekable, Receiver, Sender
@@ -41,6 +41,7 @@ from ...microgrid.component import (
 )
 from ._battery_pool_status import BatteryPoolStatus, BatteryStatus
 from ._distribution_algorithm import (
+    AggregatedBatteryData,
     DistributionAlgorithm,
     DistributionResult,
     InvBatPair,
@@ -83,6 +84,19 @@ class _CacheEntry:
             whether the cache entry has expired.
         """
         return time.monotonic_ns() >= self.expiry_time
+
+
+def _get_all(source: dict[int, frozenset[int]], keys: abc.Set[int]) -> set[int]:
+    """Get all values for the given keys from the given map.
+
+    Args:
+        source: map to get values from.
+        keys: keys to get values for.
+
+    Returns:
+        Set of values for the given keys.
+    """
+    return set().union(*[source[key] for key in keys])
 
 
 class PowerDistributingActor(Actor):
@@ -157,9 +171,13 @@ class PowerDistributingActor(Actor):
         )
         """The distribution algorithm used to distribute power between batteries."""
 
-        self._bat_inv_map, self._inv_bat_map = self._get_components_pairs(
-            connection_manager.get().component_graph
-        )
+        (
+            self._bat_inv_map,
+            self._inv_bat_map,
+            self._bat_bats_map,
+            self._inv_invs_map,
+        ) = self._get_components_pairs(connection_manager.get().component_graph)
+
         self._battery_receivers: dict[int, Peekable[BatteryData]] = {}
         self._inverter_receivers: dict[int, Peekable[InverterData]] = {}
 
@@ -170,8 +188,8 @@ class PowerDistributingActor(Actor):
             max_data_age_sec=10.0,
         )
 
-        self._cached_metrics: dict[int, _CacheEntry | None] = {
-            bat_id: None for bat_id, _ in self._bat_inv_map.items()
+        self._cached_metrics: dict[frozenset[int], _CacheEntry | None] = {
+            bat_ids: None for bat_ids in self._bat_bats_map.values()
         }
 
     def _get_bounds(
@@ -190,16 +208,22 @@ class PowerDistributingActor(Actor):
             inclusion_lower=sum(
                 max(
                     battery.power_inclusion_lower_bound,
-                    inverter.active_power_inclusion_lower_bound,
+                    sum(
+                        inverter.active_power_inclusion_lower_bound
+                        for inverter in inverters
+                    ),
                 )
-                for battery, inverter in pairs_data
+                for battery, inverters in pairs_data
             ),
             inclusion_upper=sum(
                 min(
                     battery.power_inclusion_upper_bound,
-                    inverter.active_power_inclusion_upper_bound,
+                    sum(
+                        inverter.active_power_inclusion_upper_bound
+                        for inverter in inverters
+                    ),
                 )
-                for battery, inverter in pairs_data
+                for battery, inverters in pairs_data
             ),
             exclusion_lower=sum(
                 min(
@@ -231,6 +255,7 @@ class PowerDistributingActor(Actor):
 
         await self._result_senders[namespace].send(result)
 
+    # pylint: disable=too-many-locals
     async def _run(self) -> None:
         """Run actor main function.
 
@@ -259,7 +284,10 @@ class PowerDistributingActor(Actor):
                 continue
 
             if not pairs_data and not request.include_broken_batteries:
-                error_msg = f"No data for the given batteries {str(request.batteries)}"
+                error_msg = (
+                    "No data for at least one of the given "
+                    f"batteries {str(request.batteries)}"
+                )
                 await self._send_result(
                     request.namespace, Error(request=request, msg=str(error_msg))
                 )
@@ -283,10 +311,13 @@ class PowerDistributingActor(Actor):
             distributed_power_value = (
                 request.power.as_watts() - distribution.remaining_power
             )
-            battery_distribution = {
-                self._inv_bat_map[bat_id]: dist
-                for bat_id, dist in distribution.distribution.items()
-            }
+            battery_distribution: dict[int, float] = {}
+            for inverter_id, dist in distribution.distribution.items():
+                for battery_id in self._inv_bat_map[inverter_id]:
+                    battery_distribution[battery_id] = (
+                        battery_distribution.get(battery_id, 0.0) + dist
+                    )
+
             _logger.debug(
                 "Distributing power %d between the batteries %s",
                 distributed_power_value,
@@ -370,11 +401,17 @@ class PowerDistributingActor(Actor):
         Returns:
             the power distribution result.
         """
-        available_bat_ids = {battery.component_id for battery, _ in inv_bat_pairs}
+        available_bat_ids = _get_all(
+            self._bat_bats_map, {pair.battery.component_id for pair in inv_bat_pairs}
+        )
+
         unavailable_bat_ids = request.batteries - available_bat_ids
-        unavailable_inv_ids = {
-            self._bat_inv_map[battery_id] for battery_id in unavailable_bat_ids
-        }
+        unavailable_inv_ids: set[int] = set()
+
+        for inverter_ids in [
+            self._bat_inv_map[battery_id_set] for battery_id_set in unavailable_bat_ids
+        ]:
+            unavailable_inv_ids = unavailable_inv_ids.union(inverter_ids)
 
         if request.include_broken_batteries and not available_bat_ids:
             return self.distribution_algorithm.distribute_power_equally(
@@ -414,6 +451,7 @@ class PowerDistributingActor(Actor):
             return Error(request=request, msg="Empty battery IDs in the request")
 
         for battery in request.batteries:
+            _logger.debug("Checking battery %d", battery)
             if battery not in self._battery_receivers:
                 msg = (
                     f"No battery {battery}, available batteries: "
@@ -448,45 +486,68 @@ class PowerDistributingActor(Actor):
 
     def _get_components_pairs(
         self, component_graph: ComponentGraph
-    ) -> tuple[dict[int, int], dict[int, int]]:
-        """Create maps between battery and adjacent inverter.
+    ) -> tuple[
+        dict[int, frozenset[int]],
+        dict[int, frozenset[int]],
+        dict[int, frozenset[int]],
+        dict[int, frozenset[int]],
+    ]:
+        """Create maps between battery and adjacent inverters.
 
         Args:
             component_graph: component graph
 
         Returns:
-            Tuple where first element is map between battery and adjacent inverter,
-                second element of the tuple is map between inverter and adjacent
-                battery.
+            Tuple of four maps:
+                battery to inverters,
+                inverter to batteries,
+                battery to batteries,
+                inverter to inverters.
         """
-        bat_inv_map: dict[int, int] = {}
-        inv_bat_map: dict[int, int] = {}
+        bat_inv_map: dict[int, set[int]] = {}
+        inv_bat_map: dict[int, set[int]] = {}
+        bat_bats_map: dict[int, set[int]] = {}
+        inv_invs_map: dict[int, set[int]] = {}
 
         batteries: Iterable[Component] = component_graph.components(
             component_category={ComponentCategory.BATTERY}
         )
 
         for battery in batteries:
-            inverters: list[Component] = [
-                component
+            inverters: set[int] = set(
+                component.component_id
                 for component in component_graph.predecessors(battery.component_id)
                 if component.category == ComponentCategory.INVERTER
-            ]
+            )
 
             if len(inverters) == 0:
                 _logger.error("No inverters for battery %d", battery.component_id)
                 continue
 
-            if len(inverters) > 1:
-                _logger.error(
-                    "Battery %d has more then one inverter. It is not supported now.",
-                    battery.component_id,
+            _logger.debug(
+                "Battery %d has inverter %s", battery.component_id, list(inverters)
+            )
+
+            bat_inv_map[battery.component_id] = inverters
+            bat_bats_map.setdefault(battery.component_id, set()).update(
+                set(
+                    component.component_id
+                    for inverter in inverters
+                    for component in component_graph.successors(inverter)
                 )
+            )
 
-            bat_inv_map[battery.component_id] = inverters[0].component_id
-            inv_bat_map[inverters[0].component_id] = battery.component_id
+            for inverter in inverters:
+                inv_bat_map.setdefault(inverter, set()).add(battery.component_id)
+                inv_invs_map.setdefault(inverter, set()).update(bat_inv_map)
 
-        return bat_inv_map, inv_bat_map
+        # Convert sets to frozensets to make them hashable.
+        return (
+            {k: frozenset(v) for k, v in bat_inv_map.items()},
+            {k: frozenset(v) for k, v in inv_bat_map.items()},
+            {k: frozenset(v) for k, v in bat_bats_map.items()},
+            {k: frozenset(v) for k, v in inv_invs_map.items()},
+        )
 
     def _get_components_data(
         self, batteries: abc.Set[int], include_broken: bool
@@ -505,6 +566,7 @@ class PowerDistributingActor(Actor):
             Pairs of battery and adjacent inverter data.
         """
         pairs_data: list[InvBatPair] = []
+
         working_batteries = (
             batteries
             if include_broken
@@ -518,96 +580,132 @@ class PowerDistributingActor(Actor):
                     f"available batteries: {list(self._battery_receivers.keys())}"
                 )
 
-            inverter_id: int = self._bat_inv_map[battery_id]
+        connected_inverters = _get_all(self._bat_inv_map, batteries)
 
-            data = self._get_battery_inverter_data(battery_id, inverter_id)
+        # Check to see if inverters are involved that are connected to batteries
+        # that were not requested.
+        batteries_from_inverters = _get_all(self._inv_bat_map, connected_inverters)
+
+        if batteries_from_inverters != batteries:
+            extra_batteries = batteries_from_inverters - batteries
+            raise KeyError(
+                f"Inverters {_get_all(self._bat_inv_map, extra_batteries)} "
+                f"are connected to batteries that were not requested: {extra_batteries}"
+            )
+
+        # set of set of batteries one for each working_battery
+        battery_sets: frozenset[frozenset[int]] = frozenset(
+            self._bat_bats_map[working_battery] for working_battery in working_batteries
+        )
+
+        for battery_ids in battery_sets:
+            inverter_ids: frozenset[int] = self._bat_inv_map[next(iter(battery_ids))]
+
+            data = self._get_battery_inverter_data(battery_ids, inverter_ids)
             if not data and include_broken:
-                cached_entry = self._cached_metrics[battery_id]
+                cached_entry = self._cached_metrics[battery_ids]
                 if cached_entry and not cached_entry.has_expired():
                     data = cached_entry.inv_bat_pair
                 else:
                     data = None
             if data is None:
                 _logger.warning(
-                    "Skipping battery %d because its message isn't correct.",
-                    battery_id,
+                    "Skipping battery set %s because at least one of its messages isn't correct.",
+                    list(battery_ids),
                 )
                 continue
 
+            assert len(data.inverter) > 0
             pairs_data.append(data)
         return pairs_data
 
     def _get_battery_inverter_data(
-        self, battery_id: int, inverter_id: int
+        self, battery_ids: frozenset[int], inverter_ids: frozenset[int]
     ) -> InvBatPair | None:
         """Get battery and inverter data if they are correct.
 
         Each float data from the microgrid can be "NaN".
         We can't do math operations on "NaN".
-        So check all the metrics and:
-        * if power bounds are NaN, then try to replace it with the corresponding
-          power bounds from the adjacent component. If metric in the adjacent component
-          is also NaN, then return None.
-        * if other metrics are NaN then return None. We can't assume anything for other
-          metrics.
+        So check all the metrics and if any are "NaN" then return None.
 
         Args:
-            battery_id: battery id
-            inverter_id: inverter id
+            battery_ids: battery ids
+            inverter_ids: inverter ids
 
         Returns:
             Data for the battery and adjacent inverter without NaN values.
                 Return None if we could not replace NaN values.
         """
-        battery_data = self._battery_receivers[battery_id].peek()
-        inverter_data = self._inverter_receivers[inverter_id].peek()
+        battery_data_none = [
+            self._battery_receivers[battery_id].peek() for battery_id in battery_ids
+        ]
+        inverter_data_none = [
+            self._inverter_receivers[inverter_id].peek() for inverter_id in inverter_ids
+        ]
 
         # It means that nothing has been send on this channels, yet.
         # This should be handled by BatteryStatus. BatteryStatus should not return
         # this batteries as working.
-        if battery_data is None or inverter_data is None:
+        if not all(battery_data_none) or not all(inverter_data_none):
             _logger.error(
-                "Battery %d or inverter %d send no data, yet. They should be not used.",
-                battery_id,
-                inverter_id,
+                "Battery %s or inverter %s send no data, yet. They should be not used.",
+                battery_ids,
+                inverter_ids,
             )
             return None
 
+        battery_data = cast(list[BatteryData], battery_data_none)
+        inverter_data = cast(list[InverterData], inverter_data_none)
+
+        DataType = TypeVar("DataType", BatteryData, InverterData)
+
+        def metric_is_nan(data: DataType, metrics: list[str]) -> bool:
+            """Check if non-replaceable metrics are NaN."""
+            assert data is not None
+            return any(map(lambda metric: isnan(getattr(data, metric)), metrics))
+
+        def nan_metric_in_list(data: list[DataType], metrics: list[str]) -> bool:
+            """Check if any metric is NaN."""
+            return any(map(lambda datum: metric_is_nan(datum, metrics), data))
+
         crucial_metrics_bat = [
-            battery_data.soc,
-            battery_data.soc_lower_bound,
-            battery_data.soc_upper_bound,
-            battery_data.capacity,
-            battery_data.power_inclusion_lower_bound,
-            battery_data.power_inclusion_upper_bound,
+            "soc",
+            "soc_lower_bound",
+            "soc_upper_bound",
+            "capacity",
+            "power_inclusion_lower_bound",
+            "power_inclusion_upper_bound",
         ]
-        if any(map(isnan, crucial_metrics_bat)):
-            _logger.debug("Some metrics for battery %d are NaN", battery_id)
-            return None
 
         crucial_metrics_inv = [
-            inverter_data.active_power_inclusion_lower_bound,
-            inverter_data.active_power_inclusion_upper_bound,
+            "active_power_inclusion_lower_bound",
+            "active_power_inclusion_upper_bound",
         ]
 
-        # If all values are ok then return them.
-        if any(map(isnan, crucial_metrics_inv)):
-            _logger.debug("Some metrics for inverter %d are NaN", inverter_id)
+        if nan_metric_in_list(battery_data, crucial_metrics_bat):
+            _logger.debug("Some metrics for battery set %s are NaN", list(battery_ids))
             return None
 
-        inv_bat_pair = InvBatPair(battery_data, inverter_data)
-        self._cached_metrics[battery_id] = _CacheEntry.from_ttl(inv_bat_pair)
+        if nan_metric_in_list(inverter_data, crucial_metrics_inv):
+            _logger.debug(
+                "Some metrics for inverter set %s are NaN", list(inverter_ids)
+            )
+            return None
+
+        inv_bat_pair = InvBatPair(AggregatedBatteryData(battery_data), inverter_data)
+        self._cached_metrics[battery_ids] = _CacheEntry.from_ttl(inv_bat_pair)
         return inv_bat_pair
 
     async def _create_channels(self) -> None:
         """Create channels to get data of components in microgrid."""
         api = connection_manager.get().api_client
-        for battery_id, inverter_id in self._bat_inv_map.items():
+        for battery_id, inverter_ids in self._bat_inv_map.items():
             bat_recv: Receiver[BatteryData] = await api.battery_data(battery_id)
             self._battery_receivers[battery_id] = bat_recv.into_peekable()
 
-            inv_recv: Receiver[InverterData] = await api.inverter_data(inverter_id)
-            self._inverter_receivers[inverter_id] = inv_recv.into_peekable()
+            for inverter_id in inverter_ids:
+                inv_recv: Receiver[InverterData] = await api.inverter_data(inverter_id)
+                self._inverter_receivers[inverter_id] = inv_recv.into_peekable()
 
     def _parse_result(
         self,
@@ -635,30 +733,30 @@ class PowerDistributingActor(Actor):
         failed_batteries: set[int] = set()
 
         for inverter_id, aws in tasks.items():
-            battery_id = self._inv_bat_map[inverter_id]
+            battery_ids = self._inv_bat_map[inverter_id]
             try:
                 aws.result()
             except grpc.aio.AioRpcError as err:
                 failed_power += distribution[inverter_id]
-                failed_batteries.add(battery_id)
+                failed_batteries.union(battery_ids)
                 if err.code() == grpc.StatusCode.OUT_OF_RANGE:
                     _logger.debug(
-                        "Set power for battery %d failed, error %s",
-                        battery_id,
+                        "Set power for battery %s failed, error %s",
+                        battery_ids,
                         str(err),
                     )
                 else:
                     _logger.warning(
-                        "Set power for battery %d failed, error %s. Mark it as broken.",
-                        battery_id,
+                        "Set power for battery %s failed, error %s. Mark it as broken.",
+                        battery_ids,
                         str(err),
                     )
             except asyncio.exceptions.CancelledError:
                 failed_power += distribution[inverter_id]
-                failed_batteries.add(battery_id)
+                failed_batteries.union(battery_ids)
                 _logger.warning(
-                    "Battery %d didn't respond in %f sec. Mark it as broken.",
-                    battery_id,
+                    "Battery %s didn't respond in %f sec. Mark it as broken.",
+                    battery_ids,
                     request_timeout.total_seconds(),
                 )
 
