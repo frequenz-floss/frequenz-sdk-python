@@ -48,7 +48,7 @@ class TestDataSourcingActor:
         servicer.add_connection(7, 8)
         servicer.add_connection(8, 9)
 
-        await connection_manager.initialize("[::1]", 57899)
+        await connection_manager.initialize("127.0.0.1", 57899)
 
         req_chan = Broadcast[ComponentMetricRequest]("data_sourcing_requests")
         req_sender = req_chan.new_sender()

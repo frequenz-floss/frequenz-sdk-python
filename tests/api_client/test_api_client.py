@@ -111,7 +111,7 @@ async def test_fake_rest_client() -> None:
 
     client = FakeRestClient()
 
-    await client.connect("[::1]:80")
+    await client.connect("127.0.0.1:80")
     assert client.is_connected
 
     await client.disconnect()

@@ -63,7 +63,7 @@ class LogicalMeter:
             config=ResamplerConfig(resampling_period=timedelta(seconds=1)),
         ):
             await initialize(
-                "127.0.0.1",
+                "[::1]",
                 50051,
                 ResamplerConfig(resampling_period=timedelta(seconds=1))
             )

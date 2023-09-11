@@ -48,7 +48,7 @@ class TestMicrogridGrpcClient:
     async def test_components(self) -> None:
         """Test the components() method."""
         servicer = mock_api.MockMicrogridServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57899)
+        server = mock_api.MockGrpcServer(servicer, host="127.0.0.1", port=57899)
         await server.start()
 
         try:
@@ -171,7 +171,7 @@ class TestMicrogridGrpcClient:
     async def test_connections(self) -> None:
         """Test the connections() method."""
         servicer = mock_api.MockMicrogridServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57898)
+        server = mock_api.MockGrpcServer(servicer, host="127.0.0.1", port=57898)
         await server.start()
 
         try:
@@ -342,7 +342,7 @@ class TestMicrogridGrpcClient:
                 return microgrid_pb.ComponentList(components=self._components)
 
         servicer = BadServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57897)
+        server = mock_api.MockGrpcServer(servicer, host="127.0.0.1", port=57897)
         await server.start()
 
         try:
@@ -397,7 +397,7 @@ class TestMicrogridGrpcClient:
     async def test_meter_data(self) -> None:
         """Test the meter_data() method."""
         servicer = mock_api.MockMicrogridServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57899)
+        server = mock_api.MockGrpcServer(servicer, host="127.0.0.1", port=57899)
         await server.start()
 
         try:
@@ -430,7 +430,7 @@ class TestMicrogridGrpcClient:
     async def test_battery_data(self) -> None:
         """Test the battery_data() method."""
         servicer = mock_api.MockMicrogridServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57899)
+        server = mock_api.MockGrpcServer(servicer, host="127.0.0.1", port=57899)
         await server.start()
 
         try:
@@ -463,7 +463,7 @@ class TestMicrogridGrpcClient:
     async def test_inverter_data(self) -> None:
         """Test the inverter_data() method."""
         servicer = mock_api.MockMicrogridServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57899)
+        server = mock_api.MockGrpcServer(servicer, host="127.0.0.1", port=57899)
         await server.start()
 
         try:
@@ -496,7 +496,7 @@ class TestMicrogridGrpcClient:
     async def test_ev_charger_data(self) -> None:
         """Test the ev_charger_data() method."""
         servicer = mock_api.MockMicrogridServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57899)
+        server = mock_api.MockGrpcServer(servicer, host="127.0.0.1", port=57899)
         await server.start()
 
         try:
@@ -529,7 +529,7 @@ class TestMicrogridGrpcClient:
     async def test_charge(self) -> None:
         """Check if charge is able to charge component."""
         servicer = mock_api.MockMicrogridServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57899)
+        server = mock_api.MockGrpcServer(servicer, host="127.0.0.1", port=57899)
 
         await server.start()
 
@@ -552,7 +552,7 @@ class TestMicrogridGrpcClient:
     async def test_discharge(self) -> None:
         """Check if discharge is able to discharge component."""
         servicer = mock_api.MockMicrogridServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57899)
+        server = mock_api.MockGrpcServer(servicer, host="127.0.0.1", port=57899)
 
         await server.start()
 
@@ -574,7 +574,7 @@ class TestMicrogridGrpcClient:
     async def test_set_bounds(self) -> None:
         """Check if set_bounds is able to set bounds for component."""
         servicer = mock_api.MockMicrogridServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57899)
+        server = mock_api.MockGrpcServer(servicer, host="127.0.0.1", port=57899)
         await server.start()
 
         try:

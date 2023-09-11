@@ -18,7 +18,7 @@ from .client import MicrogridApiClient
 from .client._client import MicrogridGrpcClient
 
 # Not public default host and port
-_DEFAULT_MICROGRID_HOST = "[::1]"
+_DEFAULT_MICROGRID_HOST = "127.0.0.1"
 _DEFAULT_MICROGRID_PORT = 443
 
 _logger = logging.getLogger(__name__)
