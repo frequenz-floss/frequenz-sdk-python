@@ -185,7 +185,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Return true
-        run: true
+        run: "true"
 
 
   build:
