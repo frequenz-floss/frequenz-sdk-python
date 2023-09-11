@@ -81,7 +81,7 @@ jobs:
 
   nox-cross-arch:
     name: Cross-arch tests with nox
-    if: github.event_name == 'merge_group'
+    if: github.event_name != 'pull_request'
     strategy:
       fail-fast: false
       # Before adding new items to this matrix, make sure that a dockerfile
