@@ -165,7 +165,7 @@ class _ComposableFormulaEngine(
         """
         return self._higher_order_builder(self, self._create_method) / other  # type: ignore
 
-    def _max(
+    def max(
         self, other: _GenericEngine | _GenericHigherOrderBuilder | QuantityT
     ) -> _GenericHigherOrderBuilder:
         """Return a formula engine that outputs the maximum of `self` and `other`.
@@ -180,7 +180,7 @@ class _ComposableFormulaEngine(
         """
         return self._higher_order_builder(self, self._create_method).max(other)  # type: ignore
 
-    def _min(
+    def min(
         self, other: _GenericEngine | _GenericHigherOrderBuilder | QuantityT
     ) -> _GenericHigherOrderBuilder:
         """Return a formula engine that outputs the minimum of `self` and `other`.

@@ -439,6 +439,78 @@ class TestFormulaEngineComposition:
             ],
         )
 
+    async def test_min_max(self) -> None:
+        """Test min and max functions in combination."""
+        await self.run_test(
+            3,
+            lambda c2, c4, c5: c2.min(c4).max(c5),
+            [
+                ([4.0, 6.0, 5.0], 5.0),
+            ],
+        )
+
+    async def test_max(self) -> None:
+        """Test the max function."""
+        await self.run_test(
+            3,
+            lambda c2, c4, c5: c2 * c4.max(c5),
+            [
+                ([10.0, 12.0, 15.0], 150.0),
+            ],
+        )
+        await self.run_test(
+            3,
+            lambda c2, c4, c5: (c2 * c4).max(c5),
+            [
+                ([10.0, 12.0, 15.0], 120.0),
+            ],
+        )
+        await self.run_test(
+            3,
+            lambda c2, c4, c5: (c2 + c4).max(c5),
+            [
+                ([10.0, 12.0, 15.0], 22.0),
+            ],
+        )
+        await self.run_test(
+            3,
+            lambda c2, c4, c5: c2 + c4.max(c5),
+            [
+                ([10.0, 12.0, 15.0], 25.0),
+            ],
+        )
+
+    async def test_min(self) -> None:
+        """Test the min function."""
+        await self.run_test(
+            3,
+            lambda c2, c4, c5: (c2 * c4).min(c5),
+            [
+                ([10.0, 12.0, 15.0], 15.0),
+            ],
+        )
+        await self.run_test(
+            3,
+            lambda c2, c4, c5: c2 * c4.min(c5),
+            [
+                ([10.0, 12.0, 15.0], 120.0),
+            ],
+        )
+        await self.run_test(
+            3,
+            lambda c2, c4, c5: (c2 + c4).min(c5),
+            [
+                ([10.0, 2.0, 15.0], 12.0),
+            ],
+        )
+        await self.run_test(
+            3,
+            lambda c2, c4, c5: c2 + c4.min(c5),
+            [
+                ([10.0, 12.0, 15.0], 22.0),
+            ],
+        )
+
     async def test_compound(self) -> None:
         """Test compound formulas."""
         await self.run_test(

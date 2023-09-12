@@ -27,10 +27,11 @@
   - Provide access to `capacity` (maximum number of elements) in `MovingWindow`.
   - Methods to retrieve oldest and newest timestamp of valid samples are added to both.
 
-
 - Now when printing `FormulaEngine` for debugging purposes the the formula will be shown in infix notation, which should be easier to read.
 
 - The CI now runs cross-arch tests on `arm64` architectures.
+
+- The `min` and `max` functions in the `FormulaEngine` are now public. Note that the same functions have been public in the builder.
 
 ## Bug Fixes
 
