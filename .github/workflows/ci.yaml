@@ -79,6 +79,19 @@ jobs:
         run: nox -R -e "$NOX_SESSION"
         timeout-minutes: 10
 
+  # This job runs if all the `nox` matrix jobs ran and succeeded.
+  # It is only used to have a single job that we can require in branch
+  # protection rules, so we don't have to update the protection rules each time
+  # we add or remove a job from the matrix.
+  nox-all:
+    # The job name should match the name of the `nox` job.
+    name: Test with nox
+    needs: ["nox"]
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Return true
+        run: "true"
+
   nox-cross-arch:
     name: Cross-arch tests with nox
     if: github.event_name != 'pull_request'
