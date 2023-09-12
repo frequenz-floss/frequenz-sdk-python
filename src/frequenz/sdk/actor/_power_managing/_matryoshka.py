@@ -53,6 +53,7 @@ class Matryoshka(BaseAlgorithm):
             ):
                 continue
             target_power = next_proposal.preferred_power
-            lower_bound = next_proposal.bounds[0]
-            upper_bound = next_proposal.bounds[1]
+            if next_proposal.bounds:
+                lower_bound = next_proposal.bounds[0]
+                upper_bound = next_proposal.bounds[1]
         return target_power

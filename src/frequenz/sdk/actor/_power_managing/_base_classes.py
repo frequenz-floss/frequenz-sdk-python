@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import abc
 import dataclasses
+import datetime
 import enum
 
 from ...timeseries import Power
@@ -18,9 +19,35 @@ class Proposal:
 
     source_id: str
     preferred_power: Power
-    bounds: tuple[Power, Power]
+    bounds: tuple[Power, Power] | None
     battery_ids: frozenset[int]
     priority: int
+    request_timeout: datetime.timedelta = datetime.timedelta(seconds=5.0)
+    """The maximum amount of time to wait for the request to be fulfilled."""
+
+    adjust_power: bool = True
+    """Whether to adjust the power to match the bounds.
+
+    If `True`, the power will be adjusted (lowered) to match the bounds, so
+    only the reduced power will be set.
+
+    If `False` and the power is outside the batteries' bounds, the request will
+    fail and be replied to with an `OutOfBound` result.
+    """
+
+    include_broken_batteries: bool = False
+    """Whether to use all batteries included in the batteries set regardless the status.
+
+    If set to `True`, the power distribution algorithm will consider all batteries,
+    including the broken ones, when distributing power.  In such cases, any remaining
+    power after distributing among the available batteries will be distributed equally
+    among the unavailable (broken) batteries.  If all batteries in the set are
+    unavailable, the power will be equally distributed among all the unavailable
+    batteries in the request.
+
+    If set to `False`, the power distribution will only take into account the available
+    batteries, excluding any broken ones.
+    """
 
     def __lt__(self, other: Proposal) -> bool:
         """Compare two proposals by their priority.

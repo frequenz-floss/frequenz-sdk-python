@@ -11,7 +11,6 @@ import typing
 from frequenz.channels import Receiver, Sender
 from typing_extensions import override
 
-from .. import power_distributing
 from .._actor import Actor
 from ._base_classes import Algorithm, BaseAlgorithm, Proposal
 from ._matryoshka import Matryoshka
@@ -64,5 +63,11 @@ class PowerManagingActor(Actor):
         async for proposal in self._proposals_receiver:
             target_power = algorithm.handle_proposal(proposal)
             await self._power_distributing_requests_sender.send(
-                power_distributing.Request(target_power, proposal.battery_ids)
+                power_distributing.Request(
+                    power=target_power,
+                    batteries=proposal.battery_ids,
+                    request_timeout=proposal.request_timeout,
+                    adjust_power=proposal.adjust_power,
+                    include_broken_batteries=proposal.include_broken_batteries,
+                )
             )
