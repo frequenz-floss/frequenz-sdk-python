@@ -187,7 +187,6 @@ jobs:
       - name: Return true
         run: "true"
 
-
   build:
     name: Build distribution packages
     runs-on: ubuntu-20.04
