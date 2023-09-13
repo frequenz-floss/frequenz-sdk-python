@@ -12,7 +12,6 @@ from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._formula_engine._formula_engine import FormulaBuilder
 from frequenz.sdk.timeseries._formula_engine._formula_formatter import format_formula
 from frequenz.sdk.timeseries._formula_engine._formula_steps import (
-    Averager,
     Clipper,
     ConstantValue,
     FormulaStep,
@@ -20,7 +19,7 @@ from frequenz.sdk.timeseries._formula_engine._formula_steps import (
     Minimizer,
 )
 from frequenz.sdk.timeseries._formula_engine._tokenizer import Tokenizer, TokenType
-from frequenz.sdk.timeseries._quantities import Percentage, Quantity
+from frequenz.sdk.timeseries._quantities import Quantity
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
 
@@ -110,11 +109,6 @@ class TestFormulaFormatter:
         assert format_formula([ConstantValue(3.5), Clipper(0.0, 1.0)]) == "clip(0.0, 3.5, 1.0)"
         # flake8: enable
         # fmt: on
-
-    def test_function_avg(self) -> None:
-        """Test that the avg function is formatted correctly."""
-        # This tests the special case of the avg function with no arguments.
-        assert format_formula([Averager[Percentage]([])]) == "avg()"
 
     async def test_higher_order_formula(self, mocker: MockerFixture) -> None:
         """Test that the formula is formatted correctly for a higher-order formula."""

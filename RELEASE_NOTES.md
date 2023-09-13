@@ -37,6 +37,8 @@
 
 - The `min` and `max` functions in the `FormulaEngine` are now public. Note that the same functions have been public in the builder.
 
+- Drop `Averager` from `FormulaEngine`.
+
 ## Bug Fixes
 
 - `OrderedRingBuffer.window`:

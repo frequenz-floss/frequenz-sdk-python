@@ -23,7 +23,6 @@ from ._formula_evaluator import FormulaEvaluator
 from ._formula_formatter import format_formula
 from ._formula_steps import (
     Adder,
-    Averager,
     Clipper,
     ConstantValue,
     Divider,
@@ -588,23 +587,6 @@ class FormulaBuilder(Generic[QuantityT]):
             max_value: The maximum value to clip to.
         """
         self._steps.append(Clipper(min_value, max_value))
-
-    def push_average(
-        self, metrics: list[tuple[str, Receiver[Sample[QuantityT]], bool]]
-    ) -> None:
-        """Push an average calculator into the engine.
-
-        Args:
-            metrics: list of arguments to pass to each `MetricFetcher`.
-        """
-        fetchers: list[MetricFetcher[QuantityT]] = []
-        for metric in metrics:
-            fetcher = self._metric_fetchers.setdefault(
-                metric[0],
-                MetricFetcher(metric[0], metric[1], nones_are_zeros=metric[2]),
-            )
-            fetchers.append(fetcher)
-        self._steps.append(Averager(fetchers))
 
     @property
     def name(self) -> str:
