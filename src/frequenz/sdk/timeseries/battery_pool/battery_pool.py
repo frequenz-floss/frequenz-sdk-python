@@ -14,7 +14,7 @@ from frequenz.channels import Receiver, Sender
 
 from ..._internal._asyncio import cancel_and_await
 from ...actor import ChannelRegistry, ComponentMetricRequest
-from ...actor.power_distributing import Request
+from ...actor._power_managing import Proposal
 from ...actor.power_distributing._battery_pool_status import BatteryStatus
 from ...actor.power_distributing.result import Result
 from ...microgrid import connection_manager
@@ -49,8 +49,8 @@ class BatteryPool:
         channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         batteries_status_receiver: Receiver[BatteryStatus],
-        power_distributing_requests_sender: Sender[Request],
-        power_distributing_results_receiver: Receiver[Result],
+        power_manager_requests_sender: Sender[Proposal],
+        power_manager_results_receiver: Receiver[Result],
         min_update_interval: timedelta,
         batteries_id: Set[int] | None = None,
     ) -> None:
@@ -67,10 +67,10 @@ class BatteryPool:
                 It should send information when any battery changed status.
                 Battery status should include status of the inverter adjacent to this
                 battery.
-            power_distributing_requests_sender: A Channel sender for sending power
-                requests to the power distributing actor.
-            power_distributing_results_receiver: A Channel receiver for receiving
-                results from the power distributing actor.
+            power_manager_requests_sender: A Channel sender for sending power
+                requests to the power managing actor.
+            power_manager_results_receiver: A Channel receiver for receiving results
+                from the power managing actor.
             min_update_interval: Some metrics in BatteryPool are send only when they
                 change. For these metrics min_update_interval is the minimum time
                 interval between the following messages.
@@ -85,7 +85,7 @@ class BatteryPool:
                 will be used.
         """
         if batteries_id:
-            self._batteries: Set[int] = batteries_id
+            self._batteries: frozenset[int] = frozenset(batteries_id)
         else:
             self._batteries = self._get_all_batteries()
 
@@ -99,8 +99,8 @@ class BatteryPool:
 
         self._min_update_interval = min_update_interval
 
-        self._power_distributing_requests_sender = power_distributing_requests_sender
-        self._power_distributing_results_receiver = power_distributing_results_receiver
+        self._power_manager_requests_sender = power_manager_requests_sender
+        self._power_manager_results_receiver = power_manager_results_receiver
 
         self._active_methods: dict[str, MetricAggregator[Any]] = {}
         self._namespace: str = f"battery-pool-{self._batteries}-{uuid.uuid4()}"
@@ -113,11 +113,13 @@ class BatteryPool:
 
     async def set_power(
         self,
-        power: Power,
+        preferred_power: Power,
         *,
         adjust_power: bool = True,
         request_timeout: timedelta = timedelta(seconds=5.0),
         include_broken_batteries: bool = False,
+        _bounds: tuple[Power, Power] | None = None,
+        _priority: int = 0,
     ) -> None:
         """Set the given power for the batteries in the pool.
 
@@ -127,11 +129,11 @@ class BatteryPool:
         When not using the Passive Sign Convention, the `charge` and `discharge` methods
         might be more convenient.
 
-        The result of the request can be accessed using the receiver returned from
-        the `power_distribution_results` method.
+        The result of the request can be accessed using the receiver returned from the
+        `power_distribution_results` method.
 
         Args:
-            power: The power to set for the batteries in the pool.
+            preferred_power: The power to set for the batteries in the pool.
             adjust_power: If True, the power will be adjusted to fit the power bounds,
                 if necessary. If False, then power requests outside the bounds will be
                 rejected.
@@ -141,11 +143,20 @@ class BatteryPool:
                 set only for the working batteries.  This is not a guarantee that the
                 power will be set for all working batteries, as the microgrid API may
                 still reject the request.
+            _bounds: The power bounds for the request.  These bounds will apply to actors
+                with a lower priority, and can be overridden by bounds from actors with
+                a higher priority.  If None, the power bounds will be set to the maximum
+                power of the batteries in the pool.  This is currently and experimental
+                feature.
+            _priority: The priority of the actor making the request.
         """
-        await self._power_distributing_requests_sender.send(
-            Request(
-                power=power,
-                batteries=self._batteries,
+        await self._power_manager_requests_sender.send(
+            Proposal(
+                source_id=self._namespace,
+                preferred_power=preferred_power,
+                bounds=_bounds,
+                battery_ids=self._batteries,
+                priority=_priority,
                 adjust_power=adjust_power,
                 request_timeout=request_timeout,
                 include_broken_batteries=include_broken_batteries,
@@ -187,10 +198,13 @@ class BatteryPool:
         """
         if power < Power.zero():
             raise ValueError("Charge power must be positive.")
-        await self._power_distributing_requests_sender.send(
-            Request(
-                power=power,
-                batteries=self._batteries,
+        await self._power_manager_requests_sender.send(
+            Proposal(
+                source_id=self._namespace,
+                preferred_power=power,
+                bounds=None,
+                battery_ids=self._batteries,
+                priority=0,
                 adjust_power=adjust_power,
                 request_timeout=request_timeout,
                 include_broken_batteries=include_broken_batteries,
@@ -232,10 +246,13 @@ class BatteryPool:
         """
         if power < Power.zero():
             raise ValueError("Discharge power must be positive.")
-        await self._power_distributing_requests_sender.send(
-            Request(
-                power=-power,
-                batteries=self._batteries,
+        await self._power_manager_requests_sender.send(
+            Proposal(
+                source_id=self._namespace,
+                preferred_power=power,
+                bounds=None,
+                battery_ids=self._batteries,
+                priority=0,
                 adjust_power=adjust_power,
                 request_timeout=request_timeout,
                 include_broken_batteries=include_broken_batteries,
@@ -248,7 +265,7 @@ class BatteryPool:
         Returns:
             A receiver for the power distribution results.
         """
-        return self._power_distributing_results_receiver
+        return self._power_manager_results_receiver
 
     @property
     def battery_ids(self) -> Set[int]:
@@ -483,19 +500,21 @@ class BatteryPool:
             tasks_to_stop.append(cancel_and_await(self._update_battery_status_task))
         await asyncio.gather(*tasks_to_stop)
 
-    def _get_all_batteries(self) -> Set[int]:
+    def _get_all_batteries(self) -> frozenset[int]:
         """Get all batteries from the microgrid.
 
         Returns:
             All batteries in the microgrid.
         """
         graph = connection_manager.get().component_graph
-        return {
-            battery.component_id
-            for battery in graph.components(
-                component_category={ComponentCategory.BATTERY}
-            )
-        }
+        return frozenset(
+            {
+                battery.component_id
+                for battery in graph.components(
+                    component_category={ComponentCategory.BATTERY}
+                )
+            }
+        )
 
     async def _update_battery_status(self, receiver: Receiver[BatteryStatus]) -> None:
         async for status in receiver:

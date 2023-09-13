@@ -212,10 +212,10 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 batteries_status_receiver=self._battery_status_channel.new_receiver(
                     maxsize=1
                 ),
-                power_distributing_requests_sender=(
-                    self._power_distribution_requests_channel.new_sender()
+                power_manager_requests_sender=(
+                    self._power_management_proposals_channel.new_sender()
                 ),
-                power_distributing_results_receiver=(
+                power_manager_results_receiver=(
                     self._power_distribution_results_channel.new_receiver()
                 ),
                 min_update_interval=self._resampler_config.resampling_period,
