@@ -10,6 +10,24 @@
 
 - The battery pool metric methods no longer return `None` when no batteries are available. Instead, the value of the `Sample` or `PowerMetric` is set to `None`.
 
+- The power distribution `Result` is now a union of all different types of results rather than a base class. This means we can now also use `match` to check for result types instead of only using `isinstance()`. The following example shows how `Result` can be used for matching power distribution results:
+
+  ```python
+  from typing import assert_never
+  result: Result = some_operation()
+  match result:
+      case Success() as success:
+          print(f"Power request was successful: {success}")
+      case PartialFailure() as partial_failure:
+          print(f"Power request was partially successful: {partial_failure}")
+      case OutOfBounds() as out_of_bounds:
+          print(f"Power request was out of bounds: {out_of_bounds}")
+      case Error() as error:
+          print(f"Power request failed: {error}")
+      case _ as unreachable:
+          assert_never(unreachable)
+  ```
+
 ## New Features
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->

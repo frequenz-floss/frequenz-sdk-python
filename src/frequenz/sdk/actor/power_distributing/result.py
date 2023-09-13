@@ -19,18 +19,6 @@ class _BaseResultMixin:
     """The user's request to which this message responds."""
 
 
-# When moving to Python 3.10+ we should replace this with an union type:
-# Result = Success | PartialFailure | Error | OutOfBound | Ignored
-# For now it can't be done because before 3.10 isinstance(result, Success)
-# doesn't work, so it is hard to figure out what type of result you got in
-# a forward compatible way.
-# When moving we should use the _BaseResultMixin as a base class for all
-# results.
-@dataclasses.dataclass
-class Result(_BaseResultMixin):
-    """Power distribution result."""
-
-
 @dataclasses.dataclass
 class _BaseSuccessMixin:
     """Result returned when setting the power succeed for all batteries."""
@@ -48,19 +36,19 @@ class _BaseSuccessMixin:
     """
 
 
-# We need to put the _BaseSuccessMixin before Result in the inheritance list to
-# make sure that the Result attributes appear before the _BaseSuccessMixin,
-# otherwise the request attribute will be last in the dataclass constructor
-# because of how MRO works.
+# We need to put the _BaseSuccessMixin before _BaseResultMixin in the
+# inheritance list to make sure that the _BaseResultMixin attributes appear
+# before the _BaseSuccessMixin, otherwise the request attribute will be last
+# in the dataclass constructor because of how MRO works.
 
 
 @dataclasses.dataclass
-class Success(_BaseSuccessMixin, Result):  # Order matters here. See above.
+class Success(_BaseSuccessMixin, _BaseResultMixin):  # Order matters here. See above.
     """Result returned when setting the power succeeded for all batteries."""
 
 
 @dataclasses.dataclass
-class PartialFailure(_BaseSuccessMixin, Result):
+class PartialFailure(_BaseSuccessMixin, _BaseResultMixin):
     """Result returned when any battery failed to perform the request."""
 
     failed_power: Power
@@ -71,7 +59,7 @@ class PartialFailure(_BaseSuccessMixin, Result):
 
 
 @dataclasses.dataclass
-class Error(Result):
+class Error(_BaseResultMixin):
     """Result returned when an error occurred and power was not set at all."""
 
     msg: str
@@ -96,7 +84,7 @@ class PowerBounds:
 
 
 @dataclasses.dataclass
-class OutOfBounds(Result):
+class OutOfBounds(_BaseResultMixin):
     """Result returned when the power was not set because it was out of bounds.
 
     This result happens when the originating request was done with
@@ -109,3 +97,66 @@ class OutOfBounds(Result):
     If the requested power negative, then this value is the lower bound.
     Otherwise it is upper bound.
     """
+
+
+Result = Success | PartialFailure | Error | OutOfBounds
+"""Power distribution result.
+
+Example: Handling power distribution results
+
+    ```python
+    from typing import assert_never
+
+    from frequenz.sdk.actor.power_distributing import (
+        Error,
+        OutOfBounds,
+        PartialFailure,
+        Result,
+        Success,
+    )
+    from frequenz.sdk.actor.power_distributing.request import Request
+    from frequenz.sdk.actor.power_distributing.result import PowerBounds
+    from frequenz.sdk.timeseries._quantities import Power
+
+    def handle_power_request_result(result: Result) -> None:
+        match result:
+            case Success() as success:
+                print(f"Power request was successful: {success}")
+            case PartialFailure() as partial_failure:
+                print(f"Power request was partially successful: {partial_failure}")
+            case OutOfBounds() as out_of_bounds:
+                print(f"Power request was out of bounds: {out_of_bounds}")
+            case Error() as error:
+                print(f"Power request failed: {error}")
+            case _ as unreachable:
+                assert_never(unreachable)
+
+    request = Request(
+        namespace="TestChannel",
+        power=Power.from_watts(123.4),
+        batteries={8, 18},
+    )
+
+    results: list[Result] = [
+        Success(
+            request,
+            succeeded_power=Power.from_watts(123.4),
+            succeeded_batteries={8, 18},
+            excess_power=Power.zero(),
+        ),
+        PartialFailure(
+            request,
+            succeeded_power=Power.from_watts(103.4),
+            succeeded_batteries={8},
+            excess_power=Power.zero(),
+            failed_batteries={18},
+            failed_power=Power.from_watts(20.0),
+        ),
+        OutOfBounds(request, bounds=PowerBounds(0, 0, 0, 800)),
+        Error(request, msg="The batteries are not available"),
+    ]
+
+    for r in results:
+        handle_power_request_result(r)
+    ```
+"""
