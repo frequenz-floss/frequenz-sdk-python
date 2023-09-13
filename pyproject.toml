@@ -177,6 +177,7 @@ module = [
   "async_solipsism.*",
   "grpc.aio",
   "grpc.aio.*",
+  "mkdocs_macros.*",
   # There is a stubs package available, but it's not working:
   # https://github.com/eggplants/networkx-stubs/issues/1
   "networkx",

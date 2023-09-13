@@ -89,6 +89,7 @@ plugins:
   - literate-nav:
       nav_file: SUMMARY.md
   - macros:
+      module_name: docs/_scripts/macros
       on_undefined: strict
       on_error_fail: true
   - mike:
