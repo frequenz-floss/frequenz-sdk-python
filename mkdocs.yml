@@ -85,7 +85,7 @@ markdown_extensions:
 plugins:
   - gen-files:
       scripts:
-        - docs/mkdocstrings_autoapi.py
+        - docs/_scripts/mkdocstrings_autoapi.py
   - literate-nav:
       nav_file: SUMMARY.md
   - macros:
