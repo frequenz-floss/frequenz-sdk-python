@@ -257,7 +257,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         )
 
     def window(
-        self, start: datetime, end: datetime, force_copy: bool = False
+        self, start: datetime, end: datetime, *, force_copy: bool = True
     ) -> FloatArray:
         """Request a view on the data between start timestamp and end timestamp.
 
@@ -266,8 +266,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
 
         Will return a copy in the following cases:
         * The requested time period is crossing the start/end of the buffer.
-        * The requested time period contains missing entries.
-        * The force_copy parameter was set to True (default False).
+        * The force_copy parameter was set to True (default True).
 
         The first case can be avoided by using the appropriate
         `align_to` value in the constructor so that the data lines up
@@ -279,7 +278,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         Args:
             start: start time of the window.
             end: end time of the window.
-            force_copy: optional, default False. If True, will always create a
+            force_copy: optional, default True. If True, will always create a
                 copy of the data.
 
         Raises:
@@ -293,28 +292,55 @@ class OrderedRingBuffer(Generic[FloatArray]):
                 f"end parameter {end} has to predate start parameter {start}"
             )
 
+        if start == end:
+            return np.array([]) if isinstance(self._buffer, np.ndarray) else []
+
         start_index = self.datetime_to_index(start)
         end_index = self.datetime_to_index(end)
 
+        return self._wrapped_buffer_window(
+            self._buffer, start_index, end_index, force_copy
+        )
+
+    @staticmethod
+    def _wrapped_buffer_window(
+        buffer: FloatArray,
+        start_pos: int,
+        end_pos: int,
+        force_copy: bool = True,
+    ) -> FloatArray:
+        """Get a wrapped window from the given buffer.
+
+        If start_pos == end_pos, the full wrapped buffer is returned starting at start_pos.
+
+        Copies can only be avoided for numpy arrays and when the window is not wrapped.
+        Lists of floats are always copies.
+
+        Args:
+            buffer: The buffer to get the window from.
+            start_pos: The start position of the window in the buffer.
+            end_pos: The end position of the window in the buffer (exclusive).
+            force_copy: If True, will always create a copy of the data.
+
+        Returns:
+            The requested window.
+        """
         # Requested window wraps around the ends
-        if start_index >= end_index:
-            if end_index > 0:
-                if isinstance(self._buffer, list):
-                    return self._buffer[start_index:] + self._buffer[0:end_index]
-                if isinstance(self._buffer, np.ndarray):
-                    return np.concatenate(
-                        (self._buffer[start_index:], self._buffer[0:end_index])
-                    )
-                assert False, f"Unknown _buffer type: {type(self._buffer)}"
-            return self._buffer[start_index:]
+        if start_pos >= end_pos:
+            if isinstance(buffer, list):
+                return buffer[start_pos:] + buffer[0:end_pos]
+            assert isinstance(
+                buffer, np.ndarray
+            ), f"Unsupported buffer type: {type(buffer)}"
+            if end_pos > 0:
+                return np.concatenate((buffer[start_pos:], buffer[0:end_pos]))
+            arr = buffer[start_pos:]
+        else:
+            arr = buffer[start_pos:end_pos]
 
-        # Return a copy if there are none-values in the data
-        if force_copy or any(
-            map(lambda gap: gap.contains(start) or gap.contains(end), self._gaps)
-        ):
-            return deepcopy(self[start_index:end_index])
-
-        return self[start_index:end_index]
+        if force_copy:
+            return deepcopy(arr)
+        return arr
 
     def is_missing(self, timestamp: datetime) -> bool:
         """Check if the given timestamp falls within a gap.

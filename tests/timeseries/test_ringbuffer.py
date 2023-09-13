@@ -15,6 +15,7 @@ import pytest
 from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._quantities import Quantity
 from frequenz.sdk.timeseries._ringbuffer import Gap, OrderedRingBuffer
+from frequenz.sdk.timeseries._ringbuffer.buffer import FloatArray
 
 FIVE_MINUTES = timedelta(minutes=5)
 ONE_MINUTE = timedelta(minutes=1)
@@ -494,3 +495,98 @@ def test_delete_oudated_gap() -> None:
     buffer.update(Sample(datetime.fromtimestamp(202, tz=timezone.utc), Quantity(2)))
 
     assert len(buffer.gaps) == 0
+
+
+def get_orb(data: FloatArray) -> OrderedRingBuffer[FloatArray]:
+    """Get OrderedRingBuffer with data.
+
+    Args:
+        data: Data to fill the buffer with.
+
+    Returns:
+        OrderedRingBuffer with data.
+    """
+    buffer = OrderedRingBuffer(data, ONE_SECOND)
+    for i, d in enumerate(data):  # pylint: disable=invalid-name
+        buffer.update(Sample(dt(i), Quantity(d) if d is not None else None))
+    return buffer
+
+
+def test_window() -> None:
+    """Test the window function."""
+    buffer = get_orb(np.array([0, None, 2, 3, 4]))
+    win = buffer.window(dt(0), dt(3), force_copy=False)
+    assert [0, np.nan, 2] == list(win)
+    buffer._buffer[1] = 1  # pylint: disable=protected-access
+    # Test whether the window is a view or a copy
+    assert [0, 1, 2] == list(win)
+    win = buffer.window(dt(0), dt(3), force_copy=False)
+    assert [0, 1, 2] == list(win)
+    # Empty array
+    assert 0 == buffer.window(dt(1), dt(1)).size
+
+    buffer = get_orb([0.0, 1.0, 2.0, 3.0, 4.0])  # type: ignore
+    assert [0, 1, 2] == buffer.window(dt(0), dt(3))
+    assert [] == buffer.window(dt(0), dt(0))
+    assert [] == buffer.window(dt(1), dt(1))
+
+
+def test_wrapped_buffer_window() -> None:
+    """Test the wrapped buffer window function."""
+    wbw = OrderedRingBuffer._wrapped_buffer_window  # pylint: disable=protected-access
+
+    #
+    # Tests for list buffer
+    #
+    buffer = [0.0, 1.0, 2.0, 3.0, 4.0]
+    # start = end
+    assert [0, 1, 2, 3, 4] == wbw(buffer, 0, 0, force_copy=False)
+    assert [4, 0, 1, 2, 3] == wbw(buffer, 4, 4, force_copy=False)
+    # start < end
+    assert [0] == wbw(buffer, 0, 1, force_copy=False)
+    assert [0, 1, 2, 3, 4] == wbw(buffer, 0, 5, force_copy=False)
+    # start > end, end = 0
+    assert [4] == wbw(buffer, 4, 0, force_copy=False)
+    # start > end, end > 0
+    assert [4, 0, 1] == wbw(buffer, 4, 2, force_copy=False)
+
+    # Lists are always shallow copies
+    res_copy = wbw(buffer, 0, 5, force_copy=False)
+    assert [0, 1, 2, 3, 4] == res_copy
+    buffer[0] = 9
+    assert [0, 1, 2, 3, 4] == res_copy
+
+    #
+    # Tests for array buffer
+    #
+    buffer = np.array([0, 1, 2, 3, 4])  # type: ignore
+    # start = end
+    assert [0, 1, 2, 3, 4] == list(wbw(buffer, 0, 0, force_copy=False))
+    assert [4, 0, 1, 2, 3] == list(wbw(buffer, 4, 4, force_copy=False))
+    # start < end
+    assert [0] == list(wbw(buffer, 0, 1, force_copy=False))
+    assert [0, 1, 2, 3, 4] == list(wbw(buffer, 0, 5, force_copy=False))
+    # start > end, end = 0
+    assert [4] == list(wbw(buffer, 4, 0, force_copy=False))
+    # start > end, end > 0
+    assert [4, 0, 1] == list(wbw(buffer, 4, 2, force_copy=False))
+
+    # Get a view and a copy before modifying the buffer
+    res1_view = wbw(buffer, 3, 5, force_copy=False)
+    res1_copy = wbw(buffer, 3, 5, force_copy=True)
+    res2_view = wbw(buffer, 3, 0, force_copy=False)
+    res2_copy = wbw(buffer, 3, 0, force_copy=True)
+    res3_copy = wbw(buffer, 4, 1, force_copy=False)
+    assert [3, 4] == list(res1_view)
+    assert [3, 4] == list(res1_copy)
+    assert [3, 4] == list(res2_view)
+    assert [3, 4] == list(res2_copy)
+    assert [4, 0] == list(res3_copy)
+
+    # Modify the buffer and check that only the view is updated
+    buffer[4] = 9
+    assert [3, 9] == list(res1_view)
+    assert [3, 4] == list(res1_copy)
+    assert [3, 9] == list(res2_view)
+    assert [3, 4] == list(res2_copy)
+    assert [4, 0] == list(res3_copy)
