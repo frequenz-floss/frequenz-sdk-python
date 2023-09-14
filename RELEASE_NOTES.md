@@ -2,11 +2,9 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
+The most notable changes are the addition of `microgrid.grid` and `microgrid.frequency()`, as the many improvements to the `MovingWindow`.
 
 ## Upgrading
-
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
 
 - The battery pool metric methods no longer return `None` when no batteries are available. Instead, the value of the `Sample` or `PowerMetric` is set to `None`.
 
@@ -28,9 +26,9 @@
           assert_never(unreachable)
   ```
 
-## New Features
+- `Averager` was removed from `FormulaEngine`.
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+## New Features
 
 - Calling `microgrid.initialize()` now also initializes the microgrid's grid connection point as a singleton object of a newly added type `Grid`. This object can be obtained by calling `microgrid.grid.get()`. This object exposes the max current that can course through the grid connection point, which is useful for the power distribution algorithm. The max current is provided by the Microgrid API, and can be obtained by calling `microgrid.grid.get().fuse.max_current`.
 
@@ -55,8 +53,6 @@
 - The CI now runs cross-arch tests on `arm64` architectures.
 
 - The `min` and `max` functions in the `FormulaEngine` are now public. Note that the same functions have been public in the builder.
-
-- Drop `Averager` from `FormulaEngine`.
 
 ## Bug Fixes
 
