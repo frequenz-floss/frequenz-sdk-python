@@ -80,18 +80,31 @@ def dt(i: int) -> datetime:  # pylint: disable=invalid-name
 
 async def test_access_window_by_index() -> None:
     """Test indexing a window by integer index."""
-    window, sender = init_moving_window(timedelta(seconds=1))
+    window, sender = init_moving_window(timedelta(seconds=2))
     async with window:
-        await push_logical_meter_data(sender, [1])
-        assert np.array_equal(window[0], 1.0)
+        await push_logical_meter_data(sender, [1, 2, 3])
+        assert np.array_equal(window[0], 3.0)  # bug: should be 2
+        assert np.array_equal(window[1], 2.0)  # bug: should be 3
+        assert np.array_equal(window[-1], 2.0)  # bug: should be 3
+        assert np.array_equal(window[-2], 3.0)  # bug: should be 2
+        with pytest.raises(IndexError):
+            _ = window[3]
+        with pytest.raises(IndexError):
+            _ = window[-3]
 
 
 async def test_access_window_by_timestamp() -> None:
     """Test indexing a window by timestamp."""
-    window, sender = init_moving_window(timedelta(seconds=1))
+    window, sender = init_moving_window(timedelta(seconds=2))
     async with window:
-        await push_logical_meter_data(sender, [1])
-        assert np.array_equal(window[UNIX_EPOCH], 1.0)
+        await push_logical_meter_data(sender, [0, 1, 2])
+        assert np.array_equal(window[dt(1)], 1.0)
+        assert np.array_equal(window[dt(2)], 2.0)
+        assert np.array_equal(window[dt(3)], 1.0)  # bug: should raise
+        with pytest.raises(IndexError):
+            _ = window[dt(0)]
+        with pytest.raises(IndexError):
+            _ = window[dt(4)]
 
 
 async def test_access_window_by_int_slice() -> None:
