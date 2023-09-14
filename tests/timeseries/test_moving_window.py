@@ -143,13 +143,13 @@ async def test_window_size() -> None:
     window, sender = init_moving_window(timedelta(seconds=5))
     async with window:
         assert window.capacity == 5, "Wrong window capacity"
-        assert len(window) == 0, "Window should be empty"
+        assert window.count_valid() == 0, "Window should be empty"
         await push_logical_meter_data(sender, range(0, 2))
         assert window.capacity == 5, "Wrong window capacity"
-        assert len(window) == 2, "Window should be partially full"
+        assert window.count_valid() == 2, "Window should be partially full"
         await push_logical_meter_data(sender, range(2, 20))
         assert window.capacity == 5, "Wrong window capacity"
-        assert len(window) == 5, "Window should be full"
+        assert window.count_valid() == 5, "Window should be full"
 
 
 # pylint: disable=redefined-outer-name
@@ -170,7 +170,7 @@ async def test_resampling_window(fake_time: time_machine.Coordinates) -> None:
         resampler_config=resampler_config,
     ) as window:
         assert window.capacity == window_size / output_sampling, "Wrong window capacity"
-        assert len(window) == 0, "Window should be empty at the beginning"
+        assert window.count_valid() == 0, "Window should be empty at the beginning"
         stream_values = [4.0, 8.0, 2.0, 6.0, 5.0] * 100
         for value in stream_values:
             timestamp = datetime.now(tz=timezone.utc)
@@ -179,7 +179,7 @@ async def test_resampling_window(fake_time: time_machine.Coordinates) -> None:
             await asyncio.sleep(0.1)
             fake_time.shift(0.1)
 
-        assert len(window) == window_size / output_sampling
+        assert window.count_valid() == window_size / output_sampling
         for value in window:  # type: ignore
             assert 4.9 < value < 5.1
 

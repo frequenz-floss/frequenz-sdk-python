@@ -202,7 +202,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
             The oldest timestamp in the buffer
             or None if the buffer is empty.
         """
-        if len(self) == 0:
+        if self.count_valid() == 0:
             return None
 
         if self.is_missing(self.time_bound_oldest):
@@ -217,7 +217,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         Returns:
             The newest timestamp in the buffer.
         """
-        if len(self) == 0:
+        if self.count_valid() == 0:
             return None
 
         return self.time_bound_newest
@@ -594,11 +594,11 @@ class OrderedRingBuffer(Generic[FloatArray]):
         """
         return self._buffer.__getitem__(index_or_slice)
 
-    def __len__(self) -> int:
-        """Return the amount of items that this container currently holds.
+    def count_valid(self) -> int:
+        """Count the number of valid items that this buffer currently holds.
 
         Returns:
-            The length.
+            The number of valid items in this buffer.
         """
         if self._datetime_newest == self._DATETIME_MIN:
             return 0

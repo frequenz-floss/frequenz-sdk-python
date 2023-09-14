@@ -45,6 +45,7 @@
   - Provide access to `capacity` (maximum number of elements) in `MovingWindow`.
   - Methods to retrieve oldest and newest timestamp of valid samples are added to both.
   - `MovingWindow` exposes underlying buffers `window` method.
+  - `len(window)` and `len(buffer)` should be replaced with `window.count_valid()` and `buffer.count_valid()`, respectively.
   - `OrderedRingBuffer.window`:
     - By default returns a copy.
     - Can also return a view if the window contains `None` values and if `force_copy` is set to `True`.

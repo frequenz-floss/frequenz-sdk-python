@@ -115,8 +115,16 @@ def _calculate_avg_window_py(
         Returns:
             The number of windows that are fully contained in the MovingWindow.
         """
-        num_windows = len(window) // period
-        if len(window) - num_windows * period >= window_size:
+
+        def length(window: NDArray[np.float_] | MovingWindow) -> int:
+            return (
+                window.count_valid()
+                if isinstance(window, MovingWindow)
+                else len(window)
+            )
+
+        num_windows = length(window) // period
+        if length(window) - num_windows * period >= window_size:
             num_windows += 1
 
         return num_windows

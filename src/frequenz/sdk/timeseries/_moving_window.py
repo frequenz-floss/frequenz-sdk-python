@@ -306,14 +306,14 @@ class MovingWindow(BackgroundService):
             asyncio.create_task(self._resampler.resample(), name="resample")
         )
 
-    def __len__(self) -> int:
+    def count_valid(self) -> int:
         """
-        Return the size of the `MovingWindow`s underlying buffer.
+        Count the number of valid samples in this `MovingWindow`.
 
         Returns:
-            The size of the `MovingWindow`.
+            The number of valid samples in this `MovingWindow`.
         """
-        return len(self._buffer)
+        return self._buffer.count_valid()
 
     @overload
     def __getitem__(self, key: SupportsIndex) -> float:
@@ -362,12 +362,12 @@ class MovingWindow(BackgroundService):
             A float if the key is a number or a timestamp.
             an numpy array if the key is a slice.
         """
-        if len(self._buffer) == 0:
+        if self._buffer.count_valid() == 0:
             raise IndexError("The buffer is empty.")
         if isinstance(key, slice):
             if isinstance(key.start, int) or isinstance(key.stop, int):
                 if key.start is None or key.stop is None:
-                    key = slice(slice(key.start, key.stop).indices(self.__len__()))
+                    key = slice(slice(key.start, key.stop).indices(self.count_valid()))
             elif isinstance(key.start, datetime) or isinstance(key.stop, datetime):
                 if key.start is None:
                     key = slice(self._buffer.time_bound_oldest, key.stop)

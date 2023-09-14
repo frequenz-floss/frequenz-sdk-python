@@ -128,13 +128,13 @@ class PeriodicFeatureExtractor:
         """Distance between two succeeding intervals in samples."""
 
         _logger.debug("Initializing PeriodicFeatureExtractor!")
-        _logger.debug("MovingWindow size: %i", len(self._moving_window))
+        _logger.debug("MovingWindow size: %i", self._moving_window.count_valid())
         _logger.debug(
             "Period between two succeeding intervals (in samples): %i",
             self._period,
         )
 
-        if not len(self._moving_window) % self._period == 0:
+        if not self._moving_window.count_valid() % self._period == 0:
             raise ValueError(
                 "The MovingWindow size is not a integer multiple of the period."
             )
@@ -323,7 +323,7 @@ class PeriodicFeatureExtractor:
 
         rel_pos = self._get_relative_positions(start, window_size)
 
-        if window_size > len(self._moving_window):
+        if window_size > self._moving_window.count_valid():
             raise ValueError(
                 "The window size must be smaller than the size of the `MovingWindow`"
             )
@@ -379,7 +379,7 @@ class PeriodicFeatureExtractor:
         (start_pos, end_pos, window_size) = self._get_buffer_bounds(start, end)
 
         if start_pos >= end_pos:
-            window_start = self._buffer[start_pos : len(self._moving_window)]
+            window_start = self._buffer[start_pos : self._moving_window.count_valid()]
             window_end = self._buffer[0:end_pos]
             # make the linter happy
             assert isinstance(window_start, np.ndarray)
