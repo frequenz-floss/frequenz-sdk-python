@@ -10,6 +10,7 @@ from datetime import datetime
 from frequenz.channels import Broadcast, Receiver, Sender
 from pytest_mock import MockerFixture
 
+from frequenz.sdk._internal._asyncio import cancel_and_await
 from frequenz.sdk.actor import ComponentMetricRequest, ResamplerConfig
 from frequenz.sdk.microgrid._data_pipeline import _DataPipeline
 from frequenz.sdk.microgrid.component import ComponentMetricId
@@ -126,7 +127,17 @@ class MockResampler:
         )
 
         self._forward_tasks: dict[str, asyncio.Task[None]] = {}
-        asyncio.create_task(self._handle_resampling_requests())
+        self._request_handler_task = asyncio.create_task(
+            self._handle_resampling_requests()
+        )
+
+    async def _stop(self) -> None:
+        tasks_to_stop = [
+            cancel_and_await(task)
+            for task in list(self._forward_tasks.values())
+            + [self._request_handler_task]
+        ]
+        await asyncio.gather(*tasks_to_stop)
 
     def _resampling_request_sender(self) -> Sender[ComponentMetricRequest]:
         return self._resampler_request_channel.new_sender()

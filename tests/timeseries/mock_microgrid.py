@@ -534,6 +534,8 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         if _data_pipeline._DATA_PIPELINE:
             await _data_pipeline._DATA_PIPELINE._stop()
 
+        await self.mock_resampler._stop()
+
         for coro in self._streaming_coros:
             coro.close()
 

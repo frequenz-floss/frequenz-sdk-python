@@ -339,6 +339,10 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             await self._resampling_actor.actor.stop()
         if self._power_distributing_actor:
             await self._power_distributing_actor.stop()
+        if self._power_managing_actor:
+            await self._power_managing_actor.stop()
+        for pool in self._battery_pools.values():
+            await pool.stop()
 
 
 _DATA_PIPELINE: _DataPipeline | None = None
