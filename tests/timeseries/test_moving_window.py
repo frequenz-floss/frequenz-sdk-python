@@ -99,12 +99,18 @@ async def test_access_window_by_timestamp() -> None:
     async with window:
         await push_logical_meter_data(sender, [0, 1, 2])
         assert np.array_equal(window[dt(1)], 1.0)
+        assert np.array_equal(window.at(dt(1)), 1.0)
         assert np.array_equal(window[dt(2)], 2.0)
+        assert np.array_equal(window.at(dt(2)), 2.0)
         assert np.array_equal(window[dt(3)], 1.0)  # bug: should raise
         with pytest.raises(IndexError):
             _ = window[dt(0)]
         with pytest.raises(IndexError):
+            _ = window.at(dt(0))
+        with pytest.raises(IndexError):
             _ = window[dt(4)]
+        with pytest.raises(IndexError):
+            _ = window.at(dt(3))
 
 
 async def test_access_window_by_int_slice() -> None:
