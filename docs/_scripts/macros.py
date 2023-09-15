@@ -8,6 +8,14 @@ import pathlib
 from markdown.extensions import toc
 from mkdocs_macros import plugin as macros
 
+_CODE_ANNOTATION_MARKER: str = (
+    r'<span class="md-annotation">'
+    r'<span class="md-annotation__index" tabindex="-1">'
+    r'<span data-md-annotation-id="1"></span>'
+    r"</span>"
+    r"</span>"
+)
+
 
 def _slugify(text: str) -> str:
     """Slugify a text.
@@ -30,6 +38,9 @@ def define_env(env: macros.MacrosPlugin) -> None:
     Args:
         env: The environment to define the macro functions in.
     """
+    # A variable to easily show an example code annotation from mkdocs-material.
+    # https://squidfunk.github.io/mkdocs-material/reference/code-blocks/#adding-annotations
+    env.variables["code_annotation_marker"] = _CODE_ANNOTATION_MARKER
 
     @env.macro  # type: ignore[misc]
     def glossary(term: str) -> str:
