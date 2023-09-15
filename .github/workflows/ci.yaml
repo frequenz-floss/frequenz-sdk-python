@@ -23,6 +23,21 @@ env:
   # but sadly `env` can't be used either in `runs-on`.
 
 jobs:
+  literals:
+    name: Check styles
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Fetch sources
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
+          cache: 'pip'
+      - name: Build the source and binary distribution
+        run: ./tests/check-style.py src/ tests/
+
+
   nox:
     name: Test with nox
     strategy:
