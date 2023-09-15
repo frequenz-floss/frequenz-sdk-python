@@ -245,7 +245,7 @@ class Scenario(Generic[T]):
 async def run_scenarios(
     scenarios: list[Scenario[T]],
     streamer: MockComponentDataStreamer,
-    receiver: Receiver[T | None],
+    receiver: Receiver[T],
     waiting_time_sec: float,
 ) -> None:
     """Run all scenarios in the list.

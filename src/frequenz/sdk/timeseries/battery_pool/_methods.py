@@ -37,9 +37,7 @@ class MetricAggregator(Generic[T], ABC):
         """
 
     @abstractmethod
-    def new_receiver(
-        self, maxsize: int | None = RECEIVER_MAX_SIZE
-    ) -> Receiver[T | None]:
+    def new_receiver(self, maxsize: int | None = RECEIVER_MAX_SIZE) -> Receiver[T]:
         """Return new receiver for the aggregated metric results.
 
         Args:
@@ -89,7 +87,7 @@ class SendOnUpdate(MetricAggregator[T]):
         self._working_batteries: set[int] = working_batteries.intersection(
             metric_calculator.batteries
         )
-        self._result_channel: Broadcast[T | None] = Broadcast[T | None](
+        self._result_channel: Broadcast[T] = Broadcast(
             name=SendOnUpdate.name() + "_" + metric_calculator.name(),
             resend_latest=True,
         )
@@ -112,9 +110,7 @@ class SendOnUpdate(MetricAggregator[T]):
         """
         return "SendOnUpdate"
 
-    def new_receiver(
-        self, maxsize: int | None = RECEIVER_MAX_SIZE
-    ) -> Receiver[T | None]:
+    def new_receiver(self, maxsize: int | None = RECEIVER_MAX_SIZE) -> Receiver[T]:
         """Return new receiver for the aggregated metric results.
 
         Args:
@@ -233,7 +229,7 @@ class SendOnUpdate(MetricAggregator[T]):
             await self._update_event.wait()
             self._update_event.clear()
 
-            result: T | None = self._metric_calculator.calculate(
+            result: T = self._metric_calculator.calculate(
                 self._cached_metrics, self._working_batteries
             )
             if result != latest_calculation_result:
