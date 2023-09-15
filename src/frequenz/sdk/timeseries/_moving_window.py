@@ -418,15 +418,11 @@ class MovingWindow(BackgroundService):
                 raise ValueError("Slicing with a step other than 1 is not supported.")
             return self.window(key.start, key.stop)
 
-        if self._buffer.count_valid() == 0:
-            raise IndexError("The buffer is empty.")
-
         if isinstance(key, datetime):
-            _logger.debug("Returning value at time %s ", key)
-            return self._buffer[self._buffer.to_internal_index(key)]
+            return self.at(key)
+
         if isinstance(key, SupportsIndex):
-            _logger.debug("Returning value at index %s ", key)
-            return self._buffer[key]
+            return self.at(key.__index__())
 
         raise TypeError(
             "Key has to be either a timestamp or an integer "

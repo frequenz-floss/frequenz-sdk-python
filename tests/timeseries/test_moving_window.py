@@ -83,10 +83,10 @@ async def test_access_window_by_index() -> None:
     window, sender = init_moving_window(timedelta(seconds=2))
     async with window:
         await push_logical_meter_data(sender, [1, 2, 3])
-        assert np.array_equal(window[0], 3.0)  # bug: should be 2
-        assert np.array_equal(window[1], 2.0)  # bug: should be 3
-        assert np.array_equal(window[-1], 2.0)  # bug: should be 3
-        assert np.array_equal(window[-2], 3.0)  # bug: should be 2
+        assert np.array_equal(window[0], 2.0)
+        assert np.array_equal(window[1], 3.0)
+        assert np.array_equal(window[-1], 3.0)
+        assert np.array_equal(window[-2], 2.0)
         with pytest.raises(IndexError):
             _ = window[3]
         with pytest.raises(IndexError):
@@ -102,13 +102,12 @@ async def test_access_window_by_timestamp() -> None:
         assert np.array_equal(window.at(dt(1)), 1.0)
         assert np.array_equal(window[dt(2)], 2.0)
         assert np.array_equal(window.at(dt(2)), 2.0)
-        assert np.array_equal(window[dt(3)], 1.0)  # bug: should raise
         with pytest.raises(IndexError):
             _ = window[dt(0)]
         with pytest.raises(IndexError):
             _ = window.at(dt(0))
         with pytest.raises(IndexError):
-            _ = window[dt(4)]
+            _ = window[dt(3)]
         with pytest.raises(IndexError):
             _ = window.at(dt(3))
 
