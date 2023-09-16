@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import typing
 
@@ -18,6 +19,7 @@ from ._matryoshka import Matryoshka
 _logger = logging.getLogger(__name__)
 
 if typing.TYPE_CHECKING:
+    from ...timeseries.battery_pool import PowerMetrics
     from .. import power_distributing
 
 
@@ -48,7 +50,47 @@ class PowerManagingActor(Actor):
                 f"PowerManagingActor: Unknown algorithm: {algorithm}"
             )
         self._algorithm = algorithm
+
+        self._system_bounds: dict[frozenset[int], PowerMetrics] = {}
+        self._bound_tracker_tasks: dict[frozenset[int], asyncio.Task[None]] = {}
+
         super().__init__()
+
+    async def _bounds_tracker(
+        self,
+        battery_ids: frozenset[int],
+        bounds_receiver: Receiver[PowerMetrics],
+    ) -> None:
+        """Track the power bounds of a set of batteries and update the cache.
+
+        Args:
+            battery_ids: The battery IDs.
+            bounds_receiver: The receiver for power bounds.
+        """
+        async for bounds in bounds_receiver:
+            self._system_bounds[battery_ids] = bounds
+
+    async def _add_bounds_tracker(self, battery_ids: frozenset[int]) -> None:
+        """Add a bounds tracker.
+
+        Args:
+            battery_ids: The battery IDs.
+        """
+        # Pylint assumes that this import is cyclic, but it's not.
+        from ... import (  # pylint: disable=import-outside-toplevel,cyclic-import
+            microgrid,
+        )
+
+        # Fetch the current bounds separately, so that when this function returns,
+        # there's already some bounds available.
+        battery_pool = microgrid.battery_pool(battery_ids)
+        bounds_receiver = battery_pool.power_bounds.new_receiver()
+        self._system_bounds[battery_ids] = await bounds_receiver.receive()
+
+        # Start the bounds tracker, for ongoing updates.
+        self._bound_tracker_tasks[battery_ids] = asyncio.create_task(
+            self._bounds_tracker(battery_ids, bounds_receiver)
+        )
 
     @override
     async def _run(self) -> None:
@@ -60,8 +102,13 @@ class PowerManagingActor(Actor):
             )
             return
         algorithm: BaseAlgorithm = Matryoshka()
+
         async for proposal in self._proposals_receiver:
+            if proposal.battery_ids not in self._system_bounds:
+                await self._add_bounds_tracker(proposal.battery_ids)
+
             target_power = algorithm.handle_proposal(proposal)
+
             await self._power_distributing_requests_sender.send(
                 power_distributing.Request(
                     power=target_power,
