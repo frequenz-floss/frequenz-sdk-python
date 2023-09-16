@@ -9,8 +9,12 @@ import abc
 import dataclasses
 import datetime
 import enum
+import typing
 
 from ...timeseries import Power
+
+if typing.TYPE_CHECKING:
+    from ...timeseries.battery_pool import PowerMetrics
 
 
 @dataclasses.dataclass(frozen=True)
@@ -75,11 +79,16 @@ class BaseAlgorithm(abc.ABC):
     """The base class for algorithms."""
 
     @abc.abstractmethod
-    def handle_proposal(self, proposal: Proposal) -> Power:
+    def handle_proposal(
+        self,
+        proposal: Proposal,
+        system_bounds: PowerMetrics,
+    ) -> Power:
         """Handle a proposal.
 
         Args:
             proposal: The proposal to handle.
+            system_bounds: The system bounds for the batteries in the proposal.
 
         Returns:
             The target power for the batteries in the proposal.

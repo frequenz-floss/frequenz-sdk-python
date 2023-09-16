@@ -107,7 +107,9 @@ class PowerManagingActor(Actor):
             if proposal.battery_ids not in self._system_bounds:
                 await self._add_bounds_tracker(proposal.battery_ids)
 
-            target_power = algorithm.handle_proposal(proposal)
+            target_power = algorithm.handle_proposal(
+                proposal, self._system_bounds[proposal.battery_ids]
+            )
 
             await self._power_distributing_requests_sender.send(
                 power_distributing.Request(

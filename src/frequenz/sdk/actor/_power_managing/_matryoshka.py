@@ -3,13 +3,18 @@
 
 """A power manager implementation that uses the matryoshka algorithm."""
 
-import math
+from __future__ import annotations
+
+import typing
 
 from typing_extensions import override
 
 from ...timeseries import Power
 from ._base_classes import BaseAlgorithm, Proposal
 from ._sorted_set import SortedSet
+
+if typing.TYPE_CHECKING:
+    from ...timeseries.battery_pool import PowerMetrics
 
 
 class Matryoshka(BaseAlgorithm):
@@ -20,11 +25,16 @@ class Matryoshka(BaseAlgorithm):
         self._battery_buckets: dict[frozenset[int], SortedSet[Proposal]] = {}
 
     @override
-    def handle_proposal(self, proposal: Proposal) -> Power:
+    def handle_proposal(
+        self,
+        proposal: Proposal,
+        system_bounds: PowerMetrics,
+    ) -> Power:
         """Handle a proposal.
 
         Args:
             proposal: The proposal to handle.
+            system_bounds: The system bounds for the batteries in the proposal.
 
         Returns:
             The battery IDs and the target power.
@@ -43,8 +53,16 @@ class Matryoshka(BaseAlgorithm):
                         "yet supported."
                     )
         self._battery_buckets.setdefault(battery_ids, SortedSet()).insert(proposal)
-        lower_bound = Power.from_watts(-math.inf)
-        upper_bound = Power.from_watts(math.inf)
+        lower_bound = (
+            system_bounds.inclusion_bounds.lower
+            if system_bounds.inclusion_bounds
+            else Power.zero()  # in the absence of system bounds, block all requests.
+        )
+        upper_bound = (
+            system_bounds.inclusion_bounds.upper
+            if system_bounds.inclusion_bounds
+            else Power.zero()
+        )
         target_power = Power.zero()
         for next_proposal in reversed(self._battery_buckets[battery_ids]):
             if (
