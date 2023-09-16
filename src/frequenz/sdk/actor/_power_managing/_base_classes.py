@@ -29,16 +29,6 @@ class Proposal:
     request_timeout: datetime.timedelta = datetime.timedelta(seconds=5.0)
     """The maximum amount of time to wait for the request to be fulfilled."""
 
-    adjust_power: bool = True
-    """Whether to adjust the power to match the bounds.
-
-    If `True`, the power will be adjusted (lowered) to match the bounds, so
-    only the reduced power will be set.
-
-    If `False` and the power is outside the batteries' bounds, the request will
-    fail and be replied to with an `OutOfBound` result.
-    """
-
     include_broken_batteries: bool = False
     """Whether to use all batteries included in the batteries set regardless the status.
 

@@ -115,7 +115,6 @@ class BatteryPool:
         self,
         preferred_power: Power,
         *,
-        adjust_power: bool = True,
         request_timeout: timedelta = timedelta(seconds=5.0),
         include_broken_batteries: bool = False,
         _bounds: tuple[Power, Power] | None = None,
@@ -134,9 +133,6 @@ class BatteryPool:
 
         Args:
             preferred_power: The power to set for the batteries in the pool.
-            adjust_power: If True, the power will be adjusted to fit the power bounds,
-                if necessary. If False, then power requests outside the bounds will be
-                rejected.
             request_timeout: The timeout for the request.
             include_broken_batteries: if True, the power will be set for all batteries
                 in the pool, including the broken ones. If False, then the power will be
@@ -157,7 +153,6 @@ class BatteryPool:
                 bounds=_bounds,
                 battery_ids=self._batteries,
                 priority=_priority,
-                adjust_power=adjust_power,
                 request_timeout=request_timeout,
                 include_broken_batteries=include_broken_batteries,
             )
@@ -167,7 +162,6 @@ class BatteryPool:
         self,
         power: Power,
         *,
-        adjust_power: bool = True,
         request_timeout: timedelta = timedelta(seconds=5.0),
         include_broken_batteries: bool = False,
     ) -> None:
@@ -183,9 +177,6 @@ class BatteryPool:
 
         Args:
             power: Unsigned charge power to set for the batteries in the pool.
-            adjust_power: If True, the power will be adjusted to fit the power bounds,
-                if necessary. If False, then power requests outside the bounds will be
-                rejected.
             request_timeout: The timeout for the request.
             include_broken_batteries: if True, the power will be set for all batteries
                 in the pool, including the broken ones. If False, then the power will be
@@ -205,7 +196,6 @@ class BatteryPool:
                 bounds=None,
                 battery_ids=self._batteries,
                 priority=0,
-                adjust_power=adjust_power,
                 request_timeout=request_timeout,
                 include_broken_batteries=include_broken_batteries,
             )
@@ -215,7 +205,6 @@ class BatteryPool:
         self,
         power: Power,
         *,
-        adjust_power: bool = True,
         request_timeout: timedelta = timedelta(seconds=5.0),
         include_broken_batteries: bool = False,
     ) -> None:
@@ -231,9 +220,6 @@ class BatteryPool:
 
         Args:
             power: Unsigned discharge power to set for the batteries in the pool.
-            adjust_power: If True, the power will be adjusted to fit the power bounds,
-                if necessary. If False, then power requests outside the bounds will be
-                rejected.
             request_timeout: The timeout for the request.
             include_broken_batteries: if True, the power will be set for all batteries
                 in the pool, including the broken ones. If False, then the power will be
@@ -253,7 +239,6 @@ class BatteryPool:
                 bounds=None,
                 battery_ids=self._batteries,
                 priority=0,
-                adjust_power=adjust_power,
                 request_timeout=request_timeout,
                 include_broken_batteries=include_broken_batteries,
             )

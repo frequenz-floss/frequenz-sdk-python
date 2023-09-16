@@ -116,7 +116,7 @@ class PowerManagingActor(Actor):
                     power=target_power,
                     batteries=proposal.battery_ids,
                     request_timeout=proposal.request_timeout,
-                    adjust_power=proposal.adjust_power,
+                    adjust_power=True,
                     include_broken_batteries=proposal.include_broken_batteries,
                 )
             )
