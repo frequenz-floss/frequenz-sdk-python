@@ -49,7 +49,6 @@ class PowerManagingActor(Actor):
             raise NotImplementedError(
                 f"PowerManagingActor: Unknown algorithm: {algorithm}"
             )
-        self._algorithm = algorithm
 
         self._system_bounds: dict[frozenset[int], PowerMetrics] = {}
         self._bound_tracker_tasks: dict[frozenset[int], asyncio.Task[None]] = {}
@@ -96,11 +95,6 @@ class PowerManagingActor(Actor):
     async def _run(self) -> None:
         from .. import power_distributing  # pylint: disable=import-outside-toplevel
 
-        if self._algorithm is not Algorithm.MATRYOSHKA:
-            _logger.error(
-                "PowerManagingActor: Algorithm %s not implemented", self._algorithm
-            )
-            return
         algorithm: BaseAlgorithm = Matryoshka()
 
         async for proposal in self._proposals_receiver:
