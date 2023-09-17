@@ -80,10 +80,12 @@ class PowerManagingActor(Actor):
             microgrid,
         )
 
-        # Fetch the current bounds separately, so that when this function returns,
-        # there's already some bounds available.
+        # Fetch the latest system bounds once, before starting the bounds tracker task,
+        # so that when this function returns, there's already some bounds available.
         battery_pool = microgrid.battery_pool(battery_ids)
-        bounds_receiver = battery_pool.power_bounds.new_receiver()
+        # pylint: disable=protected-access
+        bounds_receiver = battery_pool._system_power_bounds.new_receiver()
+        # pylint: enable=protected-access
         self._system_bounds[battery_ids] = await bounds_receiver.receive()
 
         # Start the bounds tracker, for ongoing updates.

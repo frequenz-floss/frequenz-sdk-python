@@ -859,7 +859,9 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
             sampling_rate=0.1,
         )
 
-    receiver = battery_pool.power_bounds.new_receiver(maxsize=50)
+    # pylint: disable=protected-access
+    receiver = battery_pool._system_power_bounds.new_receiver(maxsize=50)
+    # pylint: enable=protected-access
 
     # First metrics delivers slower because of the startup delay in the pool.
     msg = await asyncio.wait_for(

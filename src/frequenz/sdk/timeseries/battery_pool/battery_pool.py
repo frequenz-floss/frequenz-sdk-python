@@ -447,7 +447,7 @@ class BatteryPool:
         return self._active_methods[method_name]
 
     @property
-    def power_bounds(self) -> MetricAggregator[PowerMetrics]:
+    def _system_power_bounds(self) -> MetricAggregator[PowerMetrics]:
         """Get receiver to receive new power bounds when they change.
 
         Power bounds refer to the min and max power that a battery can

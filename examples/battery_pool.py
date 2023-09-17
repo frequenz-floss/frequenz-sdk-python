@@ -34,7 +34,9 @@ async def main() -> None:
     receivers: dict[str, Receiver[Any]] = {
         "soc": battery_pool.soc.new_receiver(maxsize=1),
         "capacity": battery_pool.capacity.new_receiver(maxsize=1),
-        "power_bounds": battery_pool.power_bounds.new_receiver(maxsize=1),
+        # pylint: disable=protected-access
+        "power_bounds": battery_pool._system_power_bounds.new_receiver(maxsize=1),
+        # pylint: enable=protected-access
     }
 
     merged_channel = MergeNamed[Any](**receivers)
