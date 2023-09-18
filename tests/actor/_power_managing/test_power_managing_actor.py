@@ -9,7 +9,8 @@ from unittest.mock import AsyncMock
 from frequenz.channels import Broadcast
 from pytest_mock import MockerFixture
 
-from frequenz.sdk.actor._power_managing._base_classes import Proposal
+from frequenz.sdk.actor._channel_registry import ChannelRegistry
+from frequenz.sdk.actor._power_managing import Proposal, ReportRequest
 from frequenz.sdk.actor._power_managing._power_managing_actor import PowerManagingActor
 from frequenz.sdk.actor.power_distributing.request import Request
 from frequenz.sdk.timeseries import Power, battery_pool
@@ -19,6 +20,8 @@ async def test_power_managing_actor_matryoshka(mocker: MockerFixture) -> None:
     """Tests for the power managing actor."""
     input_channel = Broadcast[Proposal]("power managing proposals")
     output_channel = Broadcast[Request]("Power managing outputs")
+    power_bounds_sub_channel = Broadcast[ReportRequest]("power bounds subscription")
+    channel_registry = ChannelRegistry(name="test_channel_registry")
     input_tx = input_channel.new_sender()
     output_rx = output_channel.new_receiver()
 
@@ -49,7 +52,10 @@ async def test_power_managing_actor_matryoshka(mocker: MockerFixture) -> None:
         assert (await output_rx.receive()).power.as_watts() == expected
 
     async with PowerManagingActor(
-        input_channel.new_receiver(), output_channel.new_sender()
+        input_channel.new_receiver(),
+        power_bounds_sub_channel.new_receiver(),
+        output_channel.new_sender(),
+        channel_registry,
     ) as powmgract:
         powmgract._system_bounds[  # pylint: disable=protected-access
             batteries

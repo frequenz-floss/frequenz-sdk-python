@@ -100,6 +100,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._power_management_proposals_channel: Broadcast[
             _power_managing.Proposal
         ] = Broadcast("Power Managing Actor, Requests Broadcast Channel")
+        self._power_manager_bounds_subscription_channel: Broadcast[
+            _power_managing.ReportRequest
+        ] = Broadcast("Power Managing Actor, Bounds Subscription Channel")
 
         self._power_distributing_actor: PowerDistributingActor | None = None
         self._power_managing_actor: _power_managing.PowerManagingActor | None = None
@@ -248,9 +251,13 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         self._power_managing_actor = PowerManagingActor(
             proposals_receiver=self._power_management_proposals_channel.new_receiver(),
+            bounds_subscription_receiver=(
+                self._power_manager_bounds_subscription_channel.new_receiver()
+            ),
             power_distributing_requests_sender=(
                 self._power_distribution_requests_channel.new_sender()
             ),
+            channel_registry=self._channel_registry,
         )
         self._power_managing_actor.start()
 

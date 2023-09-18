@@ -18,6 +18,29 @@ if typing.TYPE_CHECKING:
 
 
 @dataclasses.dataclass(frozen=True)
+class ReportRequest:
+    """A request to start a reporting stream."""
+
+    source_id: str
+    """The source ID of the actor sending the request."""
+
+    battery_ids: frozenset[int]
+    """The battery IDs to report on."""
+
+    priority: int
+    """The priority of the actor ."""
+
+    def get_channel_name(self) -> str:
+        """Get the channel name for the report request.
+
+        Returns:
+            The channel name to use to identify the corresponding report channel
+                from the channel registry.
+        """
+        return f"power_manager.report.{self.battery_ids=}.{self.priority=}"
+
+
+@dataclasses.dataclass(frozen=True)
 class Bounds:
     """Lower and upper bound values."""
 

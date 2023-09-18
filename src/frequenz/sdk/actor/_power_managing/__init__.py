@@ -3,7 +3,7 @@
 
 """A power manager implementation."""
 
-from ._base_classes import Algorithm, Proposal, Report
+from ._base_classes import Algorithm, Proposal, Report, ReportRequest
 from ._power_managing_actor import PowerManagingActor
 
 __all__ = [
@@ -11,4 +11,5 @@ __all__ = [
     "PowerManagingActor",
     "Proposal",
     "Report",
+    "ReportRequest",
 ]
