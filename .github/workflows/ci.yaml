@@ -118,7 +118,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: linux/${{ matrix.arch }}
 
@@ -248,7 +248,7 @@ jobs:
           name: dist-packages
           path: dist
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
       - name: Set up docker-buildx
         uses: docker/setup-buildx-action@v3
       - name: Test Installation
