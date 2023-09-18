@@ -38,7 +38,7 @@ async def test_power_managing_actor_matryoshka(mocker: MockerFixture) -> None:
         priority: int,
         power: float,
         bounds: tuple[float, float],
-        expected: float,
+        expected: float | None,
     ) -> None:
         await input_tx.send(
             Proposal(
@@ -49,7 +49,8 @@ async def test_power_managing_actor_matryoshka(mocker: MockerFixture) -> None:
                 priority=priority,
             )
         )
-        assert (await output_rx.receive()).power.as_watts() == expected
+        if expected is not None:
+            assert (await output_rx.receive()).power.as_watts() == expected
 
     async with PowerManagingActor(
         input_channel.new_receiver(),
@@ -70,7 +71,7 @@ async def test_power_managing_actor_matryoshka(mocker: MockerFixture) -> None:
         )
 
         await case(priority=2, power=25.0, bounds=(25.0, 50.0), expected=25.0)
-        await case(priority=1, power=20.0, bounds=(20.0, 50.0), expected=25.0)
+        await case(priority=1, power=20.0, bounds=(20.0, 50.0), expected=None)
         await case(priority=3, power=10.0, bounds=(10.0, 15.0), expected=10.0)
         await case(priority=3, power=10.0, bounds=(10.0, 22.0), expected=20.0)
         await case(priority=1, power=30.0, bounds=(20.0, 50.0), expected=10.0)
@@ -78,7 +79,7 @@ async def test_power_managing_actor_matryoshka(mocker: MockerFixture) -> None:
         await case(priority=2, power=40.0, bounds=(40.0, 50.0), expected=40.0)
         await case(priority=2, power=0.0, bounds=(-200.0, 200.0), expected=30.0)
         await case(priority=4, power=-50.0, bounds=(-200.0, -50.0), expected=-50.0)
-        await case(priority=3, power=-0.0, bounds=(-200.0, 200.0), expected=-50.0)
+        await case(priority=3, power=-0.0, bounds=(-200.0, 200.0), expected=None)
         await case(priority=1, power=-150.0, bounds=(-200.0, -150.0), expected=-150.0)
-        await case(priority=4, power=-180.0, bounds=(-200.0, -50.0), expected=-150.0)
+        await case(priority=4, power=-180.0, bounds=(-200.0, -50.0), expected=None)
         await case(priority=4, power=50.0, bounds=(50.0, 200.0), expected=50.0)

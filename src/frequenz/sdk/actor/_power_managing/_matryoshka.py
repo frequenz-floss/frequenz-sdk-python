@@ -26,25 +26,28 @@ class Matryoshka(BaseAlgorithm):
         self._target_power: dict[frozenset[int], Power] = {}
 
     @override
-    def handle_proposal(
+    def get_target_power(
         self,
-        proposal: Proposal,
+        battery_ids: frozenset[int],
+        proposal: Proposal | None,
         system_bounds: PowerMetrics,
-    ) -> Power:
-        """Handle a proposal.
+    ) -> Power | None:
+        """Calculate and return the target power for the given batteries.
 
         Args:
-            proposal: The proposal to handle.
+            battery_ids: The battery IDs to calculate the target power for.
+            proposal: If given, the proposal to added to the bucket, before the target
+                power is calculated.
             system_bounds: The system bounds for the batteries in the proposal.
 
         Returns:
-            The battery IDs and the target power.
+            The new target power for the batteries, or `None` if the target power
+                didn't change.
 
         Raises:
             NotImplementedError: When the proposal contains battery IDs that are
                 already part of another bucket.
         """
-        battery_ids = proposal.battery_ids
         if battery_ids not in self._battery_buckets:
             for bucket in self._battery_buckets:
                 if any(battery_id in bucket for battery_id in battery_ids):
@@ -53,7 +56,8 @@ class Matryoshka(BaseAlgorithm):
                         "part of another bucket.  Overlapping buckets are not "
                         "yet supported."
                     )
-        self._battery_buckets.setdefault(battery_ids, SortedSet()).insert(proposal)
+        if proposal is not None:
+            self._battery_buckets.setdefault(battery_ids, SortedSet()).insert(proposal)
         lower_bound = (
             system_bounds.inclusion_bounds.lower
             if system_bounds.inclusion_bounds
@@ -76,8 +80,13 @@ class Matryoshka(BaseAlgorithm):
                 lower_bound = next_proposal.bounds[0]
                 upper_bound = next_proposal.bounds[1]
 
-        self._target_power[battery_ids] = target_power
-        return target_power
+        if (
+            battery_ids not in self._target_power
+            or self._target_power[battery_ids] != target_power
+        ):
+            self._target_power[battery_ids] = target_power
+            return target_power
+        return None
 
     @override
     def get_status(
@@ -91,10 +100,8 @@ class Matryoshka(BaseAlgorithm):
             system_bounds: The system bounds for the batteries.
 
         Returns:
-            The bounds.
-
-        Raises:
-            NotImplementedError: When the battery IDs are not part of a bucket.
+            The target power and the available bounds for the given batteries, for
+                the given priority.
         """
         lower_bound = (
             system_bounds.inclusion_bounds.lower

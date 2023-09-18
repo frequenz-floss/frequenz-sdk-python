@@ -118,19 +118,23 @@ class BaseAlgorithm(abc.ABC):
     """The base class for algorithms."""
 
     @abc.abstractmethod
-    def handle_proposal(
+    def get_target_power(
         self,
-        proposal: Proposal,
+        battery_ids: frozenset[int],
+        proposal: Proposal | None,
         system_bounds: PowerMetrics,
-    ) -> Power:
-        """Handle a proposal.
+    ) -> Power | None:
+        """Calculate and return the target power for the given batteries.
 
         Args:
-            proposal: The proposal to handle.
+            battery_ids: The battery IDs to calculate the target power for.
+            proposal: If given, the proposal to added to the bucket, before the target
+                power is calculated.
             system_bounds: The system bounds for the batteries in the proposal.
 
         Returns:
-            The target power for the batteries in the proposal.
+            The new target power for the batteries, or `None` if the target power
+                didn't change.
         """
 
     # The arguments for this method are tightly coupled to the `Matryoshka` algorithm.

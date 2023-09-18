@@ -134,19 +134,22 @@ class PowerManagingActor(Actor):
                 if proposal.battery_ids not in self._system_bounds:
                     await self._add_bounds_tracker(proposal.battery_ids)
 
-                target_power = self._algorithm.handle_proposal(
-                    proposal, self._system_bounds[proposal.battery_ids]
+                target_power = self._algorithm.get_target_power(
+                    proposal.battery_ids,
+                    proposal,
+                    self._system_bounds[proposal.battery_ids],
                 )
 
-                await self._power_distributing_requests_sender.send(
-                    power_distributing.Request(
-                        power=target_power,
-                        batteries=proposal.battery_ids,
-                        request_timeout=proposal.request_timeout,
-                        adjust_power=True,
-                        include_broken_batteries=proposal.include_broken_batteries,
+                if target_power is not None:
+                    await self._power_distributing_requests_sender.send(
+                        power_distributing.Request(
+                            power=target_power,
+                            batteries=proposal.battery_ids,
+                            request_timeout=proposal.request_timeout,
+                            adjust_power=True,
+                            include_broken_batteries=proposal.include_broken_batteries,
+                        )
                     )
-                )
 
             elif selected_from(selected, self._bounds_subscription_receiver):
                 sub = selected.value
