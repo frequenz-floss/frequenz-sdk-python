@@ -69,7 +69,7 @@ class Matryoshka(BaseAlgorithm):
             else Power.zero()
         )
         target_power = Power.zero()
-        for next_proposal in reversed(self._battery_buckets[battery_ids]):
+        for next_proposal in reversed(self._battery_buckets.get(battery_ids, [])):
             if (
                 next_proposal.preferred_power > upper_bound
                 or next_proposal.preferred_power < lower_bound
@@ -113,7 +113,7 @@ class Matryoshka(BaseAlgorithm):
             if system_bounds.inclusion_bounds
             else Power.zero()
         )
-        for next_proposal in reversed(self._battery_buckets[battery_ids]):
+        for next_proposal in reversed(self._battery_buckets.get(battery_ids, [])):
             if next_proposal.priority <= priority:
                 break
             if next_proposal.bounds:
@@ -121,6 +121,6 @@ class Matryoshka(BaseAlgorithm):
                 upper_bound = next_proposal.bounds[1]
 
         return Report(
-            target_power=self._target_power[battery_ids],
+            target_power=self._target_power.get(battery_ids, Power.zero()),
             available_bounds=Bounds(lower=lower_bound, upper=upper_bound),
         )

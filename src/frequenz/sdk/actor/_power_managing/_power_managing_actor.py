@@ -8,6 +8,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import typing
+from datetime import datetime, timezone
 
 from frequenz.channels import Receiver, Sender
 from frequenz.channels.util import select, selected_from
@@ -96,7 +97,7 @@ class PowerManagingActor(Actor):
             self._system_bounds[battery_ids] = bounds
             await self._send_reports(battery_ids)
 
-    async def _add_bounds_tracker(self, battery_ids: frozenset[int]) -> None:
+    def _add_bounds_tracker(self, battery_ids: frozenset[int]) -> None:
         """Add a bounds tracker.
 
         Args:
@@ -106,6 +107,9 @@ class PowerManagingActor(Actor):
         from ... import (  # pylint: disable=import-outside-toplevel,cyclic-import
             microgrid,
         )
+        from ...timeseries.battery_pool import (  # pylint: disable=import-outside-toplevel
+            PowerMetrics,
+        )
 
         battery_pool = microgrid.battery_pool(battery_ids)
         # pylint: disable=protected-access
@@ -114,7 +118,11 @@ class PowerManagingActor(Actor):
 
         # Fetch the latest system bounds once, before starting the bounds tracker task,
         # so that when this function returns, there's already some bounds available.
-        self._system_bounds[battery_ids] = await bounds_receiver.receive()
+        self._system_bounds[battery_ids] = PowerMetrics(
+            timestamp=datetime.now(tz=timezone.utc),
+            inclusion_bounds=None,
+            exclusion_bounds=None,
+        )
 
         # Start the bounds tracker, for ongoing updates.
         self._bound_tracker_tasks[battery_ids] = asyncio.create_task(
@@ -131,8 +139,8 @@ class PowerManagingActor(Actor):
         ):
             if selected_from(selected, self._proposals_receiver):
                 proposal = selected.value
-                if proposal.battery_ids not in self._system_bounds:
-                    await self._add_bounds_tracker(proposal.battery_ids)
+                if proposal.battery_ids not in self._bound_tracker_tasks:
+                    self._add_bounds_tracker(proposal.battery_ids)
 
                 target_power = self._algorithm.get_target_power(
                     proposal.battery_ids,
@@ -168,6 +176,4 @@ class PowerManagingActor(Actor):
                     ] = self._channel_registry.new_sender(sub.get_channel_name())
 
                 if sub.battery_ids not in self._bound_tracker_tasks:
-                    await self._add_bounds_tracker(sub.battery_ids)
-
-                await self._send_reports(battery_ids)
+                    self._add_bounds_tracker(sub.battery_ids)
