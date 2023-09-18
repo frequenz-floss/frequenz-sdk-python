@@ -49,7 +49,9 @@ python3 -m venv .venv
 
     This will create the virtual environment and activate it automatically for you.
 
-Now you can install the SDK by using `pip`:
+Now you can install the SDK by using `pip` (if you don't have `pip` installed
+you can follow [the official
+instructions](https://pip.pypa.io/en/stable/installation/)):
 
 ```sh
 python3 -m pip install frequenz-sdk
@@ -63,5 +65,5 @@ $ python3
 Python 3.11.4 (main, Jun  7 2023, 10:13:09) [GCC 12.2.0] on linux
 Type "help", "copyright", "credits" or "license" for more information.
 >>> import frequenz.sdk
->>> 
+>>>
 ```

@@ -85,9 +85,13 @@ markdown_extensions:
 plugins:
   - gen-files:
       scripts:
-        - docs/mkdocstrings_autoapi.py
+        - docs/_scripts/mkdocstrings_autoapi.py
   - literate-nav:
       nav_file: SUMMARY.md
+  - macros:
+      module_name: docs/_scripts/macros
+      on_undefined: strict
+      on_error_fail: true
   - mike:
       canonical_version: latest
   - mkdocstrings:
@@ -120,5 +124,4 @@ plugins:
 # Preview controls
 watch:
   - "src"
-  - README.md
   - CONTRIBUTING.md

@@ -62,8 +62,8 @@ dev-mkdocs = [
   "mike == 1.1.2",
   "mkdocs-gen-files == 0.5.0",
   "mkdocs-literate-nav == 0.6.1",
+  "mkdocs-macros-plugin == 1.0.4",
   "mkdocs-material == 9.3.1",
-  "mkdocs-section-index == 0.3.7",
   "mkdocstrings[python] == 0.23.0",
   "frequenz-repo-config[lib] == 0.6.1",
 ]
@@ -176,6 +176,7 @@ module = [
   "async_solipsism.*",
   "grpc.aio",
   "grpc.aio.*",
+  "mkdocs_macros.*",
   # There is a stubs package available, but it's not working:
   # https://github.com/eggplants/networkx-stubs/issues/1
   "networkx",
