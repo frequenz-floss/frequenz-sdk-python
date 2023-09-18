@@ -68,8 +68,8 @@ class PowerManagingActor(Actor):
 
         super().__init__()
 
-    async def _send_report(self, battery_ids: frozenset[int]) -> None:
-        """Send a report for a set of batteries.
+    async def _send_reports(self, battery_ids: frozenset[int]) -> None:
+        """Send reports for a set of batteries, to all subscribers.
 
         Args:
             battery_ids: The battery IDs.
@@ -94,7 +94,7 @@ class PowerManagingActor(Actor):
         """
         async for bounds in bounds_receiver:
             self._system_bounds[battery_ids] = bounds
-            await self._send_report(battery_ids)
+            await self._send_reports(battery_ids)
 
     async def _add_bounds_tracker(self, battery_ids: frozenset[int]) -> None:
         """Add a bounds tracker.
@@ -170,4 +170,4 @@ class PowerManagingActor(Actor):
                 if sub.battery_ids not in self._bound_tracker_tasks:
                     await self._add_bounds_tracker(sub.battery_ids)
 
-                await self._send_report(battery_ids)
+                await self._send_reports(battery_ids)
