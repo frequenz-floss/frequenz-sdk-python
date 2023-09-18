@@ -18,6 +18,32 @@ if typing.TYPE_CHECKING:
 
 
 @dataclasses.dataclass(frozen=True)
+class Bounds:
+    """Lower and upper bound values."""
+
+    lower: Power
+    """Lower bound."""
+
+    upper: Power
+    """Upper bound."""
+
+
+@dataclasses.dataclass(frozen=True)
+class Report:
+    """Current PowerManager report for a set of batteries."""
+
+    target_power: Power
+    """The currently set power for the batteries."""
+
+    available_bounds: Bounds
+    """The available bounds for the batteries, for the actor's priority.
+
+    These bounds are adjusted to any restrictions placed by actors with higher
+    priorities.
+    """
+
+
+@dataclasses.dataclass(frozen=True)
 class Proposal:
     """A proposal for a battery to be charged or discharged."""
 
@@ -82,4 +108,21 @@ class BaseAlgorithm(abc.ABC):
 
         Returns:
             The target power for the batteries in the proposal.
+        """
+
+    # The arguments for this method are tightly coupled to the `Matryoshka` algorithm.
+    # It can be loosened up when more algorithms are added.
+    @abc.abstractmethod
+    def get_status(
+        self, battery_ids: frozenset[int], priority: int, system_bounds: PowerMetrics
+    ) -> Report:
+        """Get the bounds for a set of batteries, for the given priority.
+
+        Args:
+            battery_ids: The IDs of the batteries to get the bounds for.
+            priority: The priority of the actor for which the bounds are requested.
+            system_bounds: The system bounds for the batteries.
+
+        Returns:
+            The bounds for the batteries.
         """
