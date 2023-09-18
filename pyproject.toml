@@ -53,17 +53,17 @@ dev-flake8 = [
   "flake8 == 6.1.0",
   "flake8-docstrings == 1.7.0",
   "flake8-pyproject == 1.2.3",  # For reading the flake8 config from pyproject.toml
-  "pydoclint == 0.3.1",
+  "pydoclint == 0.3.2",
   "pydocstyle == 6.3.0",
 ]
-dev-examples = ["polars == 0.19.1"]
-dev-formatting = ["black == 23.7.0", "isort == 5.12.0"]
+dev-examples = ["polars == 0.19.3"]
+dev-formatting = ["black == 23.9.1", "isort == 5.12.0"]
 dev-mkdocs = [
   "mike == 1.1.2",
   "mkdocs-gen-files == 0.5.0",
-  "mkdocs-literate-nav == 0.6.0",
-  "mkdocs-material == 9.2.7",
-  "mkdocs-section-index == 0.3.5",
+  "mkdocs-literate-nav == 0.6.1",
+  "mkdocs-material == 9.3.1",
+  "mkdocs-section-index == 0.3.7",
   "mkdocstrings[python] == 0.23.0",
   "frequenz-repo-config[lib] == 0.6.1",
 ]
@@ -76,8 +76,8 @@ dev-mypy = [
   "types-colorama == 0.4.15.12",
   "types-protobuf == 4.24.0.1",
   "types-python-dateutil == 2.8.19.14",
-  "types-pytz == 2023.3.0.1",
-  "types-setuptools == 68.1.0.1",
+  "types-pytz == 2023.3.1.0",
+  "types-setuptools == 68.2.0.0",
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
@@ -88,7 +88,7 @@ dev-pylint = [
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
 dev-pytest = [
-  "pytest == 7.4.1",
+  "pytest == 7.4.2",
   "frequenz-repo-config[extra-lint-examples] == 0.6.1",
   "pytest-mock == 3.11.1",
   "pytest-asyncio == 0.21.1",
