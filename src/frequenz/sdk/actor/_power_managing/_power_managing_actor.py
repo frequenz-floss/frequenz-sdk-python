@@ -8,7 +8,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import typing
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from frequenz.channels import Receiver, Sender
 from frequenz.channels.util import select, selected_from
@@ -95,6 +95,7 @@ class PowerManagingActor(Actor):
         """
         async for bounds in bounds_receiver:
             self._system_bounds[battery_ids] = bounds
+            await self._send_updated_target_power(battery_ids, None)
             await self._send_reports(battery_ids)
 
     def _add_bounds_tracker(self, battery_ids: frozenset[int]) -> None:
@@ -129,11 +130,36 @@ class PowerManagingActor(Actor):
             self._bounds_tracker(battery_ids, bounds_receiver)
         )
 
+    async def _send_updated_target_power(
+        self, battery_ids: frozenset[int], proposal: Proposal | None
+    ) -> None:
+        from .. import power_distributing  # pylint: disable=import-outside-toplevel
+
+        target_power = self._algorithm.get_target_power(
+            battery_ids,
+            proposal,
+            self._system_bounds[battery_ids],
+        )
+        request_timeout = (
+            proposal.request_timeout if proposal else timedelta(seconds=5.0)
+        )
+        include_broken_batteries = (
+            proposal.include_broken_batteries if proposal else False
+        )
+        if target_power is not None:
+            await self._power_distributing_requests_sender.send(
+                power_distributing.Request(
+                    power=target_power,
+                    batteries=battery_ids,
+                    request_timeout=request_timeout,
+                    adjust_power=True,
+                    include_broken_batteries=include_broken_batteries,
+                )
+            )
+
     @override
     async def _run(self) -> None:
         """Run the power managing actor."""
-        from .. import power_distributing  # pylint: disable=import-outside-toplevel
-
         async for selected in select(
             self._proposals_receiver, self._bounds_subscription_receiver
         ):
@@ -141,23 +167,8 @@ class PowerManagingActor(Actor):
                 proposal = selected.value
                 if proposal.battery_ids not in self._bound_tracker_tasks:
                     self._add_bounds_tracker(proposal.battery_ids)
-
-                target_power = self._algorithm.get_target_power(
-                    proposal.battery_ids,
-                    proposal,
-                    self._system_bounds[proposal.battery_ids],
-                )
-
-                if target_power is not None:
-                    await self._power_distributing_requests_sender.send(
-                        power_distributing.Request(
-                            power=target_power,
-                            batteries=proposal.battery_ids,
-                            request_timeout=proposal.request_timeout,
-                            adjust_power=True,
-                            include_broken_batteries=proposal.include_broken_batteries,
-                        )
-                    )
+                await self._send_updated_target_power(proposal.battery_ids, proposal)
+                await self._send_reports(proposal.battery_ids)
 
             elif selected_from(selected, self._bounds_subscription_receiver):
                 sub = selected.value
