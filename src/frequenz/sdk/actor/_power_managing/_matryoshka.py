@@ -58,6 +58,13 @@ class Matryoshka(BaseAlgorithm):
                     )
         if proposal is not None:
             self._battery_buckets.setdefault(battery_ids, SortedSet()).insert(proposal)
+
+        # If there has not been any proposal for the given batteries, don't calculate a
+        # target power and just return `None`.
+        proposals = self._battery_buckets.get(battery_ids)
+        if proposals is None:
+            return None
+
         lower_bound = (
             system_bounds.inclusion_bounds.lower
             if system_bounds.inclusion_bounds
@@ -68,8 +75,9 @@ class Matryoshka(BaseAlgorithm):
             if system_bounds.inclusion_bounds
             else Power.zero()
         )
+
         target_power = Power.zero()
-        for next_proposal in reversed(self._battery_buckets.get(battery_ids, [])):
+        for next_proposal in reversed(proposals):
             if (
                 next_proposal.preferred_power > upper_bound
                 or next_proposal.preferred_power < lower_bound
