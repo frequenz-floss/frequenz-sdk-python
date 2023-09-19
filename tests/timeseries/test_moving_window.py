@@ -121,13 +121,10 @@ async def test_access_window_by_ts_slice() -> None:
         assert np.array_equal(window[time_start:time_end], np.array([3.0, 4.0]))  # type: ignore
         assert np.array_equal(window.window(dt(3), dt(5)), np.array([3.0, 4.0]))
         assert np.array_equal(window.window(dt(3), dt(3)), np.array([]))
-        # Window only supports slicing with ascending indices within allowed range
-        with pytest.raises(IndexError):
-            window.window(dt(3), dt(1))
-        with pytest.raises(IndexError):
-            window.window(dt(3), dt(6))
-        with pytest.raises(IndexError):
-            window.window(dt(-1), dt(5))
+        # Window also supports slicing with indices outside allowed range
+        assert np.array_equal(window.window(dt(3), dt(1)), np.array([]))
+        assert np.array_equal(window.window(dt(3), dt(6)), np.array([3, 4]))
+        assert np.array_equal(window.window(dt(-1), dt(5)), np.array([0, 1, 2, 3, 4]))
 
 
 async def test_access_empty_window() -> None:

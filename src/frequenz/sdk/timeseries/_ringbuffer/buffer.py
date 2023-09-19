@@ -284,8 +284,26 @@ class OrderedRingBuffer(Generic[FloatArray]):
         )
         return ref_ts + index * self._sampling_period
 
+    def _to_covered_indices(
+        self, start: int | None, end: int | None = None
+    ) -> tuple[int, int]:
+        """Project the given indices via slice onto the covered range.
+
+        Args:
+            start: Start index.
+            end: End index. Optional, defaults to None.
+
+        Returns:
+            tuple of start and end indices on the range currently covered by the buffer.
+        """
+        return slice(start, end).indices(self.count_covered())[:2]
+
     def window(
-        self, start: datetime, end: datetime, *, force_copy: bool = True
+        self,
+        start: datetime | int | None,
+        end: datetime | int | None,
+        *,
+        force_copy: bool = True,
     ) -> FloatArray:
         """Request a copy or view on the data between start timestamp and end timestamp.
 
@@ -310,17 +328,32 @@ class OrderedRingBuffer(Generic[FloatArray]):
                 copy of the data.
 
         Raises:
-            IndexError: When requesting a window with invalid timestamps.
+            IndexError: When start and end are not both datetime or index.
 
         Returns:
             The requested window
         """
-        if start > end:
+        if self.count_covered() == 0:
+            return np.array([]) if isinstance(self._buffer, np.ndarray) else []
+
+        # If both are indices or None convert to datetime
+        if not isinstance(start, datetime) and not isinstance(end, datetime):
+            start, end = self._to_covered_indices(start, end)
+            start = self.get_timestamp(start)
+            end = self.get_timestamp(end)
+
+        # Here we should have both as datetime
+        if not isinstance(start, datetime) or not isinstance(end, datetime):
             raise IndexError(
-                f"end parameter {end} has to predate start parameter {start}"
+                f"start ({start}) and end ({end}) must both be either datetime or index."
             )
 
-        if start == end:
+        # Ensure that the window is within the bounds of the buffer
+        assert self.oldest_timestamp is not None and self.newest_timestamp is not None
+        start = max(start, self.oldest_timestamp)
+        end = min(end, self.newest_timestamp + self._sampling_period)
+
+        if start >= end:
             return np.array([]) if isinstance(self._buffer, np.ndarray) else []
 
         start_pos = self.to_internal_index(start)

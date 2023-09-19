@@ -137,12 +137,11 @@ def test_timestamp_ringbuffer_gaps(
         Sample(datetime.fromtimestamp(500 + size, tz=timezone.utc), Quantity(9999))
     )
 
-    # Expect exception for the same window
-    with pytest.raises(IndexError):
-        buffer.window(
-            datetime.fromtimestamp(200, tz=timezone.utc),
-            datetime.fromtimestamp(202, tz=timezone.utc),
-        )
+    # Allow still to request old (empty) window
+    buffer.window(
+        datetime.fromtimestamp(200, tz=timezone.utc),
+        datetime.fromtimestamp(202, tz=timezone.utc),
+    )
 
     # Receive new window without exception
     buffer.window(
@@ -524,8 +523,8 @@ def get_orb(data: FloatArray) -> OrderedRingBuffer[FloatArray]:
     return buffer
 
 
-def test_window() -> None:
-    """Test the window function."""
+def test_window_datetime() -> None:
+    """Test the window function with datetime."""
     buffer = get_orb(np.array([0, None, 2, 3, 4]))
     win = buffer.window(dt(0), dt(3), force_copy=False)
     assert [0, np.nan, 2] == list(win)
@@ -541,6 +540,39 @@ def test_window() -> None:
     assert [0, 1, 2] == buffer.window(dt(0), dt(3))
     assert [] == buffer.window(dt(0), dt(0))
     assert [] == buffer.window(dt(1), dt(1))
+
+
+def test_window_index() -> None:
+    """Test the window function with index."""
+    buffer = get_orb([0.0, 1.0, 2.0, 3.0, 4.0])
+    assert [0, 1, 2] == buffer.window(0, 3)
+    assert [0, 1, 2, 3, 4] == buffer.window(0, 5)
+    assert [0, 1, 2, 3, 4] == buffer.window(0, 99)
+    assert [2, 3] == buffer.window(-3, -1)
+    assert [2, 3, 4] == buffer.window(-3, 5)
+    assert [0, 1, 2, 3] == buffer.window(-5, -1)
+    assert [0, 1, 2, 3, 4] == buffer.window(-99, None)
+    assert [0, 1, 2, 3, 4] == buffer.window(None, 99)
+    # start >= end
+    assert [] == buffer.window(0, 0)
+    assert [] == buffer.window(-5, 0)
+    assert [] == buffer.window(1, 0)
+    assert [] == buffer.window(-1, -2)
+    assert [] == buffer.window(-3, 0)
+
+
+def test_window_fail() -> None:
+    """Test the window function with invalid indices."""
+    buffer = get_orb([0.0, 1.0, 2.0, 3.0, 4.0])
+    # Go crazy with the indices
+    with pytest.raises(IndexError):
+        buffer.window(dt(1), 3)
+    with pytest.raises(IndexError):
+        buffer.window(1, dt(3))
+    with pytest.raises(IndexError):
+        buffer.window(None, dt(2))
+    with pytest.raises(IndexError):
+        buffer.window(dt(2), None)
 
 
 def test_wrapped_buffer_window() -> None:
