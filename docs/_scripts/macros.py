@@ -9,26 +9,27 @@ from markdown.extensions import toc
 from mkdocs_macros import plugin as macros
 
 
+def _slugify(text: str) -> str:
+    """Slugify a text.
+
+    Args:
+        text: The text to slugify.
+
+    Returns:
+        The slugified text.
+    """
+    # The type of the return value is not defined for the markdown library.
+    # Also for some reason `mypy` thinks the `toc` module doesn't have a
+    # `slugify_unicode` function, but it definitely does.
+    return toc.slugify_unicode(text, "-")  # type: ignore[attr-defined,no-any-return]
+
+
 def define_env(env: macros.MacrosPlugin) -> None:
     """Define the hook to create macro functions for use in Markdown.
 
     Args:
         env: The environment to define the macro functions in.
     """
-
-    def _slugify(text: str) -> str:
-        """Slugify a text.
-
-        Args:
-            text: The text to slugify.
-
-        Returns:
-            The slugified text.
-        """
-        # The type of the return value is not defined for the markdown library.
-        # Also for some reason `mypy` thinks the `toc` module doesn't have a
-        # `slugify_unicode` function, but it definitely does.
-        return toc.slugify_unicode(text, "-")  # type: ignore[attr-defined,no-any-return]
 
     @env.macro  # type: ignore[misc]
     def glossary(term: str) -> str:
