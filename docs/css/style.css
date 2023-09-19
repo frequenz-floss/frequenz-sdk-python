@@ -26,3 +26,13 @@ a.external:hover::after, a.md-nav__link[href^="https:"]:hover::after {
 .md-main__inner {
   margin-bottom: 1.5rem;
 }
+
+/* Code annotations with numbers
+ * https://squidfunk.github.io/mkdocs-material/reference/code-blocks/#annotations-with-numbers
+ */
+.md-typeset .md-annotation__index > ::before {
+  content: attr(data-md-annotation-id);
+}
+.md-typeset :focus-within > .md-annotation__index > ::before {
+  transform: none;
+}
