@@ -319,6 +319,147 @@ The expected output is:
 Actor2 forwarding: "Actor1 forwarding: 'Hello'"
 ```
 
+#### Receiving from multiple channels
+
+This example shows how to create an actor that receives messages from multiple
+[broadcast][frequenz.channels.Broadcast] channels using
+[`select()`][frequenz.channels.util.select].
+
+```python title="select.py"
+import asyncio
+
+from frequenz.channels import Broadcast, Receiver, Sender
+from frequenz.channels.util import select, selected_from
+from frequenz.sdk.actor import Actor, run
+
+
+class EchoActor(Actor):  # (1)!
+    def __init__(
+        self,
+        receiver_1: Receiver[bool],
+        receiver_2: Receiver[bool],
+        output: Sender[bool],
+    ) -> None:
+        super().__init__()
+        self._receiver_1 = receiver_1
+        self._receiver_2 = receiver_2
+        self._output = output
+
+    async def _run(self) -> None:  # (2)!
+        async for selected in select(self._receiver_1, self._receiver_2):  # (10)!
+            if selected_from(selected, self._receiver_1):  # (11)!
+                print(f"Received from receiver_1: {selected.value}")
+                await self._output.send(selected.value)
+                if not selected.value:  # (12)!
+                    break
+            elif selected_from(selected, self._receiver_2):  # (13)!
+                print(f"Received from receiver_2: {selected.value}")
+                await self._output.send(selected.value)
+                if not selected.value:  # (14)!
+                    break
+            else:
+                assert False, "Unknown selected channel"
+        print("EchoActor finished")
+    # (15)!
+
+
+# (3)!
+input_channel_1 = Broadcast[bool]("input_channel_1")
+input_channel_2 = Broadcast[bool]("input_channel_2")
+echo_channel = Broadcast[bool]("echo_channel")
+
+echo_actor = EchoActor(  # (4)!
+    input_channel_1.new_receiver(),
+    input_channel_2.new_receiver(),
+    echo_channel.new_sender(),
+)
+
+echo_receiver = echo_channel.new_receiver()  # (5)!
+
+async def main() -> None:  # (6)!
+    # (8)!
+    await input_channel_1.new_sender().send(True)
+    await input_channel_2.new_sender().send(False)
+
+    await run(echo_actor)  # (9)!
+
+    await echo_channel.close()  # (16)!
+
+    async for message in echo_receiver:  # (17)!
+        print(f"Received {message=}")
+
+
+if __name__ == "__main__":  # (7)!
+    asyncio.run(main())
+```
+
+1. We define an `EchoActor` that receives messages from two channels and sends
+    them to another channel.
+
+2. We implement the `_run()` method that will receive messages from the two channels
+    using and send them to the output channel. The `run()` method will stop if a `False`
+    message is received.
+
+3. We create the channels that will be used with the actor.
+
+4. We create the actor and connect it to the channels by creating new receivers and
+    senders from the channels.
+
+5. We create a receiver for the `echo_channel` to eventually receive the messages sent
+    by the actor.
+
+6. We define the `main()` function that will run the actor.
+
+7. We start the `main()` function in the async loop using [`asyncio.run()`][asyncio.run].
+
+8. We send a message to each of the input channels. These messages will be queued in
+    the channels until they are consumed by the actor.
+
+9. We start the actor and wait for it to finish using the
+    [`run()`][frequenz.sdk.actor.run] function.
+
+10. The [`select()`][frequenz.channels.util.select] function will get the first message
+    available from the two channels. The order in which they will be handled is
+    unknown, but in this example we assume that the first message will be from
+    `input_channel_1` (`True`) and the second from `input_channel_1` (`False`).
+
+11. The [`selected_from()`][frequenz.channels.util.selected_from] function will return
+    `True` for the `input_channel_1` receiver. `selected.value` holds the received
+    message, so `"Received from receiver_1: True"` will be printed and `True` will be
+    sent to the `output` channel.
+
+12. Since `selected.value` is `True`, the loop will continue, going back to the and the
+    the loop will continue, going back to the
+    [`select()`][frequenz.channels.util.select] function.
+
+13. The [`selected_from()`][frequenz.channels.util.selected_from] function will return
+    `False` for the `input_channel_1` receiver and `True` for the `input_channel_2`
+    receiver. The message stored in `selected.value` will now be `False`, so
+    `"Received from receiver_2: False"` will be printed and `False` will be sent to the
+    `output` channel.
+
+14. Since `selected.value` is `False`, the loop will break.
+
+15. The `_run()` method will finish normally and the actor will be stopped, so the
+    [`run()`][frequenz.sdk.actor.run] function will return.
+
+16. We close the `echo_channel` to make sure the `echo_receiver` will stop receiving
+    messages after all the queued messages are consumed (otherwise the step 17 will
+    never end!).
+
+17. We receive the messages sent by the actor to the `echo_channel` one by one and print
+    them, it should print first `Received message=True` and then `Received
+    message=False`.
+
+The expected output is:
+
+```
+Received from receiver_1: True
+Received from receiver_2: False
+Received message=True
+Received message=False
+```
+
 [async context manager]: https://docs.python.org/3/reference/datamodel.html#async-context-managers
 """
 
