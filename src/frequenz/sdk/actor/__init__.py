@@ -132,6 +132,13 @@ if __name__ == "__main__":  # (3)!
    [senders][frequenz.channels.Sender] and
    [receivers][frequenz.channels.Receiver] from the channels.
 
+    !!! note
+
+        We don't use the [`run()`][frequenz.sdk.actor.run] function here because we
+        want to stop the actors when we are done with them, but the actors will run
+        forever (as long as the channel is not closed). So the async context manager
+        is a better fit for this example.
+
 6. We schedule the [sending][frequenz.channels.Sender.send] of the message
    `Hello` to `Actor1` via `input_channel`.
 
