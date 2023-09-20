@@ -107,7 +107,7 @@ plugins:
             # See https://mkdocstrings.github.io/python/usage/#import for details
             - https://docs.python.org/3/objects.inv
             - https://frequenz-floss.github.io/frequenz-api-common/v0.3/objects.inv
-            - https://frequenz-floss.github.io/frequenz-channels-python/v0.14/objects.inv
+            - https://frequenz-floss.github.io/frequenz-channels-python/v0.16/objects.inv
             - https://frequenz-floss.github.io/frequenz-api-microgrid/v0.15/objects.inv
             - https://grpc.github.io/grpc/python/objects.inv
             - https://networkx.org/documentation/stable/objects.inv
