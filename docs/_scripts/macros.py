@@ -4,7 +4,9 @@
 """This module defines macros for use in Markdown files."""
 
 import pathlib
+from typing import Any
 
+import markdown as md
 from markdown.extensions import toc
 from mkdocs_macros import plugin as macros
 
@@ -56,3 +58,30 @@ def define_env(env: macros.MacrosPlugin) -> None:
         glossary_path = pathlib.Path("intro/glossary.md")
         link_path = glossary_path.relative_to(current_path.parent)
         return f"[{term}]({link_path}#{_slugify(term)})"
+
+    # The code below is a temporary workaround to make `mkdocs-macros` work with
+    # `mkdocstrings` until a proper `mkdocs-macros` *pluglet* is available. See
+    # https://github.com/mkdocstrings/mkdocstrings/issues/615 for details.
+
+    # get mkdocstrings' Python handler
+    python_handler = env.conf["plugins"]["mkdocstrings"].get_handler("python")
+
+    # get the `update_env` method of the Python handler
+    update_env = python_handler.update_env
+
+    # override the `update_env` method of the Python handler
+    def patched_update_env(markdown: md.Markdown, config: dict[str, Any]) -> None:
+        update_env(markdown, config)
+
+        # get the `convert_markdown` filter of the env
+        convert_markdown = python_handler.env.filters["convert_markdown"]
+
+        # build a chimera made of macros+mkdocstrings
+        def render_convert(markdown: str, *args: Any, **kwargs: Any) -> Any:
+            return convert_markdown(env.render(markdown), *args, **kwargs)
+
+        # patch the filter
+        python_handler.env.filters["convert_markdown"] = render_convert
+
+    # patch the method
+    python_handler.update_env = patched_update_env

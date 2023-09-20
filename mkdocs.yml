@@ -88,10 +88,6 @@ plugins:
         - docs/_scripts/mkdocstrings_autoapi.py
   - literate-nav:
       nav_file: SUMMARY.md
-  - macros:
-      module_name: docs/_scripts/macros
-      on_undefined: strict
-      on_error_fail: true
   - mike:
       canonical_version: latest
   - mkdocstrings:
@@ -119,6 +115,13 @@ plugins:
             - https://protobuf.readthedocs.io/en/latest/objects.inv
             - https://typing-extensions.readthedocs.io/en/stable/objects.inv
             - https://watchfiles.helpmanual.io/objects.inv
+  # Note this plugin must be loaded after mkdocstrings to be able to use macros
+  # inside docstrings. See the comment in `docs/_scripts/macros.py` for more
+  # details
+  - macros:
+      module_name: docs/_scripts/macros
+      on_undefined: strict
+      on_error_fail: true
   - search
 
 # Preview controls
