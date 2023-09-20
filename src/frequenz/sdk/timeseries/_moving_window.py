@@ -315,6 +315,15 @@ class MovingWindow(BackgroundService):
         """
         return self._buffer.count_valid()
 
+    def count_covered(self) -> int:
+        """Count the number of samples that are covered by the oldest and newest valid samples.
+
+        Returns:
+            The count of samples between the oldest and newest (inclusive) valid samples
+                or 0 if there are is no time range covered.
+        """
+        return self._buffer.count_covered()
+
     @overload
     def __getitem__(self, key: SupportsIndex) -> float:
         """See the main __getitem__ method.

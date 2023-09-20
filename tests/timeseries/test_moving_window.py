@@ -144,12 +144,15 @@ async def test_window_size() -> None:
     async with window:
         assert window.capacity == 5, "Wrong window capacity"
         assert window.count_valid() == 0, "Window should be empty"
+        assert window.count_covered() == 0, "Window should be empty"
         await push_logical_meter_data(sender, range(0, 2))
         assert window.capacity == 5, "Wrong window capacity"
         assert window.count_valid() == 2, "Window should be partially full"
+        assert window.count_covered() == 2, "Window should be partially full"
         await push_logical_meter_data(sender, range(2, 20))
         assert window.capacity == 5, "Wrong window capacity"
         assert window.count_valid() == 5, "Window should be full"
+        assert window.count_covered() == 5, "Window should be full"
 
 
 # pylint: disable=redefined-outer-name
