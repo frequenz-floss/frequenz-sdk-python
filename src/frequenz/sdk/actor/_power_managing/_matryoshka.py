@@ -99,15 +99,17 @@ class Matryoshka(BaseAlgorithm):
 
         target_power = Power.zero()
         for next_proposal in reversed(proposals):
-            if (
-                next_proposal.preferred_power > upper_bound
-                or next_proposal.preferred_power < lower_bound
-            ):
-                continue
-            target_power = next_proposal.preferred_power
+            if upper_bound < lower_bound:
+                break
+            if next_proposal.preferred_power > upper_bound:
+                target_power = upper_bound
+            elif next_proposal.preferred_power < lower_bound:
+                target_power = lower_bound
+            else:
+                target_power = next_proposal.preferred_power
             if next_proposal.bounds:
-                lower_bound = next_proposal.bounds[0]
-                upper_bound = next_proposal.bounds[1]
+                lower_bound = max(lower_bound, next_proposal.bounds[0])
+                upper_bound = min(upper_bound, next_proposal.bounds[1])
 
         if (
             battery_ids not in self._target_power
@@ -146,8 +148,8 @@ class Matryoshka(BaseAlgorithm):
             if next_proposal.priority <= priority:
                 break
             if next_proposal.bounds:
-                lower_bound = next_proposal.bounds[0]
-                upper_bound = next_proposal.bounds[1]
+                lower_bound = max(lower_bound, next_proposal.bounds[0])
+                upper_bound = min(upper_bound, next_proposal.bounds[1])
 
         return Report(
             target_power=self._target_power.get(battery_ids, Power.zero()),
