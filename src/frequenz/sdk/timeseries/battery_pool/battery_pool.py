@@ -14,8 +14,7 @@ from frequenz.channels import Receiver, Sender
 
 from ..._internal._asyncio import cancel_and_await
 from ..._internal._channels import ReceiverFetcher
-from ...actor import ChannelRegistry, ComponentMetricRequest
-from ...actor._power_managing import Proposal
+from ...actor import ComponentMetricRequest, _channel_registry, _power_managing
 from ...actor.power_distributing._battery_pool_status import BatteryStatus
 from ...actor.power_distributing.result import Result
 from ...microgrid import connection_manager
@@ -38,7 +37,7 @@ from ._metric_calculator import (
 from ._result_types import PowerMetrics
 
 
-class BatteryPool:
+class BatteryPool:  # pylint: disable=too-many-instance-attributes
     """Calculate high level metrics for a pool of the batteries.
 
     BatterPool accepts subset of the battery ids and provides methods methods for
@@ -47,10 +46,11 @@ class BatteryPool:
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        channel_registry: ChannelRegistry,
+        channel_registry: _channel_registry.ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         batteries_status_receiver: Receiver[BatteryStatus],
-        power_manager_requests_sender: Sender[Proposal],
+        power_manager_requests_sender: Sender[_power_managing.Proposal],
+        power_manager_bounds_subscription_sender: Sender[_power_managing.ReportRequest],
         power_manager_results_receiver: Receiver[Result],
         min_update_interval: timedelta,
         batteries_id: Set[int] | None = None,
@@ -70,6 +70,8 @@ class BatteryPool:
                 battery.
             power_manager_requests_sender: A Channel sender for sending power
                 requests to the power managing actor.
+            power_manager_bounds_subscription_sender: A Channel sender for sending
+                power bounds requests to the power managing actor.
             power_manager_results_receiver: A Channel receiver for receiving results
                 from the power managing actor.
             min_update_interval: Some metrics in BatteryPool are send only when they
@@ -101,14 +103,19 @@ class BatteryPool:
         self._min_update_interval = min_update_interval
 
         self._power_manager_requests_sender = power_manager_requests_sender
+        self._power_manager_bounds_subscription_sender = (
+            power_manager_bounds_subscription_sender
+        )
         self._power_manager_results_receiver = power_manager_results_receiver
 
         self._active_methods: dict[str, MetricAggregator[Any]] = {}
+        self._power_bounds_subs: dict[str, asyncio.Task[None]] = {}
         self._namespace: str = f"battery-pool-{self._batteries}-{uuid.uuid4()}"
         self._power_distributing_namespace: str = f"power-distributor-{self._namespace}"
+        self._channel_registry = channel_registry
         self._formula_pool: FormulaEnginePool = FormulaEnginePool(
             self._namespace,
-            channel_registry,
+            self._channel_registry,
             resampler_subscription_sender,
         )
 
@@ -148,7 +155,7 @@ class BatteryPool:
             _priority: The priority of the actor making the request.
         """
         await self._power_manager_requests_sender.send(
-            Proposal(
+            _power_managing.Proposal(
                 source_id=self._namespace,
                 preferred_power=preferred_power,
                 bounds=_bounds,
@@ -191,7 +198,7 @@ class BatteryPool:
         if power < Power.zero():
             raise ValueError("Charge power must be positive.")
         await self._power_manager_requests_sender.send(
-            Proposal(
+            _power_managing.Proposal(
                 source_id=self._namespace,
                 preferred_power=power,
                 bounds=None,
@@ -234,7 +241,7 @@ class BatteryPool:
         if power < Power.zero():
             raise ValueError("Discharge power must be positive.")
         await self._power_manager_requests_sender.send(
-            Proposal(
+            _power_managing.Proposal(
                 source_id=self._namespace,
                 preferred_power=power,
                 bounds=None,
@@ -446,6 +453,28 @@ class BatteryPool:
             )
 
         return self._active_methods[method_name]
+
+    def power_bounds(
+        self, priority: int = 0
+    ) -> ReceiverFetcher[_power_managing.Report]:
+        """Get a receiver to receive new power bounds when they change.
+
+        These bounds are the bounds specified the power manager for actors with the
+        given priority.
+
+        Args:
+            priority: The priority of the actor to get the power bounds for.
+
+        Returns:
+            A receiver that will receive the power bounds for the given priority.
+        """
+        sub = _power_managing.ReportRequest(
+            source_id=self._namespace, priority=priority, battery_ids=self._batteries
+        )
+        self._power_bounds_subs[sub.get_channel_name()] = asyncio.create_task(
+            self._power_manager_bounds_subscription_sender.send(sub)
+        )
+        return self._channel_registry.new_receiver_fetcher(sub.get_channel_name())
 
     @property
     def _system_power_bounds(self) -> ReceiverFetcher[PowerMetrics]:

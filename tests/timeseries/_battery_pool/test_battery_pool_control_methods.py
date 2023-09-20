@@ -14,7 +14,7 @@ from frequenz.channels import Sender
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
-from frequenz.sdk.actor import ResamplerConfig
+from frequenz.sdk.actor import ResamplerConfig, _power_managing
 from frequenz.sdk.actor.power_distributing import BatteryStatus
 from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
 from frequenz.sdk.timeseries import Power
@@ -136,6 +136,17 @@ class TestBatteryPoolControl:
                 0.05,
             )
 
+    def _make_report(
+        self, *, power: float, lower: float, upper: float
+    ) -> _power_managing.Report:
+        return _power_managing.Report(
+            target_power=Power.from_watts(power),
+            available_bounds=_power_managing.Bounds(
+                lower=Power.from_watts(lower),
+                upper=Power.from_watts(upper),
+            ),
+        )
+
     async def test_case_1(
         self,
         mocks: Mocks,
@@ -161,10 +172,17 @@ class TestBatteryPoolControl:
         #
         # It will be replaced by a reporting streaming from the PowerManager in a
         # subsequent commit.
-        results_rx = battery_pool.power_distribution_results()
+        bounds_rx = battery_pool.power_bounds().new_receiver()
+
+        assert await bounds_rx.receive() == self._make_report(
+            power=0.0, lower=-4000.0, upper=4000.0
+        )
 
         await battery_pool.set_power(Power.from_watts(1000.0))
-        await results_rx.receive()
+
+        assert await bounds_rx.receive() == self._make_report(
+            power=1000.0, lower=-4000.0, upper=4000.0
+        )
 
         assert set_power.call_count == 4
         assert set_power.call_args_list == [
@@ -187,11 +205,20 @@ class TestBatteryPoolControl:
         await self._init_data_for_inverters(mocks)
 
         battery_pool_1 = microgrid.battery_pool(set(mocks.microgrid.battery_ids[:2]))
+        bounds_1_rx = battery_pool_1.power_bounds().new_receiver()
         battery_pool_2 = microgrid.battery_pool(set(mocks.microgrid.battery_ids[2:]))
+        bounds_2_rx = battery_pool_2.power_bounds().new_receiver()
 
-        results_rx = battery_pool_1.power_distribution_results()
+        assert await bounds_1_rx.receive() == self._make_report(
+            power=0.0, lower=-2000.0, upper=2000.0
+        )
+        assert await bounds_2_rx.receive() == self._make_report(
+            power=0.0, lower=-2000.0, upper=2000.0
+        )
         await battery_pool_1.set_power(Power.from_watts(1000.0))
-        await results_rx.receive()
+        assert await bounds_1_rx.receive() == self._make_report(
+            power=1000.0, lower=-2000.0, upper=2000.0
+        )
         assert set_power.call_count == 2
         assert set_power.call_args_list == [
             mocker.call(inv_id, 500.0)
@@ -200,7 +227,9 @@ class TestBatteryPoolControl:
         set_power.reset_mock()
 
         await battery_pool_2.set_power(Power.from_watts(1000.0))
-        await results_rx.receive()
+        assert await bounds_2_rx.receive() == self._make_report(
+            power=1000.0, lower=-2000.0, upper=2000.0
+        )
         assert set_power.call_count == 2
         assert set_power.call_args_list == [
             mocker.call(inv_id, 500.0)
@@ -222,15 +251,28 @@ class TestBatteryPoolControl:
         await self._init_data_for_inverters(mocks)
 
         battery_pool_1 = microgrid.battery_pool()
+        bounds_1_rx = battery_pool_1.power_bounds(2).new_receiver()
         battery_pool_2 = microgrid.battery_pool()
+        bounds_2_rx = battery_pool_2.power_bounds(1).new_receiver()
 
-        results_rx = battery_pool_1.power_distribution_results()
+        assert await bounds_1_rx.receive() == self._make_report(
+            power=0.0, lower=-4000.0, upper=4000.0
+        )
+        assert await bounds_2_rx.receive() == self._make_report(
+            power=0.0, lower=-4000.0, upper=4000.0
+        )
         await battery_pool_1.set_power(
             Power.from_watts(-1000.0),
             _priority=2,
             _bounds=(Power.from_watts(-1000.0), Power.from_watts(0.0)),
         )
-        await results_rx.receive()
+        assert await bounds_1_rx.receive() == self._make_report(
+            power=-1000.0, lower=-4000.0, upper=4000.0
+        )
+        assert await bounds_2_rx.receive() == self._make_report(
+            power=-1000.0, lower=-1000.0, upper=0.0
+        )
+
         assert set_power.call_count == 4
         assert set_power.call_args_list == [
             mocker.call(inv_id, -250.0)
@@ -243,7 +285,13 @@ class TestBatteryPoolControl:
             _priority=1,
             _bounds=(Power.from_watts(0.0), Power.from_watts(1000.0)),
         )
-        await results_rx.receive()
+        assert await bounds_1_rx.receive() == self._make_report(
+            power=0.0, lower=-4000.0, upper=4000.0
+        )
+        assert await bounds_2_rx.receive() == self._make_report(
+            power=0.0, lower=-1000.0, upper=0.0
+        )
+
         assert set_power.call_count == 4
         assert set_power.call_args_list == [
             mocker.call(inv_id, 0.0) for inv_id in mocks.microgrid.battery_inverter_ids
