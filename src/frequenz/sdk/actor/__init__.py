@@ -64,30 +64,30 @@ from frequenz.sdk.actor import Actor
 class Actor1(Actor):  # (1)!
     def __init__(
         self,
-        recv: Receiver[str],
+        receiver: Receiver[str],
         output: Sender[str],
     ) -> None:
         super().__init__()
-        self._recv = recv
+        self._receiver = receiver
         self._output = output
 
     async def _run(self) -> None:
-        async for msg in self._recv:
+        async for msg in self._receiver:
             await self._output.send(f"Actor1 forwarding: {msg!r}")  # (8)!
 
 
 class Actor2(Actor):
     def __init__(
         self,
-        recv: Receiver[str],
+        receiver: Receiver[str],
         output: Sender[str],
     ) -> None:
         super().__init__()
-        self._recv = recv
+        self._receiver = receiver
         self._output = output
 
     async def _run(self) -> None:
-        async for msg in self._recv:
+        async for msg in self._receiver:
             await self._output.send(f"Actor2 forwarding: {msg!r}")  # (9)!
 
 
