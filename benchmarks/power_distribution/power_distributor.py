@@ -33,6 +33,10 @@ HOST = "microgrid.sandbox.api.frequenz.io"
 PORT = 61060
 
 
+# TODO: this send_requests function uses the battery pool to # pylint: disable=fixme
+# send requests, and those no longer go directly to the power distributing actor, but
+# instead through the power managing actor.  So the below function needs to be updated
+# to use the PowerDistributingActor directly.
 async def send_requests(batteries: set[int], request_num: int) -> list[Result]:
     """Send requests to the PowerDistributingActor and wait for the response.
 
@@ -47,8 +51,8 @@ async def send_requests(batteries: set[int], request_num: int) -> list[Result]:
         List of the results from the PowerDistributingActor.
     """
     battery_pool = microgrid.battery_pool(batteries)
-    results_rx = battery_pool.power_distribution_results()
-    result: list[Result] = []
+    results_rx = battery_pool.power_bounds().new_receiver()
+    result: list[Any] = []
     for _ in range(request_num):
         await battery_pool.set_power(Power(float(random.randrange(100000, 1000000))))
         try:

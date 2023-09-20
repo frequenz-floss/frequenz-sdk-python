@@ -16,7 +16,6 @@ from ..._internal._asyncio import cancel_and_await
 from ..._internal._channels import ReceiverFetcher
 from ...actor import ComponentMetricRequest, _channel_registry, _power_managing
 from ...actor.power_distributing._battery_pool_status import BatteryStatus
-from ...actor.power_distributing.result import Result
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory
 from ...timeseries import Sample
@@ -51,7 +50,6 @@ class BatteryPool:  # pylint: disable=too-many-instance-attributes
         batteries_status_receiver: Receiver[BatteryStatus],
         power_manager_requests_sender: Sender[_power_managing.Proposal],
         power_manager_bounds_subscription_sender: Sender[_power_managing.ReportRequest],
-        power_manager_results_receiver: Receiver[Result],
         min_update_interval: timedelta,
         batteries_id: Set[int] | None = None,
     ) -> None:
@@ -72,8 +70,6 @@ class BatteryPool:  # pylint: disable=too-many-instance-attributes
                 requests to the power managing actor.
             power_manager_bounds_subscription_sender: A Channel sender for sending
                 power bounds requests to the power managing actor.
-            power_manager_results_receiver: A Channel receiver for receiving results
-                from the power managing actor.
             min_update_interval: Some metrics in BatteryPool are send only when they
                 change. For these metrics min_update_interval is the minimum time
                 interval between the following messages.
@@ -106,7 +102,6 @@ class BatteryPool:  # pylint: disable=too-many-instance-attributes
         self._power_manager_bounds_subscription_sender = (
             power_manager_bounds_subscription_sender
         )
-        self._power_manager_results_receiver = power_manager_results_receiver
 
         self._active_methods: dict[str, MetricAggregator[Any]] = {}
         self._power_bounds_subs: dict[str, asyncio.Task[None]] = {}
@@ -251,14 +246,6 @@ class BatteryPool:  # pylint: disable=too-many-instance-attributes
                 include_broken_batteries=include_broken_batteries,
             )
         )
-
-    def power_distribution_results(self) -> Receiver[Result]:
-        """Return a receiver for the power distribution results.
-
-        Returns:
-            A receiver for the power distribution results.
-        """
-        return self._power_manager_results_receiver
 
     @property
     def battery_ids(self) -> Set[int]:
