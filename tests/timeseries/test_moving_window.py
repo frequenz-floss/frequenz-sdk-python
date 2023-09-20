@@ -111,12 +111,21 @@ async def test_access_window_by_int_slice() -> None:
         assert np.array_equal(window[5:14], np.array(data[5:14]))
         assert np.array_equal(window.window(5, 14), np.array(data[5:14]))
 
+        # Test with step size (other than 1 not supported)
+        assert np.array_equal(window[5:14:1], np.array(data[5:14]))
+        assert np.array_equal(window[5:14:None], np.array(data[5:14]))
+        with pytest.raises(ValueError):
+            _ = window[5:14:2]
+        with pytest.raises(ValueError):
+            _ = window[14:5:-1]
+
     window, sender = init_moving_window(timedelta(seconds=5))
 
     def test_eq(expected: list[float], start: int | None, end: int | None) -> None:
         assert np.allclose(
             window.window(start, end), np.array(expected), equal_nan=True
         )
+        assert np.allclose(window[start:end], np.array(expected), equal_nan=True)
 
     async with window:
         test_eq([], 0, 1)

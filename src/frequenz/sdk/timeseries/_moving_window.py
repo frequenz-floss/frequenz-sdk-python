@@ -367,30 +367,18 @@ class MovingWindow(BackgroundService):
             A float if the key is a number or a timestamp.
             an numpy array if the key is a slice.
         """
+        if isinstance(key, slice):
+            if not (key.step is None or key.step == 1):
+                raise ValueError("Slicing with a step other than 1 is not supported.")
+            return self.window(key.start, key.stop)
+
         if self._buffer.count_valid() == 0:
             raise IndexError("The buffer is empty.")
-        if isinstance(key, slice):
-            if isinstance(key.start, int) or isinstance(key.stop, int):
-                if key.start is None or key.stop is None:
-                    key = slice(slice(key.start, key.stop).indices(self.count_valid()))
-            elif isinstance(key.start, datetime) or isinstance(key.stop, datetime):
-                if key.start is None:
-                    key = slice(self._buffer.time_bound_oldest, key.stop)
-                if key.stop is None:
-                    key = slice(key.start, self._buffer.time_bound_newest)
 
-            _logger.debug("Returning slice for [%s:%s].", key.start, key.stop)
-
-            # we are doing runtime typechecks since there is no abstract slice type yet
-            # see also (https://peps.python.org/pep-0696)
-            if isinstance(key.start, datetime) and isinstance(key.stop, datetime):
-                return self._buffer.window(key.start, key.stop)
-            if isinstance(key.start, int) and isinstance(key.stop, int):
-                return self._buffer[key]
-        elif isinstance(key, datetime):
+        if isinstance(key, datetime):
             _logger.debug("Returning value at time %s ", key)
             return self._buffer[self._buffer.to_internal_index(key)]
-        elif isinstance(key, SupportsIndex):
+        if isinstance(key, SupportsIndex):
             _logger.debug("Returning value at index %s ", key)
             return self._buffer[key]
 
