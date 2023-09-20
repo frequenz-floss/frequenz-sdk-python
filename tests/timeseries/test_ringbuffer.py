@@ -182,9 +182,9 @@ def test_timestamp_ringbuffer_missing_parameter(
     ) == datetime(2, 2, 2, 0, 10, tzinfo=timezone.utc)
     buffer.update(Sample(datetime(2, 2, 2, 0, 7, 31, tzinfo=timezone.utc), Quantity(0)))
 
-    assert buffer.datetime_to_index(
+    assert buffer.to_internal_index(
         datetime(2, 2, 2, 0, 7, 31, tzinfo=timezone.utc)
-    ) == buffer.datetime_to_index(datetime(2, 2, 2, 0, 10, tzinfo=timezone.utc))
+    ) == buffer.to_internal_index(datetime(2, 2, 2, 0, 10, tzinfo=timezone.utc))
     assert len(buffer.gaps) == 2
 
     # import pdb; pdb.set_trace()

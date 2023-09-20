@@ -384,7 +384,7 @@ class MovingWindow(BackgroundService):
                 return self._buffer[key]
         elif isinstance(key, datetime):
             _logger.debug("Returning value at time %s ", key)
-            return self._buffer[self._buffer.datetime_to_index(key)]
+            return self._buffer[self._buffer.to_internal_index(key)]
         elif isinstance(key, SupportsIndex):
             _logger.debug("Returning value at index %s ", key)
             return self._buffer[key]

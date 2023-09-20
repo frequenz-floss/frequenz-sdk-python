@@ -350,7 +350,7 @@ class PeriodicFeatureExtractor:
 
         # add the offset to the oldest sample in the ringbuffer and wrap around
         # to get the start and end positions in the ringbuffer
-        rb_offset = self._buffer.datetime_to_index(self._buffer.time_bound_oldest)
+        rb_offset = self._buffer.to_internal_index(self._buffer.time_bound_oldest)
         start_pos = self._buffer.wrap(end_pos + self._period + rb_offset)
         end_pos = self._buffer.wrap(end_pos + rb_offset)
 
