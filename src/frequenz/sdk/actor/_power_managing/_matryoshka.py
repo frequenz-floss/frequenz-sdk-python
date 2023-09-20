@@ -148,8 +148,13 @@ class Matryoshka(BaseAlgorithm):
             if next_proposal.priority <= priority:
                 break
             if next_proposal.bounds:
-                lower_bound = max(lower_bound, next_proposal.bounds[0])
-                upper_bound = min(upper_bound, next_proposal.bounds[1])
+                calc_lower_bound = max(lower_bound, next_proposal.bounds[0])
+                calc_upper_bound = min(upper_bound, next_proposal.bounds[1])
+                if calc_lower_bound <= calc_upper_bound:
+                    lower_bound = calc_lower_bound
+                    upper_bound = calc_upper_bound
+                else:
+                    break
 
         return Report(
             target_power=self._target_power.get(battery_ids, Power.zero()),
