@@ -55,6 +55,16 @@ class Report:
     priorities.
     """
 
+    exclusion_bounds: timeseries.Bounds[Power] | None
+    """The exclusion bounds for the batteries.
+
+    The power manager doesn't manage exclusion bounds, so these are aggregations of
+    values reported by the microgrid API.
+
+    These bounds are adjusted to any restrictions placed by actors with higher
+    priorities.
+    """
+
 
 @dataclasses.dataclass(frozen=True)
 class Proposal:

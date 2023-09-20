@@ -155,7 +155,7 @@ class Matryoshka(BaseAlgorithm):
         """
         target_power = self._target_power.get(battery_ids)
         if system_bounds.inclusion_bounds is None:
-            return Report(target_power, None)
+            return Report(target_power, None, system_bounds.exclusion_bounds)
 
         lower_bound = system_bounds.inclusion_bounds.lower
         upper_bound = system_bounds.inclusion_bounds.upper
@@ -177,4 +177,5 @@ class Matryoshka(BaseAlgorithm):
             inclusion_bounds=timeseries.Bounds[Power](
                 lower=lower_bound, upper=upper_bound
             ),
+            exclusion_bounds=system_bounds.exclusion_bounds,
         )

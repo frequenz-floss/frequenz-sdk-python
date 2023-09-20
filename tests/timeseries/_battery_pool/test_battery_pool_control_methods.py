@@ -145,6 +145,10 @@ class TestBatteryPoolControl:
                 lower=Power.from_watts(lower),
                 upper=Power.from_watts(upper),
             ),
+            exclusion_bounds=timeseries.Bounds(
+                lower=Power.from_watts(0.0),
+                upper=Power.from_watts(0.0),
+            ),
         )
 
     async def test_case_1(
