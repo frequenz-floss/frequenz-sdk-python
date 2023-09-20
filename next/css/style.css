@@ -26,3 +26,45 @@ a.external:hover::after, a.md-nav__link[href^="https:"]:hover::after {
 .md-main__inner {
   margin-bottom: 1.5rem;
 }
+
+/* Code annotations with numbers.
+ *
+ * Normally annothations are shown with a (+) button that expands the
+ * annotation. To be able to explain code step by step, it is good to have
+ * annotations with numbers, to be able to follow the notes in a particular
+ * order.
+ *
+ * To do this, we need some custom CSS rules. Before this customization was
+ * officially supported and documented, but now they are not officially
+ * supported anymore, so it could eventually break (it already did once).
+ *
+ * If that happens we either need to look into how to fix the CSS ourselves or
+ * remove the feature. To do the customization, this is what we should be able
+ * to count on:
+ *
+ * "you can be sure that the data-md-annotation-id attribute will always be
+ * present in the source, which means you can always number them in any way you
+ * like."
+ *
+ * Code annotation are described here:
+ * https://squidfunk.github.io/mkdocs-material/reference/code-blocks/#code-annotations
+ *
+ * Here are the original docs on how to enable numbered annotations:
+ * https://web.archive.org/web/20230724161216/https://squidfunk.github.io/mkdocs-material/reference/code-blocks/#annotations-with-numbers
+ *
+ * This is the PR fixing the numbered annotations when they broke:
+ * https://github.com/frequenz-floss/frequenz-sdk-python/pull/684
+ *
+ * And this is the reported regression when it was decided to drop support for
+ * numbered annotations officially:
+ * https://github.com/squidfunk/mkdocs-material/issues/6042
+ */
+.md-typeset .md-annotation__index > ::before {
+  content: attr(data-md-annotation-id);
+}
+.md-typeset :focus-within > .md-annotation__index > ::before {
+  transform: none;
+}
+.md-typeset .md-annotation__index {
+  width: 4ch;
+}
