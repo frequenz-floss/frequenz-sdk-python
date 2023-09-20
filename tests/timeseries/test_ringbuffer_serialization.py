@@ -29,7 +29,7 @@ def load_dump_test(dumped: rb.OrderedRingBuffer[Any], path: str) -> None:
     # Fill with data so we have something to compare
     # Avoiding .update() because it takes very long for 40k entries
     for i in range(size):
-        dumped[i] = i
+        dumped._buffer[i] = i  # pylint: disable=protected-access
 
     # But use update a bit so the timestamp and gaps are initialized
     for i in range(0, size, 100):
