@@ -6,18 +6,8 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from .. import _base_types
 from .._quantities import Power
-
-
-@dataclass
-class Bounds:
-    """Lower and upper bound values."""
-
-    lower: Power
-    """Lower bound."""
-
-    upper: Power
-    """Upper bound."""
 
 
 @dataclass
@@ -29,7 +19,7 @@ class PowerMetrics:
     """Timestamp of the metrics."""
 
     # pylint: disable=line-too-long
-    inclusion_bounds: Bounds | None
+    inclusion_bounds: _base_types.Bounds[Power] | None
     """Inclusion power bounds for all batteries in the battery pool instance.
 
     This is the range within which power requests are allowed by the battery pool.
@@ -42,7 +32,7 @@ class PowerMetrics:
     details.
     """
 
-    exclusion_bounds: Bounds | None
+    exclusion_bounds: _base_types.Bounds[Power] | None
     """Exclusion power bounds for all batteries in the battery pool instance.
 
     This is the range within which power requests are NOT allowed by the battery pool.

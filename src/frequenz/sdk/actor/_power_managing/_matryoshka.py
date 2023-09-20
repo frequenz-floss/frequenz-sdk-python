@@ -10,8 +10,9 @@ import typing
 
 from typing_extensions import override
 
+from ... import timeseries
 from ...timeseries import Power
-from ._base_classes import BaseAlgorithm, Bounds, Proposal, Report
+from ._base_classes import BaseAlgorithm, Proposal, Report
 from ._sorted_set import SortedSet
 
 if typing.TYPE_CHECKING:
@@ -173,5 +174,7 @@ class Matryoshka(BaseAlgorithm):
 
         return Report(
             target_power,
-            inclusion_bounds=Bounds(lower=lower_bound, upper=upper_bound),
+            inclusion_bounds=timeseries.Bounds[Power](
+                lower=lower_bound, upper=upper_bound
+            ),
         )

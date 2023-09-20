@@ -11,6 +11,7 @@ import datetime
 import enum
 import typing
 
+from ... import timeseries
 from ...timeseries import Power
 
 if typing.TYPE_CHECKING:
@@ -41,24 +42,13 @@ class ReportRequest:
 
 
 @dataclasses.dataclass(frozen=True)
-class Bounds:
-    """Lower and upper bound values."""
-
-    lower: Power
-    """Lower bound."""
-
-    upper: Power
-    """Upper bound."""
-
-
-@dataclasses.dataclass(frozen=True)
 class Report:
     """Current PowerManager report for a set of batteries."""
 
     target_power: Power | None
     """The currently set power for the batteries."""
 
-    inclusion_bounds: Bounds | None
+    inclusion_bounds: timeseries.Bounds[Power] | None
     """The available inclusion bounds for the batteries, for the actor's priority.
 
     These bounds are adjusted to any restrictions placed by actors with higher

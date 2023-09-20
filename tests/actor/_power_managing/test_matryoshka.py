@@ -5,6 +5,7 @@
 
 from datetime import datetime, timezone
 
+from frequenz.sdk import timeseries
 from frequenz.sdk.actor._power_managing import Proposal
 from frequenz.sdk.actor._power_managing._matryoshka import Matryoshka
 from frequenz.sdk.timeseries import Power, battery_pool
@@ -17,10 +18,10 @@ async def test_matryoshka_algorithm() -> None:  # pylint: disable=too-many-state
     algorithm = Matryoshka()
     system_bounds = battery_pool.PowerMetrics(
         timestamp=datetime.now(tz=timezone.utc),
-        inclusion_bounds=battery_pool.Bounds(
+        inclusion_bounds=timeseries.Bounds(
             lower=Power.from_watts(-200.0), upper=Power.from_watts(200.0)
         ),
-        exclusion_bounds=battery_pool.Bounds(lower=Power.zero(), upper=Power.zero()),
+        exclusion_bounds=timeseries.Bounds(lower=Power.zero(), upper=Power.zero()),
     )
 
     call_count = 0

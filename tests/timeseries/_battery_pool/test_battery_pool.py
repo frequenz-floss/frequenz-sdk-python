@@ -28,8 +28,15 @@ from frequenz.sdk._internal._constants import (
 from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.actor.power_distributing import BatteryStatus
 from frequenz.sdk.microgrid.component import ComponentCategory
-from frequenz.sdk.timeseries import Energy, Percentage, Power, Sample, Temperature
-from frequenz.sdk.timeseries.battery_pool import BatteryPool, Bounds, PowerMetrics
+from frequenz.sdk.timeseries import (
+    Bounds,
+    Energy,
+    Percentage,
+    Power,
+    Sample,
+    Temperature,
+)
+from frequenz.sdk.timeseries.battery_pool import BatteryPool, PowerMetrics
 from frequenz.sdk.timeseries.battery_pool._metric_calculator import (
     battery_inverter_mapping,
 )

@@ -135,3 +135,14 @@ class Sample3Phase(Generic[QuantityT]):
             value_p2=default if self.value_p2 is None else function(self.value_p2),
             value_p3=default if self.value_p3 is None else function(self.value_p3),
         )
+
+
+@dataclass(frozen=True)
+class Bounds(Generic[QuantityT]):
+    """Lower and upper bound values."""
+
+    lower: QuantityT
+    """Lower bound."""
+
+    upper: QuantityT
+    """Upper bound."""
