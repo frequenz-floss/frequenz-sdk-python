@@ -58,8 +58,8 @@ class Report:
     target_power: Power
     """The currently set power for the batteries."""
 
-    available_bounds: Bounds
-    """The available bounds for the batteries, for the actor's priority.
+    inclusion_bounds: Bounds
+    """The available inclusion bounds for the batteries, for the actor's priority.
 
     These bounds are adjusted to any restrictions placed by actors with higher
     priorities.

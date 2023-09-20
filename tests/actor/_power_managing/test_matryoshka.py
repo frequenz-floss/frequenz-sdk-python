@@ -55,8 +55,8 @@ async def test_matryoshka_algorithm() -> None:  # pylint: disable=too-many-state
     ) -> None:
         report = algorithm.get_status(batteries, priority, system_bounds)
         assert report.target_power.as_watts() == expected_power
-        assert report.available_bounds.lower.as_watts() == expected_bounds[0]
-        assert report.available_bounds.upper.as_watts() == expected_bounds[1]
+        assert report.inclusion_bounds.lower.as_watts() == expected_bounds[0]
+        assert report.inclusion_bounds.upper.as_watts() == expected_bounds[1]
 
     test_tgt_power(priority=2, power=25.0, bounds=(25.0, 50.0), expected=25.0)
     test_bounds(priority=2, expected_power=25.0, expected_bounds=(-200.0, 200.0))

@@ -141,7 +141,7 @@ class TestBatteryPoolControl:
     ) -> _power_managing.Report:
         return _power_managing.Report(
             target_power=Power.from_watts(power),
-            available_bounds=_power_managing.Bounds(
+            inclusion_bounds=_power_managing.Bounds(
                 lower=Power.from_watts(lower),
                 upper=Power.from_watts(upper),
             ),

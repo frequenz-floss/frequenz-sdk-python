@@ -176,5 +176,5 @@ class Matryoshka(BaseAlgorithm):
 
         return Report(
             target_power=self._target_power.get(battery_ids, Power.zero()),
-            available_bounds=Bounds(lower=lower_bound, upper=upper_bound),
+            inclusion_bounds=Bounds(lower=lower_bound, upper=upper_bound),
         )
