@@ -13,6 +13,7 @@ from typing import Any
 from frequenz.channels import Receiver, Sender
 
 from ..._internal._asyncio import cancel_and_await
+from ..._internal._channels import ReceiverFetcher
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...actor._power_managing import Proposal
 from ...actor.power_distributing._battery_pool_status import BatteryStatus
@@ -343,7 +344,7 @@ class BatteryPool:
         return engine
 
     @property
-    def soc(self) -> MetricAggregator[Sample[Percentage]]:
+    def soc(self) -> ReceiverFetcher[Sample[Percentage]]:
         """Fetch the normalized average weighted-by-capacity SoC values for the pool.
 
         The SoC values are normalized to the 0-100% range and clamped if they are out
@@ -390,7 +391,7 @@ class BatteryPool:
         return self._active_methods[method_name]
 
     @property
-    def temperature(self) -> MetricAggregator[Sample[Temperature]]:
+    def temperature(self) -> ReceiverFetcher[Sample[Temperature]]:
         """Fetch the average temperature of the batteries in the pool.
 
         Returns:
@@ -408,7 +409,7 @@ class BatteryPool:
         return self._active_methods[method_name]
 
     @property
-    def capacity(self) -> MetricAggregator[Sample[Energy]]:
+    def capacity(self) -> ReceiverFetcher[Sample[Energy]]:
         """Get a receiver to receive new capacity metrics when they change.
 
         The reported capacity values consider only working batteries with operational
@@ -447,7 +448,7 @@ class BatteryPool:
         return self._active_methods[method_name]
 
     @property
-    def _system_power_bounds(self) -> MetricAggregator[PowerMetrics]:
+    def _system_power_bounds(self) -> ReceiverFetcher[PowerMetrics]:
         """Get receiver to receive new power bounds when they change.
 
         Power bounds refer to the min and max power that a battery can
