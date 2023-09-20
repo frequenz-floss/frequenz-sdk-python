@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import logging
 import typing
 
 from typing_extensions import override
@@ -15,6 +16,8 @@ from ._sorted_set import SortedSet
 
 if typing.TYPE_CHECKING:
     from ...timeseries.battery_pool import PowerMetrics
+
+_logger = logging.getLogger(__name__)
 
 
 class Matryoshka(BaseAlgorithm):
@@ -49,6 +52,21 @@ class Matryoshka(BaseAlgorithm):
                 already part of another bucket.
         """
         if battery_ids not in self._battery_buckets:
+            # if there are no previous proposals and there are no system bounds, then
+            # don't calculate a target power and just return `None`.
+            if (
+                system_bounds.inclusion_bounds is None
+                and system_bounds.exclusion_bounds is None
+            ):
+                if proposal is not None:
+                    _logger.warning(
+                        "PowerManagingActor: No system bounds available for battery "
+                        "IDs %s, but a proposal was given.  The proposal will be "
+                        "ignored.",
+                        battery_ids,
+                    )
+                return None
+
             for bucket in self._battery_buckets:
                 if any(battery_id in bucket for battery_id in battery_ids):
                     raise NotImplementedError(
@@ -68,7 +86,10 @@ class Matryoshka(BaseAlgorithm):
         lower_bound = (
             system_bounds.inclusion_bounds.lower
             if system_bounds.inclusion_bounds
-            else Power.zero()  # in the absence of system bounds, block all requests.
+            # if a target power exists from a previous proposal, and the system bounds
+            # have become unavailable, force the target power to be zero, by narrowing
+            # the bounds to zero.
+            else Power.zero()
         )
         upper_bound = (
             system_bounds.inclusion_bounds.upper
