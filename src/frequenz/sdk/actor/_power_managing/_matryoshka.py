@@ -28,6 +28,50 @@ class Matryoshka(BaseAlgorithm):
         self._battery_buckets: dict[frozenset[int], SortedSet[Proposal]] = {}
         self._target_power: dict[frozenset[int], Power] = {}
 
+    def _calc_target_power(
+        self,
+        proposals: SortedSet[Proposal],
+        system_bounds: PowerMetrics,
+    ) -> Power:
+        """Calculate the target power for the given batteries.
+
+        Args:
+            proposals: The proposals for the given batteries.
+            system_bounds: The system bounds for the batteries in the proposal.
+
+        Returns:
+            The new target power for the batteries.
+        """
+        lower_bound = (
+            system_bounds.inclusion_bounds.lower
+            if system_bounds.inclusion_bounds
+            # if a target power exists from a previous proposal, and the system bounds
+            # have become unavailable, force the target power to be zero, by narrowing
+            # the bounds to zero.
+            else Power.zero()
+        )
+        upper_bound = (
+            system_bounds.inclusion_bounds.upper
+            if system_bounds.inclusion_bounds
+            else Power.zero()
+        )
+
+        target_power = Power.zero()
+        for next_proposal in reversed(proposals):
+            if upper_bound < lower_bound:
+                break
+            if next_proposal.preferred_power > upper_bound:
+                target_power = upper_bound
+            elif next_proposal.preferred_power < lower_bound:
+                target_power = lower_bound
+            else:
+                target_power = next_proposal.preferred_power
+            if next_proposal.bounds:
+                lower_bound = max(lower_bound, next_proposal.bounds[0])
+                upper_bound = min(upper_bound, next_proposal.bounds[1])
+
+        return target_power
+
     @override
     def get_target_power(
         self,
@@ -83,33 +127,7 @@ class Matryoshka(BaseAlgorithm):
         if proposals is None:
             return None
 
-        lower_bound = (
-            system_bounds.inclusion_bounds.lower
-            if system_bounds.inclusion_bounds
-            # if a target power exists from a previous proposal, and the system bounds
-            # have become unavailable, force the target power to be zero, by narrowing
-            # the bounds to zero.
-            else Power.zero()
-        )
-        upper_bound = (
-            system_bounds.inclusion_bounds.upper
-            if system_bounds.inclusion_bounds
-            else Power.zero()
-        )
-
-        target_power = Power.zero()
-        for next_proposal in reversed(proposals):
-            if upper_bound < lower_bound:
-                break
-            if next_proposal.preferred_power > upper_bound:
-                target_power = upper_bound
-            elif next_proposal.preferred_power < lower_bound:
-                target_power = lower_bound
-            else:
-                target_power = next_proposal.preferred_power
-            if next_proposal.bounds:
-                lower_bound = max(lower_bound, next_proposal.bounds[0])
-                upper_bound = min(upper_bound, next_proposal.bounds[1])
+        target_power = self._calc_target_power(proposals, system_bounds)
 
         if (
             battery_ids not in self._target_power
