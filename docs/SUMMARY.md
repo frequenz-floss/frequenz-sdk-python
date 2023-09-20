@@ -1,4 +1,5 @@
 * [Home](index.md)
 * [Introduction](intro/)
 * [API Reference](reference/)
+* [Tutorials](tutorials/)
 * [Contributing](CONTRIBUTING.md)
