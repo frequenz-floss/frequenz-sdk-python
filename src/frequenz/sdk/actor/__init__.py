@@ -195,15 +195,22 @@ doesn't cause any problems.
     any other more graceful way to stop the actor if you need to make sure it can't be
     interrupted at any `await` point.
 
-## Example
+### Examples
 
-Here's a simple example to demonstrate how to create two actors and connect
-them.
+Here are a few simple but complete examples to demonstrate how to create create actors
+and connect them using [channels][frequenz.channels].
 
-Please note the annotations in the code (like {{code_annotation_marker}}), they
-explain step-by-step what's going on in order of execution.
+!!! tip
 
-```python title="actors.py"
+    The code examples are annotated with markers (like {{code_annotation_marker}}), they
+    explain step-by-step what's going on in order of execution.
+
+#### Composing actors
+
+This example shows how to create two actors and connect them using
+[broadcast][frequenz.channels.Broadcast] channels.
+
+```python title="compose.py"
 import asyncio
 
 from frequenz.channels import Broadcast, Receiver, Sender
@@ -305,6 +312,12 @@ if __name__ == "__main__":  # (3)!
 
 11. The actors are stopped and cleaned up automatically when the `async with`
     block ends.
+
+The expected output is:
+
+```
+Actor2 forwarding: "Actor1 forwarding: 'Hello'"
+```
 
 [async context manager]: https://docs.python.org/3/reference/datamodel.html#async-context-managers
 """
