@@ -128,9 +128,9 @@ if __name__ == "__main__":  # (3)!
     * `output_channel` is the output channel for `Actor2`.
 
 5. We create two actors and use them as async context managers, `Actor1` and
-   `Actor2`, and connect them by creating new
-   [senders][frequenz.channels.Sender] and
-   [receivers][frequenz.channels.Receiver] from the channels.
+    `Actor2`, and connect them by creating new
+    [senders][frequenz.channels.Sender] and
+    [receivers][frequenz.channels.Receiver] from the channels.
 
     !!! note
 
