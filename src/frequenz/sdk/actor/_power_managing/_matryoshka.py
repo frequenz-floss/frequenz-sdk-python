@@ -152,16 +152,13 @@ class Matryoshka(BaseAlgorithm):
             The target power and the available bounds for the given batteries, for
                 the given priority.
         """
-        lower_bound = (
-            system_bounds.inclusion_bounds.lower
-            if system_bounds.inclusion_bounds
-            else Power.zero()  # in the absence of system bounds, block all requests.
-        )
-        upper_bound = (
-            system_bounds.inclusion_bounds.upper
-            if system_bounds.inclusion_bounds
-            else Power.zero()
-        )
+        target_power = self._target_power.get(battery_ids)
+        if system_bounds.inclusion_bounds is None:
+            return Report(target_power, None)
+
+        lower_bound = system_bounds.inclusion_bounds.lower
+        upper_bound = system_bounds.inclusion_bounds.upper
+
         for next_proposal in reversed(self._battery_buckets.get(battery_ids, [])):
             if next_proposal.priority <= priority:
                 break
@@ -175,6 +172,6 @@ class Matryoshka(BaseAlgorithm):
                     break
 
         return Report(
-            target_power=self._target_power.get(battery_ids, Power.zero()),
+            target_power,
             inclusion_bounds=Bounds(lower=lower_bound, upper=upper_bound),
         )

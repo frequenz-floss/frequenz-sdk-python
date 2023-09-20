@@ -137,10 +137,10 @@ class TestBatteryPoolControl:
             )
 
     def _make_report(
-        self, *, power: float, lower: float, upper: float
+        self, *, power: float | None, lower: float, upper: float
     ) -> _power_managing.Report:
         return _power_managing.Report(
-            target_power=Power.from_watts(power),
+            target_power=Power.from_watts(power) if power is not None else None,
             inclusion_bounds=_power_managing.Bounds(
                 lower=Power.from_watts(lower),
                 upper=Power.from_watts(upper),
@@ -175,7 +175,7 @@ class TestBatteryPoolControl:
         bounds_rx = battery_pool.power_bounds().new_receiver()
 
         assert await bounds_rx.receive() == self._make_report(
-            power=0.0, lower=-4000.0, upper=4000.0
+            power=None, lower=-4000.0, upper=4000.0
         )
 
         await battery_pool.set_power(Power.from_watts(1000.0))
@@ -210,10 +210,10 @@ class TestBatteryPoolControl:
         bounds_2_rx = battery_pool_2.power_bounds().new_receiver()
 
         assert await bounds_1_rx.receive() == self._make_report(
-            power=0.0, lower=-2000.0, upper=2000.0
+            power=None, lower=-2000.0, upper=2000.0
         )
         assert await bounds_2_rx.receive() == self._make_report(
-            power=0.0, lower=-2000.0, upper=2000.0
+            power=None, lower=-2000.0, upper=2000.0
         )
         await battery_pool_1.set_power(Power.from_watts(1000.0))
         assert await bounds_1_rx.receive() == self._make_report(
@@ -256,10 +256,10 @@ class TestBatteryPoolControl:
         bounds_2_rx = battery_pool_2.power_bounds(1).new_receiver()
 
         assert await bounds_1_rx.receive() == self._make_report(
-            power=0.0, lower=-4000.0, upper=4000.0
+            power=None, lower=-4000.0, upper=4000.0
         )
         assert await bounds_2_rx.receive() == self._make_report(
-            power=0.0, lower=-4000.0, upper=4000.0
+            power=None, lower=-4000.0, upper=4000.0
         )
         await battery_pool_1.set_power(
             Power.from_watts(-1000.0),

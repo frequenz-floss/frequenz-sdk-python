@@ -55,10 +55,10 @@ class Bounds:
 class Report:
     """Current PowerManager report for a set of batteries."""
 
-    target_power: Power
+    target_power: Power | None
     """The currently set power for the batteries."""
 
-    inclusion_bounds: Bounds
+    inclusion_bounds: Bounds | None
     """The available inclusion bounds for the batteries, for the actor's priority.
 
     These bounds are adjusted to any restrictions placed by actors with higher
