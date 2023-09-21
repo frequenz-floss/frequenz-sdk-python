@@ -142,7 +142,10 @@ class PowerManagingActor(Actor):
         )
 
     async def _send_updated_target_power(
-        self, battery_ids: frozenset[int], proposal: Proposal | None
+        self,
+        battery_ids: frozenset[int],
+        proposal: Proposal | None,
+        must_send: bool = False,
     ) -> None:
         from .. import power_distributing  # pylint: disable=import-outside-toplevel
 
@@ -150,6 +153,7 @@ class PowerManagingActor(Actor):
             battery_ids,
             proposal,
             self._system_bounds[battery_ids],
+            must_send,
         )
         request_timeout = (
             proposal.request_timeout if proposal else timedelta(seconds=5.0)
@@ -203,5 +207,15 @@ class PowerManagingActor(Actor):
                     self._add_bounds_tracker(sub.battery_ids)
 
             elif selected_from(selected, self._power_distributing_results_receiver):
+                from .. import (  # pylint: disable=import-outside-toplevel
+                    power_distributing,
+                )
+
                 result = selected.value
                 self._distribution_results[frozenset(result.request.batteries)] = result
+                match result:
+                    case power_distributing.PartialFailure(request):
+                        await self._send_updated_target_power(
+                            frozenset(request.batteries), None, must_send=True
+                        )
+                await self._send_reports(frozenset(result.request.batteries))

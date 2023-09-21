@@ -13,8 +13,8 @@ import pytest
 from frequenz.channels import Sender
 from pytest_mock import MockerFixture
 
-from frequenz.sdk import microgrid, timeseries
-from frequenz.sdk.actor import ResamplerConfig, _power_managing
+from frequenz.sdk import microgrid
+from frequenz.sdk.actor import ResamplerConfig, _power_managing, power_distributing
 from frequenz.sdk.actor.power_distributing import BatteryStatus
 from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
 from frequenz.sdk.timeseries import Power
@@ -136,21 +136,29 @@ class TestBatteryPoolControl:
                 0.05,
             )
 
-    def _make_report(
-        self, *, power: float | None, lower: float, upper: float
-    ) -> _power_managing.Report:
-        return _power_managing.Report(
-            target_power=Power.from_watts(power) if power is not None else None,
-            inclusion_bounds=timeseries.Bounds(
-                lower=Power.from_watts(lower),
-                upper=Power.from_watts(upper),
-            ),
-            exclusion_bounds=timeseries.Bounds(
-                lower=Power.from_watts(0.0),
-                upper=Power.from_watts(0.0),
-            ),
-            distribution_result=None,
+    def _assert_report(
+        self,
+        report: _power_managing.Report,
+        *,
+        power: float | None,
+        lower: float,
+        upper: float,
+        expected_result_pred: typing.Callable[[power_distributing.Result], bool]
+        | None = None,
+    ) -> None:
+        assert report.target_power == (
+            Power.from_watts(power) if power is not None else None
         )
+        assert (
+            report.inclusion_bounds is not None and report.exclusion_bounds is not None
+        )
+        assert report.inclusion_bounds.lower == Power.from_watts(lower)
+        assert report.inclusion_bounds.upper == Power.from_watts(upper)
+        assert report.exclusion_bounds.lower == Power.from_watts(0.0)
+        assert report.exclusion_bounds.upper == Power.from_watts(0.0)
+        if expected_result_pred is not None:
+            assert report.distribution_result is not None
+            assert expected_result_pred(report.distribution_result)
 
     async def test_case_1(
         self,
@@ -160,7 +168,7 @@ class TestBatteryPoolControl:
         """Test case 1.
 
         - single battery pool with all batteries.
-        - all batteries are working.
+        - all batteries are working, then one battery stops working.
         """
         set_power = typing.cast(
             AsyncMock, microgrid.connection_manager.get().api_client.set_power
@@ -179,14 +187,14 @@ class TestBatteryPoolControl:
         # subsequent commit.
         bounds_rx = battery_pool.power_bounds().new_receiver()
 
-        assert await bounds_rx.receive() == self._make_report(
-            power=None, lower=-4000.0, upper=4000.0
+        self._assert_report(
+            await bounds_rx.receive(), power=None, lower=-4000.0, upper=4000.0
         )
 
         await battery_pool.set_power(Power.from_watts(1000.0))
 
-        assert await bounds_rx.receive() == self._make_report(
-            power=1000.0, lower=-4000.0, upper=4000.0
+        self._assert_report(
+            await bounds_rx.receive(), power=1000.0, lower=-4000.0, upper=4000.0
         )
 
         assert set_power.call_count == 4
@@ -194,6 +202,67 @@ class TestBatteryPoolControl:
             mocker.call(inv_id, 250.0)
             for inv_id in mocks.microgrid.battery_inverter_ids
         ]
+        self._assert_report(
+            await bounds_rx.receive(),
+            power=1000.0,
+            lower=-4000.0,
+            upper=4000.0,
+            expected_result_pred=lambda result: isinstance(
+                result, power_distributing.Success
+            ),
+        )
+
+        set_power.reset_mock()
+
+        # First battery stops working (aka set_power never returns for it, times out).
+        async def side_effect(inv_id: int, _: float) -> None:
+            if inv_id == mocks.microgrid.battery_inverter_ids[0]:
+                await asyncio.sleep(1000.0)
+
+        set_power.side_effect = side_effect
+        await battery_pool.set_power(
+            Power.from_watts(100.0), request_timeout=timedelta(seconds=0.1)
+        )
+        self._assert_report(
+            await bounds_rx.receive(),
+            power=100.0,
+            lower=-4000.0,
+            upper=4000.0,
+            expected_result_pred=lambda result: isinstance(
+                result, power_distributing.Success
+            ),
+        )
+        assert set_power.call_count == 4
+        assert set_power.call_args_list == [
+            mocker.call(inv_id, 25.0) for inv_id in mocks.microgrid.battery_inverter_ids
+        ]
+        set_power.reset_mock()
+        self._assert_report(
+            await bounds_rx.receive(),
+            power=100.0,
+            lower=-4000.0,
+            upper=4000.0,
+            expected_result_pred=lambda result: isinstance(
+                result, power_distributing.PartialFailure
+            )
+            and result.failed_batteries == {mocks.microgrid.battery_ids[0]},
+        )
+
+        # There should be an automatic retry.
+        set_power.side_effect = None
+        assert set_power.call_count == 4
+        assert set_power.call_args_list == [
+            mocker.call(inv_id, 25.0) for inv_id in mocks.microgrid.battery_inverter_ids
+        ]
+        self._assert_report(
+            await bounds_rx.receive(),
+            power=100.0,
+            lower=-4000.0,
+            upper=4000.0,
+            expected_result_pred=lambda result: isinstance(
+                result, power_distributing.Success
+            ),
+        )
 
     async def test_case_2(self, mocks: Mocks, mocker: MockerFixture) -> None:
         """Test case 2.
@@ -214,15 +283,15 @@ class TestBatteryPoolControl:
         battery_pool_2 = microgrid.battery_pool(set(mocks.microgrid.battery_ids[2:]))
         bounds_2_rx = battery_pool_2.power_bounds().new_receiver()
 
-        assert await bounds_1_rx.receive() == self._make_report(
-            power=None, lower=-2000.0, upper=2000.0
+        self._assert_report(
+            await bounds_1_rx.receive(), power=None, lower=-2000.0, upper=2000.0
         )
-        assert await bounds_2_rx.receive() == self._make_report(
-            power=None, lower=-2000.0, upper=2000.0
+        self._assert_report(
+            await bounds_2_rx.receive(), power=None, lower=-2000.0, upper=2000.0
         )
         await battery_pool_1.set_power(Power.from_watts(1000.0))
-        assert await bounds_1_rx.receive() == self._make_report(
-            power=1000.0, lower=-2000.0, upper=2000.0
+        self._assert_report(
+            await bounds_1_rx.receive(), power=1000.0, lower=-2000.0, upper=2000.0
         )
         assert set_power.call_count == 2
         assert set_power.call_args_list == [
@@ -232,8 +301,8 @@ class TestBatteryPoolControl:
         set_power.reset_mock()
 
         await battery_pool_2.set_power(Power.from_watts(1000.0))
-        assert await bounds_2_rx.receive() == self._make_report(
-            power=1000.0, lower=-2000.0, upper=2000.0
+        self._assert_report(
+            await bounds_2_rx.receive(), power=1000.0, lower=-2000.0, upper=2000.0
         )
         assert set_power.call_count == 2
         assert set_power.call_args_list == [
@@ -260,22 +329,22 @@ class TestBatteryPoolControl:
         battery_pool_2 = microgrid.battery_pool()
         bounds_2_rx = battery_pool_2.power_bounds(1).new_receiver()
 
-        assert await bounds_1_rx.receive() == self._make_report(
-            power=None, lower=-4000.0, upper=4000.0
+        self._assert_report(
+            await bounds_1_rx.receive(), power=None, lower=-4000.0, upper=4000.0
         )
-        assert await bounds_2_rx.receive() == self._make_report(
-            power=None, lower=-4000.0, upper=4000.0
+        self._assert_report(
+            await bounds_2_rx.receive(), power=None, lower=-4000.0, upper=4000.0
         )
         await battery_pool_1.set_power(
             Power.from_watts(-1000.0),
             _priority=2,
             _bounds=(Power.from_watts(-1000.0), Power.from_watts(0.0)),
         )
-        assert await bounds_1_rx.receive() == self._make_report(
-            power=-1000.0, lower=-4000.0, upper=4000.0
+        self._assert_report(
+            await bounds_1_rx.receive(), power=-1000.0, lower=-4000.0, upper=4000.0
         )
-        assert await bounds_2_rx.receive() == self._make_report(
-            power=-1000.0, lower=-1000.0, upper=0.0
+        self._assert_report(
+            await bounds_2_rx.receive(), power=-1000.0, lower=-1000.0, upper=0.0
         )
 
         assert set_power.call_count == 4
@@ -290,11 +359,11 @@ class TestBatteryPoolControl:
             _priority=1,
             _bounds=(Power.from_watts(0.0), Power.from_watts(1000.0)),
         )
-        assert await bounds_1_rx.receive() == self._make_report(
-            power=0.0, lower=-4000.0, upper=4000.0
+        self._assert_report(
+            await bounds_1_rx.receive(), power=0.0, lower=-4000.0, upper=4000.0
         )
-        assert await bounds_2_rx.receive() == self._make_report(
-            power=0.0, lower=-1000.0, upper=0.0
+        self._assert_report(
+            await bounds_2_rx.receive(), power=0.0, lower=-1000.0, upper=0.0
         )
 
         assert set_power.call_count == 4
