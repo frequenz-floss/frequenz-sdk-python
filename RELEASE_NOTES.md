@@ -17,4 +17,4 @@
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+- Fix rendering of diagrams in the documentation.
