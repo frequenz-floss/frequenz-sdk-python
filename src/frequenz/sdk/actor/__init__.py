@@ -195,10 +195,57 @@ doesn't cause any problems.
     any other more graceful way to stop the actor if you need to make sure it can't be
     interrupted at any `await` point.
 
+### Spawning Extra Tasks
+
+Actors run at least one background task, created automatically by the `Actor` class. But
+`Actor` inherits from [`BackgroundService`][frequenz.sdk.actor.BackgroundService], which
+provides a few methods to create and manage extra tasks.
+
+If your actor needs to spawn extra tasks, you can use
+[`BackgroundService`][frequenz.sdk.actor.BackgroundService] facilities to manage the
+tasks, so they are also automatically stopped when the actor is stopped.
+
+All you need to do is add the newly spawned tasks to the actor's
+[`tasks`][frequenz.sdk.actor.Actor.tasks] set.
+
+???+ example
+
+    ```python
+    import asyncio
+    from frequenz.sdk.actor import Actor
+
+    class MyActor(Actor):
+        async def _run(self) -> None:
+            extra_task = asyncio.create_task(self._extra_task())  # (1)!
+            self.tasks.add(extra_task)  # (2)!
+            while True:  # (3)!
+                print("_run() running")
+                await asyncio.sleep(1)
+
+        async def _extra_task(self) -> None:
+            while True:  # (4)!
+                print("_extra_task() running")
+                await asyncio.sleep(1.1) # (4)!
+
+    async with MyActor() as actor:  # (5)!
+        await asyncio.sleep(3)  # (6)!
+    # (7)!
+    ```
+
+    1. We create a new task using [`asyncio.create_task()`][asyncio.create_task].
+    2. We add the task to the actor's [`tasks`][frequenz.sdk.actor.Actor.tasks] set.
+        This ensures the task will be cancelled and cleaned up when the actor is stopped.
+    3. We leave the actor running forever.
+    4. The extra task will also run forever.
+    5. The actor is started.
+    6. We wait for 3 seconds, the actor should print a bunch of "_run() running" and
+        "_extra_task() running" messages while it's running.
+    7. The actor is stopped and the extra task is cancelled automatically.
+
 ### Examples
 
-Here are a few simple but complete examples to demonstrate how to create create actors
-and connect them using [channels][frequenz.channels].
+Here are a few simple but complete examples to demonstrate how to create actors and
+connect them using [channels][frequenz.channels].
 
 !!! tip
 
