@@ -257,6 +257,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             power_distributing_requests_sender=(
                 self._power_distribution_requests_channel.new_sender()
             ),
+            power_distributing_results_receiver=(
+                self._power_distribution_results_channel.new_receiver()
+            ),
             channel_registry=self._channel_registry,
         )
         self._power_managing_actor.start()

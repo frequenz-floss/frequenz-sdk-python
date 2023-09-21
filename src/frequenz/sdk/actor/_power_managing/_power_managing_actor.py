@@ -34,6 +34,7 @@ class PowerManagingActor(Actor):
         proposals_receiver: Receiver[Proposal],
         bounds_subscription_receiver: Receiver[ReportRequest],
         power_distributing_requests_sender: Sender[power_distributing.Request],
+        power_distributing_results_receiver: Receiver[power_distributing.Result],
         channel_registry: ChannelRegistry,
         algorithm: Algorithm = Algorithm.MATRYOSHKA,
     ):
@@ -44,6 +45,8 @@ class PowerManagingActor(Actor):
             bounds_subscription_receiver: The receiver for bounds subscriptions.
             power_distributing_requests_sender: The sender for power distribution
                 requests.
+            power_distributing_results_receiver: The receiver for power distribution
+                results.
             channel_registry: The channel registry.
             algorithm: The power management algorithm to use.
 
@@ -58,12 +61,14 @@ class PowerManagingActor(Actor):
 
         self._bounds_subscription_receiver = bounds_subscription_receiver
         self._power_distributing_requests_sender = power_distributing_requests_sender
+        self._power_distributing_results_receiver = power_distributing_results_receiver
         self._channel_registry = channel_registry
         self._proposals_receiver = proposals_receiver
 
         self._system_bounds: dict[frozenset[int], PowerMetrics] = {}
         self._bound_tracker_tasks: dict[frozenset[int], asyncio.Task[None]] = {}
         self._subscriptions: dict[frozenset[int], dict[int, Sender[Report]]] = {}
+        self._distribution_results: dict[frozenset[int], power_distributing.Result] = {}
 
         self._algorithm: BaseAlgorithm = Matryoshka()
 
@@ -80,7 +85,13 @@ class PowerManagingActor(Actor):
             _logger.warning("PowerManagingActor: No bounds for %s", battery_ids)
             return
         for priority, sender in self._subscriptions.get(battery_ids, {}).items():
-            await sender.send(self._algorithm.get_status(battery_ids, priority, bounds))
+            status = self._algorithm.get_status(
+                battery_ids,
+                priority,
+                bounds,
+                self._distribution_results.get(battery_ids),
+            )
+            await sender.send(status)
 
     async def _bounds_tracker(
         self,
@@ -161,7 +172,9 @@ class PowerManagingActor(Actor):
     async def _run(self) -> None:
         """Run the power managing actor."""
         async for selected in select(
-            self._proposals_receiver, self._bounds_subscription_receiver
+            self._proposals_receiver,
+            self._bounds_subscription_receiver,
+            self._power_distributing_results_receiver,
         ):
             if selected_from(selected, self._proposals_receiver):
                 proposal = selected.value
@@ -188,3 +201,7 @@ class PowerManagingActor(Actor):
 
                 if sub.battery_ids not in self._bound_tracker_tasks:
                     self._add_bounds_tracker(sub.battery_ids)
+
+            elif selected_from(selected, self._power_distributing_results_receiver):
+                result = selected.value
+                self._distribution_results[frozenset(result.request.batteries)] = result

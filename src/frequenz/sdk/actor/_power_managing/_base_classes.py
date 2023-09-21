@@ -16,6 +16,7 @@ from ...timeseries import Power
 
 if typing.TYPE_CHECKING:
     from ...timeseries.battery_pool import PowerMetrics
+    from .. import power_distributing
 
 
 @dataclasses.dataclass(frozen=True)
@@ -63,6 +64,12 @@ class Report:
 
     These bounds are adjusted to any restrictions placed by actors with higher
     priorities.
+    """
+
+    distribution_result: power_distributing.Result | None
+    """The result of the last power distribution.
+
+    This is `None` if no power distribution has been performed yet.
     """
 
 
@@ -141,7 +148,11 @@ class BaseAlgorithm(abc.ABC):
     # It can be loosened up when more algorithms are added.
     @abc.abstractmethod
     def get_status(
-        self, battery_ids: frozenset[int], priority: int, system_bounds: PowerMetrics
+        self,
+        battery_ids: frozenset[int],
+        priority: int,
+        system_bounds: PowerMetrics,
+        distribution_result: power_distributing.Result | None,
     ) -> Report:
         """Get the bounds for a set of batteries, for the given priority.
 
@@ -149,6 +160,7 @@ class BaseAlgorithm(abc.ABC):
             battery_ids: The IDs of the batteries to get the bounds for.
             priority: The priority of the actor for which the bounds are requested.
             system_bounds: The system bounds for the batteries.
+            distribution_result: The result of the last power distribution.
 
         Returns:
             The bounds for the batteries.

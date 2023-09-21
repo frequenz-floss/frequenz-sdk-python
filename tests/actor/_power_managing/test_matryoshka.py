@@ -54,7 +54,7 @@ async def test_matryoshka_algorithm() -> None:  # pylint: disable=too-many-state
     def test_bounds(
         priority: int, expected_power: float, expected_bounds: tuple[float, float]
     ) -> None:
-        report = algorithm.get_status(batteries, priority, system_bounds)
+        report = algorithm.get_status(batteries, priority, system_bounds, None)
         assert report.target_power is not None and report.inclusion_bounds is not None
         assert report.target_power.as_watts() == expected_power
         assert report.inclusion_bounds.lower.as_watts() == expected_bounds[0]

@@ -149,6 +149,7 @@ class TestBatteryPoolControl:
                 lower=Power.from_watts(0.0),
                 upper=Power.from_watts(0.0),
             ),
+            distribution_result=None,
         )
 
     async def test_case_1(

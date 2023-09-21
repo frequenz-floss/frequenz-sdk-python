@@ -17,6 +17,7 @@ from ._sorted_set import SortedSet
 
 if typing.TYPE_CHECKING:
     from ...timeseries.battery_pool import PowerMetrics
+    from .. import power_distributing
 
 _logger = logging.getLogger(__name__)
 
@@ -140,7 +141,11 @@ class Matryoshka(BaseAlgorithm):
 
     @override
     def get_status(
-        self, battery_ids: frozenset[int], priority: int, system_bounds: PowerMetrics
+        self,
+        battery_ids: frozenset[int],
+        priority: int,
+        system_bounds: PowerMetrics,
+        distribution_result: power_distributing.Result | None,
     ) -> Report:
         """Get the bounds for the algorithm.
 
@@ -148,6 +153,7 @@ class Matryoshka(BaseAlgorithm):
             battery_ids: The IDs of the batteries to get the bounds for.
             priority: The priority of the actor for which the bounds are requested.
             system_bounds: The system bounds for the batteries.
+            distribution_result: The result of the last power distribution.
 
         Returns:
             The target power and the available bounds for the given batteries, for
@@ -155,7 +161,9 @@ class Matryoshka(BaseAlgorithm):
         """
         target_power = self._target_power.get(battery_ids)
         if system_bounds.inclusion_bounds is None:
-            return Report(target_power, None, system_bounds.exclusion_bounds)
+            return Report(
+                target_power, None, system_bounds.exclusion_bounds, distribution_result
+            )
 
         lower_bound = system_bounds.inclusion_bounds.lower
         upper_bound = system_bounds.inclusion_bounds.upper
@@ -178,4 +186,5 @@ class Matryoshka(BaseAlgorithm):
                 lower=lower_bound, upper=upper_bound
             ),
             exclusion_bounds=system_bounds.exclusion_bounds,
+            distribution_result=distribution_result,
         )
