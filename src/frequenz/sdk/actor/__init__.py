@@ -31,17 +31,17 @@ creating concurrent tasks and all actors in the SDK inherit from it. This class
 provides a straightforward way to implement actors. It shares similarities with
 the traditional actor programming model but also has some unique features:
 
-- **Message Passing:** Like traditional actors, our Actor class communicates
-  through message passing. Even when no particular message passing mechanism is
-  enforced, the SDK uses [Frequenz Channels][frequenz.channels] for communication.
+- **Message Passing:** Like traditional actors, our [`Actor`][frequenz.sdk.actor.Actor]
+  class communicates through message passing. Even when no particular message passing
+  mechanism is enforced, the SDK actors use [`frequenz.channels`][] for communication.
 
 - **Automatic Restart:** If an unhandled exception occurs in an actor's logic
-  (`_run` method), the actor will be automatically restarted. This ensures
+  ([`_run()`][_run] method), the actor will be automatically restarted. This ensures
   robustness in the face of errors.
 
 - **Simplified Task Management:** Actors manage asynchronous tasks using
-  [`asyncio`][]. You can create and manage tasks within the actor, and the `Actor`
-  class handles task cancellation and cleanup.
+  [`asyncio`][]. You can create and manage tasks within the actor, and the
+  [`Actor`][frequenz.sdk.actor.Actor] class handles task cancellation and cleanup.
 
 - **Simplified lifecycle management:** Actors are [async context managers] and also
   a [`run()`][frequenz.sdk.actor.run] function is provided.
@@ -148,14 +148,13 @@ continue to run until it is **manually** stopped.
 ## Communication
 
 The [`Actor`][frequenz.sdk.actor.Actor] class doesn't impose any specific way to
-communicate between actors. However, [Frequenz
-Channels](https://github.com/frequenz-floss/frequenz-channels-python/) are always used
-as the communication mechanism between actors in the SDK.
+communicate between actors. However, [`frequenz.channels`][] are always used as the
+communication mechanism between actors in the SDK.
 
 ## Implementing an Actor
 
 To implement an actor, you must inherit from the [`Actor`][frequenz.sdk.actor.Actor]
-class and implement the abstract `_run()` method.
+class and implement the abstract [`_run()`][_run] method.
 
 ### The `_run()` Method
 
@@ -174,19 +173,19 @@ By default, the [`stop()`][frequenz.sdk.actor.Actor.stop] method will call the
 [`cancel()`][frequenz.sdk.actor.Actor.cancel] method (which will cancel all the tasks
 created by the actor) and will wait for them to finish.
 
-This means that when an actor is stopped, the `_run()` method will receive
+This means that when an actor is stopped, the [`_run()`][_run] method will receive
 a [`CancelledError`][asyncio.CancelledError] exception. You should have this in mind
 when implementing your actor and make sure to handle this exception properly if you need
 to do any cleanup.
 
 The actor will handle the [`CancelledError`][asyncio.CancelledError] exception
-automatically if it is not handled in the `_run()` method, so if there is no need for
-extra cleanup, you don't need to worry about it.
+automatically if it is not handled in the [`_run()`][_run] method, so if there is no
+need for extra cleanup, you don't need to worry about it.
 
-If an unhandled exception is raised in the `_run()` method, the actor will re-run the
-`_run()` method automatically. This ensures robustness in the face of errors, but you
-should also have this in mind if you need to do any cleanup to make sure the re-run
-doesn't cause any problems.
+If an unhandled exception is raised in the [`_run()`][_run] method, the actor will
+re-run the [`_run()`][_run] method automatically. This ensures robustness in the face of
+errors, but you should also have this in mind if you need to do any cleanup to make sure
+the re-run doesn't cause any problems.
 
 ???+ tip
 
@@ -197,8 +196,9 @@ doesn't cause any problems.
 
 ### Spawning Extra Tasks
 
-Actors run at least one background task, created automatically by the `Actor` class. But
-`Actor` inherits from [`BackgroundService`][frequenz.sdk.actor.BackgroundService], which
+Actors run at least one background task, created automatically by the
+[`Actor`][frequenz.sdk.actor.Actor] class. But [`Actor`][frequenz.sdk.actor.Actor]
+inherits from [`BackgroundService`][frequenz.sdk.actor.BackgroundService], which
 provides a few methods to create and manage extra tasks.
 
 If your actor needs to spawn extra tasks, you can use
@@ -443,9 +443,9 @@ if __name__ == "__main__":  # (7)!
 1. We define an `EchoActor` that receives messages from two channels and sends
     them to another channel.
 
-2. We implement the `_run()` method that will receive messages from the two channels
-    using and send them to the output channel. The `run()` method will stop if a `False`
-    message is received.
+2. We implement the [`_run()`][_run] method that will receive messages from the two
+    channels using and send them to the output channel. The `run()` method will stop if
+    a `False` message is received.
 
 3. We create the channels that will be used with the actor.
 
@@ -487,8 +487,8 @@ if __name__ == "__main__":  # (7)!
 
 14. Since `selected.value` is `False`, the loop will break.
 
-15. The `_run()` method will finish normally and the actor will be stopped, so the
-    [`run()`][frequenz.sdk.actor.run] function will return.
+15. The [`_run()`][_run] method will finish normally and the actor will be stopped, so
+    the [`run()`][frequenz.sdk.actor.run] function will return.
 
 16. We close the `echo_channel` to make sure the `echo_receiver` will stop receiving
     messages after all the queued messages are consumed (otherwise the step 17 will
@@ -508,6 +508,7 @@ Received message=False
 ```
 
 [async context manager]: https://docs.python.org/3/reference/datamodel.html#async-context-managers
+[_run]: #the-_run-method
 """
 
 from ..timeseries._resampling import ResamplerConfig
