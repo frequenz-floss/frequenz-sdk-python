@@ -32,8 +32,8 @@ provides a straightforward way to implement actors. It shares similarities with
 the traditional actor programming model but also has some unique features:
 
 - **Message Passing:** Like traditional actors, our Actor class communicates
-  through message passing. To do that they use [channels][frequenz.channels]
-  for communication.
+  through message passing. Even when no particular message passing mechanism is
+  enforced, the SDK uses [Frequenz Channels][frequenz.channels] for communication.
 
 - **Automatic Restart:** If an unhandled exception occurs in an actor's logic
   (`_run` method), the actor will be automatically restarted. This ensures
