@@ -15,10 +15,16 @@ _logger = logging.getLogger(__name__)
 class Actor(BackgroundService, abc.ABC):
     """A primitive unit of computation that runs autonomously.
 
-    To implement an actor, subclasses must implement the `_run()` method, which should
-    run the actor's logic. The `_run()` method is called by the base class when the
-    actor is started, and is expected to run until the actor is stopped.
+    To implement an actor, subclasses must implement the
+    [`_run()`][frequenz.sdk.actor--the-_run-method] method, which should run the actor's
+    logic. The [`_run()`][frequenz.sdk.actor--the-_run-method] method is called by the
+    base class when the actor is started, and is expected to run until the actor is
+    stopped.
 
+    !!! info
+
+        Please read the [`actor` module documentation][frequenz.sdk.actor] for more
+        comprehensive guide on how to use and implement actors properly.
     """
 
     _restart_limit: int | None = None
