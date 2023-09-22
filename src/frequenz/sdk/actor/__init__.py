@@ -226,7 +226,7 @@ All you need to do is add the newly spawned tasks to the actor's
         async def _extra_task(self) -> None:
             while True:  # (4)!
                 print("_extra_task() running")
-                await asyncio.sleep(1.1) # (4)!
+                await asyncio.sleep(1.1)
 
     async with MyActor() as actor:  # (5)!
         await asyncio.sleep(3)  # (6)!
