@@ -155,7 +155,56 @@ communication mechanism between actors in the SDK.
 ## Implementing an Actor
 
 To implement an actor, you must inherit from the [`Actor`][frequenz.sdk.actor.Actor]
-class and implement the abstract [`_run()`][_run] method.
+class and implement an *initializer* and the abstract [`_run()`][_run] method.
+
+### Initialization
+
+The [initializer][object.__init__] is called when the actor is created. The
+[`Actor`][frequenz.sdk.actor.Actor] class initializer
+([`__init__`][frequenz.sdk.actor.Actor.__init__]) should be always called first in the
+class we are implementing to make sure actors are properly initialized.
+
+The [`Actor.__init__()`][frequenz.sdk.actor.Actor.__init__] takes one optional argument,
+a [`name`][frequenz.sdk.actor.Actor.name] that will be used to identify the actor in
+logs. If no name is provided, a default name will be generated, but it is recommended
+that [`Actor`][frequenz.sdk.actor.Actor] subclasses can also receive a name as an
+argument to make it easier to identify individual instances in logs more easily.
+
+The actor initializer normally also accepts as arguments the input channels receivers
+and output channels senders that will be used for communication. These channels should
+be created outside the actor and passed to it as arguments to ensure actors can be
+composed easily.
+
+???+ example "Example echo actor"
+
+    ```python
+    from frequenz.channels import Receiver, Sender
+    from frequenz.sdk.actor import Actor
+
+    class EchoActor(Actor):  # (1)!
+        def __init__(
+                self,
+                input: Receiver[int],  # (2)!
+                output: Sender[int],  # (3)!
+                name: str | None = None,  # (4)!
+        ) -> None:
+            super().__init__(name=name) # (5)!
+            self._input: Receiver[int] = input  # (6)!
+            self._output: Sender[int] = output  # (7)!
+    ```
+
+    1. We define a new actor class called `EchoActor` that inherits from
+        [`Actor`][frequenz.sdk.actor.Actor].
+
+    2. We accept an `input` argument that will be used to receive messages from
+        a channel.
+    3. We accept an `output` argument that will be used to send messages to a channel.
+    4. We accept an optional `name` argument that will be used to identify the actor in
+        logs.
+    5. We call [`Actor.__init__()`][frequenz.sdk.actor.Actor.__init__] to make sure the
+        actor is properly initialized.
+    6. We store the `input` argument in a *private* instance variable to use it later.
+    7. We store the `output` argument in a *private* instance variable to use it later.
 
 ### The `_run()` Method
 
@@ -167,6 +216,32 @@ Normally an actor should run forever (or until it is
 in the `_run()` method, typically receiving messages from one or more channels
 ([receivers][frequenz.channels.Receiver]), processing them and sending the results to
 other channels ([senders][frequenz.channels.Sender]).
+
+???+ example "Example echo actor"
+
+    ```python
+    from frequenz.channels import Receiver, Sender
+    from frequenz.sdk.actor import Actor
+
+    class EchoActor(Actor):
+        def __init__(
+                self,
+                input: Receiver[int],
+                output: Sender[int],
+                name: str | None = None,
+        ) -> None:
+            super().__init__(name=name)
+            self._input: Receiver[int] = input
+            self._output: Sender[int] = output
+
+        async def _run(self) -> None:  # (1)!
+            async for msg in self._input:  # (2)!
+                await self._output.send(msg)  # (3)!
+    ```
+
+    1. We implement the abstract [`_run()`][_run] method.
+    2. We receive messages from the `input` channel one by one.
+    3. We send the received message to the `output` channel.
 
 ### Stopping
 
@@ -270,8 +345,9 @@ class Actor1(Actor):  # (1)!
         self,
         receiver: Receiver[str],
         output: Sender[str],
+        name: str | None = None,
     ) -> None:
-        super().__init__()
+        super().__init__(name=name)
         self._receiver = receiver
         self._output = output
 
@@ -285,8 +361,9 @@ class Actor2(Actor):
         self,
         receiver: Receiver[str],
         output: Sender[str],
+        name: str | None = None,
     ) -> None:
-        super().__init__()
+        super().__init__(name=name)
         self._receiver = receiver
         self._output = output
 
@@ -305,8 +382,8 @@ async def main() -> None:  # (2)!
     output_receiver = output_channel.new_receiver()
 
     async with (  # (5)!
-        Actor1(input_channel.new_receiver(), middle_channel.new_sender()),
-        Actor2(middle_channel.new_receiver(), output_channel.new_sender()),
+        Actor1(input_channel.new_receiver(), middle_channel.new_sender(), "actor1"),
+        Actor2(middle_channel.new_receiver(), output_channel.new_sender(), "actor1"),
     ):
         await input_sender.send("Hello")  # (6)!
         msg = await output_receiver.receive()  # (7)!
@@ -388,8 +465,9 @@ class EchoActor(Actor):  # (1)!
         receiver_1: Receiver[bool],
         receiver_2: Receiver[bool],
         output: Sender[bool],
+        name: str | None = None,
     ) -> None:
-        super().__init__()
+        super().__init__(name=name)
         self._receiver_1 = receiver_1
         self._receiver_2 = receiver_2
         self._output = output
@@ -421,6 +499,7 @@ echo_actor = EchoActor(  # (4)!
     input_channel_1.new_receiver(),
     input_channel_2.new_receiver(),
     echo_channel.new_sender(),
+    "echo-actor",
 )
 
 echo_receiver = echo_channel.new_receiver()  # (5)!
