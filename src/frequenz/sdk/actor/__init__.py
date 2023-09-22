@@ -44,7 +44,8 @@ the traditional actor programming model but also has some unique features:
   [`Actor`][frequenz.sdk.actor.Actor] class handles task cancellation and cleanup.
 
 - **Simplified lifecycle management:** Actors are [async context managers] and also
-  a [`run()`][frequenz.sdk.actor.run] function is provided.
+  a [`run()`][frequenz.sdk.actor.run] function is provided to easily run a group of
+  actors and wait for them to finish.
 
 ## Lifecycle
 
@@ -84,7 +85,7 @@ logged.
     await run(MyActor()) # (1)!
     ```
 
-    1. Will block until the actor is stopped.
+    1. This line will block until the actor is stopped.
 
 ### Async Context Manager
 
@@ -143,7 +144,7 @@ continue to run until it is **manually** stopped.
 !!! warning
 
     This method is not recommended because it is easy to forget to stop the actor
-    manually, specially in error conditions.
+    manually, especially in error conditions.
 
 ## Communication
 
@@ -249,8 +250,9 @@ connect them using [channels][frequenz.channels].
 
 !!! tip
 
-    The code examples are annotated with markers (like {{code_annotation_marker}}), they
-    explain step-by-step what's going on in order of execution.
+    The code examples are annotated with markers (like {{code_annotation_marker}}), you
+    can click on them to see the step-by-step explanation of what's going on. The
+    annotations are numbered according to the order of execution.
 
 #### Composing actors
 
