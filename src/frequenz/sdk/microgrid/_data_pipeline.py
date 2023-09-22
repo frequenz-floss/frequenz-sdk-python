@@ -37,7 +37,7 @@ if typing.TYPE_CHECKING:
         Request,
         Result,
     )
-    from ..timeseries.battery_pool import BatteryPool
+    from ..timeseries.battery_pool import BatteryPool, BatteryPoolWrapper
     from ..timeseries.ev_charger_pool import EVChargerPool
     from ..timeseries.logical_meter import LogicalMeter
 
@@ -185,20 +185,26 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
     def battery_pool(
         self,
         battery_ids: abc.Set[int] | None = None,
-    ) -> BatteryPool:
+        source_id: str | None = None,
+        priority: int = 0,
+    ) -> BatteryPoolWrapper:
         """Return the corresponding BatteryPool instance for the given ids.
 
         If a BatteryPool instance for the given ids doesn't exist, a new one is created
         and returned.
 
+        The BatteryPool is wrapped in a new `BatteryPoolWrapper` instance each time.
+
         Args:
             battery_ids: Optional set of IDs of batteries to be managed by the
                 BatteryPool.
+            source_id: The source ID to use for the requests made with this instance.
+            priority: The priority of the actor making the call.
 
         Returns:
-            A BatteryPool instance.
+            A BatteryPoolWrapper instance.
         """
-        from ..timeseries.battery_pool import BatteryPool
+        from ..timeseries.battery_pool import BatteryPool, BatteryPoolWrapper
 
         if not self._power_managing_actor:
             self._start_power_managing_actor()
@@ -225,7 +231,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 batteries_id=battery_ids,
             )
 
-        return self._battery_pools[key]
+        return BatteryPoolWrapper(self._battery_pools[key], source_id, priority)
 
     def _start_power_managing_actor(self) -> None:
         """Start the power managing actor if it is not already running."""
@@ -415,21 +421,29 @@ def ev_charger_pool(ev_charger_ids: set[int] | None = None) -> EVChargerPool:
     return _get().ev_charger_pool(ev_charger_ids)
 
 
-def battery_pool(battery_ids: abc.Set[int] | None = None) -> BatteryPool:
+def battery_pool(
+    battery_ids: abc.Set[int] | None = None,
+    source_id: str | None = None,
+    priority: int = 0,
+) -> BatteryPoolWrapper:
     """Return the corresponding BatteryPool instance for the given ids.
 
     If a BatteryPool instance for the given ids doesn't exist, a new one is
     created and returned.
 
+    The BatteryPool is wrapped in a new `BatteryPoolWrapper` instance each time.
+
     Args:
         battery_ids: Optional set of IDs of batteries to be managed by the
             BatteryPool.  If not specified, all batteries available in the
             component graph are used.
+        source_id: The source ID to use for the requests made with this instance.
+        priority: The priority of the actor making the call.
 
     Returns:
         A BatteryPool instance.
     """
-    return _get().battery_pool(battery_ids)
+    return _get().battery_pool(battery_ids, source_id, priority)
 
 
 def _get() -> _DataPipeline:

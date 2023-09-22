@@ -185,7 +185,7 @@ class TestBatteryPoolControl:
         #
         # It will be replaced by a reporting streaming from the PowerManager in a
         # subsequent commit.
-        bounds_rx = battery_pool.power_bounds().new_receiver()
+        bounds_rx = battery_pool.power_bounds.new_receiver()
 
         self._assert_report(
             await bounds_rx.receive(), power=None, lower=-4000.0, upper=4000.0
@@ -279,9 +279,9 @@ class TestBatteryPoolControl:
         await self._init_data_for_inverters(mocks)
 
         battery_pool_1 = microgrid.battery_pool(set(mocks.microgrid.battery_ids[:2]))
-        bounds_1_rx = battery_pool_1.power_bounds().new_receiver()
+        bounds_1_rx = battery_pool_1.power_bounds.new_receiver()
         battery_pool_2 = microgrid.battery_pool(set(mocks.microgrid.battery_ids[2:]))
-        bounds_2_rx = battery_pool_2.power_bounds().new_receiver()
+        bounds_2_rx = battery_pool_2.power_bounds.new_receiver()
 
         self._assert_report(
             await bounds_1_rx.receive(), power=None, lower=-2000.0, upper=2000.0
@@ -324,10 +324,10 @@ class TestBatteryPoolControl:
         await self._init_data_for_batteries(mocks)
         await self._init_data_for_inverters(mocks)
 
-        battery_pool_1 = microgrid.battery_pool()
-        bounds_1_rx = battery_pool_1.power_bounds(2).new_receiver()
-        battery_pool_2 = microgrid.battery_pool()
-        bounds_2_rx = battery_pool_2.power_bounds(1).new_receiver()
+        battery_pool_1 = microgrid.battery_pool(priority=2)
+        bounds_1_rx = battery_pool_1.power_bounds.new_receiver()
+        battery_pool_2 = microgrid.battery_pool(priority=1)
+        bounds_2_rx = battery_pool_2.power_bounds.new_receiver()
 
         self._assert_report(
             await bounds_1_rx.receive(), power=None, lower=-4000.0, upper=4000.0
@@ -337,7 +337,6 @@ class TestBatteryPoolControl:
         )
         await battery_pool_1.set_power(
             Power.from_watts(-1000.0),
-            _priority=2,
             _bounds=(Power.from_watts(-1000.0), Power.from_watts(0.0)),
         )
         self._assert_report(
@@ -356,7 +355,6 @@ class TestBatteryPoolControl:
 
         await battery_pool_2.set_power(
             Power.from_watts(0.0),
-            _priority=1,
             _bounds=(Power.from_watts(0.0), Power.from_watts(1000.0)),
         )
         self._assert_report(

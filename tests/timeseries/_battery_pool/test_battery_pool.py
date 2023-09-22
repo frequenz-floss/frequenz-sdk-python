@@ -36,7 +36,7 @@ from frequenz.sdk.timeseries import (
     Sample,
     Temperature,
 )
-from frequenz.sdk.timeseries.battery_pool import BatteryPool, PowerMetrics
+from frequenz.sdk.timeseries.battery_pool import BatteryPoolWrapper, PowerMetrics
 from frequenz.sdk.timeseries.battery_pool._metric_calculator import (
     battery_inverter_mapping,
 )
@@ -90,7 +90,7 @@ def get_components(
 class SetupArgs:
     """Setup arguments needed to run tests."""
 
-    battery_pool: BatteryPool
+    battery_pool: BatteryPoolWrapper
     """Battery pool that should be tested."""
 
     min_update_interval: float
@@ -168,7 +168,7 @@ async def setup_all_batteries(mocker: MockerFixture) -> AsyncIterator[SetupArgs]
     await asyncio.gather(
         *[
             microgrid._data_pipeline._DATA_PIPELINE._stop(),
-            battery_pool.stop(),
+            battery_pool._battery_pool.stop(),
             streamer.stop(),
         ]
     )
@@ -222,7 +222,7 @@ async def setup_batteries_pool(mocker: MockerFixture) -> AsyncIterator[SetupArgs
     await asyncio.gather(
         *[
             microgrid._data_pipeline._DATA_PIPELINE._stop(),
-            battery_pool.stop(),
+            battery_pool._battery_pool.stop(),
             streamer.stop(),
         ]
     )
