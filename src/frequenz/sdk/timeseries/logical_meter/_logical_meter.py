@@ -153,52 +153,6 @@ class LogicalMeter:
         return engine
 
     @property
-    def grid_consumption_power(self) -> FormulaEngine[Power]:
-        """Fetch the grid consumption power for the microgrid.
-
-        This formula produces positive values when consuming power and 0 otherwise.
-
-        If a formula engine to calculate grid consumption power is not already running,
-        it will be started.
-
-        A receiver from the formula engine can be created using the `new_receiver`
-        method.
-
-        Returns:
-            A FormulaEngine that will calculate and stream grid consumption power.
-        """
-        engine = self._formula_pool.from_power_formula_generator(
-            "grid_consumption_power",
-            GridPowerFormula,
-            FormulaGeneratorConfig(formula_type=FormulaType.CONSUMPTION),
-        )
-        assert isinstance(engine, FormulaEngine)
-        return engine
-
-    @property
-    def grid_production_power(self) -> FormulaEngine[Power]:
-        """Fetch the grid production power for the microgrid.
-
-        This formula produces positive values when producing power and 0 otherwise.
-
-        If a formula engine to calculate grid production power is not already running,
-        it will be started.
-
-        A receiver from the formula engine can be created using the `new_receiver`
-        method.
-
-        Returns:
-            A FormulaEngine that will calculate and stream grid production power.
-        """
-        engine = self._formula_pool.from_power_formula_generator(
-            "grid_production_power",
-            GridPowerFormula,
-            FormulaGeneratorConfig(formula_type=FormulaType.PRODUCTION),
-        )
-        assert isinstance(engine, FormulaEngine)
-        return engine
-
-    @property
     def grid_current(self) -> FormulaEngine3Phase[Current]:
         """Fetch the grid power for the microgrid.
 
@@ -294,52 +248,6 @@ class LogicalMeter:
         return engine
 
     @property
-    def pv_production_power(self) -> FormulaEngine[Power]:
-        """Fetch the PV power production in the microgrid.
-
-        This formula produces positive values when producing power and 0 otherwise.
-
-        If a formula engine to calculate PV power production is not already running, it
-        will be started.
-
-        A receiver from the formula engine can be created using the `new_receiver`
-        method.
-
-        Returns:
-            A FormulaEngine that will calculate and stream PV power production.
-        """
-        engine = self._formula_pool.from_power_formula_generator(
-            "pv_production_power",
-            PVPowerFormula,
-            FormulaGeneratorConfig(formula_type=FormulaType.PRODUCTION),
-        )
-        assert isinstance(engine, FormulaEngine)
-        return engine
-
-    @property
-    def pv_consumption_power(self) -> FormulaEngine[Power]:
-        """Fetch the PV power consumption in the microgrid.
-
-        This formula produces positive values when consuming power and 0 otherwise.
-
-        If a formula engine to calculate PV power consumption is not already running, it
-        will be started.
-
-        A receiver from the formula engine can be created using the `new_receiver`
-        method.
-
-        Returns:
-            A FormulaEngine that will calculate and stream PV power consumption.
-        """
-        engine = self._formula_pool.from_power_formula_generator(
-            "pv_consumption_power",
-            PVPowerFormula,
-            FormulaGeneratorConfig(formula_type=FormulaType.CONSUMPTION),
-        )
-        assert isinstance(engine, FormulaEngine)
-        return engine
-
-    @property
     def chp_power(self) -> FormulaEngine[Power]:
         """Fetch the CHP power production in the microgrid.
 
@@ -358,56 +266,6 @@ class LogicalMeter:
             "chp_power",
             CHPPowerFormula,
             FormulaGeneratorConfig(formula_type=FormulaType.PASSIVE_SIGN_CONVENTION),
-        )
-        assert isinstance(engine, FormulaEngine)
-        return engine
-
-    @property
-    def chp_production_power(self) -> FormulaEngine[Power]:
-        """Fetch the CHP power production in the microgrid.
-
-        This formula produces positive values when producing power and 0 otherwise.
-
-        If a formula engine to calculate CHP power production is not already running, it
-        will be started.
-
-        A receiver from the formula engine can be created using the `new_receiver`
-        method.
-
-        Returns:
-            A FormulaEngine that will calculate and stream CHP power production.
-        """
-        engine = self._formula_pool.from_power_formula_generator(
-            "chp_production_power",
-            CHPPowerFormula,
-            FormulaGeneratorConfig(
-                formula_type=FormulaType.PRODUCTION,
-            ),
-        )
-        assert isinstance(engine, FormulaEngine)
-        return engine
-
-    @property
-    def chp_consumption_power(self) -> FormulaEngine[Power]:
-        """Fetch the CHP power consumption in the microgrid.
-
-        This formula produces positive values when consuming power and 0 otherwise.
-
-        If a formula engine to calculate CHP power consumption is not already running,
-        it will be started.
-
-        A receiver from the formula engine can be created using the `new_receiver`
-        method.
-
-        Returns:
-            A FormulaEngine that will calculate and stream CHP power consumption.
-        """
-        engine = self._formula_pool.from_power_formula_generator(
-            "chp_consumption_power",
-            CHPPowerFormula,
-            FormulaGeneratorConfig(
-                formula_type=FormulaType.CONSUMPTION,
-            ),
         )
         assert isinstance(engine, FormulaEngine)
         return engine
