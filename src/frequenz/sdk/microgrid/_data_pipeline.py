@@ -17,6 +17,7 @@ from dataclasses import dataclass
 
 from frequenz.channels import Broadcast, Sender
 
+from ..actor._actor import Actor
 from ..microgrid.component import Component
 from ..timeseries._grid_frequency import GridFrequency
 from . import connection_manager
@@ -29,12 +30,7 @@ _logger = logging.getLogger(__name__)
 #
 # pylint: disable=import-outside-toplevel
 if typing.TYPE_CHECKING:
-    from ..actor import (
-        ComponentMetricRequest,
-        ComponentMetricsResamplingActor,
-        DataSourcingActor,
-        ResamplerConfig,
-    )
+    from ..actor import ComponentMetricRequest, ResamplerConfig
     from ..actor.power_distributing import (  # noqa: F401 (imports used by string type hints)
         BatteryStatus,
         PowerDistributingActor,
@@ -52,15 +48,12 @@ A larger buffer size means that the DataSourcing and Resampling actors don't dro
 requests and will be able to keep up with higher request rates in larger installations.
 """
 
-_T = typing.TypeVar("_T")
-"""Type variable for generic actor types."""
-
 
 @dataclass
-class _ActorInfo(typing.Generic[_T]):
+class _ActorInfo:
     """Holds instances of core data pipeline actors and their request channels."""
 
-    actor: _T
+    actor: Actor
     """The actor instance."""
 
     channel: Broadcast[ComponentMetricRequest]
@@ -90,10 +83,8 @@ class _DataPipeline:
 
         self._channel_registry = ChannelRegistry(name="Data Pipeline Registry")
 
-        self._data_sourcing_actor: _ActorInfo[DataSourcingActor] | None = None
-        self._resampling_actor: _ActorInfo[
-            ComponentMetricsResamplingActor
-        ] | None = None
+        self._data_sourcing_actor: _ActorInfo | None = None
+        self._resampling_actor: _ActorInfo | None = None
 
         self._battery_status_channel = Broadcast["BatteryStatus"](
             "battery-status", resend_latest=True
