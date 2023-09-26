@@ -4,6 +4,8 @@
 """Tests for the microgrid client thin wrapper."""
 
 import asyncio
+import contextlib
+from collections.abc import AsyncIterator
 
 import grpc
 import pytest
@@ -33,6 +35,21 @@ from . import mock_api
 # pylint: disable=missing-class-docstring,no-member
 
 
+@contextlib.asynccontextmanager
+async def _gprc_server(
+    port: int,
+    servicer: mock_api.MockMicrogridServicer | None = None,
+) -> AsyncIterator[mock_api.MockMicrogridServicer]:
+    if servicer is None:
+        servicer = mock_api.MockMicrogridServicer()
+    server = mock_api.MockGrpcServer(servicer, port=port)
+    await server.start()
+    try:
+        yield servicer
+    finally:
+        assert await server.graceful_shutdown()
+
+
 class TestMicrogridGrpcClient:
     """Tests for the microgrid client thin wrapper."""
 
@@ -47,11 +64,7 @@ class TestMicrogridGrpcClient:
 
     async def test_components(self) -> None:
         """Test the components() method."""
-        servicer = mock_api.MockMicrogridServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57899)
-        await server.start()
-
-        try:
+        async with _gprc_server(57899) as servicer:
             microgrid = self.create_client(57899)
 
             assert set(await microgrid.components()) == set()
@@ -165,16 +178,9 @@ class TestMicrogridGrpcClient:
                 Component(999, ComponentCategory.BATTERY),
             }
 
-        finally:
-            assert await server.graceful_shutdown()
-
     async def test_connections(self) -> None:
         """Test the connections() method."""
-        servicer = mock_api.MockMicrogridServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57898)
-        await server.start()
-
-        try:
+        async with _gprc_server(57898) as servicer:
             microgrid = self.create_client(57898)
 
             assert set(await microgrid.connections()) == set()
@@ -320,9 +326,6 @@ class TestMicrogridGrpcClient:
                 Connection(5, 7),
             }
 
-        finally:
-            assert await server.graceful_shutdown()
-
     async def test_bad_connections(self) -> None:
         """Validate that the client does not apply connection filters itself."""
 
@@ -341,11 +344,7 @@ class TestMicrogridGrpcClient:
             ) -> microgrid_pb.ComponentList:
                 return microgrid_pb.ComponentList(components=self._components)
 
-        servicer = BadServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57897)
-        await server.start()
-
-        try:
+        async with _gprc_server(57897, BadServicer()) as servicer:
             microgrid = self.create_client(57897)
 
             assert list(await microgrid.connections()) == []
@@ -391,16 +390,9 @@ class TestMicrogridGrpcClient:
                 == unfiltered
             )
 
-        finally:
-            assert await server.graceful_shutdown()
-
     async def test_meter_data(self) -> None:
         """Test the meter_data() method."""
-        servicer = mock_api.MockMicrogridServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57899)
-        await server.start()
-
-        try:
+        async with _gprc_server(57899) as servicer:
             microgrid = self.create_client(57899)
 
             servicer.add_component(
@@ -420,20 +412,13 @@ class TestMicrogridGrpcClient:
             peekable = (await microgrid.meter_data(83)).into_peekable()
             await asyncio.sleep(0.2)
 
-        finally:
-            assert await server.graceful_shutdown()
-
         latest = peekable.peek()
         assert isinstance(latest, MeterData)
         assert latest.component_id == 83
 
     async def test_battery_data(self) -> None:
         """Test the battery_data() method."""
-        servicer = mock_api.MockMicrogridServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57899)
-        await server.start()
-
-        try:
+        async with _gprc_server(57899) as servicer:
             microgrid = self.create_client(57899)
 
             servicer.add_component(
@@ -453,20 +438,13 @@ class TestMicrogridGrpcClient:
             peekable = (await microgrid.battery_data(83)).into_peekable()
             await asyncio.sleep(0.2)
 
-        finally:
-            assert await server.graceful_shutdown()
-
         latest = peekable.peek()
         assert isinstance(latest, BatteryData)
         assert latest.component_id == 83
 
     async def test_inverter_data(self) -> None:
         """Test the inverter_data() method."""
-        servicer = mock_api.MockMicrogridServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57899)
-        await server.start()
-
-        try:
+        async with _gprc_server(57899) as servicer:
             microgrid = self.create_client(57899)
 
             servicer.add_component(
@@ -486,20 +464,13 @@ class TestMicrogridGrpcClient:
             peekable = (await microgrid.inverter_data(83)).into_peekable()
             await asyncio.sleep(0.2)
 
-        finally:
-            assert await server.graceful_shutdown()
-
         latest = peekable.peek()
         assert isinstance(latest, InverterData)
         assert latest.component_id == 83
 
     async def test_ev_charger_data(self) -> None:
         """Test the ev_charger_data() method."""
-        servicer = mock_api.MockMicrogridServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57899)
-        await server.start()
-
-        try:
+        async with _gprc_server(57899) as servicer:
             microgrid = self.create_client(57899)
 
             servicer.add_component(
@@ -519,21 +490,13 @@ class TestMicrogridGrpcClient:
             peekable = (await microgrid.ev_charger_data(83)).into_peekable()
             await asyncio.sleep(0.2)
 
-        finally:
-            assert await server.graceful_shutdown()
-
         latest = peekable.peek()
         assert isinstance(latest, EVChargerData)
         assert latest.component_id == 83
 
     async def test_charge(self) -> None:
         """Check if charge is able to charge component."""
-        servicer = mock_api.MockMicrogridServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57899)
-
-        await server.start()
-
-        try:
+        async with _gprc_server(57899) as servicer:
             microgrid = self.create_client(57899)
 
             servicer.add_component(
@@ -546,17 +509,9 @@ class TestMicrogridGrpcClient:
             assert servicer.latest_power.component_id == 83
             assert servicer.latest_power.power == 12
 
-        finally:
-            assert await server.graceful_shutdown()
-
     async def test_discharge(self) -> None:
         """Check if discharge is able to discharge component."""
-        servicer = mock_api.MockMicrogridServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57899)
-
-        await server.start()
-
-        try:
+        async with _gprc_server(57899) as servicer:
             microgrid = self.create_client(57899)
 
             servicer.add_component(
@@ -568,16 +523,10 @@ class TestMicrogridGrpcClient:
             assert servicer.latest_power is not None
             assert servicer.latest_power.component_id == 73
             assert servicer.latest_power.power == -15
-        finally:
-            assert await server.graceful_shutdown()
 
     async def test_set_bounds(self) -> None:
         """Check if set_bounds is able to set bounds for component."""
-        servicer = mock_api.MockMicrogridServicer()
-        server = mock_api.MockGrpcServer(servicer, port=57899)
-        await server.start()
-
-        try:
+        async with _gprc_server(57899) as servicer:
             microgrid = self.create_client(57899)
 
             servicer.add_component(
@@ -598,9 +547,6 @@ class TestMicrogridGrpcClient:
             for cid in range(num_calls):
                 await microgrid.set_bounds(cid, -10.0, 2.0)
                 await asyncio.sleep(0.1)
-
-        finally:
-            assert await server.graceful_shutdown()
 
         assert len(expected_bounds) == len(servicer.get_bounds())
 
