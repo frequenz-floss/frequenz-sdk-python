@@ -10,7 +10,17 @@
 
 ## New Features
 
-- A tutorial section and a getting started tutorial
+- New and improved documentation.
+
+  * A new *Introduction* section was added, with:
+
+    + A glossary.
+    + An introduction to actors.
+
+  * A new *Tutorials* section was added, with:
+
+    + A getting started tutorial.
+
 - In `OrderedRingBuffer`:
   - Rename `datetime_to_index` to `to_internal_index` to avoid confusion between the internal index and the external index.
   - Remove `__setitem__` method to enforce usage of dedicated `update` method only.
