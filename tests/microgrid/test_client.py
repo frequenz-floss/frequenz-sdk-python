@@ -39,13 +39,18 @@ from . import mock_api
 async def _gprc_server(
     port: int,
     servicer: mock_api.MockMicrogridServicer | None = None,
-) -> AsyncIterator[mock_api.MockMicrogridServicer]:
+) -> AsyncIterator[tuple[mock_api.MockMicrogridServicer, client.MicrogridApiClient]]:
     if servicer is None:
         servicer = mock_api.MockMicrogridServicer()
     server = mock_api.MockGrpcServer(servicer, port=port)
+    microgrid = client.MicrogridGrpcClient(
+        grpc.aio.insecure_channel(f"[::]:{port}"),
+        f"[::]:{port}",
+        retry_spec=LinearBackoff(interval=0.0, jitter=0.05),
+    )
     await server.start()
     try:
-        yield servicer
+        yield servicer, microgrid
     finally:
         assert await server.graceful_shutdown()
 
@@ -53,20 +58,9 @@ async def _gprc_server(
 class TestMicrogridGrpcClient:
     """Tests for the microgrid client thin wrapper."""
 
-    @staticmethod
-    def create_client(port: int) -> client.MicrogridApiClient:
-        """Create a client for the mock API server."""
-        return client.MicrogridGrpcClient(
-            grpc.aio.insecure_channel(f"[::]:{port}"),
-            f"[::]:{port}",
-            retry_spec=LinearBackoff(interval=0.0, jitter=0.05),
-        )
-
     async def test_components(self) -> None:
         """Test the components() method."""
-        async with _gprc_server(57899) as servicer:
-            microgrid = self.create_client(57899)
-
+        async with _gprc_server(57899) as (servicer, microgrid):
             assert set(await microgrid.components()) == set()
 
             servicer.add_component(
@@ -180,9 +174,7 @@ class TestMicrogridGrpcClient:
 
     async def test_connections(self) -> None:
         """Test the connections() method."""
-        async with _gprc_server(57898) as servicer:
-            microgrid = self.create_client(57898)
-
+        async with _gprc_server(57898) as (servicer, microgrid):
             assert set(await microgrid.connections()) == set()
 
             servicer.add_connection(0, 0)
@@ -344,9 +336,7 @@ class TestMicrogridGrpcClient:
             ) -> microgrid_pb.ComponentList:
                 return microgrid_pb.ComponentList(components=self._components)
 
-        async with _gprc_server(57897, BadServicer()) as servicer:
-            microgrid = self.create_client(57897)
-
+        async with _gprc_server(57897, BadServicer()) as (servicer, microgrid):
             assert list(await microgrid.connections()) == []
             for component_id in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
                 servicer.add_component(
@@ -392,9 +382,7 @@ class TestMicrogridGrpcClient:
 
     async def test_meter_data(self) -> None:
         """Test the meter_data() method."""
-        async with _gprc_server(57899) as servicer:
-            microgrid = self.create_client(57899)
-
+        async with _gprc_server(57899) as (servicer, microgrid):
             servicer.add_component(
                 83, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER
             )
@@ -418,9 +406,7 @@ class TestMicrogridGrpcClient:
 
     async def test_battery_data(self) -> None:
         """Test the battery_data() method."""
-        async with _gprc_server(57899) as servicer:
-            microgrid = self.create_client(57899)
-
+        async with _gprc_server(57899) as (servicer, microgrid):
             servicer.add_component(
                 83, components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
             )
@@ -444,9 +430,7 @@ class TestMicrogridGrpcClient:
 
     async def test_inverter_data(self) -> None:
         """Test the inverter_data() method."""
-        async with _gprc_server(57899) as servicer:
-            microgrid = self.create_client(57899)
-
+        async with _gprc_server(57899) as (servicer, microgrid):
             servicer.add_component(
                 83, components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
             )
@@ -470,9 +454,7 @@ class TestMicrogridGrpcClient:
 
     async def test_ev_charger_data(self) -> None:
         """Test the ev_charger_data() method."""
-        async with _gprc_server(57899) as servicer:
-            microgrid = self.create_client(57899)
-
+        async with _gprc_server(57899) as (servicer, microgrid):
             servicer.add_component(
                 83, components_pb.ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER
             )
@@ -496,9 +478,7 @@ class TestMicrogridGrpcClient:
 
     async def test_charge(self) -> None:
         """Check if charge is able to charge component."""
-        async with _gprc_server(57899) as servicer:
-            microgrid = self.create_client(57899)
-
+        async with _gprc_server(57899) as (servicer, microgrid):
             servicer.add_component(
                 83, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER
             )
@@ -511,9 +491,7 @@ class TestMicrogridGrpcClient:
 
     async def test_discharge(self) -> None:
         """Check if discharge is able to discharge component."""
-        async with _gprc_server(57899) as servicer:
-            microgrid = self.create_client(57899)
-
+        async with _gprc_server(57899) as (servicer, microgrid):
             servicer.add_component(
                 73, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER
             )
@@ -526,9 +504,7 @@ class TestMicrogridGrpcClient:
 
     async def test_set_bounds(self) -> None:
         """Check if set_bounds is able to set bounds for component."""
-        async with _gprc_server(57899) as servicer:
-            microgrid = self.create_client(57899)
-
+        async with _gprc_server(57899) as (servicer, microgrid):
             servicer.add_component(
                 38, components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
             )
