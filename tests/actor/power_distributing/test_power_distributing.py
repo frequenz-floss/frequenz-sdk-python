@@ -549,6 +549,180 @@ class TestPowerDistributingActor:
             assert result.excess_power.isclose(Power.from_watts(200.0))
             assert result.request == request
 
+    async def test_two_batteries_one_inverter_different_exclusion_bounds_2(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test power distribution with two batteries having different exclusion bounds.
+
+        Test if power distribution works with two batteries connected to one
+        inverter, each having different exclusion bounds.
+        """
+        gen = GraphGenerator()
+        batteries = gen.components(*[ComponentCategory.BATTERY] * 2)
+        inverter = gen.component(ComponentCategory.INVERTER)
+
+        graph = gen.to_graph(
+            (
+                ComponentCategory.METER,
+                (ComponentCategory.METER, [(inverter, [*batteries])]),
+            )
+        )
+
+        mockgrid = MockMicrogrid(graph=graph)
+        await mockgrid.start(mocker)
+        await self.init_component_data(mockgrid)
+        await mockgrid.mock_client.send(
+            inverter_msg(
+                inverter.component_id,
+                power=PowerBounds(-1000, -500, 500, 1000),
+            )
+        )
+        await mockgrid.mock_client.send(
+            battery_msg(
+                batteries[0].component_id,
+                soc=Metric(40, Bound(20, 80)),
+                capacity=Metric(10_000),
+                power=PowerBounds(-1000, -200, 200, 1000),
+            )
+        )
+        await mockgrid.mock_client.send(
+            battery_msg(
+                batteries[1].component_id,
+                soc=Metric(40, Bound(20, 80)),
+                capacity=Metric(10_000),
+                power=PowerBounds(-1000, -100, 100, 1000),
+            )
+        )
+
+        channel = Broadcast[Request]("power_distributor")
+        channel_registry = ChannelRegistry(name="power_distributor")
+
+        request = Request(
+            namespace=self._namespace,
+            power=Power.from_watts(300.0),
+            batteries={batteries[0].component_id, batteries[1].component_id},
+            request_timeout=SAFETY_TIMEOUT,
+        )
+
+        attrs = {"get_working_batteries.return_value": request.batteries}
+
+        mocker.patch(
+            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+        )
+
+        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+
+        async with PowerDistributingActor(
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
+            battery_status_sender=battery_status_channel.new_sender(),
+        ):
+            await channel.new_sender().send(request)
+            result_rx = channel_registry.new_receiver(self._namespace)
+
+            done, pending = await asyncio.wait(
+                [asyncio.create_task(result_rx.receive())],
+                timeout=SAFETY_TIMEOUT.total_seconds(),
+            )
+
+            assert len(pending) == 0
+            assert len(done) == 1
+
+            result: Result = done.pop().result()
+            assert isinstance(result, OutOfBounds)
+            assert result.request == request
+            assert result.bounds == PowerBounds(-1000, -500, 500, 1000)
+
+    async def test_two_batteries_one_inverter_different_exclusion_bounds(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test power distribution with two batteries having different exclusion bounds.
+
+        Test if power distribution works with two batteries connected to one
+        inverter, each having different exclusion bounds.
+        """
+        gen = GraphGenerator()
+        batteries = gen.components(*[ComponentCategory.BATTERY] * 2)
+
+        graph = gen.to_graph(
+            (
+                ComponentCategory.METER,
+                (
+                    ComponentCategory.METER,
+                    [
+                        (
+                            ComponentCategory.INVERTER,
+                            [*batteries],
+                        ),
+                    ],
+                ),
+            )
+        )
+
+        mockgrid = MockMicrogrid(graph=graph)
+        await mockgrid.start(mocker)
+        await self.init_component_data(mockgrid)
+        await mockgrid.mock_client.send(
+            battery_msg(
+                batteries[0].component_id,
+                soc=Metric(40, Bound(20, 80)),
+                capacity=Metric(10_000),
+                power=PowerBounds(-1000, -200, 200, 1000),
+            )
+        )
+        await mockgrid.mock_client.send(
+            battery_msg(
+                batteries[1].component_id,
+                soc=Metric(40, Bound(20, 80)),
+                capacity=Metric(10_000),
+                power=PowerBounds(-1000, -100, 100, 1000),
+            )
+        )
+
+        channel = Broadcast[Request]("power_distributor")
+        channel_registry = ChannelRegistry(name="power_distributor")
+
+        request = Request(
+            namespace=self._namespace,
+            power=Power.from_watts(300.0),
+            batteries={batteries[0].component_id, batteries[1].component_id},
+            request_timeout=SAFETY_TIMEOUT,
+        )
+
+        attrs = {"get_working_batteries.return_value": request.batteries}
+
+        mocker.patch(
+            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+        )
+
+        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+
+        async with PowerDistributingActor(
+            requests_receiver=channel.new_receiver(),
+            channel_registry=channel_registry,
+            battery_status_sender=battery_status_channel.new_sender(),
+        ):
+            await channel.new_sender().send(request)
+            result_rx = channel_registry.new_receiver(self._namespace)
+
+            done, pending = await asyncio.wait(
+                [asyncio.create_task(result_rx.receive())],
+                timeout=SAFETY_TIMEOUT.total_seconds(),
+            )
+
+            assert len(pending) == 0
+            assert len(done) == 1
+
+            result: Result = done.pop().result()
+            assert isinstance(result, OutOfBounds)
+            assert result.request == request
+            # each inverter is bounded at 500
+            assert result.bounds == PowerBounds(-500, -400, 400, 500)
+
     async def test_connected_but_not_requested_batteries(
         self, mocker: MockerFixture
     ) -> None:

@@ -225,19 +225,21 @@ class PowerDistributingActor(Actor):
                 )
                 for battery, inverters in pairs_data
             ),
-            exclusion_lower=sum(
-                min(
-                    battery.power_exclusion_lower_bound,
-                    inverter.active_power_exclusion_lower_bound,
-                )
-                for battery, inverter in pairs_data
+            exclusion_lower=min(
+                sum(battery.power_exclusion_lower_bound for battery, _ in pairs_data),
+                sum(
+                    inverter.active_power_exclusion_lower_bound
+                    for _, inverters in pairs_data
+                    for inverter in inverters
+                ),
             ),
-            exclusion_upper=sum(
-                max(
-                    battery.power_exclusion_upper_bound,
-                    inverter.active_power_exclusion_upper_bound,
-                )
-                for battery, inverter in pairs_data
+            exclusion_upper=max(
+                sum(battery.power_exclusion_upper_bound for battery, _ in pairs_data),
+                sum(
+                    inverter.active_power_exclusion_upper_bound
+                    for _, inverters in pairs_data
+                    for inverter in inverters
+                ),
             ),
         )
 
