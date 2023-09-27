@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from pytest import approx, raises
 
 from frequenz.sdk.actor.power_distributing._distribution_algorithm import (
+    AggregatedBatteryData,
     DistributionAlgorithm,
     DistributionResult,
     InvBatPair,
@@ -98,7 +99,7 @@ def create_components(
     num: int,
     capacity: list[Metric],
     soc: list[Metric],
-    power: list[PowerBounds],
+    power_bounds: list[PowerBounds],
 ) -> list[InvBatPair]:
     """Create components with given arguments.
 
@@ -106,16 +107,16 @@ def create_components(
         num: Number of components
         capacity: Capacity for each battery
         soc: SoC for each battery
-        power: Power bounds for each battery and inverter
+        power_bounds: Power bounds for each battery and inverter
 
     Returns:
         List of the components
     """
     components: list[InvBatPair] = []
     for i in range(0, num):
-        battery = battery_msg(2 * i, capacity[i], soc[i], power[2 * i])
-        inverter = inverter_msg(2 * i + 1, power[2 * i + 1])
-        components.append(InvBatPair(battery, inverter))
+        battery = battery_msg(2 * i, capacity[i], soc[i], power_bounds[2 * i])
+        inverter = inverter_msg(2 * i + 1, power_bounds[2 * i + 1])
+        components.append(InvBatPair(AggregatedBatteryData([battery]), [inverter]))
     return components
 
 
@@ -125,21 +126,39 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
     # pylint: disable=protected-access
 
     def create_components_with_capacity(
-        self, num: int, capacity: list[float]
+        self,
+        num: int,
+        capacity: list[float],
+        share_inverter: bool = False,
+        start_id: int = 0,
     ) -> list[InvBatPair]:
         """Create components with given capacity."""
         components: list[InvBatPair] = []
-        for i in range(0, num):
+
+        shared_inverter: InverterDataWrapper | None = None
+
+        if share_inverter:
+            shared_inverter = InverterDataWrapper(
+                component_id=start_id + 1, timestamp=datetime.now(tz=timezone.utc)
+            )
+
+        for i in range(start_id, num):
             battery_data = BatteryDataWrapper(
                 component_id=2 * i,
                 timestamp=datetime.now(tz=timezone.utc),
                 capacity=capacity[i],
             )
-            inverter_data = InverterDataWrapper(
-                component_id=2 * i + 1, timestamp=datetime.now(tz=timezone.utc)
-            )
 
-            components.append(InvBatPair(battery_data, inverter_data))
+            if shared_inverter:
+                inverter_data = shared_inverter
+            else:
+                inverter_data = InverterDataWrapper(
+                    component_id=2 * i + 1, timestamp=datetime.now(tz=timezone.utc)
+                )
+
+            components.append(
+                InvBatPair(AggregatedBatteryData([battery_data]), [inverter_data])
+            )
         return components
 
     def test_total_capacity_all_0(self) -> None:
@@ -165,8 +184,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         components = self.create_components_with_capacity(1, capacity)
 
         available_soc: dict[int, float] = {0: 40}
-        incl_bounds: dict[int, float] = {1: 500}
-        excl_bounds: dict[int, float] = {1: 0}
+        incl_bounds: dict[int, float] = {0: 500, 1: 500}
+        excl_bounds: dict[int, float] = {0: 0, 1: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
@@ -186,8 +205,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         components = self.create_components_with_capacity(2, capacity)
 
         available_soc: dict[int, float] = {0: 40, 2: 20}
-        incl_bounds: dict[int, float] = {1: 500, 3: 500}
-        excl_bounds: dict[int, float] = {1: 0, 3: 0}
+        incl_bounds: dict[int, float] = {0: 500, 2: 500, 1: 500, 3: 500}
+        excl_bounds: dict[int, float] = {0: 0, 2: 0, 1: 0, 3: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
@@ -207,8 +226,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         components = self.create_components_with_capacity(2, capacity)
 
         available_soc: dict[int, float] = {0: 20, 2: 20}
-        incl_bounds: dict[int, float] = {1: 500, 3: 500}
-        excl_bounds: dict[int, float] = {1: 0, 3: 0}
+        incl_bounds: dict[int, float] = {0: 500, 2: 500, 1: 500, 3: 500}
+        excl_bounds: dict[int, float] = {0: 0, 2: 0, 1: 0, 3: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
@@ -217,6 +236,29 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
         assert result.distribution == approx({1: 200, 3: 400})
         assert result.remaining_power == approx(0.0)
+
+    def test_distribute_power_two_batteries_one_inverter(self) -> None:
+        """Test when the batteries has different SoC and only one inverter.
+
+        No matter the differences, the power should be distributed equally,
+        because there is only one inverter.
+        """
+        capacity: list[float] = [49000, 98000]
+        components = self.create_components_with_capacity(
+            2, capacity, share_inverter=True
+        )
+
+        available_soc: dict[int, float] = {0: 20, 2: 30}
+        incl_bounds: dict[int, float] = {0: 500, 2: 500, 1: 500}
+        excl_bounds: dict[int, float] = {0: 0, 2: 0, 1: 0}
+
+        algorithm = DistributionAlgorithm(distributor_exponent=1)
+        result = algorithm._distribute_power(  # pylint: disable=protected-access
+            components, 600, available_soc, incl_bounds, excl_bounds
+        )
+
+        assert result.distribution == approx({1: 500})
+        assert result.remaining_power == approx(100.0)
 
     def test_distribute_power_two_batteries_bounds(self) -> None:
         """Test two batteries.
@@ -229,8 +271,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         components = self.create_components_with_capacity(2, capacity)
 
         available_soc: dict[int, float] = {0: 40, 2: 20}
-        incl_bounds: dict[int, float] = {1: 250, 3: 330}
-        excl_bounds: dict[int, float] = {1: 0, 3: 0}
+        incl_bounds: dict[int, float] = {0: 250, 2: 330, 1: 250, 3: 330}
+        excl_bounds: dict[int, float] = {0: 0, 2: 0, 1: 0, 3: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
@@ -246,8 +288,15 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         components = self.create_components_with_capacity(3, capacity)
 
         available_soc: dict[int, float] = {0: 40, 2: 20, 4: 20}
-        incl_bounds: dict[int, float] = {1: 1000, 3: 3400, 5: 3550}
-        excl_bounds: dict[int, float] = {1: 0, 3: 0, 5: 0}
+        incl_bounds: dict[int, float] = {
+            0: 1000,
+            2: 1000,
+            4: 1000,
+            1: 1000,
+            3: 3400,
+            5: 3550,
+        }
+        excl_bounds: dict[int, float] = {0: 0, 2: 0, 4: 0, 1: 0, 3: 0, 5: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
@@ -263,8 +312,15 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         components = self.create_components_with_capacity(3, capacity)
 
         available_soc: dict[int, float] = {0: 80, 2: 10, 4: 20}
-        incl_bounds: dict[int, float] = {1: 400, 3: 3400, 5: 300}
-        excl_bounds: dict[int, float] = {1: 0, 3: 0, 5: 0}
+        incl_bounds: dict[int, float] = {
+            0: 1000,
+            2: 1000,
+            4: 1000,
+            1: 400,
+            3: 3400,
+            5: 300,
+        }
+        excl_bounds: dict[int, float] = {0: 0, 2: 0, 4: 0, 1: 0, 3: 0, 5: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
@@ -280,8 +336,15 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         components = self.create_components_with_capacity(3, capacity)
 
         available_soc: dict[int, float] = {0: 80, 2: 10, 4: 20}
-        incl_bounds: dict[int, float] = {1: 500, 3: 300, 5: 300}
-        excl_bounds: dict[int, float] = {1: 0, 3: 0, 5: 0}
+        incl_bounds: dict[int, float] = {
+            0: 1000,
+            2: 1000,
+            4: 1000,
+            1: 500,
+            3: 300,
+            5: 300,
+        }
+        excl_bounds: dict[int, float] = {0: 0, 2: 0, 4: 0, 1: 0, 3: 0, 5: 0}
 
         algorithm = DistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
@@ -1143,8 +1206,8 @@ class TestDistWithExclBounds:
         | request |                           |    excess |
         |   power | distribution              | remaining |
         |---------+---------------------------+-----------|
-        |    -300 | -88, -108.57, -123.43     |         0 |
-        |     300 | 128, 128, 64              |         0 |
+        |    -320 | -88, -108.57, -123.43     |         0 |
+        |     320 | 128, 128, 64              |         0 |
         |   -1800 | -514.28, -514.28, -771.42 |         0 |
         |    1800 | 720, 720, 360             |         0 |
         |   -2800 | -800, -1000, -1000        |         0 |
@@ -1203,4 +1266,161 @@ class TestDistWithExclBounds:
         self.assert_result(
             algorithm.distribute_power(3500, components),
             DistributionResult({1: 1000, 3: 1000, 5: 1000}, remaining_power=500.0),
+        )
+
+    def test_scenario_4(self) -> None:
+        """Test scenario 4.
+
+        Set params for 1 battery connected to two inverters:
+            capacities: 10000
+            socs: 50
+
+            individual soc bounds: 10-90
+            battery bounds 1: -1500, -200, 200, 1500
+            inverter 1 bounds: -1000, -100, 100, 1000
+            inverter 2 bounds: -1000, -100, 100, 1000
+
+            battery pool bounds: -1500, -200, 200, 1500
+
+        Expected result:
+
+        | request |                           |    excess |
+        |   power | distribution              | remaining |
+        |---------+---------------------------+-----------|
+        |    -300 | -300, -0                  |         0 |
+        |     300 | 300, 0                    |         0 |
+        |   -1800 | -1000, -500               |       300 |
+        """
+        components = [
+            InvBatPair(
+                AggregatedBatteryData(
+                    [
+                        battery_msg(
+                            component_id=1,
+                            capacity=Metric(10000),
+                            soc=Metric(50, Bound(10, 90)),
+                            power=PowerBounds(-1500, -200, 200, 1500),
+                        )
+                    ]
+                ),
+                [
+                    inverter_msg(2, PowerBounds(-1000, -100, 100, 1000)),
+                    inverter_msg(3, PowerBounds(-1000, -100, 100, 1000)),
+                ],
+            )
+        ]
+
+        algorithm = DistributionAlgorithm()
+
+        self.assert_result(
+            algorithm.distribute_power(-300, components),
+            DistributionResult({2: -300, 3: 0}, remaining_power=0.0),
+        )
+
+        self.assert_result(
+            algorithm.distribute_power(300, components),
+            DistributionResult({2: 300, 3: 0}, remaining_power=0.0),
+        )
+
+        self.assert_result(
+            algorithm.distribute_power(-1800, components),
+            DistributionResult({2: -1000, 3: -500}, remaining_power=-300.0),
+        )
+
+    def test_scenario_5(self) -> None:
+        """Test scenario 5.
+
+        Set params for 2 batteries each connected to two inverters:
+            capacities: 10000, 10000
+            socs: 20, 60
+
+            individual soc bounds: 10-90
+            battery bounds 1: -1500, -200, 200, 1500
+            inverter 1 bounds: -1000, -100, 100, 1000
+            inverter 2 bounds: -1000, -100, 100, 1000
+
+            battery bounds 2: -1500, 0, 0, 1500
+            inverter 3 bounds: -1000, -100, 100, 1000
+            inverter 4 bounds: -1000, -100, 100, 1000
+
+            battery pool bounds: -3000, -200, 200, 3000
+
+        Expected result:
+
+        | request |                           |    excess |
+        |   power | distribution              | remaining |
+        |---------+---------------------------+-----------|
+        |    -300 | -200, -100, 0, 0          |         0 |
+        |     300 | 200, 100, 0, 0            |         0 |
+        |   -1800 | -300, -1000, -500         |         0 |
+        |    3000 | 1000, 500, 1000, 500      |         0 |
+        |    3500 | 1000, 500, 1000, 500      |       500 |
+
+        """
+        components = [
+            InvBatPair(
+                AggregatedBatteryData(
+                    [
+                        battery_msg(
+                            component_id=1,
+                            capacity=Metric(10000),
+                            soc=Metric(20, Bound(10, 90)),
+                            power=PowerBounds(-1500, -200, 200, 1500),
+                        )
+                    ]
+                ),
+                [
+                    inverter_msg(10, PowerBounds(-1000, -100, 100, 1000)),
+                    inverter_msg(11, PowerBounds(-1000, -100, 100, 1000)),
+                ],
+            ),
+            InvBatPair(
+                AggregatedBatteryData(
+                    [
+                        battery_msg(
+                            component_id=2,
+                            capacity=Metric(10000),
+                            soc=Metric(60, Bound(10, 90)),
+                            power=PowerBounds(-1500, 0, 0, 1500),
+                        )
+                    ]
+                ),
+                [
+                    inverter_msg(20, PowerBounds(-1000, -100, 100, 1000)),
+                    inverter_msg(21, PowerBounds(-1000, -100, 100, 1000)),
+                ],
+            ),
+        ]
+
+        algorithm = DistributionAlgorithm()
+
+        self.assert_result(
+            algorithm.distribute_power(-300, components),
+            DistributionResult({10: -200, 11: 0, 20: -100, 21: 0}, remaining_power=0.0),
+        )
+
+        self.assert_result(
+            algorithm.distribute_power(300, components),
+            DistributionResult({10: 200, 11: 0, 20: 100, 21: 0}, remaining_power=0.0),
+        )
+
+        self.assert_result(
+            algorithm.distribute_power(-1800, components),
+            DistributionResult(
+                {10: -300, 11: 0, 20: -1000, 21: -500}, remaining_power=0.0
+            ),
+        )
+
+        self.assert_result(
+            algorithm.distribute_power(3000, components),
+            DistributionResult(
+                {10: 1000, 11: 500, 20: 1000, 21: 500}, remaining_power=0.0
+            ),
+        )
+
+        self.assert_result(
+            algorithm.distribute_power(3500, components),
+            DistributionResult(
+                {10: 1000, 11: 500, 20: 1000, 21: 500}, remaining_power=500.0
+            ),
         )

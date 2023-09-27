@@ -106,6 +106,17 @@ class GraphGenerator:
 
         return Component(self.new_id()[category], category, comp_type)
 
+    def components(self, *component_categories: ComponentCategory) -> list[Component]:
+        """Create a list of components with the next available id for each category.
+
+        Args:
+            *component_categories: the component categories
+
+        Returns:
+            the given components.
+        """
+        return [self.component(category) for category in component_categories]
+
     @staticmethod
     def grid() -> Component:
         """Get a new grid component with default id.

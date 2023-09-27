@@ -32,6 +32,11 @@
 
 
 
+- The PowerDistributingActor now supports n:m relations between inverters and
+  batteries.
+  This means that one or more inverters can be connected to one or more batteries.
+
+
 ## Bug Fixes
 
 - Fix rendering of diagrams in the documentation.
