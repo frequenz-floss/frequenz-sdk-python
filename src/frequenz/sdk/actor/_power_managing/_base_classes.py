@@ -78,7 +78,7 @@ class Proposal:
     """A proposal for a battery to be charged or discharged."""
 
     source_id: str
-    preferred_power: Power
+    preferred_power: Power | None
     bounds: tuple[Power, Power] | None
     battery_ids: frozenset[int]
     priority: int

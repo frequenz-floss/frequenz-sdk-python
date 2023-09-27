@@ -28,7 +28,7 @@ async def test_matryoshka_algorithm() -> None:  # pylint: disable=too-many-state
 
     def test_tgt_power(
         priority: int,
-        power: float,
+        power: float | None,
         bounds: tuple[float, float] | None,
         expected: float | None,
     ) -> None:
@@ -39,7 +39,7 @@ async def test_matryoshka_algorithm() -> None:  # pylint: disable=too-many-state
             Proposal(
                 battery_ids=batteries,
                 source_id=f"actor-{priority}",
-                preferred_power=Power.from_watts(power),
+                preferred_power=None if power is None else Power.from_watts(power),
                 bounds=(Power.from_watts(bounds[0]), Power.from_watts(bounds[1]))
                 if bounds
                 else None,
@@ -52,11 +52,17 @@ async def test_matryoshka_algorithm() -> None:  # pylint: disable=too-many-state
         )
 
     def test_bounds(
-        priority: int, expected_power: float, expected_bounds: tuple[float, float]
+        priority: int,
+        expected_power: float | None,
+        expected_bounds: tuple[float, float],
     ) -> None:
         report = algorithm.get_status(batteries, priority, system_bounds, None)
-        assert report.target_power is not None and report.inclusion_bounds is not None
-        assert report.target_power.as_watts() == expected_power
+        if expected_power is None:
+            assert report.target_power is None
+        else:
+            assert report.target_power is not None
+            assert report.target_power.as_watts() == expected_power
+        assert report.inclusion_bounds is not None
         assert report.inclusion_bounds.lower.as_watts() == expected_bounds[0]
         assert report.inclusion_bounds.upper.as_watts() == expected_bounds[1]
 
@@ -142,3 +148,9 @@ async def test_matryoshka_algorithm() -> None:  # pylint: disable=too-many-state
 
     test_tgt_power(priority=1, power=200.0, bounds=(50, 200), expected=100.0)
     test_bounds(priority=1, expected_power=100.0, expected_bounds=(-100.0, 100.0))
+
+    test_tgt_power(priority=1, power=0.0, bounds=(-200, 200), expected=0.0)
+    test_bounds(priority=1, expected_power=0.0, expected_bounds=(-100.0, 100.0))
+
+    test_tgt_power(priority=1, power=None, bounds=(-200, 200), expected=50.0)
+    test_bounds(priority=1, expected_power=50.0, expected_bounds=(-100.0, 100.0))

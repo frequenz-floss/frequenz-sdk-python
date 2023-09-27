@@ -62,12 +62,13 @@ class Matryoshka(BaseAlgorithm):
         for next_proposal in reversed(proposals):
             if upper_bound < lower_bound:
                 break
-            if next_proposal.preferred_power > upper_bound:
-                target_power = upper_bound
-            elif next_proposal.preferred_power < lower_bound:
-                target_power = lower_bound
-            else:
-                target_power = next_proposal.preferred_power
+            if next_proposal.preferred_power:
+                if next_proposal.preferred_power > upper_bound:
+                    target_power = upper_bound
+                elif next_proposal.preferred_power < lower_bound:
+                    target_power = lower_bound
+                else:
+                    target_power = next_proposal.preferred_power
             if next_proposal.bounds:
                 lower_bound = max(lower_bound, next_proposal.bounds[0])
                 upper_bound = min(upper_bound, next_proposal.bounds[1])

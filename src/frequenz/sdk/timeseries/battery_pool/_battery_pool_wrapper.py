@@ -58,7 +58,7 @@ class BatteryPoolWrapper:
 
     async def set_power(
         self,
-        preferred_power: Power,
+        preferred_power: Power | None,
         *,
         request_timeout: timedelta = timedelta(seconds=5.0),
         include_broken_batteries: bool = False,
@@ -103,7 +103,7 @@ class BatteryPoolWrapper:
 
     async def charge(
         self,
-        power: Power,
+        power: Power | None,
         *,
         request_timeout: timedelta = timedelta(seconds=5.0),
         include_broken_batteries: bool = False,
@@ -130,7 +130,7 @@ class BatteryPoolWrapper:
         Raises:
             ValueError: If the given power is negative.
         """
-        if power < Power.zero():
+        if power and power < Power.zero():
             raise ValueError("Charge power must be positive.")
         await self._battery_pool._power_manager_requests_sender.send(
             _power_managing.Proposal(
@@ -146,7 +146,7 @@ class BatteryPoolWrapper:
 
     async def discharge(
         self,
-        power: Power,
+        power: Power | None,
         *,
         request_timeout: timedelta = timedelta(seconds=5.0),
         include_broken_batteries: bool = False,
@@ -173,7 +173,7 @@ class BatteryPoolWrapper:
         Raises:
             ValueError: If the given power is negative.
         """
-        if power < Power.zero():
+        if power and power < Power.zero():
             raise ValueError("Discharge power must be positive.")
         await self._battery_pool._power_manager_requests_sender.send(
             _power_managing.Proposal(
