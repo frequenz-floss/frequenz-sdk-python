@@ -740,7 +740,7 @@ class PowerDistributingActor(Actor):
                 aws.result()
             except grpc.aio.AioRpcError as err:
                 failed_power += distribution[inverter_id]
-                failed_batteries.union(battery_ids)
+                failed_batteries = failed_batteries.union(battery_ids)
                 if err.code() == grpc.StatusCode.OUT_OF_RANGE:
                     _logger.debug(
                         "Set power for battery %s failed, error %s",
@@ -755,7 +755,7 @@ class PowerDistributingActor(Actor):
                     )
             except asyncio.exceptions.CancelledError:
                 failed_power += distribution[inverter_id]
-                failed_batteries.union(battery_ids)
+                failed_batteries = failed_batteries.union(battery_ids)
                 _logger.warning(
                     "Battery %s didn't respond in %f sec. Mark it as broken.",
                     battery_ids,
