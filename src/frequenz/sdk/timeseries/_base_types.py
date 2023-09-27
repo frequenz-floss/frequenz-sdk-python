@@ -4,6 +4,7 @@
 """Timeseries basic types."""
 
 import functools
+import typing
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -137,12 +138,15 @@ class Sample3Phase(Generic[QuantityT]):
         )
 
 
+_T = typing.TypeVar("_T")
+
+
 @dataclass(frozen=True)
-class Bounds(Generic[QuantityT]):
+class Bounds(Generic[_T]):
     """Lower and upper bound values."""
 
-    lower: QuantityT
+    lower: _T
     """Lower bound."""
 
-    upper: QuantityT
+    upper: _T
     """Upper bound."""

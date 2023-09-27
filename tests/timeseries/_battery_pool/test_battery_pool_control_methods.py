@@ -13,7 +13,7 @@ import pytest
 from frequenz.channels import Sender
 from pytest_mock import MockerFixture
 
-from frequenz.sdk import microgrid
+from frequenz.sdk import microgrid, timeseries
 from frequenz.sdk.actor import ResamplerConfig, _power_managing, power_distributing
 from frequenz.sdk.actor.power_distributing import BatteryStatus
 from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
@@ -337,7 +337,7 @@ class TestBatteryPoolControl:
         )
         await battery_pool_1.set_power(
             Power.from_watts(-1000.0),
-            _bounds=(Power.from_watts(-1000.0), Power.from_watts(0.0)),
+            _bounds=timeseries.Bounds(Power.from_watts(-1000.0), Power.from_watts(0.0)),
         )
         self._assert_report(
             await bounds_1_rx.receive(), power=-1000.0, lower=-4000.0, upper=4000.0
@@ -355,7 +355,7 @@ class TestBatteryPoolControl:
 
         await battery_pool_2.set_power(
             Power.from_watts(0.0),
-            _bounds=(Power.from_watts(0.0), Power.from_watts(1000.0)),
+            _bounds=timeseries.Bounds(Power.from_watts(0.0), Power.from_watts(1000.0)),
         )
         self._assert_report(
             await bounds_1_rx.receive(), power=0.0, lower=-4000.0, upper=4000.0

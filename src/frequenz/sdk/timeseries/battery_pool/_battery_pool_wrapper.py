@@ -13,6 +13,7 @@ import uuid
 from collections import abc
 from datetime import timedelta
 
+from ... import timeseries
 from ..._internal._channels import ReceiverFetcher
 from ...actor import _power_managing
 from ...timeseries import Energy, Percentage, Power, Sample, Temperature
@@ -62,7 +63,7 @@ class BatteryPoolWrapper:
         *,
         request_timeout: timedelta = timedelta(seconds=5.0),
         include_broken_batteries: bool = False,
-        _bounds: tuple[Power, Power] | None = None,
+        _bounds: timeseries.Bounds[Power | None] = timeseries.Bounds(None, None),
     ) -> None:
         """Set the given power for the batteries in the pool.
 
@@ -136,7 +137,7 @@ class BatteryPoolWrapper:
             _power_managing.Proposal(
                 source_id=self._source_id,
                 preferred_power=power,
-                bounds=None,
+                bounds=timeseries.Bounds(None, None),
                 battery_ids=self._battery_pool._batteries,
                 priority=0,
                 request_timeout=request_timeout,
@@ -179,7 +180,7 @@ class BatteryPoolWrapper:
             _power_managing.Proposal(
                 source_id=self._source_id,
                 preferred_power=power,
-                bounds=None,
+                bounds=timeseries.Bounds(None, None),
                 battery_ids=self._battery_pool._batteries,
                 priority=0,
                 request_timeout=request_timeout,

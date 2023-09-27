@@ -79,7 +79,7 @@ class Proposal:
 
     source_id: str
     preferred_power: Power | None
-    bounds: tuple[Power, Power] | None
+    bounds: timeseries.Bounds[Power | None]
     battery_ids: frozenset[int]
     priority: int
     request_timeout: datetime.timedelta = datetime.timedelta(seconds=5.0)

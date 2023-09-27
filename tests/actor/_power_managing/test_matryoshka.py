@@ -29,7 +29,7 @@ async def test_matryoshka_algorithm() -> None:  # pylint: disable=too-many-state
     def test_tgt_power(
         priority: int,
         power: float | None,
-        bounds: tuple[float, float] | None,
+        bounds: tuple[float | None, float | None],
         expected: float | None,
     ) -> None:
         nonlocal call_count
@@ -40,9 +40,10 @@ async def test_matryoshka_algorithm() -> None:  # pylint: disable=too-many-state
                 battery_ids=batteries,
                 source_id=f"actor-{priority}",
                 preferred_power=None if power is None else Power.from_watts(power),
-                bounds=(Power.from_watts(bounds[0]), Power.from_watts(bounds[1]))
-                if bounds
-                else None,
+                bounds=timeseries.Bounds(
+                    None if bounds[0] is None else Power.from_watts(bounds[0]),
+                    None if bounds[1] is None else Power.from_watts(bounds[1]),
+                ),
                 priority=priority,
             ),
             system_bounds,
@@ -91,18 +92,18 @@ async def test_matryoshka_algorithm() -> None:  # pylint: disable=too-many-state
     test_bounds(priority=2, expected_power=30.0, expected_bounds=(10.0, 50.0))
     test_bounds(priority=1, expected_power=30.0, expected_bounds=(25.0, 50.0))
 
-    test_tgt_power(priority=2, power=40.0, bounds=(40.0, 50.0), expected=40.0)
+    test_tgt_power(priority=2, power=40.0, bounds=(40.0, None), expected=40.0)
     test_bounds(priority=3, expected_power=40.0, expected_bounds=(-200.0, 200.0))
     test_bounds(priority=2, expected_power=40.0, expected_bounds=(10.0, 50.0))
     test_bounds(priority=1, expected_power=40.0, expected_bounds=(40.0, 50.0))
 
-    test_tgt_power(priority=2, power=0.0, bounds=(-200.0, 200.0), expected=30.0)
+    test_tgt_power(priority=2, power=0.0, bounds=(None, None), expected=30.0)
     test_bounds(priority=4, expected_power=30.0, expected_bounds=(-200.0, 200.0))
     test_bounds(priority=3, expected_power=30.0, expected_bounds=(-200.0, 200.0))
     test_bounds(priority=2, expected_power=30.0, expected_bounds=(10.0, 50.0))
     test_bounds(priority=1, expected_power=30.0, expected_bounds=(10.0, 50.0))
 
-    test_tgt_power(priority=4, power=-50.0, bounds=(-200.0, -50.0), expected=-50.0)
+    test_tgt_power(priority=4, power=-50.0, bounds=(None, -50.0), expected=-50.0)
     test_bounds(priority=4, expected_power=-50.0, expected_bounds=(-200.0, 200.0))
     test_bounds(priority=3, expected_power=-50.0, expected_bounds=(-200.0, -50.0))
     test_bounds(priority=2, expected_power=-50.0, expected_bounds=(-200.0, -50.0))
@@ -118,7 +119,7 @@ async def test_matryoshka_algorithm() -> None:  # pylint: disable=too-many-state
     test_tgt_power(priority=4, power=-180.0, bounds=(-200.0, -50.0), expected=None)
     test_bounds(priority=1, expected_power=-150.0, expected_bounds=(-200.0, -50.0))
 
-    test_tgt_power(priority=4, power=50.0, bounds=(50.0, 200.0), expected=50.0)
+    test_tgt_power(priority=4, power=50.0, bounds=(50.0, None), expected=50.0)
     test_bounds(priority=4, expected_power=50.0, expected_bounds=(-200.0, 200.0))
     test_bounds(priority=3, expected_power=50.0, expected_bounds=(50.0, 200.0))
     test_bounds(priority=2, expected_power=50.0, expected_bounds=(50.0, 200.0))
