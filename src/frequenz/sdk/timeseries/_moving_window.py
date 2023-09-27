@@ -241,6 +241,48 @@ class MovingWindow(BackgroundService):
         """
         return self._buffer.maxlen
 
+    # pylint before 3.0 only accepts names with 3 or more chars
+    def at(self, key: int | datetime) -> float:  # pylint: disable=invalid-name
+        """
+        Return the sample at the given index or timestamp.
+
+        In contrast to the [`window`][frequenz.sdk.timeseries.MovingWindow.window] method,
+        which expects a slice as argument, this method expects a single index as argument
+        and returns a single value.
+
+        Args:
+            key: The index or timestamp of the sample to return.
+
+        Returns:
+            The sample at the given index or timestamp.
+
+        Raises:
+            IndexError: If the buffer is empty or the index is out of bounds.
+        """
+        if self._buffer.count_valid() == 0:
+            raise IndexError("The buffer is empty.")
+
+        if isinstance(key, datetime):
+            assert self._buffer.oldest_timestamp is not None
+            assert self._buffer.newest_timestamp is not None
+            if (
+                key < self._buffer.oldest_timestamp
+                or key > self._buffer.newest_timestamp
+            ):
+                raise IndexError(
+                    f"Timestamp {key} is out of range [{self._buffer.oldest_timestamp}, "
+                    f"{self._buffer.newest_timestamp}]"
+                )
+            return self._buffer[self._buffer.to_internal_index(key)]
+
+        if isinstance(key, int):
+            _logger.debug("Returning value at index %s ", key)
+            timestamp = self._buffer.get_timestamp(key)
+            assert timestamp is not None
+            return self._buffer[self._buffer.to_internal_index(timestamp)]
+
+        raise TypeError("Key has to be either a timestamp or an integer.")
+
     def window(
         self,
         start: datetime | int | None,
@@ -250,6 +292,10 @@ class MovingWindow(BackgroundService):
     ) -> ArrayLike:
         """
         Return an array containing the samples in the given time interval.
+
+        In contrast to the [`at`][frequenz.sdk.timeseries.MovingWindow.at] method,
+        which expects a single index as argument, this method expects a slice as argument
+        and returns an array.
 
         Args:
             start: The start of the time interval. If `None`, the start of the
@@ -372,15 +418,11 @@ class MovingWindow(BackgroundService):
                 raise ValueError("Slicing with a step other than 1 is not supported.")
             return self.window(key.start, key.stop)
 
-        if self._buffer.count_valid() == 0:
-            raise IndexError("The buffer is empty.")
-
         if isinstance(key, datetime):
-            _logger.debug("Returning value at time %s ", key)
-            return self._buffer[self._buffer.to_internal_index(key)]
+            return self.at(key)
+
         if isinstance(key, SupportsIndex):
-            _logger.debug("Returning value at index %s ", key)
-            return self._buffer[key]
+            return self.at(key.__index__())
 
         raise TypeError(
             "Key has to be either a timestamp or an integer "

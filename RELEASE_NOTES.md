@@ -28,7 +28,7 @@
 - In `OrderedRingBuffer` and `MovingWindow`:
   - Support for integer indices is added.
   - Add `count_covered` method to count the number of elements covered by the used time range.
-
+- Add `at` method to `MovingWindow` to access a single element and use it in `__getitem__` magic to fully support single element access.
 
 
 
@@ -36,3 +36,4 @@
 
 - Fix rendering of diagrams in the documentation.
 - The `__getitem__` magic of the `MovingWindow` is fixed to support the same functionality that the `window` method provides.
+- Fixes incorrect implementation of single element access in `__getitem__` magic of `MovingWindow`.
