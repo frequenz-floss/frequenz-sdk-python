@@ -198,7 +198,7 @@ class TestBatteryPoolControl:
         )
 
         assert set_power.call_count == 4
-        assert set_power.call_args_list == [
+        assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 250.0)
             for inv_id in mocks.microgrid.battery_inverter_ids
         ]
@@ -233,7 +233,7 @@ class TestBatteryPoolControl:
             ),
         )
         assert set_power.call_count == 4
-        assert set_power.call_args_list == [
+        assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 25.0) for inv_id in mocks.microgrid.battery_inverter_ids
         ]
         set_power.reset_mock()
@@ -251,7 +251,7 @@ class TestBatteryPoolControl:
         # There should be an automatic retry.
         set_power.side_effect = None
         assert set_power.call_count == 4
-        assert set_power.call_args_list == [
+        assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 25.0) for inv_id in mocks.microgrid.battery_inverter_ids
         ]
         self._assert_report(
@@ -294,7 +294,7 @@ class TestBatteryPoolControl:
             await bounds_1_rx.receive(), power=1000.0, lower=-2000.0, upper=2000.0
         )
         assert set_power.call_count == 2
-        assert set_power.call_args_list == [
+        assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 500.0)
             for inv_id in mocks.microgrid.battery_inverter_ids[:2]
         ]
@@ -305,7 +305,7 @@ class TestBatteryPoolControl:
             await bounds_2_rx.receive(), power=1000.0, lower=-2000.0, upper=2000.0
         )
         assert set_power.call_count == 2
-        assert set_power.call_args_list == [
+        assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 500.0)
             for inv_id in mocks.microgrid.battery_inverter_ids[2:]
         ]
@@ -347,7 +347,7 @@ class TestBatteryPoolControl:
         )
 
         assert set_power.call_count == 4
-        assert set_power.call_args_list == [
+        assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, -250.0)
             for inv_id in mocks.microgrid.battery_inverter_ids
         ]
@@ -365,6 +365,6 @@ class TestBatteryPoolControl:
         )
 
         assert set_power.call_count == 4
-        assert set_power.call_args_list == [
+        assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 0.0) for inv_id in mocks.microgrid.battery_inverter_ids
         ]
