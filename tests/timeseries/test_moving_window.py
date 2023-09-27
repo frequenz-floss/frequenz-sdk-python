@@ -104,11 +104,61 @@ async def test_access_window_by_int_slice() -> None:
     async with window:
         await push_logical_meter_data(sender, range(0, 5))
         assert np.array_equal(window[3:5], np.array([3.0, 4.0]))
-        with pytest.raises(IndexError):
-            window.window(3, 5)  # type: ignore
+        assert np.array_equal(window.window(3, 5), np.array([3.0, 4.0]))
+
         data = [1, 2, 2.5, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1]
         await push_logical_meter_data(sender, data)
         assert np.array_equal(window[5:14], np.array(data[5:14]))
+        assert np.array_equal(window.window(5, 14), np.array(data[5:14]))
+
+        # Test with step size (other than 1 not supported)
+        assert np.array_equal(window[5:14:1], np.array(data[5:14]))
+        assert np.array_equal(window[5:14:None], np.array(data[5:14]))
+        with pytest.raises(ValueError):
+            _ = window[5:14:2]
+        with pytest.raises(ValueError):
+            _ = window[14:5:-1]
+
+    window, sender = init_moving_window(timedelta(seconds=5))
+
+    def test_eq(expected: list[float], start: int | None, end: int | None) -> None:
+        assert np.allclose(
+            window.window(start, end), np.array(expected), equal_nan=True
+        )
+        assert np.allclose(window[start:end], np.array(expected), equal_nan=True)
+
+    async with window:
+        test_eq([], 0, 1)
+
+        # Incomplete window
+        await push_logical_meter_data(sender, [0.0, 1.0])
+        test_eq([0.0, 1.0], 0, 2)
+        test_eq([0.0, 1.0], 0, 9)
+        test_eq([0.0, 1.0], 0, None)
+        test_eq([0.0, 1.0], -9, None)
+        test_eq([0.0, 1.0], None, None)
+        test_eq([0.0], -2, -1)
+        test_eq([1.0], -1, None)
+
+        # Incomplete window with gap
+        await push_logical_meter_data(
+            sender, [3.0], start_ts=UNIX_EPOCH + timedelta(seconds=3)
+        )
+        test_eq([0.0, 1.0], 0, 2)
+        # gap fill not supported yet:
+        # test_eq([0.0, 1.0, np.nan, 3.0], 0, None)
+        # test_eq([0.0, 1.0, np.nan, 3.0], -9, None)
+        # test_eq([np.nan, 3.0], -2, None)
+
+        # Complete window
+        await push_logical_meter_data(sender, [0.0, 1.0, 2.0, 3.0, 4.0])
+        test_eq([0.0, 1.0], 0, 2)
+        test_eq([3.0, 4.0], -2, None)
+
+        # Complete window with nan
+        await push_logical_meter_data(sender, [0.0, 1.0, np.nan])
+        test_eq([0.0, 1.0, np.nan], 0, 3)
+        test_eq([np.nan, 3.0, 4.0], -3, None)
 
 
 async def test_access_window_by_ts_slice() -> None:
@@ -121,13 +171,10 @@ async def test_access_window_by_ts_slice() -> None:
         assert np.array_equal(window[time_start:time_end], np.array([3.0, 4.0]))  # type: ignore
         assert np.array_equal(window.window(dt(3), dt(5)), np.array([3.0, 4.0]))
         assert np.array_equal(window.window(dt(3), dt(3)), np.array([]))
-        # Window only supports slicing with ascending indices within allowed range
-        with pytest.raises(IndexError):
-            window.window(dt(3), dt(1))
-        with pytest.raises(IndexError):
-            window.window(dt(3), dt(6))
-        with pytest.raises(IndexError):
-            window.window(dt(-1), dt(5))
+        # Window also supports slicing with indices outside allowed range
+        assert np.array_equal(window.window(dt(3), dt(1)), np.array([]))
+        assert np.array_equal(window.window(dt(3), dt(6)), np.array([3, 4]))
+        assert np.array_equal(window.window(dt(-1), dt(5)), np.array([0, 1, 2, 3, 4]))
 
 
 async def test_access_empty_window() -> None:
@@ -144,12 +191,15 @@ async def test_window_size() -> None:
     async with window:
         assert window.capacity == 5, "Wrong window capacity"
         assert window.count_valid() == 0, "Window should be empty"
+        assert window.count_covered() == 0, "Window should be empty"
         await push_logical_meter_data(sender, range(0, 2))
         assert window.capacity == 5, "Wrong window capacity"
         assert window.count_valid() == 2, "Window should be partially full"
+        assert window.count_covered() == 2, "Window should be partially full"
         await push_logical_meter_data(sender, range(2, 20))
         assert window.capacity == 5, "Wrong window capacity"
         assert window.count_valid() == 5, "Window should be full"
+        assert window.count_covered() == 5, "Window should be full"
 
 
 # pylint: disable=redefined-outer-name

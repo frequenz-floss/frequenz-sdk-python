@@ -257,8 +257,53 @@ class OrderedRingBuffer(Generic[FloatArray]):
             )
         )
 
+    def get_timestamp(self, index: int) -> datetime | None:
+        """Convert the given index to the underlying timestamp.
+
+        Index 0 corresponds to the oldest timestamp in the buffer.
+        If negative indices are used, the newest timestamp is used as reference.
+
+        !!!warning
+
+            The resulting timestamp can be outside the range of the buffer.
+
+        Args:
+            index: Index to convert.
+
+        Returns:
+            Datetime index where the value for the given index can be found.
+                Or None if the buffer is empty.
+        """
+        if self.oldest_timestamp is None:
+            return None
+        assert self.newest_timestamp is not None
+        ref_ts = (
+            self.oldest_timestamp
+            if index >= 0
+            else self.newest_timestamp + self._sampling_period
+        )
+        return ref_ts + index * self._sampling_period
+
+    def _to_covered_indices(
+        self, start: int | None, end: int | None = None
+    ) -> tuple[int, int]:
+        """Project the given indices via slice onto the covered range.
+
+        Args:
+            start: Start index.
+            end: End index. Optional, defaults to None.
+
+        Returns:
+            tuple of start and end indices on the range currently covered by the buffer.
+        """
+        return slice(start, end).indices(self.count_covered())[:2]
+
     def window(
-        self, start: datetime, end: datetime, *, force_copy: bool = True
+        self,
+        start: datetime | int | None,
+        end: datetime | int | None,
+        *,
+        force_copy: bool = True,
     ) -> FloatArray:
         """Request a copy or view on the data between start timestamp and end timestamp.
 
@@ -283,17 +328,32 @@ class OrderedRingBuffer(Generic[FloatArray]):
                 copy of the data.
 
         Raises:
-            IndexError: When requesting a window with invalid timestamps.
+            IndexError: When start and end are not both datetime or index.
 
         Returns:
             The requested window
         """
-        if start > end:
+        if self.count_covered() == 0:
+            return np.array([]) if isinstance(self._buffer, np.ndarray) else []
+
+        # If both are indices or None convert to datetime
+        if not isinstance(start, datetime) and not isinstance(end, datetime):
+            start, end = self._to_covered_indices(start, end)
+            start = self.get_timestamp(start)
+            end = self.get_timestamp(end)
+
+        # Here we should have both as datetime
+        if not isinstance(start, datetime) or not isinstance(end, datetime):
             raise IndexError(
-                f"end parameter {end} has to predate start parameter {start}"
+                f"start ({start}) and end ({end}) must both be either datetime or index."
             )
 
-        if start == end:
+        # Ensure that the window is within the bounds of the buffer
+        assert self.oldest_timestamp is not None and self.newest_timestamp is not None
+        start = max(start, self.oldest_timestamp)
+        end = min(end, self.newest_timestamp + self._sampling_period)
+
+        if start >= end:
             return np.array([]) if isinstance(self._buffer, np.ndarray) else []
 
         start_pos = self.to_internal_index(start)
@@ -538,6 +598,33 @@ class OrderedRingBuffer(Generic[FloatArray]):
             The requested value or slice.
         """
         return self._buffer.__getitem__(index_or_slice)
+
+    def _covered_time_range(self) -> timedelta:
+        """Return the time range that is covered by the oldest and newest valid samples.
+
+        Returns:
+            The time range between the oldest and newest valid samples or 0 if
+                there are is no time range covered.
+        """
+        if not self.oldest_timestamp:
+            return timedelta(0)
+
+        assert (
+            self.newest_timestamp is not None
+        ), "Newest timestamp cannot be None here."
+        return self.newest_timestamp - self.oldest_timestamp + self._sampling_period
+
+    def count_covered(self) -> int:
+        """Count the number of samples that are covered by the oldest and newest valid samples.
+
+        Returns:
+            The count of samples between the oldest and newest (inclusive) valid samples
+                or 0 if there are is no time range covered.
+        """
+        return int(
+            self._covered_time_range().total_seconds()
+            // self._sampling_period.total_seconds()
+        )
 
     def count_valid(self) -> int:
         """Count the number of valid items that this buffer currently holds.
