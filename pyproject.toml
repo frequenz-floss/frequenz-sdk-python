@@ -76,7 +76,7 @@ dev-mypy = [
   "types-colorama == 0.4.15.12",
   "types-protobuf == 4.24.0.1",
   "types-python-dateutil == 2.8.19.14",
-  "types-pytz == 2023.3.1.0",
+  "types-pytz == 2023.3.1.1",
   "types-setuptools == 68.2.0.0",
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
