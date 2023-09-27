@@ -55,7 +55,7 @@ def define_env(env: macros.MacrosPlugin) -> None:
             The Markdown link to the glossary entry for the given term.
         """
         current_path = pathlib.Path(env.page.file.src_uri)
-        glossary_path = pathlib.Path("intro/glossary.md")
+        glossary_path = pathlib.Path("user-guide/glossary.md")
         link_path = glossary_path.relative_to(current_path.parent)
         return f"[{term}]({link_path}#{_slugify(term)})"
 
