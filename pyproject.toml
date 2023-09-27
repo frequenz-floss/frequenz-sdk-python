@@ -37,9 +37,9 @@ dependencies = [
   "networkx >= 2.8, < 4",
   "numpy >= 1.24.2, < 2",
   "protobuf >= 4.21.6, < 5",
-  "pydantic >= 1.9, < 2",
+  "pydantic >= 2.3, < 3",
   "tqdm >= 4.38.0, < 5",
-  "typing_extensions >= 4.4.0, < 5",
+  "typing_extensions >= 4.6.1, < 5",
   "watchfiles >= 0.15.0",
 ]
 dynamic = ["version"]

@@ -3,11 +3,11 @@
 
 """Read and update config variables."""
 
+import json
 import logging
 from typing import Any, TypeVar
 
-# pylint not finding parse_raw_as is a false positive
-from pydantic import ValidationError, parse_raw_as  # pylint: disable=no-name-in-module
+from pydantic import Strict, TypeAdapter, ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -121,7 +121,11 @@ class Config:
             return value
 
         try:
-            parsed_value: Any = parse_raw_as(expected_type, value)
+            obj = json.loads(value)
+            metadata = getattr(expected_type, "__metadata__", (None,))[0]
+            strict = metadata.strict if isinstance(metadata, Strict) else False
+            adapter = TypeAdapter(expected_type)
+            parsed_value = adapter.validate_python(obj, strict=strict)
         except (ValidationError, ValueError) as err:
             raise ValueError(
                 f"Could not convert config variable: {key} = '{value}' "
