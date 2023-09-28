@@ -92,10 +92,10 @@ class TestConfig:
             ("logging_lvl", str, "DEBUG"),
             ("var_int", int, 5),
             ("var_int", StrictInt, 5),
+            ("var_int", StrictFloat, 5.0),
             ("var_int", float, 5.0),
             ("var_float", float, 3.14),
             ("var_float", StrictFloat, 3.14),
-            ("var_float", int, 3),
             ("var_bool", int, 1),
             ("var_bool", float, 1.0),
             ("var_bool", bool, True),
@@ -103,7 +103,7 @@ class TestConfig:
             ("var_bool", StrictBool, True),
             ("list_int", list[int], [1, 2, 3]),
             ("list_int", list[StrictInt], [1, 2, 3]),
-            ("list_float", list[int], [1, 2, 3]),
+            ("list_int", list[StrictFloat], [1.0, 2.0, 3.0]),
             ("list_int", list[float], [1.0, 2.0, 3.0]),
             ("list_float", list[float], [1, 2.0, 3.5]),
             ("list_non_strict_bool", list[bool], 2 * [False] + 2 * [True]),
@@ -124,12 +124,12 @@ class TestConfig:
     @pytest.mark.parametrize(
         "key, expected_type",
         [
+            ("var_float", int),
             ("var_float", StrictInt),
-            ("var_int", StrictFloat),
             ("var1", StrictBool),
             ("list_float", list[StrictInt]),
-            ("list_int", list[StrictFloat]),
             ("list_non_strict_bool", list[int]),
+            ("list_float", list[int]),
         ],
     )
     def test_get_as_validation_error(
