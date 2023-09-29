@@ -289,6 +289,7 @@ class MovingWindow(BackgroundService):
         end: datetime | int | None,
         *,
         force_copy: bool = True,
+        fill_value: float | None = np.nan,
     ) -> ArrayLike:
         """
         Return an array containing the samples in the given time interval.
@@ -305,11 +306,16 @@ class MovingWindow(BackgroundService):
             force_copy: If `True`, the returned array is a copy of the underlying
                 data. Otherwise, if possible, a view of the underlying data is
                 returned.
+            fill_value: If not None, will use this value to fill missing values.
+                If missing values should be set, force_copy must be True.
+                Defaults to NaN to avoid returning outdated data unexpectedly.
 
         Returns:
             An array containing the samples in the given time interval.
         """
-        return self._buffer.window(start, end, force_copy=force_copy)
+        return self._buffer.window(
+            start, end, force_copy=force_copy, fill_value=fill_value
+        )
 
     async def _run_impl(self) -> None:
         """Awaits samples from the receiver and updates the underlying ring buffer.

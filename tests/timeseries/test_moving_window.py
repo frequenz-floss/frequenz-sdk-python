@@ -163,10 +163,16 @@ async def test_access_window_by_int_slice() -> None:
             sender, [3.0], start_ts=UNIX_EPOCH + timedelta(seconds=3)
         )
         test_eq([0.0, 1.0], 0, 2)
-        # gap fill not supported yet:
-        # test_eq([0.0, 1.0, np.nan, 3.0], 0, None)
-        # test_eq([0.0, 1.0, np.nan, 3.0], -9, None)
-        # test_eq([np.nan, 3.0], -2, None)
+        # test gaps to be NaN
+        test_eq([0.0, 1.0, np.nan, 3.0], 0, None)
+        test_eq([np.nan, 3.0], -2, None)
+
+        # Test fill_value
+        assert np.allclose(
+            np.array([0.0, 1.0, 2.0, 3.0]),
+            window.window(0, None, fill_value=2.0),
+            equal_nan=True,
+        )
 
         # Complete window
         await push_logical_meter_data(sender, [0.0, 1.0, 2.0, 3.0, 4.0])
