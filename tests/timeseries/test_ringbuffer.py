@@ -526,12 +526,12 @@ def get_orb(data: FloatArray) -> OrderedRingBuffer[FloatArray]:
 def test_window_datetime() -> None:
     """Test the window function with datetime."""
     buffer = get_orb(np.array([0, None, 2, 3, 4]))
-    win = buffer.window(dt(0), dt(3), force_copy=False)
+    win = buffer.window(dt(0), dt(3), force_copy=False, fill_value=None)
     assert [0, np.nan, 2] == list(win)
     buffer._buffer[1] = 1  # pylint: disable=protected-access
     # Test whether the window is a view or a copy
     assert [0, 1, 2] == list(win)
-    win = buffer.window(dt(0), dt(3), force_copy=False)
+    win = buffer.window(dt(0), dt(3), force_copy=False, fill_value=None)
     assert [0, 1, 2] == list(win)
     # Empty array
     assert 0 == buffer.window(dt(1), dt(1)).size
@@ -561,8 +561,45 @@ def test_window_index() -> None:
     assert [] == buffer.window(-3, 0)
 
 
+def test_window_index_fill_value() -> None:
+    """Test fill_value functionality of window function."""
+    # Init with dummy data of size 3 and fill with [0, nan, 2]
+    buffer = OrderedRingBuffer([4711.0] * 3, ONE_SECOND)
+    buffer.update(Sample(dt(0), Quantity(0)))
+    buffer.update(Sample(dt(1), None))
+    buffer.update(Sample(dt(2), Quantity(2)))
+
+    # Test fill_value for explicitly set gaps
+    assert [0.0, np.nan, 2.0] == buffer.window(0, None)
+    assert [0.0, np.nan, 2.0] == buffer.window(0, None, fill_value=None)
+    assert [0.0, 1.0, 2.0] == buffer.window(0, None, fill_value=1)
+
+    # initial nan is ignored (optional implementation decision)
+    buffer.update(Sample(dt(3), Quantity(3)))  # -> [nan, 2, 3]
+    assert [2.0, 3.0] == buffer.window(0, None)
+    assert [2.0, 3.0] == buffer.window(0, None, fill_value=1)
+
+    # Test fill_value for gaps implicitly created gaps by time jumps
+    buffer.update(Sample(dt(4), Quantity(4)))
+    buffer.update(Sample(dt(6), Quantity(6)))  # -> [4, ?, 6]
+    # Default is fill missing values with NaNs
+    assert [4.0, np.nan, 6.0] == buffer.window(0, None)
+    assert [4.0, np.nan, 6.0] == buffer.window(0, None, fill_value=np.nan)
+    assert [4.0, 5.0, 6.0] == buffer.window(0, None, fill_value=5)
+    # If missing values not filled, outdated values can be returned unexpectedly
+    assert [4.0, 2, 6.0] == buffer.window(0, None, fill_value=None)
+
+    # Some edge cases
+    buffer.update(Sample(dt(7), Quantity(7)))  # -> [?, 6, 7]
+    assert [6.0, 7.0] == buffer.window(0, None)
+    buffer.update(Sample(dt(8), Quantity(np.nan)))  # -> [6, 7, nan]
+    assert [6.0, 7.0, np.nan] == buffer.window(0, None)
+    buffer.update(Sample(dt(9), None))  # -> [7, nan, nan]
+    assert [7.0, np.nan, np.nan] == buffer.window(0, None)
+
+
 def test_window_fail() -> None:
-    """Test the window function with invalid indices."""
+    """Test the window function with invalid arguments."""
     buffer = get_orb([0.0, 1.0, 2.0, 3.0, 4.0])
     # Go crazy with the indices
     with pytest.raises(IndexError):
@@ -573,6 +610,9 @@ def test_window_fail() -> None:
         buffer.window(None, dt(2))
     with pytest.raises(IndexError):
         buffer.window(dt(2), None)
+    # Invalid argument combination
+    with pytest.raises(ValueError):
+        buffer.window(0, 1, force_copy=False, fill_value=0)
 
 
 def test_wrapped_buffer_window() -> None:

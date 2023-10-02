@@ -28,6 +28,7 @@
 - In `OrderedRingBuffer` and `MovingWindow`:
   - Support for integer indices is added.
   - Add `count_covered` method to count the number of elements covered by the used time range.
+  - Add `fill_value` option to window method to impute missing values. By default missing values are imputed with `NaN`.
 - Add `at` method to `MovingWindow` to access a single element and use it in `__getitem__` magic to fully support single element access.
 
 
