@@ -139,7 +139,7 @@ class BatteryPoolWrapper:
                 preferred_power=power,
                 bounds=timeseries.Bounds(None, None),
                 battery_ids=self._battery_pool._batteries,
-                priority=0,
+                priority=self._priority,
                 request_timeout=request_timeout,
                 include_broken_batteries=include_broken_batteries,
             )
@@ -182,7 +182,7 @@ class BatteryPoolWrapper:
                 preferred_power=power,
                 bounds=timeseries.Bounds(None, None),
                 battery_ids=self._battery_pool._batteries,
-                priority=0,
+                priority=self._priority,
                 request_timeout=request_timeout,
                 include_broken_batteries=include_broken_batteries,
             )

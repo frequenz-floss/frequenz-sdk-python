@@ -11,6 +11,7 @@ ResamplingActor.
 from __future__ import annotations
 
 import logging
+import sys
 import typing
 from collections import abc
 from dataclasses import dataclass
@@ -186,7 +187,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self,
         battery_ids: abc.Set[int] | None = None,
         source_id: str | None = None,
-        priority: int = 0,
+        priority: int = -sys.maxsize - 1,
     ) -> BatteryPoolWrapper:
         """Return the corresponding BatteryPool instance for the given ids.
 
@@ -424,7 +425,7 @@ def ev_charger_pool(ev_charger_ids: set[int] | None = None) -> EVChargerPool:
 def battery_pool(
     battery_ids: abc.Set[int] | None = None,
     source_id: str | None = None,
-    priority: int = 0,
+    priority: int = -sys.maxsize - 1,
 ) -> BatteryPoolWrapper:
     """Return the corresponding BatteryPool instance for the given ids.
 
