@@ -51,7 +51,7 @@ async def send_requests(batteries: set[int], request_num: int) -> list[Result]:
         List of the results from the PowerDistributingActor.
     """
     battery_pool = microgrid.battery_pool(batteries)
-    results_rx = battery_pool.power_bounds.new_receiver()
+    results_rx = battery_pool.power_status.new_receiver()
     result: list[Any] = []
     for _ in range(request_num):
         await battery_pool.set_power(Power(float(random.randrange(100000, 1000000))))

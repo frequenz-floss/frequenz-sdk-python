@@ -383,14 +383,16 @@ class BatteryPoolWrapper:
         return self._battery_pool._active_methods[method_name]
 
     @property
-    def power_bounds(self) -> ReceiverFetcher[_power_managing.Report]:
-        """Get a receiver to receive new power bounds when they change.
+    def power_status(self) -> ReceiverFetcher[_power_managing.Report]:
+        """Get a receiver to receive new power status reports when they change.
 
-        These bounds are the bounds specified the power manager for actors with the
-        given priority.
+        These include
+          - the current inclusion/exclusion bounds available for the pool's priority,
+          - the current target power for the pool's set of batteries,
+          - the result of the last distribution request for the pool's set of batteries.
 
         Returns:
-            A receiver that will receive the power bounds for the given priority.
+            A receiver that will stream power status reports for the pool's priority.
         """
         sub = _power_managing.ReportRequest(
             source_id=self._source_id,
