@@ -44,17 +44,17 @@ class BatteryPoolWrapper:
     same set of batteries.
     """
 
-    def __init__(self, battery_pool: BatteryPool, source_id: str | None, priority: int):
+    def __init__(self, battery_pool: BatteryPool, name: str | None, priority: int):
         """Create a BatteryPoolWrapper instance.
 
         Args:
             battery_pool: The battery pool to wrap.
-            source_id: The source ID to use for the requests made by this wrapper.
+            name: The source ID to use for the requests made by this wrapper.
             priority: The priority of the actor using this wrapper.
         """
         self._battery_pool = battery_pool
         unique_id = str(uuid.uuid4())
-        self._source_id = unique_id if source_id is None else f"{source_id}-{unique_id}"
+        self._source_id = unique_id if name is None else f"{name}-{unique_id}"
         self._priority = priority
 
     async def propose_power(

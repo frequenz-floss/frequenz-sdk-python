@@ -186,7 +186,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
     def battery_pool(
         self,
         battery_ids: abc.Set[int] | None = None,
-        source_id: str | None = None,
+        name: str | None = None,
         priority: int = -sys.maxsize - 1,
     ) -> BatteryPoolWrapper:
         """Return the corresponding BatteryPool instance for the given ids.
@@ -199,7 +199,8 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         Args:
             battery_ids: Optional set of IDs of batteries to be managed by the
                 BatteryPool.
-            source_id: The source ID to use for the requests made with this instance.
+            name: An optional name used to identify this instance of the pool or a
+                corresponding actor in the logs.
             priority: The priority of the actor making the call.
 
         Returns:
@@ -232,7 +233,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 batteries_id=battery_ids,
             )
 
-        return BatteryPoolWrapper(self._battery_pools[key], source_id, priority)
+        return BatteryPoolWrapper(self._battery_pools[key], name, priority)
 
     def _start_power_managing_actor(self) -> None:
         """Start the power managing actor if it is not already running."""
@@ -424,27 +425,27 @@ def ev_charger_pool(ev_charger_ids: set[int] | None = None) -> EVChargerPool:
 
 def battery_pool(
     battery_ids: abc.Set[int] | None = None,
-    source_id: str | None = None,
+    name: str | None = None,
     priority: int = -sys.maxsize - 1,
 ) -> BatteryPoolWrapper:
     """Return the corresponding BatteryPool instance for the given ids.
 
-    If a BatteryPool instance for the given ids doesn't exist, a new one is
-    created and returned.
+    If a BatteryPool instance for the given ids doesn't exist, a new one is created and
+    returned.
 
     The BatteryPool is wrapped in a new `BatteryPoolWrapper` instance each time.
 
     Args:
-        battery_ids: Optional set of IDs of batteries to be managed by the
-            BatteryPool.  If not specified, all batteries available in the
-            component graph are used.
-        source_id: The source ID to use for the requests made with this instance.
+        battery_ids: Optional set of IDs of batteries to be managed by the BatteryPool.
+            If not specified, all batteries available in the component graph are used.
+        name: An optional name used to identify this instance of the pool or a
+            corresponding actor in the logs.
         priority: The priority of the actor making the call.
 
     Returns:
         A BatteryPool instance.
     """
-    return _get().battery_pool(battery_ids, source_id, priority)
+    return _get().battery_pool(battery_ids, name, priority)
 
 
 def _get() -> _DataPipeline:

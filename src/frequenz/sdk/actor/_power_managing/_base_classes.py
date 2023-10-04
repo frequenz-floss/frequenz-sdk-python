@@ -78,10 +78,29 @@ class Proposal:
     """A proposal for a battery to be charged or discharged."""
 
     source_id: str
+    """The source ID of the actor sending the request."""
+
     preferred_power: Power | None
+    """The preferred power to be distributed to the batteries.
+
+    If `None`, the preferred power of higher priority actors will get precedence.
+    """
+
     bounds: timeseries.Bounds[Power | None]
+    """The power bounds for the proposal.
+
+    These bounds will apply to actors with a lower priority, and can be overridden by
+    bounds from actors with a higher priority.  If None, the power bounds will be set to
+    the maximum power of the batteries in the pool.  This is currently and experimental
+    feature.
+    """
+
     battery_ids: frozenset[int]
+    """The battery IDs to distribute the power to."""
+
     priority: int
+    """The priority of the actor sending the proposal."""
+
     request_timeout: datetime.timedelta = datetime.timedelta(seconds=5.0)
     """The maximum amount of time to wait for the request to be fulfilled."""
 
