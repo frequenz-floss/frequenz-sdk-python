@@ -191,7 +191,7 @@ class TestBatteryPoolControl:
             await bounds_rx.receive(), power=None, lower=-4000.0, upper=4000.0
         )
 
-        await battery_pool.set_power(Power.from_watts(1000.0))
+        await battery_pool.propose_power(Power.from_watts(1000.0))
 
         self._assert_report(
             await bounds_rx.receive(), power=1000.0, lower=-4000.0, upper=4000.0
@@ -220,7 +220,7 @@ class TestBatteryPoolControl:
                 await asyncio.sleep(1000.0)
 
         set_power.side_effect = side_effect
-        await battery_pool.set_power(
+        await battery_pool.propose_power(
             Power.from_watts(100.0), request_timeout=timedelta(seconds=0.1)
         )
         self._assert_report(
@@ -289,7 +289,7 @@ class TestBatteryPoolControl:
         self._assert_report(
             await bounds_2_rx.receive(), power=None, lower=-2000.0, upper=2000.0
         )
-        await battery_pool_1.set_power(Power.from_watts(1000.0))
+        await battery_pool_1.propose_power(Power.from_watts(1000.0))
         self._assert_report(
             await bounds_1_rx.receive(), power=1000.0, lower=-2000.0, upper=2000.0
         )
@@ -300,7 +300,7 @@ class TestBatteryPoolControl:
         ]
         set_power.reset_mock()
 
-        await battery_pool_2.set_power(Power.from_watts(1000.0))
+        await battery_pool_2.propose_power(Power.from_watts(1000.0))
         self._assert_report(
             await bounds_2_rx.receive(), power=1000.0, lower=-2000.0, upper=2000.0
         )
@@ -335,9 +335,9 @@ class TestBatteryPoolControl:
         self._assert_report(
             await bounds_2_rx.receive(), power=None, lower=-4000.0, upper=4000.0
         )
-        await battery_pool_1.set_power(
+        await battery_pool_1.propose_power(
             Power.from_watts(-1000.0),
-            _bounds=timeseries.Bounds(Power.from_watts(-1000.0), Power.from_watts(0.0)),
+            bounds=timeseries.Bounds(Power.from_watts(-1000.0), Power.from_watts(0.0)),
         )
         self._assert_report(
             await bounds_1_rx.receive(), power=-1000.0, lower=-4000.0, upper=4000.0
@@ -353,9 +353,9 @@ class TestBatteryPoolControl:
         ]
         set_power.reset_mock()
 
-        await battery_pool_2.set_power(
+        await battery_pool_2.propose_power(
             Power.from_watts(0.0),
-            _bounds=timeseries.Bounds(Power.from_watts(0.0), Power.from_watts(1000.0)),
+            bounds=timeseries.Bounds(Power.from_watts(0.0), Power.from_watts(1000.0)),
         )
         self._assert_report(
             await bounds_1_rx.receive(), power=0.0, lower=-4000.0, upper=4000.0

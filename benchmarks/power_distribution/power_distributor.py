@@ -54,7 +54,9 @@ async def send_requests(batteries: set[int], request_num: int) -> list[Result]:
     results_rx = battery_pool.power_status.new_receiver()
     result: list[Any] = []
     for _ in range(request_num):
-        await battery_pool.set_power(Power(float(random.randrange(100000, 1000000))))
+        await battery_pool.propose_power(
+            Power(float(random.randrange(100000, 1000000)))
+        )
         try:
             output = await asyncio.wait_for(results_rx.receive(), timeout=3)
             if output is None:

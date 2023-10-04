@@ -57,44 +57,57 @@ class BatteryPoolWrapper:
         self._source_id = unique_id if source_id is None else f"{source_id}-{unique_id}"
         self._priority = priority
 
-    async def set_power(
+    async def propose_power(
         self,
-        preferred_power: Power | None,
+        power: Power | None,
         *,
         request_timeout: timedelta = timedelta(seconds=5.0),
         include_broken_batteries: bool = False,
-        _bounds: timeseries.Bounds[Power | None] = timeseries.Bounds(None, None),
+        bounds: timeseries.Bounds[Power | None] = timeseries.Bounds(None, None),
     ) -> None:
-        """Set the given power for the batteries in the pool.
+        """Send a proposal to the power manager for the pool's set of batteries.
 
         Power values need to follow the Passive Sign Convention (PSC). That is, positive
         values indicate charge power and negative values indicate discharge power.
 
-        When not using the Passive Sign Convention, the `charge` and `discharge` methods
-        might be more convenient.
+        If the same batteries are shared by multiple actors, the power manager will
+        consider the priority of the actors, the bounds they set, and their preferred
+        power, when calculating the target power for the batteries.
+
+        The preferred power of lower priority actors will take precedence as long as
+        they respect the bounds set by higher priority actors.  If lower priority actors
+        request power values outside of the bounds set by higher priority actors, the
+        target power will be closest value to the preferred power that is within the
+        bounds.
+
+        When there are no other actors trying to use the same batteries, the actor's
+        preferred power would be set as the target power, as long as it falls within the
+        system power bounds for the batteries.
 
         The result of the request can be accessed using the receiver returned from the
         `power_distribution_results` method.
 
         Args:
-            preferred_power: The power to set for the batteries in the pool.
+            power: The power to propose for the batteries in the pool.  If None, the
+                proposed power of higher priority actors will take precedence as the
+                target power.
             request_timeout: The timeout for the request.
             include_broken_batteries: if True, the power will be set for all batteries
                 in the pool, including the broken ones. If False, then the power will be
                 set only for the working batteries.  This is not a guarantee that the
                 power will be set for all working batteries, as the microgrid API may
                 still reject the request.
-            _bounds: The power bounds for the request.  These bounds will apply to actors
-                with a lower priority, and can be overridden by bounds from actors with
-                a higher priority.  If None, the power bounds will be set to the maximum
-                power of the batteries in the pool.  This is currently and experimental
-                feature.
+            bounds: The power bounds for the proposal.  These bounds will apply to
+                actors with a lower priority, and can be overridden by bounds from
+                actors with a higher priority.  If None, the power bounds will be set
+                to the maximum power of the batteries in the pool.  This is currently
+                and experimental feature.
         """
         await self._battery_pool._power_manager_requests_sender.send(
             _power_managing.Proposal(
                 source_id=self._source_id,
-                preferred_power=preferred_power,
-                bounds=_bounds,
+                preferred_power=power,
+                bounds=bounds,
                 battery_ids=self._battery_pool._batteries,
                 priority=self._priority,
                 request_timeout=request_timeout,
@@ -102,7 +115,7 @@ class BatteryPoolWrapper:
             )
         )
 
-    async def charge(
+    async def propose_charge(
         self,
         power: Power | None,
         *,
@@ -113,14 +126,21 @@ class BatteryPoolWrapper:
 
         Power values need to be positive values, indicating charge power.
 
-        When using the Passive Sign Convention, the `set_power` method might be more
+        When using the Passive Sign Convention, the `propose_power` method might be more
         convenient.
 
+        If the same batteries are shared by multiple actors, the behaviour is the same
+        as that of the `propose_power` method.  The bounds for lower priority actors
+        can't be specified with this method.  If that's required, use the
+        `propose_power` method instead.
+
         The result of the request can be accessed using the receiver returned from
-        the `power_distribution_results` method.
+        the `power_status` method.
 
         Args:
-            power: Unsigned charge power to set for the batteries in the pool.
+            power: The unsigned charge power to propose for the batteries in the pool.
+                If None, the proposed power of higher priority actors will take
+                precedence as the target power.
             request_timeout: The timeout for the request.
             include_broken_batteries: if True, the power will be set for all batteries
                 in the pool, including the broken ones. If False, then the power will be
@@ -145,7 +165,7 @@ class BatteryPoolWrapper:
             )
         )
 
-    async def discharge(
+    async def propose_discharge(
         self,
         power: Power | None,
         *,
@@ -156,14 +176,21 @@ class BatteryPoolWrapper:
 
         Power values need to be positive values, indicating discharge power.
 
-        When using the Passive Sign Convention, the `set_power` method might be more
+        When using the Passive Sign Convention, the `propose_power` method might be more
         convenient.
 
+        If the same batteries are shared by multiple actors, the behaviour is the same
+        as that of the `propose_power` method.  The bounds for lower priority actors
+        can't be specified with this method.  If that's required, use the
+        `propose_power` method instead.
+
         The result of the request can be accessed using the receiver returned from
-        the `power_distribution_results` method.
+        the `power_status` method.
 
         Args:
-            power: Unsigned discharge power to set for the batteries in the pool.
+            power: The unsigned discharge power to propose for the batteries in the
+                pool.  If None, the proposed power of higher priority actors will take
+                precedence as the target power.
             request_timeout: The timeout for the request.
             include_broken_batteries: if True, the power will be set for all batteries
                 in the pool, including the broken ones. If False, then the power will be
