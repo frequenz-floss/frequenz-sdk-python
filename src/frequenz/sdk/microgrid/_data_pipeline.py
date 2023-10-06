@@ -38,7 +38,7 @@ if typing.TYPE_CHECKING:
         Request,
         Result,
     )
-    from ..timeseries.battery_pool import BatteryPoolWrapper
+    from ..timeseries.battery_pool import BatteryPool
     from ..timeseries.battery_pool._battery_pool_reference_store import (
         BatteryPoolReferenceStore,
     )
@@ -191,13 +191,11 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         battery_ids: abc.Set[int] | None = None,
         name: str | None = None,
         priority: int = -sys.maxsize - 1,
-    ) -> BatteryPoolWrapper:
-        """Return the corresponding BatteryPool instance for the given ids.
+    ) -> BatteryPool:
+        """Return a new BatteryPool instance for the given ids.
 
-        If a BatteryPool instance for the given ids doesn't exist, a new one is created
-        and returned.
-
-        The BatteryPool is wrapped in a new `BatteryPoolWrapper` instance each time.
+        If a BatteryPoolReferenceStore instance for the given battery ids doesn't exist,
+        a new one is created and used for creating the BatteryPool.
 
         Args:
             battery_ids: Optional set of IDs of batteries to be managed by the
@@ -207,9 +205,10 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             priority: The priority of the actor making the call.
 
         Returns:
-            A BatteryPoolWrapper instance.
+            A BatteryPool instance.
+
         """
-        from ..timeseries.battery_pool import BatteryPoolWrapper
+        from ..timeseries.battery_pool import BatteryPool
         from ..timeseries.battery_pool._battery_pool_reference_store import (
             BatteryPoolReferenceStore,
         )
@@ -239,7 +238,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 batteries_id=battery_ids,
             )
 
-        return BatteryPoolWrapper(self._battery_pools[key], name, priority)
+        return BatteryPool(self._battery_pools[key], name, priority)
 
     def _start_power_managing_actor(self) -> None:
         """Start the power managing actor if it is not already running."""
@@ -433,11 +432,8 @@ def battery_pool(
     battery_ids: abc.Set[int] | None = None,
     name: str | None = None,
     priority: int = -sys.maxsize - 1,
-) -> BatteryPoolWrapper:
-    """Return the corresponding BatteryPool instance for the given ids.
-
-    If a BatteryPool instance for the given ids doesn't exist, a new one is created and
-    returned.
+) -> BatteryPool:
+    """Return a new BatteryPool instance for the given parameters.
 
     The priority value is used to resolve conflicts when multiple actors are trying to
     propose different power values for the same set of batteries.
@@ -445,8 +441,6 @@ def battery_pool(
     !!! note
         When specifying priority, bigger values indicate higher priority. The default
         priority is the lowest possible value.
-
-    The BatteryPool is wrapped in a new `BatteryPoolWrapper` instance each time.
 
     Args:
         battery_ids: Optional set of IDs of batteries to be managed by the BatteryPool.

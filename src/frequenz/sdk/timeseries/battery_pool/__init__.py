@@ -3,10 +3,10 @@
 
 """Manage a pool of batteries."""
 
-from ._battery_pool_wrapper import BatteryPoolWrapper
+from ._battery_pool import BatteryPool
 from ._result_types import PowerMetrics
 
 __all__ = [
-    "BatteryPoolWrapper",
+    "BatteryPool",
     "PowerMetrics",
 ]

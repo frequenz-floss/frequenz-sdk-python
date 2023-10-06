@@ -36,7 +36,7 @@ from frequenz.sdk.timeseries import (
     Sample,
     Temperature,
 )
-from frequenz.sdk.timeseries.battery_pool import BatteryPoolWrapper, PowerMetrics
+from frequenz.sdk.timeseries.battery_pool import BatteryPool, PowerMetrics
 from frequenz.sdk.timeseries.battery_pool._metric_calculator import (
     battery_inverter_mapping,
 )
@@ -90,7 +90,7 @@ def get_components(
 class SetupArgs:
     """Setup arguments needed to run tests."""
 
-    battery_pool: BatteryPoolWrapper
+    battery_pool: BatteryPool
     """Battery pool that should be tested."""
 
     min_update_interval: float

@@ -31,7 +31,7 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
     These are independent of the priority of the actors, and can be shared between
     multiple users of the same set of batteries.
 
-    They are exposed through the BatteryPoolWrapper class.
+    They are exposed through the BatteryPool class.
     """
 
     def __init__(  # pylint: disable=too-many-arguments

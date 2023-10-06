@@ -36,12 +36,23 @@ from ._result_types import PowerMetrics
 # pylint: disable=protected-access
 
 
-class BatteryPoolWrapper:
-    """The BatteryPoolWrapper is the external interface for the BatteryPool.
+class BatteryPool:
+    """An interface for interaction with pools of batteries.
 
-    BatteryPoolReferenceStore instances are unique to a set of batteries.  The
-    BatteryPoolWrapper provides an abstraction over actor priorities when multiple
-    actors want to use the same set of batteries.
+    Use the [microgrid.battery_pool][frequenz.sdk.microgrid.battery_pool] method for
+    creating `BatteryPool` instances.
+
+    Provides:
+      - properties for fetching reporting streams of instantaneous
+        [power][frequenz.sdk.timeseries.battery_pool.BatteryPool.power],
+        [soc][frequenz.sdk.timeseries.battery_pool.BatteryPool.soc],
+        [capacity][frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity] values and
+        available power bounds and other status through
+        [power_status][frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status].
+      - control methods for proposing power values, namely:
+        [propose_power][frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power],
+        [propose_charge][frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_charge] and
+        [propose_discharge][frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_discharge].
     """
 
     def __init__(
@@ -50,7 +61,7 @@ class BatteryPoolWrapper:
         name: str | None,
         priority: int,
     ):
-        """Create a BatteryPoolWrapper instance.
+        """Create a BatteryPool instance.
 
         Args:
             battery_pool_ref: The battery pool reference store instance.
