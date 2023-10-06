@@ -16,7 +16,7 @@ import grpc.aio as grpcaio
 from .client import MicrogridApiClient
 from .client._client import MicrogridGrpcClient
 from .component_graph import ComponentGraph, _MicrogridComponentGraph
-from .metadata import Metadata
+from .metadata import Location, Metadata
 
 # Not public default host and port
 _DEFAULT_MICROGRID_HOST = "[::1]"
@@ -75,6 +75,24 @@ class ConnectionManager(ABC):
             component graph
         """
 
+    @property
+    @abstractmethod
+    def microgrid_id(self) -> int | None:
+        """Get the ID of the microgrid if available.
+
+        Returns:
+            the ID of the microgrid if available, None otherwise.
+        """
+
+    @property
+    @abstractmethod
+    def location(self) -> Location | None:
+        """Get the location of the microgrid if available.
+
+        Returns:
+            the location of the microgrid if available, None otherwise.
+        """
+
     async def _update_api(self, host: str, port: int) -> None:
         self._host = host
         self._port = port
@@ -115,6 +133,24 @@ class _InsecureConnectionManager(ConnectionManager):
             api client
         """
         return self._api
+
+    @property
+    def microgrid_id(self) -> int | None:
+        """Get the ID of the microgrid if available.
+
+        Returns:
+            the ID of the microgrid if available, None otherwise.
+        """
+        return self._metadata.microgrid_id
+
+    @property
+    def location(self) -> Location | None:
+        """Get the location of the microgrid if available.
+
+        Returns:
+            the location of the microgrid if available, None otherwise.
+        """
+        return self._metadata.location
 
     @property
     def component_graph(self) -> ComponentGraph:
