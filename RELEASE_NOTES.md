@@ -75,6 +75,8 @@ This version ships an experimental version of the **Power Manager**, adds prelim
   * All development branches now have their documentation published (there is no `next` version anymore).
   * Fix the order of the documentation versions.
 
+- The `ConnectionManager` fetches microgrid metadata when connecting to the microgrid and exposes `microgrid_id` and `location` properties of the connected microgrid.
+
 ## Bug Fixes
 
 - Fix rendering of diagrams in the documentation.
