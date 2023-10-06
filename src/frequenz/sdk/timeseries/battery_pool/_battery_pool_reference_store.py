@@ -21,8 +21,15 @@ from .._formula_engine import FormulaEnginePool
 from ._methods import MetricAggregator
 
 
-class BatteryPool:  # pylint: disable=too-many-instance-attributes
-    """A class for maintaining the state/tasks for a set of pool of batteries.
+class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
+    """A class for maintaining the shared state/tasks for a set of pool of batteries.
+
+    This includes ownership of
+    - the formula engine pool and metric calculators.
+    - the tasks for updating the battery status for the metric calculators.
+
+    These are independent of the priority of the actors, and can be shared between
+    multiple users of the same set of batteries.
 
     They are exposed through the BatteryPoolWrapper class.
     """

@@ -23,6 +23,7 @@ from .._formula_engine._formula_generators import (
     FormulaGeneratorConfig,
     FormulaType,
 )
+from ._battery_pool_reference_store import BatteryPoolReferenceStore
 from ._methods import SendOnUpdate
 from ._metric_calculator import (
     CapacityCalculator,
@@ -31,7 +32,6 @@ from ._metric_calculator import (
     TemperatureCalculator,
 )
 from ._result_types import PowerMetrics
-from .battery_pool import BatteryPool
 
 # pylint: disable=protected-access
 
@@ -39,21 +39,26 @@ from .battery_pool import BatteryPool
 class BatteryPoolWrapper:
     """The BatteryPoolWrapper is the external interface for the BatteryPool.
 
-    BatteryPool instances are unique to a set of batteries.  The BatteryPoolWrapper
-    provides an abstraction over actor priorities when multiple actors want to use the
-    same set of batteries.
+    BatteryPoolReferenceStore instances are unique to a set of batteries.  The
+    BatteryPoolWrapper provides an abstraction over actor priorities when multiple
+    actors want to use the same set of batteries.
     """
 
-    def __init__(self, battery_pool: BatteryPool, name: str | None, priority: int):
+    def __init__(
+        self,
+        battery_pool_ref: BatteryPoolReferenceStore,
+        name: str | None,
+        priority: int,
+    ):
         """Create a BatteryPoolWrapper instance.
 
         Args:
-            battery_pool: The battery pool to wrap.
+            battery_pool_ref: The battery pool reference store instance.
             name: An optional name used to identify this instance of the pool or a
                 corresponding actor in the logs.
             priority: The priority of the actor using this wrapper.
         """
-        self._battery_pool = battery_pool
+        self._battery_pool = battery_pool_ref
         unique_id = str(uuid.uuid4())
         self._source_id = unique_id if name is None else f"{name}-{unique_id}"
         self._priority = priority

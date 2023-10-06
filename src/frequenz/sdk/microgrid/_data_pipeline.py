@@ -38,7 +38,10 @@ if typing.TYPE_CHECKING:
         Request,
         Result,
     )
-    from ..timeseries.battery_pool import BatteryPool, BatteryPoolWrapper
+    from ..timeseries.battery_pool import BatteryPoolWrapper
+    from ..timeseries.battery_pool._battery_pool_reference_store import (
+        BatteryPoolReferenceStore,
+    )
     from ..timeseries.ev_charger_pool import EVChargerPool
     from ..timeseries.logical_meter import LogicalMeter
 
@@ -110,7 +113,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         self._logical_meter: LogicalMeter | None = None
         self._ev_charger_pools: dict[frozenset[int], EVChargerPool] = {}
-        self._battery_pools: dict[frozenset[int], BatteryPool] = {}
+        self._battery_pools: dict[frozenset[int], BatteryPoolReferenceStore] = {}
         self._frequency_pool: dict[int, GridFrequency] = {}
 
     def frequency(self, component: Component | None = None) -> GridFrequency:
@@ -206,7 +209,10 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         Returns:
             A BatteryPoolWrapper instance.
         """
-        from ..timeseries.battery_pool import BatteryPool, BatteryPoolWrapper
+        from ..timeseries.battery_pool import BatteryPoolWrapper
+        from ..timeseries.battery_pool._battery_pool_reference_store import (
+            BatteryPoolReferenceStore,
+        )
 
         if not self._power_managing_actor:
             self._start_power_managing_actor()
@@ -217,7 +223,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             key = frozenset(battery_ids)
 
         if key not in self._battery_pools:
-            self._battery_pools[key] = BatteryPool(
+            self._battery_pools[key] = BatteryPoolReferenceStore(
                 channel_registry=self._channel_registry,
                 resampler_subscription_sender=self._resampling_request_sender(),
                 batteries_status_receiver=self._battery_status_channel.new_receiver(
