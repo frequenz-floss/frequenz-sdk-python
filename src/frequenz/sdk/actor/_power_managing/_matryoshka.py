@@ -91,6 +91,37 @@ class Matryoshka(BaseAlgorithm):
 
         return target_power
 
+    def _validate_battery_ids(
+        self,
+        battery_ids: frozenset[int],
+        proposal: Proposal | None,
+        system_bounds: PowerMetrics,
+    ) -> bool:
+        if battery_ids not in self._battery_buckets:
+            # if there are no previous proposals and there are no system bounds, then
+            # don't calculate a target power and fail the validation.
+            if (
+                system_bounds.inclusion_bounds is None
+                and system_bounds.exclusion_bounds is None
+            ):
+                if proposal is not None:
+                    _logger.warning(
+                        "PowerManagingActor: No system bounds available for battery "
+                        "IDs %s, but a proposal was given.  The proposal will be "
+                        "ignored.",
+                        battery_ids,
+                    )
+                return False
+
+            for bucket in self._battery_buckets:
+                if any(battery_id in bucket for battery_id in battery_ids):
+                    raise NotImplementedError(
+                        f"PowerManagingActor: Battery IDs {battery_ids} are already "
+                        "part of another bucket.  Overlapping buckets are not "
+                        "yet supported."
+                    )
+        return True
+
     @override
     def get_target_power(
         self,
@@ -113,33 +144,13 @@ class Matryoshka(BaseAlgorithm):
             The new target power for the batteries, or `None` if the target power
                 didn't change.
 
-        Raises:
+        Raises:  # noqa: DOC502
             NotImplementedError: When the proposal contains battery IDs that are
                 already part of another bucket.
         """
-        if battery_ids not in self._battery_buckets:
-            # if there are no previous proposals and there are no system bounds, then
-            # don't calculate a target power and just return `None`.
-            if (
-                system_bounds.inclusion_bounds is None
-                and system_bounds.exclusion_bounds is None
-            ):
-                if proposal is not None:
-                    _logger.warning(
-                        "PowerManagingActor: No system bounds available for battery "
-                        "IDs %s, but a proposal was given.  The proposal will be "
-                        "ignored.",
-                        battery_ids,
-                    )
-                return None
+        if not self._validate_battery_ids(battery_ids, proposal, system_bounds):
+            return None
 
-            for bucket in self._battery_buckets:
-                if any(battery_id in bucket for battery_id in battery_ids):
-                    raise NotImplementedError(
-                        f"PowerManagingActor: Battery IDs {battery_ids} are already "
-                        "part of another bucket.  Overlapping buckets are not "
-                        "yet supported."
-                    )
         if proposal is not None:
             self._battery_buckets.setdefault(battery_ids, SortedSet()).insert(proposal)
 
