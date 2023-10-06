@@ -35,6 +35,7 @@ Example:
     ```
 """
 
+from .._internal._channels import ReceiverFetcher
 from ._base_types import UNIX_EPOCH, Bounds, Sample, Sample3Phase
 from ._moving_window import MovingWindow
 from ._periodic_feature_extractor import PeriodicFeatureExtractor
@@ -55,6 +56,7 @@ __all__ = [
     "MovingWindow",
     "PeriodicFeatureExtractor",
     "ResamplerConfig",
+    "ReceiverFetcher",
     "Sample",
     "Sample3Phase",
     "UNIX_EPOCH",
