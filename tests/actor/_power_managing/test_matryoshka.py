@@ -31,6 +31,7 @@ async def test_matryoshka_algorithm() -> None:  # pylint: disable=too-many-state
         power: float | None,
         bounds: tuple[float | None, float | None],
         expected: float | None,
+        must_send: bool = False,
     ) -> None:
         nonlocal call_count
         call_count += 1
@@ -47,6 +48,7 @@ async def test_matryoshka_algorithm() -> None:  # pylint: disable=too-many-state
                 priority=priority,
             ),
             system_bounds,
+            must_send,
         )
         assert tgt_power == (
             Power.from_watts(expected) if expected is not None else None
@@ -72,6 +74,9 @@ async def test_matryoshka_algorithm() -> None:  # pylint: disable=too-many-state
     test_bounds(priority=1, expected_power=25.0, expected_bounds=(25.0, 50.0))
 
     test_tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=None)
+    test_tgt_power(
+        priority=1, power=20.0, bounds=(20.0, 50.0), expected=25.0, must_send=True
+    )
     test_bounds(priority=1, expected_power=25.0, expected_bounds=(25.0, 50.0))
 
     test_tgt_power(priority=3, power=10.0, bounds=(10.0, 15.0), expected=15.0)

@@ -181,7 +181,19 @@ class PowerManagingActor(Actor):
                 proposal = selected.value
                 if proposal.battery_ids not in self._bound_tracker_tasks:
                     self._add_bounds_tracker(proposal.battery_ids)
-                await self._send_updated_target_power(proposal.battery_ids, proposal)
+
+                # TODO: must_send=True forces a new request to # pylint: disable=fixme
+                # be sent to the PowerDistributor, even if there's no change in power.
+                #
+                # This is needed because requests would expire in the microgrid service
+                # otherwise.
+                #
+                # This can be removed as soon as
+                # https://github.com/frequenz-floss/frequenz-sdk-python/issues/293 is
+                # implemented.
+                await self._send_updated_target_power(
+                    proposal.battery_ids, proposal, must_send=True
+                )
                 await self._send_reports(proposal.battery_ids)
 
             elif selected_from(selected, self._bounds_subscription_receiver):
