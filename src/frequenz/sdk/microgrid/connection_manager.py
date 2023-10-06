@@ -16,6 +16,7 @@ import grpc.aio as grpcaio
 from .client import MicrogridApiClient
 from .client._client import MicrogridGrpcClient
 from .component_graph import ComponentGraph, _MicrogridComponentGraph
+from .metadata import Metadata
 
 # Not public default host and port
 _DEFAULT_MICROGRID_HOST = "[::1]"
@@ -103,6 +104,9 @@ class _InsecureConnectionManager(ConnectionManager):
         # So create empty graph here, and update it in `run` method.
         self._graph = _MicrogridComponentGraph()
 
+        self._metadata: Metadata
+        """The metadata of the microgrid."""
+
     @property
     def api_client(self) -> MicrogridApiClient:
         """Get MicrogridApiClient.
@@ -133,9 +137,11 @@ class _InsecureConnectionManager(ConnectionManager):
         target = f"{host}:{port}"
         grpc_channel = grpcaio.insecure_channel(target)
         self._api = MicrogridGrpcClient(grpc_channel, target)
+        self._metadata = await self._api.metadata()
         await self._graph.refresh_from_api(self._api)
 
     async def _initialize(self) -> None:
+        self._metadata = await self._api.metadata()
         await self._graph.refresh_from_api(self._api)
 
 
