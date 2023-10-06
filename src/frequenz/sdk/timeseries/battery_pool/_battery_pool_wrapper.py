@@ -49,7 +49,8 @@ class BatteryPoolWrapper:
 
         Args:
             battery_pool: The battery pool to wrap.
-            name: The source ID to use for the requests made by this wrapper.
+            name: An optional name used to identify this instance of the pool or a
+                corresponding actor in the logs.
             priority: The priority of the actor using this wrapper.
         """
         self._battery_pool = battery_pool
@@ -77,7 +78,7 @@ class BatteryPoolWrapper:
         The preferred power of lower priority actors will take precedence as long as
         they respect the bounds set by higher priority actors.  If lower priority actors
         request power values outside of the bounds set by higher priority actors, the
-        target power will be closest value to the preferred power that is within the
+        target power will be the closest value to the preferred power that is within the
         bounds.
 
         When there are no other actors trying to use the same batteries, the actor's
@@ -85,7 +86,8 @@ class BatteryPoolWrapper:
         system power bounds for the batteries.
 
         The result of the request can be accessed using the receiver returned from the
-        `power_distribution_results` method.
+        `power_status` method, which also streams the bounds that an actor should
+        comply with, based on its priority.
 
         Args:
             power: The power to propose for the batteries in the pool.  If None, the

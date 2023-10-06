@@ -50,7 +50,6 @@ class PowerManagingActor(Actor):
             channel_registry: The channel registry.
             algorithm: The power management algorithm to use.
 
-
         Raises:
             NotImplementedError: When an unknown algorithm is given.
         """
@@ -128,8 +127,6 @@ class PowerManagingActor(Actor):
         bounds_receiver = battery_pool._system_power_bounds.new_receiver()
         # pylint: enable=protected-access
 
-        # Fetch the latest system bounds once, before starting the bounds tracker task,
-        # so that when this function returns, there's already some bounds available.
         self._system_bounds[battery_ids] = PowerMetrics(
             timestamp=datetime.now(tz=timezone.utc),
             inclusion_bounds=None,

@@ -433,6 +433,13 @@ def battery_pool(
     If a BatteryPool instance for the given ids doesn't exist, a new one is created and
     returned.
 
+    The priority value is used to resolve conflicts when multiple actors are trying to
+    propose different power values for the same set of batteries.
+
+    !!! note
+        When specifying priority, bigger values indicate higher priority. The default
+        priority is the lowest possible value.
+
     The BatteryPool is wrapped in a new `BatteryPoolWrapper` instance each time.
 
     Args:

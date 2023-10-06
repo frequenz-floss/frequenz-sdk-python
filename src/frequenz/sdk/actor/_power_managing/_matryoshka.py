@@ -1,7 +1,21 @@
 # License: MIT
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
-"""A power manager implementation that uses the matryoshka algorithm."""
+"""A power manager implementation that uses the matryoshka algorithm.
+
+When there are multiple proposals from different actors for the same set of batteries,
+the matryoshka algorithm will consider the priority of the actors, the bounds they set
+and their preferred power to determine the target power for the batteries.
+
+The preferred power of lower priority actors will take precedence as long as they
+respect the bounds set by higher priority actors.  If lower priority actors request
+power values outside the bounds set by higher priority actors, the target power will
+be the closest value to the preferred power that is within the bounds.
+
+When there is only a single proposal for a set of batteries, its preferred power would
+be the target power, as long as it falls within the system power bounds for the
+batteries.
+"""
 
 from __future__ import annotations
 
