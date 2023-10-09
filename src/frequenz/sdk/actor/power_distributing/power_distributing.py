@@ -49,7 +49,9 @@ from .result import Error, OutOfBounds, PartialFailure, PowerBounds, Result, Suc
 _logger = logging.getLogger(__name__)
 
 
-def _get_all(source: dict[int, frozenset[int]], keys: abc.Set[int]) -> set[int]:
+def _get_all_from_map(
+    source: dict[int, frozenset[int]], keys: abc.Set[int]
+) -> set[int]:
     """Get all values for the given keys from the given map.
 
     Args:
@@ -338,7 +340,7 @@ class PowerDistributingActor(Actor):
         Returns:
             the power distribution result.
         """
-        available_bat_ids = _get_all(
+        available_bat_ids = _get_all_from_map(
             self._bat_bats_map, {pair.battery.component_id for pair in inv_bat_pairs}
         )
 
@@ -495,16 +497,18 @@ class PowerDistributingActor(Actor):
                     f"available batteries: {list(self._battery_receivers.keys())}"
                 )
 
-        connected_inverters = _get_all(self._bat_inv_map, batteries)
+        connected_inverters = _get_all_from_map(self._bat_invs_map, batteries)
 
         # Check to see if inverters are involved that are connected to batteries
         # that were not requested.
-        batteries_from_inverters = _get_all(self._inv_bat_map, connected_inverters)
+        batteries_from_inverters = _get_all_from_map(
+            self._inv_bats_map, connected_inverters
+        )
 
         if batteries_from_inverters != batteries:
             extra_batteries = batteries_from_inverters - batteries
             raise KeyError(
-                f"Inverters {_get_all(self._bat_inv_map, extra_batteries)} "
+                f"Inverters {_get_all_from_map(self._bat_invs_map, extra_batteries)} "
                 f"are connected to batteries that were not requested: {extra_batteries}"
             )
 
