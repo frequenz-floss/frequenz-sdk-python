@@ -19,7 +19,7 @@ if typing.TYPE_CHECKING:
     from .. import power_distributing
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class ReportRequest:
     """A request to start a reporting stream."""
 
@@ -42,7 +42,7 @@ class ReportRequest:
         return f"power_manager.report.{self.battery_ids=}.{self.priority=}"
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class Report:
     """Current PowerManager report for a set of batteries."""
 
@@ -73,7 +73,7 @@ class Report:
     """
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class Proposal:
     """A proposal for a battery to be charged or discharged."""
 
