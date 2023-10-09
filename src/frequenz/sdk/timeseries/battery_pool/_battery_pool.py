@@ -102,8 +102,9 @@ class BatteryPool:
         system power bounds for the batteries.
 
         The result of the request can be accessed using the receiver returned from the
-        `power_status` method, which also streams the bounds that an actor should
-        comply with, based on its priority.
+        [`power_status`][frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status]
+        method, which also streams the bounds that an actor should comply with, based on
+        its priority.
 
         Args:
             power: The power to propose for the batteries in the pool.  If None, the
@@ -144,16 +145,18 @@ class BatteryPool:
 
         Power values need to be positive values, indicating charge power.
 
-        When using the Passive Sign Convention, the `propose_power` method might be more
-        convenient.
+        When using the Passive Sign Convention, the
+        [`propose_power`][frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power]
+        method might be more convenient.
 
         If the same batteries are shared by multiple actors, the behaviour is the same
         as that of the `propose_power` method.  The bounds for lower priority actors
         can't be specified with this method.  If that's required, use the
         `propose_power` method instead.
 
-        The result of the request can be accessed using the receiver returned from
-        the `power_status` method.
+        The result of the request can be accessed using the receiver returned from the
+        [`power_status`][frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status]
+        method.
 
         Args:
             power: The unsigned charge power to propose for the batteries in the pool.
@@ -194,16 +197,18 @@ class BatteryPool:
 
         Power values need to be positive values, indicating discharge power.
 
-        When using the Passive Sign Convention, the `propose_power` method might be more
-        convenient.
+        When using the Passive Sign Convention, the
+        [`propose_power`][frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power]
+        method might be more convenient.
 
         If the same batteries are shared by multiple actors, the behaviour is the same
         as that of the `propose_power` method.  The bounds for lower priority actors
         can't be specified with this method.  If that's required, use the
         `propose_power` method instead.
 
-        The result of the request can be accessed using the receiver returned from
-        the `power_status` method.
+        The result of the request can be accessed using the receiver returned from the
+        [`power_status`][frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status]
+        method.
 
         Args:
             power: The unsigned discharge power to propose for the batteries in the
