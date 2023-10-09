@@ -28,7 +28,7 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
     - the formula engine pool and metric calculators.
     - the tasks for updating the battery status for the metric calculators.
 
-    These are independent of the priority of the actors, and can be shared between
+    These are independent of the priority of the actors and can be shared between
     multiple users of the same set of batteries.
 
     They are exposed through the BatteryPool class.

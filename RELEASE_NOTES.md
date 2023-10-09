@@ -8,13 +8,13 @@
 
 - `microgrid.battery_pool()` method now accepts a priority value.
 
-- BatteryPool's control methods
+- `BatteryPool`'s control methods
 
   * Original methods `{set_power/charge/discharge}` are now replaced by `propose_{power/charge/discharge}`
   * The `propose_*` methods send power proposals to the `PowerManagingActor`, where it can be overridden by proposals from other actors.
   * They no longer have the `adjust_power` flag, because the `PowerManagingActor` will always adjust power to fit within the available bounds.
 
-- BatteryPool's reporting methods
+- `BatteryPool`'s reporting methods
 
   * `power_bounds` is replaced by `power_status`
   * The `power_status` method streams objects containing:
@@ -49,7 +49,7 @@
   batteries.
   This means that one or more inverters can be connected to one or more batteries.
 
-- A PowerManagingActor implementation
+- A `PowerManagingActor` implementation
 
 ## Bug Fixes
 

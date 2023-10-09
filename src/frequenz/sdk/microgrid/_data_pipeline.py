@@ -192,21 +192,20 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         name: str | None = None,
         priority: int = -sys.maxsize - 1,
     ) -> BatteryPool:
-        """Return a new BatteryPool instance for the given ids.
+        """Return a new `BatteryPool` instance for the given ids.
 
-        If a BatteryPoolReferenceStore instance for the given battery ids doesn't exist,
-        a new one is created and used for creating the BatteryPool.
+        If a `BatteryPoolReferenceStore` instance for the given battery ids doesn't exist,
+        a new one is created and used for creating the `BatteryPool`.
 
         Args:
             battery_ids: Optional set of IDs of batteries to be managed by the
-                BatteryPool.
+                `BatteryPool`.
             name: An optional name used to identify this instance of the pool or a
                 corresponding actor in the logs.
             priority: The priority of the actor making the call.
 
         Returns:
-            A BatteryPool instance.
-
+            A `BatteryPool` instance.
         """
         from ..timeseries.battery_pool import BatteryPool
         from ..timeseries.battery_pool._battery_pool_reference_store import (
@@ -433,7 +432,7 @@ def battery_pool(
     name: str | None = None,
     priority: int = -sys.maxsize - 1,
 ) -> BatteryPool:
-    """Return a new BatteryPool instance for the given parameters.
+    """Return a new `BatteryPool` instance for the given parameters.
 
     The priority value is used to resolve conflicts when multiple actors are trying to
     propose different power values for the same set of batteries.
@@ -443,14 +442,14 @@ def battery_pool(
         priority is the lowest possible value.
 
     Args:
-        battery_ids: Optional set of IDs of batteries to be managed by the BatteryPool.
+        battery_ids: Optional set of IDs of batteries to be managed by the `BatteryPool`.
             If not specified, all batteries available in the component graph are used.
         name: An optional name used to identify this instance of the pool or a
             corresponding actor in the logs.
         priority: The priority of the actor making the call.
 
     Returns:
-        A BatteryPool instance.
+        A `BatteryPool` instance.
     """
     return _get().battery_pool(battery_ids, name, priority)
 
