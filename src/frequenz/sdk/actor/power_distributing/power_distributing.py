@@ -159,7 +159,7 @@ class PowerDistributingActor(Actor):
         return PowerBounds(
             inclusion_lower=sum(
                 max(
-                    battery.power_inclusion_lower_bound,
+                    battery.power_bounds.inclusion_lower,
                     sum(
                         inverter.active_power_inclusion_lower_bound
                         for inverter in inverters
@@ -169,7 +169,7 @@ class PowerDistributingActor(Actor):
             ),
             inclusion_upper=sum(
                 min(
-                    battery.power_inclusion_upper_bound,
+                    battery.power_bounds.inclusion_upper,
                     sum(
                         inverter.active_power_inclusion_upper_bound
                         for inverter in inverters
@@ -178,7 +178,7 @@ class PowerDistributingActor(Actor):
                 for battery, inverters in pairs_data
             ),
             exclusion_lower=min(
-                sum(battery.power_exclusion_lower_bound for battery, _ in pairs_data),
+                sum(battery.power_bounds.exclusion_lower for battery, _ in pairs_data),
                 sum(
                     inverter.active_power_exclusion_lower_bound
                     for _, inverters in pairs_data
@@ -186,7 +186,7 @@ class PowerDistributingActor(Actor):
                 ),
             ),
             exclusion_upper=max(
-                sum(battery.power_exclusion_upper_bound for battery, _ in pairs_data),
+                sum(battery.power_bounds.exclusion_upper for battery, _ in pairs_data),
                 sum(
                     inverter.active_power_exclusion_upper_bound
                     for _, inverters in pairs_data

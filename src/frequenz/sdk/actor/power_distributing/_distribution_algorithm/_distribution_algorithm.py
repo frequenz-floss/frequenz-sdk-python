@@ -6,10 +6,11 @@
 import logging
 import math
 from dataclasses import dataclass
-from typing import NamedTuple
+from typing import NamedTuple, Sequence
 
 from ...._internal._math import is_close_to_zero
 from ....microgrid.component import BatteryData, InverterData
+from ..result import PowerBounds
 
 _logger = logging.getLogger(__name__)
 
@@ -36,17 +37,8 @@ class AggregatedBatteryData:
     soc_lower_bound: float
     """The aggregated lower SoC bound of the batteries."""
 
-    power_inclusion_upper_bound: float
-    """The aggregated upper power inclusion bound of the batteries."""
-
-    power_inclusion_lower_bound: float
-    """The aggregated lower power inclusion bound of the batteries."""
-
-    power_exclusion_upper_bound: float
-    """The aggregated upper power exclusion bound of the batteries."""
-
-    power_exclusion_lower_bound: float
-    """The aggregated lower power exclusion bound of the batteries."""
+    power_bounds: PowerBounds
+    """The aggregated power bounds of the batteries."""
 
     def __init__(self, batteries: list[BatteryData]) -> None:
         """Create DistBatteryData from BatteryData.
@@ -84,21 +76,58 @@ class AggregatedBatteryData:
             self.soc_upper_bound = math.nan
             self.soc_lower_bound = math.nan
 
-        self.power_inclusion_upper_bound = sum(
-            b.power_inclusion_upper_bound for b in batteries
+        self.power_bounds = _aggregate_battery_power_bounds(
+            list(
+                map(
+                    lambda metrics: PowerBounds(
+                        inclusion_upper=metrics.power_inclusion_upper_bound,
+                        inclusion_lower=metrics.power_inclusion_lower_bound,
+                        exclusion_upper=metrics.power_exclusion_upper_bound,
+                        exclusion_lower=metrics.power_exclusion_lower_bound,
+                    ),
+                    batteries,
+                )
+            )
         )
-        self.power_inclusion_lower_bound = sum(
-            b.power_inclusion_lower_bound for b in batteries
-        )
-        # To satisfy the largest exclusion bounds in the set we need to
-        # provide the power defined by the largest bounds multiplied by the
-        # number of batteries in the set.
-        self.power_exclusion_upper_bound = max(
-            b.power_exclusion_upper_bound for b in batteries
-        ) * len(batteries)
-        self.power_exclusion_lower_bound = min(
-            b.power_exclusion_lower_bound for b in batteries
-        ) * len(batteries)
+
+
+def _aggregate_battery_power_bounds(
+    battery_metrics: Sequence[PowerBounds],
+) -> PowerBounds:
+    """Calculate bounds for a set of batteries located behind one set of inverters.
+
+    Args:
+        battery_metrics: List of PowerBounds for each battery.
+
+    Returns:
+        A PowerBounds object containing the aggregated bounds for all given batteries
+    """
+    assert len(battery_metrics) > 0, "No batteries given."
+
+    # Calculate the aggregated bounds for the set of batteries
+    power_inclusion_upper_bound = sum(
+        bounds.inclusion_upper for bounds in battery_metrics
+    )
+    power_inclusion_lower_bound = sum(
+        bounds.inclusion_lower for bounds in battery_metrics
+    )
+
+    # To satisfy the largest exclusion bounds in the set we need to
+    # provide the power defined by the largest bounds multiplied by the
+    # number of batteries in the set.
+    power_exclusion_upper_bound = max(
+        bounds.exclusion_upper for bounds in battery_metrics
+    ) * len(battery_metrics)
+    power_exclusion_lower_bound = min(
+        bounds.exclusion_lower for bounds in battery_metrics
+    ) * len(battery_metrics)
+
+    return PowerBounds(
+        inclusion_lower=power_inclusion_lower_bound,
+        exclusion_lower=power_exclusion_lower_bound,
+        exclusion_upper=power_exclusion_upper_bound,
+        inclusion_upper=power_inclusion_upper_bound,
+    )
 
 
 class InvBatPair(NamedTuple):
@@ -752,17 +781,21 @@ class DistributionAlgorithm:
         excl_bounds: dict[int, float] = {}
         for battery, inverters in components:
             if supply:
-                excl_bounds[battery.component_id] = -battery.power_exclusion_lower_bound
-                incl_bounds[battery.component_id] = -battery.power_inclusion_lower_bound
+                excl_bounds[
+                    battery.component_id
+                ] = -battery.power_bounds.exclusion_lower
+                incl_bounds[
+                    battery.component_id
+                ] = -battery.power_bounds.inclusion_lower
             else:
-                excl_bounds[battery.component_id] = battery.power_exclusion_upper_bound
-                incl_bounds[battery.component_id] = battery.power_inclusion_upper_bound
+                excl_bounds[battery.component_id] = battery.power_bounds.exclusion_upper
+                incl_bounds[battery.component_id] = battery.power_bounds.inclusion_upper
 
             for inverter in inverters:
                 if supply:
                     incl_bounds[inverter.component_id] = -max(
                         inverter.active_power_inclusion_lower_bound,
-                        battery.power_inclusion_lower_bound,
+                        battery.power_bounds.inclusion_lower,
                     )
                     excl_bounds[
                         inverter.component_id
@@ -771,7 +804,7 @@ class DistributionAlgorithm:
                 else:
                     incl_bounds[inverter.component_id] = min(
                         inverter.active_power_inclusion_upper_bound,
-                        battery.power_inclusion_upper_bound,
+                        battery.power_bounds.inclusion_upper,
                     )
                     excl_bounds[
                         inverter.component_id
