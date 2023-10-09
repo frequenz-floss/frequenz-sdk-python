@@ -84,7 +84,7 @@ class ChannelRegistry:
 T = typing.TypeVar("T")
 
 
-class _RegistryReceiverFetcher(ReceiverFetcher[T]):
+class _RegistryReceiverFetcher(typing.Generic[T]):
     """A receiver fetcher that is bound to a channel registry and a key."""
 
     def __init__(
