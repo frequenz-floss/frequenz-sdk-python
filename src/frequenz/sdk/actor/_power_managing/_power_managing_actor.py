@@ -36,6 +36,8 @@ class PowerManagingActor(Actor):
         power_distributing_requests_sender: Sender[power_distributing.Request],
         power_distributing_results_receiver: Receiver[power_distributing.Result],
         channel_registry: ChannelRegistry,
+        # arguments to actors need to serializable, so we pass an enum for the algorithm
+        # instead of an instance of the algorithm.
         algorithm: Algorithm = Algorithm.MATRYOSHKA,
     ):
         """Create a new instance of the power manager.
