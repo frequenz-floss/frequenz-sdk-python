@@ -1181,9 +1181,9 @@ async def run_temperature_test(  # pylint: disable=too-many-locals
     await battery_status_sender.send(
         BatteryStatus(working=all_batteries, uncertain=set())
     )
-    bat_inv_map = battery_inverter_mapping(all_batteries)
+    bat_invs_map = battery_inverter_mapping(all_batteries)
 
-    for battery_id, inverter_id in bat_inv_map.items():
+    for battery_id, inverter_id in bat_invs_map.items():
         # Sampling rate choose to reflect real application.
         streamer.start_streaming(
             BatteryDataWrapper(
