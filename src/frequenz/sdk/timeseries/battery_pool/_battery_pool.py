@@ -79,7 +79,6 @@ class BatteryPool:
         power: Power | None,
         *,
         request_timeout: timedelta = timedelta(seconds=5.0),
-        include_broken_batteries: bool = False,
         bounds: timeseries.Bounds[Power | None] = timeseries.Bounds(None, None),
     ) -> None:
         """Send a proposal to the power manager for the pool's set of batteries.
@@ -112,11 +111,6 @@ class BatteryPool:
                 specified.  If both are `None`, it is equivalent to not having a
                 proposal or withdrawing a previous one.
             request_timeout: The timeout for the request.
-            include_broken_batteries: if True, the power will be set for all batteries
-                in the pool, including the broken ones. If False, then the power will be
-                set only for the working batteries.  This is not a guarantee that the
-                power will be set for all working batteries, as the microgrid API may
-                still reject the request.
             bounds: The power bounds for the proposal.  These bounds will apply to
                 actors with a lower priority, and can be overridden by bounds from
                 actors with a higher priority.  If None, the power bounds will be set
@@ -131,7 +125,6 @@ class BatteryPool:
                 battery_ids=self._battery_pool._batteries,
                 priority=self._priority,
                 request_timeout=request_timeout,
-                include_broken_batteries=include_broken_batteries,
             )
         )
 
@@ -140,7 +133,6 @@ class BatteryPool:
         power: Power | None,
         *,
         request_timeout: timedelta = timedelta(seconds=5.0),
-        include_broken_batteries: bool = False,
     ) -> None:
         """Set the given charge power for the batteries in the pool.
 
@@ -164,11 +156,6 @@ class BatteryPool:
                 If None, the proposed power of higher priority actors will take
                 precedence as the target power.
             request_timeout: The timeout for the request.
-            include_broken_batteries: if True, the power will be set for all batteries
-                in the pool, including the broken ones. If False, then the power will be
-                set only for the working batteries.  This is not a guarantee that the
-                power will be set for all working batteries, as the microgrid API may
-                still reject the request.
 
         Raises:
             ValueError: If the given power is negative.
@@ -183,7 +170,6 @@ class BatteryPool:
                 battery_ids=self._battery_pool._batteries,
                 priority=self._priority,
                 request_timeout=request_timeout,
-                include_broken_batteries=include_broken_batteries,
             )
         )
 
@@ -192,7 +178,6 @@ class BatteryPool:
         power: Power | None,
         *,
         request_timeout: timedelta = timedelta(seconds=5.0),
-        include_broken_batteries: bool = False,
     ) -> None:
         """Set the given discharge power for the batteries in the pool.
 
@@ -216,11 +201,6 @@ class BatteryPool:
                 pool.  If None, the proposed power of higher priority actors will take
                 precedence as the target power.
             request_timeout: The timeout for the request.
-            include_broken_batteries: if True, the power will be set for all batteries
-                in the pool, including the broken ones. If False, then the power will be
-                set only for the working batteries.  This is not a guarantee that the
-                power will be set for all working batteries, as the microgrid API may
-                still reject the request.
 
         Raises:
             ValueError: If the given power is negative.
@@ -235,7 +215,6 @@ class BatteryPool:
                 battery_ids=self._battery_pool._batteries,
                 priority=self._priority,
                 request_timeout=request_timeout,
-                include_broken_batteries=include_broken_batteries,
             )
         )
 

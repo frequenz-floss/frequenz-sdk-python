@@ -14,14 +14,12 @@ Purpose of this actor is to keep SoC level of each component at the equal level.
 
 import asyncio
 import logging
-import time
 from asyncio.tasks import ALL_COMPLETED
 from collections import abc
 from collections.abc import Iterable
-from dataclasses import dataclass
 from datetime import timedelta
 from math import isnan
-from typing import Any, Self, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 import grpc
 from frequenz.channels import Peekable, Receiver, Sender
@@ -49,40 +47,6 @@ from .request import Request
 from .result import Error, OutOfBounds, PartialFailure, PowerBounds, Result, Success
 
 _logger = logging.getLogger(__name__)
-
-
-@dataclass
-class _CacheEntry:
-    """Represents an entry in the cache with expiry time."""
-
-    inv_bat_pair: InvBatPair
-    """The inverter and adjacent battery data pair."""
-
-    expiry_time: int
-    """The expiration time (taken from the monotonic clock) of the cache entry."""
-
-    @classmethod
-    def from_ttl(
-        cls, inv_bat_pair: InvBatPair, ttl: timedelta = timedelta(hours=2.5)
-    ) -> Self:
-        """Initialize a CacheEntry instance from a TTL (Time-To-Live).
-
-        Args:
-            inv_bat_pair: the inverter and adjacent battery data pair to cache.
-            ttl: the time a cache entry is kept alive.
-
-        Returns:
-            this class instance.
-        """
-        return cls(inv_bat_pair, time.monotonic_ns() + int(ttl.total_seconds() * 1e9))
-
-    def has_expired(self) -> bool:
-        """Check whether the cache entry has expired.
-
-        Returns:
-            whether the cache entry has expired.
-        """
-        return time.monotonic_ns() >= self.expiry_time
 
 
 def _get_all(source: dict[int, frozenset[int]], keys: abc.Set[int]) -> set[int]:
@@ -180,10 +144,6 @@ class PowerDistributingActor(Actor):
             max_data_age_sec=10.0,
         )
 
-        self._cached_metrics: dict[frozenset[int], _CacheEntry | None] = {
-            bat_ids: None for bat_ids in self._bat_bats_map.values()
-        }
-
     def _get_bounds(
         self,
         pairs_data: list[InvBatPair],
@@ -254,13 +214,13 @@ class PowerDistributingActor(Actor):
         async for request in self._requests_receiver:
             try:
                 pairs_data: list[InvBatPair] = self._get_components_data(
-                    request.batteries, request.include_broken_batteries
+                    request.batteries
                 )
             except KeyError as err:
                 await self._result_sender.send(Error(request=request, msg=str(err)))
                 continue
 
-            if not pairs_data and not request.include_broken_batteries:
+            if not pairs_data:
                 error_msg = (
                     "No data for at least one of the given "
                     f"batteries {str(request.batteries)}"
@@ -390,23 +350,9 @@ class PowerDistributingActor(Actor):
         ]:
             unavailable_inv_ids = unavailable_inv_ids.union(inverter_ids)
 
-        if request.include_broken_batteries and not available_bat_ids:
-            return self.distribution_algorithm.distribute_power_equally(
-                request.power.as_watts(), unavailable_inv_ids
-            )
-
         result = self.distribution_algorithm.distribute_power(
             request.power.as_watts(), inv_bat_pairs
         )
-
-        if request.include_broken_batteries and unavailable_inv_ids:
-            additional_result = self.distribution_algorithm.distribute_power_equally(
-                result.remaining_power, unavailable_inv_ids
-            )
-
-            for inv_id, power in additional_result.distribution.items():
-                result.distribution[inv_id] = power
-            result.remaining_power = 0.0
 
         return result
 
@@ -526,15 +472,11 @@ class PowerDistributingActor(Actor):
             {k: frozenset(v) for k, v in inv_invs_map.items()},
         )
 
-    def _get_components_data(
-        self, batteries: abc.Set[int], include_broken: bool
-    ) -> list[InvBatPair]:
+    def _get_components_data(self, batteries: abc.Set[int]) -> list[InvBatPair]:
         """Get data for the given batteries and adjacent inverters.
 
         Args:
             batteries: Batteries that needs data.
-            include_broken: whether all batteries in the batteries set in the
-                request must be used regardless the status.
 
         Raises:
             KeyError: If any battery in the given list doesn't exists in microgrid.
@@ -544,11 +486,7 @@ class PowerDistributingActor(Actor):
         """
         pairs_data: list[InvBatPair] = []
 
-        working_batteries = (
-            batteries
-            if include_broken
-            else self._all_battery_status.get_working_batteries(batteries)
-        )
+        working_batteries = self._all_battery_status.get_working_batteries(batteries)
 
         for battery_id in working_batteries:
             if battery_id not in self._battery_receivers:
@@ -579,12 +517,6 @@ class PowerDistributingActor(Actor):
             inverter_ids: frozenset[int] = self._bat_inv_map[next(iter(battery_ids))]
 
             data = self._get_battery_inverter_data(battery_ids, inverter_ids)
-            if not data and include_broken:
-                cached_entry = self._cached_metrics[battery_ids]
-                if cached_entry and not cached_entry.has_expired():
-                    data = cached_entry.inv_bat_pair
-                else:
-                    data = None
             if data is None:
                 _logger.warning(
                     "Skipping battery set %s because at least one of its messages isn't correct.",
@@ -669,9 +601,7 @@ class PowerDistributingActor(Actor):
             )
             return None
 
-        inv_bat_pair = InvBatPair(AggregatedBatteryData(battery_data), inverter_data)
-        self._cached_metrics[battery_ids] = _CacheEntry.from_ttl(inv_bat_pair)
-        return inv_bat_pair
+        return InvBatPair(AggregatedBatteryData(battery_data), inverter_data)
 
     async def _create_channels(self) -> None:
         """Create channels to get data of components in microgrid."""
