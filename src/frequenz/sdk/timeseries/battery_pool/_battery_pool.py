@@ -107,9 +107,10 @@ class BatteryPool:
         its priority.
 
         Args:
-            power: The power to propose for the batteries in the pool.  If None, the
-                proposed power of higher priority actors will take precedence as the
-                target power.
+            power: The power to propose for the batteries in the pool.  If `None`, this
+                proposal will not have any effect on the target power, unless bounds are
+                specified.  If both are `None`, it is equivalent to not having a
+                proposal or withdrawing a previous one.
             request_timeout: The timeout for the request.
             include_broken_batteries: if True, the power will be set for all batteries
                 in the pool, including the broken ones. If False, then the power will be
