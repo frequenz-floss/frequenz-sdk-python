@@ -83,7 +83,7 @@ dev-mypy = [
 ]
 dev-noxfile = ["nox == 2023.4.22", "frequenz-repo-config[lib] == 0.6.1"]
 dev-pylint = [
-  "pylint == 2.17.5",
+  "pylint == 3.0.1",
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
