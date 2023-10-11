@@ -55,7 +55,7 @@ class AggregatedBatteryData:
         Args:
             batteries: The batteries to aggregate.
         """
-        assert len(batteries) > 0, "No batteries given."
+        assert len(batteries) > 0, "AggregatedBatteryData: No batteries given."
 
         # We need only one component ID for DistBatteryData to be able to
         # identify the pair
