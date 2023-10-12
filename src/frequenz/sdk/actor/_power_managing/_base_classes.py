@@ -91,7 +91,7 @@ class Proposal:
 
     These bounds will apply to actors with a lower priority, and can be overridden by
     bounds from actors with a higher priority.  If None, the power bounds will be set to
-    the maximum power of the batteries in the pool.  This is currently and experimental
+    the maximum power of the batteries in the pool.  This is currently an experimental
     feature.
     """
 
@@ -144,7 +144,7 @@ class BaseAlgorithm(abc.ABC):
     """The base class for algorithms."""
 
     @abc.abstractmethod
-    def get_target_power(
+    def calculate_target_power(
         self,
         battery_ids: frozenset[int],
         proposal: Proposal | None,

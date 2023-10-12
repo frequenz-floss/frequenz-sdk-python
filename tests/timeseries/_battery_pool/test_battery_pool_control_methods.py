@@ -180,11 +180,6 @@ class TestBatteryPoolControl:
 
         battery_pool = microgrid.battery_pool()
 
-        # This is used just to wait for the processing to be complete.  The results are
-        # not used.
-        #
-        # It will be replaced by a reporting streaming from the PowerManager in a
-        # subsequent commit.
         bounds_rx = battery_pool.power_status.new_receiver()
 
         self._assert_report(

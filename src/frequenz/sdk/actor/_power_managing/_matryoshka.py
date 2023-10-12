@@ -123,7 +123,7 @@ class Matryoshka(BaseAlgorithm):
         return True
 
     @override
-    def get_target_power(
+    def calculate_target_power(
         self,
         battery_ids: frozenset[int],
         proposal: Proposal | None,

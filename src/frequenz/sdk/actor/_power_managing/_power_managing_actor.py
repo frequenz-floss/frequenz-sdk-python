@@ -148,7 +148,7 @@ class PowerManagingActor(Actor):
     ) -> None:
         from .. import power_distributing  # pylint: disable=import-outside-toplevel
 
-        target_power = self._algorithm.get_target_power(
+        target_power = self._algorithm.calculate_target_power(
             battery_ids,
             proposal,
             self._system_bounds[battery_ids],

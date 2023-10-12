@@ -35,7 +35,7 @@ async def test_matryoshka_algorithm() -> None:  # pylint: disable=too-many-state
     ) -> None:
         nonlocal call_count
         call_count += 1
-        tgt_power = algorithm.get_target_power(
+        tgt_power = algorithm.calculate_target_power(
             batteries,
             Proposal(
                 battery_ids=batteries,
