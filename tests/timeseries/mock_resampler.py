@@ -15,10 +15,10 @@ from frequenz.sdk.actor import ComponentMetricRequest, ResamplerConfig
 from frequenz.sdk.microgrid._data_pipeline import _DataPipeline
 from frequenz.sdk.microgrid.component import ComponentMetricId
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._formula_engine._formula_generators._formula_generator import (
+from frequenz.sdk.timeseries._quantities import Quantity
+from frequenz.sdk.timeseries.formula_engine._formula_generators._formula_generator import (
     NON_EXISTING_COMPONENT_ID,
 )
-from frequenz.sdk.timeseries._quantities import Quantity
 
 # pylint: disable=too-many-instance-attributes
 

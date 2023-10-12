@@ -17,7 +17,7 @@ from ...actor import ComponentMetricRequest, _channel_registry, _power_managing
 from ...actor.power_distributing._battery_pool_status import BatteryStatus
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory
-from .._formula_engine import FormulaEnginePool
+from ..formula_engine import FormulaEnginePool
 from ._methods import MetricAggregator
 
 

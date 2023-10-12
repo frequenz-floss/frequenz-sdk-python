@@ -17,8 +17,8 @@ from ... import timeseries
 from ..._internal._channels import ReceiverFetcher
 from ...actor import _power_managing
 from ...timeseries import Energy, Percentage, Power, Sample, Temperature
-from .._formula_engine import FormulaEngine
-from .._formula_engine._formula_generators import (
+from ..formula_engine import FormulaEngine
+from ..formula_engine._formula_generators import (
     BatteryPowerFormula,
     FormulaGeneratorConfig,
     FormulaType,

@@ -12,8 +12,8 @@ from frequenz.channels import Receiver
 from frequenz.sdk.microgrid import _data_pipeline
 from frequenz.sdk.microgrid.component import ComponentMetricId
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._formula_engine import ResampledFormulaBuilder
 from frequenz.sdk.timeseries._quantities import QuantityT
+from frequenz.sdk.timeseries.formula_engine import ResampledFormulaBuilder
 
 
 def get_resampled_stream(

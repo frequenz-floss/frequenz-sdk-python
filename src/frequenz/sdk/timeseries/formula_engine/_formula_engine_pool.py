@@ -20,7 +20,7 @@ from ._resampled_formula_builder import ResampledFormulaBuilder
 
 if TYPE_CHECKING:
     # Break circular import by enclosing these type hints in a `TYPE_CHECKING` block.
-    from .._formula_engine import FormulaEngine, FormulaEngine3Phase
+    from ..formula_engine import FormulaEngine, FormulaEngine3Phase
 
 
 class FormulaEnginePool:
