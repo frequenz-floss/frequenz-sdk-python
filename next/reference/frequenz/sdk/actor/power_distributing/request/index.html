@@ -948,13 +948,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.actor.power_distributing.request.Request.include_broken_batteries" class="md-nav__link">
-    include_broken_batteries
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#frequenz.sdk.actor.power_distributing.request.Request.power" class="md-nav__link">
     power
   </a>
@@ -1468,13 +1461,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.actor.power_distributing.request.Request.include_broken_batteries" class="md-nav__link">
-    include_broken_batteries
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#frequenz.sdk.actor.power_distributing.request.Request.power" class="md-nav__link">
     power
   </a>
@@ -1598,21 +1584,7 @@
 <span class="normal"><a href="#__codelineno-0-31">31</a></span>
 <span class="normal"><a href="#__codelineno-0-32">32</a></span>
 <span class="normal"><a href="#__codelineno-0-33">33</a></span>
-<span class="normal"><a href="#__codelineno-0-34">34</a></span>
-<span class="normal"><a href="#__codelineno-0-35">35</a></span>
-<span class="normal"><a href="#__codelineno-0-36">36</a></span>
-<span class="normal"><a href="#__codelineno-0-37">37</a></span>
-<span class="normal"><a href="#__codelineno-0-38">38</a></span>
-<span class="normal"><a href="#__codelineno-0-39">39</a></span>
-<span class="normal"><a href="#__codelineno-0-40">40</a></span>
-<span class="normal"><a href="#__codelineno-0-41">41</a></span>
-<span class="normal"><a href="#__codelineno-0-42">42</a></span>
-<span class="normal"><a href="#__codelineno-0-43">43</a></span>
-<span class="normal"><a href="#__codelineno-0-44">44</a></span>
-<span class="normal"><a href="#__codelineno-0-45">45</a></span>
-<span class="normal"><a href="#__codelineno-0-46">46</a></span>
-<span class="normal"><a href="#__codelineno-0-47">47</a></span>
-<span class="normal"><a href="#__codelineno-0-48">48</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13"></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="normal"><a href="#__codelineno-0-34">34</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13"></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14"></a><span class="k">class</span> <span class="nc">Request</span><span class="p">:</span>
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Request to set power to the `PowerDistributingActor`.&quot;&quot;&quot;</span>
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16"></a>
@@ -1634,20 +1606,6 @@
 </span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="sd">    If `False` and the power is outside the batteries&#39; bounds, the request will</span>
 </span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33"></a><span class="sd">    fail and be replied to with an `OutOfBound` result.</span>
 </span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35"></a>
-</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36"></a>    <span class="n">include_broken_batteries</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Whether to use all batteries included in the batteries set regardless the status.</span>
-</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38"></a>
-</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39"></a><span class="sd">    If set to `True`, the power distribution algorithm will consider all batteries,</span>
-</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40"></a><span class="sd">    including the broken ones, when distributing power.  In such cases, any remaining</span>
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41"></a><span class="sd">    power after distributing among the available batteries will be distributed equally</span>
-</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42"></a><span class="sd">    among the unavailable (broken) batteries.  If all batteries in the set are</span>
-</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43"></a><span class="sd">    unavailable, the power will be equally distributed among all the unavailable</span>
-</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44"></a><span class="sd">    batteries in the request.</span>
-</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45"></a>
-</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46"></a><span class="sd">    If set to `False`, the power distribution will only take into account the available</span>
-</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47"></a><span class="sd">    batteries, excluding any broken ones.</span>
-</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
 
@@ -1706,37 +1664,6 @@ fail and be replied to with an <code>OutOfBound</code> result.</p>
   <div class="doc doc-contents ">
   
       <p>The component ids of the batteries to be used for this request.</p>
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-attribute">
-
-
-
-
-<h6 id="frequenz.sdk.actor.power_distributing.request.Request.include_broken_batteries" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">include_broken_batteries</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span></code>
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
-      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-  </span>
-
-<a href="#frequenz.sdk.actor.power_distributing.request.Request.include_broken_batteries" class="headerlink" title="Permanent link">¤</a></h6>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Whether to use all batteries included in the batteries set regardless the status.</p>
-<p>If set to <code>True</code>, the power distribution algorithm will consider all batteries,
-including the broken ones, when distributing power.  In such cases, any remaining
-power after distributing among the available batteries will be distributed equally
-among the unavailable (broken) batteries.  If all batteries in the set are
-unavailable, the power will be equally distributed among all the unavailable
-batteries in the request.</p>
-<p>If set to <code>False</code>, the power distribution will only take into account the available
-batteries, excluding any broken ones.</p>
   </div>
 
 </div>
