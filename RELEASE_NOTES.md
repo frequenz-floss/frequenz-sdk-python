@@ -6,7 +6,21 @@
 
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
+- `microgrid.battery_pool()` method now accepts a priority value.
+
+- `BatteryPool`'s control methods
+
+  * Original methods `{set_power/charge/discharge}` are now replaced by `propose_{power/charge/discharge}`
+  * The `propose_*` methods send power proposals to the `PowerManagingActor`, where it can be overridden by proposals from other actors.
+  * They no longer have the `adjust_power` flag, because the `PowerManagingActor` will always adjust power to fit within the available bounds.
+
+- `BatteryPool`'s reporting methods
+
+  * `power_bounds` is replaced by `power_status`
+  * The `power_status` method streams objects containing:
+    + bounds adjusted to the actor's priorities
+    + the latest target power for the set of batteries
+    + the results from the power distributor for the last request
 
 ## New Features
 
@@ -31,12 +45,11 @@
   - Add `fill_value` option to window method to impute missing values. By default missing values are imputed with `NaN`.
 - Add `at` method to `MovingWindow` to access a single element and use it in `__getitem__` magic to fully support single element access.
 
-
-
 - The PowerDistributingActor now supports n:m relations between inverters and
   batteries.
   This means that one or more inverters can be connected to one or more batteries.
 
+- A `PowerManagingActor` implementation
 
 ## Bug Fixes
 

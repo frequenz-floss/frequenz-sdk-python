@@ -10,12 +10,13 @@ from collections.abc import Iterable, Mapping, Set
 from datetime import datetime, timezone
 from typing import Generic, TypeVar
 
+from ... import timeseries
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory, ComponentMetricId, InverterType
 from ...timeseries import Sample
 from .._quantities import Energy, Percentage, Power, Temperature
 from ._component_metrics import ComponentMetricsData
-from ._result_types import Bounds, PowerMetrics
+from ._result_types import PowerMetrics
 
 _logger = logging.getLogger(__name__)
 
@@ -653,11 +654,11 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
 
         return PowerMetrics(
             timestamp=timestamp,
-            inclusion_bounds=Bounds(
+            inclusion_bounds=timeseries.Bounds(
                 Power.from_watts(inclusion_bounds_lower),
                 Power.from_watts(inclusion_bounds_upper),
             ),
-            exclusion_bounds=Bounds(
+            exclusion_bounds=timeseries.Bounds(
                 Power.from_watts(exclusion_bounds_lower),
                 Power.from_watts(exclusion_bounds_upper),
             ),

@@ -14,7 +14,7 @@ from typing import Any
 from frequenz.channels import Broadcast
 
 from frequenz.sdk import microgrid
-from frequenz.sdk.actor import ChannelRegistry, ResamplerConfig
+from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.actor.power_distributing import (
     BatteryStatus,
     Error,
@@ -33,6 +33,10 @@ HOST = "microgrid.sandbox.api.frequenz.io"
 PORT = 61060
 
 
+# TODO: this send_requests function uses the battery pool to # pylint: disable=fixme
+# send requests, and those no longer go directly to the power distributing actor, but
+# instead through the power managing actor.  So the below function needs to be updated
+# to use the PowerDistributingActor directly.
 async def send_requests(batteries: set[int], request_num: int) -> list[Result]:
     """Send requests to the PowerDistributingActor and wait for the response.
 
@@ -47,10 +51,12 @@ async def send_requests(batteries: set[int], request_num: int) -> list[Result]:
         List of the results from the PowerDistributingActor.
     """
     battery_pool = microgrid.battery_pool(batteries)
-    results_rx = battery_pool.power_distribution_results()
-    result: list[Result] = []
+    results_rx = battery_pool.power_status.new_receiver()
+    result: list[Any] = []
     for _ in range(request_num):
-        await battery_pool.set_power(Power(float(random.randrange(100000, 1000000))))
+        await battery_pool.propose_power(
+            Power(float(random.randrange(100000, 1000000)))
+        )
         try:
             output = await asyncio.wait_for(results_rx.receive(), timeout=3)
             if output is None:
@@ -107,10 +113,10 @@ async def run_test(  # pylint: disable=too-many-locals
 
     power_request_channel = Broadcast[Request]("power-request")
     battery_status_channel = Broadcast[BatteryStatus]("battery-status")
-    channel_registry = ChannelRegistry(name="power_distributor")
+    power_result_channel = Broadcast[Result]("power-result")
     async with PowerDistributingActor(
-        channel_registry=channel_registry,
         requests_receiver=power_request_channel.new_receiver(),
+        results_sender=power_result_channel.new_sender(),
         battery_status_sender=battery_status_channel.new_sender(),
     ):
         tasks: list[Coroutine[Any, Any, list[Result]]] = []

@@ -29,7 +29,6 @@ from frequenz.channels import Peekable, Receiver, Sender
 from frequenz.sdk.timeseries._quantities import Power
 
 from ..._internal._math import is_close_to_zero
-from ...actor import ChannelRegistry
 from ...actor._actor import Actor
 from ...microgrid import ComponentGraph, connection_manager
 from ...microgrid.client import MicrogridApiClient
@@ -128,7 +127,7 @@ class PowerDistributingActor(Actor):
     def __init__(
         self,
         requests_receiver: Receiver[Request],
-        channel_registry: ChannelRegistry,
+        results_sender: Sender[Result],
         battery_status_sender: Sender[BatteryStatus],
         wait_for_data_sec: float = 2,
         *,
@@ -137,9 +136,8 @@ class PowerDistributingActor(Actor):
         """Create class instance.
 
         Args:
-            requests_receiver: Receiver for receiving power requests from other actors.
-            channel_registry: Channel registry for creating result channels dynamically
-                for each request namespace.
+            requests_receiver: Receiver for receiving power requests from the power manager.
+            results_sender: Sender for sending results to the power manager.
             battery_status_sender: Channel for sending information which batteries are
                 working.
             wait_for_data_sec: How long actor should wait before processing first
@@ -149,14 +147,8 @@ class PowerDistributingActor(Actor):
         """
         super().__init__(name=name)
         self._requests_receiver = requests_receiver
-        self._channel_registry = channel_registry
+        self._result_sender = results_sender
         self._wait_for_data_sec = wait_for_data_sec
-        self._result_senders: dict[str, Sender[Result]] = {}
-        """Dictionary of result senders for each request namespace.
-
-        They are for channels owned by the channel registry, we just hold a reference
-        to their senders, for fast access.
-        """
 
         # NOTE: power_distributor_exponent should be received from ConfigManager
         self.power_distributor_exponent: float = 1.0
@@ -243,22 +235,7 @@ class PowerDistributingActor(Actor):
             ),
         )
 
-    async def _send_result(self, namespace: str, result: Result) -> None:
-        """Send result to the user.
-
-        Args:
-            namespace: namespace of the sender, to identify the result channel with.
-            result: Result to send out.
-        """
-        if namespace not in self._result_senders:
-            self._result_senders[namespace] = self._channel_registry.new_sender(
-                namespace
-            )
-
-        await self._result_senders[namespace].send(result)
-
-    # pylint: disable=too-many-locals
-    async def _run(self) -> None:
+    async def _run(self) -> None:  # pylint: disable=too-many-locals
         """Run actor main function.
 
         It waits for new requests in task_queue and process it, and send
@@ -280,9 +257,7 @@ class PowerDistributingActor(Actor):
                     request.batteries, request.include_broken_batteries
                 )
             except KeyError as err:
-                await self._send_result(
-                    request.namespace, Error(request=request, msg=str(err))
-                )
+                await self._result_sender.send(Error(request=request, msg=str(err)))
                 continue
 
             if not pairs_data and not request.include_broken_batteries:
@@ -290,14 +265,14 @@ class PowerDistributingActor(Actor):
                     "No data for at least one of the given "
                     f"batteries {str(request.batteries)}"
                 )
-                await self._send_result(
-                    request.namespace, Error(request=request, msg=str(error_msg))
+                await self._result_sender.send(
+                    Error(request=request, msg=str(error_msg))
                 )
                 continue
 
             error = self._check_request(request, pairs_data)
             if error:
-                await self._send_result(request.namespace, error)
+                await self._result_sender.send(error)
                 continue
 
             try:
@@ -305,8 +280,8 @@ class PowerDistributingActor(Actor):
             except ValueError as err:
                 _logger.exception("Couldn't distribute power")
                 error_msg = f"Couldn't distribute power, error: {str(err)}"
-                await self._send_result(
-                    request.namespace, Error(request=request, msg=str(error_msg))
+                await self._result_sender.send(
+                    Error(request=request, msg=str(error_msg))
                 )
                 continue
 
@@ -355,7 +330,7 @@ class PowerDistributingActor(Actor):
                     self._all_battery_status.update_status(
                         succeed_batteries, failed_batteries
                     ),
-                    self._send_result(request.namespace, response),
+                    self._result_sender.send(response),
                 ]
             )
 

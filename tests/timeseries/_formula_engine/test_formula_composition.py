@@ -94,7 +94,7 @@ class TestFormulaComposition:
 
         await mockgrid.cleanup()
         await engine._stop()  # pylint: disable=protected-access
-        await battery_pool.stop()
+        await battery_pool._battery_pool.stop()  # pylint: disable=protected-access
         await logical_meter.stop()
 
     async def test_formula_composition_missing_pv(self, mocker: MockerFixture) -> None:
@@ -130,7 +130,7 @@ class TestFormulaComposition:
 
         await mockgrid.cleanup()
         await engine._stop()  # pylint: disable=protected-access
-        await battery_pool.stop()
+        await battery_pool._battery_pool.stop()  # pylint: disable=protected-access
         await logical_meter.stop()
 
         assert count == 10
@@ -165,7 +165,7 @@ class TestFormulaComposition:
 
         await mockgrid.cleanup()
         await engine._stop()  # pylint: disable=protected-access
-        await battery_pool.stop()
+        await battery_pool._battery_pool.stop()  # pylint: disable=protected-access
         await logical_meter.stop()
 
         assert count == 10

@@ -11,6 +11,7 @@ ResamplingActor.
 from __future__ import annotations
 
 import logging
+import sys
 import typing
 from collections import abc
 from dataclasses import dataclass
@@ -30,13 +31,17 @@ _logger = logging.getLogger(__name__)
 #
 # pylint: disable=import-outside-toplevel
 if typing.TYPE_CHECKING:
-    from ..actor import ComponentMetricRequest, ResamplerConfig
+    from ..actor import ComponentMetricRequest, ResamplerConfig, _power_managing
     from ..actor.power_distributing import (  # noqa: F401 (imports used by string type hints)
         BatteryStatus,
         PowerDistributingActor,
         Request,
+        Result,
     )
     from ..timeseries.battery_pool import BatteryPool
+    from ..timeseries.battery_pool._battery_pool_reference_store import (
+        BatteryPoolReferenceStore,
+    )
     from ..timeseries.ev_charger_pool import EVChargerPool
     from ..timeseries.logical_meter import LogicalMeter
 
@@ -60,7 +65,7 @@ class _ActorInfo:
     """The request channel for the actor."""
 
 
-class _DataPipeline:
+class _DataPipeline:  # pylint: disable=too-many-instance-attributes
     """Create, connect and own instances of data pipeline components.
 
     Provides SDK users direct access to higher level components of the data pipeline,
@@ -89,15 +94,26 @@ class _DataPipeline:
         self._battery_status_channel = Broadcast["BatteryStatus"](
             "battery-status", resend_latest=True
         )
-        self._power_distribution_channel = Broadcast["Request"](
-            "Power Distributing Actor, Broadcast Channel"
+        self._power_distribution_requests_channel = Broadcast["Request"](
+            "Power Distributing Actor, Requests Broadcast Channel"
+        )
+        self._power_distribution_results_channel = Broadcast["Result"](
+            "Power Distributing Actor, Results Broadcast Channel"
         )
 
+        self._power_management_proposals_channel: Broadcast[
+            _power_managing.Proposal
+        ] = Broadcast("Power Managing Actor, Requests Broadcast Channel")
+        self._power_manager_bounds_subscription_channel: Broadcast[
+            _power_managing.ReportRequest
+        ] = Broadcast("Power Managing Actor, Bounds Subscription Channel")
+
         self._power_distributing_actor: PowerDistributingActor | None = None
+        self._power_managing_actor: _power_managing.PowerManagingActor | None = None
 
         self._logical_meter: LogicalMeter | None = None
         self._ev_charger_pools: dict[frozenset[int], EVChargerPool] = {}
-        self._battery_pools: dict[frozenset[int], BatteryPool] = {}
+        self._battery_pools: dict[frozenset[int], BatteryPoolReferenceStore] = {}
         self._frequency_pool: dict[int, GridFrequency] = {}
 
     def frequency(self, component: Component | None = None) -> GridFrequency:
@@ -173,23 +189,31 @@ class _DataPipeline:
     def battery_pool(
         self,
         battery_ids: abc.Set[int] | None = None,
+        name: str | None = None,
+        priority: int = -sys.maxsize - 1,
     ) -> BatteryPool:
-        """Return the corresponding BatteryPool instance for the given ids.
+        """Return a new `BatteryPool` instance for the given ids.
 
-        If a BatteryPool instance for the given ids doesn't exist, a new one is created
-        and returned.
+        If a `BatteryPoolReferenceStore` instance for the given battery ids doesn't exist,
+        a new one is created and used for creating the `BatteryPool`.
 
         Args:
             battery_ids: Optional set of IDs of batteries to be managed by the
-                BatteryPool.
+                `BatteryPool`.
+            name: An optional name used to identify this instance of the pool or a
+                corresponding actor in the logs.
+            priority: The priority of the actor making the call.
 
         Returns:
-            A BatteryPool instance.
+            A `BatteryPool` instance.
         """
         from ..timeseries.battery_pool import BatteryPool
+        from ..timeseries.battery_pool._battery_pool_reference_store import (
+            BatteryPoolReferenceStore,
+        )
 
-        if not self._power_distributing_actor:
-            self._start_power_distributing_actor()
+        if not self._power_managing_actor:
+            self._start_power_managing_actor()
 
         # We use frozenset to make a hashable key from the input set.
         key: frozenset[int] = frozenset()
@@ -197,18 +221,60 @@ class _DataPipeline:
             key = frozenset(battery_ids)
 
         if key not in self._battery_pools:
-            self._battery_pools[key] = BatteryPool(
+            self._battery_pools[key] = BatteryPoolReferenceStore(
                 channel_registry=self._channel_registry,
                 resampler_subscription_sender=self._resampling_request_sender(),
                 batteries_status_receiver=self._battery_status_channel.new_receiver(
                     maxsize=1
                 ),
-                power_distributing_sender=self._power_distribution_channel.new_sender(),
+                power_manager_requests_sender=(
+                    self._power_management_proposals_channel.new_sender()
+                ),
+                power_manager_bounds_subscription_sender=(
+                    self._power_manager_bounds_subscription_channel.new_sender()
+                ),
                 min_update_interval=self._resampler_config.resampling_period,
                 batteries_id=battery_ids,
             )
 
-        return self._battery_pools[key]
+        return BatteryPool(self._battery_pools[key], name, priority)
+
+    def _start_power_managing_actor(self) -> None:
+        """Start the power managing actor if it is not already running."""
+        if self._power_managing_actor:
+            return
+
+        component_graph = connection_manager.get().component_graph
+        # Currently the power managing actor only supports batteries.  The below
+        # constraint needs to be relaxed if the actor is extended to support other
+        # components.
+        if not component_graph.components(
+            component_category={ComponentCategory.BATTERY}
+        ):
+            _logger.warning(
+                "No batteries found in the component graph. "
+                "The power managing actor will not be started."
+            )
+            return
+
+        self._start_power_distributing_actor()
+
+        from ..actor._power_managing._power_managing_actor import PowerManagingActor
+
+        self._power_managing_actor = PowerManagingActor(
+            proposals_receiver=self._power_management_proposals_channel.new_receiver(),
+            bounds_subscription_receiver=(
+                self._power_manager_bounds_subscription_channel.new_receiver()
+            ),
+            power_distributing_requests_sender=(
+                self._power_distribution_requests_channel.new_sender()
+            ),
+            power_distributing_results_receiver=(
+                self._power_distribution_results_channel.new_receiver()
+            ),
+            channel_registry=self._channel_registry,
+        )
+        self._power_managing_actor.start()
 
     def _start_power_distributing_actor(self) -> None:
         """Start the power distributing actor if it is not already running."""
@@ -231,8 +297,8 @@ class _DataPipeline:
         # Until the PowerManager is implemented, support for multiple use-case actors
         # will not be available in the high level interface.
         self._power_distributing_actor = PowerDistributingActor(
-            requests_receiver=self._power_distribution_channel.new_receiver(),
-            channel_registry=self._channel_registry,
+            requests_receiver=self._power_distribution_requests_channel.new_receiver(),
+            results_sender=self._power_distribution_results_channel.new_sender(),
             battery_status_sender=self._battery_status_channel.new_sender(),
         )
         self._power_distributing_actor.start()
@@ -295,6 +361,10 @@ class _DataPipeline:
             await self._resampling_actor.actor.stop()
         if self._power_distributing_actor:
             await self._power_distributing_actor.stop()
+        if self._power_managing_actor:
+            await self._power_managing_actor.stop()
+        for pool in self._battery_pools.values():
+            await pool.stop()
 
 
 _DATA_PIPELINE: _DataPipeline | None = None
@@ -357,21 +427,31 @@ def ev_charger_pool(ev_charger_ids: set[int] | None = None) -> EVChargerPool:
     return _get().ev_charger_pool(ev_charger_ids)
 
 
-def battery_pool(battery_ids: abc.Set[int] | None = None) -> BatteryPool:
-    """Return the corresponding BatteryPool instance for the given ids.
+def battery_pool(
+    battery_ids: abc.Set[int] | None = None,
+    name: str | None = None,
+    priority: int = -sys.maxsize - 1,
+) -> BatteryPool:
+    """Return a new `BatteryPool` instance for the given parameters.
 
-    If a BatteryPool instance for the given ids doesn't exist, a new one is
-    created and returned.
+    The priority value is used to resolve conflicts when multiple actors are trying to
+    propose different power values for the same set of batteries.
+
+    !!! note
+        When specifying priority, bigger values indicate higher priority. The default
+        priority is the lowest possible value.
 
     Args:
-        battery_ids: Optional set of IDs of batteries to be managed by the
-            BatteryPool.  If not specified, all batteries available in the
-            component graph are used.
+        battery_ids: Optional set of IDs of batteries to be managed by the `BatteryPool`.
+            If not specified, all batteries available in the component graph are used.
+        name: An optional name used to identify this instance of the pool or a
+            corresponding actor in the logs.
+        priority: The priority of the actor making the call.
 
     Returns:
-        A BatteryPool instance.
+        A `BatteryPool` instance.
     """
-    return _get().battery_pool(battery_ids)
+    return _get().battery_pool(battery_ids, name, priority)
 
 
 def _get() -> _DataPipeline:

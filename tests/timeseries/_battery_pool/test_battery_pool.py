@@ -28,8 +28,15 @@ from frequenz.sdk._internal._constants import (
 from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.actor.power_distributing import BatteryStatus
 from frequenz.sdk.microgrid.component import ComponentCategory
-from frequenz.sdk.timeseries import Energy, Percentage, Power, Sample, Temperature
-from frequenz.sdk.timeseries.battery_pool import BatteryPool, Bounds, PowerMetrics
+from frequenz.sdk.timeseries import (
+    Bounds,
+    Energy,
+    Percentage,
+    Power,
+    Sample,
+    Temperature,
+)
+from frequenz.sdk.timeseries.battery_pool import BatteryPool, PowerMetrics
 from frequenz.sdk.timeseries.battery_pool._metric_calculator import (
     battery_inverter_mapping,
 )
@@ -161,7 +168,7 @@ async def setup_all_batteries(mocker: MockerFixture) -> AsyncIterator[SetupArgs]
     await asyncio.gather(
         *[
             microgrid._data_pipeline._DATA_PIPELINE._stop(),
-            battery_pool.stop(),
+            battery_pool._battery_pool.stop(),
             streamer.stop(),
         ]
     )
@@ -215,7 +222,7 @@ async def setup_batteries_pool(mocker: MockerFixture) -> AsyncIterator[SetupArgs
     await asyncio.gather(
         *[
             microgrid._data_pipeline._DATA_PIPELINE._stop(),
-            battery_pool.stop(),
+            battery_pool._battery_pool.stop(),
             streamer.stop(),
         ]
     )
@@ -245,7 +252,7 @@ class Scenario(Generic[T]):
 async def run_scenarios(
     scenarios: list[Scenario[T]],
     streamer: MockComponentDataStreamer,
-    receiver: Receiver[T | None],
+    receiver: Receiver[T],
     waiting_time_sec: float,
 ) -> None:
     """Run all scenarios in the list.
@@ -859,7 +866,9 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
             sampling_rate=0.1,
         )
 
-    receiver = battery_pool.power_bounds.new_receiver(maxsize=50)
+    # pylint: disable=protected-access
+    receiver = battery_pool._system_power_bounds.new_receiver(maxsize=50)
+    # pylint: enable=protected-access
 
     # First metrics delivers slower because of the startup delay in the pool.
     msg = await asyncio.wait_for(
