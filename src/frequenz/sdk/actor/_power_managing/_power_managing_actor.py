@@ -157,9 +157,6 @@ class PowerManagingActor(Actor):
         request_timeout = (
             proposal.request_timeout if proposal else timedelta(seconds=5.0)
         )
-        include_broken_batteries = (
-            proposal.include_broken_batteries if proposal else False
-        )
         if target_power is not None:
             await self._power_distributing_requests_sender.send(
                 power_distributing.Request(
@@ -167,7 +164,6 @@ class PowerManagingActor(Actor):
                     batteries=battery_ids,
                     request_timeout=request_timeout,
                     adjust_power=True,
-                    include_broken_batteries=include_broken_batteries,
                 )
             )
 

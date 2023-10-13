@@ -13,6 +13,7 @@ This version ships an experimental version of the **Power Manager**, adds prelim
   * Original methods `{set_power/charge/discharge}` are now replaced by `propose_{power/charge/discharge}`
   * The `propose_*` methods send power proposals to the `PowerManagingActor`, where it can be overridden by proposals from other actors.
   * They no longer have the `adjust_power` flag, because the `PowerManagingActor` will always adjust power to fit within the available bounds.
+  * They no longer have a `include_broken_batteries` parameter.  The feature has been removed.
 
 - `BatteryPool`'s reporting methods
 
