@@ -2,7 +2,7 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
+This version ships an experimental version of the **Power Manager**, adds preliminary support for n:m relations between inverters and batteries and includes user documentation.
 
 ## Upgrading
 
@@ -26,7 +26,7 @@
 
 - New and improved documentation.
 
-  * A new *Introduction* section was added, with:
+  * A new *User Guide* section was added, with:
 
     + A glossary.
     + An introduction to actors.
@@ -45,8 +45,8 @@
   - Add `fill_value` option to window method to impute missing values. By default missing values are imputed with `NaN`.
 - Add `at` method to `MovingWindow` to access a single element and use it in `__getitem__` magic to fully support single element access.
 
-- The PowerDistributingActor now supports n:m relations between inverters and
-  batteries.
+- The PowerDistributingActor now supports n:m relations between inverters and batteries.
+
   This means that one or more inverters can be connected to one or more batteries.
 
 - A `PowerManagingActor` implementation
