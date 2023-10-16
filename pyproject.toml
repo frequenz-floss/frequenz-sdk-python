@@ -53,7 +53,7 @@ dev-flake8 = [
   "flake8 == 6.1.0",
   "flake8-docstrings == 1.7.0",
   "flake8-pyproject == 1.2.3",  # For reading the flake8 config from pyproject.toml
-  "pydoclint == 0.3.3",
+  "pydoclint == 0.3.4",
   "pydocstyle == 6.3.0",
 ]
 dev-examples = ["polars == 0.19.3"]
