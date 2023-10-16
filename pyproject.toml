@@ -5,7 +5,7 @@
 requires = [
   "setuptools == 68.1.0",
   "setuptools_scm[toml] == 7.1.0",
-  "frequenz-repo-config[lib] == 0.6.1",
+  "frequenz-repo-config[lib] == 0.6.2",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -53,24 +53,24 @@ dev-flake8 = [
   "flake8 == 6.1.0",
   "flake8-docstrings == 1.7.0",
   "flake8-pyproject == 1.2.3",  # For reading the flake8 config from pyproject.toml
-  "pydoclint == 0.3.3",
+  "pydoclint == 0.3.4",
   "pydocstyle == 6.3.0",
 ]
-dev-examples = ["polars == 0.19.3"]
+dev-examples = ["polars == 0.19.8"]
 dev-formatting = ["black == 23.9.1", "isort == 5.12.0"]
 dev-mkdocs = [
   "mike == 1.1.2",
   "mkdocs-gen-files == 0.5.0",
   "mkdocs-literate-nav == 0.6.1",
   "mkdocs-macros-plugin == 1.0.4",
-  "mkdocs-material == 9.3.1",
+  "mkdocs-material == 9.4.6",
   "mkdocstrings[python] == 0.23.0",
-  "frequenz-repo-config[lib] == 0.6.1",
+  "frequenz-repo-config[lib] == 0.6.2",
 ]
 dev-mypy = [
-  "mypy == 1.5.1",
+  "mypy == 1.6.0",
   "grpc-stubs == 1.24.12",              # This dependency introduces breaking changes in patch releases
-  "types-Markdown == 3.4.2.10",
+  "types-Markdown == 3.5.0.0",
   "types-PyYAML == 6.0.12.12",
   "types-Pygments == 2.16.0.0",
   "types-colorama == 0.4.15.12",
@@ -81,7 +81,7 @@ dev-mypy = [
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
-dev-noxfile = ["nox == 2023.4.22", "frequenz-repo-config[lib] == 0.6.1"]
+dev-noxfile = ["nox == 2023.4.22", "frequenz-repo-config[lib] == 0.6.2"]
 dev-pylint = [
   "pylint == 2.17.5",
   # For checking the noxfile, docs/ script, and tests
@@ -89,10 +89,10 @@ dev-pylint = [
 ]
 dev-pytest = [
   "pytest == 7.4.2",
-  "frequenz-repo-config[extra-lint-examples] == 0.6.1",
+  "frequenz-repo-config[extra-lint-examples] == 0.6.2",
   "pytest-mock == 3.11.1",
   "pytest-asyncio == 0.21.1",
-  "time-machine == 2.12.0",
+  "time-machine == 2.13.0",
   "async-solipsism == 0.5",
   # For checking docstring code examples
   "frequenz-sdk[dev-examples]",
