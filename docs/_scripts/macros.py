@@ -45,11 +45,12 @@ def define_env(env: macros.MacrosPlugin) -> None:
     env.variables["code_annotation_marker"] = _CODE_ANNOTATION_MARKER
 
     @env.macro  # type: ignore[misc]
-    def glossary(term: str) -> str:
+    def glossary(term: str, text: str | None = None) -> str:
         """Create a link to the glossary entry for the given term.
 
         Args:
             term: The term to link to.
+            text: The text to display for the link. Defaults to the term.
 
         Returns:
             The Markdown link to the glossary entry for the given term.
@@ -57,7 +58,7 @@ def define_env(env: macros.MacrosPlugin) -> None:
         current_path = pathlib.Path(env.page.file.src_uri)
         glossary_path = pathlib.Path("user-guide/glossary.md")
         link_path = glossary_path.relative_to(current_path.parent)
-        return f"[{term}]({link_path}#{_slugify(term)})"
+        return f"[{text or term}]({link_path}#{_slugify(term)})"
 
     # The code below is a temporary workaround to make `mkdocs-macros` work with
     # `mkdocstrings` until a proper `mkdocs-macros` *pluglet* is available. See
