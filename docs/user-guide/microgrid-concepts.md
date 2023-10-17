@@ -12,10 +12,10 @@ have to have at least one of the two, to be meaningful.
 
 ## Frequenz SDK Microgrid Model
 
-The SDK aims to provide an abstract model of the microgrid that allows
-for high-level interactions with {{glossary("component", "microgrid
-components")}}, without having to deal with, or even be aware of
-location specific details like:
+The SDK aims to provide an abstract model of the microgrid that
+enables high-level interactions with {{glossary("component",
+"microgrid components")}}, without having to worry about (or even be
+aware of) location-specific details such as:
 
 - where the {{glossary("meter", "meters")}} are placed,
 - how many {{glossary("battery", "batteries")}},
@@ -65,8 +65,8 @@ This refers to a microgrid's connection to the external Grid.  The
 power flowing through this connection can be streamed through
 [`grid_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.grid_power].
 
-In locations without a grid connection, this method would still be
-available, and would stream zero values.
+In locations without a grid connection, this method remains
+accessible, and streams zero values.
 
 ## Consumer
 
@@ -75,7 +75,7 @@ the {{glossary("load")}} the microgrid is built to support.  The power
 drawn by the consumer is available through
 [`consumer_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.consumer_power]
 
-If there is no consumer at a site, this method would stream zero values.
+In locations without a consumer, this method streams zero values.
 
 ## Producers: PV Arrays, CHP
 
@@ -88,9 +88,9 @@ through
 And total producer power is available through
 [`producer_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.producer_power].
 
-And just like the other methods, if components of either of these
-types are not available in a microgrid, the corrensponding methods
-will stream zero values.
+As is the case with the other methods, if PV Arrays or CHPs are not
+available in a microgrid, the corresponding methods stream zero
+values.
 
 ## Batteries
 
@@ -130,4 +130,4 @@ It also offers a
 method for fetching the status of individual EV Chargers, including
 state changes like when an EV is connected or disconnected, and a
 [`set_bounds`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.set_bounds]
-method for limit the charge power of individual EV Chargers.
+method to limit the charge power of individual EV Chargers.
