@@ -3,6 +3,7 @@
 
 """This module defines macros for use in Markdown files."""
 
+import os
 import pathlib
 from typing import Any
 
@@ -57,7 +58,11 @@ def define_env(env: macros.MacrosPlugin) -> None:
         """
         current_path = pathlib.Path(env.page.file.src_uri)
         glossary_path = pathlib.Path("user-guide/glossary.md")
-        link_path = glossary_path.relative_to(current_path.parent)
+        # This needs to use `os.path.relpath` instead of `pathlib.Path.relative_to`
+        # because the latter expects one path to be a parent of the other, which is not
+        # always the case, for example when referencing the glossary from the API
+        # reference.
+        link_path = os.path.relpath(glossary_path, current_path.parent)
         return f"[{text or term}]({link_path}#{_slugify(term)})"
 
     # The code below is a temporary workaround to make `mkdocs-macros` work with
