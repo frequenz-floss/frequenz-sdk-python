@@ -28,7 +28,7 @@ from frequenz.sdk.timeseries._quantities import Power
 
 from ..._internal._math import is_close_to_zero
 from ...actor._actor import Actor
-from ...microgrid import ComponentGraph, connection_manager
+from ...microgrid import connection_manager
 from ...microgrid.client import MicrogridApiClient
 from ...microgrid.component import (
     BatteryData,
@@ -49,7 +49,9 @@ from .result import Error, OutOfBounds, PartialFailure, PowerBounds, Result, Suc
 _logger = logging.getLogger(__name__)
 
 
-def _get_all(source: dict[int, frozenset[int]], keys: abc.Set[int]) -> set[int]:
+def _get_all_from_map(
+    source: dict[int, frozenset[int]], keys: abc.Set[int]
+) -> set[int]:
     """Get all values for the given keys from the given map.
 
     Args:
@@ -60,6 +62,76 @@ def _get_all(source: dict[int, frozenset[int]], keys: abc.Set[int]) -> set[int]:
         Set of values for the given keys.
     """
     return set().union(*[source[key] for key in keys])
+
+
+def _get_battery_inverter_mappings(
+    batteries: Iterable[int],
+    *,  # force keyword arguments
+    inv_bats: bool = True,
+    bat_bats: bool = True,
+    inv_invs: bool = True,
+) -> dict[str, dict[int, frozenset[int]]]:
+    """Create maps between battery and adjacent inverters.
+
+    Args:
+        batteries: batteries to create maps for
+        inv_bats: whether to create the inverter to batteries map
+        bat_bats: whether to create the battery to batteries map
+        inv_invs: whether to create the inverter to inverters map
+
+    Returns:
+        a dict of the requested maps, using the following keys:
+            * "bat_invs": battery to inverters map
+            * "inv_bats": inverter to batteries map
+            * "bat_bats": battery to batteries map
+            * "inv_invs": inverter to inverters map
+    """
+    bat_invs_map: dict[int, set[int]] = {}
+    inv_bats_map: dict[int, set[int]] | None = {} if inv_bats else None
+    bat_bats_map: dict[int, set[int]] | None = {} if bat_bats else None
+    inv_invs_map: dict[int, set[int]] | None = {} if inv_invs else None
+    component_graph = connection_manager.get().component_graph
+
+    for battery_id in batteries:
+        inverters: set[int] = set(
+            component.component_id
+            for component in component_graph.predecessors(battery_id)
+            if component.category == ComponentCategory.INVERTER
+        )
+
+        if len(inverters) == 0:
+            _logger.error("No inverters for battery %d", battery_id)
+            continue
+
+        bat_invs_map[battery_id] = inverters
+        if bat_bats_map is not None:
+            bat_bats_map.setdefault(battery_id, set()).update(
+                set(
+                    component.component_id
+                    for inverter in inverters
+                    for component in component_graph.successors(inverter)
+                )
+            )
+
+        for inverter in inverters:
+            if inv_bats_map is not None:
+                inv_bats_map.setdefault(inverter, set()).add(battery_id)
+            if inv_invs_map is not None:
+                inv_invs_map.setdefault(inverter, set()).update(bat_invs_map)
+
+    mapping: dict[str, dict[int, frozenset[int]]] = {}
+
+    # Convert sets to frozensets to make them hashable.
+    def _add(key: str, value: dict[int, set[int]] | None) -> None:
+        if value is not None:
+            mapping[key] = {k: frozenset(v) for k, v in value.items()}
+
+    _add("bat_invs", bat_invs_map)
+    _add("inv_bats", inv_bats_map)
+    _add("bat_bats", bat_bats_map)
+    _add("inv_invs", inv_invs_map)
+
+    return mapping
 
 
 class PowerDistributingActor(Actor):
@@ -127,18 +199,26 @@ class PowerDistributingActor(Actor):
         )
         """The distribution algorithm used to distribute power between batteries."""
 
-        (
-            self._bat_inv_map,
-            self._inv_bat_map,
-            self._bat_bats_map,
-            self._inv_invs_map,
-        ) = self._get_components_pairs(connection_manager.get().component_graph)
+        batteries: Iterable[
+            Component
+        ] = connection_manager.get().component_graph.components(
+            component_category={ComponentCategory.BATTERY}
+        )
+
+        maps = _get_battery_inverter_mappings(
+            [battery.component_id for battery in batteries]
+        )
+
+        self._bat_invs_map = maps["bat_invs"]
+        self._inv_bats_map = maps["inv_bats"]
+        self._bat_bats_map = maps["bat_bats"]
+        self._inv_invs_map = maps["inv_invs"]
 
         self._battery_receivers: dict[int, Peekable[BatteryData]] = {}
         self._inverter_receivers: dict[int, Peekable[InverterData]] = {}
 
         self._all_battery_status = BatteryPoolStatus(
-            battery_ids=set(self._bat_inv_map.keys()),
+            battery_ids=set(self._bat_invs_map.keys()),
             battery_status_sender=battery_status_sender,
             max_blocking_duration_sec=30.0,
             max_data_age_sec=10.0,
@@ -159,7 +239,7 @@ class PowerDistributingActor(Actor):
         return PowerBounds(
             inclusion_lower=sum(
                 max(
-                    battery.power_inclusion_lower_bound,
+                    battery.power_bounds.inclusion_lower,
                     sum(
                         inverter.active_power_inclusion_lower_bound
                         for inverter in inverters
@@ -169,7 +249,7 @@ class PowerDistributingActor(Actor):
             ),
             inclusion_upper=sum(
                 min(
-                    battery.power_inclusion_upper_bound,
+                    battery.power_bounds.inclusion_upper,
                     sum(
                         inverter.active_power_inclusion_upper_bound
                         for inverter in inverters
@@ -178,7 +258,7 @@ class PowerDistributingActor(Actor):
                 for battery, inverters in pairs_data
             ),
             exclusion_lower=min(
-                sum(battery.power_exclusion_lower_bound for battery, _ in pairs_data),
+                sum(battery.power_bounds.exclusion_lower for battery, _ in pairs_data),
                 sum(
                     inverter.active_power_exclusion_lower_bound
                     for _, inverters in pairs_data
@@ -186,7 +266,7 @@ class PowerDistributingActor(Actor):
                 ),
             ),
             exclusion_upper=max(
-                sum(battery.power_exclusion_upper_bound for battery, _ in pairs_data),
+                sum(battery.power_bounds.exclusion_upper for battery, _ in pairs_data),
                 sum(
                     inverter.active_power_exclusion_upper_bound
                     for _, inverters in pairs_data
@@ -250,7 +330,7 @@ class PowerDistributingActor(Actor):
             )
             battery_distribution: dict[int, float] = {}
             for inverter_id, dist in distribution.distribution.items():
-                for battery_id in self._inv_bat_map[inverter_id]:
+                for battery_id in self._inv_bats_map[inverter_id]:
                     battery_distribution[battery_id] = (
                         battery_distribution.get(battery_id, 0.0) + dist
                     )
@@ -338,7 +418,7 @@ class PowerDistributingActor(Actor):
         Returns:
             the power distribution result.
         """
-        available_bat_ids = _get_all(
+        available_bat_ids = _get_all_from_map(
             self._bat_bats_map, {pair.battery.component_id for pair in inv_bat_pairs}
         )
 
@@ -346,7 +426,7 @@ class PowerDistributingActor(Actor):
         unavailable_inv_ids: set[int] = set()
 
         for inverter_ids in [
-            self._bat_inv_map[battery_id_set] for battery_id_set in unavailable_bat_ids
+            self._bat_invs_map[battery_id_set] for battery_id_set in unavailable_bat_ids
         ]:
             unavailable_inv_ids = unavailable_inv_ids.union(inverter_ids)
 
@@ -407,71 +487,6 @@ class PowerDistributingActor(Actor):
 
         return None
 
-    def _get_components_pairs(
-        self, component_graph: ComponentGraph
-    ) -> tuple[
-        dict[int, frozenset[int]],
-        dict[int, frozenset[int]],
-        dict[int, frozenset[int]],
-        dict[int, frozenset[int]],
-    ]:
-        """Create maps between battery and adjacent inverters.
-
-        Args:
-            component_graph: component graph
-
-        Returns:
-            Tuple of four maps:
-                battery to inverters,
-                inverter to batteries,
-                battery to batteries,
-                inverter to inverters.
-        """
-        bat_inv_map: dict[int, set[int]] = {}
-        inv_bat_map: dict[int, set[int]] = {}
-        bat_bats_map: dict[int, set[int]] = {}
-        inv_invs_map: dict[int, set[int]] = {}
-
-        batteries: Iterable[Component] = component_graph.components(
-            component_category={ComponentCategory.BATTERY}
-        )
-
-        for battery in batteries:
-            inverters: set[int] = set(
-                component.component_id
-                for component in component_graph.predecessors(battery.component_id)
-                if component.category == ComponentCategory.INVERTER
-            )
-
-            if len(inverters) == 0:
-                _logger.error("No inverters for battery %d", battery.component_id)
-                continue
-
-            _logger.debug(
-                "Battery %d has inverter %s", battery.component_id, list(inverters)
-            )
-
-            bat_inv_map[battery.component_id] = inverters
-            bat_bats_map.setdefault(battery.component_id, set()).update(
-                set(
-                    component.component_id
-                    for inverter in inverters
-                    for component in component_graph.successors(inverter)
-                )
-            )
-
-            for inverter in inverters:
-                inv_bat_map.setdefault(inverter, set()).add(battery.component_id)
-                inv_invs_map.setdefault(inverter, set()).update(bat_inv_map)
-
-        # Convert sets to frozensets to make them hashable.
-        return (
-            {k: frozenset(v) for k, v in bat_inv_map.items()},
-            {k: frozenset(v) for k, v in inv_bat_map.items()},
-            {k: frozenset(v) for k, v in bat_bats_map.items()},
-            {k: frozenset(v) for k, v in inv_invs_map.items()},
-        )
-
     def _get_components_data(self, batteries: abc.Set[int]) -> list[InvBatPair]:
         """Get data for the given batteries and adjacent inverters.
 
@@ -495,16 +510,18 @@ class PowerDistributingActor(Actor):
                     f"available batteries: {list(self._battery_receivers.keys())}"
                 )
 
-        connected_inverters = _get_all(self._bat_inv_map, batteries)
+        connected_inverters = _get_all_from_map(self._bat_invs_map, batteries)
 
         # Check to see if inverters are involved that are connected to batteries
         # that were not requested.
-        batteries_from_inverters = _get_all(self._inv_bat_map, connected_inverters)
+        batteries_from_inverters = _get_all_from_map(
+            self._inv_bats_map, connected_inverters
+        )
 
         if batteries_from_inverters != batteries:
             extra_batteries = batteries_from_inverters - batteries
             raise KeyError(
-                f"Inverters {_get_all(self._bat_inv_map, extra_batteries)} "
+                f"Inverters {_get_all_from_map(self._bat_invs_map, extra_batteries)} "
                 f"are connected to batteries that were not requested: {extra_batteries}"
             )
 
@@ -514,7 +531,7 @@ class PowerDistributingActor(Actor):
         )
 
         for battery_ids in battery_sets:
-            inverter_ids: frozenset[int] = self._bat_inv_map[next(iter(battery_ids))]
+            inverter_ids: frozenset[int] = self._bat_invs_map[next(iter(battery_ids))]
 
             data = self._get_battery_inverter_data(battery_ids, inverter_ids)
             if data is None:
@@ -606,7 +623,7 @@ class PowerDistributingActor(Actor):
     async def _create_channels(self) -> None:
         """Create channels to get data of components in microgrid."""
         api = connection_manager.get().api_client
-        for battery_id, inverter_ids in self._bat_inv_map.items():
+        for battery_id, inverter_ids in self._bat_invs_map.items():
             bat_recv: Receiver[BatteryData] = await api.battery_data(battery_id)
             self._battery_receivers[battery_id] = bat_recv.into_peekable()
 
@@ -640,7 +657,7 @@ class PowerDistributingActor(Actor):
         failed_batteries: set[int] = set()
 
         for inverter_id, aws in tasks.items():
-            battery_ids = self._inv_bat_map[inverter_id]
+            battery_ids = self._inv_bats_map[inverter_id]
             try:
                 aws.result()
             except grpc.aio.AioRpcError as err:

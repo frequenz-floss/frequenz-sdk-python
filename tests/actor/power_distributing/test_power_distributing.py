@@ -61,8 +61,8 @@ class TestPowerDistributingActor:
             results_sender=results_channel.new_sender(),
             battery_status_sender=battery_status_channel.new_sender(),
         ) as distributor:
-            assert distributor._bat_inv_map == {9: {8}, 19: {18}, 29: {28}}
-            assert distributor._inv_bat_map == {8: {9}, 18: {19}, 28: {29}}
+            assert distributor._bat_invs_map == {9: {8}, 19: {18}, 29: {28}}
+            assert distributor._inv_bats_map == {8: {9}, 18: {19}, 28: {29}}
         await mockgrid.cleanup()
 
         # Test if it works without grid side meter
@@ -75,8 +75,8 @@ class TestPowerDistributingActor:
             results_sender=results_channel.new_sender(),
             battery_status_sender=battery_status_channel.new_sender(),
         ) as distributor:
-            assert distributor._bat_inv_map == {9: {8}, 19: {18}, 29: {28}}
-            assert distributor._inv_bat_map == {8: {9}, 18: {19}, 28: {29}}
+            assert distributor._bat_invs_map == {9: {8}, 19: {18}, 29: {28}}
+            assert distributor._inv_bats_map == {8: {9}, 18: {19}, 28: {29}}
         await mockgrid.cleanup()
 
     async def init_component_data(
