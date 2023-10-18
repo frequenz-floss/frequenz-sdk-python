@@ -430,6 +430,8 @@
       
         
       
+        
+      
     
     
     <li class="md-nav__item md-nav__item--nested">
@@ -499,6 +501,26 @@
   
   <span class="md-ellipsis">
     Glossary
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guide/microgrid-concepts/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Microgrid Concepts
   </span>
   
 
@@ -1305,6 +1327,48 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--frequenz-sdk-microgrid-model" class="md-nav__link">
+    Frequenz SDK Microgrid Model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--grid" class="md-nav__link">
+    Grid
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--consumer" class="md-nav__link">
+    Consumer
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--producers-pv-arrays-chp" class="md-nav__link">
+    Producers: PV Arrays, CHP
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--batteries" class="md-nav__link">
+    Batteries
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--ev-chargers" class="md-nav__link">
+    EV Chargers
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#frequenz.sdk.microgrid-classes" class="md-nav__link">
     Classes
   </a>
@@ -1548,9 +1612,103 @@
 
   <div class="doc doc-contents first">
   
-      <p>Microgrid monitoring and control system.</p>
-<p>This package provides a complete suite of data structures and functionality
-for monitoring and adjusting the state of a microgrid.</p>
+      <p>A <a href="../../../../user-guide/glossary/#microgrid">microgrid</a> is a local electrical grid that connects a set of
+electrical components together.  They are often built around a passive power consumer,
+to supplement the electricity consumed from the <a href="../../../../user-guide/glossary/#grid">public grid</a> with
+on-site power generation or storage systems.</p>
+<p>Microgrids can also function in <a href="../../../../user-guide/glossary/#island">island-mode</a>, without a grid
+connection, or without a local power consumer, but they have to have at least one of the
+two, to be meaningful.</p>
+<h4 id="frequenz.sdk.microgrid--frequenz-sdk-microgrid-model">Frequenz SDK Microgrid Model<a class="headerlink" href="#frequenz.sdk.microgrid--frequenz-sdk-microgrid-model" title="Permanent link">¤</a></h4>
+<p>The SDK aims to provide an abstract model of the microgrid that enables high-level
+interactions with <a href="../../../../user-guide/glossary/#component">microgrid components</a>, without having to
+worry about (or even be aware of) location-specific details such as:</p>
+<ul>
+<li>where the <a href="../../../../user-guide/glossary/#meter">meters</a> are placed,</li>
+<li>how many <a href="../../../../user-guide/glossary/#battery">batteries</a>,</li>
+<li>whether there's a grid connection or a passive consumer,</li>
+<li>what models the <a href="../../../../user-guide/glossary/#inverter">inverters</a> are, etc.</li>
+<li>whether components are having downtimes, because <a href="../../../../user-guide/glossary/#metric">metrics</a> and
+  limits get adjusted automatically when components are having downtimes.</li>
+</ul>
+<p>Users of the SDK can develop applications around this interface once and deploy
+anywhere, and the SDK will take care of translating the requests and instructions to
+correspond to the specific microgrid configurations.</p>
+<pre class="mermaid"><code>flowchart LR
+
+subgraph Left[Measurements only]
+direction LR
+  grid["Grid Connection"]
+  consumer["Consumer"]
+  pv["PV Arrays"]
+  chp["CHP"]
+end
+
+junction(( ))
+
+subgraph Right[Measurements and control]
+direction LR
+  bat["Batteries"]
+  ev["EV Chargers"]
+end
+
+grid --- junction
+consumer --- junction
+pv --- junction
+chp --- junction
+
+junction --- bat
+junction --- ev</code></pre>
+<h4 id="frequenz.sdk.microgrid--grid">Grid<a class="headerlink" href="#frequenz.sdk.microgrid--grid" title="Permanent link">¤</a></h4>
+<p>This refers to a microgrid's connection to the external Grid.  The power flowing through
+this connection can be streamed through
+<a class="autorefs autorefs-internal" href="../timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter.grid_power"><code>grid_power</code></a>.</p>
+<p>In locations without a grid connection, this method remains accessible, and streams zero
+values.</p>
+<h4 id="frequenz.sdk.microgrid--consumer">Consumer<a class="headerlink" href="#frequenz.sdk.microgrid--consumer" title="Permanent link">¤</a></h4>
+<p>This is the main power consumer at the site of a microgrid, and often the
+<a href="../../../../user-guide/glossary/#load">load</a> the microgrid is built to support.  The power drawn by the consumer
+is available through
+<a class="autorefs autorefs-internal" href="../timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter.consumer_power"><code>consumer_power</code></a></p>
+<p>In locations without a consumer, this method streams zero values.</p>
+<h4 id="frequenz.sdk.microgrid--producers-pv-arrays-chp">Producers: PV Arrays, CHP<a class="headerlink" href="#frequenz.sdk.microgrid--producers-pv-arrays-chp" title="Permanent link">¤</a></h4>
+<p>The total <a href="../../../../user-guide/glossary/#pv">PV</a> power production in a microgrid can be streamed
+through <a class="autorefs autorefs-internal" href="../timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter.pv_power"><code>pv_power</code></a> , and
+similarly the total CHP production in a site can be streamed through
+<a class="autorefs autorefs-internal" href="../timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter.chp_power"><code>chp_power</code></a>.  And total
+producer power is available through
+<a class="autorefs autorefs-internal" href="../timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter.producer_power"><code>producer_power</code></a>.</p>
+<p>As is the case with the other methods, if PV Arrays or CHPs are not available in a
+microgrid, the corresponding methods stream zero values.</p>
+<h4 id="frequenz.sdk.microgrid--batteries">Batteries<a class="headerlink" href="#frequenz.sdk.microgrid--batteries" title="Permanent link">¤</a></h4>
+<p>The total Battery power is available through
+<a class="autorefs autorefs-internal" href="#frequenz.sdk.microgrid.battery_pool"><code>battery_pool</code></a>'s
+<a class="autorefs autorefs-internal" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.power"><code>power</code></a>.  The battery pool by
+default uses all batteries available at a location, but battery pool instances can be
+created for subsets of batteries if necessary, by specifying the battery ids.</p>
+<p>The <code>battery_pool</code> also provides
+<a class="autorefs autorefs-internal" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.soc"><code>soc</code></a>,
+<a class="autorefs autorefs-internal" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity"><code>capacity</code></a>,
+<a class="autorefs autorefs-internal" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.temperature"><code>temperature</code></a> and
+available power bounds through the
+<a class="autorefs autorefs-internal" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status"><code>power_status</code></a> method.</p>
+<p>The <code>battery_pool</code> also provides control methods
+<a class="autorefs autorefs-internal" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power"><code>propose_power</code></a> (which
+accepts values in the <a href="../../../../user-guide/glossary/#psc">Passive Sign Convention</a> and supports both
+charging and discharging), or through
+<a class="autorefs autorefs-internal" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_charge"><code>propose_charge</code></a>, or
+<a class="autorefs autorefs-internal" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_discharge"><code>propose_discharge</code></a>.</p>
+<h4 id="frequenz.sdk.microgrid--ev-chargers">EV Chargers<a class="headerlink" href="#frequenz.sdk.microgrid--ev-chargers" title="Permanent link">¤</a></h4>
+<p>The <a class="autorefs autorefs-internal" href="#frequenz.sdk.microgrid.ev_charger_pool"><code>ev_charger_pool</code></a> offers a
+<a class="autorefs autorefs-internal" href="../timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power"><code>power</code></a> method that
+streams the total power measured for all the <a href="../../../../user-guide/glossary/#ev-charger">EV Chargers</a>
+at a site.</p>
+<p>It also offers a
+<a class="autorefs autorefs-internal" href="../timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.component_data"><code>component_data</code></a>
+method for fetching the status of individual EV Chargers, including state changes like
+when an EV is connected or disconnected, and a
+<a class="autorefs autorefs-internal" href="../timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.set_bounds"><code>set_bounds</code></a> method
+to limit the charge power of individual EV Chargers.</p>
 
   
 
@@ -4534,35 +4692,35 @@ the frequency of the grid is returned.</p>
 
           <details class="quote">
             <summary>Source code in <code>frequenz/sdk/microgrid/__init__.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-16">16</a></span>
-<span class="normal"><a href="#__codelineno-0-17">17</a></span>
-<span class="normal"><a href="#__codelineno-0-18">18</a></span>
-<span class="normal"><a href="#__codelineno-0-19">19</a></span>
-<span class="normal"><a href="#__codelineno-0-20">20</a></span>
-<span class="normal"><a href="#__codelineno-0-21">21</a></span>
-<span class="normal"><a href="#__codelineno-0-22">22</a></span>
-<span class="normal"><a href="#__codelineno-0-23">23</a></span>
-<span class="normal"><a href="#__codelineno-0-24">24</a></span>
-<span class="normal"><a href="#__codelineno-0-25">25</a></span>
-<span class="normal"><a href="#__codelineno-0-26">26</a></span>
-<span class="normal"><a href="#__codelineno-0-27">27</a></span>
-<span class="normal"><a href="#__codelineno-0-28">28</a></span>
-<span class="normal"><a href="#__codelineno-0-29">29</a></span>
-<span class="normal"><a href="#__codelineno-0-30">30</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">host</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">resampler_config</span><span class="p">:</span> <span class="n">ResamplerConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialize the microgrid connection manager and the data pipeline.</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18"></a>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19"></a><span class="sd">    Args:</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20"></a><span class="sd">        host: Host to connect to, to reach the microgrid API.</span>
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21"></a><span class="sd">        port: port to connect to.</span>
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22"></a><span class="sd">        resampler_config: Configuration for the resampling actor.</span>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24"></a>    <span class="k">await</span> <span class="n">connection_manager</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25"></a>
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26"></a>    <span class="n">api_client</span> <span class="o">=</span> <span class="n">connection_manager</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">api_client</span>
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27"></a>    <span class="n">components</span> <span class="o">=</span> <span class="k">await</span> <span class="n">api_client</span><span class="o">.</span><span class="n">components</span><span class="p">()</span>
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28"></a>    <span class="n">grid</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">components</span><span class="p">)</span>
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29"></a>
-</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30"></a>    <span class="k">await</span> <span class="n">_data_pipeline</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">resampler_config</span><span class="p">)</span>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-131">131</a></span>
+<span class="normal"><a href="#__codelineno-0-132">132</a></span>
+<span class="normal"><a href="#__codelineno-0-133">133</a></span>
+<span class="normal"><a href="#__codelineno-0-134">134</a></span>
+<span class="normal"><a href="#__codelineno-0-135">135</a></span>
+<span class="normal"><a href="#__codelineno-0-136">136</a></span>
+<span class="normal"><a href="#__codelineno-0-137">137</a></span>
+<span class="normal"><a href="#__codelineno-0-138">138</a></span>
+<span class="normal"><a href="#__codelineno-0-139">139</a></span>
+<span class="normal"><a href="#__codelineno-0-140">140</a></span>
+<span class="normal"><a href="#__codelineno-0-141">141</a></span>
+<span class="normal"><a href="#__codelineno-0-142">142</a></span>
+<span class="normal"><a href="#__codelineno-0-143">143</a></span>
+<span class="normal"><a href="#__codelineno-0-144">144</a></span>
+<span class="normal"><a href="#__codelineno-0-145">145</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-131"><a id="__codelineno-0-131" name="__codelineno-0-131"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">host</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">resampler_config</span><span class="p">:</span> <span class="n">ResamplerConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-132"><a id="__codelineno-0-132" name="__codelineno-0-132"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialize the microgrid connection manager and the data pipeline.</span>
+</span><span id="__span-0-133"><a id="__codelineno-0-133" name="__codelineno-0-133"></a>
+</span><span id="__span-0-134"><a id="__codelineno-0-134" name="__codelineno-0-134"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-135"><a id="__codelineno-0-135" name="__codelineno-0-135"></a><span class="sd">        host: Host to connect to, to reach the microgrid API.</span>
+</span><span id="__span-0-136"><a id="__codelineno-0-136" name="__codelineno-0-136"></a><span class="sd">        port: port to connect to.</span>
+</span><span id="__span-0-137"><a id="__codelineno-0-137" name="__codelineno-0-137"></a><span class="sd">        resampler_config: Configuration for the resampling actor.</span>
+</span><span id="__span-0-138"><a id="__codelineno-0-138" name="__codelineno-0-138"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-139"><a id="__codelineno-0-139" name="__codelineno-0-139"></a>    <span class="k">await</span> <span class="n">connection_manager</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+</span><span id="__span-0-140"><a id="__codelineno-0-140" name="__codelineno-0-140"></a>
+</span><span id="__span-0-141"><a id="__codelineno-0-141" name="__codelineno-0-141"></a>    <span class="n">api_client</span> <span class="o">=</span> <span class="n">connection_manager</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">api_client</span>
+</span><span id="__span-0-142"><a id="__codelineno-0-142" name="__codelineno-0-142"></a>    <span class="n">components</span> <span class="o">=</span> <span class="k">await</span> <span class="n">api_client</span><span class="o">.</span><span class="n">components</span><span class="p">()</span>
+</span><span id="__span-0-143"><a id="__codelineno-0-143" name="__codelineno-0-143"></a>    <span class="n">grid</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">components</span><span class="p">)</span>
+</span><span id="__span-0-144"><a id="__codelineno-0-144" name="__codelineno-0-144"></a>
+</span><span id="__span-0-145"><a id="__codelineno-0-145" name="__codelineno-0-145"></a>    <span class="k">await</span> <span class="n">_data_pipeline</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">resampler_config</span><span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
           </details>
   </div>
