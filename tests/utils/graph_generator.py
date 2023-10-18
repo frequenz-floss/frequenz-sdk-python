@@ -59,27 +59,17 @@ class GraphGenerator:
         self._id_increment += 1
         return id_per_category
 
-    @overload
-    def component(self, other: Component) -> Component:
-        """Just return the given component.
-
-        Args:
-            other: the component to return.
-
-        Returns:
-            the given component.
-        """
-
     def battery_with_inverter(self, battery: Component, num_inverters: int) -> Any:
         """Add a meter and inverters to the given battery.
 
         Args:
-            one_or_more_batteries: the battery component.
+            battery: the battery component.
             num_inverters: the number of inverters to create.
 
         Returns:
             connected graph components for the given battery.
         """
+        assert battery.category == ComponentCategory.BATTERY
         return self._battery_with_inverter(battery, num_inverters)
 
     def batteries_with_inverter(
@@ -94,6 +84,9 @@ class GraphGenerator:
         Returns:
             connected graph components for the given batteries.
         """
+        assert all(
+            b.category == ComponentCategory.BATTERY for b in one_or_more_batteries
+        )
         return self._battery_with_inverter(one_or_more_batteries, num_inverters)
 
     def _battery_with_inverter(
@@ -118,6 +111,20 @@ class GraphGenerator:
                 for _ in range(num_inverters)
             ],
         )
+
+    @overload
+    def component(
+        self, other: Component, comp_type: ComponentType | None = None
+    ) -> Component:
+        """Just return the given component.
+
+        Args:
+            other: the component to return.
+            comp_type: the component type to set, ignored
+
+        Returns:
+            the given component.
+        """
 
     @overload
     def component(

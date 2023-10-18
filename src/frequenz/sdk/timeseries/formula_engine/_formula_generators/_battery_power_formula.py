@@ -12,6 +12,7 @@ from ...formula_engine import FormulaEngine
 from ._formula_generator import (
     NON_EXISTING_COMPONENT_ID,
     ComponentNotFound,
+    FormulaGenerationError,
     FormulaGenerator,
 )
 
@@ -40,6 +41,8 @@ class BatteryPowerFormula(FormulaGenerator[Power]):
                 they don't have an inverter as a predecessor.
             FormulaGenerationError: If a battery has a non-inverter predecessor
                 in the component graph.
+            FormulaGenerationError: If not all batteries behind a set of inverters
+                have been requested.
         """
         builder = self._get_builder(
             "battery-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
@@ -61,16 +64,39 @@ class BatteryPowerFormula(FormulaGenerator[Power]):
 
         component_graph = connection_manager.get().component_graph
 
-        battery_inverters = list(
-            next(iter(component_graph.predecessors(bat_id))) for bat_id in component_ids
+        battery_inverters = frozenset(
+            frozenset(
+                filter(
+                    component_graph.is_battery_inverter,
+                    component_graph.predecessors(bat_id),
+                )
+            )
+            for bat_id in component_ids
         )
 
-        if len(component_ids) != len(battery_inverters):
+        if not all(battery_inverters):
             raise ComponentNotFound(
-                "Can't find inverters for all batteries from the component graph."
+                "All batteries must have at least one inverter as a predecessor."
             )
 
-        for idx, comp in enumerate(battery_inverters):
+        all_connected_batteries = set()
+        for inverters in battery_inverters:
+            for inverter in inverters:
+                all_connected_batteries.update(
+                    component_graph.successors(inverter.component_id)
+                )
+
+        if len(all_connected_batteries) != len(component_ids):
+            raise FormulaGenerationError(
+                "All batteries behind a set of inverters must be requested."
+            )
+
+        builder.push_oper("(")
+        builder.push_oper("(")
+        # Iterate over the flattened list of inverters
+        for idx, comp in enumerate(
+            inverter for inverters in battery_inverters for inverter in inverters
+        ):
             if idx > 0:
                 builder.push_oper("+")
             builder.push_component_metric(comp.component_id, nones_are_zeros=True)
