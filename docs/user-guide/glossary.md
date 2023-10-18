@@ -34,7 +34,7 @@ article](https://en.wikipedia.org/wiki/Electric_vehicle) for more details.
 
 ### PSC
 
-Passive sign convention. See the [Wikipedia
+[Passive sign convention](#passive-sign-convention). See the [Wikipedia
 article](https://en.wikipedia.org/wiki/Passive_sign_convention) for more
 details.
 
@@ -169,6 +169,9 @@ A convention for the direction of power flow in a circuit. When the electricity
 is flowing into a [component](#component) the value is positive, and when it is
 flowing out of a component the value is negative.
 
+In microgrids that have a grid connection, power flowing away from the grid is
+positive, and power flowing towards the grid is negative.
+
 ## Component Data
 
 ### Metric
@@ -277,7 +280,7 @@ Same as [power](#power).
 
 ### Load
 
-Typically refers to a device that [consume](#consumption) electricity, but also
+Typically refers to a device that [consumes](#consumption) electricity, but also
 to the amount of electricity [consumed](#consumption) by such a device. In
 a [microgrid](#microgrid) context, it is often used to refer to all the
 electrical devices that are doing active work, for example a light bulb,

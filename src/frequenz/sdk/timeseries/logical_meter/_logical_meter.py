@@ -33,63 +33,35 @@ class LogicalMeter:
 
     Example:
         ```python
-        from frequenz.channels import Sender, Broadcast
-        from frequenz.sdk.actor import DataSourcingActor, ComponentMetricsResamplingActor
-        from frequenz.sdk.timeseries import ResamplerConfig
-        from frequenz.sdk.microgrid import initialize
         from datetime import timedelta
 
-        channel_registry = ChannelRegistry(name="data-registry")
+        from frequenz.sdk import microgrid
+        from frequenz.sdk.timeseries import ResamplerConfig
 
-        # Create a channels for sending/receiving subscription requests
-        data_source_request_channel = Broadcast[ComponentMetricRequest]("data-source")
-        data_source_request_sender = data_source_request_channel.new_sender()
-        data_source_request_receiver = data_source_request_channel.new_receiver()
-
-        resampling_request_channel = Broadcast[ComponentMetricRequest]("resample")
-        resampling_request_sender = resampling_request_channel.new_sender()
-        resampling_request_receiver = resampling_request_channel.new_receiver()
-
-        # Instantiate a data sourcing actor
-        _data_sourcing_actor = DataSourcingActor(
-            request_receiver=data_source_request_receiver, registry=channel_registry
+        await microgrid.initialize(
+            "127.0.0.1",
+            50051,
+            ResamplerConfig(resampling_period=timedelta(seconds=1))
         )
 
-        # Instantiate a resampling actor
-        async with ComponentMetricsResamplingActor(
-            channel_registry=channel_registry,
-            data_sourcing_request_sender=data_source_request_sender,
-            resampling_request_receiver=resampling_request_receiver,
-            config=ResamplerConfig(resampling_period=timedelta(seconds=1)),
-        ):
-            await initialize(
-                "127.0.0.1",
-                50051,
-                ResamplerConfig(resampling_period=timedelta(seconds=1))
-            )
+        logical_meter = microgrid.logical_meter()
 
-            # Create a logical meter instance
-            logical_meter = LogicalMeter(
-                channel_registry,
-                resampling_request_sender,
-            )
+        # Get a receiver for a builtin formula
+        grid_power_recv = logical_meter.grid_power.new_receiver()
+        async for grid_power_sample in grid_power_recv:
+            print(grid_power_sample)
 
-            # Get a receiver for a builtin formula
-            grid_power_recv = logical_meter.grid_power.new_receiver()
-            for grid_power_sample in grid_power_recv:
-                print(grid_power_sample)
-
-            # or compose formula receivers to create a new formula
-            net_power_recv = (
-                (
-                    logical_meter.grid_power
-                    - logical_meter.pv_power
-                )
-                .build("net_power")
-                .new_receiver()
+        # or compose formulas to create a new formula
+        net_power_recv = (
+            (
+                logical_meter.grid_power
+                - logical_meter.pv_power
             )
-            for net_power_sample in net_power_recv:
-                print(net_power_sample)
+            .build("net_power")
+            .new_receiver()
+        )
+        async for net_power_sample in net_power_recv:
+            print(net_power_sample)
         ```
     """
 
