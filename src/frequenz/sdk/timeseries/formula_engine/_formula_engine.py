@@ -198,6 +198,24 @@ class _ComposableFormulaEngine(
         """
         return self._higher_order_builder(self, self._create_method).min(other)  # type: ignore
 
+    def consumption(self) -> _GenericHigherOrderBuilder:
+        """
+        Return a formula builder that applies the consumption operator on `self`.
+
+        The consumption operator returns either the identity if the power value is
+        positive or 0.
+        """
+        return self._higher_order_builder(self, self._create_method).consumption()  # type: ignore
+
+    def production(self) -> _GenericHigherOrderBuilder:
+        """
+        Return a formula builder that applies the production operator on `self`.
+
+        The production operator returns either the absolute value if the power value is
+        negative or 0.
+        """
+        return self._higher_order_builder(self, self._create_method).production()  # type: ignore
+
 
 class FormulaEngine(
     Generic[QuantityT],
