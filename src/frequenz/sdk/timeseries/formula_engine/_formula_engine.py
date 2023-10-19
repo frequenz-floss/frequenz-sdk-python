@@ -413,11 +413,52 @@ class FormulaEngine3Phase(
         QuantityT,
     ]
 ):
-    """
-    The FormulaEngine evaluates formulas and streams the results.
+    """A
+    [`FormulaEngine3Phase`][frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase]
+    is similar to a
+    [`FormulaEngine`][frequenz.sdk.timeseries.formula_engine.FormulaEngine], except that
+    they stream [3-phase samples][frequenz.sdk.timeseries.Sample3Phase].  All the
+    current formulas (like
+    [`LogicalMeter.grid_current`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.grid_current],
+    [`EVChargerPool.current`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.current],
+    etc.) are implemented as 3-phase formulas.
 
-    Use the `FormulaBuilder` to create `FormulaEngine` instances.
-    """
+    ### Streaming Interface
+
+    The
+    [`FormulaEngine3Phase.new_receiver()`][frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase.new_receiver]
+    method can be used to create a
+    [Receiver](https://frequenz-floss.github.io/frequenz-channels-python/latest/reference/frequenz/channels/#frequenz.channels.Receiver)
+    that streams the [Sample3Phase][frequenz.sdk.timeseries.Sample3Phase] values
+    calculated by the formula engine.
+
+    ```python
+    from frequenz.sdk import microgrid
+
+    ev_charger_pool = microgrid.ev_charger_pool()
+
+    async for sample in ev_charger_pool.current.new_receiver():
+        print(f"Current: {sample}")
+    ```
+
+    ### Composition
+
+    `FormulaEngine3Phase` instances can be composed together, just like `FormulaEngine`
+    instances.
+
+    ```python
+    from frequenz.sdk import microgrid
+
+    logical_meter = microgrid.logical_meter()
+    ev_charger_pool = microgrid.ev_charger_pool()
+
+    # Calculate grid consumption current that's not used by the ev chargers
+    other_current = (logical_meter.grid_current - ev_charger_pool.current).build("other_current")
+
+    async for sample in other_current.new_receiver():
+        print(f"Other current: {sample}")
+    ```
+    """  # noqa: D205, D400
 
     def __init__(
         self,
