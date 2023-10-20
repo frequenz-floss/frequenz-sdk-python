@@ -25,6 +25,7 @@ from ._formula_steps import (
     Adder,
     Clipper,
     ConstantValue,
+    Consumption,
     Divider,
     FormulaStep,
     Maximizer,
@@ -32,6 +33,7 @@ from ._formula_steps import (
     Minimizer,
     Multiplier,
     OpenParen,
+    Production,
     Subtractor,
 )
 from ._tokenizer import TokenType
@@ -41,12 +43,14 @@ _logger = logging.Logger(__name__)
 _operator_precedence = {
     "max": 0,
     "min": 1,
-    "(": 2,
-    "/": 3,
-    "*": 4,
-    "-": 5,
-    "+": 6,
-    ")": 7,
+    "consumption": 2,
+    "production": 3,
+    "(": 4,
+    "/": 5,
+    "*": 6,
+    "-": 7,
+    "+": 8,
+    ")": 9,
 }
 """The dictionary of operator precedence for the shunting yard algorithm."""
 
@@ -574,7 +578,7 @@ class FormulaBuilder(Generic[QuantityT]):
         self._steps: list[FormulaStep] = []
         self._metric_fetchers: dict[str, MetricFetcher[QuantityT]] = {}
 
-    def push_oper(self, oper: str) -> None:
+    def push_oper(self, oper: str) -> None:  # pylint: disable=too-many-branches
         """Push an operator into the engine.
 
         Args:
@@ -608,6 +612,10 @@ class FormulaBuilder(Generic[QuantityT]):
             self._build_stack.append(Maximizer())
         elif oper == "min":
             self._build_stack.append(Minimizer())
+        elif oper == "consumption":
+            self._build_stack.append(Consumption())
+        elif oper == "production":
+            self._build_stack.append(Production())
 
     def push_metric(
         self,
