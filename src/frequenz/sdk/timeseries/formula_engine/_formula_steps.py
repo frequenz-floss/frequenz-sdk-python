@@ -177,6 +177,64 @@ class Minimizer(FormulaStep):
         eval_stack.append(res)
 
 
+class Consumption(FormulaStep):
+    """A formula step that represents the consumption operator.
+
+    The consumption operator is the maximum of the value on top
+    of the evaluation stack and 0.
+    """
+
+    def __repr__(self) -> str:
+        """Return a string representation of the step.
+
+        Returns:
+            A string representation of the step.
+        """
+        return "consumption"
+
+    def apply(self, eval_stack: list[float]) -> None:
+        """
+        Apply the consumption formula.
+
+        Replace the top of the eval eval_stack with the same value if the value
+        is positive or 0.
+
+        Args:
+            eval_stack: An evaluation stack, to apply the formula step on.
+        """
+        val = eval_stack.pop()
+        eval_stack.append(max(val, 0))
+
+
+class Production(FormulaStep):
+    """A formula step that represents the production operator.
+
+    The production operator is the maximum of the value times minus one on top
+    of the evaluation stack and 0.
+    """
+
+    def __repr__(self) -> str:
+        """Return a string representation of the step.
+
+        Returns:
+            A string representation of the step.
+        """
+        return "production"
+
+    def apply(self, eval_stack: list[float]) -> None:
+        """
+        Apply the production formula.
+
+        Replace the top of the eval eval_stack with its absolute value if the
+        value is negative or 0.
+
+        Args:
+            eval_stack: An evaluation stack, to apply the formula step on.
+        """
+        val = eval_stack.pop()
+        eval_stack.append(max(-val, 0))
+
+
 class OpenParen(FormulaStep):
     """A no-op formula step used while building a prefix formula engine.
 
