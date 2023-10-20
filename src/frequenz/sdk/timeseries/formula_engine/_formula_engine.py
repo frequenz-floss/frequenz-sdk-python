@@ -192,6 +192,7 @@ class _ComposableFormulaEngine(
             other: A formula receiver, a formula builder or a QuantityT instance
                 corresponding to a sub-expression.
 
+
         Returns:
             A formula builder that can take further expressions, or can be built
                 into a formula engine.
@@ -1021,6 +1022,52 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
                 into a formula engine.
         """
         return self._push("min", other)
+
+    def consumption(
+        self,
+    ) -> (
+        HigherOrderFormulaBuilder[QuantityT]
+        | HigherOrderFormulaBuilder3Phase[QuantityT]
+    ):
+        """Apply the Consumption Operator.
+
+        The consumption operator returns either the identity if the power value is
+        positive or 0.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        self._steps.appendleft((TokenType.OPER, "("))
+        self._steps.append((TokenType.OPER, ")"))
+        self._steps.append((TokenType.OPER, "consumption"))
+        assert isinstance(
+            self, (HigherOrderFormulaBuilder, HigherOrderFormulaBuilder3Phase)
+        )
+        return self
+
+    def production(
+        self,
+    ) -> (
+        HigherOrderFormulaBuilder[QuantityT]
+        | HigherOrderFormulaBuilder3Phase[QuantityT]
+    ):
+        """Apply the Production Operator.
+
+        The production operator returns either the absolute value if the power value is
+        negative or 0.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        self._steps.appendleft((TokenType.OPER, "("))
+        self._steps.append((TokenType.OPER, ")"))
+        self._steps.append((TokenType.OPER, "production"))
+        assert isinstance(
+            self, (HigherOrderFormulaBuilder, HigherOrderFormulaBuilder3Phase)
+        )
+        return self
 
 
 class HigherOrderFormulaBuilder(Generic[QuantityT], _BaseHOFormulaBuilder[QuantityT]):
