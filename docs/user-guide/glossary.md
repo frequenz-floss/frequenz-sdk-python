@@ -169,8 +169,8 @@ the component graph are:
 [`grid_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.grid_power],
 [`consumer_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.consumer_power],
 etc. for a microgrid, using the available components.
-  - identify the available batteries or ev chargers at a site that can be
-    controlled.
+  - identify the available {{glossary("battery", "batteries")}} or
+    {{glossary("EV charger", "EV chargers")}} at a site that can be controlled.
 
 ### Island
 

@@ -239,7 +239,7 @@ class FormulaEngine(
     Composite `FormulaEngine`s can be built using arithmetic operations on
     `FormulaEngine`s streaming the same type of data.
 
-    For example, if you're interested in particular composite metric that can be
+    For example, if you're interested in a particular composite metric that can be
     calculated by subtracting
     [`battery_pool().power`][frequenz.sdk.timeseries.battery_pool.BatteryPool.power] and
     [`ev_charger_pool().power`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool]
@@ -452,7 +452,7 @@ class FormulaEngine3Phase(
     logical_meter = microgrid.logical_meter()
     ev_charger_pool = microgrid.ev_charger_pool()
 
-    # Calculate grid consumption current that's not used by the ev chargers
+    # Calculate grid consumption current that's not used by the EV chargers
     other_current = (logical_meter.grid_current - ev_charger_pool.current).build("other_current")
 
     async for sample in other_current.new_receiver():
