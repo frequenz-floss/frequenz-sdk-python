@@ -13,7 +13,7 @@
       
       
       
-        <link rel="prev" href="../actors/">
+        <link rel="prev" href="../formula-engine/">
       
       
         <link rel="next" href="../microgrid-concepts/">
@@ -430,6 +430,8 @@
       
         
       
+        
+      
     
     
     <li class="md-nav__item md-nav__item--active md-nav__item--nested">
@@ -479,6 +481,26 @@
   
   <span class="md-ellipsis">
     Actors
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../formula-engine/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Formula Engine
   </span>
   
 
@@ -751,6 +773,13 @@
           <li class="md-nav__item">
   <a href="#component-id" class="md-nav__link">
     Component ID
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#component-graph" class="md-nav__link">
+    Component Graph
   </a>
   
 </li>
@@ -1652,6 +1681,10 @@
           
         
       
+        
+          
+        
+      
     
     
     <li class="md-nav__item md-nav__item--nested">
@@ -1721,6 +1754,26 @@
   
   <span class="md-ellipsis">
     ev_charger_pool
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/frequenz/sdk/timeseries/formula_engine/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    formula_engine
   </span>
   
 
@@ -2038,6 +2091,13 @@
           <li class="md-nav__item">
   <a href="#component-id" class="md-nav__link">
     Component ID
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#component-graph" class="md-nav__link">
+    Component Graph
   </a>
   
 </li>
@@ -2416,6 +2476,19 @@ a <a href="#microgrid">microgrid</a>.</p>
 a <a href="#component">component</a> in a particular <a href="#microgrid">microgrid</a>. It is always
 of type <code>int</code>.</p>
 <p>For example, a battery with a component ID of <strong>5</strong>.</p>
+<h3 id="component-graph">Component Graph<a class="headerlink" href="#component-graph" title="Permanent link">¤</a></h3>
+<p>A <a href="https://en.wikipedia.org/wiki/Graph_(abstract_data_type)">graph</a>
+representation of the configuration in which the electrical components in a
+microgrid are connected with each other.  Some of the ways in which the SDK uses
+the component graph are:</p>
+<ul>
+<li>figure out how to calculate high level metrics like
+<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter.grid_power"><code>grid_power</code></a>,
+<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter.consumer_power"><code>consumer_power</code></a>,
+etc. for a microgrid, using the available components.</li>
+<li>identify the available <a href="./#battery">batteries</a> or
+    <a href="./#ev-charger">EV chargers</a> at a site that can be controlled.</li>
+</ul>
 <h3 id="island">Island<a class="headerlink" href="#island" title="Permanent link">¤</a></h3>
 <p>A <a href="#microgrid">microgrid</a> that is not connected to the public electricity
 <a href="#grid">grid</a>.</p>
