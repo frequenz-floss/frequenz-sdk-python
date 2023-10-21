@@ -158,6 +158,20 @@ of type `int`.
 
 For example, a battery with a component ID of **5**.
 
+### Component Graph
+
+A [graph](https://en.wikipedia.org/wiki/Graph_(abstract_data_type))
+representation of the configuration in which the electrical components in a
+microgrid are connected with each other.  Some of the ways in which the SDK uses
+the component graph are:
+
+  - figure out how to calculate high level metrics like
+[`grid_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.grid_power],
+[`consumer_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.consumer_power],
+etc. for a microgrid, using the available components.
+  - identify the available {{glossary("battery", "batteries")}} or
+    {{glossary("EV charger", "EV chargers")}} at a site that can be controlled.
+
 ### Island
 
 A [microgrid](#microgrid) that is not connected to the public electricity

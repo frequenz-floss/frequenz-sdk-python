@@ -9,17 +9,17 @@ from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._formula_engine._formula_engine import FormulaBuilder
-from frequenz.sdk.timeseries._formula_engine._formula_formatter import format_formula
-from frequenz.sdk.timeseries._formula_engine._formula_steps import (
+from frequenz.sdk.timeseries._quantities import Quantity
+from frequenz.sdk.timeseries.formula_engine._formula_engine import FormulaBuilder
+from frequenz.sdk.timeseries.formula_engine._formula_formatter import format_formula
+from frequenz.sdk.timeseries.formula_engine._formula_steps import (
     Clipper,
     ConstantValue,
     FormulaStep,
     Maximizer,
     Minimizer,
 )
-from frequenz.sdk.timeseries._formula_engine._tokenizer import Tokenizer, TokenType
-from frequenz.sdk.timeseries._quantities import Quantity
+from frequenz.sdk.timeseries.formula_engine._tokenizer import Tokenizer, TokenType
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
 

@@ -9,8 +9,8 @@ from collections import abc
 
 from ....microgrid import connection_manager
 from ....microgrid.component import ComponentCategory, ComponentMetricId
-from ..._formula_engine import FormulaEngine
 from ..._quantities import Power
+from ...formula_engine import FormulaEngine
 from ._formula_generator import (
     NON_EXISTING_COMPONENT_ID,
     FormulaGenerationError,

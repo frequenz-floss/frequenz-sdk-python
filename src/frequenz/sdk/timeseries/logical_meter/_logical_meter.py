@@ -10,8 +10,10 @@ from frequenz.channels import Sender
 
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid.component import ComponentMetricId
-from .._formula_engine import FormulaEngine, FormulaEngine3Phase, FormulaEnginePool
-from .._formula_engine._formula_generators import (
+from .._quantities import Current, Power, Quantity
+from ..formula_engine import FormulaEngine, FormulaEngine3Phase
+from ..formula_engine._formula_engine_pool import FormulaEnginePool
+from ..formula_engine._formula_generators import (
     CHPPowerFormula,
     ConsumerPowerFormula,
     FormulaGeneratorConfig,
@@ -21,7 +23,6 @@ from .._formula_engine._formula_generators import (
     ProducerPowerFormula,
     PVPowerFormula,
 )
-from .._quantities import Current, Power, Quantity
 
 
 class LogicalMeter:
