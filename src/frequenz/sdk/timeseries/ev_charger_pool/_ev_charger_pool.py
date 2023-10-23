@@ -53,7 +53,26 @@ class EVChargerData:
 
 
 class EVChargerPool:
-    """Interactions with EV Chargers."""
+    """An interface for interaction with pools of EV Chargers.
+
+    !!! note
+        `EVChargerPool` instances are not meant to be created directly by users. Use the
+        [`microgrid.ev_charger_pool`][frequenz.sdk.microgrid.ev_charger_pool] method for
+        creating an instance.
+
+    Provides:
+      - Aggregate [`power`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power]
+        and 3-phase
+        [`current`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.current]
+        measurements of the EV Chargers in the pool.
+      - The
+        [`component_data`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.component_data]
+        method for fetching the 3-phase current and state of individual EV Chargers in
+        the pool.
+      - The
+        [`set_bounds`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.set_bounds]
+        method for limiting the max current of individual EV Chargers in the pool.
+    """
 
     def __init__(
         self,
@@ -63,6 +82,11 @@ class EVChargerPool:
         repeat_interval: timedelta = timedelta(seconds=3.0),
     ) -> None:
         """Create an `EVChargerPool` instance.
+
+        !!! note
+            `EVChargerPool` instances are not meant to be created directly by users. Use
+            the [`microgrid.ev_charger_pool`][frequenz.sdk.microgrid.ev_charger_pool]
+            method for creating an instance.
 
         Args:
             channel_registry: A channel registry instance shared with the resampling
