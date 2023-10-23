@@ -125,7 +125,6 @@ to limit the charge power of individual EV Chargers.
 from ..actor import ResamplerConfig
 from . import _data_pipeline, client, component, connection_manager, fuse, grid
 from ._data_pipeline import battery_pool, ev_charger_pool, frequency, logical_meter
-from ._graph import ComponentGraph
 
 
 async def initialize(host: str, port: int, resampler_config: ResamplerConfig) -> None:
@@ -146,7 +145,6 @@ async def initialize(host: str, port: int, resampler_config: ResamplerConfig) ->
 
 
 __all__ = [
-    "ComponentGraph",
     "initialize",
     "client",
     "component",

@@ -6,10 +6,10 @@
 from dataclasses import replace
 from typing import Any, overload
 
-from frequenz.sdk.microgrid._graph import _MicrogridComponentGraph
 from frequenz.sdk.microgrid.client import Connection
 from frequenz.sdk.microgrid.component import Component, ComponentCategory, InverterType
 from frequenz.sdk.microgrid.component._component import ComponentType
+from frequenz.sdk.microgrid.component_graph import _MicrogridComponentGraph
 
 
 class GraphGenerator:
