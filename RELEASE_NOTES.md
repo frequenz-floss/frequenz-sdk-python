@@ -23,6 +23,8 @@ This version ships an experimental version of the **Power Manager**, adds prelim
     + the latest target power for the set of batteries
     + the results from the power distributor for the last request
 
+- Move `microgrid.ComponentGraph` class to `microgrid.component_graph.ComponentGraph`, exposing only the high level interface functions through the `microgrid` package.
+
 ## New Features
 
 - New and improved documentation.
