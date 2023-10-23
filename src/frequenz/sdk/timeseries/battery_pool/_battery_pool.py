@@ -39,8 +39,10 @@ from ._result_types import PowerMetrics
 class BatteryPool:
     """An interface for interaction with pools of batteries.
 
-    Use the [microgrid.battery_pool][frequenz.sdk.microgrid.battery_pool] method for
-    creating `BatteryPool` instances.
+    !!! note
+        `BatteryPool` instances are not meant to be created directly by users.  Use the
+        [`microgrid.battery_pool`][frequenz.sdk.microgrid.battery_pool] method for
+        creating `BatteryPool` instances.
 
     Provides:
       - properties for fetching reporting streams of instantaneous
@@ -62,6 +64,11 @@ class BatteryPool:
         priority: int,
     ):
         """Create a BatteryPool instance.
+
+        !!! note
+            `BatteryPool` instances are not meant to be created directly by users.  Use
+            the [`microgrid.battery_pool`][frequenz.sdk.microgrid.battery_pool] method
+            for creating `BatteryPool` instances.
 
         Args:
             battery_pool_ref: The battery pool reference store instance.
