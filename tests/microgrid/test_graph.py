@@ -13,7 +13,7 @@ import frequenz.api.common.components_pb2 as components_pb
 import grpc
 import pytest
 
-import frequenz.sdk.microgrid._graph as gr
+import frequenz.sdk.microgrid.component_graph as gr
 from frequenz.sdk.microgrid.client import Connection, MicrogridGrpcClient
 from frequenz.sdk.microgrid.component import (
     Component,

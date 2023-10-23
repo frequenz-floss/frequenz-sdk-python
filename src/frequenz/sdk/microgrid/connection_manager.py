@@ -13,9 +13,9 @@ from abc import ABC, abstractmethod
 
 import grpc.aio as grpcaio
 
-from ._graph import ComponentGraph, _MicrogridComponentGraph
 from .client import MicrogridApiClient
 from .client._client import MicrogridGrpcClient
+from .component_graph import ComponentGraph, _MicrogridComponentGraph
 
 # Not public default host and port
 _DEFAULT_MICROGRID_HOST = "[::1]"

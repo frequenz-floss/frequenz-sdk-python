@@ -11,7 +11,6 @@ from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 from pytest_mock import MockerFixture
 
 from frequenz.sdk._internal._constants import RECEIVER_MAX_SIZE
-from frequenz.sdk.microgrid._graph import ComponentGraph, _MicrogridComponentGraph
 from frequenz.sdk.microgrid.client import Connection
 from frequenz.sdk.microgrid.component import (
     BatteryData,
@@ -21,6 +20,10 @@ from frequenz.sdk.microgrid.component import (
     EVChargerData,
     InverterData,
     MeterData,
+)
+from frequenz.sdk.microgrid.component_graph import (
+    ComponentGraph,
+    _MicrogridComponentGraph,
 )
 from frequenz.sdk.microgrid.connection_manager import ConnectionManager
 
