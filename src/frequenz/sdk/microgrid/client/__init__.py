@@ -3,7 +3,7 @@
 
 """Microgrid API client.
 
-This package provides an easy way to connect to the microgrid API.
+This package provides a low-level interface for interacting with the microgrid API.
 """
 
 from ._client import MicrogridApiClient, MicrogridGrpcClient
