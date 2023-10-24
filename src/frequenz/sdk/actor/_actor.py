@@ -54,6 +54,20 @@ class Actor(BackgroundService, abc.ABC):
     async def _run(self) -> None:
         """Run this actor's logic."""
 
+    async def _delay_if_restart(self, iteration: int) -> None:
+        """Delay the restart of this actor's n'th iteration.
+
+        Args:
+            iteration: The current iteration of the restart.
+        """
+        # NB: I think it makes sense (in the future) to think about deminishing returns
+        # the longer the actor has been running.
+        # Not just for the restart-delay but actually for the n_restarts counter as well.
+        if iteration > 0:
+            delay: int = 1 << iteration # delay for 1, 2, 4, 8, ... seconds
+            _logger.info("Actor %s: Waiting %s seconds...", self, delay)
+            await asyncio.sleep(delay)
+
     async def _run_loop(self) -> None:
         """Run this actor's task in a loop until `_restart_limit` is reached.
 
@@ -67,6 +81,7 @@ class Actor(BackgroundService, abc.ABC):
         n_restarts = 0
         while True:
             try:
+                await self._delay_if_restart(n_restarts)
                 await self._run()
                 _logger.info("Actor %s: _run() returned without error.", self)
             except asyncio.CancelledError:

@@ -194,7 +194,21 @@ async def test_basic_actor(caplog: pytest.LogCaptureFixture) -> None:
     ]
 
 
-@pytest.mark.parametrize("restart_limit", [0, 1, 2, 10])
+def expected_wait_time(iterations: int) -> int:
+    """Calculate the expected wait time for a given iteration.
+
+    Args:
+        iterations: The iteration to calculate the wait time for.
+
+    Returns:
+        The expected wait time in seconds.
+    """
+    if iterations == 0:
+        return 0
+    return expected_wait_time(iterations - 1) + 1 << iterations
+
+
+@pytest.mark.parametrize("restart_limit", [0, 1, 2, 3])
 async def test_restart_on_unhandled_exception(
     restart_limit: int, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -211,7 +225,8 @@ async def test_restart_on_unhandled_exception(
 
     channel: Broadcast[int] = Broadcast("channel")
 
-    async with asyncio.timeout(2.0):
+    async with asyncio.timeout(1 + expected_wait_time(restart_limit)):
+        print(f"Expecting a wait time of {expected_wait_time(restart_limit)} seconds")
         with actor_restart_limit(restart_limit):
             actor = RaiseExceptionActor(
                 channel.new_receiver(),
@@ -240,6 +255,10 @@ async def test_restart_on_unhandled_exception(
                     *ACTOR_INFO,
                     f"Actor test: Restarting ({i}/{restart_limit})...",
                 ),
+                (
+                    *ACTOR_INFO,
+                    f"Actor RaiseExceptionActor[test]: Waiting {1 << (1 + i)} seconds...",
+                ),
             ]
         )
     expected_log.extend(
@@ -260,6 +279,8 @@ async def test_restart_on_unhandled_exception(
             (*RUN_INFO, "All 1 actor(s) finished."),
         ]
     )
+    print("expected_log:", expected_log)
+    print("caplog.record_tuples:", caplog.record_tuples)
     assert caplog.record_tuples == expected_log
 
 
