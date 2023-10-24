@@ -46,11 +46,11 @@ class Gap:
 class OrderedRingBuffer(Generic[FloatArray]):
     """Time aware ringbuffer that keeps its entries sorted by time."""
 
-    _DATETIME_MIN = datetime.min.replace(tzinfo=timezone.utc)
-    """The minimum representable datetime value."""
+    _TIMESTAMP_MIN = datetime.min.replace(tzinfo=timezone.utc)
+    """The minimum representable timestamp."""
 
-    _DATETIME_MAX = datetime.max.replace(tzinfo=timezone.utc)
-    """The maximum representable datetime value."""
+    _TIMESTAMP_MAX = datetime.max.replace(tzinfo=timezone.utc)
+    """The maximum representable timestamp."""
 
     def __init__(
         self,
@@ -82,8 +82,8 @@ class OrderedRingBuffer(Generic[FloatArray]):
         self._time_index_alignment: datetime = align_to
 
         self._gaps: list[Gap] = []
-        self._datetime_newest: datetime = self._DATETIME_MIN
-        self._datetime_oldest: datetime = self._DATETIME_MAX
+        self._timestamp_newest: datetime = self._TIMESTAMP_MIN
+        self._timestamp_oldest: datetime = self._TIMESTAMP_MAX
         self._full_time_range: timedelta = len(self._buffer) * self._sampling_period
 
     @property
@@ -148,17 +148,17 @@ class OrderedRingBuffer(Generic[FloatArray]):
 
         # Don't add outdated entries
         if (
-            timestamp < self._datetime_oldest
-            and self._datetime_oldest != self._DATETIME_MAX
+            timestamp < self._timestamp_oldest
+            and self._timestamp_oldest != self._TIMESTAMP_MAX
         ):
             raise IndexError(
-                f"Timestamp {timestamp} too old (cut-off is at {self._datetime_oldest})."
+                f"Timestamp {timestamp} too old (cut-off is at {self._timestamp_oldest})."
             )
 
         # Update timestamps
-        prev_newest = self._datetime_newest
-        self._datetime_newest = max(self._datetime_newest, timestamp)
-        self._datetime_oldest = self._datetime_newest - (
+        prev_newest = self._timestamp_newest
+        self._timestamp_newest = max(self._timestamp_newest, timestamp)
+        self._timestamp_oldest = self._timestamp_newest - (
             self._full_time_range - self._sampling_period
         )
 
@@ -180,7 +180,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         Returns:
             The timestamp of the oldest sample of the ring buffer.
         """
-        return self._datetime_oldest
+        return self._timestamp_oldest
 
     @property
     def time_bound_newest(self) -> datetime:
@@ -191,7 +191,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
             The timestamp of the newest sample of the ring buffer
             or None if the buffer is empty.
         """
-        return self._datetime_newest
+        return self._timestamp_newest
 
     @property
     def oldest_timestamp(self) -> datetime | None:
@@ -242,12 +242,12 @@ class OrderedRingBuffer(Generic[FloatArray]):
         timestamp = self.normalize_timestamp(timestamp)
 
         if not allow_outside_range and (
-            self._datetime_newest + self._sampling_period < timestamp
-            or timestamp < self._datetime_oldest
+            self._timestamp_newest + self._sampling_period < timestamp
+            or timestamp < self._timestamp_oldest
         ):
             raise IndexError(
                 f"Requested timestamp {timestamp} is "
-                f"outside the range [{self._datetime_oldest} - {self._datetime_newest}]"
+                f"outside the range [{self._timestamp_oldest} - {self._timestamp_newest}]"
             )
 
         return self.wrap(
@@ -476,9 +476,9 @@ class OrderedRingBuffer(Generic[FloatArray]):
 
         if not record_as_missing:
             # Replace all gaps with one if we went far into then future
-            if self._datetime_newest - newest >= self._full_time_range:
+            if self._timestamp_newest - newest >= self._full_time_range:
                 self._gaps = [
-                    Gap(start=self._datetime_oldest, end=self._datetime_newest)
+                    Gap(start=self._timestamp_oldest, end=self._timestamp_newest)
                 ]
                 return
 
@@ -518,11 +518,11 @@ class OrderedRingBuffer(Generic[FloatArray]):
                 w_2 = None
 
             # Delete out-of-date gaps
-            if w_1.end <= self._datetime_oldest:
+            if w_1.end <= self._timestamp_oldest:
                 del self._gaps[i]
             # Update start of gap if it's rolled out of the buffer
-            elif w_1.start < self._datetime_oldest:
-                self._gaps[i].start = self._datetime_oldest
+            elif w_1.start < self._timestamp_oldest:
+                self._gaps[i].start = self._timestamp_oldest
             # If w2 is a subset of w1 we can delete it
             elif w_2 and w_1.start <= w_2.start and w_1.end >= w_2.end:
                 del self._gaps[i + 1]
@@ -682,7 +682,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         Returns:
             The number of valid items in this buffer.
         """
-        if self._datetime_newest == self._DATETIME_MIN:
+        if self._timestamp_newest == self._TIMESTAMP_MIN:
             return 0
 
         # Sum of all elements in the gap ranges
@@ -692,15 +692,15 @@ class OrderedRingBuffer(Generic[FloatArray]):
                 (
                     gap.end
                     # Don't look further back than oldest timestamp
-                    - max(gap.start, self._datetime_oldest)
+                    - max(gap.start, self._timestamp_oldest)
                 )
                 // self._sampling_period
                 for gap in self._gaps
             ),
         )
 
-        start_pos = self.to_internal_index(self._datetime_oldest)
-        end_pos = self.to_internal_index(self._datetime_newest)
+        start_pos = self.to_internal_index(self._timestamp_oldest)
+        end_pos = self.to_internal_index(self._timestamp_newest)
 
         if end_pos < start_pos:
             return len(self._buffer) - start_pos + end_pos + 1 - sum_missing_entries
