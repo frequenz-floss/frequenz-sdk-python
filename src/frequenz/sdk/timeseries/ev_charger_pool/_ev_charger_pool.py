@@ -58,7 +58,7 @@ class EVChargerPool:
     !!! note
         `EVChargerPool` instances are not meant to be created directly by users. Use the
         [`microgrid.ev_charger_pool`][frequenz.sdk.microgrid.ev_charger_pool] method for
-        creating an instance.
+        creating `EVChargerPool` instances.
 
     Provides:
       - Aggregate [`power`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power]
@@ -86,7 +86,7 @@ class EVChargerPool:
         !!! note
             `EVChargerPool` instances are not meant to be created directly by users. Use
             the [`microgrid.ev_charger_pool`][frequenz.sdk.microgrid.ev_charger_pool]
-            method for creating an instance.
+            method for creating `EVChargerPool` instances.
 
         Args:
             channel_registry: A channel registry instance shared with the resampling
