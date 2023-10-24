@@ -32,6 +32,11 @@ class LogicalMeter:
     microgrid.  These methods return `FormulaReceiver` objects, which can be used like
     normal `Receiver`s, but can also be composed to form higher-order formula streams.
 
+    !!! note
+        `LogicalMeter` instances are not meant to be created directly by users.  Use the
+        [`microgrid.logical_meter`][frequenz.sdk.microgrid.logical_meter] method for
+        creating `LogicalMeter` instances.
+
     Example:
         ```python
         from datetime import timedelta
@@ -71,7 +76,12 @@ class LogicalMeter:
         channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
     ) -> None:
-        """Create a `LogicalMeter instance`.
+        """Create a `LogicalMeter` instance.
+
+        !!! note
+            `LogicalMeter` instances are not meant to be created directly by users.  Use
+            the [`microgrid.logical_meter`][frequenz.sdk.microgrid.logical_meter] method
+            for creating `LogicalMeter` instances.
 
         Args:
             channel_registry: A channel registry instance shared with the resampling
