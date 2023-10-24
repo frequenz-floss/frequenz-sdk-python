@@ -67,13 +67,13 @@ def init_moving_window(
 
 
 def dt(i: int) -> datetime:  # pylint: disable=invalid-name
-    """Create datetime objects from indices.
+    """Create a timestamp from the given index.
 
     Args:
-        i: Index to create datetime from.
+        i: The index to create a timestamp from.
 
     Returns:
-        Datetime object.
+        The timestamp created from the index.
     """
     return datetime.fromtimestamp(i, tz=timezone.utc)
 

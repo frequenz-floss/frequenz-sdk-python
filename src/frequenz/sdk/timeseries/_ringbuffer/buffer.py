@@ -24,9 +24,9 @@ class Gap:
     """A gap defines the range for which we haven't received values yet."""
 
     start: datetime
-    """Start of the range, inclusive."""
+    """Start timestamp of the range, inclusive."""
     end: datetime
-    """End of the range, exclusive."""
+    """End timestamp of the range, exclusive."""
 
     def contains(self, timestamp: datetime) -> bool:
         """Check if a given timestamp is inside this gap.
@@ -271,7 +271,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
             index: Index to convert.
 
         Returns:
-            Datetime index where the value for the given index can be found.
+            Timestamp where the value for the given index can be found.
                 Or None if the buffer is empty.
         """
         if self.oldest_timestamp is None:
@@ -323,8 +323,8 @@ class OrderedRingBuffer(Generic[FloatArray]):
         missing entries, they can safely do so.
 
         Args:
-            start: start time of the window.
-            end: end time of the window.
+            start: start timestamp of the window.
+            end: end timestamp of the window.
             force_copy: optional, default True. If True, will always create a
                 copy of the data.
             fill_value: If not None, will use this value to fill missing values.
