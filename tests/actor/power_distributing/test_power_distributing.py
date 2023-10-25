@@ -150,6 +150,8 @@ class TestPowerDistributingActor:
         assert result.excess_power.isclose(Power.from_watts(200.0))
         assert result.request == request
 
+        await mockgrid.cleanup()
+
     async def test_power_distributor_exclusion_bounds(
         self, mocker: MockerFixture
     ) -> None:
@@ -242,6 +244,8 @@ class TestPowerDistributingActor:
             assert result.bounds == PowerBounds(-1000, -600, 600, 1000)
             assert result.request == request
 
+        await mockgrid.cleanup()
+
     # pylint: disable=too-many-locals
     async def test_two_batteries_one_inverters(self, mocker: MockerFixture) -> None:
         """Test if power distribution works with two batteries connected to one inverter."""
@@ -311,6 +315,8 @@ class TestPowerDistributingActor:
             assert result.succeeded_power.isclose(Power.from_watts(500.0))
             assert result.excess_power.isclose(Power.from_watts(700.0))
             assert result.request == request
+
+        await mockgrid.cleanup()
 
     async def test_two_batteries_one_broken_one_inverters(
         self, mocker: MockerFixture
@@ -393,6 +399,8 @@ class TestPowerDistributingActor:
                 result.msg == "No data for at least one of the given batteries {9, 19}"
             )
 
+        await mockgrid.cleanup()
+
     async def test_battery_two_inverters(self, mocker: MockerFixture) -> None:
         """Test if power distribution works with two inverters for one battery."""
         gen = GraphGenerator()
@@ -463,6 +471,8 @@ class TestPowerDistributingActor:
             assert result.succeeded_power.isclose(Power.from_watts(1000.0))
             assert result.excess_power.isclose(Power.from_watts(200.0))
             assert result.request == request
+
+        await mockgrid.cleanup()
 
     async def test_two_batteries_three_inverters(self, mocker: MockerFixture) -> None:
         """Test if power distribution works with two batteries connected to three inverters."""
@@ -539,6 +549,8 @@ class TestPowerDistributingActor:
             assert result.succeeded_power.isclose(Power.from_watts(1500.0))
             assert result.excess_power.isclose(Power.from_watts(200.0))
             assert result.request == request
+
+        await mockgrid.cleanup()
 
     async def test_two_batteries_one_inverter_different_exclusion_bounds_2(
         self, mocker: MockerFixture
@@ -624,6 +636,8 @@ class TestPowerDistributingActor:
             assert isinstance(result, OutOfBounds)
             assert result.request == request
             assert result.bounds == PowerBounds(-1000, -500, 500, 1000)
+
+        await mockgrid.cleanup()
 
     async def test_two_batteries_one_inverter_different_exclusion_bounds(
         self, mocker: MockerFixture
@@ -712,6 +726,8 @@ class TestPowerDistributingActor:
             # each inverter is bounded at 500
             assert result.bounds == PowerBounds(-500, -400, 400, 500)
 
+        await mockgrid.cleanup()
+
     async def test_connected_but_not_requested_batteries(
         self, mocker: MockerFixture
     ) -> None:
@@ -785,6 +801,8 @@ class TestPowerDistributingActor:
             )
             assert err_msg is not None
 
+        await mockgrid.cleanup()
+
     async def test_battery_soc_nan(self, mocker: MockerFixture) -> None:
         """Test if battery with SoC==NaN is not used."""
         mockgrid = MockMicrogrid(grid_meter=False)
@@ -847,6 +865,8 @@ class TestPowerDistributingActor:
         assert result.excess_power.isclose(Power.from_watts(700.0))
         assert result.request == request
 
+        await mockgrid.cleanup()
+
     async def test_battery_capacity_nan(self, mocker: MockerFixture) -> None:
         """Test battery with capacity set to NaN is not used."""
         mockgrid = MockMicrogrid(grid_meter=False)
@@ -901,6 +921,8 @@ class TestPowerDistributingActor:
         assert result.succeeded_power.isclose(Power.from_watts(500.0))
         assert result.excess_power.isclose(Power.from_watts(700.0))
         assert result.request == request
+
+        await mockgrid.cleanup()
 
     async def test_battery_power_bounds_nan(self, mocker: MockerFixture) -> None:
         """Test battery with power bounds set to NaN is not used."""
@@ -972,6 +994,8 @@ class TestPowerDistributingActor:
         assert result.excess_power.isclose(Power.from_watts(200.0))
         assert result.request == request
 
+        await mockgrid.cleanup()
+
     async def test_power_distributor_invalid_battery_id(
         self, mocker: MockerFixture
     ) -> None:
@@ -1016,6 +1040,8 @@ class TestPowerDistributingActor:
         assert result.request == request
         err_msg = re.search(r"No battery 100, available batteries:", result.msg)
         assert err_msg is not None
+
+        await mockgrid.cleanup()
 
     async def test_power_distributor_one_user_adjust_power_consume(
         self, mocker: MockerFixture
@@ -1067,6 +1093,8 @@ class TestPowerDistributingActor:
         assert result.request == request
         assert result.bounds.inclusion_upper == 1000
 
+        await mockgrid.cleanup()
+
     async def test_power_distributor_one_user_adjust_power_supply(
         self, mocker: MockerFixture
     ) -> None:
@@ -1116,6 +1144,8 @@ class TestPowerDistributingActor:
         assert result is not None
         assert result.request == request
         assert result.bounds.inclusion_lower == -1000
+
+        await mockgrid.cleanup()
 
     async def test_power_distributor_one_user_adjust_power_success(
         self, mocker: MockerFixture
@@ -1167,6 +1197,8 @@ class TestPowerDistributingActor:
         assert result.excess_power.isclose(Power.zero(), abs_tol=1e-9)
         assert result.request == request
 
+        await mockgrid.cleanup()
+
     async def test_not_all_batteries_are_working(self, mocker: MockerFixture) -> None:
         """Test if power distribution works if not all batteries are working."""
         mockgrid = MockMicrogrid(grid_meter=False)
@@ -1215,3 +1247,5 @@ class TestPowerDistributingActor:
             assert result.excess_power.isclose(Power.from_watts(700.0))
             assert result.succeeded_power.isclose(Power.from_watts(500.0))
             assert result.request == request
+
+        await mockgrid.cleanup()
