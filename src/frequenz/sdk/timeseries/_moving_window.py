@@ -150,7 +150,7 @@ class MovingWindow(BackgroundService):
                 given sampling period.
             input_sampling_period: The time interval between consecutive input samples.
             resampler_config: The resampler configuration in case resampling is required.
-            align_to: A datetime object that defines a point in time to which
+            align_to: A timestamp that defines a point in time to which
                 the window is aligned to modulo window size. For further
                 information, consult the class level documentation.
             name: The name of this moving window. If `None`, `str(id(self))` will be
@@ -299,10 +299,10 @@ class MovingWindow(BackgroundService):
         and returns an array.
 
         Args:
-            start: The start of the time interval. If `None`, the start of the
-                window is used.
-            end: The end of the time interval. If `None`, the end of the window
-                is used.
+            start: The start timestamp of the time interval. If `None`, the
+                start of the window is used.
+            end: The end timestamp of the time interval. If `None`, the end of
+                the window is used.
             force_copy: If `True`, the returned array is a copy of the underlying
                 data. Otherwise, if possible, a view of the underlying data is
                 returned.
@@ -402,7 +402,7 @@ class MovingWindow(BackgroundService):
 
         * If the key is an integer, the float value of that key
           at the given position is returned.
-        * If the key is a datetime object, the float value of that key
+        * If the key is a timestamp, the float value of that key
           that corresponds to the timestamp is returned.
         * If the key is a slice of timestamps or integers, an ndarray is returned,
           where the bounds correspond to the slice bounds.
