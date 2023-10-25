@@ -28,6 +28,29 @@ class ChannelRegistry:
         self._name = name
         self._channels: dict[str, Broadcast[typing.Any]] = {}
 
+    def set_resend_latest(self, key: str, resend_latest: bool) -> None:
+        """Set the `resend_latest` flag for a given channel.
+
+        This flag controls whether the latest value of the channel should be resent to
+        new receivers, in slow streams.
+
+        `resend_latest` is `False` by default.  It is safe to be set in data/reporting
+        channels, but is not recommended for use in channels that stream control
+        instructions.
+
+        Args:
+            key: A key to identify the channel.
+            resend_latest: Whether to resend the latest value to new receivers, for the
+                given channel.
+        """
+        if key not in self._channels:
+            self._channels[key] = Broadcast(f"{self._name}-{key}")
+        # This attribute is protected in the current version of the channels library,
+        # but that will change in the future.
+        self._channels[  # pylint: disable=protected-access
+            key
+        ]._resend_latest = resend_latest
+
     def new_sender(self, key: str) -> Sender[typing.Any]:
         """Get a sender to a dynamically created channel with the given key.
 
