@@ -441,6 +441,9 @@ class BatteryPool:
         ] = asyncio.create_task(
             self._battery_pool._power_manager_bounds_subscription_sender.send(sub)
         )
+        self._battery_pool._channel_registry.set_resend_latest(
+            sub.get_channel_name(), True
+        )
         return self._battery_pool._channel_registry.new_receiver_fetcher(
             sub.get_channel_name()
         )
