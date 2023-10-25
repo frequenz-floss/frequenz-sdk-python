@@ -23,7 +23,6 @@ from ..utils.mock_microgrid_client import MockMicrogridClient
 def event_loop() -> Iterator[async_solipsism.EventLoop]:
     """Replace the loop with one that doesn't interact with the outside world."""
     loop = async_solipsism.EventLoop()
-    asyncio.set_event_loop(loop)  # Set the loop as default
     yield loop
     loop.close()
 
