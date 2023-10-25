@@ -4,6 +4,7 @@
 """Simple test for the BaseActor."""
 
 import asyncio
+from datetime import timedelta
 
 import pytest
 from frequenz.channels import Broadcast, Receiver, Sender
@@ -194,7 +195,7 @@ async def test_basic_actor(caplog: pytest.LogCaptureFixture) -> None:
     ]
 
 
-def expected_wait_time(iterations: int) -> int:
+def expected_wait_time(iterations: int) -> timedelta:
     """Calculate the expected wait time for a given iteration.
 
     Args:
@@ -203,12 +204,10 @@ def expected_wait_time(iterations: int) -> int:
     Returns:
         The expected wait time in seconds.
     """
-    if iterations == 0:
-        return 0
-    return expected_wait_time(iterations - 1) + 1 << iterations
+    return timedelta(seconds=iterations * Actor.RESTART_DELAY.total_seconds())
 
 
-@pytest.mark.parametrize("restart_limit", [0, 1, 2, 3])
+@pytest.mark.parametrize("restart_limit", [0, 1, 2, 10])
 async def test_restart_on_unhandled_exception(
     restart_limit: int, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -225,8 +224,9 @@ async def test_restart_on_unhandled_exception(
 
     channel: Broadcast[int] = Broadcast("channel")
 
-    async with asyncio.timeout(1 + expected_wait_time(restart_limit)):
-        print(f"Expecting a wait time of {expected_wait_time(restart_limit)} seconds")
+    # NB: We're adding 1.0s to the timeout to account for the time it takes to
+    # run, crash, and restart the actor.
+    async with asyncio.timeout(expected_wait_time(restart_limit).total_seconds() + 1.0):
         with actor_restart_limit(restart_limit):
             actor = RaiseExceptionActor(
                 channel.new_receiver(),
@@ -244,6 +244,7 @@ async def test_restart_on_unhandled_exception(
         (*RUN_INFO, "Actor RaiseExceptionActor[test]: Starting..."),
         (*ACTOR_INFO, "Actor RaiseExceptionActor[test]: Started."),
     ]
+    restart_delay = Actor.RESTART_DELAY.total_seconds()
     for i in range(restart_limit):
         expected_log.extend(
             [
@@ -257,7 +258,7 @@ async def test_restart_on_unhandled_exception(
                 ),
                 (
                     *ACTOR_INFO,
-                    f"Actor RaiseExceptionActor[test]: Waiting {1 << (1 + i)} seconds...",
+                    f"Actor RaiseExceptionActor[test]: Waiting {restart_delay} seconds...",
                 ),
             ]
         )
