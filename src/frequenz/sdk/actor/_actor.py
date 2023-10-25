@@ -68,7 +68,7 @@ class Actor(BackgroundService, abc.ABC):
         # the longer the actor has been running.
         # Not just for the restart-delay but actually for the n_restarts counter as well.
         if iteration > 0:
-            delay = Actor.RESTART_DELAY.total_seconds()
+            delay = self.RESTART_DELAY.total_seconds()
             _logger.info("Actor %s: Waiting %s seconds...", self, delay)
             await asyncio.sleep(delay)
 
