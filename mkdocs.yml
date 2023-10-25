@@ -14,18 +14,19 @@ strict: true  # Treat warnings as errors
 # Build directories
 theme:
   name: "material"
-  logo: logo.png
-  favicon: logo.png
+  logo: _img/logo.png
+  favicon: _img/logo.png
   language: en
   icon:
     edit: material/file-edit-outline
     repo: fontawesome/brands/github
-  custom_dir: docs/overrides
+  custom_dir: docs/_overrides
   features:
     - content.code.annotate
     - content.code.copy
     - navigation.indexes
     - navigation.instant
+    - navigation.footer
     - navigation.tabs
     - navigation.top
     - navigation.tracking
@@ -57,13 +58,15 @@ extra:
     default: latest
 
 extra_css:
-  - css/style.css
-  - css/mkdocstrings.css
+  - _css/style.css
+  - _css/mkdocstrings.css
 
 # Formatting options
 markdown_extensions:
   - admonition
   - attr_list
+  - def_list
+  - footnotes
   - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
@@ -78,7 +81,8 @@ markdown_extensions:
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed
-  - pymdownx.tasklist
+  - pymdownx.tasklist:
+      custom_checkbox: true
   - toc:
       permalink: "¤"
 
@@ -100,10 +104,13 @@ plugins:
             docstring_section_style: spacy
             inherited_members: true
             merge_init_into_class: false
+            separate_signature: true
             show_category_heading: true
             show_root_heading: true
             show_root_members_full_path: true
+            show_signature_annotations: true
             show_source: true
+            signature_crossrefs: true
           import:
             # See https://mkdocstrings.github.io/python/usage/#import for details
             - https://docs.python.org/3/objects.inv

@@ -3,6 +3,6 @@
 
 """Generate the code reference pages."""
 
-from frequenz.repo.config import mkdocs
+from frequenz.repo.config.mkdocs import api_pages
 
-mkdocs.generate_python_api_pages("src", "reference")
+api_pages.generate_python_api_pages("src", "reference")

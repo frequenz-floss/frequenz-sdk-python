@@ -13,7 +13,6 @@
     "python_package": "frequenz.sdk",
     "pypi_package_name": "frequenz-sdk",
     "github_repo_name": "frequenz-sdk-python",
-    "default_codeowners": "@frequenz-floss/python-sdk-team",
-    "_template": "gh:frequenz-floss/frequenz-repo-config-python"
+    "default_codeowners": "@frequenz-floss/python-sdk-team"
   }
 }

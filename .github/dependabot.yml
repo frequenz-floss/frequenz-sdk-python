@@ -3,8 +3,8 @@ updates:
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "weekly"
-      time: "07:00"
+      interval: "monthly"
+      day: "friday"
     labels:
       - "part:tooling"
       - "type:tech-debt"
@@ -34,8 +34,8 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-      time: "06:00"
+      interval: "monthly"
+      day: "friday"
     labels:
       - "part:tooling"
       - "type:tech-debt"

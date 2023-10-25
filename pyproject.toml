@@ -5,7 +5,7 @@
 requires = [
   "setuptools == 68.1.0",
   "setuptools_scm[toml] == 7.1.0",
-  "frequenz-repo-config[lib] == 0.6.1",
+  "frequenz-repo-config[lib] == 0.7.4",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -59,13 +59,15 @@ dev-flake8 = [
 dev-examples = ["polars == 0.19.3"]
 dev-formatting = ["black == 23.9.1", "isort == 5.12.0"]
 dev-mkdocs = [
+  "black == 23.9.1",
+  "Markdown==3.4.4",
   "mike == 1.1.2",
   "mkdocs-gen-files == 0.5.0",
   "mkdocs-literate-nav == 0.6.1",
   "mkdocs-macros-plugin == 1.0.4",
   "mkdocs-material == 9.3.1",
   "mkdocstrings[python] == 0.23.0",
-  "frequenz-repo-config[lib] == 0.6.1",
+  "frequenz-repo-config[lib] == 0.7.4",
 ]
 dev-mypy = [
   "mypy == 1.5.1",
@@ -81,7 +83,7 @@ dev-mypy = [
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
-dev-noxfile = ["nox == 2023.4.22", "frequenz-repo-config[lib] == 0.6.1"]
+dev-noxfile = ["nox == 2023.4.22", "frequenz-repo-config[lib] == 0.7.4"]
 dev-pylint = [
   "pylint == 2.17.5",
   # For checking the noxfile, docs/ script, and tests
@@ -89,7 +91,7 @@ dev-pylint = [
 ]
 dev-pytest = [
   "pytest == 7.4.2",
-  "frequenz-repo-config[extra-lint-examples] == 0.6.1",
+  "frequenz-repo-config[extra-lint-examples] == 0.7.4",
   "pytest-mock == 3.11.1",
   "pytest-asyncio == 0.21.1",
   "time-machine == 2.12.0",
@@ -102,6 +104,7 @@ dev = [
 ]
 
 [project.urls]
+Documentation = "https://frequenz-floss.github.io/frequenz-sdk-python/"
 Changelog = "https://github.com/frequenz-floss/frequenz-sdk-python/releases"
 Issues = "https://github.com/frequenz-floss/frequenz-sdk-python/issues"
 Repository = "https://github.com/frequenz-floss/frequenz-sdk-python"
@@ -128,11 +131,11 @@ extend-ignore = [
 ]
 # pydoclint options
 style = "google"
-allow-init-docstring = true
-arg-type-hints-in-docstring = false
-arg-type-hints-in-signature = true
 check-return-types = false
 check-yield-types = false
+arg-type-hints-in-docstring = false
+arg-type-hints-in-signature = true
+allow-init-docstring = true
 
 [tool.pylint.similarities]
 ignore-comments = ['yes']
@@ -166,6 +169,11 @@ required_plugins = ["pytest-asyncio", "pytest-mock"]
 [tool.mypy]
 explicit_package_bases = true
 namespace_packages = true
+# This option disables mypy cache, and it is sometimes useful to enable it if
+# you are getting weird intermittent error, or error in the CI but not locally
+# (or vice versa). In particular errors saying that type: ignore is not
+# used but getting the original ignored error when removing the type: ignore.
+# See for example: https://github.com/python/mypy/issues/2960
 no_incremental = true
 packages = ["frequenz.sdk"]
 strict = true
