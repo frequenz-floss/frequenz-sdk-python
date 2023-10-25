@@ -6,6 +6,7 @@
 import abc
 import asyncio
 import logging
+from datetime import timedelta
 
 from ._background_service import BackgroundService
 
@@ -26,6 +27,9 @@ class Actor(BackgroundService, abc.ABC):
         Please read the [`actor` module documentation][frequenz.sdk.actor] for more
         comprehensive guide on how to use and implement actors properly.
     """
+
+    RESTART_DELAY: timedelta = timedelta(seconds=2)
+    """The delay to wait between restarts of this actor."""
 
     _restart_limit: int | None = None
     """The number of times actors can be restarted when they are stopped by unhandled exceptions.
@@ -54,6 +58,20 @@ class Actor(BackgroundService, abc.ABC):
     async def _run(self) -> None:
         """Run this actor's logic."""
 
+    async def _delay_if_restart(self, iteration: int) -> None:
+        """Delay the restart of this actor's n'th iteration.
+
+        Args:
+            iteration: The current iteration of the restart.
+        """
+        # NB: I think it makes sense (in the future) to think about deminishing returns
+        # the longer the actor has been running.
+        # Not just for the restart-delay but actually for the n_restarts counter as well.
+        if iteration > 0:
+            delay = self.RESTART_DELAY.total_seconds()
+            _logger.info("Actor %s: Waiting %s seconds...", self, delay)
+            await asyncio.sleep(delay)
+
     async def _run_loop(self) -> None:
         """Run this actor's task in a loop until `_restart_limit` is reached.
 
@@ -67,6 +85,7 @@ class Actor(BackgroundService, abc.ABC):
         n_restarts = 0
         while True:
             try:
+                await self._delay_if_restart(n_restarts)
                 await self._run()
                 _logger.info("Actor %s: _run() returned without error.", self)
             except asyncio.CancelledError:

@@ -25,6 +25,8 @@ This version ships an experimental version of the **Power Manager**, adds prelim
 
 - Move `microgrid.ComponentGraph` class to `microgrid.component_graph.ComponentGraph`, exposing only the high level interface functions through the `microgrid` package.
 
+- An actor that is crashing will no longer instantly restart but induce an artificial delay to avoid potential spam-restarting.
+
 ## New Features
 
 - New and improved documentation.

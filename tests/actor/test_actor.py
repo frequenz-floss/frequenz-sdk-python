@@ -4,6 +4,7 @@
 """Simple test for the BaseActor."""
 
 import asyncio
+from datetime import timedelta
 
 import pytest
 from frequenz.channels import Broadcast, Receiver, Sender
@@ -211,7 +212,12 @@ async def test_restart_on_unhandled_exception(
 
     channel: Broadcast[int] = Broadcast("channel")
 
-    async with asyncio.timeout(2.0):
+    # NB: We're adding 1.0s to the timeout to account for the time it takes to
+    # run, crash, and restart the actor.
+    expected_wait_time = timedelta(
+        seconds=restart_limit * RaiseExceptionActor.RESTART_DELAY.total_seconds() + 1.0
+    )
+    async with asyncio.timeout(expected_wait_time.total_seconds()):
         with actor_restart_limit(restart_limit):
             actor = RaiseExceptionActor(
                 channel.new_receiver(),
@@ -229,6 +235,7 @@ async def test_restart_on_unhandled_exception(
         (*RUN_INFO, "Actor RaiseExceptionActor[test]: Starting..."),
         (*ACTOR_INFO, "Actor RaiseExceptionActor[test]: Started."),
     ]
+    restart_delay = Actor.RESTART_DELAY.total_seconds()
     for i in range(restart_limit):
         expected_log.extend(
             [
@@ -239,6 +246,10 @@ async def test_restart_on_unhandled_exception(
                 (
                     *ACTOR_INFO,
                     f"Actor test: Restarting ({i}/{restart_limit})...",
+                ),
+                (
+                    *ACTOR_INFO,
+                    f"Actor RaiseExceptionActor[test]: Waiting {restart_delay} seconds...",
                 ),
             ]
         )
@@ -260,6 +271,8 @@ async def test_restart_on_unhandled_exception(
             (*RUN_INFO, "All 1 actor(s) finished."),
         ]
     )
+    print("expected_log:", expected_log)
+    print("caplog.record_tuples:", caplog.record_tuples)
     assert caplog.record_tuples == expected_log
 
 
