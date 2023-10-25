@@ -52,7 +52,9 @@ This version ships an experimental version of the **Power Manager**, adds prelim
 
   This means that one or more inverters can be connected to one or more batteries.
 
-- A `PowerManagingActor` implementation
+- A `PowerManagingActor` implementation.
+
+- Allow configuration of the `resend_latest` flag in channels owned by the `ChannelRegistry`.
 
 ## Bug Fixes
 
