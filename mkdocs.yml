@@ -8,7 +8,7 @@ site_author: "Frequenz Energy-as-a-Service GmbH"
 copyright: "Copyright © 2022 Frequenz Energy-as-a-Service GmbH"
 repo_name: "frequenz-sdk-python"
 repo_url: "https://github.com/frequenz-floss/frequenz-sdk-python"
-edit_uri: "edit/v0.x.x/docs/"
+edit_uri: "edit/v1.x.x/docs/"
 strict: true  # Treat warnings as errors
 
 # Build directories
