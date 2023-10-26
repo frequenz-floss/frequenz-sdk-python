@@ -39,7 +39,7 @@ class ChannelRegistry:
         instructions.
 
         Args:
-            key: A key to identify the channel.
+            key: The key to identify the channel.
             resend_latest: Whether to resend the latest value to new receivers, for the
                 given channel.
         """
