@@ -62,6 +62,8 @@ This version ships an experimental version of the **Power Manager**, adds prelim
 
 - Allow configuration of the `resend_latest` flag in channels owned by the `ChannelRegistry`.
 
+- Add consumption and production operators that will replace the logical meters production and consumption function variants.
+
 ## Bug Fixes
 
 - Fix rendering of diagrams in the documentation.
