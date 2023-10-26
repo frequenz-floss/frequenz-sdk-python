@@ -8,6 +8,10 @@ This version ships an experimental version of the **Power Manager**, adds prelim
 
 - `microgrid.battery_pool()` method now accepts a priority value.
 
+- `microgrid.grid()`
+
+  * Similar to `microgrid.battery_pool()`, the Grid is now similarily accessed.
+
 - `BatteryPool`'s control methods
 
   * Original methods `{set_power/charge/discharge}` are now replaced by `propose_{power/charge/discharge}`

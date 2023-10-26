@@ -22,6 +22,8 @@ from ..actor._actor import Actor
 from ..microgrid.component import Component
 from ..timeseries._grid_frequency import GridFrequency
 from . import connection_manager
+from ._grid import Grid
+from ._grid import get as get_grid
 from .component import ComponentCategory
 
 _logger = logging.getLogger(__name__)
@@ -185,6 +187,18 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 component_ids=ev_charger_ids,
             )
         return self._ev_charger_pools[key]
+
+    def grid(
+        self,
+    ) -> Grid | None:
+        """Return the grid instance.
+
+        If a Grid instance doesn't exist, a new one is created and returned.
+
+        Returns:
+            A Grid instance.
+        """
+        return get_grid()
 
     def battery_pool(
         self,
@@ -452,6 +466,15 @@ def battery_pool(
         A `BatteryPool` instance.
     """
     return _get().battery_pool(battery_ids, name, priority)
+
+
+def grid() -> Grid | None:
+    """Return the grid instance.
+
+    Returns:
+        The Grid instance.
+    """
+    return _get().grid()
 
 
 def _get() -> _DataPipeline:
