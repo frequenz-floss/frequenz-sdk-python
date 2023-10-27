@@ -11,9 +11,9 @@ import logging
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-from .component import Component
-from .component._component import ComponentCategory
-from .fuse import Fuse
+from ..microgrid.component import Component
+from ..microgrid.component._component import ComponentCategory
+from ..microgrid.fuse import Fuse
 
 
 @dataclass(frozen=True)
