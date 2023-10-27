@@ -3,22 +3,26 @@
 
 """Base class for formula generators that use the component graphs."""
 
+from __future__ import annotations
 
 import sys
 from abc import ABC, abstractmethod
 from collections import abc
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Generic
+from typing import TYPE_CHECKING, Generic
 
 from frequenz.channels import Sender
 
-from ....actor import ChannelRegistry, ComponentMetricRequest
 from ....microgrid import component, connection_manager
 from ....microgrid.component import ComponentMetricId
 from ..._quantities import QuantityT
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase
 from .._resampled_formula_builder import ResampledFormulaBuilder
+
+if TYPE_CHECKING:
+    # Break circular import
+    from ....actor import ChannelRegistry, ComponentMetricRequest
 
 
 class FormulaGenerationError(Exception):

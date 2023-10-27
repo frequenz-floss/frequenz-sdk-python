@@ -24,6 +24,7 @@ from ..timeseries._base_types import PoolType
 from ..timeseries._grid_frequency import GridFrequency
 from ..timeseries.grid import Grid
 from ..timeseries.grid import get as get_grid
+from ..timeseries.grid import initialize as initialize_grid
 from . import connection_manager
 from .component import ComponentCategory
 
@@ -115,6 +116,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._power_managing_actor: _power_managing.PowerManagingActor | None = None
 
         self._logical_meter: LogicalMeter | None = None
+        self._grid: Grid | None = None
         self._ev_charger_pools: dict[frozenset[int], EVChargerPool] = {}
         self._battery_pools: dict[frozenset[int], BatteryPoolReferenceStore] = {}
         self._frequency_pool: dict[int, GridFrequency] = {}
@@ -199,7 +201,14 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         Returns:
             A Grid instance.
         """
-        return get_grid()
+        if self._grid is None:
+            initialize_grid(
+                channel_registry=self._channel_registry,
+                resampler_subscription_sender=self._resampling_request_sender(),
+            )
+            self._grid = get_grid()
+
+        return self._grid
 
     def battery_pool(
         self,

@@ -3,18 +3,22 @@
 
 """A builder for creating formula engines that operate on resampled component metrics."""
 
+from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Generic
+from typing import TYPE_CHECKING, Generic
 
 from frequenz.channels import Receiver, Sender
 
-from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid.component import ComponentMetricId
 from .. import Sample
 from .._quantities import QuantityT
 from ._formula_engine import FormulaBuilder, FormulaEngine
 from ._tokenizer import Tokenizer, TokenType
+
+if TYPE_CHECKING:
+    # Break circular import
+    from ...actor import ChannelRegistry, ComponentMetricRequest
 
 
 class ResampledFormulaBuilder(Generic[QuantityT], FormulaBuilder[QuantityT]):
@@ -63,6 +67,9 @@ class ResampledFormulaBuilder(Generic[QuantityT], FormulaBuilder[QuantityT]):
         Returns:
             A receiver to stream resampled data for the given component id.
         """
+        # pylint: disable=import-outside-toplevel
+        from frequenz.sdk.actor import ComponentMetricRequest
+
         request = ComponentMetricRequest(self._namespace, component_id, metric_id, None)
         self._resampler_requests.append(request)
         return self._channel_registry.new_receiver(request.get_channel_name())

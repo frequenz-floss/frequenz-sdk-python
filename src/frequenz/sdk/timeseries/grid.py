@@ -6,16 +6,16 @@
 This module provides the `Grid` type, which represents a grid connection point
 in a microgrid.
 """
+from __future__ import annotations
 
 import logging
 import uuid
-from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from frequenz.channels import Sender
 
-from ..microgrid.component import Component
+from ..microgrid import connection_manager
 from ..microgrid.component._component import ComponentCategory
 from . import Fuse
 from .formula_engine._formula_engine_pool import FormulaEnginePool
@@ -42,14 +42,12 @@ _GRID: Grid | None = None
 
 
 def initialize(
-    components: Iterable[Component],
     channel_registry: ChannelRegistry,
     resampler_subscription_sender: Sender[ComponentMetricRequest],
 ) -> None:
     """Initialize the grid connection.
 
     Args:
-        components: The components in the microgrid.
         channel_registry: The channel registry instance shared with the
             resampling actor.
         resampler_subscription_sender: The sender for sending metric requests
@@ -63,9 +61,9 @@ def initialize(
     global _GRID  # pylint: disable=global-statement
 
     grid_connections = list(
-        component
-        for component in components
-        if component.category == ComponentCategory.GRID
+        connection_manager.get().component_graph.components(
+            component_category={ComponentCategory.GRID},
+        )
     )
 
     grid_connections_count = len(grid_connections)
@@ -82,7 +80,17 @@ def initialize(
         if grid_connections[0].metadata is None:
             raise RuntimeError("Grid metadata is None")
 
-        fuse = grid_connections[0].metadata.fuse
+        fuse: Fuse | None = None
+
+        # The current implementation of the Component Graph fails to
+        # effectively convert components from a dictionary representation to
+        # the expected Component object.
+        # Specifically for the component metadata, it hands back a dictionary
+        # instead of the expected ComponentMetadata type.
+        metadata = grid_connections[0].metadata
+        if isinstance(metadata, dict):
+            fuse_dict = metadata.get("fuse", None)
+            fuse = Fuse(**fuse_dict) if fuse_dict else None
 
         if fuse is None:
             raise RuntimeError("Grid fuse is None")
