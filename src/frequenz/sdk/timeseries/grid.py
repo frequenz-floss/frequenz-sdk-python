@@ -8,12 +8,21 @@ in a microgrid.
 """
 
 import logging
+import uuid
 from collections.abc import Iterable
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+from frequenz.channels import Sender
 
 from ..microgrid.component import Component
 from ..microgrid.component._component import ComponentCategory
 from . import Fuse
+from .formula_engine._formula_engine_pool import FormulaEnginePool
+
+if TYPE_CHECKING:
+    # Break circular import
+    from ..actor import ChannelRegistry, ComponentMetricRequest
 
 _logger = logging.getLogger(__name__)
 
@@ -25,15 +34,26 @@ class Grid:
     fuse: Fuse
     """The fuse protecting the grid connection point."""
 
+    _formula_pool: FormulaEnginePool
+    """The formula engine pool to generate grid metrics."""
+
 
 _GRID: Grid | None = None
 
 
-def initialize(components: Iterable[Component]) -> None:
+def initialize(
+    components: Iterable[Component],
+    channel_registry: ChannelRegistry,
+    resampler_subscription_sender: Sender[ComponentMetricRequest],
+) -> None:
     """Initialize the grid connection.
 
     Args:
         components: The components in the microgrid.
+        channel_registry: The channel registry instance shared with the
+            resampling actor.
+        resampler_subscription_sender: The sender for sending metric requests
+            to the resampling actor.
 
     Raises:
         RuntimeError: If there is more than 1 grid connection point in the
@@ -67,7 +87,14 @@ def initialize(components: Iterable[Component]) -> None:
         if fuse is None:
             raise RuntimeError("Grid fuse is None")
 
-        _GRID = Grid(fuse)
+        namespace = f"grid-{uuid.uuid4()}"
+        formula_pool = FormulaEnginePool(
+            namespace,
+            channel_registry,
+            resampler_subscription_sender,
+        )
+
+        _GRID = Grid(fuse, formula_pool)
 
 
 def get() -> Grid | None:
