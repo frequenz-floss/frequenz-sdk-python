@@ -25,6 +25,7 @@ from ._formula_steps import (
     Adder,
     Clipper,
     ConstantValue,
+    Consumption,
     Divider,
     FormulaStep,
     Maximizer,
@@ -32,6 +33,7 @@ from ._formula_steps import (
     Minimizer,
     Multiplier,
     OpenParen,
+    Production,
     Subtractor,
 )
 from ._tokenizer import TokenType
@@ -41,12 +43,14 @@ _logger = logging.Logger(__name__)
 _operator_precedence = {
     "max": 0,
     "min": 1,
-    "(": 2,
-    "/": 3,
-    "*": 4,
-    "-": 5,
-    "+": 6,
-    ")": 7,
+    "consumption": 2,
+    "production": 3,
+    "(": 4,
+    "/": 5,
+    "*": 6,
+    "-": 7,
+    "+": 8,
+    ")": 9,
 }
 """The dictionary of operator precedence for the shunting yard algorithm."""
 
@@ -188,11 +192,30 @@ class _ComposableFormulaEngine(
             other: A formula receiver, a formula builder or a QuantityT instance
                 corresponding to a sub-expression.
 
+
         Returns:
             A formula builder that can take further expressions, or can be built
                 into a formula engine.
         """
         return self._higher_order_builder(self, self._create_method).min(other)  # type: ignore
+
+    def consumption(self) -> _GenericHigherOrderBuilder:
+        """
+        Return a formula builder that applies the consumption operator on `self`.
+
+        The consumption operator returns either the identity if the power value is
+        positive or 0.
+        """
+        return self._higher_order_builder(self, self._create_method).consumption()  # type: ignore
+
+    def production(self) -> _GenericHigherOrderBuilder:
+        """
+        Return a formula builder that applies the production operator on `self`.
+
+        The production operator returns either the absolute value if the power value is
+        negative or 0.
+        """
+        return self._higher_order_builder(self, self._create_method).production()  # type: ignore
 
 
 class FormulaEngine(
@@ -574,7 +597,7 @@ class FormulaBuilder(Generic[QuantityT]):
         self._steps: list[FormulaStep] = []
         self._metric_fetchers: dict[str, MetricFetcher[QuantityT]] = {}
 
-    def push_oper(self, oper: str) -> None:
+    def push_oper(self, oper: str) -> None:  # pylint: disable=too-many-branches
         """Push an operator into the engine.
 
         Args:
@@ -608,6 +631,10 @@ class FormulaBuilder(Generic[QuantityT]):
             self._build_stack.append(Maximizer())
         elif oper == "min":
             self._build_stack.append(Minimizer())
+        elif oper == "consumption":
+            self._build_stack.append(Consumption())
+        elif oper == "production":
+            self._build_stack.append(Production())
 
     def push_metric(
         self,
@@ -995,6 +1022,52 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
                 into a formula engine.
         """
         return self._push("min", other)
+
+    def consumption(
+        self,
+    ) -> (
+        HigherOrderFormulaBuilder[QuantityT]
+        | HigherOrderFormulaBuilder3Phase[QuantityT]
+    ):
+        """Apply the Consumption Operator.
+
+        The consumption operator returns either the identity if the power value is
+        positive or 0.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        self._steps.appendleft((TokenType.OPER, "("))
+        self._steps.append((TokenType.OPER, ")"))
+        self._steps.append((TokenType.OPER, "consumption"))
+        assert isinstance(
+            self, (HigherOrderFormulaBuilder, HigherOrderFormulaBuilder3Phase)
+        )
+        return self
+
+    def production(
+        self,
+    ) -> (
+        HigherOrderFormulaBuilder[QuantityT]
+        | HigherOrderFormulaBuilder3Phase[QuantityT]
+    ):
+        """Apply the Production Operator.
+
+        The production operator returns either the absolute value if the power value is
+        negative or 0.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        self._steps.appendleft((TokenType.OPER, "("))
+        self._steps.append((TokenType.OPER, ")"))
+        self._steps.append((TokenType.OPER, "production"))
+        assert isinstance(
+            self, (HigherOrderFormulaBuilder, HigherOrderFormulaBuilder3Phase)
+        )
+        return self
 
 
 class HigherOrderFormulaBuilder(Generic[QuantityT], _BaseHOFormulaBuilder[QuantityT]):

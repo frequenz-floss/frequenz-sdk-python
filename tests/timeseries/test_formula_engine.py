@@ -320,6 +320,19 @@ class TestFormulaEngineComposition:
             Callable[
                 [
                     FormulaEngine[Quantity],
+                ],
+                HigherOrderFormulaBuilder[Quantity],
+            ]
+            | Callable[
+                [
+                    FormulaEngine[Quantity],
+                    FormulaEngine[Quantity],
+                ],
+                HigherOrderFormulaBuilder[Quantity],
+            ]
+            | Callable[
+                [
+                    FormulaEngine[Quantity],
                     FormulaEngine[Quantity],
                     FormulaEngine[Quantity],
                 ],
@@ -583,6 +596,95 @@ class TestFormulaEngineComposition:
             [
                 ([10.0, 12.0, 15.0, 2.0], 14.5),
                 ([15.0, 17.0, 20.0, 5.0], 28.0),
+            ],
+        )
+
+    async def test_consumption(self) -> None:
+        """Test the consumption operator."""
+        await self.run_test(
+            1,
+            lambda c1: c1.consumption(),
+            [
+                ([10.0], 10.0),
+                ([-10.0], 0.0),
+            ],
+        )
+
+    async def test_production(self) -> None:
+        """Test the production operator."""
+        await self.run_test(
+            1,
+            lambda c1: c1.production(),
+            [
+                ([10.0], 0.0),
+                ([-10.0], 10.0),
+            ],
+        )
+
+    async def test_consumption_production(self) -> None:
+        """Test the consumption and production operator combined."""
+        await self.run_test(
+            2,
+            lambda c1, c2: c1.consumption() + c2.production(),
+            [
+                ([10.0, 12.0], 10.0),
+                ([-12.0, -10.0], 10.0),
+            ],
+        )
+        await self.run_test(
+            2,
+            lambda c1, c2: c1.consumption() + c2.consumption(),
+            [
+                ([10.0, -12.0], 10.0),
+                ([-10.0, 12.0], 12.0),
+            ],
+        )
+        await self.run_test(
+            2,
+            lambda c1, c2: c1.production() + c2.production(),
+            [
+                ([10.0, -12.0], 12.0),
+                ([-10.0, 12.0], 10.0),
+            ],
+        )
+        await self.run_test(
+            2,
+            lambda c1, c2: c1.min(c2).consumption(),
+            [
+                ([10.0, -12.0], 0.0),
+                ([10.0, 12.0], 10.0),
+            ],
+        )
+        await self.run_test(
+            2,
+            lambda c1, c2: c1.max(c2).consumption(),
+            [
+                ([10.0, -12.0], 10.0),
+                ([-10.0, -12.0], 0.0),
+            ],
+        )
+        await self.run_test(
+            2,
+            lambda c1, c2: c1.min(c2).production(),
+            [
+                ([10.0, -12.0], 12.0),
+                ([10.0, 12.0], 0.0),
+            ],
+        )
+        await self.run_test(
+            2,
+            lambda c1, c2: c1.max(c2).production(),
+            [
+                ([10.0, -12.0], 0.0),
+                ([-10.0, -12.0], 10.0),
+            ],
+        )
+        await self.run_test(
+            2,
+            lambda c1, c2: c1.production() + c2,
+            [
+                ([10.0, -12.0], -12.0),
+                ([-10.0, -12.0], -2.0),
             ],
         )
 
