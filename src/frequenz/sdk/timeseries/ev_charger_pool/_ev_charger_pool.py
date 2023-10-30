@@ -187,60 +187,6 @@ class EVChargerPool:
         assert isinstance(engine, FormulaEngine)
         return engine
 
-    @property
-    def production_power(self) -> FormulaEngine[Power]:
-        """Fetch the total power produced by the EV Chargers in the pool.
-
-        This formula produces positive values when producing power and 0 otherwise.
-
-        If a formula engine to calculate EV Charger power is not already running, it
-        will be started.
-
-        A receiver from the formula engine can be created using the `new_receiver`
-        method.
-
-        Returns:
-            A FormulaEngine that will calculate and stream the production power of all
-                EV Chargers.
-        """
-        engine = self._formula_pool.from_power_formula_generator(
-            "ev_charger_production_power",
-            EVChargerPowerFormula,
-            FormulaGeneratorConfig(
-                component_ids=self._component_ids,
-                formula_type=FormulaType.PRODUCTION,
-            ),
-        )
-        assert isinstance(engine, FormulaEngine)
-        return engine
-
-    @property
-    def consumption_power(self) -> FormulaEngine[Power]:
-        """Fetch the total power consumed by the EV Chargers in the pool.
-
-        This formula produces positive values when consuming power and 0 otherwise.
-
-        If a formula engine to calculate EV Charger power is not already running, it
-        will be started.
-
-        A receiver from the formula engine can be created using the `new_receiver`
-        method.
-
-        Returns:
-            A FormulaEngine that will calculate and stream the consumption power of all
-                EV Chargers.
-        """
-        engine = self._formula_pool.from_power_formula_generator(
-            "ev_charger_consumption_power",
-            EVChargerPowerFormula,
-            FormulaGeneratorConfig(
-                component_ids=self._component_ids,
-                formula_type=FormulaType.CONSUMPTION,
-            ),
-        )
-        assert isinstance(engine, FormulaEngine)
-        return engine
-
     def component_data(self, component_id: int) -> Receiver[EVChargerData]:
         """Stream 3-phase current values and state of an EV Charger.
 
