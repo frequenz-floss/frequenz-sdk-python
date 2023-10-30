@@ -83,11 +83,12 @@ class Matryoshka(BaseAlgorithm):
                     target_power = lower_bound
                 else:
                     target_power = next_proposal.preferred_power
-            low, high = next_proposal.bounds.lower, next_proposal.bounds.upper
-            if low is not None:
-                lower_bound = max(lower_bound, low)
-            if high is not None:
-                upper_bound = min(upper_bound, high)
+            proposal_lower, proposal_upper = (
+                next_proposal.bounds.lower or lower_bound,
+                next_proposal.bounds.upper or upper_bound,
+            )
+            lower_bound = max(lower_bound, proposal_lower)
+            upper_bound = min(upper_bound, proposal_upper)
 
         return target_power
 
@@ -206,13 +207,12 @@ class Matryoshka(BaseAlgorithm):
         for next_proposal in reversed(self._battery_buckets.get(battery_ids, [])):
             if next_proposal.priority <= priority:
                 break
-            low, high = next_proposal.bounds.lower, next_proposal.bounds.upper
-            calc_lower_bound = lower_bound
-            calc_upper_bound = upper_bound
-            if low is not None:
-                calc_lower_bound = max(calc_lower_bound, low)
-            if high is not None:
-                calc_upper_bound = min(calc_upper_bound, high)
+            proposal_lower, proposal_upper = (
+                next_proposal.bounds.lower or lower_bound,
+                next_proposal.bounds.upper or upper_bound,
+            )
+            calc_lower_bound = max(lower_bound, proposal_lower)
+            calc_upper_bound = min(upper_bound, proposal_upper)
             if calc_lower_bound <= calc_upper_bound:
                 lower_bound = calc_lower_bound
                 upper_bound = calc_upper_bound
