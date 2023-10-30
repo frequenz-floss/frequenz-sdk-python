@@ -74,8 +74,11 @@ class StatefulTester:
         assert report.inclusion_bounds.upper.as_watts() == expected_bounds[1]
 
 
-async def test_matryoshka_algorithm() -> None:  # pylint: disable=too-many-statements
-    """Tests for the power managing actor."""
+async def test_matryoshka_no_excl() -> None:  # pylint: disable=too-many-statements
+    """Tests for the power managing actor.
+
+    With just inclusion bounds, and no exclusion bounds.
+    """
     batteries = frozenset({2, 5})
 
     system_bounds = battery_pool.PowerMetrics(
@@ -179,3 +182,162 @@ async def test_matryoshka_algorithm() -> None:  # pylint: disable=too-many-state
 
     tester.tgt_power(priority=1, power=None, bounds=(-200, 200), expected=50.0)
     tester.bounds(priority=1, expected_power=50.0, expected_bounds=(-100.0, 100.0))
+
+
+async def test_matryoshka_with_excl_1() -> None:
+    """Tests for the power managing actor.
+
+    With inclusion bounds, and exclusion bounds -30.0 to 0.0.
+    """
+    batteries = frozenset({2, 5})
+
+    system_bounds = battery_pool.PowerMetrics(
+        timestamp=datetime.now(tz=timezone.utc),
+        inclusion_bounds=timeseries.Bounds(
+            lower=Power.from_watts(-200.0), upper=Power.from_watts(200.0)
+        ),
+        exclusion_bounds=timeseries.Bounds(
+            lower=Power.from_watts(-30.0), upper=Power.zero()
+        ),
+    )
+
+    tester = StatefulTester(batteries, system_bounds)
+
+    tester.tgt_power(priority=2, power=25.0, bounds=(25.0, 50.0), expected=25.0)
+    tester.bounds(priority=2, expected_power=25.0, expected_bounds=(-200.0, 200.0))
+    tester.bounds(priority=1, expected_power=25.0, expected_bounds=(25.0, 50.0))
+
+    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=None)
+    tester.bounds(priority=1, expected_power=25.0, expected_bounds=(25.0, 50.0))
+
+    tester.tgt_power(priority=2, power=-10.0, bounds=(-10.0, 50.0), expected=20.0)
+    tester.bounds(priority=1, expected_power=20.0, expected_bounds=(0.0, 50.0))
+    tester.bounds(priority=0, expected_power=20.0, expected_bounds=(20.0, 50.0))
+
+    tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, 50.0), expected=0.0)
+    tester.bounds(priority=0, expected_power=0.0, expected_bounds=(0.0, 50.0))
+
+    tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, 20.0), expected=None)
+    tester.bounds(priority=0, expected_power=0.0, expected_bounds=(0.0, 20.0))
+
+    tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, -5.0), expected=None)
+    tester.bounds(priority=0, expected_power=0.0, expected_bounds=(0.0, 50.0))
+
+    tester.tgt_power(priority=2, power=-10.0, bounds=(-200.0, -5.0), expected=-30.0)
+    tester.bounds(priority=1, expected_power=-30.0, expected_bounds=(-200.0, -30.0))
+    tester.bounds(priority=0, expected_power=-30.0, expected_bounds=(-200.0, -30.0))
+
+    tester.tgt_power(priority=1, power=-10.0, bounds=(-100.0, -5.0), expected=None)
+    tester.bounds(priority=0, expected_power=-30.0, expected_bounds=(-100.0, -30.0))
+
+    tester.tgt_power(priority=1, power=-40.0, bounds=(-100.0, -35.0), expected=-40.0)
+    tester.bounds(priority=0, expected_power=-40.0, expected_bounds=(-100.0, -35.0))
+
+
+async def test_matryoshka_with_excl_2() -> None:
+    """Tests for the power managing actor.
+
+    With inclusion bounds, and exclusion bounds 0.0 to 30.0.
+    """
+    batteries = frozenset({2, 5})
+
+    system_bounds = battery_pool.PowerMetrics(
+        timestamp=datetime.now(tz=timezone.utc),
+        inclusion_bounds=timeseries.Bounds(
+            lower=Power.from_watts(-200.0), upper=Power.from_watts(200.0)
+        ),
+        exclusion_bounds=timeseries.Bounds(
+            lower=Power.zero(), upper=Power.from_watts(30.0)
+        ),
+    )
+
+    tester = StatefulTester(batteries, system_bounds)
+
+    tester.tgt_power(priority=2, power=25.0, bounds=(25.0, 50.0), expected=30.0)
+    tester.bounds(priority=2, expected_power=30.0, expected_bounds=(-200.0, 200.0))
+    tester.bounds(priority=1, expected_power=30.0, expected_bounds=(30.0, 50.0))
+
+    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=None)
+    tester.bounds(priority=1, expected_power=30.0, expected_bounds=(30.0, 50.0))
+
+    tester.tgt_power(priority=1, power=10.0, bounds=(5.0, 10.0), expected=None)
+    tester.bounds(priority=0, expected_power=30.0, expected_bounds=(30, 50.0))
+
+    tester.tgt_power(priority=2, power=-10.0, bounds=(-10.0, 50.0), expected=0.0)
+    tester.bounds(priority=1, expected_power=0.0, expected_bounds=(-10.0, 50.0))
+    tester.bounds(priority=0, expected_power=0.0, expected_bounds=(-10.0, 50.0))
+
+    tester.tgt_power(priority=0, power=40, bounds=(None, None), expected=40.0)
+    tester.tgt_power(priority=0, power=-10, bounds=(None, None), expected=-10.0)
+    tester.tgt_power(priority=0, power=10, bounds=(None, None), expected=0.0)
+    tester.tgt_power(priority=0, power=20, bounds=(None, None), expected=30.0)
+    tester.tgt_power(priority=0, power=None, bounds=(None, None), expected=0.0)
+
+    tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, 50.0), expected=-10.0)
+    tester.bounds(priority=0, expected_power=-10.0, expected_bounds=(-10.0, 50.0))
+
+    tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, 20.0), expected=None)
+    tester.bounds(priority=0, expected_power=-10.0, expected_bounds=(-10.0, 0.0))
+
+    tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, -5.0), expected=None)
+    tester.bounds(priority=0, expected_power=-10.0, expected_bounds=(-10.0, -5.0))
+
+    tester.tgt_power(priority=2, power=-10.0, bounds=(-200.0, -5.0), expected=None)
+    tester.bounds(priority=1, expected_power=-10.0, expected_bounds=(-200.0, -5.0))
+    tester.bounds(priority=0, expected_power=-10.0, expected_bounds=(-10.0, -5.0))
+
+    tester.tgt_power(priority=1, power=-10.0, bounds=(-100.0, -5.0), expected=None)
+    tester.bounds(priority=0, expected_power=-10.0, expected_bounds=(-100.0, -5.0))
+
+    tester.tgt_power(priority=1, power=-40.0, bounds=(-100.0, -35.0), expected=-40.0)
+    tester.bounds(priority=0, expected_power=-40.0, expected_bounds=(-100.0, -35.0))
+
+
+async def test_matryoshka_with_excl_3() -> None:
+    """Tests for the power managing actor.
+
+    With inclusion bounds, and exclusion bounds -30.0 to 30.0.
+    """
+    batteries = frozenset({2, 5})
+
+    system_bounds = battery_pool.PowerMetrics(
+        timestamp=datetime.now(tz=timezone.utc),
+        inclusion_bounds=timeseries.Bounds(
+            lower=Power.from_watts(-200.0), upper=Power.from_watts(200.0)
+        ),
+        exclusion_bounds=timeseries.Bounds(
+            lower=Power.from_watts(-30.0), upper=Power.from_watts(30.0)
+        ),
+    )
+
+    tester = StatefulTester(batteries, system_bounds)
+
+    tester.tgt_power(priority=2, power=25.0, bounds=(25.0, 50.0), expected=30.0)
+    tester.bounds(priority=2, expected_power=30.0, expected_bounds=(-200.0, 200.0))
+    tester.bounds(priority=1, expected_power=30.0, expected_bounds=(30.0, 50.0))
+
+    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=None)
+    tester.bounds(priority=1, expected_power=30.0, expected_bounds=(30.0, 50.0))
+
+    tester.tgt_power(priority=1, power=10.0, bounds=(5.0, 10.0), expected=None)
+    tester.bounds(priority=0, expected_power=30.0, expected_bounds=(30, 50.0))
+
+    tester.tgt_power(priority=2, power=-10.0, bounds=(-10.0, 50.0), expected=None)
+    tester.bounds(priority=1, expected_power=30.0, expected_bounds=(30.0, 50.0))
+    tester.bounds(priority=0, expected_power=30.0, expected_bounds=(30.0, 50.0))
+
+    tester.tgt_power(priority=1, power=40.0, bounds=(-10.0, 50.0), expected=40.0)
+    tester.bounds(priority=0, expected_power=40.0, expected_bounds=(30.0, 50.0))
+
+    tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, 20.0), expected=30.0)
+    tester.bounds(priority=0, expected_power=30.0, expected_bounds=(30.0, 50.0))
+
+    tester.tgt_power(priority=2, power=-10.0, bounds=(-200.0, -5.0), expected=-30.0)
+    tester.bounds(priority=1, expected_power=-30.0, expected_bounds=(-200.0, -30.0))
+    tester.bounds(priority=0, expected_power=-30.0, expected_bounds=(-200.0, -30.0))
+
+    tester.tgt_power(priority=1, power=-10.0, bounds=(-100.0, -5.0), expected=None)
+    tester.bounds(priority=0, expected_power=-30.0, expected_bounds=(-100.0, -30.0))
+
+    tester.tgt_power(priority=1, power=-40.0, bounds=(-100.0, -35.0), expected=-40.0)
+    tester.bounds(priority=0, expected_power=-40.0, expected_bounds=(-100.0, -35.0))
