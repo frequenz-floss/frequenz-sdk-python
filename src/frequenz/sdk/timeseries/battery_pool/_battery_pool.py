@@ -262,60 +262,6 @@ class BatteryPool:
         return engine
 
     @property
-    def production_power(self) -> FormulaEngine[Power]:
-        """Fetch the total production power of the batteries in the pool.
-
-        This formula produces positive values when producing power and 0 otherwise.
-
-        If a formula engine to calculate this metric is not already running, it will be
-        started.
-
-        A receiver from the formula engine can be obtained by calling the `new_receiver`
-        method.
-
-        Returns:
-            A FormulaEngine that will calculate and stream the total production power of
-                all batteries in the pool.
-        """
-        engine = self._battery_pool._formula_pool.from_power_formula_generator(
-            "battery_pool_production_power",
-            BatteryPowerFormula,
-            FormulaGeneratorConfig(
-                component_ids=self._battery_pool._batteries,
-                formula_type=FormulaType.PRODUCTION,
-            ),
-        )
-        assert isinstance(engine, FormulaEngine)
-        return engine
-
-    @property
-    def consumption_power(self) -> FormulaEngine[Power]:
-        """Fetch the total consumption power of the batteries in the pool.
-
-        This formula produces positive values when consuming power and 0 otherwise.
-
-        If a formula engine to calculate this metric is not already running, it will be
-        started.
-
-        A receiver from the formula engine can be obtained by calling the `new_receiver`
-        method.
-
-        Returns:
-            A FormulaEngine that will calculate and stream the total consumption
-                power of all batteries in the pool.
-        """
-        engine = self._battery_pool._formula_pool.from_power_formula_generator(
-            "battery_pool_consumption_power",
-            BatteryPowerFormula,
-            FormulaGeneratorConfig(
-                component_ids=self._battery_pool._batteries,
-                formula_type=FormulaType.CONSUMPTION,
-            ),
-        )
-        assert isinstance(engine, FormulaEngine)
-        return engine
-
-    @property
     def soc(self) -> ReceiverFetcher[Sample[Percentage]]:
         """Fetch the normalized average weighted-by-capacity SoC values for the pool.
 
