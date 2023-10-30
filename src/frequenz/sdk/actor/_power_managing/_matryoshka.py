@@ -36,6 +36,70 @@ if typing.TYPE_CHECKING:
 _logger = logging.getLogger(__name__)
 
 
+def _check_exclusion_bounds_overlap(
+    lower_bound: Power,
+    upper_bound: Power,
+    exclusion_bounds: timeseries.Bounds[Power] | None,
+) -> tuple[bool, bool]:
+    """Check if the given bounds overlap with the given exclusion bounds.
+
+    Args:
+        lower_bound: The lower bound to check.
+        upper_bound: The upper bound to check.
+        exclusion_bounds: The exclusion bounds to check against.
+
+    Returns:
+        A tuple containing a boolean indicating if the lower bound is bounded by the
+            exclusion bounds, and a boolean indicating if the upper bound is bounded by
+            the exclusion bounds.
+    """
+    if exclusion_bounds is None:
+        return False, False
+
+    bounded_lower = False
+    bounded_upper = False
+
+    if exclusion_bounds.lower < lower_bound < exclusion_bounds.upper:
+        bounded_lower = True
+    if exclusion_bounds.lower < upper_bound < exclusion_bounds.upper:
+        bounded_upper = True
+
+    return bounded_lower, bounded_upper
+
+
+def _adjust_exclusion_bounds(
+    lower_bound: Power,
+    upper_bound: Power,
+    exclusion_bounds: timeseries.Bounds[Power] | None,
+) -> tuple[Power, Power]:
+    """Adjust the given bounds to exclude the given exclusion bounds.
+
+    Args:
+        lower_bound: The lower bound to adjust.
+        upper_bound: The upper bound to adjust.
+        exclusion_bounds: The exclusion bounds to adjust to.
+
+    Returns:
+        The adjusted lower and upper bounds.
+    """
+    if exclusion_bounds is None:
+        return lower_bound, upper_bound
+
+    # If the given bounds are within the exclusion bounds, there's no room to adjust,
+    # so return zero.
+    #
+    # And if the given bounds overlap with the exclusion bounds on one side, then clamp
+    # the given bounds on that side.
+    match _check_exclusion_bounds_overlap(lower_bound, upper_bound, exclusion_bounds):
+        case (True, True):
+            return Power.zero(), Power.zero()
+        case (False, True):
+            return lower_bound, exclusion_bounds.lower
+        case (True, False):
+            return exclusion_bounds.upper, upper_bound
+    return lower_bound, upper_bound
+
+
 class Matryoshka(BaseAlgorithm):
     """The matryoshka algorithm."""
 
@@ -72,6 +136,13 @@ class Matryoshka(BaseAlgorithm):
             else Power.zero()
         )
 
+        exclusion_bounds = None
+        if system_bounds.exclusion_bounds is not None and (
+            system_bounds.exclusion_bounds.lower != Power.zero()
+            or system_bounds.exclusion_bounds.upper != Power.zero()
+        ):
+            exclusion_bounds = system_bounds.exclusion_bounds
+
         target_power = Power.zero()
         for next_proposal in reversed(proposals):
             if upper_bound < lower_bound:
@@ -87,8 +158,19 @@ class Matryoshka(BaseAlgorithm):
                 next_proposal.bounds.lower or lower_bound,
                 next_proposal.bounds.upper or upper_bound,
             )
+            # If the bounds from the current proposal are fully within the exclusion
+            # bounds, then don't use them to narrow the bounds further. This allows
+            # subsequent proposals to not be blocked by the current proposal.
+            match _check_exclusion_bounds_overlap(
+                proposal_lower, proposal_upper, exclusion_bounds
+            ):
+                case (True, True):
+                    continue
             lower_bound = max(lower_bound, proposal_lower)
             upper_bound = min(upper_bound, proposal_upper)
+            lower_bound, upper_bound = _adjust_exclusion_bounds(
+                lower_bound, upper_bound, exclusion_bounds
+            )
 
         return target_power
 
@@ -204,6 +286,13 @@ class Matryoshka(BaseAlgorithm):
         lower_bound = system_bounds.inclusion_bounds.lower
         upper_bound = system_bounds.inclusion_bounds.upper
 
+        exclusion_bounds = None
+        if system_bounds.exclusion_bounds is not None and (
+            system_bounds.exclusion_bounds.lower != Power.zero()
+            or system_bounds.exclusion_bounds.upper != Power.zero()
+        ):
+            exclusion_bounds = system_bounds.exclusion_bounds
+
         for next_proposal in reversed(self._battery_buckets.get(battery_ids, [])):
             if next_proposal.priority <= priority:
                 break
@@ -211,11 +300,19 @@ class Matryoshka(BaseAlgorithm):
                 next_proposal.bounds.lower or lower_bound,
                 next_proposal.bounds.upper or upper_bound,
             )
+            match _check_exclusion_bounds_overlap(
+                proposal_lower, proposal_upper, exclusion_bounds
+            ):
+                case (True, True):
+                    continue
             calc_lower_bound = max(lower_bound, proposal_lower)
             calc_upper_bound = min(upper_bound, proposal_upper)
             if calc_lower_bound <= calc_upper_bound:
                 lower_bound = calc_lower_bound
                 upper_bound = calc_upper_bound
+                lower_bound, upper_bound = _adjust_exclusion_bounds(
+                    lower_bound, upper_bound, exclusion_bounds
+                )
             else:
                 break
         return Report(
