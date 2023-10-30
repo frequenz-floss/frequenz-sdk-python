@@ -11,6 +11,69 @@ from frequenz.sdk.actor._power_managing._matryoshka import Matryoshka
 from frequenz.sdk.timeseries import Power, battery_pool
 
 
+class StatefulTester:
+    """A stateful tester for the Matryoshka algorithm."""
+
+    def __init__(
+        self,
+        batteries: frozenset[int],
+        system_bounds: battery_pool.PowerMetrics,
+    ) -> None:
+        """Create a new instance of the stateful tester."""
+        self._call_count = 0
+        self._batteries = batteries
+        self._algorithm = Matryoshka()
+        self._system_bounds = system_bounds
+
+    def tgt_power(  # pylint: disable=too-many-arguments
+        self,
+        priority: int,
+        power: float | None,
+        bounds: tuple[float | None, float | None],
+        expected: float | None,
+        must_send: bool = False,
+    ) -> None:
+        """Test the target power calculation."""
+        self._call_count += 1
+        tgt_power = self._algorithm.calculate_target_power(
+            self._batteries,
+            Proposal(
+                battery_ids=self._batteries,
+                source_id=f"actor-{priority}",
+                preferred_power=None if power is None else Power.from_watts(power),
+                bounds=timeseries.Bounds(
+                    None if bounds[0] is None else Power.from_watts(bounds[0]),
+                    None if bounds[1] is None else Power.from_watts(bounds[1]),
+                ),
+                priority=priority,
+            ),
+            self._system_bounds,
+            must_send,
+        )
+        assert tgt_power == (
+            Power.from_watts(expected) if expected is not None else None
+        )
+
+    def bounds(
+        self,
+        priority: int,
+        expected_power: float | None,
+        expected_bounds: tuple[float, float],
+    ) -> None:
+        """Test the status report."""
+        report = self._algorithm.get_status(
+            self._batteries, priority, self._system_bounds, None
+        )
+        if expected_power is None:
+            assert report.target_power is None
+        else:
+            assert report.target_power is not None
+            assert report.target_power.as_watts() == expected_power
+        assert report.inclusion_bounds is not None
+        assert report.inclusion_bounds.lower.as_watts() == expected_bounds[0]
+        assert report.inclusion_bounds.upper.as_watts() == expected_bounds[1]
+
+
 async def test_matryoshka_algorithm() -> None:  # pylint: disable=too-many-statements
     """Tests for the power managing actor."""
     batteries = frozenset({2, 5})
