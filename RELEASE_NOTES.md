@@ -66,6 +66,15 @@ This version ships an experimental version of the **Power Manager**, adds prelim
 
 - Consumption and production power formulas have been removed.
 
+- The documentation was improved to:
+
+  * Show signatures with types.
+  * Show the inherited members.
+  * Documentation for pre-releases are now published.
+  * Show the full tag name as the documentation version.
+  * All development branches now have their documentation published (there is no `next` version anymore).
+  * Fix the order of the documentation versions.
+
 ## Bug Fixes
 
 - Fix rendering of diagrams in the documentation.
