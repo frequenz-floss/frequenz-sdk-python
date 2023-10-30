@@ -26,7 +26,6 @@ from ..formula_engine._formula_generators import (
     EVChargerCurrentFormula,
     EVChargerPowerFormula,
     FormulaGeneratorConfig,
-    FormulaType,
 )
 from ._set_current_bounds import BoundsSetter, ComponentCurrentLimit
 from ._state_tracker import EVChargerState, StateTracker
@@ -181,7 +180,6 @@ class EVChargerPool:
             EVChargerPowerFormula,
             FormulaGeneratorConfig(
                 component_ids=self._component_ids,
-                formula_type=FormulaType.PASSIVE_SIGN_CONVENTION,
             ),
         )
         assert isinstance(engine, FormulaEngine)

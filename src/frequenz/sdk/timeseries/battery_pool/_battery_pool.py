@@ -21,7 +21,6 @@ from ..formula_engine import FormulaEngine
 from ..formula_engine._formula_generators import (
     BatteryPowerFormula,
     FormulaGeneratorConfig,
-    FormulaType,
 )
 from ._battery_pool_reference_store import BatteryPoolReferenceStore
 from ._methods import SendOnUpdate
@@ -255,7 +254,6 @@ class BatteryPool:
             BatteryPowerFormula,
             FormulaGeneratorConfig(
                 component_ids=self._battery_pool._batteries,
-                formula_type=FormulaType.PASSIVE_SIGN_CONVENTION,
             ),
         )
         assert isinstance(engine, FormulaEngine)

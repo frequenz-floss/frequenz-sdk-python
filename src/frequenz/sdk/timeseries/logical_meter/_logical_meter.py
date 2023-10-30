@@ -16,8 +16,6 @@ from ..formula_engine._formula_engine_pool import FormulaEnginePool
 from ..formula_engine._formula_generators import (
     CHPPowerFormula,
     ConsumerPowerFormula,
-    FormulaGeneratorConfig,
-    FormulaType,
     GridCurrentFormula,
     GridPowerFormula,
     ProducerPowerFormula,
@@ -242,7 +240,6 @@ class LogicalMeter:
         engine = self._formula_pool.from_power_formula_generator(
             "pv_power",
             PVPowerFormula,
-            FormulaGeneratorConfig(formula_type=FormulaType.PASSIVE_SIGN_CONVENTION),
         )
         assert isinstance(engine, FormulaEngine)
         return engine
@@ -265,7 +262,6 @@ class LogicalMeter:
         engine = self._formula_pool.from_power_formula_generator(
             "chp_power",
             CHPPowerFormula,
-            FormulaGeneratorConfig(formula_type=FormulaType.PASSIVE_SIGN_CONVENTION),
         )
         assert isinstance(engine, FormulaEngine)
         return engine

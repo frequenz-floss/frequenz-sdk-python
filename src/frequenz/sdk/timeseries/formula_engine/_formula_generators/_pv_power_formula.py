@@ -9,7 +9,7 @@ from ....microgrid import connection_manager
 from ....microgrid.component import ComponentCategory, ComponentMetricId
 from ..._quantities import Power
 from .._formula_engine import FormulaEngine
-from ._formula_generator import NON_EXISTING_COMPONENT_ID, FormulaGenerator, FormulaType
+from ._formula_generator import NON_EXISTING_COMPONENT_ID, FormulaGenerator
 
 _logger = logging.getLogger(__name__)
 
@@ -69,12 +69,5 @@ class PVPowerFormula(FormulaGenerator[Power]):
                 nones_are_zeros=component.category != ComponentCategory.METER,
             )
         builder.push_oper(")")
-        if self._config.formula_type == FormulaType.PRODUCTION:
-            builder.push_oper("*")
-            builder.push_constant(-1)
-        builder.push_oper(")")
-
-        if self._config.formula_type != FormulaType.PASSIVE_SIGN_CONVENTION:
-            builder.push_clipper(0.0, None)
 
         return builder.build()
