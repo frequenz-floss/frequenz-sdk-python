@@ -18,13 +18,13 @@ class BoundsTester:
         """Initialize the tester."""
         self._report = Report(
             target_power=None,
-            inclusion_bounds=Bounds(
+            _inclusion_bounds=Bounds(  # pylint: disable=protected-access
                 Power.from_watts(inclusion_bounds[0]),
                 Power.from_watts(inclusion_bounds[1]),
             )
             if inclusion_bounds is not None
             else None,
-            exclusion_bounds=Bounds(
+            _exclusion_bounds=Bounds(  # pylint: disable=protected-access
                 Power.from_watts(exclusion_bounds[0]),
                 Power.from_watts(exclusion_bounds[1]),
             )

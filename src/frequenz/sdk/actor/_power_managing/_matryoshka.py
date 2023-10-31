@@ -228,8 +228,8 @@ class Matryoshka(BaseAlgorithm):
         if system_bounds.inclusion_bounds is None:
             return Report(
                 target_power=target_power,
-                inclusion_bounds=None,
-                exclusion_bounds=system_bounds.exclusion_bounds,
+                _inclusion_bounds=None,
+                _exclusion_bounds=system_bounds.exclusion_bounds,
                 distribution_result=distribution_result,
             )
 
@@ -263,9 +263,9 @@ class Matryoshka(BaseAlgorithm):
                 break
         return Report(
             target_power=target_power,
-            inclusion_bounds=timeseries.Bounds[Power](
+            _inclusion_bounds=timeseries.Bounds[Power](
                 lower=lower_bound, upper=upper_bound
             ),
-            exclusion_bounds=system_bounds.exclusion_bounds,
+            _exclusion_bounds=system_bounds.exclusion_bounds,
             distribution_result=distribution_result,
         )

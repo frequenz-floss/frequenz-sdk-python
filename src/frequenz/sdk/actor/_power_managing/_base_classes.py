@@ -50,14 +50,14 @@ class Report:
     target_power: Power | None
     """The currently set power for the batteries."""
 
-    inclusion_bounds: timeseries.Bounds[Power] | None
+    _inclusion_bounds: timeseries.Bounds[Power] | None
     """The available inclusion bounds for the batteries, for the actor's priority.
 
     These bounds are adjusted to any restrictions placed by actors with higher
     priorities.
     """
 
-    exclusion_bounds: timeseries.Bounds[Power] | None
+    _exclusion_bounds: timeseries.Bounds[Power] | None
     """The exclusion bounds for the batteries.
 
     The power manager doesn't manage exclusion bounds, so these are aggregations of
@@ -72,6 +72,20 @@ class Report:
 
     This is `None` if no power distribution has been performed yet.
     """
+
+    @property
+    def bounds(self) -> timeseries.Bounds[Power] | None:
+        """The bounds for the batteries.
+
+        These bounds are adjusted to any restrictions placed by actors with higher
+        priorities.
+
+        There might be exclusion zones within these bounds. If necessary, the
+        [`adjust_to_bounds`][frequenz.sdk.timeseries.battery_pool.Report.adjust_to_bounds]
+        method may be used to check if a desired power value fits the bounds, or to get
+        the closest possible power values that do fit the bounds.
+        """
+        return self._inclusion_bounds
 
     def adjust_to_bounds(self, power: Power) -> tuple[Power | None, Power | None]:
         """Adjust a power value to the bounds.
@@ -123,14 +137,14 @@ class Report:
             A tuple of the closest power values to the desired power that fall within
                 the available bounds for the actor.
         """
-        if self.inclusion_bounds is None:
+        if self._inclusion_bounds is None:
             return None, None
 
         return _clamp_to_bounds(
             power,
-            self.inclusion_bounds.lower,
-            self.inclusion_bounds.upper,
-            self.exclusion_bounds,
+            self._inclusion_bounds.lower,
+            self._inclusion_bounds.upper,
+            self._exclusion_bounds,
         )
 
 

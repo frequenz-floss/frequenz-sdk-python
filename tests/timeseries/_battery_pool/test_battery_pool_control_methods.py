@@ -149,13 +149,16 @@ class TestBatteryPoolControl:
         assert report.target_power == (
             Power.from_watts(power) if power is not None else None
         )
+        # pylint: disable=protected-access
         assert (
-            report.inclusion_bounds is not None and report.exclusion_bounds is not None
+            report._inclusion_bounds is not None
+            and report._exclusion_bounds is not None
         )
-        assert report.inclusion_bounds.lower == Power.from_watts(lower)
-        assert report.inclusion_bounds.upper == Power.from_watts(upper)
-        assert report.exclusion_bounds.lower == Power.from_watts(0.0)
-        assert report.exclusion_bounds.upper == Power.from_watts(0.0)
+        assert report._inclusion_bounds.lower == Power.from_watts(lower)
+        assert report._inclusion_bounds.upper == Power.from_watts(upper)
+        assert report._exclusion_bounds.lower == Power.from_watts(0.0)
+        assert report._exclusion_bounds.upper == Power.from_watts(0.0)
+        # pylint: enable=protected-access
         if expected_result_pred is not None:
             assert report.distribution_result is not None
             assert expected_result_pred(report.distribution_result)
