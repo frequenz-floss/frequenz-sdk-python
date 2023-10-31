@@ -43,8 +43,14 @@ def _clamp_to_bounds(  # pylint: disable=too-many-return-statements
     lower_bound: Power,
     upper_bound: Power,
     exclusion_bounds: timeseries.Bounds[Power] | None,
-) -> Power:
+) -> tuple[Power | None, Power | None]:
     """Clamp the given value to the given bounds.
+
+    When the given value can falls within the exclusion zone, and can be clamped to
+    both sides, both options will be returned.
+
+    When the given value falls outside the usable bounds and can be clamped only to
+    one side, only that option will be returned.
 
     Args:
         value: The value to clamp.
@@ -65,29 +71,27 @@ def _clamp_to_bounds(  # pylint: disable=too-many-return-statements
             lower_bound, upper_bound, exclusion_bounds
         ):
             case (True, True):
-                return Power.zero()
+                return None, None
             case (True, False):
                 if value < exclusion_bounds.upper:
-                    return exclusion_bounds.upper
+                    return None, exclusion_bounds.upper
             case (False, True):
                 if value > exclusion_bounds.lower:
-                    return exclusion_bounds.lower
+                    return exclusion_bounds.lower, None
 
     # If the given value is outside the given bounds, clamp it to the closest bound.
     if value < lower_bound:
-        return lower_bound
+        return lower_bound, None
     if value > upper_bound:
-        return upper_bound
+        return None, upper_bound
 
     # If the given value is within the exclusion bounds and the exclusion bounds are
     # within the given bounds, clamp the given value to the closest exclusion bound.
     if exclusion_bounds is not None:
         if exclusion_bounds.lower < value < exclusion_bounds.upper:
-            if value - exclusion_bounds.lower < exclusion_bounds.upper - value:
-                return exclusion_bounds.lower
-            return exclusion_bounds.upper
+            return exclusion_bounds.lower, exclusion_bounds.upper
 
-    return value
+    return value, value
 
 
 def _check_exclusion_bounds_overlap(
@@ -217,12 +221,23 @@ class Matryoshka(BaseAlgorithm):
             if upper_bound < lower_bound:
                 break
             if next_proposal.preferred_power:
-                target_power = _clamp_to_bounds(
+                match _clamp_to_bounds(
                     next_proposal.preferred_power,
                     lower_bound,
                     upper_bound,
                     exclusion_bounds,
-                )
+                ):
+                    case (None, power) | (power, None) if power:
+                        target_power = power
+                    case (power_low, power_high) if power_low and power_high:
+                        if (
+                            power_high - next_proposal.preferred_power
+                            < next_proposal.preferred_power - power_low
+                        ):
+                            target_power = power_high
+                        else:
+                            target_power = power_low
+
             proposal_lower = next_proposal.bounds.lower or lower_bound
             proposal_upper = next_proposal.bounds.upper or upper_bound
             # If the bounds from the current proposal are fully within the exclusion
