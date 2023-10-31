@@ -208,10 +208,8 @@ class Matryoshka(BaseAlgorithm):
                     upper_bound,
                     exclusion_bounds,
                 )
-            proposal_lower, proposal_upper = (
-                next_proposal.bounds.lower or lower_bound,
-                next_proposal.bounds.upper or upper_bound,
-            )
+            proposal_lower = next_proposal.bounds.lower or lower_bound
+            proposal_upper = next_proposal.bounds.upper or upper_bound
             # If the bounds from the current proposal are fully within the exclusion
             # bounds, then don't use them to narrow the bounds further. This allows
             # subsequent proposals to not be blocked by the current proposal.
@@ -350,10 +348,8 @@ class Matryoshka(BaseAlgorithm):
         for next_proposal in reversed(self._battery_buckets.get(battery_ids, [])):
             if next_proposal.priority <= priority:
                 break
-            proposal_lower, proposal_upper = (
-                next_proposal.bounds.lower or lower_bound,
-                next_proposal.bounds.upper or upper_bound,
-            )
+            proposal_lower = next_proposal.bounds.lower or lower_bound
+            proposal_upper = next_proposal.bounds.upper or upper_bound
             match _check_exclusion_bounds_overlap(
                 proposal_lower, proposal_upper, exclusion_bounds
             ):
