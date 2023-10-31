@@ -97,6 +97,21 @@ def _check_exclusion_bounds_overlap(
 ) -> tuple[bool, bool]:
     """Check if the given bounds overlap with the given exclusion bounds.
 
+    When only the upper bound overlaps with exclusion bounds, the usable range is
+    between the lower bound and the lower exclusion bound, like below.
+
+      ===lb+++++++ex----ub-------ex===
+
+    When only the lower bound overlaps with exclusion bounds, the usable range is
+    between the upper exclusion bound and the upper bound.
+
+      ===ex------lb------ex++++++ub===
+
+    Both bounds overlapping with exclusion bounds (or given bounds are fully contained
+    within exclusion bounds).  In this case, there is no usable range.
+
+      ===ex------lb------ub------ex===
+
     Args:
         lower_bound: The lower bound to check.
         upper_bound: The upper bound to check.
