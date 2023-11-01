@@ -69,6 +69,9 @@ _InverterDataMethods: dict[ComponentMetricId, Callable[[InverterData], float]] =
     ComponentMetricId.ACTIVE_POWER_INCLUSION_UPPER_BOUND: lambda msg: (
         msg.active_power_inclusion_upper_bound
     ),
+    ComponentMetricId.CURRENT_PHASE_1: lambda msg: msg.current_per_phase[0],
+    ComponentMetricId.CURRENT_PHASE_2: lambda msg: msg.current_per_phase[1],
+    ComponentMetricId.CURRENT_PHASE_3: lambda msg: msg.current_per_phase[2],
     ComponentMetricId.FREQUENCY: lambda msg: msg.frequency,
 }
 
