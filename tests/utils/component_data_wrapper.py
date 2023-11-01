@@ -101,6 +101,7 @@ class InverterDataWrapper(InverterData):
         component_id: int,
         timestamp: datetime,
         active_power: float = math.nan,
+        current_per_phase: tuple[float, float, float] | None = None,
         active_power_inclusion_lower_bound: float = math.nan,
         active_power_exclusion_lower_bound: float = math.nan,
         active_power_inclusion_upper_bound: float = math.nan,
@@ -120,6 +121,11 @@ class InverterDataWrapper(InverterData):
             component_id=component_id,
             timestamp=timestamp,
             active_power=active_power,
+            current_per_phase=(
+                current_per_phase
+                if current_per_phase
+                else (math.nan, math.nan, math.nan)
+            ),
             active_power_inclusion_lower_bound=active_power_inclusion_lower_bound,
             active_power_exclusion_lower_bound=active_power_exclusion_lower_bound,
             active_power_inclusion_upper_bound=active_power_inclusion_upper_bound,

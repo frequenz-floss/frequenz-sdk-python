@@ -231,6 +231,12 @@ class InverterData(ComponentData):
             -ve current means supply into the grid.
     """
 
+    current_per_phase: tuple[float, float, float]
+    """AC current in Amperes (A) for phase/line 1, 2 and 3 respectively.
+            +ve current means consumption, away from the grid.
+            -ve current means supply into the grid.
+    """
+
     # pylint: disable=line-too-long
     active_power_inclusion_lower_bound: float
     """Lower inclusion bound for inverter power in watts.
@@ -301,6 +307,11 @@ class InverterData(ComponentData):
             component_id=raw.id,
             timestamp=raw.ts.ToDatetime(tzinfo=timezone.utc),
             active_power=raw.inverter.data.ac.power_active.value,
+            current_per_phase=(
+                raw.meter.data.ac.phase_1.current.value,
+                raw.meter.data.ac.phase_2.current.value,
+                raw.meter.data.ac.phase_3.current.value,
+            ),
             active_power_inclusion_lower_bound=raw_power.system_inclusion_bounds.lower,
             active_power_exclusion_lower_bound=raw_power.system_exclusion_bounds.lower,
             active_power_inclusion_upper_bound=raw_power.system_inclusion_bounds.upper,
