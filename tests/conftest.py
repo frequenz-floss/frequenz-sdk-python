@@ -36,9 +36,11 @@ def actor_restart_limit(limit: int) -> Iterator[None]:
         f"<actor_restart_limit> Changing the restart limit from {original_limit} to {limit}"
     )
     _actor.Actor._restart_limit = limit
-    yield
-    print(f"<actor_restart_limit> Resetting restart limit to {original_limit}")
-    _actor.Actor._restart_limit = original_limit
+    try:
+        yield
+    finally:
+        print(f"<actor_restart_limit> Resetting restart limit to {original_limit}")
+        _actor.Actor._restart_limit = original_limit
 
 
 @pytest.fixture(scope="session", autouse=True)
