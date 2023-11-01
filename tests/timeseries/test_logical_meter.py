@@ -269,18 +269,12 @@ class TestLogicalMeter:  # pylint: disable=too-many-public-methods
 
         logical_meter = microgrid.logical_meter()
         grid_recv = logical_meter.grid_power.new_receiver()
-        grid_production_recv = logical_meter.grid_production_power.new_receiver()
-        grid_consumption_recv = logical_meter.grid_consumption_power.new_receiver()
 
         await mockgrid.mock_resampler.send_meter_power([1.0, 2.0, 3.0, 4.0])
         assert (await grid_recv.receive()).value == Power.from_watts(10.0)
-        assert (await grid_production_recv.receive()).value == Power.from_watts(0.0)
-        assert (await grid_consumption_recv.receive()).value == Power.from_watts(10.0)
 
         await mockgrid.mock_resampler.send_meter_power([1.0, 2.0, -3.0, -4.0])
         assert (await grid_recv.receive()).value == Power.from_watts(-4.0)
-        assert (await grid_production_recv.receive()).value == Power.from_watts(4.0)
-        assert (await grid_consumption_recv.receive()).value == Power.from_watts(0.0)
 
     async def test_grid_production_consumption_power_no_grid_meter(
         self,
@@ -294,18 +288,12 @@ class TestLogicalMeter:  # pylint: disable=too-many-public-methods
 
         logical_meter = microgrid.logical_meter()
         grid_recv = logical_meter.grid_power.new_receiver()
-        grid_production_recv = logical_meter.grid_production_power.new_receiver()
-        grid_consumption_recv = logical_meter.grid_consumption_power.new_receiver()
 
         await mockgrid.mock_resampler.send_meter_power([2.5, 3.5, 4.0])
         assert (await grid_recv.receive()).value == Power.from_watts(10.0)
-        assert (await grid_production_recv.receive()).value == Power.from_watts(0.0)
-        assert (await grid_consumption_recv.receive()).value == Power.from_watts(10.0)
 
         await mockgrid.mock_resampler.send_meter_power([3.0, -3.0, -4.0])
         assert (await grid_recv.receive()).value == Power.from_watts(-4.0)
-        assert (await grid_production_recv.receive()).value == Power.from_watts(4.0)
-        assert (await grid_consumption_recv.receive()).value == Power.from_watts(0.0)
 
     async def test_chp_power(self, mocker: MockerFixture) -> None:
         """Test the chp power formula."""
@@ -316,30 +304,12 @@ class TestLogicalMeter:  # pylint: disable=too-many-public-methods
 
         logical_meter = microgrid.logical_meter()
         chp_power_receiver = logical_meter.chp_power.new_receiver()
-        chp_production_power_receiver = (
-            logical_meter.chp_production_power.new_receiver()
-        )
-        chp_consumption_power_receiver = (
-            logical_meter.chp_consumption_power.new_receiver()
-        )
 
         await mockgrid.mock_resampler.send_meter_power([2.0, 3.0, 4.0])
         assert (await chp_power_receiver.receive()).value == Power.from_watts(2.0)
-        assert (
-            await chp_production_power_receiver.receive()
-        ).value == Power.from_watts(0.0)
-        assert (
-            await chp_consumption_power_receiver.receive()
-        ).value == Power.from_watts(2.0)
 
         await mockgrid.mock_resampler.send_meter_power([-12.0, None, 10.2])
         assert (await chp_power_receiver.receive()).value == Power.from_watts(-12.0)
-        assert (
-            await chp_production_power_receiver.receive()
-        ).value == Power.from_watts(12.0)
-        assert (
-            await chp_consumption_power_receiver.receive()
-        ).value == Power.from_watts(0.0)
 
     async def test_pv_power(self, mocker: MockerFixture) -> None:
         """Test the pv power formula."""
@@ -349,19 +319,9 @@ class TestLogicalMeter:  # pylint: disable=too-many-public-methods
 
         logical_meter = microgrid.logical_meter()
         pv_power_receiver = logical_meter.pv_power.new_receiver()
-        pv_production_power_receiver = logical_meter.pv_production_power.new_receiver()
-        pv_consumption_power_receiver = (
-            logical_meter.pv_consumption_power.new_receiver()
-        )
 
         await mockgrid.mock_resampler.send_meter_power([-1.0, -2.0])
         assert (await pv_power_receiver.receive()).value == Power.from_watts(-3.0)
-        assert (await pv_production_power_receiver.receive()).value == Power.from_watts(
-            3.0
-        )
-        assert (
-            await pv_consumption_power_receiver.receive()
-        ).value == Power.from_watts(0.0)
 
     async def test_pv_power_no_meter(self, mocker: MockerFixture) -> None:
         """Test the pv power formula."""
@@ -371,19 +331,9 @@ class TestLogicalMeter:  # pylint: disable=too-many-public-methods
 
         logical_meter = microgrid.logical_meter()
         pv_power_receiver = logical_meter.pv_power.new_receiver()
-        pv_production_power_receiver = logical_meter.pv_production_power.new_receiver()
-        pv_consumption_power_receiver = (
-            logical_meter.pv_consumption_power.new_receiver()
-        )
 
         await mockgrid.mock_resampler.send_pv_inverter_power([-1.0, -2.0])
         assert (await pv_power_receiver.receive()).value == Power.from_watts(-3.0)
-        assert (await pv_production_power_receiver.receive()).value == Power.from_watts(
-            3.0
-        )
-        assert (
-            await pv_consumption_power_receiver.receive()
-        ).value == Power.from_watts(0.0)
 
     async def test_pv_power_no_pv_components(self, mocker: MockerFixture) -> None:
         """Test the pv power formula without having any pv components."""
@@ -427,17 +377,17 @@ class TestLogicalMeter:  # pylint: disable=too-many-public-methods
         self,
         mocker: MockerFixture,
     ) -> None:
-        """Test the grid power formula with grid meters."""
+        """Test the grid power formula with two grid meters."""
         mockgrid = MockMicrogrid(grid_meter=False)
         # with no further sucessor these will be detected as grid meters
         mockgrid.add_consumer_meters(2)
         await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
-        grid_consumption_recv = logical_meter.grid_consumption_power.new_receiver()
+        grid_recv = logical_meter.grid_power.new_receiver()
 
         await mockgrid.mock_resampler.send_meter_power([1.0, 2.0])
-        assert (await grid_consumption_recv.receive()).value == Power.from_watts(3.0)
+        assert (await grid_recv.receive()).value == Power.from_watts(3.0)
 
     async def test_consumer_power_no_grid_meter_no_consumer_meter(
         self, mocker: MockerFixture

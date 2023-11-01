@@ -64,6 +64,8 @@ This version ships an experimental version of the **Power Manager**, adds prelim
 
 - Add consumption and production operators that will replace the logical meters production and consumption function variants.
 
+- Consumption and production power formulas have been removed.
+
 ## Bug Fixes
 
 - Fix rendering of diagrams in the documentation.

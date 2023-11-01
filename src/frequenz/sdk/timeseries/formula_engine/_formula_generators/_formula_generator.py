@@ -9,7 +9,6 @@ from abc import ABC, abstractmethod
 from collections import abc
 from collections.abc import Callable
 from dataclasses import dataclass
-from enum import Enum
 from typing import Generic
 
 from frequenz.channels import Sender
@@ -41,34 +40,12 @@ frequency as the other streams.
 """
 
 
-class FormulaType(Enum):
-    """Enum representing type of formula outputs."""
-
-    PASSIVE_SIGN_CONVENTION = 1
-    """Formula output will be signed values, following the passive sign convention, with
-    consumption from the grid being positive and production to the grid being negative.
-    """
-
-    PRODUCTION = 2
-    """Formula output will be unsigned values representing production to the grid.  When
-    power is being consumed from the grid instead, this formula will output zero.
-    """
-
-    CONSUMPTION = 3
-    """Formula output will be unsigned values representing consumption from the grid.
-    When power is being produced to the grid instead, this formula will output zero.
-    """
-
-
 @dataclass(frozen=True)
 class FormulaGeneratorConfig:
     """Config for formula generators."""
 
     component_ids: abc.Set[int] | None = None
     """The component IDs to use for generating the formula."""
-
-    formula_type: FormulaType = FormulaType.PASSIVE_SIGN_CONVENTION
-    """The type of formula output."""
 
 
 class FormulaGenerator(ABC, Generic[QuantityT]):

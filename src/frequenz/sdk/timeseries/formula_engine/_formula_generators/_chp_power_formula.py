@@ -15,7 +15,6 @@ from ._formula_generator import (
     NON_EXISTING_COMPONENT_ID,
     FormulaGenerationError,
     FormulaGenerator,
-    FormulaType,
 )
 
 _logger = logging.getLogger(__name__)
@@ -58,13 +57,6 @@ class CHPPowerFormula(FormulaGenerator[Power]):
                 builder.push_oper("+")
             builder.push_component_metric(chp_meter_id, nones_are_zeros=False)
         builder.push_oper(")")
-        if self._config.formula_type == FormulaType.PRODUCTION:
-            builder.push_oper("*")
-            builder.push_constant(-1)
-        builder.push_oper(")")
-
-        if self._config.formula_type != FormulaType.PASSIVE_SIGN_CONVENTION:
-            builder.push_clipper(0.0, None)
 
         return builder.build()
 

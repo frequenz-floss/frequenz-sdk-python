@@ -6,7 +6,7 @@
 from ....microgrid.component import ComponentCategory, ComponentMetricId
 from ..._quantities import Power
 from .._formula_engine import FormulaEngine
-from ._formula_generator import FormulaGenerator, FormulaType
+from ._formula_generator import FormulaGenerator
 
 
 class GridPowerFormula(FormulaGenerator[Power]):
@@ -66,13 +66,5 @@ class GridPowerFormula(FormulaGenerator[Power]):
                 comp.component_id, nones_are_zeros=nones_are_zeros
             )
         builder.push_oper(")")
-
-        if self._config.formula_type == FormulaType.PRODUCTION:
-            builder.push_oper("*")
-            builder.push_constant(-1)
-        builder.push_oper(")")
-
-        if self._config.formula_type != FormulaType.PASSIVE_SIGN_CONVENTION:
-            builder.push_clipper(0.0, None)
 
         return builder.build()

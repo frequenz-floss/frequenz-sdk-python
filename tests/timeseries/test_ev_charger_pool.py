@@ -85,18 +85,12 @@ class TestEVChargerPool:
 
         ev_pool = microgrid.ev_charger_pool()
         power_receiver = ev_pool.power.new_receiver()
-        production_receiver = ev_pool.production_power.new_receiver()
-        consumption_receiver = ev_pool.consumption_power.new_receiver()
 
         await mockgrid.mock_resampler.send_evc_power([2.0, 4.0, 10.0])
         assert (await power_receiver.receive()).value == Power.from_watts(16.0)
-        assert (await production_receiver.receive()).value == Power.from_watts(0.0)
-        assert (await consumption_receiver.receive()).value == Power.from_watts(16.0)
 
         await mockgrid.mock_resampler.send_evc_power([2.0, 4.0, -10.0])
         assert (await power_receiver.receive()).value == Power.from_watts(-4.0)
-        assert (await production_receiver.receive()).value == Power.from_watts(4.0)
-        assert (await consumption_receiver.receive()).value == Power.from_watts(0.0)
 
         await mockgrid.cleanup()
 

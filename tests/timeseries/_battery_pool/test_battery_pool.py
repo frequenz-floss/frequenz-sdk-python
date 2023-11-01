@@ -483,23 +483,15 @@ async def test_battery_pool_power(mocker: MockerFixture) -> None:
 
     battery_pool = microgrid.battery_pool()
     power_receiver = battery_pool.power.new_receiver()
-    consumption_receiver = battery_pool.consumption_power.new_receiver()
-    production_receiver = battery_pool.production_power.new_receiver()
 
     await mockgrid.mock_resampler.send_bat_inverter_power([2.0, 3.0])
     assert (await power_receiver.receive()).value == Power.from_watts(5.0)
-    assert (await consumption_receiver.receive()).value == Power.from_watts(5.0)
-    assert (await production_receiver.receive()).value == Power.from_watts(0.0)
 
     await mockgrid.mock_resampler.send_bat_inverter_power([-2.0, -5.0])
     assert (await power_receiver.receive()).value == Power.from_watts(-7.0)
-    assert (await consumption_receiver.receive()).value == Power.from_watts(0.0)
-    assert (await production_receiver.receive()).value == Power.from_watts(7.0)
 
     await mockgrid.mock_resampler.send_bat_inverter_power([2.0, -5.0])
     assert (await power_receiver.receive()).value == Power.from_watts(-3.0)
-    assert (await consumption_receiver.receive()).value == Power.from_watts(0.0)
-    assert (await production_receiver.receive()).value == Power.from_watts(3.0)
 
     await mockgrid.cleanup()
 

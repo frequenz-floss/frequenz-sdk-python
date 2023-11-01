@@ -13,7 +13,6 @@ from ._formula_generator import (
     NON_EXISTING_COMPONENT_ID,
     ComponentNotFound,
     FormulaGenerator,
-    FormulaType,
 )
 
 _logger = logging.getLogger(__name__)
@@ -78,12 +77,5 @@ class BatteryPowerFormula(FormulaGenerator[Power]):
                 builder.push_oper("+")
             builder.push_component_metric(comp.component_id, nones_are_zeros=True)
         builder.push_oper(")")
-        if self._config.formula_type == FormulaType.PRODUCTION:
-            builder.push_oper("*")
-            builder.push_constant(-1)
-        builder.push_oper(")")
-
-        if self._config.formula_type != FormulaType.PASSIVE_SIGN_CONVENTION:
-            builder.push_clipper(0.0, None)
 
         return builder.build()
