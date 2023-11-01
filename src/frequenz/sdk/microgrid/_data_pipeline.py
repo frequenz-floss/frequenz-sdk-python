@@ -21,9 +21,9 @@ from frequenz.channels import Broadcast, Sender
 from ..actor._actor import Actor
 from ..microgrid.component import Component
 from ..timeseries._grid_frequency import GridFrequency
+from ..timeseries.grid import Grid
+from ..timeseries.grid import get as get_grid
 from . import connection_manager
-from ._grid import Grid
-from ._grid import get as get_grid
 from .component import ComponentCategory
 
 _logger = logging.getLogger(__name__)

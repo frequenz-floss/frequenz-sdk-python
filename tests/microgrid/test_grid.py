@@ -3,10 +3,10 @@
 
 """Tests for the `Grid` module."""
 
-from frequenz.sdk.microgrid import _grid
 from frequenz.sdk.microgrid.component import Component, ComponentCategory, GridMetadata
 from frequenz.sdk.microgrid.fuse import Fuse
 from frequenz.sdk.timeseries import Current
+from frequenz.sdk.timeseries import grid as _grid
 
 
 async def test_grid_1() -> None:
