@@ -119,14 +119,15 @@ class TestFormulaFormatter:
         await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
-        assert str(logical_meter.grid_power) == "#36 + #7 + #47 + #17 + #57 + #27"
+        grid = microgrid.grid()
+        assert str(grid.power) == "#36 + #7 + #47 + #17 + #57 + #27"
 
-        composed_formula = (logical_meter.grid_power - logical_meter.pv_power).build(
-            "grid_minus_pv"
-        )
+        composed_formula = (grid.power - logical_meter.pv_power).build("grid_minus_pv")
         assert (
             str(composed_formula)
             == "[grid-power](#36 + #7 + #47 + #17 + #57 + #27) - [pv-power](#57 + #47)"
         )
 
         await mockgrid.cleanup()
+        await logical_meter.stop()
+        await grid.stop()

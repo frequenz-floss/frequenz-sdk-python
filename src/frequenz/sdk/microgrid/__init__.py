@@ -59,7 +59,7 @@ junction --- ev
 
 This refers to a microgrid's connection to the external Grid.  The power flowing through
 this connection can be streamed through
-[`grid_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.grid_power].
+[`grid_power`][frequenz.sdk.timeseries.grid.Grid.power].
 
 In locations without a grid connection, this method remains accessible, and streams zero
 values.

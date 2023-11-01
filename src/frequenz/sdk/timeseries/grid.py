@@ -18,7 +18,10 @@ from frequenz.channels import Sender
 from ..microgrid import connection_manager
 from ..microgrid.component._component import ComponentCategory
 from . import Fuse
+from ._quantities import Current, Power
+from .formula_engine import FormulaEngine, FormulaEngine3Phase
 from .formula_engine._formula_engine_pool import FormulaEnginePool
+from .formula_engine._formula_generators import GridCurrentFormula, GridPowerFormula
 
 if TYPE_CHECKING:
     # Break circular import
@@ -29,13 +32,89 @@ _logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class Grid:
-    """A grid connection point."""
+    """A grid connection point.
+
+    !!! note
+        The `Grid` instance is not meant to be created directly by users.
+        Use the [`microgrid.grid`][frequenz.sdk.microgrid.grid] method for
+        creating or getting the `Grid` instance.
+
+    Example:
+        ```python
+        from datetime import timedelta
+
+        from frequenz.sdk import microgrid
+        from frequenz.sdk.timeseries import ResamplerConfig
+
+        await microgrid.initialize(
+            "127.0.0.1",
+            50051,
+            ResamplerConfig(resampling_period=timedelta(seconds=1))
+        )
+
+        grid = microgrid.grid()
+        assert grid, "Grid is not initialized"
+
+        # Get a receiver for a builtin formula
+        grid_power_recv = grid.power.new_receiver()
+        async for grid_power_sample in grid_power_recv:
+            print(grid_power_sample)
+        ```
+    """
 
     fuse: Fuse
     """The fuse protecting the grid connection point."""
 
     _formula_pool: FormulaEnginePool
     """The formula engine pool to generate grid metrics."""
+
+    @property
+    def power(self) -> FormulaEngine[Power]:
+        """Fetch the grid power for the microgrid.
+
+        This formula produces values that are in the Passive Sign Convention (PSC).
+
+        If a formula engine to calculate grid power is not already running, it will be
+        started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream grid power.
+        """
+        engine = self._formula_pool.from_power_formula_generator(
+            "grid_power",
+            GridPowerFormula,
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def current(self) -> FormulaEngine3Phase[Current]:
+        """Fetch the grid power for the microgrid.
+
+        This formula produces values that are in the Passive Sign Convention (PSC).
+
+        If a formula engine to calculate grid current is not already running, it will be
+        started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream grid current.
+        """
+        engine = self._formula_pool.from_3_phase_current_formula_generator(
+            "grid_current",
+            GridCurrentFormula,
+        )
+        assert isinstance(engine, FormulaEngine3Phase)
+        return engine
+
+    async def stop(self) -> None:
+        """Stop all formula engines."""
+        await self._formula_pool.stop()
 
 
 _GRID: Grid | None = None

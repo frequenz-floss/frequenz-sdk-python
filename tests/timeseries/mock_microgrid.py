@@ -22,9 +22,11 @@ from frequenz.sdk.microgrid.component import (
     ComponentData,
     EVChargerCableState,
     EVChargerComponentState,
+    GridMetadata,
     InverterType,
 )
 from frequenz.sdk.microgrid.component_graph import _MicrogridComponentGraph
+from frequenz.sdk.timeseries import Current, Fuse
 
 from ..utils import MockMicrogridClient
 from ..utils.component_data_wrapper import (
@@ -58,6 +60,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         num_values: int = 2000,
         sample_rate_s: float = 0.01,
         num_namespaces: int = 1,
+        fuse: Fuse | None = Fuse(Current.from_amperes(10_000.0)),
         graph: _MicrogridComponentGraph | None = None,
     ):
         """Create a new instance.
@@ -72,6 +75,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                 to.  Useful in tests where multiple namespaces (logical_meter,
                 battery_pool, etc) are used, and the same metric is used by formulas in
                 different namespaces.
+            fuse: optional, the fuse to use for the grid connection.
             graph: optional, a graph of components to use instead of the default grid
                 layout. If specified, grid_meter must be None.
 
@@ -83,7 +87,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
         self._components: set[Component] = (
             {
-                Component(1, ComponentCategory.GRID),
+                Component(1, ComponentCategory.GRID, None, GridMetadata(fuse)),
             }
             if graph is None
             else graph.components()
