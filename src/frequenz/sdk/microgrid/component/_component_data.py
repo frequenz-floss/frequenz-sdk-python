@@ -232,7 +232,7 @@ class InverterData(ComponentData):
     """
 
     current_per_phase: tuple[float, float, float]
-    """AC current in Amperes (A) for phase/line 1,2 and 3 respectively.
+    """AC current in Amperes (A) for phase/line 1, 2 and 3 respectively.
             +ve current means consumption, away from the grid.
             -ve current means supply into the grid.
     """

@@ -71,4 +71,4 @@ This version ships an experimental version of the **Power Manager**, adds prelim
 - Fix rendering of diagrams in the documentation.
 - The `__getitem__` magic of the `MovingWindow` is fixed to support the same functionality that the `window` method provides.
 - Fixes incorrect implementation of single element access in `__getitem__` magic of `MovingWindow`.
-- Fix incorrect grid current calculations in locations where the calculations depeneded on current measurements from an inverter.
+- Fix incorrect grid current calculations in locations where the calculations depended on current measurements from an inverter.
