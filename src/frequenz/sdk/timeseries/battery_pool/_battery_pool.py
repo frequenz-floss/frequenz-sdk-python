@@ -378,7 +378,7 @@ class BatteryPool:
         sub = _power_managing.ReportRequest(
             source_id=self._source_id,
             priority=self._priority,
-            battery_ids=self._battery_pool._batteries,
+            component_ids=self._battery_pool._batteries,
         )
         self._battery_pool._power_bounds_subs[
             sub.get_channel_name()

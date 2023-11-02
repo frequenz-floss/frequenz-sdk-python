@@ -27,8 +27,8 @@ class ReportRequest:
     source_id: str
     """The source ID of the actor sending the request."""
 
-    battery_ids: frozenset[int]
-    """The battery IDs to report on."""
+    component_ids: frozenset[int]
+    """The component IDs to report on."""
 
     priority: int
     """The priority of the actor ."""
@@ -40,7 +40,7 @@ class ReportRequest:
             The channel name to use to identify the corresponding report channel
                 from the channel registry.
         """
-        return f"power_manager.report.{self.battery_ids=}.{self.priority=}"
+        return f"power_manager.report.{self.component_ids=}.{self.priority=}"
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)

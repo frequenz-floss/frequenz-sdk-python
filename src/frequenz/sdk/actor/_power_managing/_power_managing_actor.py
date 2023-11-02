@@ -193,7 +193,7 @@ class PowerManagingActor(Actor):
 
             elif selected_from(selected, self._bounds_subscription_receiver):
                 sub = selected.value
-                battery_ids = sub.battery_ids
+                battery_ids = sub.component_ids
                 priority = sub.priority
 
                 if battery_ids not in self._subscriptions:
@@ -207,8 +207,8 @@ class PowerManagingActor(Actor):
                         priority
                     ] = self._channel_registry.new_sender(sub.get_channel_name())
 
-                if sub.battery_ids not in self._bound_tracker_tasks:
-                    self._add_bounds_tracker(sub.battery_ids)
+                if sub.component_ids not in self._bound_tracker_tasks:
+                    self._add_bounds_tracker(sub.component_ids)
 
             elif selected_from(selected, self._power_distributing_results_receiver):
                 from .. import (  # pylint: disable=import-outside-toplevel
