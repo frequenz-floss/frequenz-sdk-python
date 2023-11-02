@@ -4240,7 +4240,7 @@ are possible.</p>
 </span><span id="__span-0-176"><a id="__codelineno-0-176" name="__codelineno-0-176"></a>
 </span><span id="__span-0-177"><a id="__codelineno-0-177" name="__codelineno-0-177"></a>    <span class="nd">@abstractmethod</span>
 </span><span id="__span-0-178"><a id="__codelineno-0-178" name="__codelineno-0-178"></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">set_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">lower</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">upper</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-0-179"><a id="__codelineno-0-179" name="__codelineno-0-179"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Send `SetBoundsParam`s received from a channel to nitrogen.</span>
+</span><span id="__span-0-179"><a id="__codelineno-0-179" name="__codelineno-0-179"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Send `SetBoundsParam`s received from a channel to the Microgrid service.</span>
 </span><span id="__span-0-180"><a id="__codelineno-0-180" name="__codelineno-0-180"></a>
 </span><span id="__span-0-181"><a id="__codelineno-0-181" name="__codelineno-0-181"></a><span class="sd">        Args:</span>
 </span><span id="__span-0-182"><a id="__codelineno-0-182" name="__codelineno-0-182"></a><span class="sd">            component_id: ID of the component to set bounds for.</span>
@@ -5042,7 +5042,7 @@ method on the <code>Receiver.</code></p>
 
   <div class="doc doc-contents ">
   
-      <p>Send <code>SetBoundsParam</code>s received from a channel to nitrogen.</p>
+      <p>Send <code>SetBoundsParam</code>s received from a channel to the Microgrid service.</p>
 
 
 
@@ -5111,7 +5111,7 @@ method on the <code>Receiver.</code></p>
 <span class="normal"><a href="#__codelineno-0-184">184</a></span>
 <span class="normal"><a href="#__codelineno-0-185">185</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-177"><a id="__codelineno-0-177" name="__codelineno-0-177"></a><span class="nd">@abstractmethod</span>
 </span><span id="__span-0-178"><a id="__codelineno-0-178" name="__codelineno-0-178"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">set_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">lower</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">upper</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-0-179"><a id="__codelineno-0-179" name="__codelineno-0-179"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Send `SetBoundsParam`s received from a channel to nitrogen.</span>
+</span><span id="__span-0-179"><a id="__codelineno-0-179" name="__codelineno-0-179"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Send `SetBoundsParam`s received from a channel to the Microgrid service.</span>
 </span><span id="__span-0-180"><a id="__codelineno-0-180" name="__codelineno-0-180"></a>
 </span><span id="__span-0-181"><a id="__codelineno-0-181" name="__codelineno-0-181"></a><span class="sd">    Args:</span>
 </span><span id="__span-0-182"><a id="__codelineno-0-182" name="__codelineno-0-182"></a><span class="sd">        component_id: ID of the component to set bounds for.</span>
@@ -6109,7 +6109,7 @@ If power == 0, then stop charging or discharging component.</p>
 </span><span id="__span-0-598"><a id="__codelineno-0-598" name="__codelineno-0-598"></a>        <span class="n">lower</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
 </span><span id="__span-0-599"><a id="__codelineno-0-599" name="__codelineno-0-599"></a>        <span class="n">upper</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
 </span><span id="__span-0-600"><a id="__codelineno-0-600" name="__codelineno-0-600"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-0-601"><a id="__codelineno-0-601" name="__codelineno-0-601"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Send `SetBoundsParam`s received from a channel to nitrogen.</span>
+</span><span id="__span-0-601"><a id="__codelineno-0-601" name="__codelineno-0-601"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Send `SetBoundsParam`s received from a channel to the Microgrid service.</span>
 </span><span id="__span-0-602"><a id="__codelineno-0-602" name="__codelineno-0-602"></a>
 </span><span id="__span-0-603"><a id="__codelineno-0-603" name="__codelineno-0-603"></a><span class="sd">        Args:</span>
 </span><span id="__span-0-604"><a id="__codelineno-0-604" name="__codelineno-0-604"></a><span class="sd">            component_id: ID of the component to set bounds for.</span>
@@ -7496,7 +7496,7 @@ method on the <code>Receiver.</code></p>
 
   <div class="doc doc-contents ">
   
-      <p>Send <code>SetBoundsParam</code>s received from a channel to nitrogen.</p>
+      <p>Send <code>SetBoundsParam</code>s received from a channel to the Microgrid service.</p>
 
 
 
@@ -7644,7 +7644,7 @@ or when the api call exceeded timeout</p>
 </span><span id="__span-0-598"><a id="__codelineno-0-598" name="__codelineno-0-598"></a>    <span class="n">lower</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
 </span><span id="__span-0-599"><a id="__codelineno-0-599" name="__codelineno-0-599"></a>    <span class="n">upper</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
 </span><span id="__span-0-600"><a id="__codelineno-0-600" name="__codelineno-0-600"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-0-601"><a id="__codelineno-0-601" name="__codelineno-0-601"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Send `SetBoundsParam`s received from a channel to nitrogen.</span>
+</span><span id="__span-0-601"><a id="__codelineno-0-601" name="__codelineno-0-601"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Send `SetBoundsParam`s received from a channel to the Microgrid service.</span>
 </span><span id="__span-0-602"><a id="__codelineno-0-602" name="__codelineno-0-602"></a>
 </span><span id="__span-0-603"><a id="__codelineno-0-603" name="__codelineno-0-603"></a><span class="sd">    Args:</span>
 </span><span id="__span-0-604"><a id="__codelineno-0-604" name="__codelineno-0-604"></a><span class="sd">        component_id: ID of the component to set bounds for.</span>
