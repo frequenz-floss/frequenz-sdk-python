@@ -308,9 +308,9 @@ class InverterData(ComponentData):
             timestamp=raw.ts.ToDatetime(tzinfo=timezone.utc),
             active_power=raw.inverter.data.ac.power_active.value,
             current_per_phase=(
-                raw.meter.data.ac.phase_1.current.value,
-                raw.meter.data.ac.phase_2.current.value,
-                raw.meter.data.ac.phase_3.current.value,
+                raw.inverter.data.ac.phase_1.current.value,
+                raw.inverter.data.ac.phase_2.current.value,
+                raw.inverter.data.ac.phase_3.current.value,
             ),
             active_power_inclusion_lower_bound=raw_power.system_inclusion_bounds.lower,
             active_power_exclusion_lower_bound=raw_power.system_exclusion_bounds.lower,
