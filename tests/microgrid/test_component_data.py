@@ -47,7 +47,7 @@ def test_inverter_data() -> None:
                             lower=-501.0, upper=501.0
                         ),
                         system_inclusion_bounds=metrics_pb2.Bounds(
-                            lower=-51000.0, upper=51000.0
+                            lower=-51_000.0, upper=51_000.0
                         ),
                     ),
                     phase_1=electrical_pb2.AC.ACPhase(
@@ -76,7 +76,7 @@ def test_inverter_data() -> None:
     assert inv_data.frequency == pytest.approx(50.1)
     assert inv_data.active_power == pytest.approx(100.2)
     assert inv_data.current_per_phase == pytest.approx((12.3, 23.4, 34.5))
-    assert inv_data.active_power_inclusion_lower_bound == pytest.approx(-51000.0)
-    assert inv_data.active_power_inclusion_upper_bound == pytest.approx(51000.0)
+    assert inv_data.active_power_inclusion_lower_bound == pytest.approx(-51_000.0)
+    assert inv_data.active_power_inclusion_upper_bound == pytest.approx(51_000.0)
     assert inv_data.active_power_exclusion_lower_bound == pytest.approx(-501.0)
     assert inv_data.active_power_exclusion_upper_bound == pytest.approx(501.0)
