@@ -40,8 +40,6 @@ class GridPowerFormula(FormulaGenerator[Power]):
         #  - `PASSIVE_SIGN_CONVENTION`: `(grid-successor-1 + grid-successor-2 + ...)`
         #  - `PRODUCTION`: `max(0, -(grid-successor-1 + grid-successor-2 + ...))`
         #  - `CONSUMPTION`: `max(0, (grid-successor-1 + grid-successor-2 + ...))`
-        builder.push_oper("(")
-        builder.push_oper("(")
         for idx, comp in enumerate(grid_successors):
             if idx > 0:
                 builder.push_oper("+")
@@ -65,6 +63,5 @@ class GridPowerFormula(FormulaGenerator[Power]):
             builder.push_component_metric(
                 comp.component_id, nones_are_zeros=nones_are_zeros
             )
-        builder.push_oper(")")
 
         return builder.build()
