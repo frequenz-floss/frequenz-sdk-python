@@ -1,32 +1,32 @@
 # License: MIT
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
-"""Methods for checking and clamping bounds and power values to exclusion bounds."""
+"""Utilities for checking and clamping bounds and power values to exclusion bounds."""
 
 from ...timeseries import Bounds, Power
 
 
-def _check_exclusion_bounds_overlap(
+def check_exclusion_bounds_overlap(
     lower_bound: Power,
     upper_bound: Power,
     exclusion_bounds: Bounds[Power] | None,
 ) -> tuple[bool, bool]:
     """Check if the given bounds overlap with the given exclusion bounds.
 
-    When only the upper bound overlaps with exclusion bounds, the usable range is
-    between the lower bound and the lower exclusion bound, like below.
+    Example:
 
-      ===lb+++++++ex----ub-------ex===
+                       lower                        upper
+                          .----- exclusion zone -----.
+        -----|✓✓✓✓✓✓✓✓✓✓✓✓|xxxxxxxxxxxxxxx|----------|----
+             `-- usable --'-- exclusion --´
+             |                 overlap    |
+             |                            |
+           lower                        upper
+           bound                        bound
+                              (inside the exclusion zone)
 
-    When only the lower bound overlaps with exclusion bounds, the usable range is
-    between the upper exclusion bound and the upper bound.
-
-      ===ex------lb------ex++++++ub===
-
-    Both bounds overlapping with exclusion bounds (or given bounds are fully contained
-    within exclusion bounds).  In this case, there is no usable range.
-
-      ===ex------lb------ub------ex===
+        Resulting in `(False, True)` because only the upper bound is inside the
+        exclusion zone.
 
     Args:
         lower_bound: The lower bound to check.
@@ -52,7 +52,7 @@ def _check_exclusion_bounds_overlap(
     return bounded_lower, bounded_upper
 
 
-def _adjust_exclusion_bounds(
+def adjust_exclusion_bounds(
     lower_bound: Power,
     upper_bound: Power,
     exclusion_bounds: Bounds[Power] | None,
@@ -75,7 +75,7 @@ def _adjust_exclusion_bounds(
     #
     # And if the given bounds overlap with the exclusion bounds on one side, then clamp
     # the given bounds on that side.
-    match _check_exclusion_bounds_overlap(lower_bound, upper_bound, exclusion_bounds):
+    match check_exclusion_bounds_overlap(lower_bound, upper_bound, exclusion_bounds):
         case (True, True):
             return Power.zero(), Power.zero()
         case (False, True):
@@ -87,7 +87,7 @@ def _adjust_exclusion_bounds(
 
 # Just 20 lines of code in this function, but unfortunately 8 of those are return
 # statements, and that's too many for pylint.
-def _clamp_to_bounds(  # pylint: disable=too-many-return-statements
+def clamp_to_bounds(  # pylint: disable=too-many-return-statements
     value: Power,
     lower_bound: Power,
     upper_bound: Power,
@@ -116,7 +116,7 @@ def _clamp_to_bounds(  # pylint: disable=too-many-return-statements
     # given power is in that overlap region, clamp it to the exclusion bounds on that
     # side.
     if exclusion_bounds is not None:
-        match _check_exclusion_bounds_overlap(
+        match check_exclusion_bounds_overlap(
             lower_bound, upper_bound, exclusion_bounds
         ):
             case (True, True):

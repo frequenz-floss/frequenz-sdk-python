@@ -13,7 +13,7 @@ import typing
 
 from ... import timeseries
 from ...timeseries import Power
-from ._bounds_methods import _clamp_to_bounds
+from . import _bounds
 
 if typing.TYPE_CHECKING:
     from ...timeseries.battery_pool import PowerMetrics
@@ -50,6 +50,12 @@ class Report:
     target_power: Power | None
     """The currently set power for the batteries."""
 
+    distribution_result: power_distributing.Result | None
+    """The result of the last power distribution.
+
+    This is `None` if no power distribution has been performed yet.
+    """
+
     _inclusion_bounds: timeseries.Bounds[Power] | None
     """The available inclusion bounds for the batteries, for the actor's priority.
 
@@ -65,12 +71,6 @@ class Report:
 
     These bounds are adjusted to any restrictions placed by actors with higher
     priorities.
-    """
-
-    distribution_result: power_distributing.Result | None
-    """The result of the last power distribution.
-
-    This is `None` if no power distribution has been performed yet.
     """
 
     @property
@@ -140,7 +140,7 @@ class Report:
         if self._inclusion_bounds is None:
             return None, None
 
-        return _clamp_to_bounds(
+        return _bounds.clamp_to_bounds(
             power,
             self._inclusion_bounds.lower,
             self._inclusion_bounds.upper,
