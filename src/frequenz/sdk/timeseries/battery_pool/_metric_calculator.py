@@ -19,10 +19,9 @@ from ...actor.power_distributing.power_distributing import (
 )
 from ...actor.power_distributing.result import PowerBounds
 from ...microgrid.component import ComponentMetricId
-from ...timeseries import Sample
+from .._base_types import Sample, SystemBounds
 from .._quantities import Energy, Percentage, Power, Temperature
 from ._component_metrics import ComponentMetricsData
-from ._result_types import SystemBounds
 
 _logger = logging.getLogger(__name__)
 

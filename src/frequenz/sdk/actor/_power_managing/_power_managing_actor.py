@@ -14,6 +14,7 @@ from frequenz.channels import Receiver, Sender
 from frequenz.channels.util import select, selected_from
 from typing_extensions import override
 
+from ...timeseries._base_types import SystemBounds
 from .._actor import Actor
 from .._channel_registry import ChannelRegistry
 from ._base_classes import Algorithm, BaseAlgorithm, Proposal, Report, ReportRequest
@@ -22,7 +23,6 @@ from ._matryoshka import Matryoshka
 _logger = logging.getLogger(__name__)
 
 if typing.TYPE_CHECKING:
-    from ...timeseries.battery_pool import SystemBounds
     from .. import power_distributing
 
 
@@ -119,9 +119,6 @@ class PowerManagingActor(Actor):
         # Pylint assumes that this import is cyclic, but it's not.
         from ... import (  # pylint: disable=import-outside-toplevel,cyclic-import
             microgrid,
-        )
-        from ...timeseries.battery_pool import (  # pylint: disable=import-outside-toplevel
-            SystemBounds,
         )
 
         battery_pool = microgrid.battery_pool(battery_ids)

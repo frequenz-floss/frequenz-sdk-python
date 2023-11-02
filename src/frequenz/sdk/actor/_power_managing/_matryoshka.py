@@ -31,7 +31,7 @@ from ._base_classes import BaseAlgorithm, Proposal, Report
 from ._sorted_set import SortedSet
 
 if typing.TYPE_CHECKING:
-    from ...timeseries.battery_pool import SystemBounds
+    from ...timeseries._base_types import SystemBounds
     from .. import power_distributing
 
 _logger = logging.getLogger(__name__)

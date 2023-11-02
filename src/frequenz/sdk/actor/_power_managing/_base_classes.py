@@ -16,7 +16,7 @@ from ...timeseries import Power
 from . import _bounds
 
 if typing.TYPE_CHECKING:
-    from ...timeseries.battery_pool import SystemBounds
+    from ...timeseries._base_types import SystemBounds
     from .. import power_distributing
 
 

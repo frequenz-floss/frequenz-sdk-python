@@ -5,10 +5,8 @@
 
 from ...actor._power_managing import Report
 from ._battery_pool import BatteryPool
-from ._result_types import SystemBounds
 
 __all__ = [
     "BatteryPool",
     "Report",
-    "SystemBounds",
 ]

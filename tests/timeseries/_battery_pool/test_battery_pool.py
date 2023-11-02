@@ -39,7 +39,8 @@ from frequenz.sdk.timeseries import (
     Sample,
     Temperature,
 )
-from frequenz.sdk.timeseries.battery_pool import BatteryPool, SystemBounds
+from frequenz.sdk.timeseries._base_types import SystemBounds
+from frequenz.sdk.timeseries.battery_pool import BatteryPool
 
 from ...timeseries.mock_microgrid import MockMicrogrid
 from ...utils.component_data_streamer import MockComponentDataStreamer
