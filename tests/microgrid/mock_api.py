@@ -222,65 +222,65 @@ class MockMicrogridServicer(  # pylint: disable=too-many-public-methods
     def SetPowerActive(
         self, request: SetPowerActiveParam, context: grpc.ServicerContext
     ) -> Empty:
-        """/nitrogen.Nitrogen/SetPowerActive method stub."""
+        """Microgrid service SetPowerActive method stub."""
         self._latest_power = request
         return Empty()
 
     def SetPowerReactive(
         self, request: SetPowerReactiveParam, context: grpc.ServicerContext
     ) -> Empty:
-        """/nitrogen.Nitrogen/SetPowerReactive method stub."""
+        """Microgrid service SetPowerReactive method stub."""
         return Empty()
 
     def GetMicrogridMetadata(
         self, request: Empty, context: grpc.ServicerContext
     ) -> MicrogridMetadata:
-        """/nitrogen.Nitrogen/GetMicrogridMetadata method stub."""
+        """Microgrid service GetMicrogridMetadata method stub."""
         return MicrogridMetadata()
 
     def CanStreamData(
         self, request: ComponentIdParam, context: grpc.ServicerContext
     ) -> BoolValue:
-        """/nitrogen.Nitrogen/CanStreamData method stub."""
+        """Microgrid service CanStreamData method stub."""
         return BoolValue(value=True)
 
     def AddExclusionBounds(
         self, request: SetBoundsParam, context: grpc.ServicerContext
     ) -> Timestamp:
-        """/nitrogen.Nitrogen/AddExclusionBounds method stub."""
+        """Microgrid service AddExclusionBounds method stub."""
         return Timestamp()
 
     def AddInclusionBounds(
         self, request: SetBoundsParam, context: grpc.ServicerContext
     ) -> Timestamp:
-        """/nitrogen.Nitrogen/AddExclusionBounds method stub."""
+        """Microgrid service AddExclusionBounds method stub."""
         self._bounds.append(request)
         return Timestamp()
 
     def HotStandby(
         self, request: ComponentIdParam, context: grpc.ServicerContext
     ) -> Empty:
-        """/nitrogen.Nitrogen/HotStandby method stub."""
+        """Microgrid service HotStandby method stub."""
         return Empty()
 
     def ColdStandby(
         self, request: ComponentIdParam, context: grpc.ServicerContext
     ) -> Empty:
-        """/nitrogen.Nitrogen/ColdStandby method stub."""
+        """Microgrid service ColdStandby method stub."""
         return Empty()
 
     def ErrorAck(
         self, request: ComponentIdParam, context: grpc.ServicerContext
     ) -> Empty:
-        """/nitrogen.Nitrogen/ErrorAck method stub."""
+        """Microgrid service ErrorAck method stub."""
         return Empty()
 
     def Start(self, request: ComponentIdParam, context: grpc.ServicerContext) -> Empty:
-        """/nitrogen.Nitrogen/Start method stub."""
+        """Microgrid service Start method stub."""
         return Empty()
 
     def Stop(self, request: ComponentIdParam, context: grpc.ServicerContext) -> Empty:
-        """/nitrogen.Nitrogen/Stop method stub."""
+        """Microgrid service Stop method stub."""
         return Empty()
 
 

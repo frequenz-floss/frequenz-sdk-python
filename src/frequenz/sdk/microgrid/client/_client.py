@@ -176,7 +176,7 @@ class MicrogridApiClient(ABC):
 
     @abstractmethod
     async def set_bounds(self, component_id: int, lower: float, upper: float) -> None:
-        """Send `SetBoundsParam`s received from a channel to nitrogen.
+        """Send `SetBoundsParam`s received from a channel to the Microgrid service.
 
         Args:
             component_id: ID of the component to set bounds for.
@@ -598,7 +598,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
         lower: float,
         upper: float,
     ) -> None:
-        """Send `SetBoundsParam`s received from a channel to nitrogen.
+        """Send `SetBoundsParam`s received from a channel to the Microgrid service.
 
         Args:
             component_id: ID of the component to set bounds for.
