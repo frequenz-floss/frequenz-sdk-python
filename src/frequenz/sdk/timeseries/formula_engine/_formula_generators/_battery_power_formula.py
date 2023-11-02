@@ -70,12 +70,9 @@ class BatteryPowerFormula(FormulaGenerator[Power]):
                 "Can't find inverters for all batteries from the component graph."
             )
 
-        builder.push_oper("(")
-        builder.push_oper("(")
         for idx, comp in enumerate(battery_inverters):
             if idx > 0:
                 builder.push_oper("+")
             builder.push_component_metric(comp.component_id, nones_are_zeros=True)
-        builder.push_oper(")")
 
         return builder.build()

@@ -57,8 +57,6 @@ class PVPowerFormula(FormulaGenerator[Power]):
             )
             return builder.build()
 
-        builder.push_oper("(")
-        builder.push_oper("(")
         for idx, component in enumerate(pv_components):
             if idx > 0:
                 builder.push_oper("+")
@@ -68,6 +66,5 @@ class PVPowerFormula(FormulaGenerator[Power]):
                 component.component_id,
                 nones_are_zeros=component.category != ComponentCategory.METER,
             )
-        builder.push_oper(")")
 
         return builder.build()

@@ -50,13 +50,10 @@ class CHPPowerFormula(FormulaGenerator[Power]):
             )
             return builder.build()
 
-        builder.push_oper("(")
-        builder.push_oper("(")
         for idx, chp_meter_id in enumerate(chp_meter_ids):
             if idx > 0:
                 builder.push_oper("+")
             builder.push_component_metric(chp_meter_id, nones_are_zeros=False)
-        builder.push_oper(")")
 
         return builder.build()
 
