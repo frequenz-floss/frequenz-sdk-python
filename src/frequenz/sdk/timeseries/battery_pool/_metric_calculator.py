@@ -22,7 +22,7 @@ from ...microgrid.component import ComponentMetricId
 from ...timeseries import Sample
 from .._quantities import Energy, Percentage, Power, Temperature
 from ._component_metrics import ComponentMetricsData
-from ._result_types import PowerMetrics
+from ._result_types import SystemBounds
 
 _logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ _MIN_TIMESTAMP = datetime.min.replace(tzinfo=timezone.utc)
 
 # Formula output types class have no common interface
 # Print all possible types here.
-T = TypeVar("T", Sample[Percentage], Sample[Energy], PowerMetrics, Sample[Temperature])
+T = TypeVar("T", Sample[Percentage], Sample[Energy], SystemBounds, Sample[Temperature])
 """Type variable of the formula output."""
 
 
@@ -419,7 +419,7 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
         )
 
 
-class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
+class PowerBoundsCalculator(MetricCalculator[SystemBounds]):
     """Define how to calculate PowerBounds metrics."""
 
     def __init__(
@@ -504,7 +504,7 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
         self,
         metrics_data: dict[int, ComponentMetricsData],
         working_batteries: set[int],
-    ) -> PowerMetrics:
+    ) -> SystemBounds:
         """Aggregate the metrics_data and calculate high level metric.
 
         Missing components will be ignored. Formula will be calculated for all
@@ -605,13 +605,13 @@ class PowerBoundsCalculator(MetricCalculator[PowerMetrics]):
             )
 
         if timestamp == _MIN_TIMESTAMP:
-            return PowerMetrics(
+            return SystemBounds(
                 timestamp=datetime.now(tz=timezone.utc),
                 inclusion_bounds=None,
                 exclusion_bounds=None,
             )
 
-        return PowerMetrics(
+        return SystemBounds(
             timestamp=timestamp,
             inclusion_bounds=timeseries.Bounds(
                 Power.from_watts(inclusion_bounds_lower),

@@ -31,7 +31,7 @@ from ._base_classes import BaseAlgorithm, Proposal, Report
 from ._sorted_set import SortedSet
 
 if typing.TYPE_CHECKING:
-    from ...timeseries.battery_pool import PowerMetrics
+    from ...timeseries.battery_pool import SystemBounds
     from .. import power_distributing
 
 _logger = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ class Matryoshka(BaseAlgorithm):
     def _calc_target_power(
         self,
         proposals: SortedSet[Proposal],
-        system_bounds: PowerMetrics,
+        system_bounds: SystemBounds,
     ) -> Power:
         """Calculate the target power for the given batteries.
 
@@ -124,7 +124,7 @@ class Matryoshka(BaseAlgorithm):
         self,
         battery_ids: frozenset[int],
         proposal: Proposal | None,
-        system_bounds: PowerMetrics,
+        system_bounds: SystemBounds,
     ) -> bool:
         if battery_ids not in self._battery_buckets:
             # if there are no previous proposals and there are no system bounds, then
@@ -156,7 +156,7 @@ class Matryoshka(BaseAlgorithm):
         self,
         battery_ids: frozenset[int],
         proposal: Proposal | None,
-        system_bounds: PowerMetrics,
+        system_bounds: SystemBounds,
         must_return_power: bool = False,
     ) -> Power | None:
         """Calculate and return the target power for the given batteries.
@@ -205,7 +205,7 @@ class Matryoshka(BaseAlgorithm):
         self,
         battery_ids: frozenset[int],
         priority: int,
-        system_bounds: PowerMetrics,
+        system_bounds: SystemBounds,
         distribution_result: power_distributing.Result | None,
     ) -> Report:
         """Get the bounds for the algorithm.

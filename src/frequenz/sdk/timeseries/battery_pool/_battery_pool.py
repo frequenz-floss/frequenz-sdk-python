@@ -30,7 +30,7 @@ from ._metric_calculator import (
     SoCCalculator,
     TemperatureCalculator,
 )
-from ._result_types import PowerMetrics
+from ._result_types import SystemBounds
 
 # pylint: disable=protected-access
 
@@ -393,7 +393,7 @@ class BatteryPool:
         )
 
     @property
-    def _system_power_bounds(self) -> ReceiverFetcher[PowerMetrics]:
+    def _system_power_bounds(self) -> ReceiverFetcher[SystemBounds]:
         """Get receiver to receive new power bounds when they change.
 
         Power bounds refer to the min and max power that a battery can

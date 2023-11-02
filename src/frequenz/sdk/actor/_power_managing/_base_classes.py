@@ -16,7 +16,7 @@ from ...timeseries import Power
 from . import _bounds
 
 if typing.TYPE_CHECKING:
-    from ...timeseries.battery_pool import PowerMetrics
+    from ...timeseries.battery_pool import SystemBounds
     from .. import power_distributing
 
 
@@ -209,7 +209,7 @@ class BaseAlgorithm(abc.ABC):
         self,
         battery_ids: frozenset[int],
         proposal: Proposal | None,
-        system_bounds: PowerMetrics,
+        system_bounds: SystemBounds,
         must_return_power: bool = False,
     ) -> Power | None:
         """Calculate and return the target power for the given batteries.
@@ -234,7 +234,7 @@ class BaseAlgorithm(abc.ABC):
         self,
         battery_ids: frozenset[int],
         priority: int,
-        system_bounds: PowerMetrics,
+        system_bounds: SystemBounds,
         distribution_result: power_distributing.Result | None,
     ) -> Report:
         """Get the bounds for a set of batteries, for the given priority.

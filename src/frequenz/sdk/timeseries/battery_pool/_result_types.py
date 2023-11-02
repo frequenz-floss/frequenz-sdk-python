@@ -11,7 +11,7 @@ from .._quantities import Power
 
 
 @dataclass
-class PowerMetrics:
+class SystemBounds:
     """Power bounds metrics."""
 
     # compare = False tells the dataclass to not use name for comparison methods

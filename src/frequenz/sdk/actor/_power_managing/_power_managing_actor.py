@@ -22,7 +22,7 @@ from ._matryoshka import Matryoshka
 _logger = logging.getLogger(__name__)
 
 if typing.TYPE_CHECKING:
-    from ...timeseries.battery_pool import PowerMetrics
+    from ...timeseries.battery_pool import SystemBounds
     from .. import power_distributing
 
 
@@ -66,7 +66,7 @@ class PowerManagingActor(Actor):
         self._channel_registry = channel_registry
         self._proposals_receiver = proposals_receiver
 
-        self._system_bounds: dict[frozenset[int], PowerMetrics] = {}
+        self._system_bounds: dict[frozenset[int], SystemBounds] = {}
         self._bound_tracker_tasks: dict[frozenset[int], asyncio.Task[None]] = {}
         self._subscriptions: dict[frozenset[int], dict[int, Sender[Report]]] = {}
         self._distribution_results: dict[frozenset[int], power_distributing.Result] = {}
@@ -97,7 +97,7 @@ class PowerManagingActor(Actor):
     async def _bounds_tracker(
         self,
         battery_ids: frozenset[int],
-        bounds_receiver: Receiver[PowerMetrics],
+        bounds_receiver: Receiver[SystemBounds],
     ) -> None:
         """Track the power bounds of a set of batteries and update the cache.
 
@@ -121,7 +121,7 @@ class PowerManagingActor(Actor):
             microgrid,
         )
         from ...timeseries.battery_pool import (  # pylint: disable=import-outside-toplevel
-            PowerMetrics,
+            SystemBounds,
         )
 
         battery_pool = microgrid.battery_pool(battery_ids)
@@ -129,7 +129,7 @@ class PowerManagingActor(Actor):
         bounds_receiver = battery_pool._system_power_bounds.new_receiver()
         # pylint: enable=protected-access
 
-        self._system_bounds[battery_ids] = PowerMetrics(
+        self._system_bounds[battery_ids] = SystemBounds(
             timestamp=datetime.now(tz=timezone.utc),
             inclusion_bounds=None,
             exclusion_bounds=None,

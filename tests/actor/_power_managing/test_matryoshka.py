@@ -17,7 +17,7 @@ class StatefulTester:
     def __init__(
         self,
         batteries: frozenset[int],
-        system_bounds: battery_pool.PowerMetrics,
+        system_bounds: battery_pool.SystemBounds,
     ) -> None:
         """Create a new instance of the stateful tester."""
         self._call_count = 0
@@ -83,7 +83,7 @@ async def test_matryoshka_no_excl() -> None:  # pylint: disable=too-many-stateme
     """
     batteries = frozenset({2, 5})
 
-    system_bounds = battery_pool.PowerMetrics(
+    system_bounds = battery_pool.SystemBounds(
         timestamp=datetime.now(tz=timezone.utc),
         inclusion_bounds=timeseries.Bounds(
             lower=Power.from_watts(-200.0), upper=Power.from_watts(200.0)
@@ -193,7 +193,7 @@ async def test_matryoshka_with_excl_1() -> None:
     """
     batteries = frozenset({2, 5})
 
-    system_bounds = battery_pool.PowerMetrics(
+    system_bounds = battery_pool.SystemBounds(
         timestamp=datetime.now(tz=timezone.utc),
         inclusion_bounds=timeseries.Bounds(
             lower=Power.from_watts(-200.0), upper=Power.from_watts(200.0)
@@ -243,7 +243,7 @@ async def test_matryoshka_with_excl_2() -> None:
     """
     batteries = frozenset({2, 5})
 
-    system_bounds = battery_pool.PowerMetrics(
+    system_bounds = battery_pool.SystemBounds(
         timestamp=datetime.now(tz=timezone.utc),
         inclusion_bounds=timeseries.Bounds(
             lower=Power.from_watts(-200.0), upper=Power.from_watts(200.0)
@@ -302,7 +302,7 @@ async def test_matryoshka_with_excl_3() -> None:
     """
     batteries = frozenset({2, 5})
 
-    system_bounds = battery_pool.PowerMetrics(
+    system_bounds = battery_pool.SystemBounds(
         timestamp=datetime.now(tz=timezone.utc),
         inclusion_bounds=timeseries.Bounds(
             lower=Power.from_watts(-200.0), upper=Power.from_watts(200.0)
