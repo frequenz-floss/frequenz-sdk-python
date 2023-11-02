@@ -45,10 +45,10 @@ class ReportRequest:
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Report:
-    """Current PowerManager report for a set of batteries."""
+    """Current PowerManager report for a set of components."""
 
     target_power: Power | None
-    """The currently set power for the batteries."""
+    """The currently set power for the components."""
 
     distribution_result: power_distributing.Result | None
     """The result of the last power distribution.
@@ -57,14 +57,14 @@ class Report:
     """
 
     _inclusion_bounds: timeseries.Bounds[Power] | None
-    """The available inclusion bounds for the batteries, for the actor's priority.
+    """The available inclusion bounds for the components, for the actor's priority.
 
     These bounds are adjusted to any restrictions placed by actors with higher
     priorities.
     """
 
     _exclusion_bounds: timeseries.Bounds[Power] | None
-    """The exclusion bounds for the batteries.
+    """The exclusion bounds for the components.
 
     The power manager doesn't manage exclusion bounds, so these are aggregations of
     values reported by the microgrid API.
@@ -75,15 +75,14 @@ class Report:
 
     @property
     def bounds(self) -> timeseries.Bounds[Power] | None:
-        """The bounds for the batteries.
+        """The bounds for the components.
 
         These bounds are adjusted to any restrictions placed by actors with higher
         priorities.
 
         There might be exclusion zones within these bounds. If necessary, the
-        [`adjust_to_bounds`][frequenz.sdk.timeseries.battery_pool.Report.adjust_to_bounds]
-        method may be used to check if a desired power value fits the bounds, or to get
-        the closest possible power values that do fit the bounds.
+        `adjust_to_bounds` method may be used to check if a desired power value fits the
+        bounds, or to get the closest possible power values that do fit the bounds.
         """
         return self._inclusion_bounds
 
@@ -106,29 +105,9 @@ class Report:
 
         !!! note
             It is completely optional to use this method to adjust power values before
-            proposing them through the battery pool, because the battery pool will do
-            this automatically.  This method is provided for convenience, and for
-            granular control when there are two possible power values, both of which
-            fall within the available bounds.
-
-        Example:
-            ```python
-            from frequenz.sdk import microgrid
-
-            power_status_rx = microgrid.battery_pool().power_status.new_receiver()
-            power_status = await power_status_rx.receive()
-            desired_power = Power.from_watts(1000.0)
-
-            match power_status.adjust_to_bounds(desired_power):
-                case (power, _) if power == desired_power:
-                    print("Desired power is available.")
-                case (None, power) | (power, None) if power:
-                    print(f"Closest available power is {power}.")
-                case (lower, upper) if lower and upper:
-                    print(f"Two options {lower}, {upper} to propose to battery pool.")
-                case (None, None):
-                    print("No available power")
-            ```
+            proposing them, because the PowerManager will do this automatically.  This
+            method is provided for convenience, and for granular control when there are
+            two possible power values, both of which fall within the available bounds.
 
         Args:
             power: The power value to adjust.

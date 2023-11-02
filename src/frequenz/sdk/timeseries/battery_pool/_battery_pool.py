@@ -31,6 +31,7 @@ from ._metric_calculator import (
     SoCCalculator,
     TemperatureCalculator,
 )
+from ._result_types import BatteryPoolReport
 
 # pylint: disable=protected-access
 
@@ -364,7 +365,7 @@ class BatteryPool:
         return self._battery_pool._active_methods[method_name]
 
     @property
-    def power_status(self) -> ReceiverFetcher[_power_managing.Report]:
+    def power_status(self) -> ReceiverFetcher[BatteryPoolReport]:
         """Get a receiver to receive new power status reports when they change.
 
         These include
