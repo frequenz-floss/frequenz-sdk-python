@@ -24,6 +24,7 @@ from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPo
 from frequenz.sdk.actor.power_distributing.result import (
     Error,
     OutOfBounds,
+    PartialFailure,
     PowerBounds,
     Result,
     Success,
@@ -1246,6 +1247,68 @@ class TestPowerDistributingActor:
             assert result.succeeded_batteries == {19}
             assert result.excess_power.isclose(Power.from_watts(700.0))
             assert result.succeeded_power.isclose(Power.from_watts(500.0))
+            assert result.request == request
+
+        await mockgrid.cleanup()
+
+    async def test_partial_failure_result(self, mocker: MockerFixture) -> None:
+        """Test power results when the microgrid failed to set power for one of the batteries."""
+        mockgrid = MockMicrogrid(grid_meter=False)
+        mockgrid.add_batteries(3)
+        await mockgrid.start(mocker)
+        await self.init_component_data(mockgrid)
+
+        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+
+        batteries = {9, 19, 29}
+        failed_batteries = {9}
+        failed_power = 500.0
+
+        attrs = {"get_working_batteries.return_value": batteries}
+        mocker.patch(
+            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+            return_value=MagicMock(
+                spec=BatteryPoolStatus,
+                **attrs,
+            ),
+        )
+
+        mocker.patch(
+            "frequenz.sdk.actor.power_distributing.PowerDistributingActor._parse_result",
+            return_value=(failed_power, failed_batteries),
+        )
+
+        requests_channel = Broadcast[Request]("power_distributor requests")
+        results_channel = Broadcast[Result]("power_distributor results")
+
+        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        async with PowerDistributingActor(
+            requests_receiver=requests_channel.new_receiver(),
+            results_sender=results_channel.new_sender(),
+            battery_status_sender=battery_status_channel.new_sender(),
+        ):
+            request = Request(
+                power=Power.from_kilowatts(1.70),
+                batteries=batteries,
+                request_timeout=SAFETY_TIMEOUT,
+            )
+
+            await requests_channel.new_sender().send(request)
+            result_rx = results_channel.new_receiver()
+
+            done, pending = await asyncio.wait(
+                [asyncio.create_task(result_rx.receive())],
+                timeout=SAFETY_TIMEOUT.total_seconds(),
+            )
+            assert len(pending) == 0
+            assert len(done) == 1
+            result = done.pop().result()
+            assert isinstance(result, PartialFailure)
+            assert result.succeeded_batteries == batteries - failed_batteries
+            assert result.failed_batteries == failed_batteries
+            assert result.succeeded_power.isclose(Power.from_watts(1000.0))
+            assert result.failed_power.isclose(Power.from_watts(failed_power))
+            assert result.excess_power.isclose(Power.from_watts(200.0))
             assert result.request == request
 
         await mockgrid.cleanup()
