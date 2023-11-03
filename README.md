@@ -10,10 +10,10 @@ A development kit to interact with the Frequenz development platform.
 
 ## Supported Platforms
 
-This SDK is supported on and thoroughly tested with the following platforms:
+The following platforms are officially supported (test):
 
 - **Python:** 3.11
-- **Operating System:** Ubuntu 20.04
+- **Operating System:** Ubuntu Linux 20.04
 - **Architectures:** amd64, arm64
 
 ## Quick Start

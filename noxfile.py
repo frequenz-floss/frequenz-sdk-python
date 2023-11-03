@@ -3,10 +3,6 @@
 
 """Configuration file for nox."""
 
-from frequenz.repo.config import nox
-from frequenz.repo.config.nox import default
+from frequenz.repo.config import RepositoryType, nox
 
-config = default.lib_config.copy()
-config.opts.mypy = []  # Set in pyproject.toml
-
-nox.configure(config)
+nox.configure(RepositoryType.LIB)
