@@ -15,6 +15,7 @@ def check_exclusion_bounds_overlap(
 
     Example:
 
+        ```
                        lower                        upper
                           .----- exclusion zone -----.
         -----|✓✓✓✓✓✓✓✓✓✓✓✓|xxxxxxxxxxxxxxx|----------|----
@@ -24,6 +25,7 @@ def check_exclusion_bounds_overlap(
            lower                        upper
            bound                        bound
                               (inside the exclusion zone)
+        ```
 
         Resulting in `(False, True)` because only the upper bound is inside the
         exclusion zone.
