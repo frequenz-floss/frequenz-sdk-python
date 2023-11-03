@@ -69,9 +69,11 @@ class StatefulTester:
         else:
             assert report.target_power is not None
             assert report.target_power.as_watts() == expected_power
-        assert report.inclusion_bounds is not None
-        assert report.inclusion_bounds.lower.as_watts() == expected_bounds[0]
-        assert report.inclusion_bounds.upper.as_watts() == expected_bounds[1]
+        # pylint: disable=protected-access
+        assert report._inclusion_bounds is not None
+        assert report._inclusion_bounds.lower.as_watts() == expected_bounds[0]
+        assert report._inclusion_bounds.upper.as_watts() == expected_bounds[1]
+        # pylint: enable=protected-access
 
 
 async def test_matryoshka_no_excl() -> None:  # pylint: disable=too-many-statements
