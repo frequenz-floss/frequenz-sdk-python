@@ -41,7 +41,9 @@ async def test_grid_1(mocker: MockerFixture) -> None:
     await mockgrid.start(mocker)
     grid = microgrid.grid()
 
-    assert grid is None
+    assert grid
+    assert grid.fuse
+    assert grid.fuse.max_current == Current.from_amperes(0.0)
     await mockgrid.cleanup()
 
 
@@ -79,6 +81,27 @@ async def test_grid_2(mocker: MockerFixture) -> None:
     expected_fuse = Fuse(expected_fuse_current)
 
     assert grid.fuse == expected_fuse
+
+
+async def test_grid_3(mocker: MockerFixture) -> None:
+    """Validate that microgrids with a grid connection without a fuse are instantiated."""
+    components = {
+        Component(1, ComponentCategory.GRID, None, GridMetadata(None)),
+        Component(2, ComponentCategory.METER),
+    }
+    connections = {
+        Connection(1, 2),
+    }
+
+    # pylint: disable=protected-access
+    graph = gr._MicrogridComponentGraph(components=components, connections=connections)
+
+    mockgrid = MockMicrogrid(graph=graph)
+    await mockgrid.start(mocker)
+
+    grid = microgrid.grid()
+    assert grid is not None
+    assert grid.fuse is None
 
 
 async def test_grid_power_1(mocker: MockerFixture) -> None:

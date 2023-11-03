@@ -53,7 +53,6 @@ class Grid:
         )
 
         grid = microgrid.grid()
-        assert grid, "Grid is not initialized"
 
         # Get a receiver for a builtin formula
         grid_power_recv = grid.power.new_receiver()
@@ -62,8 +61,14 @@ class Grid:
         ```
     """
 
-    fuse: Fuse
-    """The fuse protecting the grid connection point."""
+    fuse: Fuse | None
+    """The fuse protecting the grid connection point.
+
+    The rated current of the fuse is set to zero in case of an islanded
+    microgrid.
+    And the fuse is set to `None` when the grid connection component metadata
+    lacks information about the fuse.
+    """
 
     _formula_pool: FormulaEnginePool
     """The formula engine pool to generate grid metrics."""
@@ -134,8 +139,7 @@ def initialize(
 
     Raises:
         RuntimeError: If there is more than 1 grid connection point in the
-            microgrid, or if the grid connection point is not initialized,
-            or if the grid connection point does not have a fuse.
+            microgrid, or if the grid connection point is not initialized.
     """
     global _GRID  # pylint: disable=global-statement
 
@@ -147,7 +151,10 @@ def initialize(
 
     grid_connections_count = len(grid_connections)
 
+    fuse: Fuse | None = None
+
     if grid_connections_count == 0:
+        fuse = Fuse(max_current=Current.zero())
         _logger.info(
             "No grid connection found for this microgrid. This is normal for an islanded microgrid."
         )
@@ -158,8 +165,6 @@ def initialize(
     else:
         if grid_connections[0].metadata is None:
             raise RuntimeError("Grid metadata is None")
-
-        fuse: Fuse | None = None
 
         # The current implementation of the Component Graph fails to
         # effectively convert components from a dictionary representation to
@@ -172,25 +177,28 @@ def initialize(
             fuse = Fuse(**fuse_dict) if fuse_dict else None
 
         if fuse is None:
-            raise RuntimeError("Grid fuse is None")
+            _logger.warning("The grid connection point does not have a fuse")
 
-        namespace = f"grid-{uuid.uuid4()}"
-        formula_pool = FormulaEnginePool(
-            namespace,
-            channel_registry,
-            resampler_subscription_sender,
-        )
+    namespace = f"grid-{uuid.uuid4()}"
+    formula_pool = FormulaEnginePool(
+        namespace,
+        channel_registry,
+        resampler_subscription_sender,
+    )
 
-        _GRID = Grid(fuse, formula_pool)
+    _GRID = Grid(fuse, formula_pool)
 
 
-def get() -> Grid | None:
+def get() -> Grid:
     """Get the grid connection.
 
-    Note that a microgrid configured as an island will not have a grid
-    connection point. For such microgrids, this function will return `None`.
+    Note that the rated current of the fuse is set to zero in case of an
+    islanded microgrid.
+    And the fuse is set to `None` when the grid connection component metadata
+    lacks information about the fuse.
 
     Returns:
         The grid connection.
     """
+    assert _GRID, "Grid is not initialized"
     return _GRID

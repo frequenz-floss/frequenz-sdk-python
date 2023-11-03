@@ -191,9 +191,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             )
         return self._ev_charger_pools[key]
 
-    def grid(
-        self,
-    ) -> Grid | None:
+    def grid(self) -> Grid:
         """Return the grid instance.
 
         If a Grid instance doesn't exist, a new one is created and returned.
@@ -479,7 +477,7 @@ def battery_pool(
     return _get().battery_pool(battery_ids, name, priority)
 
 
-def grid() -> Grid | None:
+def grid() -> Grid:
     """Return the grid instance.
 
     Returns:
