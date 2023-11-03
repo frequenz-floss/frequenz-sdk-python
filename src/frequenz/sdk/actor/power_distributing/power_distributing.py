@@ -350,7 +350,9 @@ class PowerDistributingActor(Actor):
                 succeed_batteries = set(battery_distribution.keys()) - failed_batteries
                 response = PartialFailure(
                     request=request,
-                    succeeded_power=Power.from_watts(distributed_power_value),
+                    succeeded_power=Power.from_watts(
+                        distributed_power_value - failed_power
+                    ),
                     succeeded_batteries=succeed_batteries,
                     failed_power=Power.from_watts(failed_power),
                     failed_batteries=failed_batteries,
