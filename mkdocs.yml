@@ -93,6 +93,7 @@ plugins:
   - literate-nav:
       nav_file: SUMMARY.md
   - mike:
+      alias_type: redirect
       canonical_version: latest
   - mkdocstrings:
       custom_templates: templates
