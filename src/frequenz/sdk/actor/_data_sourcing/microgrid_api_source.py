@@ -24,6 +24,8 @@ from ...timeseries._quantities import Quantity
 from .._channel_registry import ChannelRegistry
 from ._component_metric_request import ComponentMetricRequest
 
+_logger = logging.getLogger(__name__)
+
 _MeterDataMethods: dict[ComponentMetricId, Callable[[MeterData], float]] = {
     ComponentMetricId.ACTIVE_POWER: lambda msg: msg.active_power,
     ComponentMetricId.CURRENT_PHASE_1: lambda msg: msg.current_per_phase[0],
@@ -156,7 +158,7 @@ class MicrogridApiSource:
         for metric in requests:
             if metric not in _BatteryDataMethods:
                 err = f"Unknown metric {metric} for Battery id {comp_id}"
-                logging.error(err)
+                _logger.error(err)
                 raise ValueError(err)
         if comp_id not in self.comp_data_receivers:
             self.comp_data_receivers[
@@ -181,7 +183,7 @@ class MicrogridApiSource:
         for metric in requests:
             if metric not in _EVChargerDataMethods:
                 err = f"Unknown metric {metric} for EvCharger id {comp_id}"
-                logging.error(err)
+                _logger.error(err)
                 raise ValueError(err)
         if comp_id not in self.comp_data_receivers:
             self.comp_data_receivers[
@@ -206,7 +208,7 @@ class MicrogridApiSource:
         for metric in requests:
             if metric not in _InverterDataMethods:
                 err = f"Unknown metric {metric} for Inverter id {comp_id}"
-                logging.error(err)
+                _logger.error(err)
                 raise ValueError(err)
         if comp_id not in self.comp_data_receivers:
             self.comp_data_receivers[
@@ -231,7 +233,7 @@ class MicrogridApiSource:
         for metric in requests:
             if metric not in _MeterDataMethods:
                 err = f"Unknown metric {metric} for Meter id {comp_id}"
-                logging.error(err)
+                _logger.error(err)
                 raise ValueError(err)
         if comp_id not in self.comp_data_receivers:
             self.comp_data_receivers[
@@ -269,7 +271,7 @@ class MicrogridApiSource:
             await self._check_meter_request(comp_id, requests)
         else:
             err = f"Unknown component category {category}"
-            logging.error(err)
+            _logger.error(err)
             raise ValueError(err)
 
     def _get_data_extraction_method(
@@ -297,7 +299,7 @@ class MicrogridApiSource:
         if category == ComponentCategory.EV_CHARGER:
             return _EVChargerDataMethods[metric]
         err = f"Unknown component category {category}"
-        logging.error(err)
+        _logger.error(err)
         raise ValueError(err)
 
     def _get_metric_senders(
@@ -411,7 +413,7 @@ class MicrogridApiSource:
         category = await self._get_component_category(comp_id)
 
         if category is None:
-            logging.error("Unknown component ID: %d in request %s", comp_id, request)
+            _logger.error("Unknown component ID: %d in request %s", comp_id, request)
             return
 
         self._req_streaming_metrics.setdefault(comp_id, {}).setdefault(
