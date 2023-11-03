@@ -4,6 +4,7 @@
 """Timeseries basic types."""
 
 import dataclasses
+import enum
 import functools
 import typing
 from collections.abc import Callable, Iterator
@@ -176,3 +177,12 @@ class SystemBounds:
     This is the range within which power requests are NOT allowed by the pool.
     If present, they will be a subset of the inclusion bounds.
     """
+
+
+class PoolType(enum.Enum):
+    """Enumeration of component pool types."""
+
+    BATTERY_POOL = "BATTERY_POOL"
+    EV_CHARGER_POOL = "EV_CHARGER_POOL"
+    PV_POOL = "PV_POOL"
+    CHP_POOL = "CHP_POOL"

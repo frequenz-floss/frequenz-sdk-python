@@ -14,7 +14,7 @@ from frequenz.channels import Receiver, Sender
 from frequenz.channels.util import select, selected_from
 from typing_extensions import override
 
-from ...timeseries._base_types import SystemBounds
+from ...timeseries._base_types import PoolType, SystemBounds
 from .._actor import Actor
 from .._channel_registry import ChannelRegistry
 from ._base_classes import Algorithm, BaseAlgorithm, Proposal, Report, ReportRequest
@@ -31,6 +31,7 @@ class PowerManagingActor(Actor):
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
+        pool_type: PoolType,
         proposals_receiver: Receiver[Proposal],
         bounds_subscription_receiver: Receiver[ReportRequest],
         power_distributing_requests_sender: Sender[power_distributing.Request],
@@ -43,6 +44,8 @@ class PowerManagingActor(Actor):
         """Create a new instance of the power manager.
 
         Args:
+            pool_type: The type of the component pool this power manager instance is
+                going to support.
             proposals_receiver: The receiver for proposals.
             bounds_subscription_receiver: The receiver for bounds subscriptions.
             power_distributing_requests_sender: The sender for power distribution
@@ -60,6 +63,7 @@ class PowerManagingActor(Actor):
                 f"PowerManagingActor: Unknown algorithm: {algorithm}"
             )
 
+        self._pool_type = pool_type
         self._bounds_subscription_receiver = bounds_subscription_receiver
         self._power_distributing_requests_sender = power_distributing_requests_sender
         self._power_distributing_results_receiver = power_distributing_results_receiver
@@ -115,12 +119,19 @@ class PowerManagingActor(Actor):
 
         Args:
             battery_ids: The battery IDs.
+
+        Raises:
+            NotImplementedError: When the pool type is not supported.
         """
         # Pylint assumes that this import is cyclic, but it's not.
         from ... import (  # pylint: disable=import-outside-toplevel,cyclic-import
             microgrid,
         )
 
+        if self._pool_type is not PoolType.BATTERY_POOL:
+            err = f"PowerManagingActor: Unsupported pool type: {self._pool_type}"
+            _logger.error(err)
+            raise NotImplementedError(err)
         battery_pool = microgrid.battery_pool(battery_ids)
         # pylint: disable=protected-access
         bounds_receiver = battery_pool._system_power_bounds.new_receiver()

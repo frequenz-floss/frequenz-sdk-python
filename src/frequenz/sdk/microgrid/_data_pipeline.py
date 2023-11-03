@@ -20,6 +20,7 @@ from frequenz.channels import Broadcast, Sender
 
 from ..actor._actor import Actor
 from ..microgrid.component import Component
+from ..timeseries._base_types import PoolType
 from ..timeseries._grid_frequency import GridFrequency
 from ..timeseries.grid import Grid
 from ..timeseries.grid import get as get_grid
@@ -276,6 +277,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         from ..actor._power_managing._power_managing_actor import PowerManagingActor
 
         self._power_managing_actor = PowerManagingActor(
+            pool_type=PoolType.BATTERY_POOL,
             proposals_receiver=self._power_management_proposals_channel.new_receiver(),
             bounds_subscription_receiver=(
                 self._power_manager_bounds_subscription_channel.new_receiver()
