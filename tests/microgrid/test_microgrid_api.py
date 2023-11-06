@@ -85,14 +85,14 @@ class TestMicrogridApi:
     @mock.patch("grpc.aio.insecure_channel")
     async def test_connection_manager(
         self,
-        _: MagicMock,
+        insecure_channel_mock: MagicMock,  # pylint: disable=unused-argument
         components: list[list[Component]],
         connections: list[list[Connection]],
     ) -> None:
         """Test microgrid api.
 
         Args:
-            _: insecure channel mock from `mock.patch`
+            insecure_channel_mock: insecure channel mock from `mock.patch`
             components: components
             connections: connections
         """
@@ -151,14 +151,14 @@ class TestMicrogridApi:
     @mock.patch("grpc.aio.insecure_channel")
     async def test_connection_manager_another_method(
         self,
-        _: MagicMock,
+        insecure_channel_mock: MagicMock,  # pylint: disable=unused-argument
         components: list[list[Component]],
         connections: list[list[Connection]],
     ) -> None:
         """Test if the api was not deallocated.
 
         Args:
-            _: insecure channel mock
+            insecure_channel_mock: insecure channel mock
             components: components
             connections: connections
         """
