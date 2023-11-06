@@ -129,13 +129,13 @@ class Report:
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Proposal:
-    """A proposal for a battery to be charged or discharged."""
+    """A proposal for a set of components to be charged or discharged."""
 
     source_id: str
     """The source ID of the actor sending the request."""
 
     preferred_power: Power | None
-    """The preferred power to be distributed to the batteries.
+    """The preferred power to be distributed to the components.
 
     If `None`, the preferred power of higher priority actors will get precedence.
     """
@@ -145,12 +145,12 @@ class Proposal:
 
     These bounds will apply to actors with a lower priority, and can be overridden by
     bounds from actors with a higher priority.  If None, the power bounds will be set to
-    the maximum power of the batteries in the pool.  This is currently an experimental
+    the maximum power of the components in the pool.  This is currently an experimental
     feature.
     """
 
-    battery_ids: frozenset[int]
-    """The battery IDs to distribute the power to."""
+    component_ids: frozenset[int]
+    """The component IDs to distribute the power to."""
 
     priority: int
     """The priority of the actor sending the proposal."""
@@ -186,23 +186,23 @@ class BaseAlgorithm(abc.ABC):
     @abc.abstractmethod
     def calculate_target_power(
         self,
-        battery_ids: frozenset[int],
+        component_ids: frozenset[int],
         proposal: Proposal | None,
         system_bounds: SystemBounds,
         must_return_power: bool = False,
     ) -> Power | None:
-        """Calculate and return the target power for the given batteries.
+        """Calculate and return the target power for the given components.
 
         Args:
-            battery_ids: The battery IDs to calculate the target power for.
+            component_ids: The component IDs to calculate the target power for.
             proposal: If given, the proposal to added to the bucket, before the target
                 power is calculated.
-            system_bounds: The system bounds for the batteries in the proposal.
+            system_bounds: The system bounds for the components in the proposal.
             must_return_power: If `True`, the algorithm must return a target power,
                 even if it hasn't changed since the last call.
 
         Returns:
-            The new target power for the batteries, or `None` if the target power
+            The new target power for the components, or `None` if the target power
                 didn't change.
         """
 
@@ -211,19 +211,19 @@ class BaseAlgorithm(abc.ABC):
     @abc.abstractmethod
     def get_status(
         self,
-        battery_ids: frozenset[int],
+        component_ids: frozenset[int],
         priority: int,
         system_bounds: SystemBounds,
         distribution_result: power_distributing.Result | None,
     ) -> Report:
-        """Get the bounds for a set of batteries, for the given priority.
+        """Get the bounds for a set of components, for the given priority.
 
         Args:
-            battery_ids: The IDs of the batteries to get the bounds for.
+            component_ids: The IDs of the components to get the bounds for.
             priority: The priority of the actor for which the bounds are requested.
-            system_bounds: The system bounds for the batteries.
+            system_bounds: The system bounds for the components.
             distribution_result: The result of the last power distribution.
 
         Returns:
-            The bounds for the batteries.
+            The bounds for the components.
         """

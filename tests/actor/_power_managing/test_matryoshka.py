@@ -38,7 +38,7 @@ class StatefulTester:
         tgt_power = self._algorithm.calculate_target_power(
             self._batteries,
             Proposal(
-                battery_ids=self._batteries,
+                component_ids=self._batteries,
                 source_id=f"actor-{priority}",
                 preferred_power=None if power is None else Power.from_watts(power),
                 bounds=timeseries.Bounds(

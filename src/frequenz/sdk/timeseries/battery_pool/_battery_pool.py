@@ -129,7 +129,7 @@ class BatteryPool:
                 source_id=self._source_id,
                 preferred_power=power,
                 bounds=bounds,
-                battery_ids=self._battery_pool._batteries,
+                component_ids=self._battery_pool._batteries,
                 priority=self._priority,
                 request_timeout=request_timeout,
             )
@@ -174,7 +174,7 @@ class BatteryPool:
                 source_id=self._source_id,
                 preferred_power=power,
                 bounds=timeseries.Bounds(None, None),
-                battery_ids=self._battery_pool._batteries,
+                component_ids=self._battery_pool._batteries,
                 priority=self._priority,
                 request_timeout=request_timeout,
             )
@@ -219,7 +219,7 @@ class BatteryPool:
                 source_id=self._source_id,
                 preferred_power=power,
                 bounds=timeseries.Bounds(None, None),
-                battery_ids=self._battery_pool._batteries,
+                component_ids=self._battery_pool._batteries,
                 priority=self._priority,
                 request_timeout=request_timeout,
             )
