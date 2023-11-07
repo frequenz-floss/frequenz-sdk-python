@@ -1,6 +1,7 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-"""Class that stores pool of batteries and manage them."""
+
+"""Class that tracks the status of pool of components."""
 
 
 import asyncio
@@ -62,50 +63,52 @@ class _ComponentStatusChannelHelper:
         self.sender = channel.new_sender()
 
 
-class BatteryPoolStatus:
-    """Track status of the batteries.
+class ComponentPoolStatusTracker:
+    """Track status of components of a given category.
 
-    Send set of working and uncertain batteries, when the any battery change status.
+    Send set of working and uncertain components, when the status of any of the tracked
+    components changes.
     """
 
-    def __init__(  # noqa: DOC502 (RuntimeError is raised indirectly by BatteryStatus)
+    def __init__(  # noqa: DOC502 (RuntimeError raised from BatteryStatusTracker)
         self,
-        battery_ids: set[int],
-        battery_status_sender: Sender[ComponentStatus],
+        component_ids: set[int],
+        component_status_sender: Sender[ComponentStatus],
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
     ) -> None:
-        """Create BatteryPoolStatus instance.
+        """Create ComponentPoolStatusTracker instance.
 
         Args:
-            battery_ids: set of batteries ids that should be stored in pool.
-            battery_status_sender: The sender used for sending the status of the
-                batteries in the pool.
-            max_data_age_sec: If component stopped sending data, then
-                this is the maximum time when its last message should be considered as
-                valid. After that time, component won't be used until it starts sending
-                data.
+            component_ids: set of component ids whose status is to be tracked.
+            component_status_sender: The sender used for sending the status of the
+                tracked components.
+            max_data_age_sec: If a component stops sending data, then this is the
+                maximum time for which its last message should be considered as
+                valid. After that time, the component won't be used until it starts
+                sending data.
             max_blocking_duration_sec: This value tell what should be the maximum
                 timeout used for blocking failing component.
 
         Raises:
-            RuntimeError: If any battery has no adjacent inverter.
+            RuntimeError: When managing batteries, if any battery has no adjacent
+                inverter.
         """
-        # At first no battery is working, we will get notification when they start
+        # At first no component is working, we will get notification when they start
         # working.
         self._current_status = ComponentStatus(working=set(), uncertain=set())
 
-        # Channel for sending results of requests to the batteries
-        set_power_result_channel = Broadcast[SetPowerResult]("battery_request_status")
+        # Channel for sending results of requests to the components.
+        set_power_result_channel = Broadcast[SetPowerResult]("component_request_status")
         self._set_power_result_sender = set_power_result_channel.new_sender()
 
         self._batteries: dict[str, BatteryStatusTracker] = {}
 
-        # Receivers for individual battery statuses are needed to create a `MergeNamed`
-        # object.
+        # Receivers for individual components statuses are needed to create a
+        # `MergeNamed` object.
         receivers: dict[str, Receiver[Status]] = {}
 
-        for battery_id in battery_ids:
+        for battery_id in component_ids:
             channel = _ComponentStatusChannelHelper(battery_id)
             receivers[channel.name] = channel.receiver
 
@@ -119,20 +122,16 @@ class BatteryPoolStatus:
                 ),
             )
 
-        self._battery_status_channel = MergeNamed[Status](
+        self._component_status_channel = MergeNamed[Status](
             **receivers,
         )
 
-        self._task = asyncio.create_task(self._run(battery_status_sender))
+        self._task = asyncio.create_task(self._run(component_status_sender))
 
     async def join(self) -> None:
-        """Await for the battery pool, and return when the task completes.
+        """Wait and return when the instance's task completes.
 
-        It will not terminate the program while BatteryPool is working.
-        BatteryPool can be stopped with the `stop` method.
-        This method is not needed in source code, because BatteryPool is owned
-        by the internal code.
-        It is needed only when user needs to run his own instance of the BatteryPool.
+        It will not terminate the instance, which can be done with the `stop` method.
         """
         await self._task
 
@@ -146,69 +145,70 @@ class BatteryPoolStatus:
                 for tracker in self._batteries.values()
             ],
         )
-        await self._battery_status_channel.stop()
+        await self._component_status_channel.stop()
 
-    async def _run(self, battery_status_sender: Sender[ComponentStatus]) -> None:
-        """Start tracking batteries status.
+    async def _run(self, component_status_sender: Sender[ComponentStatus]) -> None:
+        """Start tracking component status.
 
         Args:
-            battery_status_sender: The sender used for sending the status of the
-                batteries in the pool.
+            component_status_sender: The sender used for sending the status of the
+                components in the pool.
         """
         while True:
             try:
-                await self._update_status(battery_status_sender)
+                await self._update_status(component_status_sender)
             except Exception as err:  # pylint: disable=broad-except
                 _logger.error(
-                    "BatteryPoolStatus failed with error: %s. Restarting.", err
+                    "ComponentPoolStatus failed with error: %s. Restarting.", err
                 )
 
     async def _update_status(
-        self, battery_status_sender: Sender[ComponentStatus]
+        self, component_status_sender: Sender[ComponentStatus]
     ) -> None:
-        """Wait for any battery to change status and update status.
+        """Wait for any component to change status and update status.
 
         Args:
-            battery_status_sender: Sender to send the current status of the batteries.
+            component_status_sender: Sender to send the current status of components.
         """
-        async for channel_name, status in self._battery_status_channel:
-            battery_id = self._batteries[channel_name].battery_id
+        async for channel_name, status in self._component_status_channel:
+            component_id = self._batteries[channel_name].battery_id
             if status == Status.WORKING:
-                self._current_status.working.add(battery_id)
-                self._current_status.uncertain.discard(battery_id)
+                self._current_status.working.add(component_id)
+                self._current_status.uncertain.discard(component_id)
             elif status == Status.UNCERTAIN:
-                self._current_status.working.discard(battery_id)
-                self._current_status.uncertain.add(battery_id)
+                self._current_status.working.discard(component_id)
+                self._current_status.uncertain.add(component_id)
             elif status == Status.NOT_WORKING:
-                self._current_status.working.discard(battery_id)
-                self._current_status.uncertain.discard(battery_id)
+                self._current_status.working.discard(component_id)
+                self._current_status.uncertain.discard(component_id)
 
-            await battery_status_sender.send(self._current_status)
+            await component_status_sender.send(self._current_status)
 
     async def update_status(
-        self, succeed_batteries: set[int], failed_batteries: set[int]
+        self, succeed_components: set[int], failed_components: set[int]
     ) -> None:
-        """Notify which batteries succeed and failed in the request.
+        """Notify which components succeed and failed in the request.
 
-        Batteries that failed will be considered as broken and will be blocked for
-        some time.
-        Batteries that succeed will be unblocked.
+        Components that failed will be considered as broken and will be temporarily
+        blocked for some time.
+
+        Components that succeed will be unblocked.
 
         Args:
-            succeed_batteries: Batteries that succeed request
-            failed_batteries: Batteries that failed request
+            succeed_components: Components that succeed request
+            failed_components: Components that failed request
         """
         await self._set_power_result_sender.send(
-            SetPowerResult(succeed_batteries, failed_batteries)
+            SetPowerResult(succeed_components, failed_components)
         )
 
-    def get_working_batteries(self, batteries: abc.Set[int]) -> set[int]:
-        """From the given set of batteries get working.
+    def get_working_components(self, components: abc.Set[int]) -> set[int]:
+        """From the given set of components, return only working ones.
 
         Args:
-            batteries: Set of batteries
+            components: Set of component IDs.
 
         Returns:
-            Subset with working batteries.
+            IDs of subset with working components.
         """
-        return self._current_status.get_working_components(batteries)
+        return self._current_status.get_working_components(components)

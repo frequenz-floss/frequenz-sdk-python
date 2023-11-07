@@ -16,7 +16,9 @@ from pytest_mock import MockerFixture
 from frequenz.sdk import microgrid, timeseries
 from frequenz.sdk.actor import ResamplerConfig, power_distributing
 from frequenz.sdk.actor.power_distributing import ComponentStatus
-from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
+from frequenz.sdk.actor.power_distributing._battery_pool_status import (
+    ComponentPoolStatusTracker,
+)
 from frequenz.sdk.timeseries import Power
 from frequenz.sdk.timeseries.battery_pool import BatteryPoolReport
 
@@ -86,17 +88,19 @@ class TestBatteryPoolControl:
         Otherwise, it will return the requested batteries.
         """
         if battery_ids:
-            mock = MagicMock(spec=BatteryPoolStatus)
-            mock.get_working_batteries.return_value = battery_ids
+            mock = MagicMock(spec=ComponentPoolStatusTracker)
+            mock.get_working_components.return_value = battery_ids
             mocker.patch(
-                "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+                "frequenz.sdk.actor.power_distributing.power_distributing"
+                ".ComponentPoolStatusTracker",
                 return_value=mock,
             )
         else:
-            mock = MagicMock(spec=BatteryPoolStatus)
-            mock.get_working_batteries.side_effect = set
+            mock = MagicMock(spec=ComponentPoolStatusTracker)
+            mock.get_working_components.side_effect = set
             mocker.patch(
-                "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+                "frequenz.sdk.actor.power_distributing.power_distributing"
+                ".ComponentPoolStatusTracker",
                 return_value=mock,
             )
         await mocks.battery_status_sender.send(
