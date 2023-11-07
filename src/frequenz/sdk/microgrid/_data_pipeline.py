@@ -94,13 +94,13 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._data_sourcing_actor: _ActorInfo | None = None
         self._resampling_actor: _ActorInfo | None = None
 
-        self._battery_status_channel = Broadcast["ComponentStatus"](
+        self._battery_status_channel: Broadcast[ComponentStatus] = Broadcast(
             "battery-status", resend_latest=True
         )
-        self._power_distribution_requests_channel = Broadcast["Request"](
+        self._power_distribution_requests_channel: Broadcast[Request] = Broadcast(
             "Power Distributing Actor, Requests Broadcast Channel"
         )
-        self._power_distribution_results_channel = Broadcast["Result"](
+        self._power_distribution_results_channel: Broadcast[Result] = Broadcast(
             "Power Distributing Actor, Results Broadcast Channel"
         )
 
