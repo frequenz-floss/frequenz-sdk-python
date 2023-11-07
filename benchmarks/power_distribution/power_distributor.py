@@ -16,7 +16,7 @@ from frequenz.channels import Broadcast
 from frequenz.sdk import microgrid
 from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.actor.power_distributing import (
-    BatteryStatus,
+    ComponentStatus,
     Error,
     OutOfBounds,
     PartialFailure,
@@ -112,7 +112,7 @@ async def run_test(  # pylint: disable=too-many-locals
     start = timeit.default_timer()
 
     power_request_channel = Broadcast[Request]("power-request")
-    battery_status_channel = Broadcast[BatteryStatus]("battery-status")
+    battery_status_channel = Broadcast[ComponentStatus]("battery-status")
     power_result_channel = Broadcast[Result]("power-result")
     async with PowerDistributingActor(
         requests_receiver=power_request_channel.new_receiver(),

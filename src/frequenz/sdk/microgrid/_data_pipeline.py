@@ -36,7 +36,7 @@ _logger = logging.getLogger(__name__)
 if typing.TYPE_CHECKING:
     from ..actor import ComponentMetricRequest, ResamplerConfig, _power_managing
     from ..actor.power_distributing import (  # noqa: F401 (imports used by string type hints)
-        BatteryStatus,
+        ComponentStatus,
         PowerDistributingActor,
         Request,
         Result,
@@ -94,7 +94,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._data_sourcing_actor: _ActorInfo | None = None
         self._resampling_actor: _ActorInfo | None = None
 
-        self._battery_status_channel = Broadcast["BatteryStatus"](
+        self._battery_status_channel = Broadcast["ComponentStatus"](
             "battery-status", resend_latest=True
         )
         self._power_distribution_requests_channel = Broadcast["Request"](

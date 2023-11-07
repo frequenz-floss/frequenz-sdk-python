@@ -15,7 +15,7 @@ from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid, timeseries
 from frequenz.sdk.actor import ResamplerConfig, power_distributing
-from frequenz.sdk.actor.power_distributing import BatteryStatus
+from frequenz.sdk.actor.power_distributing import ComponentStatus
 from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
 from frequenz.sdk.timeseries import Power
 from frequenz.sdk.timeseries.battery_pool import BatteryPoolReport
@@ -35,7 +35,7 @@ class Mocks:
     streamer: MockComponentDataStreamer
     """A mock component data streamer."""
 
-    battery_status_sender: Sender[BatteryStatus]
+    battery_status_sender: Sender[ComponentStatus]
     """Sender for sending status of the batteries."""
 
 
@@ -100,7 +100,7 @@ class TestBatteryPoolControl:
                 return_value=mock,
             )
         await mocks.battery_status_sender.send(
-            BatteryStatus(working=set(mocks.microgrid.battery_ids), uncertain=set())
+            ComponentStatus(working=set(mocks.microgrid.battery_ids), uncertain=set())
         )
 
     async def _init_data_for_batteries(self, mocks: Mocks) -> None:

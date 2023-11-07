@@ -18,28 +18,28 @@ _logger = logging.getLogger(__name__)
 
 
 @dataclass
-class BatteryStatus:
-    """Status of the batteries."""
+class ComponentStatus:
+    """Status of all components of a certain category in the microgrid."""
 
     working: set[int]
-    """Set of working battery ids."""
+    """Set of working component ids."""
 
     uncertain: set[int]
-    """Set of batteries that should be used only if there are no working batteries."""
+    """Set of components to be used only when there are none known to be working."""
 
-    def get_working_batteries(self, batteries: abc.Set[int]) -> set[int]:
-        """From the given set of batteries return working batteries.
+    def get_working_components(self, components: abc.Set[int]) -> set[int]:
+        """From the given set of components return the working ones.
 
         Args:
-            batteries: Set of batteries
+            components: Set of components.
 
         Returns:
-            Subset with working batteries.
+            Subset with working components.
         """
-        working = self.working.intersection(batteries)
+        working = self.working.intersection(components)
         if len(working) > 0:
             return working
-        return self.uncertain.intersection(batteries)
+        return self.uncertain.intersection(components)
 
 
 @dataclass
@@ -71,7 +71,7 @@ class BatteryPoolStatus:
     def __init__(  # noqa: DOC502 (RuntimeError is raised indirectly by BatteryStatus)
         self,
         battery_ids: set[int],
-        battery_status_sender: Sender[BatteryStatus],
+        battery_status_sender: Sender[ComponentStatus],
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
     ) -> None:
@@ -93,7 +93,7 @@ class BatteryPoolStatus:
         """
         # At first no battery is working, we will get notification when they start
         # working.
-        self._current_status = BatteryStatus(working=set(), uncertain=set())
+        self._current_status = ComponentStatus(working=set(), uncertain=set())
 
         # Channel for sending results of requests to the batteries
         set_power_result_channel = Broadcast[SetPowerResult]("battery_request_status")
@@ -148,7 +148,7 @@ class BatteryPoolStatus:
         )
         await self._battery_status_channel.stop()
 
-    async def _run(self, battery_status_sender: Sender[BatteryStatus]) -> None:
+    async def _run(self, battery_status_sender: Sender[ComponentStatus]) -> None:
         """Start tracking batteries status.
 
         Args:
@@ -164,7 +164,7 @@ class BatteryPoolStatus:
                 )
 
     async def _update_status(
-        self, battery_status_sender: Sender[BatteryStatus]
+        self, battery_status_sender: Sender[ComponentStatus]
     ) -> None:
         """Wait for any battery to change status and update status.
 
@@ -211,4 +211,4 @@ class BatteryPoolStatus:
         Returns:
             Subset with working batteries.
         """
-        return self._current_status.get_working_batteries(batteries)
+        return self._current_status.get_working_components(batteries)
