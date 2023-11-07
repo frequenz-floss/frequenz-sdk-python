@@ -15,6 +15,7 @@ from frequenz.api.common import metrics_pb2 as metrics_pb
 from frequenz.api.microgrid import microgrid_pb2 as microgrid_pb
 from frequenz.api.microgrid.microgrid_pb2_grpc import MicrogridStub
 from frequenz.channels import Broadcast, Receiver, Sender
+from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 
 from ..._internal._constants import RECEIVER_MAX_SIZE
 from ..component import (
@@ -30,6 +31,7 @@ from ..component._component import (
     _component_metadata_from_protobuf,
     _component_type_from_protobuf,
 )
+from ..metadata import Location, Metadata
 from ._connection import Connection
 from ._retry import LinearBackoff, RetryStrategy
 
@@ -60,6 +62,14 @@ class MicrogridApiClient(ABC):
 
         Returns:
             Iterator whose elements are all the components in the microgrid.
+        """
+
+    @abstractmethod
+    async def metadata(self) -> Metadata:
+        """Fetch the microgrid metadata.
+
+        Returns:
+            the microgrid metadata.
         """
 
     @abstractmethod
@@ -258,6 +268,36 @@ class MicrogridGrpcClient(MicrogridApiClient):
         )
 
         return result
+
+    async def metadata(self) -> Metadata:
+        """Fetch the microgrid metadata.
+
+        If there is an error fetching the metadata, the microgrid ID and
+        location will be set to None.
+
+        Returns:
+            the microgrid metadata.
+        """
+        microgrid_metadata: microgrid_pb.MicrogridMetadata | None = None
+        try:
+            microgrid_metadata = await self.api.GetMicrogridMetadata(
+                Empty(),
+                timeout=int(DEFAULT_GRPC_CALL_TIMEOUT),
+            )  # type: ignore[misc]
+        except grpc.aio.AioRpcError:
+            _logger.exception("The microgrid metadata is not available.")
+
+        if not microgrid_metadata:
+            return Metadata()
+
+        location: Location | None = None
+        if microgrid_metadata.location:
+            location = Location(
+                latitude=microgrid_metadata.location.latitude,
+                longitude=microgrid_metadata.location.longitude,
+            )
+
+        return Metadata(microgrid_id=microgrid_metadata.microgrid_id, location=location)
 
     async def connections(
         self,

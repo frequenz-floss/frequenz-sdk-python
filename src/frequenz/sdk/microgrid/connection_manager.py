@@ -16,6 +16,7 @@ import grpc.aio as grpcaio
 from .client import MicrogridApiClient
 from .client._client import MicrogridGrpcClient
 from .component_graph import ComponentGraph, _MicrogridComponentGraph
+from .metadata import Location, Metadata
 
 # Not public default host and port
 _DEFAULT_MICROGRID_HOST = "[::1]"
@@ -74,6 +75,24 @@ class ConnectionManager(ABC):
             component graph
         """
 
+    @property
+    @abstractmethod
+    def microgrid_id(self) -> int | None:
+        """Get the ID of the microgrid if available.
+
+        Returns:
+            the ID of the microgrid if available, None otherwise.
+        """
+
+    @property
+    @abstractmethod
+    def location(self) -> Location | None:
+        """Get the location of the microgrid if available.
+
+        Returns:
+            the location of the microgrid if available, None otherwise.
+        """
+
     async def _update_api(self, host: str, port: int) -> None:
         self._host = host
         self._port = port
@@ -103,6 +122,9 @@ class _InsecureConnectionManager(ConnectionManager):
         # So create empty graph here, and update it in `run` method.
         self._graph = _MicrogridComponentGraph()
 
+        self._metadata: Metadata
+        """The metadata of the microgrid."""
+
     @property
     def api_client(self) -> MicrogridApiClient:
         """Get MicrogridApiClient.
@@ -111,6 +133,24 @@ class _InsecureConnectionManager(ConnectionManager):
             api client
         """
         return self._api
+
+    @property
+    def microgrid_id(self) -> int | None:
+        """Get the ID of the microgrid if available.
+
+        Returns:
+            the ID of the microgrid if available, None otherwise.
+        """
+        return self._metadata.microgrid_id
+
+    @property
+    def location(self) -> Location | None:
+        """Get the location of the microgrid if available.
+
+        Returns:
+            the location of the microgrid if available, None otherwise.
+        """
+        return self._metadata.location
 
     @property
     def component_graph(self) -> ComponentGraph:
@@ -133,9 +173,11 @@ class _InsecureConnectionManager(ConnectionManager):
         target = f"{host}:{port}"
         grpc_channel = grpcaio.insecure_channel(target)
         self._api = MicrogridGrpcClient(grpc_channel, target)
+        self._metadata = await self._api.metadata()
         await self._graph.refresh_from_api(self._api)
 
     async def _initialize(self) -> None:
+        self._metadata = await self._api.metadata()
         await self._graph.refresh_from_api(self._api)
 
 

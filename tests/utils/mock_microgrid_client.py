@@ -26,12 +26,19 @@ from frequenz.sdk.microgrid.component_graph import (
     _MicrogridComponentGraph,
 )
 from frequenz.sdk.microgrid.connection_manager import ConnectionManager
+from frequenz.sdk.microgrid.metadata import Location
 
 
 class MockMicrogridClient:
     """Class that mocks MicrogridClient behavior."""
 
-    def __init__(self, components: set[Component], connections: set[Connection]):
+    def __init__(
+        self,
+        components: set[Component],
+        connections: set[Connection],
+        microgrid_id: int = 8,
+        location: Location = Location(latitude=52.520008, longitude=13.404954),
+    ):
         """Create mock microgrid with given components and connections.
 
         This simulates microgrid.
@@ -43,6 +50,8 @@ class MockMicrogridClient:
         Args:
             components: List of the microgrid components
             connections: List of the microgrid connections
+            microgrid_id: the ID of the microgrid
+            location: the location of the microgrid
         """
         self._component_graph = _MicrogridComponentGraph(components, connections)
 
@@ -66,6 +75,8 @@ class MockMicrogridClient:
         kwargs: dict[str, Any] = {
             "api_client": mock_api,
             "component_graph": self._component_graph,
+            "microgrid_id": microgrid_id,
+            "location": location,
         }
 
         self._mock_microgrid = MagicMock(spec=ConnectionManager, **kwargs)

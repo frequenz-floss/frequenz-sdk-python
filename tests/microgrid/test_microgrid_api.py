@@ -11,6 +11,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from frequenz.sdk.microgrid import connection_manager
+from frequenz.sdk.microgrid import metadata as meta
 from frequenz.sdk.microgrid.client import Connection
 from frequenz.sdk.microgrid.component import Component, ComponentCategory
 
@@ -82,12 +83,29 @@ class TestMicrogridApi:
         ]
         return connections
 
+    @pytest.fixture
+    def metadata(self) -> meta.Metadata:
+        """Fetch the microgrid metadata.
+
+        Returns:
+            the microgrid metadata.
+        """
+        mock_timezone_finder = MagicMock()
+        mock_timezone_finder.timezone_at.return_value = "Europe/Berlin"
+        meta._timezone_finder = mock_timezone_finder  # pylint: disable=protected-access
+
+        return meta.Metadata(
+            microgrid_id=8,
+            location=meta.Location(latitude=52.520008, longitude=13.404954),
+        )
+
     @mock.patch("grpc.aio.insecure_channel")
     async def test_connection_manager(
         self,
         _: MagicMock,
         components: list[list[Component]],
         connections: list[list[Connection]],
+        metadata: meta.Metadata,
     ) -> None:
         """Test microgrid api.
 
@@ -95,10 +113,12 @@ class TestMicrogridApi:
             _: insecure channel mock from `mock.patch`
             components: components
             connections: connections
+            metadata: the metadata of the microgrid
         """
         microgrid_client = MagicMock()
         microgrid_client.components = AsyncMock(side_effect=components)
         microgrid_client.connections = AsyncMock(side_effect=connections)
+        microgrid_client.metadata = AsyncMock(return_value=metadata)
 
         with mock.patch(
             "frequenz.sdk.microgrid.connection_manager.MicrogridGrpcClient",
@@ -137,6 +157,11 @@ class TestMicrogridApi:
             assert set(graph.components()) == set(components[0])
             assert set(graph.connections()) == set(connections[0])
 
+            assert api.microgrid_id == metadata.microgrid_id
+            assert api.location == metadata.location
+            assert api.location and api.location.timezone
+            assert api.location.timezone.key == "Europe/Berlin"
+
             # It should not be possible to initialize method once again
             with pytest.raises(AssertionError):
                 await connection_manager.initialize("127.0.0.1", 10001)
@@ -148,12 +173,16 @@ class TestMicrogridApi:
             assert set(graph.components()) == set(components[0])
             assert set(graph.connections()) == set(connections[0])
 
+            assert api.microgrid_id == metadata.microgrid_id
+            assert api.location == metadata.location
+
     @mock.patch("grpc.aio.insecure_channel")
     async def test_connection_manager_another_method(
         self,
         _: MagicMock,
         components: list[list[Component]],
         connections: list[list[Connection]],
+        metadata: meta.Metadata,
     ) -> None:
         """Test if the api was not deallocated.
 
@@ -161,12 +190,19 @@ class TestMicrogridApi:
             _: insecure channel mock
             components: components
             connections: connections
+            metadata: the metadata of the microgrid
         """
         microgrid_client = MagicMock()
         microgrid_client.components = AsyncMock(return_value=[])
         microgrid_client.connections = AsyncMock(return_value=[])
+        microgrid_client.get_metadata = AsyncMock(return_value=None)
 
         api = connection_manager.get()
         graph = api.component_graph
         assert set(graph.components()) == set(components[0])
         assert set(graph.connections()) == set(connections[0])
+
+        assert api.microgrid_id == metadata.microgrid_id
+        assert api.location == metadata.location
+        assert api.location and api.location.timezone
+        assert api.location.timezone.key == "Europe/Berlin"
