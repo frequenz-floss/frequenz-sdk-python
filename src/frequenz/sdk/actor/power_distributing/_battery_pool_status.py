@@ -43,18 +43,18 @@ class ComponentStatus:
 
 
 @dataclass
-class _BatteryStatusChannelHelper:
-    """Helper class to create battery status channel.
+class _ComponentStatusChannelHelper:
+    """Helper class to create component status channel.
 
     Channel has only one receiver.
     Receiver has size 1, because we need only latest status.
     """
 
-    battery_id: int
-    """Id of the battery for which we should create channel."""
+    component_id: int
+    """Id of the component for which we should create channel."""
 
     def __post_init__(self) -> None:
-        self.name: str = f"battery-{self.battery_id}-status"
+        self.name: str = f"component-{self.component_id}-status"
         channel = Broadcast[Status](self.name)
 
         receiver_name = f"{self.name}-receiver"
@@ -106,7 +106,7 @@ class BatteryPoolStatus:
         receivers: dict[str, Receiver[Status]] = {}
 
         for battery_id in battery_ids:
-            channel = _BatteryStatusChannelHelper(battery_id)
+            channel = _ComponentStatusChannelHelper(battery_id)
             receivers[channel.name] = channel.receiver
 
             self._batteries[channel.name] = BatteryStatusTracker(
