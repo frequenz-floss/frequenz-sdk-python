@@ -20,7 +20,7 @@ from frequenz.sdk.actor.power_distributing import (
     PowerDistributingActor,
     Request,
 )
-from frequenz.sdk.actor.power_distributing._battery_pool_status import (
+from frequenz.sdk.actor.power_distributing._component_pool_status_tracker import (
     ComponentPoolStatusTracker,
 )
 from frequenz.sdk.actor.power_distributing.result import (

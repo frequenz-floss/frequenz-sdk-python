@@ -16,7 +16,7 @@ from pytest_mock import MockerFixture
 from frequenz.sdk import microgrid, timeseries
 from frequenz.sdk.actor import ResamplerConfig, power_distributing
 from frequenz.sdk.actor.power_distributing import ComponentStatus
-from frequenz.sdk.actor.power_distributing._battery_pool_status import (
+from frequenz.sdk.actor.power_distributing._component_pool_status_tracker import (
     ComponentPoolStatusTracker,
 )
 from frequenz.sdk.timeseries import Power

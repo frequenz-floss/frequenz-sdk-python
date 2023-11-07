@@ -36,7 +36,7 @@ from ...microgrid.component import (
     ComponentCategory,
     InverterData,
 )
-from ._battery_pool_status import ComponentPoolStatusTracker, ComponentStatus
+from ._component_pool_status_tracker import ComponentPoolStatusTracker, ComponentStatus
 from ._distribution_algorithm import (
     AggregatedBatteryData,
     DistributionAlgorithm,

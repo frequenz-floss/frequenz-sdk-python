@@ -14,7 +14,7 @@ from frequenz.channels import Receiver, Sender
 
 from ..._internal._asyncio import cancel_and_await
 from ...actor import ComponentMetricRequest, _channel_registry, _power_managing
-from ...actor.power_distributing._battery_pool_status import ComponentStatus
+from ...actor.power_distributing._component_pool_status_tracker import ComponentStatus
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory
 from ..formula_engine._formula_engine_pool import FormulaEnginePool

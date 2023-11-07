@@ -7,7 +7,7 @@ import asyncio
 from frequenz.channels import Broadcast
 from pytest_mock import MockerFixture
 
-from frequenz.sdk.actor.power_distributing._battery_pool_status import (
+from frequenz.sdk.actor.power_distributing._component_pool_status_tracker import (
     ComponentPoolStatusTracker,
     ComponentStatus,
 )
