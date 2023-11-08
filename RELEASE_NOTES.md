@@ -2,85 +2,60 @@
 
 ## Summary
 
-This version ships an experimental version of the **Power Manager**, adds preliminary support for n:m relations between inverters and batteries and includes user documentation.
+The `microgrid` package now exposes grid connections uniformly and introduces formula operators for `consumption` and `production`, replacing the `logical_meter.*_{production,consumption}()` formulas. The `actor` package restarts crashed actors with a delay, and the `ConnectionManager` exposes the `microgrid_id` and `location` details.
+
+There are also a few bug fixes, documentation improvements and other minor breaking changes.
 
 ## Upgrading
 
-- `microgrid.battery_pool()` method now accepts a priority value.
+- `actor` package
 
-- `microgrid.grid()`
+  * Actors are now restarted after a small delay when they crash to avoid a busy loop and spamming the logs if the actor keeps failing to start.
 
-  * Similar to `microgrid.battery_pool()`, the Grid is now similarily accessed.
+  * The `include_broken_batteries` argument was removed from the `PowerDistributingActor`'s `Request`. This option is no longer supported.
 
-- `BatteryPool`'s control methods
+- `microgrid` package
 
-  * Original methods `{set_power/charge/discharge}` are now replaced by `propose_{power/charge/discharge}`
-  * The `propose_*` methods send power proposals to the `PowerManagingActor`, where it can be overridden by proposals from other actors.
-  * They no longer have the `adjust_power` flag, because the `PowerManagingActor` will always adjust power to fit within the available bounds.
-  * They no longer have a `include_broken_batteries` parameter.  The feature has been removed.
+  * `grid`: The grid connection is now exposed as `microgrid.grid()`. This is more consistent with other objects exposed in the `microgrid` module, such as `microgrid.battery_pool()` and `microgrid.logical_meter()`.
 
-- `BatteryPool`'s reporting methods
+  * `battery_pool()`: The `include_broken_batteries` argument was removed from the `propose_*()` methods (it was also removed from the underlying type, `timeseries.BatteryPool`). This option is no longer supported.
 
-  * `power_bounds` is replaced by `power_status`
-  * The `power_status` method streams objects containing:
-    + bounds adjusted to the actor's priorities
-    + the latest target power for the set of batteries
-    + the results from the power distributor for the last request
+  * `ComponentGraph`: The component graph is now exposed as `microgrid.component_graph.ComponentGraph`.
 
-- Move `microgrid.ComponentGraph` class to `microgrid.component_graph.ComponentGraph`, exposing only the high level interface functions through the `microgrid` package.
+  * `logical_meter()`: The `*_consumption()` and `*_production()` methods were removed. You should use the new `consumption` and `production` formula operators instead.
 
-- An actor that is crashing will no longer instantly restart but induce an artificial delay to avoid potential spam-restarting.
+    For example:
+
+    ```python
+    # Old:
+    pv_consumption = logical_meter.pv_consumption_power()
+    production = (logical_meter.pv_production_power() + logical_meter.chp_production_power()).build()
+    # New:
+    pv_consumption = logical_meter.pv_power().consumption().build()
+    production = (logical_meter.pv_power().production() + logical_meter.chp_power().production()).build()
+    ```
 
 ## New Features
 
-- New and improved documentation.
+- The configuration flag `resend_latest` can now be changed for channels owned by the `ChannelRegistry`.
 
-  * A new *User Guide* section was added, with:
+- New formula operators for calculating `consumption()` and `production()` were added.
 
-    + A glossary.
-    + An introduction to actors.
+- The `ConnectionManager` now fetches microgrid metadata when connecting to the microgrid and exposes `microgrid_id` and `location` properties of the connected microgrid.
 
-  * A new *Tutorials* section was added, with:
+  Users can access this information using `microgrid.connection_manager.get().microgrid_id` and `microgrid.connection_manager.get().location`.
 
-    + A getting started tutorial.
+- The documentation has been improved to:
 
-- In `OrderedRingBuffer`:
-  - Rename `datetime_to_index` to `to_internal_index` to avoid confusion between the internal index and the external index.
-  - Add `index_to_datetime` method to convert external index to corresponding datetime.
-  - Remove `__setitem__` method to enforce usage of dedicated `update` method only.
-- In `OrderedRingBuffer` and `MovingWindow`:
-  - Support for integer indices is added.
-  - Add `count_covered` method to count the number of elements covered by the used time range.
-  - Add `fill_value` option to window method to impute missing values. By default missing values are imputed with `NaN`.
-- Add `at` method to `MovingWindow` to access a single element and use it in `__getitem__` magic to fully support single element access.
-
-- The PowerDistributingActor now supports n:m relations between inverters and batteries.
-
-  This means that one or more inverters can be connected to one or more batteries.
-
-- A `PowerManagingActor` implementation.
-
-- Allow configuration of the `resend_latest` flag in channels owned by the `ChannelRegistry`.
-
-- Add consumption and production operators that will replace the logical meters production and consumption function variants.
-
-- Consumption and production power formulas have been removed.
-
-- The documentation was improved to:
-
-  * Show signatures with types.
-  * Show the inherited members.
-  * Documentation for pre-releases are now published.
-  * Show the full tag name as the documentation version.
-  * All development branches now have their documentation published (there is no `next` version anymore).
+  * Display signatures with types.
+  * Show inherited members.
+  * Publish documentation for pre-releases.
+  * Present the full tag name as the documentation version.
+  * Ensure all development branches have their documentation published (the `next` version has been removed).
   * Fix the order of the documentation versions.
-
-- The `ConnectionManager` fetches microgrid metadata when connecting to the microgrid and exposes `microgrid_id` and `location` properties of the connected microgrid.
 
 ## Bug Fixes
 
-- Fix rendering of diagrams in the documentation.
-- The `__getitem__` magic of the `MovingWindow` is fixed to support the same functionality that the `window` method provides.
-- Fixes incorrect implementation of single element access in `__getitem__` magic of `MovingWindow`.
-- Fix incorrect grid current calculations in locations where the calculations depended on current measurements from an inverter.
-- Fix power failure report to exclude any failed power from the succeeded power.
+- Fixed incorrect grid current calculations in locations where the calculations depended on current measurements from an inverter.
+
+- Corrected the power failure report to exclude any failed power calculations from the successful ones.
