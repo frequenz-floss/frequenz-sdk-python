@@ -2,42 +2,60 @@
 
 ## Summary
 
+The `microgrid` package now exposes grid connections uniformly and introduces formula operators for `consumption` and `production`, replacing the `logical_meter.*_{production,consumption}()` formulas. The `actor` package restarts crashed actors with a delay, and the `ConnectionManager` exposes the `microgrid_id` and `location` details.
+
+There are also a few bug fixes, documentation improvements and other minor breaking changes.
 
 ## Upgrading
 
-- `microgrid.grid()`
+- `actor` package
 
-  * Similar to `microgrid.battery_pool()`, the Grid is now similarily accessed.
+  * Actors are now restarted after a small delay when they crash to avoid a busy loop and spamming the logs if the actor keeps failing to start.
 
-- `BatteryPool`'s control methods
+  * The `include_broken_batteries` argument was removed from the `PowerDistributingActor`'s `Request`. This option is no longer supported.
 
-  * They no longer have a `include_broken_batteries` parameter.  The feature has been removed.
+- `microgrid` package
 
-- Move `microgrid.ComponentGraph` class to `microgrid.component_graph.ComponentGraph`, exposing only the high level interface functions through the `microgrid` package.
+  * `grid`: The grid connection is now exposed as `microgrid.grid()`. This is more consistent with other objects exposed in the `microgrid` module, such as `microgrid.battery_pool()` and `microgrid.logical_meter()`.
 
-- An actor that is crashing will no longer instantly restart but induce an artificial delay to avoid potential spam-restarting.
+  * `battery_pool()`: The `include_broken_batteries` argument was removed from the `propose_*()` methods (it was also removed from the underlying type, `timeseries.BatteryPool`). This option is no longer supported.
+
+  * `ComponentGraph`: The component graph is now exposed as `microgrid.component_graph.ComponentGraph`.
+
+  * `logical_meter()`: The `*_consumption()` and `*_production()` methods were removed. You should use the new `consumption` and `production` formula operators instead.
+
+    For example:
+
+    ```python
+    # Old:
+    pv_consumption = logical_meter.pv_consumption_power()
+    production = (logical_meter.pv_production_power() + logical_meter.chp_production_power()).build()
+    # New:
+    pv_consumption = logical_meter.pv_power().consumption().build()
+    production = (logical_meter.pv_power().production() + logical_meter.chp_power().production()).build()
+    ```
 
 ## New Features
 
+- The configuration flag `resend_latest` can now be changed for channels owned by the `ChannelRegistry`.
 
-- Allow configuration of the `resend_latest` flag in channels owned by the `ChannelRegistry`.
+- New formula operators for calculating `consumption()` and `production()` were added.
 
-- Add consumption and production operators that will replace the logical meters production and consumption function variants.
+- The `ConnectionManager` now fetches microgrid metadata when connecting to the microgrid and exposes `microgrid_id` and `location` properties of the connected microgrid.
 
-- Consumption and production power formulas have been removed.
+  Users can access this information using `microgrid.connection_manager.get().microgrid_id` and `microgrid.connection_manager.get().location`.
 
-- The documentation was improved to:
+- The documentation has been improved to:
 
-  * Show signatures with types.
-  * Show the inherited members.
-  * Documentation for pre-releases are now published.
-  * Show the full tag name as the documentation version.
-  * All development branches now have their documentation published (there is no `next` version anymore).
+  * Display signatures with types.
+  * Show inherited members.
+  * Publish documentation for pre-releases.
+  * Present the full tag name as the documentation version.
+  * Ensure all development branches have their documentation published (the `next` version has been removed).
   * Fix the order of the documentation versions.
-
-- The `ConnectionManager` fetches microgrid metadata when connecting to the microgrid and exposes `microgrid_id` and `location` properties of the connected microgrid.
 
 ## Bug Fixes
 
-- Fix incorrect grid current calculations in locations where the calculations depended on current measurements from an inverter.
-- Fix power failure report to exclude any failed power from the succeeded power.
+- Fixed incorrect grid current calculations in locations where the calculations depended on current measurements from an inverter.
+
+- Corrected the power failure report to exclude any failed power calculations from the successful ones.
