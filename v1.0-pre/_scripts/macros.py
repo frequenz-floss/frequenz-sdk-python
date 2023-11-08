@@ -3,6 +3,7 @@
 
 """This module defines macros for use in Markdown files."""
 
+import os
 import pathlib
 from typing import Any
 
@@ -34,35 +35,16 @@ def _slugify(text: str) -> str:
     return toc.slugify_unicode(text, "-")  # type: ignore[attr-defined,no-any-return]
 
 
-def define_env(env: macros.MacrosPlugin) -> None:
-    """Define the hook to create macro functions for use in Markdown.
+def _hook_macros_plugin(env: macros.MacrosPlugin) -> None:
+    """Integrate the `mkdocs-macros` plugin into `mkdocstrings`.
+
+    This is a temporary workaround to make `mkdocs-macros` work with
+    `mkdocstrings` until a proper `mkdocs-macros` *pluglet* is available. See
+    https://github.com/mkdocstrings/mkdocstrings/issues/615 for details.
 
     Args:
-        env: The environment to define the macro functions in.
+        env: The environment to hook the plugin into.
     """
-    # A variable to easily show an example code annotation from mkdocs-material.
-    # https://squidfunk.github.io/mkdocs-material/reference/code-blocks/#adding-annotations
-    env.variables["code_annotation_marker"] = _CODE_ANNOTATION_MARKER
-
-    @env.macro  # type: ignore[misc]
-    def glossary(term: str) -> str:
-        """Create a link to the glossary entry for the given term.
-
-        Args:
-            term: The term to link to.
-
-        Returns:
-            The Markdown link to the glossary entry for the given term.
-        """
-        current_path = pathlib.Path(env.page.file.src_uri)
-        glossary_path = pathlib.Path("user-guide/glossary.md")
-        link_path = glossary_path.relative_to(current_path.parent)
-        return f"[{term}]({link_path}#{_slugify(term)})"
-
-    # The code below is a temporary workaround to make `mkdocs-macros` work with
-    # `mkdocstrings` until a proper `mkdocs-macros` *pluglet* is available. See
-    # https://github.com/mkdocstrings/mkdocstrings/issues/615 for details.
-
     # get mkdocstrings' Python handler
     python_handler = env.conf["plugins"]["mkdocstrings"].get_handler("python")
 
@@ -85,3 +67,37 @@ def define_env(env: macros.MacrosPlugin) -> None:
 
     # patch the method
     python_handler.update_env = patched_update_env
+
+
+def define_env(env: macros.MacrosPlugin) -> None:
+    """Define the hook to create macro functions for use in Markdown.
+
+    Args:
+        env: The environment to define the macro functions in.
+    """
+    # A variable to easily show an example code annotation from mkdocs-material.
+    # https://squidfunk.github.io/mkdocs-material/reference/code-blocks/#adding-annotations
+    env.variables["code_annotation_marker"] = _CODE_ANNOTATION_MARKER
+
+    @env.macro  # type: ignore[misc]
+    def glossary(term: str, text: str | None = None) -> str:
+        """Create a link to the glossary entry for the given term.
+
+        Args:
+            term: The term to link to.
+            text: The text to display for the link. Defaults to the term.
+
+        Returns:
+            The Markdown link to the glossary entry for the given term.
+        """
+        current_path = pathlib.Path(env.page.file.src_uri)
+        glossary_path = pathlib.Path("user-guide/glossary.md")
+        # This needs to use `os.path.relpath` instead of `pathlib.Path.relative_to`
+        # because the latter expects one path to be a parent of the other, which is not
+        # always the case, for example when referencing the glossary from the API
+        # reference.
+        link_path = os.path.relpath(glossary_path, current_path.parent)
+        return f"[{text or term}]({link_path}#{_slugify(term)})"
+
+    # This hook needs to be done at the end of the `define_env` function.
+    _hook_macros_plugin(env)

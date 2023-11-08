@@ -7,7 +7,9 @@
     <meta http-equiv="refresh" content="1; url=../v1.0-pre/" />
   </noscript>
   <script>
-    window.location.replace("../v1.0-pre/" + window.location.hash);
+    window.location.replace(
+      "../v1.0-pre/" + window.location.search + window.location.hash
+    );
   </script>
 </head>
 <body>

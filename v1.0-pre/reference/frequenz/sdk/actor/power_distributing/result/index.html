@@ -19,7 +19,7 @@
         <link rel="next" href="../../../config/">
       
       
-      <link rel="icon" href="../../../../../../logo.png">
+      <link rel="icon" href="../../../../../../_img/logo.png">
       <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.3.1">
     
     
@@ -52,9 +52,9 @@
     
       <link rel="stylesheet" href="../../../../../../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="../../../../../../css/style.css">
+      <link rel="stylesheet" href="../../../../../../_css/style.css">
     
-      <link rel="stylesheet" href="../../../../../../css/mkdocstrings.css">
+      <link rel="stylesheet" href="../../../../../../_css/mkdocstrings.css">
     
     <script>__md_scope=new URL("../../../../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -117,7 +117,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../../../../../.." title="Frequenz Python SDK" class="md-header__button md-logo" aria-label="Frequenz Python SDK" data-md-component="logo">
       
-  <img src="../../../../../../logo.png" alt="logo">
+  <img src="../../../../../../_img/logo.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -375,7 +375,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../../../../../.." title="Frequenz Python SDK" class="md-nav__button md-logo" aria-label="Frequenz Python SDK" data-md-component="logo">
       
-  <img src="../../../../../../logo.png" alt="logo">
+  <img src="../../../../../../_img/logo.png" alt="logo">
 
     </a>
     Frequenz Python SDK
@@ -424,6 +424,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -494,11 +498,51 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../user-guide/formula-engine/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Formula Engine
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../user-guide/glossary/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Glossary
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../user-guide/microgrid-concepts/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Microgrid Concepts
   </span>
   
 
@@ -1247,6 +1291,8 @@
       
         
       
+        
+      
     
     
     <li class="md-nav__item md-nav__item--nested">
@@ -1331,6 +1377,26 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../microgrid/component_graph/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    component_graph
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../microgrid/connection_manager/" class="md-nav__link">
         
   
@@ -1371,11 +1437,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../microgrid/grid/" class="md-nav__link">
+      <a href="../../../microgrid/metadata/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    grid
+    metadata
   </span>
   
 
@@ -1411,6 +1477,12 @@
       
         
           
+        
+      
+        
+          
+        
+      
         
       
         
@@ -1486,6 +1558,46 @@
   
   <span class="md-ellipsis">
     ev_charger_pool
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../timeseries/formula_engine/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    formula_engine
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../timeseries/grid/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    grid
   </span>
   
 
@@ -1870,7 +1982,7 @@
 
 
 <h2 id="frequenz.sdk.actor.power_distributing.result" class="doc doc-heading">
-          <code>frequenz.sdk.actor.power_distributing.result</code>
+          <span class="doc doc-object-name doc-module-name">frequenz.sdk.actor.power_distributing.result</span>
 
 
 <a href="#frequenz.sdk.actor.power_distributing.result" class="headerlink" title="Permanent link">¤</a></h2>
@@ -1895,14 +2007,16 @@
 
 
 <h4 id="frequenz.sdk.actor.power_distributing.result.Result" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">frequenz</span><span class="o">.</span><span class="n">sdk</span><span class="o">.</span><span class="n">actor</span><span class="o">.</span><span class="n">power_distributing</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">Result</span> <span class="o">=</span> <span class="n">Success</span> <span class="o">|</span> <span class="n">PartialFailure</span> <span class="o">|</span> <span class="n">Error</span> <span class="o">|</span> <span class="n">OutOfBounds</span></code>
+          <span class="doc doc-object-name doc-attribute-name">frequenz.sdk.actor.power_distributing.result.Result</span>
+
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.result.Result" class="headerlink" title="Permanent link">¤</a></h4>
-
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">Result</span> <span class="o">=</span> <span class="n">Success</span> <span class="o">|</span> <span class="n">PartialFailure</span> <span class="o">|</span> <span class="n">Error</span> <span class="o">|</span> <span class="n">OutOfBounds</span>
+</span></code></pre></div>
 
   <div class="doc doc-contents ">
   
@@ -1975,7 +2089,7 @@ for r in results:
 
 
 <h4 id="frequenz.sdk.actor.power_distributing.result.Error" class="doc doc-heading">
-          <code>frequenz.sdk.actor.power_distributing.result.Error</code>
+          <span class="doc doc-object-name doc-class-name">frequenz.sdk.actor.power_distributing.result.Error</span>
 
   
   <span class="doc doc-labels">
@@ -1993,7 +2107,7 @@ for r in results:
       <p>Result returned when an error occurred and power was not set at all.</p>
 
             <details class="quote">
-              <summary>Source code in <code>src/frequenz/sdk/actor/power_distributing/result.py</code></summary>
+              <summary>Source code in <code>frequenz/sdk/actor/power_distributing/result.py</code></summary>
               <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-61">61</a></span>
 <span class="normal"><a href="#__codelineno-0-62">62</a></span>
 <span class="normal"><a href="#__codelineno-0-63">63</a></span>
@@ -2024,14 +2138,16 @@ for r in results:
 
 
 <h6 id="frequenz.sdk.actor.power_distributing.result.Error.msg" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">msg</span><span class="p">:</span> <span class="nb">str</span></code>
+          <span class="doc doc-object-name doc-attribute-name">msg</span>
+
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.result.Error.msg" class="headerlink" title="Permanent link">¤</a></h6>
-
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">msg</span><span class="p">:</span> <span class="nb">str</span>
+</span></code></pre></div>
 
   <div class="doc doc-contents ">
   
@@ -2046,14 +2162,16 @@ for r in results:
 
 
 <h6 id="frequenz.sdk.actor.power_distributing.result.Error.request" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">request</span><span class="p">:</span> <span class="n">Request</span></code>
+          <span class="doc doc-object-name doc-attribute-name">request</span>
+
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.result.Error.request" class="headerlink" title="Permanent link">¤</a></h6>
-
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">request</span><span class="p">:</span> <span class="n">Request</span>
+</span></code></pre></div>
 
   <div class="doc doc-contents ">
   
@@ -2078,7 +2196,7 @@ for r in results:
 
 
 <h4 id="frequenz.sdk.actor.power_distributing.result.OutOfBounds" class="doc doc-heading">
-          <code>frequenz.sdk.actor.power_distributing.result.OutOfBounds</code>
+          <span class="doc doc-object-name doc-class-name">frequenz.sdk.actor.power_distributing.result.OutOfBounds</span>
 
   
   <span class="doc doc-labels">
@@ -2098,7 +2216,7 @@ for r in results:
 <code>adjust_power = False</code> and the requested power is not within the batteries bounds.</p>
 
             <details class="quote">
-              <summary>Source code in <code>src/frequenz/sdk/actor/power_distributing/result.py</code></summary>
+              <summary>Source code in <code>frequenz/sdk/actor/power_distributing/result.py</code></summary>
               <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-86">86</a></span>
 <span class="normal"><a href="#__codelineno-0-87">87</a></span>
 <span class="normal"><a href="#__codelineno-0-88">88</a></span>
@@ -2145,14 +2263,16 @@ for r in results:
 
 
 <h6 id="frequenz.sdk.actor.power_distributing.result.OutOfBounds.bounds" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">bounds</span><span class="p">:</span> <span class="n">PowerBounds</span></code>
+          <span class="doc doc-object-name doc-attribute-name">bounds</span>
+
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.result.OutOfBounds.bounds" class="headerlink" title="Permanent link">¤</a></h6>
-
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">bounds</span><span class="p">:</span> <span class="n">PowerBounds</span>
+</span></code></pre></div>
 
   <div class="doc doc-contents ">
   
@@ -2169,14 +2289,16 @@ Otherwise it is upper bound.</p>
 
 
 <h6 id="frequenz.sdk.actor.power_distributing.result.OutOfBounds.request" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">request</span><span class="p">:</span> <span class="n">Request</span></code>
+          <span class="doc doc-object-name doc-attribute-name">request</span>
+
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.result.OutOfBounds.request" class="headerlink" title="Permanent link">¤</a></h6>
-
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">request</span><span class="p">:</span> <span class="n">Request</span>
+</span></code></pre></div>
 
   <div class="doc doc-contents ">
   
@@ -2201,7 +2323,7 @@ Otherwise it is upper bound.</p>
 
 
 <h4 id="frequenz.sdk.actor.power_distributing.result.PartialFailure" class="doc doc-heading">
-          <code>frequenz.sdk.actor.power_distributing.result.PartialFailure</code>
+          <span class="doc doc-object-name doc-class-name">frequenz.sdk.actor.power_distributing.result.PartialFailure</span>
 
   
   <span class="doc doc-labels">
@@ -2219,7 +2341,7 @@ Otherwise it is upper bound.</p>
       <p>Result returned when any battery failed to perform the request.</p>
 
             <details class="quote">
-              <summary>Source code in <code>src/frequenz/sdk/actor/power_distributing/result.py</code></summary>
+              <summary>Source code in <code>frequenz/sdk/actor/power_distributing/result.py</code></summary>
               <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-50">50</a></span>
 <span class="normal"><a href="#__codelineno-0-51">51</a></span>
 <span class="normal"><a href="#__codelineno-0-52">52</a></span>
@@ -2256,14 +2378,16 @@ Otherwise it is upper bound.</p>
 
 
 <h6 id="frequenz.sdk.actor.power_distributing.result.PartialFailure.excess_power" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">excess_power</span><span class="p">:</span> <span class="n">Power</span></code>
+          <span class="doc doc-object-name doc-attribute-name">excess_power</span>
+
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.result.PartialFailure.excess_power" class="headerlink" title="Permanent link">¤</a></h6>
-
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">excess_power</span><span class="p">:</span> <span class="n">Power</span>
+</span></code></pre></div>
 
   <div class="doc doc-contents ">
   
@@ -2279,14 +2403,16 @@ Otherwise it is upper bound.</p>
 
 
 <h6 id="frequenz.sdk.actor.power_distributing.result.PartialFailure.failed_batteries" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">failed_batteries</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
+          <span class="doc doc-object-name doc-attribute-name">failed_batteries</span>
+
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.result.PartialFailure.failed_batteries" class="headerlink" title="Permanent link">¤</a></h6>
-
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">failed_batteries</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+</span></code></pre></div>
 
   <div class="doc doc-contents ">
   
@@ -2301,14 +2427,16 @@ Otherwise it is upper bound.</p>
 
 
 <h6 id="frequenz.sdk.actor.power_distributing.result.PartialFailure.failed_power" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">failed_power</span><span class="p">:</span> <span class="n">Power</span></code>
+          <span class="doc doc-object-name doc-attribute-name">failed_power</span>
+
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.result.PartialFailure.failed_power" class="headerlink" title="Permanent link">¤</a></h6>
-
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">failed_power</span><span class="p">:</span> <span class="n">Power</span>
+</span></code></pre></div>
 
   <div class="doc doc-contents ">
   
@@ -2323,14 +2451,16 @@ Otherwise it is upper bound.</p>
 
 
 <h6 id="frequenz.sdk.actor.power_distributing.result.PartialFailure.request" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">request</span><span class="p">:</span> <span class="n">Request</span></code>
+          <span class="doc doc-object-name doc-attribute-name">request</span>
+
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.result.PartialFailure.request" class="headerlink" title="Permanent link">¤</a></h6>
-
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">request</span><span class="p">:</span> <span class="n">Request</span>
+</span></code></pre></div>
 
   <div class="doc doc-contents ">
   
@@ -2345,14 +2475,16 @@ Otherwise it is upper bound.</p>
 
 
 <h6 id="frequenz.sdk.actor.power_distributing.result.PartialFailure.succeeded_batteries" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">succeeded_batteries</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
+          <span class="doc doc-object-name doc-attribute-name">succeeded_batteries</span>
+
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.result.PartialFailure.succeeded_batteries" class="headerlink" title="Permanent link">¤</a></h6>
-
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">succeeded_batteries</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+</span></code></pre></div>
 
   <div class="doc doc-contents ">
   
@@ -2367,14 +2499,16 @@ Otherwise it is upper bound.</p>
 
 
 <h6 id="frequenz.sdk.actor.power_distributing.result.PartialFailure.succeeded_power" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">succeeded_power</span><span class="p">:</span> <span class="n">Power</span></code>
+          <span class="doc doc-object-name doc-attribute-name">succeeded_power</span>
+
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.result.PartialFailure.succeeded_power" class="headerlink" title="Permanent link">¤</a></h6>
-
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">succeeded_power</span><span class="p">:</span> <span class="n">Power</span>
+</span></code></pre></div>
 
   <div class="doc doc-contents ">
   
@@ -2399,7 +2533,7 @@ Otherwise it is upper bound.</p>
 
 
 <h4 id="frequenz.sdk.actor.power_distributing.result.PowerBounds" class="doc doc-heading">
-          <code>frequenz.sdk.actor.power_distributing.result.PowerBounds</code>
+          <span class="doc doc-object-name doc-class-name">frequenz.sdk.actor.power_distributing.result.PowerBounds</span>
 
   
   <span class="doc doc-labels">
@@ -2415,7 +2549,7 @@ Otherwise it is upper bound.</p>
       <p>Inclusion and exclusion power bounds for requested batteries.</p>
 
             <details class="quote">
-              <summary>Source code in <code>src/frequenz/sdk/actor/power_distributing/result.py</code></summary>
+              <summary>Source code in <code>frequenz/sdk/actor/power_distributing/result.py</code></summary>
               <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-69">69</a></span>
 <span class="normal"><a href="#__codelineno-0-70">70</a></span>
 <span class="normal"><a href="#__codelineno-0-71">71</a></span>
@@ -2464,14 +2598,16 @@ Otherwise it is upper bound.</p>
 
 
 <h6 id="frequenz.sdk.actor.power_distributing.result.PowerBounds.exclusion_lower" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">exclusion_lower</span><span class="p">:</span> <span class="nb">float</span></code>
+          <span class="doc doc-object-name doc-attribute-name">exclusion_lower</span>
+
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.result.PowerBounds.exclusion_lower" class="headerlink" title="Permanent link">¤</a></h6>
-
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">exclusion_lower</span><span class="p">:</span> <span class="nb">float</span>
+</span></code></pre></div>
 
   <div class="doc doc-contents ">
   
@@ -2486,14 +2622,16 @@ Otherwise it is upper bound.</p>
 
 
 <h6 id="frequenz.sdk.actor.power_distributing.result.PowerBounds.exclusion_upper" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">exclusion_upper</span><span class="p">:</span> <span class="nb">float</span></code>
+          <span class="doc doc-object-name doc-attribute-name">exclusion_upper</span>
+
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.result.PowerBounds.exclusion_upper" class="headerlink" title="Permanent link">¤</a></h6>
-
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">exclusion_upper</span><span class="p">:</span> <span class="nb">float</span>
+</span></code></pre></div>
 
   <div class="doc doc-contents ">
   
@@ -2508,14 +2646,16 @@ Otherwise it is upper bound.</p>
 
 
 <h6 id="frequenz.sdk.actor.power_distributing.result.PowerBounds.inclusion_lower" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">inclusion_lower</span><span class="p">:</span> <span class="nb">float</span></code>
+          <span class="doc doc-object-name doc-attribute-name">inclusion_lower</span>
+
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.result.PowerBounds.inclusion_lower" class="headerlink" title="Permanent link">¤</a></h6>
-
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">inclusion_lower</span><span class="p">:</span> <span class="nb">float</span>
+</span></code></pre></div>
 
   <div class="doc doc-contents ">
   
@@ -2530,14 +2670,16 @@ Otherwise it is upper bound.</p>
 
 
 <h6 id="frequenz.sdk.actor.power_distributing.result.PowerBounds.inclusion_upper" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">inclusion_upper</span><span class="p">:</span> <span class="nb">float</span></code>
+          <span class="doc doc-object-name doc-attribute-name">inclusion_upper</span>
+
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#frequenz.sdk.actor.power_distributing.result.PowerBounds.inclusion_upper" class="headerlink" title="Permanent link">¤</a></h6>
-
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">inclusion_upper</span><span class="p">:</span> <span class="nb">float</span>
+</span></code></pre></div>
 
   <div class="doc doc-contents ">
   
@@ -2562,7 +2704,7 @@ Otherwise it is upper bound.</p>
 
 
 <h4 id="frequenz.sdk.actor.power_distributing.result.Success" class="doc doc-heading">
-          <code>frequenz.sdk.actor.power_distributing.result.Success</code>
+          <span class="doc doc-object-name doc-class-name">frequenz.sdk.actor.power_distributing.result.Success</span>
 
   
   <span class="doc doc-labels">
@@ -2580,7 +2722,7 @@ Otherwise it is upper bound.</p>
       <p>Result returned when setting the power succeeded for all batteries.</p>
 
             <details class="quote">
-              <summary>Source code in <code>src/frequenz/sdk/actor/power_distributing/result.py</code></summary>
+              <summary>Source code in <code>frequenz/sdk/actor/power_distributing/result.py</code></summary>
               <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-45">45</a></span>
 <span class="normal"><a href="#__codelineno-0-46">46</a></span>
 <span class="normal"><a href="#__codelineno-0-47">47</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45"></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
@@ -2622,6 +2764,46 @@ Otherwise it is upper bound.</p>
       </main>
       
         <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../request/" class="md-footer__link md-footer__link--prev" aria-label="Previous: request" rel="prev">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                request
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../../config/" class="md-footer__link md-footer__link--next" aria-label="Next: config" rel="next">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                config
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
@@ -2674,7 +2856,7 @@ Otherwise it is upper bound.</p>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../../../../../..", "features": ["content.code.annotate", "content.code.copy", "navigation.indexes", "navigation.instant", "navigation.tabs", "navigation.top", "navigation.tracking", "toc.follow"], "search": "../../../../../../assets/javascripts/workers/search.dfff1995.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "../../../../../..", "features": ["content.code.annotate", "content.code.copy", "navigation.indexes", "navigation.instant", "navigation.footer", "navigation.tabs", "navigation.top", "navigation.tracking", "toc.follow"], "search": "../../../../../../assets/javascripts/workers/search.dfff1995.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../../../../assets/javascripts/bundle.dff1b7c8.min.js"></script>

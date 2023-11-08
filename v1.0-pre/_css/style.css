@@ -29,7 +29,7 @@ a.external:hover::after, a.md-nav__link[href^="https:"]:hover::after {
 
 /* Code annotations with numbers.
  *
- * Normally annothations are shown with a (+) button that expands the
+ * Normally annotations are shown with a (+) button that expands the
  * annotation. To be able to explain code step by step, it is good to have
  * annotations with numbers, to be able to follow the notes in a particular
  * order.
