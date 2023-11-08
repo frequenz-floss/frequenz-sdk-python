@@ -154,7 +154,7 @@ class Bounds(Generic[_T]):
     """Upper bound."""
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class SystemBounds:
     """Internal representation of system bounds for groups of components."""
 

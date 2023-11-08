@@ -890,9 +890,11 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 "active_power_exclusion_lower_bound": -400,
             },
             SystemBounds(
-                now,
-                Bounds(Power.from_watts(-1000), Power.from_watts(10000)),
-                Bounds(Power.from_watts(-700), Power.from_watts(600)),
+                timestamp=now,
+                inclusion_bounds=Bounds(
+                    Power.from_watts(-1000), Power.from_watts(10000)
+                ),
+                exclusion_bounds=Bounds(Power.from_watts(-700), Power.from_watts(600)),
             ),
         ),
         # Inverter bound changed, but metric result should not change.
@@ -903,9 +905,9 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 "active_power_exclusion_upper_bound": 250,
             },
             expected_result=SystemBounds(
-                now,
-                None,
-                None,
+                timestamp=now,
+                inclusion_bounds=None,
+                exclusion_bounds=None,
             ),
             wait_for_result=False,
         ),
@@ -918,9 +920,9 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 "power_exclusion_upper_bound": 100,
             },
             SystemBounds(
-                now,
-                Bounds(Power.from_watts(-900), Power.from_watts(9000)),
-                Bounds(Power.from_watts(-700), Power.from_watts(550)),
+                timestamp=now,
+                inclusion_bounds=Bounds(Power.from_watts(-900), Power.from_watts(9000)),
+                exclusion_bounds=Bounds(Power.from_watts(-700), Power.from_watts(550)),
             ),
         ),
         Scenario(
@@ -932,9 +934,9 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 "power_exclusion_upper_bound": 5,
             },
             SystemBounds(
-                now,
-                Bounds(Power.from_watts(-10), Power.from_watts(4200)),
-                Bounds(Power.from_watts(-600), Power.from_watts(450)),
+                timestamp=now,
+                inclusion_bounds=Bounds(Power.from_watts(-10), Power.from_watts(4200)),
+                exclusion_bounds=Bounds(Power.from_watts(-600), Power.from_watts(450)),
             ),
         ),
         Scenario(
@@ -946,9 +948,9 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 "active_power_exclusion_upper_bound": math.nan,
             },
             SystemBounds(
-                now,
-                Bounds(Power.from_watts(-10), Power.from_watts(200)),
-                Bounds(Power.from_watts(-200), Power.from_watts(200)),
+                timestamp=now,
+                inclusion_bounds=Bounds(Power.from_watts(-10), Power.from_watts(200)),
+                exclusion_bounds=Bounds(Power.from_watts(-200), Power.from_watts(200)),
             ),
         ),
         Scenario(
@@ -960,9 +962,9 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 "power_exclusion_upper_bound": 50,
             },
             SystemBounds(
-                now,
-                None,
-                None,
+                timestamp=now,
+                inclusion_bounds=None,
+                exclusion_bounds=None,
             ),
         ),
         Scenario(
@@ -974,9 +976,9 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 "power_exclusion_upper_bound": 20,
             },
             SystemBounds(
-                now,
-                Bounds(Power.from_watts(-100), Power.from_watts(100)),
-                Bounds(Power.from_watts(-70), Power.from_watts(70)),
+                timestamp=now,
+                inclusion_bounds=Bounds(Power.from_watts(-100), Power.from_watts(100)),
+                exclusion_bounds=Bounds(Power.from_watts(-70), Power.from_watts(70)),
             ),
             wait_for_result=False,
         ),
@@ -989,9 +991,9 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 "active_power_exclusion_upper_bound": 100,
             },
             SystemBounds(
-                now,
-                Bounds(Power.from_watts(-500), Power.from_watts(500)),
-                Bounds(Power.from_watts(-120), Power.from_watts(120)),
+                timestamp=now,
+                inclusion_bounds=Bounds(Power.from_watts(-500), Power.from_watts(500)),
+                exclusion_bounds=Bounds(Power.from_watts(-120), Power.from_watts(120)),
             ),
             wait_for_result=False,
         ),
@@ -1004,9 +1006,9 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 "power_exclusion_upper_bound": 130,
             },
             SystemBounds(
-                now,
-                Bounds(Power.from_watts(-300), Power.from_watts(400)),
-                Bounds(Power.from_watts(-130), Power.from_watts(130)),
+                timestamp=now,
+                inclusion_bounds=Bounds(Power.from_watts(-300), Power.from_watts(400)),
+                exclusion_bounds=Bounds(Power.from_watts(-130), Power.from_watts(130)),
             ),
         ),
         Scenario(
@@ -1018,9 +1020,9 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 "active_power_exclusion_upper_bound": 80,
             },
             SystemBounds(
-                now,
-                Bounds(Power.from_watts(-400), Power.from_watts(450)),
-                Bounds(Power.from_watts(-210), Power.from_watts(210)),
+                timestamp=now,
+                inclusion_bounds=Bounds(Power.from_watts(-400), Power.from_watts(450)),
+                exclusion_bounds=Bounds(Power.from_watts(-210), Power.from_watts(210)),
             ),
         ),
     ]
@@ -1034,14 +1036,14 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
         batteries_in_pool=batteries_in_pool,
         waiting_time_sec=waiting_time_sec,
         all_pool_result=SystemBounds(
-            now,
-            Bounds(Power.from_watts(-400), Power.from_watts(450)),
-            Bounds(Power.from_watts(-210), Power.from_watts(210)),
+            timestamp=now,
+            inclusion_bounds=Bounds(Power.from_watts(-400), Power.from_watts(450)),
+            exclusion_bounds=Bounds(Power.from_watts(-210), Power.from_watts(210)),
         ),
         only_first_battery_result=SystemBounds(
-            now,
-            Bounds(Power.from_watts(-100), Power.from_watts(50)),
-            Bounds(Power.from_watts(-80), Power.from_watts(80)),
+            timestamp=now,
+            inclusion_bounds=Bounds(Power.from_watts(-100), Power.from_watts(50)),
+            exclusion_bounds=Bounds(Power.from_watts(-80), Power.from_watts(80)),
         ),
     )
 
@@ -1052,9 +1054,9 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
     compare_messages(
         msg,
         SystemBounds(
-            now,
-            Bounds(Power.from_watts(-300), Power.from_watts(400)),
-            Bounds(Power.from_watts(-130), Power.from_watts(130)),
+            timestamp=now,
+            inclusion_bounds=Bounds(Power.from_watts(-300), Power.from_watts(400)),
+            exclusion_bounds=Bounds(Power.from_watts(-130), Power.from_watts(130)),
         ),
         0.2,
     )
