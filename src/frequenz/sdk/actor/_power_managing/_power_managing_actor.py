@@ -17,7 +17,7 @@ from typing_extensions import override
 from ...timeseries._base_types import PoolType, SystemBounds
 from .._actor import Actor
 from .._channel_registry import ChannelRegistry
-from ._base_classes import Algorithm, BaseAlgorithm, Proposal, Report, ReportRequest
+from ._base_classes import Algorithm, BaseAlgorithm, Proposal, ReportRequest, _Report
 from ._matryoshka import Matryoshka
 
 _logger = logging.getLogger(__name__)
@@ -72,7 +72,7 @@ class PowerManagingActor(Actor):
 
         self._system_bounds: dict[frozenset[int], SystemBounds] = {}
         self._bound_tracker_tasks: dict[frozenset[int], asyncio.Task[None]] = {}
-        self._subscriptions: dict[frozenset[int], dict[int, Sender[Report]]] = {}
+        self._subscriptions: dict[frozenset[int], dict[int, Sender[_Report]]] = {}
         self._distribution_results: dict[frozenset[int], power_distributing.Result] = {}
 
         self._algorithm: BaseAlgorithm = Matryoshka()

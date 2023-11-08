@@ -27,7 +27,7 @@ from typing_extensions import override
 from ... import timeseries
 from ...timeseries import Power
 from . import _bounds
-from ._base_classes import BaseAlgorithm, Proposal, Report
+from ._base_classes import BaseAlgorithm, Proposal, _Report
 from ._sorted_set import SortedSet
 
 if typing.TYPE_CHECKING:
@@ -209,7 +209,7 @@ class Matryoshka(BaseAlgorithm):
         priority: int,
         system_bounds: SystemBounds,
         distribution_result: power_distributing.Result | None,
-    ) -> Report:
+    ) -> _Report:
         """Get the bounds for the algorithm.
 
         Args:
@@ -224,7 +224,7 @@ class Matryoshka(BaseAlgorithm):
         """
         target_power = self._target_power.get(component_ids)
         if system_bounds.inclusion_bounds is None:
-            return Report(
+            return _Report(
                 target_power=target_power,
                 _inclusion_bounds=None,
                 _exclusion_bounds=system_bounds.exclusion_bounds,
@@ -259,7 +259,7 @@ class Matryoshka(BaseAlgorithm):
                 )
             else:
                 break
-        return Report(
+        return _Report(
             target_power=target_power,
             _inclusion_bounds=timeseries.Bounds[Power](
                 lower=lower_bound, upper=upper_bound

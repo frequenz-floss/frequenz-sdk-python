@@ -43,8 +43,60 @@ class ReportRequest:
         return f"power_manager.report.{self.component_ids=}.{self.priority=}"
 
 
+class Report(typing.Protocol):
+    """Current PowerManager report for a set of components.
+
+    This protocol can be specialized by different component pools to provide more
+    specific details and documentation for the reports.
+    """
+
+    @property
+    def bounds(self) -> timeseries.Bounds[Power] | None:
+        """The bounds for the components.
+
+        These bounds are adjusted to any restrictions placed by actors with higher
+        priorities.
+
+        There might be exclusion zones within these bounds. If necessary, the
+        `adjust_to_bounds` method may be used to check if a desired power value fits the
+        bounds, or to get the closest possible power values that do fit the bounds.
+        """
+
+    @abc.abstractmethod
+    def adjust_to_bounds(self, power: Power) -> tuple[Power | None, Power | None]:
+        """Adjust a power value to the bounds.
+
+        This method can be used to adjust a desired power value to the power bounds
+        available to the actor.
+
+        If the given power value falls within the usable bounds, it will be returned
+        unchanged.
+
+        If it falls outside the usable bounds, the closest possible value on the
+        corresponding side will be returned.  For example, if the given power is lower
+        than the lowest usable power, only the lowest usable power will be returned, and
+        similarly for the highest usable power.
+
+        If the given power falls within an exclusion zone that's contained within the
+        usable bounds, the closest possible power values on both sides will be returned.
+
+        !!! note
+            It is completely optional to use this method to adjust power values before
+            proposing them, because the PowerManager will do this automatically.  This
+            method is provided for convenience, and for granular control when there are
+            two possible power values, both of which fall within the available bounds.
+
+        Args:
+            power: The power value to adjust.
+
+        Returns:
+            A tuple of the closest power values to the desired power that fall within
+                the available bounds for the actor.
+        """
+
+
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Report:
+class _Report(Report):
     """Current PowerManager report for a set of components."""
 
     target_power: Power | None
@@ -215,7 +267,7 @@ class BaseAlgorithm(abc.ABC):
         priority: int,
         system_bounds: SystemBounds,
         distribution_result: power_distributing.Result | None,
-    ) -> Report:
+    ) -> _Report:
         """Get the bounds for a set of components, for the given priority.
 
         Args:
