@@ -14,10 +14,11 @@ from frequenz.channels import Sender
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid, timeseries
-from frequenz.sdk.actor import ResamplerConfig, _power_managing, power_distributing
+from frequenz.sdk.actor import ResamplerConfig, power_distributing
 from frequenz.sdk.actor.power_distributing import BatteryStatus
 from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
 from frequenz.sdk.timeseries import Power
+from frequenz.sdk.timeseries.battery_pool import BatteryPoolReport
 
 from ...utils.component_data_streamer import MockComponentDataStreamer
 from ...utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
@@ -138,7 +139,7 @@ class TestBatteryPoolControl:
 
     def _assert_report(
         self,
-        report: _power_managing.Report,
+        report: BatteryPoolReport,
         *,
         power: float | None,
         lower: float,
@@ -149,16 +150,9 @@ class TestBatteryPoolControl:
         assert report.target_power == (
             Power.from_watts(power) if power is not None else None
         )
-        # pylint: disable=protected-access
-        assert (
-            report._inclusion_bounds is not None
-            and report._exclusion_bounds is not None
-        )
-        assert report._inclusion_bounds.lower == Power.from_watts(lower)
-        assert report._inclusion_bounds.upper == Power.from_watts(upper)
-        assert report._exclusion_bounds.lower == Power.from_watts(0.0)
-        assert report._exclusion_bounds.upper == Power.from_watts(0.0)
-        # pylint: enable=protected-access
+        assert report.bounds is not None
+        assert report.bounds.lower == Power.from_watts(lower)
+        assert report.bounds.upper == Power.from_watts(upper)
         if expected_result_pred is not None:
             assert report.distribution_result is not None
             assert expected_result_pred(report.distribution_result)

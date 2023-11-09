@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from frequenz.sdk import timeseries
 from frequenz.sdk.actor._power_managing import Proposal
 from frequenz.sdk.actor._power_managing._matryoshka import Matryoshka
-from frequenz.sdk.timeseries import Power, battery_pool
+from frequenz.sdk.timeseries import Power, _base_types
 
 
 class StatefulTester:
@@ -17,7 +17,7 @@ class StatefulTester:
     def __init__(
         self,
         batteries: frozenset[int],
-        system_bounds: battery_pool.PowerMetrics,
+        system_bounds: _base_types.SystemBounds,
     ) -> None:
         """Create a new instance of the stateful tester."""
         self._call_count = 0
@@ -38,7 +38,7 @@ class StatefulTester:
         tgt_power = self._algorithm.calculate_target_power(
             self._batteries,
             Proposal(
-                battery_ids=self._batteries,
+                component_ids=self._batteries,
                 source_id=f"actor-{priority}",
                 preferred_power=None if power is None else Power.from_watts(power),
                 bounds=timeseries.Bounds(
@@ -83,7 +83,7 @@ async def test_matryoshka_no_excl() -> None:  # pylint: disable=too-many-stateme
     """
     batteries = frozenset({2, 5})
 
-    system_bounds = battery_pool.PowerMetrics(
+    system_bounds = _base_types.SystemBounds(
         timestamp=datetime.now(tz=timezone.utc),
         inclusion_bounds=timeseries.Bounds(
             lower=Power.from_watts(-200.0), upper=Power.from_watts(200.0)
@@ -193,7 +193,7 @@ async def test_matryoshka_with_excl_1() -> None:
     """
     batteries = frozenset({2, 5})
 
-    system_bounds = battery_pool.PowerMetrics(
+    system_bounds = _base_types.SystemBounds(
         timestamp=datetime.now(tz=timezone.utc),
         inclusion_bounds=timeseries.Bounds(
             lower=Power.from_watts(-200.0), upper=Power.from_watts(200.0)
@@ -243,7 +243,7 @@ async def test_matryoshka_with_excl_2() -> None:
     """
     batteries = frozenset({2, 5})
 
-    system_bounds = battery_pool.PowerMetrics(
+    system_bounds = _base_types.SystemBounds(
         timestamp=datetime.now(tz=timezone.utc),
         inclusion_bounds=timeseries.Bounds(
             lower=Power.from_watts(-200.0), upper=Power.from_watts(200.0)
@@ -302,7 +302,7 @@ async def test_matryoshka_with_excl_3() -> None:
     """
     batteries = frozenset({2, 5})
 
-    system_bounds = battery_pool.PowerMetrics(
+    system_bounds = _base_types.SystemBounds(
         timestamp=datetime.now(tz=timezone.utc),
         inclusion_bounds=timeseries.Bounds(
             lower=Power.from_watts(-200.0), upper=Power.from_watts(200.0)

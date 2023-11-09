@@ -3,6 +3,8 @@
 
 """Timeseries basic types."""
 
+import dataclasses
+import enum
 import functools
 import typing
 from collections.abc import Callable, Iterator
@@ -10,7 +12,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Generic, Self, overload
 
-from ._quantities import QuantityT
+from ._quantities import Power, QuantityT
 
 UNIX_EPOCH = datetime.fromtimestamp(0.0, tz=timezone.utc)
 """The UNIX epoch (in UTC)."""
@@ -150,3 +152,37 @@ class Bounds(Generic[_T]):
 
     upper: _T
     """Upper bound."""
+
+
+@dataclass(frozen=True, kw_only=True)
+class SystemBounds:
+    """Internal representation of system bounds for groups of components."""
+
+    # compare = False tells the dataclass to not use name for comparison methods
+    timestamp: datetime = dataclasses.field(compare=False)
+    """Timestamp of the metrics."""
+
+    inclusion_bounds: Bounds[Power] | None
+    """Total inclusion power bounds for all components of a pool.
+
+    This is the range within which power requests would be allowed by the pool.
+
+    When exclusion bounds are present, they will exclude a subset of the inclusion
+    bounds.
+    """
+
+    exclusion_bounds: Bounds[Power] | None
+    """Total exclusion power bounds for all components of a pool.
+
+    This is the range within which power requests are NOT allowed by the pool.
+    If present, they will be a subset of the inclusion bounds.
+    """
+
+
+class PoolType(enum.Enum):
+    """Enumeration of component pool types."""
+
+    BATTERY_POOL = "BATTERY_POOL"
+    EV_CHARGER_POOL = "EV_CHARGER_POOL"
+    PV_POOL = "PV_POOL"
+    CHP_POOL = "CHP_POOL"

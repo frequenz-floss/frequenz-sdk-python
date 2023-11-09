@@ -3,18 +3,18 @@
 
 """A power manager implementation that uses the matryoshka algorithm.
 
-When there are multiple proposals from different actors for the same set of batteries,
+When there are multiple proposals from different actors for the same set of components,
 the matryoshka algorithm will consider the priority of the actors, the bounds they set
-and their preferred power to determine the target power for the batteries.
+and their preferred power to determine the target power for the components.
 
 The preferred power of lower priority actors will take precedence as long as they
 respect the bounds set by higher priority actors.  If lower priority actors request
 power values outside the bounds set by higher priority actors, the target power will
 be the closest value to the preferred power that is within the bounds.
 
-When there is only a single proposal for a set of batteries, its preferred power would
+When there is only a single proposal for a set of components, its preferred power would
 be the target power, as long as it falls within the system power bounds for the
-batteries.
+components.
 """
 
 from __future__ import annotations
@@ -27,11 +27,11 @@ from typing_extensions import override
 from ... import timeseries
 from ...timeseries import Power
 from . import _bounds
-from ._base_classes import BaseAlgorithm, Proposal, Report
+from ._base_classes import BaseAlgorithm, Proposal, _Report
 from ._sorted_set import SortedSet
 
 if typing.TYPE_CHECKING:
-    from ...timeseries.battery_pool import PowerMetrics
+    from ...timeseries._base_types import SystemBounds
     from .. import power_distributing
 
 _logger = logging.getLogger(__name__)
@@ -42,22 +42,22 @@ class Matryoshka(BaseAlgorithm):
 
     def __init__(self) -> None:
         """Create a new instance of the matryoshka algorithm."""
-        self._battery_buckets: dict[frozenset[int], SortedSet[Proposal]] = {}
+        self._component_buckets: dict[frozenset[int], SortedSet[Proposal]] = {}
         self._target_power: dict[frozenset[int], Power] = {}
 
     def _calc_target_power(
         self,
         proposals: SortedSet[Proposal],
-        system_bounds: PowerMetrics,
+        system_bounds: SystemBounds,
     ) -> Power:
-        """Calculate the target power for the given batteries.
+        """Calculate the target power for the given components.
 
         Args:
-            proposals: The proposals for the given batteries.
-            system_bounds: The system bounds for the batteries in the proposal.
+            proposals: The proposals for the given components.
+            system_bounds: The system bounds for the components in the proposal.
 
         Returns:
-            The new target power for the batteries.
+            The new target power for the components.
         """
         lower_bound = (
             system_bounds.inclusion_bounds.lower
@@ -120,13 +120,13 @@ class Matryoshka(BaseAlgorithm):
 
         return target_power
 
-    def _validate_battery_ids(
+    def _validate_component_ids(
         self,
-        battery_ids: frozenset[int],
+        component_ids: frozenset[int],
         proposal: Proposal | None,
-        system_bounds: PowerMetrics,
+        system_bounds: SystemBounds,
     ) -> bool:
-        if battery_ids not in self._battery_buckets:
+        if component_ids not in self._component_buckets:
             # if there are no previous proposals and there are no system bounds, then
             # don't calculate a target power and fail the validation.
             if (
@@ -135,57 +135,59 @@ class Matryoshka(BaseAlgorithm):
             ):
                 if proposal is not None:
                     _logger.warning(
-                        "PowerManagingActor: No system bounds available for battery "
+                        "PowerManagingActor: No system bounds available for component "
                         "IDs %s, but a proposal was given.  The proposal will be "
                         "ignored.",
-                        battery_ids,
+                        component_ids,
                     )
                 return False
 
-            for bucket in self._battery_buckets:
-                if any(battery_id in bucket for battery_id in battery_ids):
+            for bucket in self._component_buckets:
+                if any(component_id in bucket for component_id in component_ids):
                     raise NotImplementedError(
-                        f"PowerManagingActor: Battery IDs {battery_ids} are already "
-                        "part of another bucket.  Overlapping buckets are not "
-                        "yet supported."
+                        f"PowerManagingActor: component IDs {component_ids} are already"
+                        " part of another bucket.  Overlapping buckets are not"
+                        " yet supported."
                     )
         return True
 
     @override
     def calculate_target_power(
         self,
-        battery_ids: frozenset[int],
+        component_ids: frozenset[int],
         proposal: Proposal | None,
-        system_bounds: PowerMetrics,
+        system_bounds: SystemBounds,
         must_return_power: bool = False,
     ) -> Power | None:
-        """Calculate and return the target power for the given batteries.
+        """Calculate and return the target power for the given components.
 
         Args:
-            battery_ids: The battery IDs to calculate the target power for.
+            component_ids: The component IDs to calculate the target power for.
             proposal: If given, the proposal to added to the bucket, before the target
                 power is calculated.
-            system_bounds: The system bounds for the batteries in the proposal.
+            system_bounds: The system bounds for the components in the proposal.
             must_return_power: If `True`, the algorithm must return a target power,
                 even if it hasn't changed since the last call.
 
         Returns:
-            The new target power for the batteries, or `None` if the target power
+            The new target power for the components, or `None` if the target power
                 didn't change.
 
         Raises:  # noqa: DOC502
-            NotImplementedError: When the proposal contains battery IDs that are
+            NotImplementedError: When the proposal contains component IDs that are
                 already part of another bucket.
         """
-        if not self._validate_battery_ids(battery_ids, proposal, system_bounds):
+        if not self._validate_component_ids(component_ids, proposal, system_bounds):
             return None
 
         if proposal is not None:
-            self._battery_buckets.setdefault(battery_ids, SortedSet()).insert(proposal)
+            self._component_buckets.setdefault(component_ids, SortedSet()).insert(
+                proposal
+            )
 
-        # If there has not been any proposal for the given batteries, don't calculate a
+        # If there has not been any proposal for the given components, don't calculate a
         # target power and just return `None`.
-        proposals = self._battery_buckets.get(battery_ids)
+        proposals = self._component_buckets.get(component_ids)
         if proposals is None:
             return None
 
@@ -193,36 +195,36 @@ class Matryoshka(BaseAlgorithm):
 
         if (
             must_return_power
-            or battery_ids not in self._target_power
-            or self._target_power[battery_ids] != target_power
+            or component_ids not in self._target_power
+            or self._target_power[component_ids] != target_power
         ):
-            self._target_power[battery_ids] = target_power
+            self._target_power[component_ids] = target_power
             return target_power
         return None
 
     @override
     def get_status(
         self,
-        battery_ids: frozenset[int],
+        component_ids: frozenset[int],
         priority: int,
-        system_bounds: PowerMetrics,
+        system_bounds: SystemBounds,
         distribution_result: power_distributing.Result | None,
-    ) -> Report:
+    ) -> _Report:
         """Get the bounds for the algorithm.
 
         Args:
-            battery_ids: The IDs of the batteries to get the bounds for.
+            component_ids: The IDs of the components to get the bounds for.
             priority: The priority of the actor for which the bounds are requested.
-            system_bounds: The system bounds for the batteries.
+            system_bounds: The system bounds for the components.
             distribution_result: The result of the last power distribution.
 
         Returns:
-            The target power and the available bounds for the given batteries, for
+            The target power and the available bounds for the given components, for
                 the given priority.
         """
-        target_power = self._target_power.get(battery_ids)
+        target_power = self._target_power.get(component_ids)
         if system_bounds.inclusion_bounds is None:
-            return Report(
+            return _Report(
                 target_power=target_power,
                 _inclusion_bounds=None,
                 _exclusion_bounds=system_bounds.exclusion_bounds,
@@ -239,7 +241,7 @@ class Matryoshka(BaseAlgorithm):
         ):
             exclusion_bounds = system_bounds.exclusion_bounds
 
-        for next_proposal in reversed(self._battery_buckets.get(battery_ids, [])):
+        for next_proposal in reversed(self._component_buckets.get(component_ids, [])):
             if next_proposal.priority <= priority:
                 break
             proposal_lower = next_proposal.bounds.lower or lower_bound
@@ -257,7 +259,7 @@ class Matryoshka(BaseAlgorithm):
                 )
             else:
                 break
-        return Report(
+        return _Report(
             target_power=target_power,
             _inclusion_bounds=timeseries.Bounds[Power](
                 lower=lower_bound, upper=upper_bound

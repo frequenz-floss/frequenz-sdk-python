@@ -3,7 +3,7 @@
 
 """Tests for methods provided by the PowerManager's reports."""
 
-from frequenz.sdk.actor._power_managing import Report
+from frequenz.sdk.actor._power_managing import _Report
 from frequenz.sdk.timeseries import Bounds, Power
 
 
@@ -16,7 +16,7 @@ class BoundsTester:
         exclusion_bounds: tuple[float, float] | None,
     ) -> None:
         """Initialize the tester."""
-        self._report = Report(
+        self._report = _Report(
             target_power=None,
             _inclusion_bounds=Bounds(  # pylint: disable=protected-access
                 Power.from_watts(inclusion_bounds[0]),

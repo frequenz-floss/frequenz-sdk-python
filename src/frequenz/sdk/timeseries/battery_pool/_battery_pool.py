@@ -17,6 +17,7 @@ from ... import timeseries
 from ..._internal._channels import ReceiverFetcher
 from ...actor import _power_managing
 from ...timeseries import Energy, Percentage, Power, Sample, Temperature
+from .._base_types import SystemBounds
 from ..formula_engine import FormulaEngine
 from ..formula_engine._formula_generators import (
     BatteryPowerFormula,
@@ -30,7 +31,7 @@ from ._metric_calculator import (
     SoCCalculator,
     TemperatureCalculator,
 )
-from ._result_types import PowerMetrics
+from ._result_types import BatteryPoolReport
 
 # pylint: disable=protected-access
 
@@ -128,7 +129,7 @@ class BatteryPool:
                 source_id=self._source_id,
                 preferred_power=power,
                 bounds=bounds,
-                battery_ids=self._battery_pool._batteries,
+                component_ids=self._battery_pool._batteries,
                 priority=self._priority,
                 request_timeout=request_timeout,
             )
@@ -173,7 +174,7 @@ class BatteryPool:
                 source_id=self._source_id,
                 preferred_power=power,
                 bounds=timeseries.Bounds(None, None),
-                battery_ids=self._battery_pool._batteries,
+                component_ids=self._battery_pool._batteries,
                 priority=self._priority,
                 request_timeout=request_timeout,
             )
@@ -218,7 +219,7 @@ class BatteryPool:
                 source_id=self._source_id,
                 preferred_power=power,
                 bounds=timeseries.Bounds(None, None),
-                battery_ids=self._battery_pool._batteries,
+                component_ids=self._battery_pool._batteries,
                 priority=self._priority,
                 request_timeout=request_timeout,
             )
@@ -364,7 +365,7 @@ class BatteryPool:
         return self._battery_pool._active_methods[method_name]
 
     @property
-    def power_status(self) -> ReceiverFetcher[_power_managing.Report]:
+    def power_status(self) -> ReceiverFetcher[BatteryPoolReport]:
         """Get a receiver to receive new power status reports when they change.
 
         These include
@@ -378,7 +379,7 @@ class BatteryPool:
         sub = _power_managing.ReportRequest(
             source_id=self._source_id,
             priority=self._priority,
-            battery_ids=self._battery_pool._batteries,
+            component_ids=self._battery_pool._batteries,
         )
         self._battery_pool._power_bounds_subs[
             sub.get_channel_name()
@@ -393,7 +394,7 @@ class BatteryPool:
         )
 
     @property
-    def _system_power_bounds(self) -> ReceiverFetcher[PowerMetrics]:
+    def _system_power_bounds(self) -> ReceiverFetcher[SystemBounds]:
         """Get receiver to receive new power bounds when they change.
 
         Power bounds refer to the min and max power that a battery can
