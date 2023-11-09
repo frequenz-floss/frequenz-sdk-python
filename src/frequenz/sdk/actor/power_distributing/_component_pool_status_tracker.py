@@ -13,8 +13,8 @@ from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.channels.util import MergeNamed
 
 from ..._internal._asyncio import cancel_and_await
-from ._battery_status import BatteryStatusTracker, SetPowerResult, Status
-from ._component_status import ComponentPoolStatus
+from ._battery_status import BatteryStatusTracker, SetPowerResult
+from ._component_status import ComponentPoolStatus, ComponentStatusEnum
 
 _logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class _ComponentStatusChannelHelper:
 
     def __post_init__(self) -> None:
         self.name: str = f"component-{self.component_id}-status"
-        channel = Broadcast[Status](self.name)
+        channel = Broadcast[ComponentStatusEnum](self.name)
 
         receiver_name = f"{self.name}-receiver"
         self.receiver = channel.new_receiver(name=receiver_name, maxsize=1)
@@ -82,7 +82,7 @@ class ComponentPoolStatusTracker:
 
         # Receivers for individual components statuses are needed to create a
         # `MergeNamed` object.
-        receivers: dict[str, Receiver[Status]] = {}
+        receivers: dict[str, Receiver[ComponentStatusEnum]] = {}
 
         for battery_id in component_ids:
             channel = _ComponentStatusChannelHelper(battery_id)
@@ -98,7 +98,7 @@ class ComponentPoolStatusTracker:
                 ),
             )
 
-        self._component_status_channel = MergeNamed[Status](
+        self._component_status_channel = MergeNamed[ComponentStatusEnum](
             **receivers,
         )
 
@@ -148,13 +148,13 @@ class ComponentPoolStatusTracker:
         """
         async for channel_name, status in self._component_status_channel:
             component_id = self._batteries[channel_name].battery_id
-            if status == Status.WORKING:
+            if status == ComponentStatusEnum.WORKING:
                 self._current_status.working.add(component_id)
                 self._current_status.uncertain.discard(component_id)
-            elif status == Status.UNCERTAIN:
+            elif status == ComponentStatusEnum.UNCERTAIN:
                 self._current_status.working.discard(component_id)
                 self._current_status.uncertain.add(component_id)
-            elif status == Status.NOT_WORKING:
+            elif status == ComponentStatusEnum.NOT_WORKING:
                 self._current_status.working.discard(component_id)
                 self._current_status.uncertain.discard(component_id)
 

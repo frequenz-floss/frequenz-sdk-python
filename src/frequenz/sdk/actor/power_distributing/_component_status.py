@@ -4,6 +4,7 @@
 """Classes to track the status of components in the microgrid."""
 
 
+import enum
 from collections import abc
 from dataclasses import dataclass
 
@@ -31,3 +32,20 @@ class ComponentPoolStatus:
         if len(working) > 0:
             return working
         return self.uncertain.intersection(components)
+
+
+class ComponentStatusEnum(enum.Enum):
+    """Enum for component status."""
+
+    NOT_WORKING = 0
+    """Component is not working and should not be used."""
+
+    UNCERTAIN = 1
+    """Component should work, although the last request to it failed.
+
+    It is blocked for few seconds and it is not recommended to use it unless it is
+    necessary.
+    """
+
+    WORKING = 2
+    """Component is working"""
