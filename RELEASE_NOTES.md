@@ -6,7 +6,7 @@
 
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
+- The `BatteryPool.power_status` method now streams objects of type `BatteryPoolReport`.  They're identical to the previous `Report` objects, except for the name of the class.
 
 ## New Features
 
