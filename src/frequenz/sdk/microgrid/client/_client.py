@@ -241,7 +241,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
             # but it is
             component_list = await self.api.ListComponents(
                 microgrid_pb.ComponentFilter(),
-                timeout=DEFAULT_GRPC_CALL_TIMEOUT,  # type: ignore[arg-type]
+                timeout=int(DEFAULT_GRPC_CALL_TIMEOUT),
             )  # type: ignore[misc]
         except grpc.aio.AioRpcError as err:
             msg = f"Failed to list components. Microgrid API: {self.target}. Err: {err.details()}"
@@ -329,7 +329,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
                     Awaitable[microgrid_pb.ConnectionList],
                     self.api.ListConnections(
                         connection_filter,
-                        timeout=DEFAULT_GRPC_CALL_TIMEOUT,  # type: ignore[arg-type]
+                        timeout=int(DEFAULT_GRPC_CALL_TIMEOUT),
                     ),
                 ),
             )
@@ -620,7 +620,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
                 microgrid_pb.SetPowerActiveParam(
                     component_id=component_id, power=power_w
                 ),
-                timeout=DEFAULT_GRPC_CALL_TIMEOUT,  # type: ignore[arg-type]
+                timeout=int(DEFAULT_GRPC_CALL_TIMEOUT),
             )  # type: ignore[misc]
         except grpc.aio.AioRpcError as err:
             msg = f"Failed to set power. Microgrid API: {self.target}. Err: {err.details()}"
