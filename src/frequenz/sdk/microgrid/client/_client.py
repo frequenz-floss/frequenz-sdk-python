@@ -239,10 +239,14 @@ class MicrogridGrpcClient(MicrogridApiClient):
         try:
             # grpc.aio is missing types and mypy thinks this is not awaitable,
             # but it is
-            component_list = await self.api.ListComponents(
-                microgrid_pb.ComponentFilter(),
-                timeout=int(DEFAULT_GRPC_CALL_TIMEOUT),
-            )  # type: ignore[misc]
+            component_list = await cast(
+                Awaitable[microgrid_pb.ComponentList],
+                self.api.ListComponents(
+                    microgrid_pb.ComponentFilter(),
+                    timeout=int(DEFAULT_GRPC_CALL_TIMEOUT),
+                ),
+            )
+
         except grpc.aio.AioRpcError as err:
             msg = f"Failed to list components. Microgrid API: {self.target}. Err: {err.details()}"
             raise grpc.aio.AioRpcError(
@@ -280,10 +284,13 @@ class MicrogridGrpcClient(MicrogridApiClient):
         """
         microgrid_metadata: microgrid_pb.MicrogridMetadata | None = None
         try:
-            microgrid_metadata = await self.api.GetMicrogridMetadata(
-                Empty(),
-                timeout=int(DEFAULT_GRPC_CALL_TIMEOUT),
-            )  # type: ignore[misc]
+            microgrid_metadata = await cast(
+                Awaitable[microgrid_pb.MicrogridMetadata],
+                self.api.GetMicrogridMetadata(
+                    Empty(),
+                    timeout=int(DEFAULT_GRPC_CALL_TIMEOUT),
+                ),
+            )
         except grpc.aio.AioRpcError:
             _logger.exception("The microgrid metadata is not available.")
 
@@ -616,12 +623,15 @@ class MicrogridGrpcClient(MicrogridApiClient):
                 when the api call exceeded timeout
         """
         try:
-            await self.api.SetPowerActive(
-                microgrid_pb.SetPowerActiveParam(
-                    component_id=component_id, power=power_w
+            await cast(
+                Awaitable[microgrid_pb.SetPowerActiveParam],
+                self.api.SetPowerActive(
+                    microgrid_pb.SetPowerActiveParam(
+                        component_id=component_id, power=power_w
+                    ),
+                    timeout=int(DEFAULT_GRPC_CALL_TIMEOUT),
                 ),
-                timeout=int(DEFAULT_GRPC_CALL_TIMEOUT),
-            )  # type: ignore[misc]
+            )
         except grpc.aio.AioRpcError as err:
             msg = f"Failed to set power. Microgrid API: {self.target}. Err: {err.details()}"
             raise grpc.aio.AioRpcError(
