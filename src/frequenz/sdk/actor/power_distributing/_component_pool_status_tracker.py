@@ -9,11 +9,11 @@ import logging
 from collections import abc
 
 from frequenz.channels import Broadcast, Receiver, Sender
-from frequenz.channels.util import MergeNamed
+from frequenz.channels.util import Merge
 
 from ..._internal._asyncio import cancel_and_await
 from ._battery_status import BatteryStatusTracker, SetPowerResult
-from ._component_status import ComponentPoolStatus, ComponentStatusEnum
+from ._component_status import ComponentPoolStatus, ComponentStatus, ComponentStatusEnum
 
 _logger = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ class ComponentPoolStatusTracker:
             "component_request_status"
         )
         self._set_power_result_sender = self._set_power_result_channel.new_sender()
-        self._component_status_trackers: dict[str, BatteryStatusTracker] = {}
+        self._component_status_trackers: list[BatteryStatusTracker] = []
         self._merged_status_receiver = self._make_merged_status_receiver()
 
         self._task = asyncio.create_task(self._run())
@@ -79,21 +79,19 @@ class ComponentPoolStatusTracker:
         """Stop tracking batteries status."""
         await cancel_and_await(self._task)
         await asyncio.gather(
-            *[
-                tracker.stop()  # pylint: disable=protected-access
-                for tracker in self._component_status_trackers.values()
-            ],
+            *[tracker.stop() for tracker in self._component_status_trackers],
         )
         await self._merged_status_receiver.stop()
 
     def _make_merged_status_receiver(
         self,
-    ) -> MergeNamed[ComponentStatusEnum]:
-        status_receivers: dict[str, Receiver[ComponentStatusEnum]] = {}
+    ) -> Merge[ComponentStatus]:
+        status_receivers: list[Receiver[ComponentStatus]] = []
 
         for component_id in self._component_ids:
-            channel_name = f"component_{component_id}_status"
-            channel: Broadcast[ComponentStatusEnum] = Broadcast(channel_name)
+            channel: Broadcast[ComponentStatus] = Broadcast(
+                f"component_{component_id}_status"
+            )
             tracker = BatteryStatusTracker(
                 battery_id=component_id,
                 max_data_age_sec=self._max_data_age_sec,
@@ -101,9 +99,9 @@ class ComponentPoolStatusTracker:
                 status_sender=channel.new_sender(),
                 set_power_result_receiver=self._set_power_result_channel.new_receiver(),
             )
-            self._component_status_trackers[channel_name] = tracker
-            status_receivers[channel_name] = channel.new_receiver()
-        return MergeNamed(**status_receivers)
+            self._component_status_trackers.append(tracker)
+            status_receivers.append(channel.new_receiver())
+        return Merge(*status_receivers)
 
     async def _run(self) -> None:
         """Start tracking component status."""
@@ -116,15 +114,15 @@ class ComponentPoolStatusTracker:
                 )
 
     async def _update_status(self) -> None:
-        async for channel_name, status in self._merged_status_receiver:
-            component_id = self._component_status_trackers[channel_name].battery_id
-            if status == ComponentStatusEnum.WORKING:
+        async for status in self._merged_status_receiver:
+            component_id = status.component_id
+            if status.value == ComponentStatusEnum.WORKING:
                 self._current_status.working.add(component_id)
                 self._current_status.uncertain.discard(component_id)
-            elif status == ComponentStatusEnum.UNCERTAIN:
+            elif status.value == ComponentStatusEnum.UNCERTAIN:
                 self._current_status.working.discard(component_id)
                 self._current_status.uncertain.add(component_id)
-            elif status == ComponentStatusEnum.NOT_WORKING:
+            elif status.value == ComponentStatusEnum.NOT_WORKING:
                 self._current_status.working.discard(component_id)
                 self._current_status.uncertain.discard(component_id)
 

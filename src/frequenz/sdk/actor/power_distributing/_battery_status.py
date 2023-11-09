@@ -28,7 +28,7 @@ from ...microgrid.component import (
     ComponentData,
     InverterData,
 )
-from ._component_status import ComponentStatusEnum
+from ._component_status import ComponentStatus, ComponentStatusEnum
 
 _logger = logging.getLogger(__name__)
 
@@ -173,7 +173,7 @@ class BatteryStatusTracker:
         battery_id: int,
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
-        status_sender: Sender[ComponentStatusEnum],
+        status_sender: Sender[ComponentStatus],
         set_power_result_receiver: Receiver[SetPowerResult],
     ) -> None:
         """Create class instance.
@@ -301,7 +301,7 @@ class BatteryStatusTracker:
 
     async def _run(
         self,
-        status_sender: Sender[ComponentStatusEnum],
+        status_sender: Sender[ComponentStatus],
         set_power_result_receiver: Receiver[SetPowerResult],
     ) -> None:
         """Process data from the components and set_power_result_receiver.
@@ -372,7 +372,9 @@ class BatteryStatusTracker:
                     new_status = self._get_new_status_if_changed()
 
                     if new_status is not None:
-                        await status_sender.send(new_status)
+                        await status_sender.send(
+                            ComponentStatus(self.battery_id, new_status)
+                        )
 
             except Exception as err:  # pylint: disable=broad-except
                 _logger.exception("BatteryStatusTracker crashed with error: %s", err)

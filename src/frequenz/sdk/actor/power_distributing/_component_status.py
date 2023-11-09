@@ -49,3 +49,14 @@ class ComponentStatusEnum(enum.Enum):
 
     WORKING = 2
     """Component is working"""
+
+
+@dataclass(frozen=True)
+class ComponentStatus:
+    """Status of a single component."""
+
+    component_id: int
+    """Component ID."""
+
+    value: ComponentStatusEnum
+    """Component status."""

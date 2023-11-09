@@ -2,6 +2,8 @@
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 """Tests for BatteryStatusTracker."""
 
+# pylint: disable=too-many-lines
+
 import asyncio
 import math
 from collections.abc import AsyncIterator, Iterable
@@ -30,7 +32,10 @@ from frequenz.sdk.actor.power_distributing._battery_status import (
     BatteryStatusTracker,
     SetPowerResult,
 )
-from frequenz.sdk.actor.power_distributing._component_status import ComponentStatusEnum
+from frequenz.sdk.actor.power_distributing._component_status import (
+    ComponentStatus,
+    ComponentStatusEnum,
+)
 from frequenz.sdk.microgrid.component import BatteryData, InverterData
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
@@ -160,7 +165,7 @@ class TestBatteryStatus:
         mock_microgrid.add_batteries(3)
         await mock_microgrid.start(mocker)
 
-        status_channel = Broadcast[ComponentStatusEnum]("battery_status")
+        status_channel = Broadcast[ComponentStatus]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
         tracker = BatteryStatusTracker(
@@ -322,7 +327,7 @@ class TestBatteryStatus:
         mock_microgrid.add_batteries(3)
         await mock_microgrid.start(mocker)
 
-        status_channel = Broadcast[ComponentStatusEnum]("battery_status")
+        status_channel = Broadcast[ComponentStatus]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
         # increase max_data_age_sec for blocking tests.
@@ -446,7 +451,7 @@ class TestBatteryStatus:
         mock_microgrid.add_batteries(3)
         await mock_microgrid.start(mocker)
 
-        status_channel = Broadcast[ComponentStatusEnum]("battery_status")
+        status_channel = Broadcast[ComponentStatus]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
         tracker = BatteryStatusTracker(
@@ -497,7 +502,7 @@ class TestBatteryStatus:
         mock_microgrid.add_batteries(3)
         await mock_microgrid.start(mocker)
 
-        status_channel = Broadcast[ComponentStatusEnum]("battery_status")
+        status_channel = Broadcast[ComponentStatus]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
         tracker = BatteryStatusTracker(
@@ -557,7 +562,7 @@ class TestBatteryStatus:
         mock_microgrid.add_batteries(3)
         await mock_microgrid.start(mocker)
 
-        status_channel = Broadcast[ComponentStatusEnum]("battery_status")
+        status_channel = Broadcast[ComponentStatus]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
         tracker = BatteryStatusTracker(
@@ -619,7 +624,7 @@ class TestBatteryStatus:
         mock_microgrid.add_batteries(3)
         await mock_microgrid.start(mocker)
 
-        status_channel = Broadcast[ComponentStatusEnum]("battery_status")
+        status_channel = Broadcast[ComponentStatus]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
         status_receiver = status_channel.new_receiver()
@@ -640,19 +645,19 @@ class TestBatteryStatus:
             )
             await mock_microgrid.mock_client.send(battery_data(component_id=BATTERY_ID))
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
-            assert status is ComponentStatusEnum.WORKING
+            assert status.value is ComponentStatusEnum.WORKING
 
             await set_power_result_sender.send(
                 SetPowerResult(succeed={}, failed={BATTERY_ID})
             )
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
-            assert status is ComponentStatusEnum.UNCERTAIN
+            assert status.value is ComponentStatusEnum.UNCERTAIN
 
             time.shift(2)
 
             await mock_microgrid.mock_client.send(battery_data(component_id=BATTERY_ID))
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
-            assert status is ComponentStatusEnum.WORKING
+            assert status.value is ComponentStatusEnum.WORKING
 
             await mock_microgrid.mock_client.send(
                 inverter_data(
@@ -661,7 +666,7 @@ class TestBatteryStatus:
                 )
             )
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
-            assert status is ComponentStatusEnum.NOT_WORKING
+            assert status.value is ComponentStatusEnum.NOT_WORKING
 
             await set_power_result_sender.send(
                 SetPowerResult(succeed={}, failed={BATTERY_ID})
@@ -673,7 +678,7 @@ class TestBatteryStatus:
                 inverter_data(component_id=INVERTER_ID)
             )
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
-            assert status is ComponentStatusEnum.WORKING
+            assert status.value is ComponentStatusEnum.WORKING
 
         await tracker.stop()
         await mock_microgrid.cleanup()
@@ -694,13 +699,13 @@ class TestBatteryStatusRecovery:
     @pytest.fixture
     async def setup_tracker(
         self, mocker: MockerFixture
-    ) -> AsyncIterator[tuple[MockMicrogrid, Receiver[ComponentStatusEnum]]]:
+    ) -> AsyncIterator[tuple[MockMicrogrid, Receiver[ComponentStatus]]]:
         """Set a BatteryStatusTracker instance up to run tests with."""
         mock_microgrid = MockMicrogrid(grid_meter=True)
         mock_microgrid.add_batteries(1)
         await mock_microgrid.start(mocker)
 
-        status_channel = Broadcast[ComponentStatusEnum]("battery_status")
+        status_channel = Broadcast[ComponentStatus]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
         status_receiver = status_channel.new_receiver()
@@ -834,70 +839,78 @@ class TestBatteryStatusRecovery:
 
     async def test_missing_data(
         self,
-        setup_tracker: tuple[MockMicrogrid, Receiver[ComponentStatusEnum]],
+        setup_tracker: tuple[MockMicrogrid, Receiver[ComponentStatus]],
     ) -> None:
         """Test recovery after missing data."""
         mock_microgrid, status_receiver = setup_tracker
 
         await self._send_healthy_battery(mock_microgrid)
         await self._send_healthy_inverter(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.WORKING
+        assert (await status_receiver.receive()).value is ComponentStatusEnum.WORKING
 
         # --- missing battery data ---
         await self._send_healthy_inverter(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.NOT_WORKING
+        assert (
+            await status_receiver.receive()
+        ).value is ComponentStatusEnum.NOT_WORKING
 
         await self._send_healthy_battery(mock_microgrid)
         await self._send_healthy_inverter(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.WORKING
+        assert (await status_receiver.receive()).value is ComponentStatusEnum.WORKING
 
         # --- missing inverter data ---
         await self._send_healthy_battery(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.NOT_WORKING
+        assert (
+            await status_receiver.receive()
+        ).value is ComponentStatusEnum.NOT_WORKING
 
         await self._send_healthy_battery(mock_microgrid)
         await self._send_healthy_inverter(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.WORKING
+        assert (await status_receiver.receive()).value is ComponentStatusEnum.WORKING
 
     async def test_bad_state(
         self,
-        setup_tracker: tuple[MockMicrogrid, Receiver[ComponentStatusEnum]],
+        setup_tracker: tuple[MockMicrogrid, Receiver[ComponentStatus]],
     ) -> None:
         """Test recovery after bad component state."""
         mock_microgrid, status_receiver = setup_tracker
 
         await self._send_healthy_battery(mock_microgrid)
         await self._send_healthy_inverter(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.WORKING
+        assert (await status_receiver.receive()).value is ComponentStatusEnum.WORKING
 
         # --- bad battery state ---
         await self._send_healthy_inverter(mock_microgrid)
         await self._send_bad_state_battery(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.NOT_WORKING
+        assert (
+            await status_receiver.receive()
+        ).value is ComponentStatusEnum.NOT_WORKING
 
         await self._send_healthy_battery(mock_microgrid)
         await self._send_healthy_inverter(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.WORKING
+        assert (await status_receiver.receive()).value is ComponentStatusEnum.WORKING
 
         # --- bad inverter state ---
         await self._send_bad_state_inverter(mock_microgrid)
         await self._send_healthy_battery(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.NOT_WORKING
+        assert (
+            await status_receiver.receive()
+        ).value is ComponentStatusEnum.NOT_WORKING
 
         await self._send_healthy_battery(mock_microgrid)
         await self._send_healthy_inverter(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.WORKING
+        assert (await status_receiver.receive()).value is ComponentStatusEnum.WORKING
 
     async def test_critical_error(
         self,
-        setup_tracker: tuple[MockMicrogrid, Receiver[ComponentStatusEnum]],
+        setup_tracker: tuple[MockMicrogrid, Receiver[ComponentStatus]],
     ) -> None:
         """Test recovery after critical error."""
         mock_microgrid, status_receiver = setup_tracker
 
         await self._send_healthy_inverter(mock_microgrid)
         await self._send_healthy_battery(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.WORKING
+        assert (await status_receiver.receive()).value is ComponentStatusEnum.WORKING
 
         # --- battery warning error (keeps working) ---
         await self._send_healthy_inverter(mock_microgrid)
@@ -910,11 +923,13 @@ class TestBatteryStatusRecovery:
         # --- battery critical error ---
         await self._send_healthy_inverter(mock_microgrid)
         await self._send_critical_error_battery(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.NOT_WORKING
+        assert (
+            await status_receiver.receive()
+        ).value is ComponentStatusEnum.NOT_WORKING
 
         await self._send_healthy_battery(mock_microgrid)
         await self._send_healthy_inverter(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.WORKING
+        assert (await status_receiver.receive()).value is ComponentStatusEnum.WORKING
 
         # --- inverter warning error (keeps working) ---
         await self._send_healthy_battery(mock_microgrid)
@@ -927,34 +942,38 @@ class TestBatteryStatusRecovery:
         # --- inverter critical error ---
         await self._send_healthy_battery(mock_microgrid)
         await self._send_critical_error_inverter(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.NOT_WORKING
+        assert (
+            await status_receiver.receive()
+        ).value is ComponentStatusEnum.NOT_WORKING
 
         await self._send_healthy_battery(mock_microgrid)
         await self._send_healthy_inverter(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.WORKING
+        assert (await status_receiver.receive()).value is ComponentStatusEnum.WORKING
 
     async def test_missing_capacity(
         self,
-        setup_tracker: tuple[MockMicrogrid, Receiver[ComponentStatusEnum]],
+        setup_tracker: tuple[MockMicrogrid, Receiver[ComponentStatus]],
     ) -> None:
         """Test recovery after missing capacity."""
         mock_microgrid, status_receiver = setup_tracker
 
         await self._send_healthy_battery(mock_microgrid)
         await self._send_healthy_inverter(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.WORKING
+        assert (await status_receiver.receive()).value is ComponentStatusEnum.WORKING
 
         await self._send_healthy_inverter(mock_microgrid)
         await self._send_battery_missing_capacity(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.NOT_WORKING
+        assert (
+            await status_receiver.receive()
+        ).value is ComponentStatusEnum.NOT_WORKING
 
         await self._send_healthy_battery(mock_microgrid)
         await self._send_healthy_inverter(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.WORKING
+        assert (await status_receiver.receive()).value is ComponentStatusEnum.WORKING
 
     async def test_stale_data(
         self,
-        setup_tracker: tuple[MockMicrogrid, Receiver[ComponentStatusEnum]],
+        setup_tracker: tuple[MockMicrogrid, Receiver[ComponentStatus]],
     ) -> None:
         """Test recovery after stale data."""
         mock_microgrid, status_receiver = setup_tracker
@@ -962,7 +981,7 @@ class TestBatteryStatusRecovery:
         timestamp = datetime.now(timezone.utc)
         await self._send_healthy_battery(mock_microgrid, timestamp)
         await self._send_healthy_inverter(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.WORKING
+        assert (await status_receiver.receive()).value is ComponentStatusEnum.WORKING
 
         # --- stale battery data ---
         await self._send_healthy_inverter(mock_microgrid)
@@ -971,12 +990,14 @@ class TestBatteryStatusRecovery:
 
         await self._send_healthy_inverter(mock_microgrid)
         await self._send_healthy_battery(mock_microgrid, timestamp)
-        assert await recv_timeout(status_receiver) is ComponentStatusEnum.NOT_WORKING
+        assert await recv_timeout(status_receiver) == ComponentStatus(
+            BATTERY_ID, ComponentStatusEnum.NOT_WORKING
+        )
 
         timestamp = datetime.now(timezone.utc)
         await self._send_healthy_battery(mock_microgrid, timestamp)
         await self._send_healthy_inverter(mock_microgrid, timestamp)
-        assert await status_receiver.receive() is ComponentStatusEnum.WORKING
+        assert (await status_receiver.receive()).value is ComponentStatusEnum.WORKING
 
         # --- stale inverter data ---
         await self._send_healthy_battery(mock_microgrid)
@@ -985,8 +1006,10 @@ class TestBatteryStatusRecovery:
 
         await self._send_healthy_battery(mock_microgrid)
         await self._send_healthy_inverter(mock_microgrid, timestamp)
-        assert await recv_timeout(status_receiver) is ComponentStatusEnum.NOT_WORKING
+        assert await recv_timeout(status_receiver) == ComponentStatus(
+            BATTERY_ID, ComponentStatusEnum.NOT_WORKING
+        )
 
         await self._send_healthy_battery(mock_microgrid)
         await self._send_healthy_inverter(mock_microgrid)
-        assert await status_receiver.receive() is ComponentStatusEnum.WORKING
+        assert (await status_receiver.receive()).value is ComponentStatusEnum.WORKING
