@@ -7,7 +7,6 @@
 import asyncio
 import logging
 from collections import abc
-from dataclasses import dataclass
 
 from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.channels.util import MergeNamed
@@ -17,26 +16,6 @@ from ._battery_status import BatteryStatusTracker, SetPowerResult
 from ._component_status import ComponentPoolStatus, ComponentStatusEnum
 
 _logger = logging.getLogger(__name__)
-
-
-@dataclass
-class _ComponentStatusChannelHelper:
-    """Helper class to create component status channel.
-
-    Channel has only one receiver.
-    Receiver has size 1, because we need only latest status.
-    """
-
-    component_id: int
-    """Id of the component for which we should create channel."""
-
-    def __post_init__(self) -> None:
-        self.name: str = f"component-{self.component_id}-status"
-        channel = Broadcast[ComponentStatusEnum](self.name)
-
-        receiver_name = f"{self.name}-receiver"
-        self.receiver = channel.new_receiver(name=receiver_name, maxsize=1)
-        self.sender = channel.new_sender()
 
 
 class ComponentPoolStatusTracker:
@@ -70,39 +49,24 @@ class ComponentPoolStatusTracker:
             RuntimeError: When managing batteries, if any battery has no adjacent
                 inverter.
         """
+        self._component_ids = component_ids
+        self._max_data_age_sec = max_data_age_sec
+        self._max_blocking_duration_sec = max_blocking_duration_sec
+        self._component_status_sender = component_status_sender
+
         # At first no component is working, we will get notification when they start
         # working.
         self._current_status = ComponentPoolStatus(working=set(), uncertain=set())
 
         # Channel for sending results of requests to the components.
-        set_power_result_channel = Broadcast[SetPowerResult]("component_request_status")
-        self._set_power_result_sender = set_power_result_channel.new_sender()
-
-        self._batteries: dict[str, BatteryStatusTracker] = {}
-
-        # Receivers for individual components statuses are needed to create a
-        # `MergeNamed` object.
-        receivers: dict[str, Receiver[ComponentStatusEnum]] = {}
-
-        for battery_id in component_ids:
-            channel = _ComponentStatusChannelHelper(battery_id)
-            receivers[channel.name] = channel.receiver
-
-            self._batteries[channel.name] = BatteryStatusTracker(
-                battery_id=battery_id,
-                max_data_age_sec=max_data_age_sec,
-                max_blocking_duration_sec=max_blocking_duration_sec,
-                status_sender=channel.sender,
-                set_power_result_receiver=set_power_result_channel.new_receiver(
-                    f"battery_{battery_id}_request_status"
-                ),
-            )
-
-        self._component_status_channel = MergeNamed[ComponentStatusEnum](
-            **receivers,
+        self._set_power_result_channel = Broadcast[SetPowerResult](
+            "component_request_status"
         )
+        self._set_power_result_sender = self._set_power_result_channel.new_sender()
+        self._component_status_trackers: dict[str, BatteryStatusTracker] = {}
+        self._merged_status_receiver = self._make_merged_status_receiver()
 
-        self._task = asyncio.create_task(self._run(component_status_sender))
+        self._task = asyncio.create_task(self._run())
 
     async def join(self) -> None:
         """Wait and return when the instance's task completes.
@@ -114,40 +78,46 @@ class ComponentPoolStatusTracker:
     async def stop(self) -> None:
         """Stop tracking batteries status."""
         await cancel_and_await(self._task)
-
         await asyncio.gather(
             *[
                 tracker.stop()  # pylint: disable=protected-access
-                for tracker in self._batteries.values()
+                for tracker in self._component_status_trackers.values()
             ],
         )
-        await self._component_status_channel.stop()
+        await self._merged_status_receiver.stop()
 
-    async def _run(self, component_status_sender: Sender[ComponentPoolStatus]) -> None:
-        """Start tracking component status.
+    def _make_merged_status_receiver(
+        self,
+    ) -> MergeNamed[ComponentStatusEnum]:
+        status_receivers: dict[str, Receiver[ComponentStatusEnum]] = {}
 
-        Args:
-            component_status_sender: The sender used for sending the status of the
-                components in the pool.
-        """
+        for component_id in self._component_ids:
+            channel_name = f"component_{component_id}_status"
+            channel: Broadcast[ComponentStatusEnum] = Broadcast(channel_name)
+            tracker = BatteryStatusTracker(
+                battery_id=component_id,
+                max_data_age_sec=self._max_data_age_sec,
+                max_blocking_duration_sec=self._max_blocking_duration_sec,
+                status_sender=channel.new_sender(),
+                set_power_result_receiver=self._set_power_result_channel.new_receiver(),
+            )
+            self._component_status_trackers[channel_name] = tracker
+            status_receivers[channel_name] = channel.new_receiver()
+        return MergeNamed(**status_receivers)
+
+    async def _run(self) -> None:
+        """Start tracking component status."""
         while True:
             try:
-                await self._update_status(component_status_sender)
+                await self._update_status()
             except Exception as err:  # pylint: disable=broad-except
                 _logger.error(
                     "ComponentPoolStatus failed with error: %s. Restarting.", err
                 )
 
-    async def _update_status(
-        self, component_status_sender: Sender[ComponentPoolStatus]
-    ) -> None:
-        """Wait for any component to change status and update status.
-
-        Args:
-            component_status_sender: Sender to send the current status of components.
-        """
-        async for channel_name, status in self._component_status_channel:
-            component_id = self._batteries[channel_name].battery_id
+    async def _update_status(self) -> None:
+        async for channel_name, status in self._merged_status_receiver:
+            component_id = self._component_status_trackers[channel_name].battery_id
             if status == ComponentStatusEnum.WORKING:
                 self._current_status.working.add(component_id)
                 self._current_status.uncertain.discard(component_id)
@@ -158,7 +128,7 @@ class ComponentPoolStatusTracker:
                 self._current_status.working.discard(component_id)
                 self._current_status.uncertain.discard(component_id)
 
-            await component_status_sender.send(self._current_status)
+            await self._component_status_sender.send(self._current_status)
 
     async def update_status(
         self, succeed_components: set[int], failed_components: set[int]
@@ -178,7 +148,7 @@ class ComponentPoolStatusTracker:
             SetPowerResult(succeed_components, failed_components)
         )
 
-    def get_working_components(self, components: abc.Set[int]) -> set[int]:
+    def get_working_components(self, components: abc.Set[int]) -> abc.Set[int]:
         """From the given set of components, return only working ones.
 
         Args:
