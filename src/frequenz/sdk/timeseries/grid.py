@@ -92,7 +92,7 @@ class Grid:
 
     @property
     def current(self) -> FormulaEngine3Phase[Current]:
-        """Fetch the grid power for the microgrid.
+        """Fetch the grid current for the microgrid.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
