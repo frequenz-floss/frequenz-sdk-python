@@ -9,8 +9,8 @@ from pytest_mock import MockerFixture
 
 from frequenz.sdk.actor.power_distributing._component_pool_status_tracker import (
     ComponentPoolStatusTracker,
-    ComponentStatus,
 )
+from frequenz.sdk.actor.power_distributing._component_status import ComponentPoolStatus
 from frequenz.sdk.microgrid.component import ComponentCategory
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
@@ -39,7 +39,7 @@ class TestBatteryPoolStatus:
                 component_category={ComponentCategory.BATTERY}
             )
         }
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         battery_status_recv = battery_status_channel.new_receiver(maxsize=1)
         batteries_status = ComponentPoolStatusTracker(
             component_ids=batteries,

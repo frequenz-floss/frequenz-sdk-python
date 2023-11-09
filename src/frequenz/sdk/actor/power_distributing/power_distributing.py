@@ -36,7 +36,8 @@ from ...microgrid.component import (
     ComponentCategory,
     InverterData,
 )
-from ._component_pool_status_tracker import ComponentPoolStatusTracker, ComponentStatus
+from ._component_pool_status_tracker import ComponentPoolStatusTracker
+from ._component_status import ComponentPoolStatus
 from ._distribution_algorithm import (
     AggregatedBatteryData,
     DistributionAlgorithm,
@@ -164,7 +165,7 @@ class PowerDistributingActor(Actor):
         self,
         requests_receiver: Receiver[Request],
         results_sender: Sender[Result],
-        battery_status_sender: Sender[ComponentStatus],
+        battery_status_sender: Sender[ComponentPoolStatus],
         wait_for_data_sec: float = 2,
         *,
         name: str | None = None,

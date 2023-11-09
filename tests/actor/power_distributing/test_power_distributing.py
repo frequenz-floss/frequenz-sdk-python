@@ -16,7 +16,7 @@ from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.actor.power_distributing import (
-    ComponentStatus,
+    ComponentPoolStatus,
     PowerDistributingActor,
     Request,
 )
@@ -58,7 +58,7 @@ class TestPowerDistributingActor:
 
         requests_channel = Broadcast[Request]("power_distributor requests")
         results_channel = Broadcast[Result]("power_distributor results")
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -130,7 +130,7 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -193,7 +193,7 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -294,7 +294,7 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
@@ -376,7 +376,7 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
@@ -450,7 +450,7 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
@@ -528,7 +528,7 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
@@ -617,7 +617,7 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
@@ -705,7 +705,7 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
@@ -776,7 +776,7 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
@@ -838,7 +838,7 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -902,7 +902,7 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -974,7 +974,7 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -1024,7 +1024,7 @@ class TestPowerDistributingActor:
         )
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -1074,7 +1074,7 @@ class TestPowerDistributingActor:
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -1126,7 +1126,7 @@ class TestPowerDistributingActor:
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -1178,7 +1178,7 @@ class TestPowerDistributingActor:
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -1223,7 +1223,7 @@ class TestPowerDistributingActor:
         requests_channel = Broadcast[Request]("power_distributor requests")
         results_channel = Broadcast[Result]("power_distributor results")
 
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -1284,7 +1284,7 @@ class TestPowerDistributingActor:
         requests_channel = Broadcast[Request]("power_distributor requests")
         results_channel = Broadcast[Result]("power_distributor results")
 
-        battery_status_channel = Broadcast[ComponentStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),

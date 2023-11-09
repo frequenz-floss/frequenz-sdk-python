@@ -14,7 +14,7 @@ from frequenz.channels import Receiver, Sender
 
 from ..._internal._asyncio import cancel_and_await
 from ...actor import ComponentMetricRequest, _channel_registry, _power_managing
-from ...actor.power_distributing._component_pool_status_tracker import ComponentStatus
+from ...actor.power_distributing._component_status import ComponentPoolStatus
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory
 from ..formula_engine._formula_engine_pool import FormulaEnginePool
@@ -38,7 +38,7 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
         self,
         channel_registry: _channel_registry.ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
-        batteries_status_receiver: Receiver[ComponentStatus],
+        batteries_status_receiver: Receiver[ComponentPoolStatus],
         power_manager_requests_sender: Sender[_power_managing.Proposal],
         power_manager_bounds_subscription_sender: Sender[_power_managing.ReportRequest],
         min_update_interval: timedelta,
@@ -131,7 +131,9 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
             }
         )
 
-    async def _update_battery_status(self, receiver: Receiver[ComponentStatus]) -> None:
+    async def _update_battery_status(
+        self, receiver: Receiver[ComponentPoolStatus]
+    ) -> None:
         async for status in receiver:
             self._working_batteries = status.get_working_components(self._batteries)
             for item in self._active_methods.values():

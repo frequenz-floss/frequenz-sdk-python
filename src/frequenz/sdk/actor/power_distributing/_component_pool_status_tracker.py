@@ -14,33 +14,9 @@ from frequenz.channels.util import MergeNamed
 
 from ..._internal._asyncio import cancel_and_await
 from ._battery_status import BatteryStatusTracker, SetPowerResult, Status
+from ._component_status import ComponentPoolStatus
 
 _logger = logging.getLogger(__name__)
-
-
-@dataclass
-class ComponentStatus:
-    """Status of all components of a certain category in the microgrid."""
-
-    working: set[int]
-    """Set of working component ids."""
-
-    uncertain: set[int]
-    """Set of components to be used only when there are none known to be working."""
-
-    def get_working_components(self, components: abc.Set[int]) -> set[int]:
-        """From the given set of components return the working ones.
-
-        Args:
-            components: Set of components.
-
-        Returns:
-            Subset with working components.
-        """
-        working = self.working.intersection(components)
-        if len(working) > 0:
-            return working
-        return self.uncertain.intersection(components)
 
 
 @dataclass
@@ -73,7 +49,7 @@ class ComponentPoolStatusTracker:
     def __init__(  # noqa: DOC502 (RuntimeError raised from BatteryStatusTracker)
         self,
         component_ids: set[int],
-        component_status_sender: Sender[ComponentStatus],
+        component_status_sender: Sender[ComponentPoolStatus],
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
     ) -> None:
@@ -96,7 +72,7 @@ class ComponentPoolStatusTracker:
         """
         # At first no component is working, we will get notification when they start
         # working.
-        self._current_status = ComponentStatus(working=set(), uncertain=set())
+        self._current_status = ComponentPoolStatus(working=set(), uncertain=set())
 
         # Channel for sending results of requests to the components.
         set_power_result_channel = Broadcast[SetPowerResult]("component_request_status")
@@ -147,7 +123,7 @@ class ComponentPoolStatusTracker:
         )
         await self._component_status_channel.stop()
 
-    async def _run(self, component_status_sender: Sender[ComponentStatus]) -> None:
+    async def _run(self, component_status_sender: Sender[ComponentPoolStatus]) -> None:
         """Start tracking component status.
 
         Args:
@@ -163,7 +139,7 @@ class ComponentPoolStatusTracker:
                 )
 
     async def _update_status(
-        self, component_status_sender: Sender[ComponentStatus]
+        self, component_status_sender: Sender[ComponentPoolStatus]
     ) -> None:
         """Wait for any component to change status and update status.
 
