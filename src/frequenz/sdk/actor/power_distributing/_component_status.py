@@ -5,6 +5,7 @@
 
 
 import enum
+import typing
 from collections import abc
 from dataclasses import dataclass
 
@@ -60,3 +61,14 @@ class ComponentStatus:
 
     value: ComponentStatusEnum
     """Component status."""
+
+
+@dataclass(frozen=True, kw_only=True)
+class SetPowerResult:
+    """Lists of components for which the last set power command succeeded or failed."""
+
+    succeeded: typing.Iterable[int]
+    """Component IDs for which the last set power command succeeded."""
+
+    failed: typing.Iterable[int]
+    """Component IDs for which the last set power command failed."""

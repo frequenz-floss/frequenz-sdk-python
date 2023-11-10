@@ -12,8 +12,13 @@ from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.channels.util import Merge
 
 from ..._internal._asyncio import cancel_and_await
-from ._battery_status_tracker import BatteryStatusTracker, SetPowerResult
-from ._component_status import ComponentPoolStatus, ComponentStatus, ComponentStatusEnum
+from ._battery_status_tracker import BatteryStatusTracker
+from ._component_status import (
+    ComponentPoolStatus,
+    ComponentStatus,
+    ComponentStatusEnum,
+    SetPowerResult,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -143,7 +148,7 @@ class ComponentPoolStatusTracker:
             failed_components: Components that failed request
         """
         await self._set_power_result_sender.send(
-            SetPowerResult(succeed_components, failed_components)
+            SetPowerResult(succeeded=succeed_components, failed=failed_components)
         )
 
     def get_working_components(self, components: abc.Set[int]) -> abc.Set[int]:

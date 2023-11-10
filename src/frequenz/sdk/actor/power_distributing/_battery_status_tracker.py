@@ -6,7 +6,6 @@
 import asyncio
 import logging
 import math
-from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
@@ -28,20 +27,9 @@ from ...microgrid.component import (
     ComponentData,
     InverterData,
 )
-from ._component_status import ComponentStatus, ComponentStatusEnum
+from ._component_status import ComponentStatus, ComponentStatusEnum, SetPowerResult
 
 _logger = logging.getLogger(__name__)
-
-
-@dataclass
-class SetPowerResult:
-    """Information what batteries succeed or failed the last request."""
-
-    succeed: Iterable[int]
-    """Set of the batteries that succeed."""
-
-    failed: Iterable[int]
-    """Set of the batteries that failed."""
 
 
 @dataclass
@@ -255,7 +243,7 @@ class BatteryStatusTracker:
         self._inverter.data_recv_timer.reset()
 
     def _handle_status_set_power_result(self, result: SetPowerResult) -> None:
-        if self.battery_id in result.succeed:
+        if self.battery_id in result.succeeded:
             self._blocking_status.unblock()
 
         elif (
