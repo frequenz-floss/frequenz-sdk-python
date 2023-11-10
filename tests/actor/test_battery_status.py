@@ -28,7 +28,7 @@ from frequenz.api.microgrid.inverter_pb2 import ErrorCode as InverterErrorCode
 from frequenz.channels import Broadcast, Receiver
 from pytest_mock import MockerFixture
 
-from frequenz.sdk.actor.power_distributing._battery_status import (
+from frequenz.sdk.actor.power_distributing._battery_status_tracker import (
     BatteryStatusTracker,
     SetPowerResult,
 )

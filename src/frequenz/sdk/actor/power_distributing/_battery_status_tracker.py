@@ -170,7 +170,7 @@ class BatteryStatusTracker:
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        battery_id: int,
+        component_id: int,
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
         status_sender: Sender[ComponentStatus],
@@ -179,7 +179,7 @@ class BatteryStatusTracker:
         """Create class instance.
 
         Args:
-            battery_id: Id of this battery
+            component_id: Id of this battery
             max_data_age_sec: If component stopped sending data, then
                 this is the maximum time when its last message should be considered as
                 valid. After that time, component won't be used until it starts sending
@@ -201,12 +201,14 @@ class BatteryStatusTracker:
             1.0, max_blocking_duration_sec
         )
 
-        inverter_id = self._find_adjacent_inverter_id(battery_id)
+        inverter_id = self._find_adjacent_inverter_id(component_id)
         if inverter_id is None:
-            raise RuntimeError(f"Can't find inverter adjacent to battery: {battery_id}")
+            raise RuntimeError(
+                f"Can't find inverter adjacent to battery: {component_id}"
+            )
 
         self._battery: _ComponentStreamStatus = _ComponentStreamStatus(
-            battery_id,
+            component_id,
             data_recv_timer=Timer.timeout(timedelta(seconds=max_data_age_sec)),
         )
         self._inverter: _ComponentStreamStatus = _ComponentStreamStatus(

@@ -12,7 +12,7 @@ from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.channels.util import Merge
 
 from ..._internal._asyncio import cancel_and_await
-from ._battery_status import BatteryStatusTracker, SetPowerResult
+from ._battery_status_tracker import BatteryStatusTracker, SetPowerResult
 from ._component_status import ComponentPoolStatus, ComponentStatus, ComponentStatusEnum
 
 _logger = logging.getLogger(__name__)
@@ -93,7 +93,7 @@ class ComponentPoolStatusTracker:
                 f"component_{component_id}_status"
             )
             tracker = BatteryStatusTracker(
-                battery_id=component_id,
+                component_id=component_id,
                 max_data_age_sec=self._max_data_age_sec,
                 max_blocking_duration_sec=self._max_blocking_duration_sec,
                 status_sender=channel.new_sender(),
