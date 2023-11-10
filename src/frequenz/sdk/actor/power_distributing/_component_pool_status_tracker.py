@@ -12,11 +12,11 @@ from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.channels.util import Merge
 
 from ..._internal._asyncio import cancel_and_await
-from ._battery_status_tracker import BatteryStatusTracker
 from ._component_status import (
     ComponentPoolStatus,
     ComponentStatus,
     ComponentStatusEnum,
+    ComponentStatusTracker,
     SetPowerResult,
 )
 
@@ -30,12 +30,13 @@ class ComponentPoolStatusTracker:
     components changes.
     """
 
-    def __init__(  # noqa: DOC502 (RuntimeError raised from BatteryStatusTracker)
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         component_ids: set[int],
         component_status_sender: Sender[ComponentPoolStatus],
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
+        component_status_tracker_type: type[ComponentStatusTracker],
     ) -> None:
         """Create ComponentPoolStatusTracker instance.
 
@@ -49,15 +50,14 @@ class ComponentPoolStatusTracker:
                 sending data.
             max_blocking_duration_sec: This value tell what should be the maximum
                 timeout used for blocking failing component.
-
-        Raises:
-            RuntimeError: When managing batteries, if any battery has no adjacent
-                inverter.
+            component_status_tracker_type: component status tracker to use
+                for tracking the status of the components.
         """
         self._component_ids = component_ids
         self._max_data_age_sec = max_data_age_sec
         self._max_blocking_duration_sec = max_blocking_duration_sec
         self._component_status_sender = component_status_sender
+        self._component_status_tracker_type = component_status_tracker_type
 
         # At first no component is working, we will get notification when they start
         # working.
@@ -68,7 +68,7 @@ class ComponentPoolStatusTracker:
             "component_request_status"
         )
         self._set_power_result_sender = self._set_power_result_channel.new_sender()
-        self._component_status_trackers: list[BatteryStatusTracker] = []
+        self._component_status_trackers: list[ComponentStatusTracker] = []
         self._merged_status_receiver = self._make_merged_status_receiver()
 
         self._task = asyncio.create_task(self._run())
@@ -97,7 +97,7 @@ class ComponentPoolStatusTracker:
             channel: Broadcast[ComponentStatus] = Broadcast(
                 f"component_{component_id}_status"
             )
-            tracker = BatteryStatusTracker(
+            tracker = self._component_status_tracker_type(
                 component_id=component_id,
                 max_data_age_sec=self._max_data_age_sec,
                 max_blocking_duration_sec=self._max_blocking_duration_sec,

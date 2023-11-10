@@ -36,6 +36,7 @@ from ...microgrid.component import (
     ComponentCategory,
     InverterData,
 )
+from ._battery_status_tracker import BatteryStatusTracker
 from ._component_pool_status_tracker import ComponentPoolStatusTracker
 from ._component_status import ComponentPoolStatus
 from ._distribution_algorithm import (
@@ -223,6 +224,7 @@ class PowerDistributingActor(Actor):
             component_status_sender=battery_status_sender,
             max_blocking_duration_sec=30.0,
             max_data_age_sec=10.0,
+            component_status_tracker_type=BatteryStatusTracker,
         )
 
     def _get_bounds(

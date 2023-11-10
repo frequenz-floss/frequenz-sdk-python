@@ -18,6 +18,7 @@ from frequenz.api.microgrid.inverter_pb2 import ComponentState as InverterCompon
 # pylint: enable=no-name-in-module
 from frequenz.channels import Receiver, Sender
 from frequenz.channels.util import Timer, select, selected_from
+from typing_extensions import override
 
 from ..._internal._asyncio import cancel_and_await
 from ...microgrid import connection_manager
@@ -27,7 +28,12 @@ from ...microgrid.component import (
     ComponentData,
     InverterData,
 )
-from ._component_status import ComponentStatus, ComponentStatusEnum, SetPowerResult
+from ._component_status import (
+    ComponentStatus,
+    ComponentStatusEnum,
+    ComponentStatusTracker,
+    SetPowerResult,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -121,7 +127,7 @@ class _BlockingStatus:
         return self.blocked_until > datetime.now(tz=timezone.utc)
 
 
-class BatteryStatusTracker:
+class BatteryStatusTracker(ComponentStatusTracker):
     """Class for tracking if battery is working.
 
     Status updates are sent out only when there is a status change.
@@ -156,6 +162,7 @@ class BatteryStatusTracker:
     A working inverter in any other inverter state will be reported as failing.
     """
 
+    @override
     def __init__(  # pylint: disable=too-many-arguments
         self,
         component_id: int,

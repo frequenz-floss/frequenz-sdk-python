@@ -7,6 +7,9 @@ import asyncio
 from frequenz.channels import Broadcast
 from pytest_mock import MockerFixture
 
+from frequenz.sdk.actor.power_distributing._battery_status_tracker import (
+    BatteryStatusTracker,
+)
 from frequenz.sdk.actor.power_distributing._component_pool_status_tracker import (
     ComponentPoolStatusTracker,
 )
@@ -46,6 +49,7 @@ class TestBatteryPoolStatus:
             component_status_sender=battery_status_channel.new_sender(),
             max_data_age_sec=5,
             max_blocking_duration_sec=30,
+            component_status_tracker_type=BatteryStatusTracker,
         )
         await asyncio.sleep(0.1)
 
