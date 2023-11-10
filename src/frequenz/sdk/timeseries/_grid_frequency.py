@@ -21,6 +21,8 @@ if TYPE_CHECKING:
     # Imported here to avoid a circular import.
     from ..actor import ComponentMetricRequest
 
+_logger = logging.getLogger(__name__)
+
 
 def create_request(component_id: int) -> ComponentMetricRequest:
     """Create a request for grid frequency.
@@ -87,15 +89,15 @@ class GridFrequency:
         if not self._task:
             self._task = asyncio.create_task(self._send_request())
         else:
-            logging.info("Grid frequency request already sent: %s", self._component)
+            _logger.info("Grid frequency request already sent: %s", self._component)
 
         return receiver
 
     async def _send_request(self) -> None:
         """Send the request for grid frequency."""
-        logging.info("Sending request for grid frequency: %s", self._component)
+        _logger.info("Sending request for grid frequency: %s", self._component)
         await self._request_sender.send(self._component_metric_request)
-        logging.info("Sent request for grid frequency: %s", self._component)
+        _logger.info("Sent request for grid frequency: %s", self._component)
 
     @staticmethod
     def find_frequency_component() -> Component:
