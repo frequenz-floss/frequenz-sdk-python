@@ -115,7 +115,7 @@ class BoundsSetter:
                     continue
                 latest_bound[bound.component_id] = bound
                 min_voltage = min(meter.voltage_per_phase)
-                logging.info("sending new bounds: %s", bound)
+                _logger.info("sending new bounds: %s", bound)
                 await api_client.set_bounds(
                     bound.component_id,
                     0,
@@ -124,7 +124,7 @@ class BoundsSetter:
             elif selected_from(selected, timer):
                 for bound in latest_bound.values():
                     min_voltage = min(meter.voltage_per_phase)
-                    logging.debug("resending bounds: %s", bound)
+                    _logger.debug("resending bounds: %s", bound)
                     await api_client.set_bounds(
                         bound.component_id,
                         0,

@@ -15,6 +15,8 @@ from ..microgrid.component import Component
 from ..microgrid.component._component import ComponentCategory
 from ..microgrid.fuse import Fuse
 
+_logger = logging.getLogger(__name__)
+
 
 @dataclass(frozen=True)
 class Grid:
@@ -49,7 +51,7 @@ def initialize(components: Iterable[Component]) -> None:
     grid_connections_count = len(grid_connections)
 
     if grid_connections_count == 0:
-        logging.info(
+        _logger.info(
             "No grid connection found for this microgrid. This is normal for an islanded microgrid."
         )
     elif grid_connections_count > 1:

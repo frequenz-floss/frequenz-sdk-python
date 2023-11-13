@@ -74,7 +74,7 @@ class ConfigManagingActor(Actor):
             with self._config_path.open("rb") as toml_file:
                 return tomllib.load(toml_file)
         except ValueError as err:
-            logging.error("%s: Can't read config file, err: %s", self, err)
+            _logger.error("%s: Can't read config file, err: %s", self, err)
             raise
 
     async def send_config(self) -> None:
