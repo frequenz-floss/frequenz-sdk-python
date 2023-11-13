@@ -10,8 +10,7 @@ import frequenz.api.common.components_pb2 as components_pb
 import frequenz.api.microgrid.grid_pb2 as grid_pb
 import frequenz.api.microgrid.inverter_pb2 as inverter_pb
 
-from ...timeseries import Current
-from ..fuse import Fuse
+from ...timeseries import Current, Fuse
 
 
 class ComponentType(Enum):

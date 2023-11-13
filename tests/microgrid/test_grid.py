@@ -4,8 +4,7 @@
 """Tests for the `Grid` module."""
 
 from frequenz.sdk.microgrid.component import Component, ComponentCategory, GridMetadata
-from frequenz.sdk.microgrid.fuse import Fuse
-from frequenz.sdk.timeseries import Current
+from frequenz.sdk.timeseries import Current, Fuse
 from frequenz.sdk.timeseries import grid as _grid
 
 

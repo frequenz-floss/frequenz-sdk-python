@@ -2,10 +2,14 @@
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
 """Fuse data class."""
+from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-from ..timeseries import Current
+if TYPE_CHECKING:
+    # Break circular import by enclosing these type hints in a `TYPE_CHECKING` block.
+    from . import Current
 
 
 @dataclass(frozen=True)
