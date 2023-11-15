@@ -92,7 +92,7 @@ class ComponentStatusTracker(ABC):
         """Create class instance.
 
         Args:
-            component_id: Id of this battery
+            component_id: Id of this component
             max_data_age_sec: If component stopped sending data, then
                 this is the maximum time when its last message should be considered as
                 valid. After that time, component won't be used until it starts sending
@@ -106,4 +106,4 @@ class ComponentStatusTracker(ABC):
 
     @abstractmethod
     async def stop(self) -> None:
-        """Stop tracking battery status."""
+        """Stop the ComponentStatusTracker instance."""

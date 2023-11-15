@@ -81,7 +81,7 @@ class ComponentPoolStatusTracker:
         await self._task
 
     async def stop(self) -> None:
-        """Stop tracking batteries status."""
+        """Stop the ComponentPoolStatusTracker instance."""
         await cancel_and_await(self._task)
         await asyncio.gather(
             *[tracker.stop() for tracker in self._component_status_trackers],
@@ -134,21 +134,21 @@ class ComponentPoolStatusTracker:
             await self._component_status_sender.send(self._current_status)
 
     async def update_status(
-        self, succeed_components: set[int], failed_components: set[int]
+        self, succeeded_components: set[int], failed_components: set[int]
     ) -> None:
-        """Notify which components succeed and failed in the request.
+        """Notify which components succeeded or failed in the request.
 
         Components that failed will be considered as broken and will be temporarily
-        blocked for some time.
+        blocked.
 
-        Components that succeed will be unblocked.
+        Components that succeeded will be unblocked.
 
         Args:
-            succeed_components: Components that succeed request
-            failed_components: Components that failed request
+            succeeded_components: Component IDs for which the power request succeeded.
+            failed_components: Component IDs for which the power request failed.
         """
         await self._set_power_result_sender.send(
-            SetPowerResult(succeeded=succeed_components, failed=failed_components)
+            SetPowerResult(succeeded=succeeded_components, failed=failed_components)
         )
 
     def get_working_components(self, components: abc.Set[int]) -> abc.Set[int]:

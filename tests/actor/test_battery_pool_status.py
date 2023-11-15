@@ -94,13 +94,13 @@ class TestBatteryPoolStatus:
         assert msg == batteries_status._current_status
 
         await batteries_status.update_status(
-            succeed_components={9}, failed_components={19, 29}
+            succeeded_components={9}, failed_components={19, 29}
         )
         await asyncio.sleep(0.1)
         assert batteries_status.get_working_components(batteries) == {9}
 
         await batteries_status.update_status(
-            succeed_components={9, 19}, failed_components=set()
+            succeeded_components={9, 19}, failed_components=set()
         )
         await asyncio.sleep(0.1)
         assert batteries_status.get_working_components(batteries) == {9, 19}
