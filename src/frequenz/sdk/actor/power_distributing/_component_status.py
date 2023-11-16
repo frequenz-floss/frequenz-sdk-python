@@ -5,7 +5,6 @@
 
 
 import enum
-import typing
 from abc import ABC, abstractmethod
 from collections import abc
 from dataclasses import dataclass
@@ -70,10 +69,10 @@ class ComponentStatus:
 class SetPowerResult:
     """Lists of components for which the last set power command succeeded or failed."""
 
-    succeeded: typing.Iterable[int]
+    succeeded: abc.Set[int]
     """Component IDs for which the last set power command succeeded."""
 
-    failed: typing.Iterable[int]
+    failed: abc.Set[int]
     """Component IDs for which the last set power command failed."""
 
 

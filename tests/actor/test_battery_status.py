@@ -538,7 +538,7 @@ class TestBatteryStatus:
         assert tracker._get_new_status_if_changed() is None
 
         tracker._handle_status_set_power_result(
-            SetPowerResult(succeeded={BATTERY_ID}, failed={})
+            SetPowerResult(succeeded={BATTERY_ID}, failed=set())
         )
         assert tracker._get_new_status_if_changed() is None
 
@@ -648,7 +648,7 @@ class TestBatteryStatus:
             assert status.value is ComponentStatusEnum.WORKING
 
             await set_power_result_sender.send(
-                SetPowerResult(succeeded={}, failed={BATTERY_ID})
+                SetPowerResult(succeeded=set(), failed={BATTERY_ID})
             )
             status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
             assert status.value is ComponentStatusEnum.UNCERTAIN
@@ -669,7 +669,7 @@ class TestBatteryStatus:
             assert status.value is ComponentStatusEnum.NOT_WORKING
 
             await set_power_result_sender.send(
-                SetPowerResult(succeeded={}, failed={BATTERY_ID})
+                SetPowerResult(succeeded=set(), failed={BATTERY_ID})
             )
             await asyncio.sleep(0.3)
             assert len(status_receiver) == 0
