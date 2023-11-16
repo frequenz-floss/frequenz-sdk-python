@@ -243,7 +243,7 @@ class TestBatteryPoolControl:
             expected_result_pred=lambda result: isinstance(
                 result, power_distributing.PartialFailure
             )
-            and result.failed_batteries == {mocks.microgrid.battery_ids[0]},
+            and result.failed_components == {mocks.microgrid.battery_ids[0]},
         )
 
         # There should be an automatic retry.

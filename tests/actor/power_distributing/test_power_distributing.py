@@ -864,7 +864,7 @@ class TestPowerDistributingActor:
 
         result: Result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeeded_batteries == {19}
+        assert result.succeeded_components == {19}
         assert result.succeeded_power.isclose(Power.from_watts(500.0))
         assert result.excess_power.isclose(Power.from_watts(700.0))
         assert result.request == request
@@ -921,7 +921,7 @@ class TestPowerDistributingActor:
 
         result: Result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeeded_batteries == {19}
+        assert result.succeeded_components == {19}
         assert result.succeeded_power.isclose(Power.from_watts(500.0))
         assert result.excess_power.isclose(Power.from_watts(700.0))
         assert result.request == request
@@ -993,7 +993,7 @@ class TestPowerDistributingActor:
 
         result: Result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeeded_batteries == {19}
+        assert result.succeeded_components == {19}
         assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
         assert result.excess_power.isclose(Power.from_watts(200.0))
         assert result.request == request
@@ -1247,7 +1247,7 @@ class TestPowerDistributingActor:
             assert len(done) == 1
             result = done.pop().result()
             assert isinstance(result, Success)
-            assert result.succeeded_batteries == {19}
+            assert result.succeeded_components == {19}
             assert result.excess_power.isclose(Power.from_watts(700.0))
             assert result.succeeded_power.isclose(Power.from_watts(500.0))
             assert result.request == request
@@ -1307,8 +1307,8 @@ class TestPowerDistributingActor:
             assert len(done) == 1
             result = done.pop().result()
             assert isinstance(result, PartialFailure)
-            assert result.succeeded_batteries == batteries - failed_batteries
-            assert result.failed_batteries == failed_batteries
+            assert result.succeeded_components == batteries - failed_batteries
+            assert result.failed_components == failed_batteries
             assert result.succeeded_power.isclose(Power.from_watts(1000.0))
             assert result.failed_power.isclose(Power.from_watts(failed_power))
             assert result.excess_power.isclose(Power.from_watts(200.0))

@@ -356,9 +356,9 @@ class PowerDistributingActor(Actor):
                     succeeded_power=Power.from_watts(
                         distributed_power_value - failed_power
                     ),
-                    succeeded_batteries=succeed_batteries,
+                    succeeded_components=succeed_batteries,
                     failed_power=Power.from_watts(failed_power),
-                    failed_batteries=failed_batteries,
+                    failed_components=failed_batteries,
                     excess_power=Power.from_watts(distribution.remaining_power),
                 )
             else:
@@ -366,7 +366,7 @@ class PowerDistributingActor(Actor):
                 response = Success(
                     request=request,
                     succeeded_power=Power.from_watts(distributed_power_value),
-                    succeeded_batteries=succeed_batteries,
+                    succeeded_components=succeed_batteries,
                     excess_power=Power.from_watts(distribution.remaining_power),
                 )
 
