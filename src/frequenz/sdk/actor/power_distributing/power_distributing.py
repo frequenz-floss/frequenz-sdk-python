@@ -219,7 +219,7 @@ class PowerDistributingActor(Actor):
         self._battery_receivers: dict[int, Peekable[BatteryData]] = {}
         self._inverter_receivers: dict[int, Peekable[InverterData]] = {}
 
-        self._all_battery_status = ComponentPoolStatusTracker(
+        self._component_pool_status_tracker = ComponentPoolStatusTracker(
             component_ids=set(self._bat_invs_map.keys()),
             component_status_sender=battery_status_sender,
             max_blocking_duration_sec=30.0,
@@ -372,7 +372,7 @@ class PowerDistributingActor(Actor):
 
             asyncio.gather(
                 *[
-                    self._all_battery_status.update_status(
+                    self._component_pool_status_tracker.update_status(
                         succeed_batteries, failed_batteries
                     ),
                     self._result_sender.send(response),
@@ -506,7 +506,9 @@ class PowerDistributingActor(Actor):
         """
         pairs_data: list[InvBatPair] = []
 
-        working_batteries = self._all_battery_status.get_working_components(batteries)
+        working_batteries = self._component_pool_status_tracker.get_working_components(
+            batteries
+        )
 
         for battery_id in working_batteries:
             if battery_id not in self._battery_receivers:
@@ -708,5 +710,5 @@ class PowerDistributingActor(Actor):
         Args:
             msg: The message to be passed to the tasks being cancelled.
         """
-        await self._all_battery_status.stop()
+        await self._component_pool_status_tracker.stop()
         await super().stop(msg)
