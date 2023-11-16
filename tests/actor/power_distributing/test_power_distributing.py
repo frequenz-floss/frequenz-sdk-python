@@ -62,7 +62,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ) as distributor:
             assert distributor._bat_invs_map == {9: {8}, 19: {18}, 29: {28}}
             assert distributor._inv_bats_map == {8: {9}, 18: {19}, 28: {29}}
@@ -76,7 +76,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ) as distributor:
             assert distributor._bat_invs_map == {9: {8}, 19: {18}, 29: {28}}
             assert distributor._inv_bats_map == {8: {9}, 18: {19}, 28: {29}}
@@ -134,7 +134,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -197,7 +197,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             # zero power requests should pass through despite the exclusion bounds.
             request = Request(
@@ -298,7 +298,7 @@ class TestPowerDistributingActor:
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
@@ -380,7 +380,7 @@ class TestPowerDistributingActor:
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
@@ -454,7 +454,7 @@ class TestPowerDistributingActor:
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
@@ -532,7 +532,7 @@ class TestPowerDistributingActor:
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
@@ -621,7 +621,7 @@ class TestPowerDistributingActor:
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
@@ -709,7 +709,7 @@ class TestPowerDistributingActor:
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
@@ -780,7 +780,7 @@ class TestPowerDistributingActor:
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
@@ -842,7 +842,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             attrs = {"get_working_components.return_value": request.component_ids}
             mocker.patch(
@@ -906,7 +906,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -978,7 +978,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -1028,7 +1028,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -1078,7 +1078,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -1130,7 +1130,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -1182,7 +1182,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -1227,7 +1227,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             request = Request(
                 power=Power.from_kilowatts(1.2),
@@ -1288,7 +1288,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             request = Request(
                 power=Power.from_kilowatts(1.70),

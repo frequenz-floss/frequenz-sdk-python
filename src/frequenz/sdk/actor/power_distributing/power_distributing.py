@@ -166,7 +166,7 @@ class PowerDistributingActor(Actor):
         self,
         requests_receiver: Receiver[Request],
         results_sender: Sender[Result],
-        battery_status_sender: Sender[ComponentPoolStatus],
+        component_pool_status_sender: Sender[ComponentPoolStatus],
         wait_for_data_sec: float = 2,
         *,
         name: str | None = None,
@@ -174,10 +174,11 @@ class PowerDistributingActor(Actor):
         """Create class instance.
 
         Args:
-            requests_receiver: Receiver for receiving power requests from the power manager.
+            requests_receiver: Receiver for receiving power requests from the power
+                manager.
             results_sender: Sender for sending results to the power manager.
-            battery_status_sender: Channel for sending information which batteries are
-                working.
+            component_pool_status_sender: Channel for sending information about which
+                components are expected to be working.
             wait_for_data_sec: How long actor should wait before processing first
                 request. It is a time needed to collect first components data.
             name: The name of the actor. If `None`, `str(id(self))` will be used. This
@@ -221,7 +222,7 @@ class PowerDistributingActor(Actor):
 
         self._component_pool_status_tracker = ComponentPoolStatusTracker(
             component_ids=set(self._bat_invs_map.keys()),
-            component_status_sender=battery_status_sender,
+            component_status_sender=component_pool_status_sender,
             max_blocking_duration_sec=30.0,
             max_data_age_sec=10.0,
             component_status_tracker_type=BatteryStatusTracker,
