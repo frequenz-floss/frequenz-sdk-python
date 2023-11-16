@@ -17,8 +17,8 @@ class Request:
     power: Power
     """The requested power."""
 
-    batteries: abc.Set[int]
-    """The component ids of the batteries to be used for this request."""
+    component_ids: abc.Set[int]
+    """The component ids of the components to be used for this request."""
 
     request_timeout: timedelta = timedelta(seconds=5.0)
     """The maximum amount of time to wait for the request to be fulfilled."""
@@ -29,6 +29,6 @@ class Request:
     If `True`, the power will be adjusted (lowered) to match the bounds, so
     only the reduced power will be set.
 
-    If `False` and the power is outside the batteries' bounds, the request will
+    If `False` and the power is outside the available bounds, the request will
     fail and be replied to with an `OutOfBound` result.
     """

@@ -297,7 +297,7 @@ class PowerDistributingActor(Actor):
         async for request in self._requests_receiver:
             try:
                 pairs_data: list[InvBatPair] = self._get_components_data(
-                    request.batteries
+                    request.component_ids
                 )
             except KeyError as err:
                 await self._result_sender.send(Error(request=request, msg=str(err)))
@@ -306,7 +306,7 @@ class PowerDistributingActor(Actor):
             if not pairs_data:
                 error_msg = (
                     "No data for at least one of the given "
-                    f"batteries {str(request.batteries)}"
+                    f"batteries {str(request.component_ids)}"
                 )
                 await self._result_sender.send(
                     Error(request=request, msg=str(error_msg))
@@ -427,7 +427,7 @@ class PowerDistributingActor(Actor):
             self._bat_bats_map, {pair.battery.component_id for pair in inv_bat_pairs}
         )
 
-        unavailable_bat_ids = request.batteries - available_bat_ids
+        unavailable_bat_ids = request.component_ids - available_bat_ids
         unavailable_inv_ids: set[int] = set()
 
         for inverter_ids in [
@@ -455,10 +455,10 @@ class PowerDistributingActor(Actor):
         Returns:
             Result for the user if the request is wrong, None otherwise.
         """
-        if not request.batteries:
+        if not request.component_ids:
             return Error(request=request, msg="Empty battery IDs in the request")
 
-        for battery in request.batteries:
+        for battery in request.component_ids:
             _logger.debug("Checking battery %d", battery)
             if battery not in self._battery_receivers:
                 msg = (
