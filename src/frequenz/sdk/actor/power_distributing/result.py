@@ -5,6 +5,7 @@
 
 
 import dataclasses
+from collections import abc
 
 from frequenz.sdk.timeseries._quantities import Power
 
@@ -26,7 +27,7 @@ class _BaseSuccessMixin:
     succeeded_power: Power
     """The part of the requested power that was successfully set."""
 
-    succeeded_batteries: set[int]
+    succeeded_batteries: abc.Set[int]
     """The subset of batteries for which power was set successfully."""
 
     excess_power: Power
@@ -54,7 +55,7 @@ class PartialFailure(_BaseSuccessMixin, _BaseResultMixin):
     failed_power: Power
     """The part of the requested power that failed to be set."""
 
-    failed_batteries: set[int]
+    failed_batteries: abc.Set[int]
     """The subset of batteries for which the request failed."""
 
 
