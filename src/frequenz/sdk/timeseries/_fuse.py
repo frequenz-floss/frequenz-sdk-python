@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    # Break circular import by enclosing these type hints in a `TYPE_CHECKING` block.
+    # Break circular import
     from . import Current
 
 

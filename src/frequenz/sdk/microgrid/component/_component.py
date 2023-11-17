@@ -13,7 +13,7 @@ import frequenz.api.microgrid.grid_pb2 as grid_pb
 import frequenz.api.microgrid.inverter_pb2 as inverter_pb
 
 if TYPE_CHECKING:
-    # Break circular import by enclosing these type hints in a `TYPE_CHECKING` block.
+    # Break circular import
     from ...timeseries import Fuse
 
 
