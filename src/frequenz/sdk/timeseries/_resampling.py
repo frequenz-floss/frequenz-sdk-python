@@ -503,6 +503,14 @@ class Resampler:
         async for drift in self._timer:
             now = datetime.now(tz=timezone.utc)
 
+            # If the system time changes, then `self._window_end` might drift to
+            # far away, such that the resampling bucket might be empty although
+            # new samples aligned to the new system time have been received.
+            # Thus we resync `self._window_end` to the new system time in case
+            # it drifted more then one resampling period away from the system time.
+            if abs(self._window_end - now) - drift > self._config.resampling_period:
+                self._window_end = self._sync_timer(extra_period=False)
+
             if drift > tolerance:
                 _logger.warning(
                     "The resampling task woke up too late. Resampling should have "
