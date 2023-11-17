@@ -7,10 +7,13 @@ import asyncio
 from frequenz.channels import Broadcast
 from pytest_mock import MockerFixture
 
-from frequenz.sdk.actor.power_distributing._battery_pool_status import (
-    BatteryPoolStatus,
-    BatteryStatus,
+from frequenz.sdk.actor.power_distributing._battery_status_tracker import (
+    BatteryStatusTracker,
 )
+from frequenz.sdk.actor.power_distributing._component_pool_status_tracker import (
+    ComponentPoolStatusTracker,
+)
+from frequenz.sdk.actor.power_distributing._component_status import ComponentPoolStatus
 from frequenz.sdk.microgrid.component import ComponentCategory
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
@@ -39,18 +42,19 @@ class TestBatteryPoolStatus:
                 component_category={ComponentCategory.BATTERY}
             )
         }
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         battery_status_recv = battery_status_channel.new_receiver(maxsize=1)
-        batteries_status = BatteryPoolStatus(
-            battery_ids=batteries,
-            battery_status_sender=battery_status_channel.new_sender(),
+        batteries_status = ComponentPoolStatusTracker(
+            component_ids=batteries,
+            component_status_sender=battery_status_channel.new_sender(),
             max_data_age_sec=5,
             max_blocking_duration_sec=30,
+            component_status_tracker_type=BatteryStatusTracker,
         )
         await asyncio.sleep(0.1)
 
         expected_working: set[int] = set()
-        assert batteries_status.get_working_batteries(batteries) == expected_working
+        assert batteries_status.get_working_components(batteries) == expected_working
 
         batteries_list = list(batteries)
 
@@ -58,14 +62,14 @@ class TestBatteryPoolStatus:
             battery_data(component_id=batteries_list[0])
         )
         await asyncio.sleep(0.1)
-        assert batteries_status.get_working_batteries(batteries) == expected_working
+        assert batteries_status.get_working_components(batteries) == expected_working
 
         expected_working.add(batteries_list[0])
         await mock_microgrid.mock_client.send(
             inverter_data(component_id=batteries_list[0] - 1)
         )
         await asyncio.sleep(0.1)
-        assert batteries_status.get_working_batteries(batteries) == expected_working
+        assert batteries_status.get_working_components(batteries) == expected_working
         msg = await asyncio.wait_for(battery_status_recv.receive(), timeout=0.2)
         assert msg == batteries_status._current_status
 
@@ -85,20 +89,20 @@ class TestBatteryPoolStatus:
 
         expected_working = set(batteries_list)
         await asyncio.sleep(0.1)
-        assert batteries_status.get_working_batteries(batteries) == expected_working
+        assert batteries_status.get_working_components(batteries) == expected_working
         msg = await asyncio.wait_for(battery_status_recv.receive(), timeout=0.2)
         assert msg == batteries_status._current_status
 
         await batteries_status.update_status(
-            succeed_batteries={9}, failed_batteries={19, 29}
+            succeeded_components={9}, failed_components={19, 29}
         )
         await asyncio.sleep(0.1)
-        assert batteries_status.get_working_batteries(batteries) == {9}
+        assert batteries_status.get_working_components(batteries) == {9}
 
         await batteries_status.update_status(
-            succeed_batteries={9, 19}, failed_batteries=set()
+            succeeded_components={9, 19}, failed_components=set()
         )
         await asyncio.sleep(0.1)
-        assert batteries_status.get_working_batteries(batteries) == {9, 19}
+        assert batteries_status.get_working_components(batteries) == {9, 19}
 
         await batteries_status.stop()

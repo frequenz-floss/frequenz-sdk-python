@@ -26,7 +26,7 @@ from frequenz.sdk._internal._constants import (
     WAIT_FOR_COMPONENT_DATA_SEC,
 )
 from frequenz.sdk.actor import ResamplerConfig
-from frequenz.sdk.actor.power_distributing import BatteryStatus
+from frequenz.sdk.actor.power_distributing import ComponentPoolStatus
 from frequenz.sdk.actor.power_distributing.power_distributing import (
     _get_battery_inverter_mappings,
 )
@@ -103,7 +103,7 @@ class SetupArgs:
     streamer: MockComponentDataStreamer
     """Tool for streaming mock component data."""
 
-    battery_status_sender: Sender[BatteryStatus]
+    battery_status_sender: Sender[ComponentPoolStatus]
     """Channel for sending status of the batteries."""
 
 
@@ -408,7 +408,7 @@ def compare_messages(msg: Any, expected_msg: Any, time_diff: float) -> None:
 
 
 async def run_test_battery_status_channel(  # pylint: disable=too-many-arguments
-    battery_status_sender: Sender[BatteryStatus],
+    battery_status_sender: Sender[ComponentPoolStatus],
     battery_pool_metric_receiver: Receiver[T],
     all_batteries: set[int],
     batteries_in_pool: list[int],
@@ -436,7 +436,7 @@ async def run_test_battery_status_channel(  # pylint: disable=too-many-arguments
     # Second battery stopped working.
     working = all_batteries - {batteries_in_pool[1]}
     await battery_status_sender.send(
-        BatteryStatus(working=working, uncertain={batteries_in_pool[1]})
+        ComponentPoolStatus(working=working, uncertain={batteries_in_pool[1]})
     )
     msg = await asyncio.wait_for(
         battery_pool_metric_receiver.receive(), timeout=waiting_time_sec
@@ -445,7 +445,9 @@ async def run_test_battery_status_channel(  # pylint: disable=too-many-arguments
 
     # All batteries stopped working data
     working -= {batteries_in_pool[0]}
-    await battery_status_sender.send(BatteryStatus(working=working, uncertain=set()))
+    await battery_status_sender.send(
+        ComponentPoolStatus(working=working, uncertain=set())
+    )
     msg = await asyncio.wait_for(
         battery_pool_metric_receiver.receive(), timeout=waiting_time_sec
     )
@@ -459,7 +461,7 @@ async def run_test_battery_status_channel(  # pylint: disable=too-many-arguments
 
     # One battery in uncertain state.
     await battery_status_sender.send(
-        BatteryStatus(working=working, uncertain={batteries_in_pool[0]})
+        ComponentPoolStatus(working=working, uncertain={batteries_in_pool[0]})
     )
     msg = await asyncio.wait_for(
         battery_pool_metric_receiver.receive(), timeout=waiting_time_sec
@@ -468,7 +470,7 @@ async def run_test_battery_status_channel(  # pylint: disable=too-many-arguments
 
     # All batteries are working again
     await battery_status_sender.send(
-        BatteryStatus(working=set(all_batteries), uncertain=set())
+        ComponentPoolStatus(working=set(all_batteries), uncertain=set())
     )
     msg = await asyncio.wait_for(
         battery_pool_metric_receiver.receive(), timeout=waiting_time_sec
@@ -512,7 +514,7 @@ async def run_capacity_test(setup_args: SetupArgs) -> None:
     # battery pool.
     all_batteries = get_components(mock_microgrid, ComponentCategory.BATTERY)
     await battery_status_sender.send(
-        BatteryStatus(working=all_batteries, uncertain=set())
+        ComponentPoolStatus(working=all_batteries, uncertain=set())
     )
 
     for battery_id in all_batteries:
@@ -695,7 +697,7 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
     # battery pool.
     all_batteries = get_components(mock_microgrid, ComponentCategory.BATTERY)
     await battery_status_sender.send(
-        BatteryStatus(working=all_batteries, uncertain=set())
+        ComponentPoolStatus(working=all_batteries, uncertain=set())
     )
 
     for battery_id in all_batteries:
@@ -830,7 +832,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
     # battery pool.
     all_batteries = get_components(mock_microgrid, ComponentCategory.BATTERY)
     await battery_status_sender.send(
-        BatteryStatus(working=all_batteries, uncertain=set())
+        ComponentPoolStatus(working=all_batteries, uncertain=set())
     )
     bat_invs_map = _get_battery_inverter_mappings(
         all_batteries,
@@ -1083,7 +1085,7 @@ async def run_temperature_test(  # pylint: disable=too-many-locals
 
     all_batteries = get_components(mock_microgrid, ComponentCategory.BATTERY)
     await battery_status_sender.send(
-        BatteryStatus(working=all_batteries, uncertain=set())
+        ComponentPoolStatus(working=all_batteries, uncertain=set())
     )
     bat_invs_map = _get_battery_inverter_mappings(all_batteries)["bat_invs"]
 

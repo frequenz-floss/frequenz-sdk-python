@@ -6,10 +6,8 @@
 import asyncio
 import logging
 import math
-from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from enum import Enum
 
 # pylint: disable=no-name-in-module
 from frequenz.api.microgrid.battery_pb2 import ComponentState as BatteryComponentState
@@ -20,6 +18,7 @@ from frequenz.api.microgrid.inverter_pb2 import ComponentState as InverterCompon
 # pylint: enable=no-name-in-module
 from frequenz.channels import Receiver, Sender
 from frequenz.channels.util import Timer, select, selected_from
+from typing_extensions import override
 
 from ..._internal._asyncio import cancel_and_await
 from ...microgrid import connection_manager
@@ -29,34 +28,14 @@ from ...microgrid.component import (
     ComponentData,
     InverterData,
 )
+from ._component_status import (
+    ComponentStatus,
+    ComponentStatusEnum,
+    ComponentStatusTracker,
+    SetPowerResult,
+)
 
 _logger = logging.getLogger(__name__)
-
-
-class Status(Enum):
-    """Tells if battery is can be used."""
-
-    NOT_WORKING = 0
-    """Component is not working and should not be used"""
-
-    UNCERTAIN = 1
-    """Component should work, but it failed in last request. It is blocked for few
-    seconds and it is not recommended to use it unless it is necessary.
-    """
-
-    WORKING = 2
-    """Component is working"""
-
-
-@dataclass
-class SetPowerResult:
-    """Information what batteries succeed or failed the last request."""
-
-    succeed: Iterable[int]
-    """Set of the batteries that succeed."""
-
-    failed: Iterable[int]
-    """Set of the batteries that failed."""
 
 
 @dataclass
@@ -148,7 +127,7 @@ class _BlockingStatus:
         return self.blocked_until > datetime.now(tz=timezone.utc)
 
 
-class BatteryStatusTracker:
+class BatteryStatusTracker(ComponentStatusTracker):
     """Class for tracking if battery is working.
 
     Status updates are sent out only when there is a status change.
@@ -183,18 +162,19 @@ class BatteryStatusTracker:
     A working inverter in any other inverter state will be reported as failing.
     """
 
+    @override
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        battery_id: int,
+        component_id: int,
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
-        status_sender: Sender[Status],
+        status_sender: Sender[ComponentStatus],
         set_power_result_receiver: Receiver[SetPowerResult],
     ) -> None:
         """Create class instance.
 
         Args:
-            battery_id: Id of this battery
+            component_id: Id of this battery
             max_data_age_sec: If component stopped sending data, then
                 this is the maximum time when its last message should be considered as
                 valid. After that time, component won't be used until it starts sending
@@ -211,17 +191,19 @@ class BatteryStatusTracker:
         self._max_data_age = max_data_age_sec
         # First battery is considered as not working.
         # Change status after first messages are received.
-        self._last_status: Status = Status.NOT_WORKING
+        self._last_status: ComponentStatusEnum = ComponentStatusEnum.NOT_WORKING
         self._blocking_status: _BlockingStatus = _BlockingStatus(
             1.0, max_blocking_duration_sec
         )
 
-        inverter_id = self._find_adjacent_inverter_id(battery_id)
+        inverter_id = self._find_adjacent_inverter_id(component_id)
         if inverter_id is None:
-            raise RuntimeError(f"Can't find inverter adjacent to battery: {battery_id}")
+            raise RuntimeError(
+                f"Can't find inverter adjacent to battery: {component_id}"
+            )
 
         self._battery: _ComponentStreamStatus = _ComponentStreamStatus(
-            battery_id,
+            component_id,
             data_recv_timer=Timer.timeout(timedelta(seconds=max_data_age_sec)),
         )
         self._inverter: _ComponentStreamStatus = _ComponentStreamStatus(
@@ -268,11 +250,12 @@ class BatteryStatusTracker:
         self._inverter.data_recv_timer.reset()
 
     def _handle_status_set_power_result(self, result: SetPowerResult) -> None:
-        if self.battery_id in result.succeed:
+        if self.battery_id in result.succeeded:
             self._blocking_status.unblock()
 
         elif (
-            self.battery_id in result.failed and self._last_status != Status.NOT_WORKING
+            self.battery_id in result.failed
+            and self._last_status != ComponentStatusEnum.NOT_WORKING
         ):
             duration = self._blocking_status.block()
 
@@ -301,7 +284,7 @@ class BatteryStatusTracker:
                 self._inverter.last_msg_timestamp,
             )
 
-    def _get_new_status_if_changed(self) -> Status | None:
+    def _get_new_status_if_changed(self) -> ComponentStatusEnum | None:
         current_status = self._get_current_status()
         if self._last_status != current_status:
             self._last_status = current_status
@@ -315,7 +298,7 @@ class BatteryStatusTracker:
 
     async def _run(
         self,
-        status_sender: Sender[Status],
+        status_sender: Sender[ComponentStatus],
         set_power_result_receiver: Receiver[SetPowerResult],
     ) -> None:
         """Process data from the components and set_power_result_receiver.
@@ -386,12 +369,14 @@ class BatteryStatusTracker:
                     new_status = self._get_new_status_if_changed()
 
                     if new_status is not None:
-                        await status_sender.send(new_status)
+                        await status_sender.send(
+                            ComponentStatus(self.battery_id, new_status)
+                        )
 
             except Exception as err:  # pylint: disable=broad-except
                 _logger.exception("BatteryStatusTracker crashed with error: %s", err)
 
-    def _get_current_status(self) -> Status:
+    def _get_current_status(self) -> ComponentStatusEnum:
         """Get current battery status.
 
         Returns:
@@ -402,15 +387,15 @@ class BatteryStatusTracker:
         )
 
         if not is_msg_correct:
-            return Status.NOT_WORKING
-        if self._last_status == Status.NOT_WORKING:
+            return ComponentStatusEnum.NOT_WORKING
+        if self._last_status == ComponentStatusEnum.NOT_WORKING:
             # If message just become correct, then try to use it
             self._blocking_status.unblock()
-            return Status.WORKING
+            return ComponentStatusEnum.WORKING
         if self._blocking_status.is_blocked():
-            return Status.UNCERTAIN
+            return ComponentStatusEnum.UNCERTAIN
 
-        return Status.WORKING
+        return ComponentStatusEnum.WORKING
 
     def _is_capacity_present(self, msg: BatteryData) -> bool:
         """Check whether the battery capacity is NaN or not.
@@ -424,7 +409,7 @@ class BatteryStatusTracker:
             True if battery capacity is present, false otherwise.
         """
         if math.isnan(msg.capacity):
-            if self._last_status == Status.WORKING:
+            if self._last_status == ComponentStatusEnum.WORKING:
                 _logger.warning(
                     "Battery %d capacity is NaN",
                     msg.component_id,
@@ -445,7 +430,7 @@ class BatteryStatusTracker:
         # pylint: disable=protected-access
         critical_err = next((err for err in msg._errors if err.level == critical), None)
         if critical_err is not None:
-            if self._last_status == Status.WORKING:
+            if self._last_status == ComponentStatusEnum.WORKING:
                 _logger.warning(
                     "Component %d has critical error: %s",
                     msg.component_id,
@@ -467,7 +452,7 @@ class BatteryStatusTracker:
         # pylint: disable=protected-access
         state = msg._component_state
         if state not in BatteryStatusTracker._inverter_valid_state:
-            if self._last_status == Status.WORKING:
+            if self._last_status == ComponentStatusEnum.WORKING:
                 _logger.warning(
                     "Inverter %d has invalid state: %s",
                     msg.component_id,
@@ -489,7 +474,7 @@ class BatteryStatusTracker:
         # pylint: disable=protected-access
         state = msg._component_state
         if state not in BatteryStatusTracker._battery_valid_state:
-            if self._last_status == Status.WORKING:
+            if self._last_status == ComponentStatusEnum.WORKING:
                 _logger.warning(
                     "Battery %d has invalid state: %s",
                     self.battery_id,
@@ -501,7 +486,7 @@ class BatteryStatusTracker:
         # pylint: disable=protected-access
         relay_state = msg._relay_state
         if relay_state not in BatteryStatusTracker._battery_valid_relay:
-            if self._last_status == Status.WORKING:
+            if self._last_status == ComponentStatusEnum.WORKING:
                 _logger.warning(
                     "Battery %d has invalid relay state: %s",
                     self.battery_id,
@@ -534,7 +519,7 @@ class BatteryStatusTracker:
         """
         is_outdated = self._is_timestamp_outdated(message.timestamp)
 
-        if is_outdated and self._last_status == Status.WORKING:
+        if is_outdated and self._last_status == ComponentStatusEnum.WORKING:
             _logger.warning(
                 "Component %d stopped sending data. Last timestamp: %s.",
                 message.component_id,

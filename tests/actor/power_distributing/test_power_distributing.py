@@ -16,11 +16,13 @@ from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.actor.power_distributing import (
-    BatteryStatus,
+    ComponentPoolStatus,
     PowerDistributingActor,
     Request,
 )
-from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
+from frequenz.sdk.actor.power_distributing._component_pool_status_tracker import (
+    ComponentPoolStatusTracker,
+)
 from frequenz.sdk.actor.power_distributing.result import (
     Error,
     OutOfBounds,
@@ -56,7 +58,7 @@ class TestPowerDistributingActor:
 
         requests_channel = Broadcast[Request]("power_distributor requests")
         results_channel = Broadcast[Result]("power_distributor results")
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -121,14 +123,14 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_batteries.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.batteries}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -183,15 +185,15 @@ class TestPowerDistributingActor:
         results_channel = Broadcast[Result]("power_distributor results")
 
         attrs = {
-            "get_working_batteries.return_value": microgrid.battery_pool().battery_ids
+            "get_working_components.return_value": microgrid.battery_pool().battery_ids
         }
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -284,15 +286,15 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_batteries.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.batteries}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
@@ -366,15 +368,15 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_batteries.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.batteries}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
@@ -440,15 +442,15 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_batteries.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.batteries}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
@@ -518,15 +520,15 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_batteries.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.batteries}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
@@ -607,15 +609,15 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_batteries.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.batteries}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
@@ -695,15 +697,15 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_batteries.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.batteries}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
@@ -766,15 +768,15 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_batteries.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.batteries}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
@@ -829,23 +831,24 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_batteries.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.batteries}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
             battery_status_sender=battery_status_channel.new_sender(),
         ):
-            attrs = {"get_working_batteries.return_value": request.batteries}
+            attrs = {"get_working_components.return_value": request.batteries}
             mocker.patch(
-                "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-                return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+                "frequenz.sdk.actor.power_distributing.power_distributing"
+                ".ComponentPoolStatusTracker",
+                return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
             )
 
             await requests_channel.new_sender().send(request)
@@ -892,14 +895,14 @@ class TestPowerDistributingActor:
             batteries={9, 19},
             request_timeout=SAFETY_TIMEOUT,
         )
-        attrs = {"get_working_batteries.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.batteries}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -964,14 +967,14 @@ class TestPowerDistributingActor:
             batteries={9, 19},
             request_timeout=SAFETY_TIMEOUT,
         )
-        attrs = {"get_working_batteries.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.batteries}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -1014,14 +1017,14 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_batteries.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.batteries}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -1063,15 +1066,15 @@ class TestPowerDistributingActor:
             adjust_power=False,
         )
 
-        attrs = {"get_working_batteries.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.batteries}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -1115,15 +1118,15 @@ class TestPowerDistributingActor:
             adjust_power=False,
         )
 
-        attrs = {"get_working_batteries.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.batteries}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -1167,15 +1170,15 @@ class TestPowerDistributingActor:
             adjust_power=False,
         )
 
-        attrs = {"get_working_batteries.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.batteries}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -1211,16 +1214,16 @@ class TestPowerDistributingActor:
 
         batteries = {9, 19}
 
-        attrs = {"get_working_batteries.return_value": batteries - {9}}
+        attrs = {"get_working_components.return_value": batteries - {9}}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
-            return_value=MagicMock(spec=BatteryPoolStatus, **attrs),
+            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
         requests_channel = Broadcast[Request]("power_distributor requests")
         results_channel = Broadcast[Result]("power_distributor results")
 
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -1264,11 +1267,11 @@ class TestPowerDistributingActor:
         failed_batteries = {9}
         failed_power = 500.0
 
-        attrs = {"get_working_batteries.return_value": batteries}
+        attrs = {"get_working_components.return_value": batteries}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
             return_value=MagicMock(
-                spec=BatteryPoolStatus,
+                spec=ComponentPoolStatusTracker,
                 **attrs,
             ),
         )
@@ -1281,7 +1284,7 @@ class TestPowerDistributingActor:
         requests_channel = Broadcast[Request]("power_distributor requests")
         results_channel = Broadcast[Result]("power_distributor results")
 
-        battery_status_channel = Broadcast[BatteryStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),

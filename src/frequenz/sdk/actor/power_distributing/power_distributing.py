@@ -36,7 +36,9 @@ from ...microgrid.component import (
     ComponentCategory,
     InverterData,
 )
-from ._battery_pool_status import BatteryPoolStatus, BatteryStatus
+from ._battery_status_tracker import BatteryStatusTracker
+from ._component_pool_status_tracker import ComponentPoolStatusTracker
+from ._component_status import ComponentPoolStatus
 from ._distribution_algorithm import (
     AggregatedBatteryData,
     DistributionAlgorithm,
@@ -164,7 +166,7 @@ class PowerDistributingActor(Actor):
         self,
         requests_receiver: Receiver[Request],
         results_sender: Sender[Result],
-        battery_status_sender: Sender[BatteryStatus],
+        battery_status_sender: Sender[ComponentPoolStatus],
         wait_for_data_sec: float = 2,
         *,
         name: str | None = None,
@@ -217,11 +219,12 @@ class PowerDistributingActor(Actor):
         self._battery_receivers: dict[int, Peekable[BatteryData]] = {}
         self._inverter_receivers: dict[int, Peekable[InverterData]] = {}
 
-        self._all_battery_status = BatteryPoolStatus(
-            battery_ids=set(self._bat_invs_map.keys()),
-            battery_status_sender=battery_status_sender,
+        self._all_battery_status = ComponentPoolStatusTracker(
+            component_ids=set(self._bat_invs_map.keys()),
+            component_status_sender=battery_status_sender,
             max_blocking_duration_sec=30.0,
             max_data_age_sec=10.0,
+            component_status_tracker_type=BatteryStatusTracker,
         )
 
     def _get_bounds(
@@ -503,7 +506,7 @@ class PowerDistributingActor(Actor):
         """
         pairs_data: list[InvBatPair] = []
 
-        working_batteries = self._all_battery_status.get_working_batteries(batteries)
+        working_batteries = self._all_battery_status.get_working_components(batteries)
 
         for battery_id in working_batteries:
             if battery_id not in self._battery_receivers:

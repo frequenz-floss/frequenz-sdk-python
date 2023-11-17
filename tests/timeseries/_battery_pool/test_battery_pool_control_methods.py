@@ -15,8 +15,10 @@ from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid, timeseries
 from frequenz.sdk.actor import ResamplerConfig, power_distributing
-from frequenz.sdk.actor.power_distributing import BatteryStatus
-from frequenz.sdk.actor.power_distributing._battery_pool_status import BatteryPoolStatus
+from frequenz.sdk.actor.power_distributing import ComponentPoolStatus
+from frequenz.sdk.actor.power_distributing._component_pool_status_tracker import (
+    ComponentPoolStatusTracker,
+)
 from frequenz.sdk.timeseries import Power
 from frequenz.sdk.timeseries.battery_pool import BatteryPoolReport
 
@@ -35,7 +37,7 @@ class Mocks:
     streamer: MockComponentDataStreamer
     """A mock component data streamer."""
 
-    battery_status_sender: Sender[BatteryStatus]
+    battery_status_sender: Sender[ComponentPoolStatus]
     """Sender for sending status of the batteries."""
 
 
@@ -86,21 +88,25 @@ class TestBatteryPoolControl:
         Otherwise, it will return the requested batteries.
         """
         if battery_ids:
-            mock = MagicMock(spec=BatteryPoolStatus)
-            mock.get_working_batteries.return_value = battery_ids
+            mock = MagicMock(spec=ComponentPoolStatusTracker)
+            mock.get_working_components.return_value = battery_ids
             mocker.patch(
-                "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+                "frequenz.sdk.actor.power_distributing.power_distributing"
+                ".ComponentPoolStatusTracker",
                 return_value=mock,
             )
         else:
-            mock = MagicMock(spec=BatteryPoolStatus)
-            mock.get_working_batteries.side_effect = set
+            mock = MagicMock(spec=ComponentPoolStatusTracker)
+            mock.get_working_components.side_effect = set
             mocker.patch(
-                "frequenz.sdk.actor.power_distributing.power_distributing.BatteryPoolStatus",
+                "frequenz.sdk.actor.power_distributing.power_distributing"
+                ".ComponentPoolStatusTracker",
                 return_value=mock,
             )
         await mocks.battery_status_sender.send(
-            BatteryStatus(working=set(mocks.microgrid.battery_ids), uncertain=set())
+            ComponentPoolStatus(
+                working=set(mocks.microgrid.battery_ids), uncertain=set()
+            )
         )
 
     async def _init_data_for_batteries(self, mocks: Mocks) -> None:
