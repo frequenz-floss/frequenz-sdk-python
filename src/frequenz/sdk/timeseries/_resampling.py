@@ -370,8 +370,10 @@ class Resampler:
         self._resamplers: dict[Source, _StreamingHelper] = {}
         """A mapping between sources and the streaming helper handling that source."""
 
-        window_end, start_delay_time = self._calculate_window_end()
-        self._window_end: datetime = window_end
+        self._timer: Timer = Timer(config.resampling_period, TriggerAllMissed())
+        """The timer used to trigger the resampling windows."""
+
+        self._window_end = self._sync_timer()
         """The time in which the current window ends.
 
         This is used to make sure every resampling window is generated at
@@ -383,16 +385,6 @@ class Resampler:
         The window end will also be aligned to the `config.align_to` time, so
         the window end is deterministic.
         """
-
-        self._timer: Timer = Timer(config.resampling_period, TriggerAllMissed())
-        """The timer used to trigger the resampling windows."""
-
-        # Hack to align the timer, this should be implemented in the Timer class
-        self._timer._next_tick_time = _to_microseconds(
-            timedelta(seconds=asyncio.get_running_loop().time())
-            + config.resampling_period
-            + start_delay_time
-        )  # pylint: disable=protected-access
 
     @property
     def config(self) -> ResamplerConfig:
@@ -456,6 +448,34 @@ class Resampler:
         except KeyError:
             return False
         return True
+
+    def _sync_timer(self, extra_period: bool = True) -> datetime:
+        """Resync the timer.
+
+        This method will resync the timer to the current time, so the next
+        resampling window will start at the next multiple of
+        `self._config.resampling_period` starting from now.
+
+        Args:
+            extra_period: Add an extra period when it is not aligned to make sure we
+                collected enough samples before the first resampling, otherwise the
+                initial window to collect samples could be too small.
+
+        Returns:
+            The end time of the resampling window.
+        """
+        window_end, start_delay_time = self._calculate_window_end(extra_period)
+
+        # Hack to align the timer, this should be implemented in the Timer class
+        self._timer._next_tick_time = (  # pylint: disable=protected-access
+            _to_microseconds(
+                timedelta(seconds=asyncio.get_running_loop().time())
+                + self.config.resampling_period
+                + start_delay_time
+            )
+        )
+
+        return window_end
 
     async def resample(self, *, one_shot: bool = False) -> None:
         """Start resampling all known timeseries.
