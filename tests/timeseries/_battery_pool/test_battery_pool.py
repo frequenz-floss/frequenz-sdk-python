@@ -27,7 +27,7 @@ from frequenz.sdk._internal._constants import (
 )
 from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.actor.power_distributing import ComponentPoolStatus
-from frequenz.sdk.actor.power_distributing.power_distributing import (
+from frequenz.sdk.actor.power_distributing._component_managers._battery_manager import (
     _get_battery_inverter_mappings,
 )
 from frequenz.sdk.microgrid.component import ComponentCategory

@@ -20,6 +20,9 @@ from frequenz.sdk.actor.power_distributing import (
     PowerDistributingActor,
     Request,
 )
+from frequenz.sdk.actor.power_distributing._component_managers._battery_manager import (
+    BatteryManager,
+)
 from frequenz.sdk.actor.power_distributing._component_pool_status_tracker import (
     ComponentPoolStatusTracker,
 )
@@ -64,8 +67,17 @@ class TestPowerDistributingActor:
             results_sender=results_channel.new_sender(),
             component_pool_status_sender=battery_status_channel.new_sender(),
         ) as distributor:
-            assert distributor._bat_invs_map == {9: {8}, 19: {18}, 29: {28}}
-            assert distributor._inv_bats_map == {8: {9}, 18: {19}, 28: {29}}
+            assert isinstance(distributor._component_manager, BatteryManager)
+            assert distributor._component_manager._bat_invs_map == {
+                9: {8},
+                19: {18},
+                29: {28},
+            }
+            assert distributor._component_manager._inv_bats_map == {
+                8: {9},
+                18: {19},
+                28: {29},
+            }
         await mockgrid.cleanup()
 
         # Test if it works without grid side meter
@@ -78,8 +90,17 @@ class TestPowerDistributingActor:
             results_sender=results_channel.new_sender(),
             component_pool_status_sender=battery_status_channel.new_sender(),
         ) as distributor:
-            assert distributor._bat_invs_map == {9: {8}, 19: {18}, 29: {28}}
-            assert distributor._inv_bats_map == {8: {9}, 18: {19}, 28: {29}}
+            assert isinstance(distributor._component_manager, BatteryManager)
+            assert distributor._component_manager._bat_invs_map == {
+                9: {8},
+                19: {18},
+                29: {28},
+            }
+            assert distributor._component_manager._inv_bats_map == {
+                8: {9},
+                18: {19},
+                28: {29},
+            }
         await mockgrid.cleanup()
 
     async def init_component_data(
@@ -125,7 +146,8 @@ class TestPowerDistributingActor:
 
         attrs = {"get_working_components.return_value": request.component_ids}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -188,7 +210,8 @@ class TestPowerDistributingActor:
             "get_working_components.return_value": microgrid.battery_pool().battery_ids
         }
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -243,7 +266,9 @@ class TestPowerDistributingActor:
             assert len(done) == 1
 
             result = done.pop().result()
-            assert isinstance(result, OutOfBounds)
+            assert isinstance(
+                result, OutOfBounds
+            ), f"Expected OutOfBounds, got {result}"
             assert result.bounds == PowerBounds(-1000, -600, 600, 1000)
             assert result.request == request
 
@@ -289,7 +314,8 @@ class TestPowerDistributingActor:
         attrs = {"get_working_components.return_value": request.component_ids}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -371,7 +397,8 @@ class TestPowerDistributingActor:
         attrs = {"get_working_components.return_value": request.component_ids}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -445,7 +472,8 @@ class TestPowerDistributingActor:
         attrs = {"get_working_components.return_value": request.component_ids}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -523,7 +551,8 @@ class TestPowerDistributingActor:
         attrs = {"get_working_components.return_value": request.component_ids}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -612,7 +641,8 @@ class TestPowerDistributingActor:
         attrs = {"get_working_components.return_value": request.component_ids}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -700,7 +730,8 @@ class TestPowerDistributingActor:
         attrs = {"get_working_components.return_value": request.component_ids}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -771,7 +802,8 @@ class TestPowerDistributingActor:
         attrs = {"get_working_components.return_value": request.component_ids}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -833,7 +865,8 @@ class TestPowerDistributingActor:
 
         attrs = {"get_working_components.return_value": request.component_ids}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -846,7 +879,7 @@ class TestPowerDistributingActor:
         ):
             attrs = {"get_working_components.return_value": request.component_ids}
             mocker.patch(
-                "frequenz.sdk.actor.power_distributing.power_distributing"
+                "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
                 ".ComponentPoolStatusTracker",
                 return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
             )
@@ -897,7 +930,8 @@ class TestPowerDistributingActor:
         )
         attrs = {"get_working_components.return_value": request.component_ids}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -969,7 +1003,8 @@ class TestPowerDistributingActor:
         )
         attrs = {"get_working_components.return_value": request.component_ids}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -1019,7 +1054,8 @@ class TestPowerDistributingActor:
 
         attrs = {"get_working_components.return_value": request.component_ids}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
@@ -1068,7 +1104,8 @@ class TestPowerDistributingActor:
 
         attrs = {"get_working_components.return_value": request.component_ids}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -1120,7 +1157,8 @@ class TestPowerDistributingActor:
 
         attrs = {"get_working_components.return_value": request.component_ids}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -1172,7 +1210,8 @@ class TestPowerDistributingActor:
 
         attrs = {"get_working_components.return_value": request.component_ids}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -1216,7 +1255,8 @@ class TestPowerDistributingActor:
 
         attrs = {"get_working_components.return_value": batteries - {9}}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -1269,7 +1309,8 @@ class TestPowerDistributingActor:
 
         attrs = {"get_working_components.return_value": batteries}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(
                 spec=ComponentPoolStatusTracker,
                 **attrs,
@@ -1277,7 +1318,8 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.PowerDistributingActor._parse_result",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".BatteryManager._parse_result",
             return_value=(failed_power, failed_batteries),
         )
 
