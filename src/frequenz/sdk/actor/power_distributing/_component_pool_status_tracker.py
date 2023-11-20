@@ -117,6 +117,7 @@ class ComponentPoolStatusTracker:
                 _logger.error(
                     "ComponentPoolStatus failed with error: %s. Restarting.", err
                 )
+                await asyncio.sleep(1.0)
 
     async def _update_status(self) -> None:
         async for status in self._merged_status_receiver:
