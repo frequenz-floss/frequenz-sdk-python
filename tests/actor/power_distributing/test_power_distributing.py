@@ -40,7 +40,12 @@ from tests.timeseries.mock_microgrid import MockMicrogrid
 from tests.utils.graph_generator import GraphGenerator
 
 from ...conftest import SAFETY_TIMEOUT
-from .test_distribution_algorithm import Bound, Metric, battery_msg, inverter_msg
+from .test_battery_distribution_algorithm import (
+    Bound,
+    Metric,
+    battery_msg,
+    inverter_msg,
+)
 
 T = TypeVar("T")  # Declare type variable
 

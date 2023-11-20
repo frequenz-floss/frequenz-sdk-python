@@ -198,7 +198,7 @@ class DistributionResult:
     """The power which could not be distributed because of bounds."""
 
 
-class DistributionAlgorithm:
+class BatteryDistributionAlgorithm:
     r"""Distribute power between many components.
 
     The purpose of this tool is to keep equal SoC level in the batteries.

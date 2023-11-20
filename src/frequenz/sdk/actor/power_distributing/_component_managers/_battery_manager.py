@@ -23,7 +23,7 @@ from .._component_pool_status_tracker import ComponentPoolStatusTracker
 from .._component_status import ComponentPoolStatus
 from .._distribution_algorithm import (
     AggregatedBatteryData,
-    DistributionAlgorithm,
+    BatteryDistributionAlgorithm,
     DistributionResult,
     InvBatPair,
 )
@@ -158,7 +158,7 @@ class BatteryManager(ComponentManager):
         equal SoC level.
         """
 
-        self._distribution_algorithm = DistributionAlgorithm(
+        self._distribution_algorithm = BatteryDistributionAlgorithm(
             self._power_distributor_exponent
         )
         """The distribution algorithm used to distribute power between batteries."""

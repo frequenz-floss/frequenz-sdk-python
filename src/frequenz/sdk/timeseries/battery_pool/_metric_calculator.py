@@ -14,7 +14,7 @@ from ... import timeseries
 from ...actor.power_distributing._component_managers._battery_manager import (
     _get_battery_inverter_mappings,
 )
-from ...actor.power_distributing._distribution_algorithm._distribution_algorithm import (
+from ...actor.power_distributing._distribution_algorithm._battery_distribution_algorithm import (
     _aggregate_battery_power_bounds,
 )
 from ...actor.power_distributing.result import PowerBounds
