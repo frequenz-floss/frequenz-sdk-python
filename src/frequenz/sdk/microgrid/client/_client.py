@@ -425,7 +425,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
         if component_id in self._component_streams:
             return self._component_streams[component_id]
         task_name = f"raw-component-data-{component_id}"
-        chan = Broadcast[_GenericComponentData](task_name)
+        chan = Broadcast[_GenericComponentData](task_name, resend_latest=True)
         self._component_streams[component_id] = chan
 
         self._streaming_tasks[component_id] = asyncio.create_task(
