@@ -407,10 +407,10 @@ class TestMicrogridGrpcClient:
             with pytest.raises(ValueError):
                 # should raise a ValueError for wrong component category
                 await microgrid.meter_data(38)
-            peekable = (await microgrid.meter_data(83)).into_peekable()
+            receiver = await microgrid.meter_data(83)
             await asyncio.sleep(0.2)
 
-        latest = peekable.peek()
+        latest = await anext(receiver)
         assert isinstance(latest, MeterData)
         assert latest.component_id == 83
 
@@ -431,10 +431,10 @@ class TestMicrogridGrpcClient:
             with pytest.raises(ValueError):
                 # should raise a ValueError for wrong component category
                 await microgrid.meter_data(38)
-            peekable = (await microgrid.battery_data(83)).into_peekable()
+            receiver = await microgrid.battery_data(83)
             await asyncio.sleep(0.2)
 
-        latest = peekable.peek()
+        latest = await anext(receiver)
         assert isinstance(latest, BatteryData)
         assert latest.component_id == 83
 
@@ -455,10 +455,10 @@ class TestMicrogridGrpcClient:
             with pytest.raises(ValueError):
                 # should raise a ValueError for wrong component category
                 await microgrid.meter_data(38)
-            peekable = (await microgrid.inverter_data(83)).into_peekable()
+            receiver = await microgrid.inverter_data(83)
             await asyncio.sleep(0.2)
 
-        latest = peekable.peek()
+        latest = await anext(receiver)
         assert isinstance(latest, InverterData)
         assert latest.component_id == 83
 
@@ -479,10 +479,10 @@ class TestMicrogridGrpcClient:
             with pytest.raises(ValueError):
                 # should raise a ValueError for wrong component category
                 await microgrid.meter_data(38)
-            peekable = (await microgrid.ev_charger_data(83)).into_peekable()
+            receiver = await microgrid.ev_charger_data(83)
             await asyncio.sleep(0.2)
 
-        latest = peekable.peek()
+        latest = await anext(receiver)
         assert isinstance(latest, EVChargerData)
         assert latest.component_id == 83
 
