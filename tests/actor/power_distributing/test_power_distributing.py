@@ -20,6 +20,9 @@ from frequenz.sdk.actor.power_distributing import (
     PowerDistributingActor,
     Request,
 )
+from frequenz.sdk.actor.power_distributing._component_managers._battery_manager import (
+    BatteryManager,
+)
 from frequenz.sdk.actor.power_distributing._component_pool_status_tracker import (
     ComponentPoolStatusTracker,
 )
@@ -37,7 +40,12 @@ from tests.timeseries.mock_microgrid import MockMicrogrid
 from tests.utils.graph_generator import GraphGenerator
 
 from ...conftest import SAFETY_TIMEOUT
-from .test_distribution_algorithm import Bound, Metric, battery_msg, inverter_msg
+from .test_battery_distribution_algorithm import (
+    Bound,
+    Metric,
+    battery_msg,
+    inverter_msg,
+)
 
 T = TypeVar("T")  # Declare type variable
 
@@ -62,10 +70,19 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ) as distributor:
-            assert distributor._bat_invs_map == {9: {8}, 19: {18}, 29: {28}}
-            assert distributor._inv_bats_map == {8: {9}, 18: {19}, 28: {29}}
+            assert isinstance(distributor._component_manager, BatteryManager)
+            assert distributor._component_manager._bat_invs_map == {
+                9: {8},
+                19: {18},
+                29: {28},
+            }
+            assert distributor._component_manager._inv_bats_map == {
+                8: {9},
+                18: {19},
+                28: {29},
+            }
         await mockgrid.cleanup()
 
         # Test if it works without grid side meter
@@ -76,10 +93,19 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ) as distributor:
-            assert distributor._bat_invs_map == {9: {8}, 19: {18}, 29: {28}}
-            assert distributor._inv_bats_map == {8: {9}, 18: {19}, 28: {29}}
+            assert isinstance(distributor._component_manager, BatteryManager)
+            assert distributor._component_manager._bat_invs_map == {
+                9: {8},
+                19: {18},
+                29: {28},
+            }
+            assert distributor._component_manager._inv_bats_map == {
+                8: {9},
+                18: {19},
+                28: {29},
+            }
         await mockgrid.cleanup()
 
     async def init_component_data(
@@ -119,13 +145,14 @@ class TestPowerDistributingActor:
 
         request = Request(
             power=Power.from_kilowatts(1.2),
-            batteries={9, 19},
+            component_ids={9, 19},
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.component_ids}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -134,7 +161,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -188,7 +215,8 @@ class TestPowerDistributingActor:
             "get_working_components.return_value": microgrid.battery_pool().battery_ids
         }
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -197,12 +225,12 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             # zero power requests should pass through despite the exclusion bounds.
             request = Request(
                 power=Power.zero(),
-                batteries={9, 19},
+                component_ids={9, 19},
                 request_timeout=SAFETY_TIMEOUT,
             )
 
@@ -227,7 +255,7 @@ class TestPowerDistributingActor:
             # rejected.
             request = Request(
                 power=Power.from_watts(300.0),
-                batteries={9, 19},
+                component_ids={9, 19},
                 request_timeout=SAFETY_TIMEOUT,
             )
 
@@ -243,7 +271,9 @@ class TestPowerDistributingActor:
             assert len(done) == 1
 
             result = done.pop().result()
-            assert isinstance(result, OutOfBounds)
+            assert isinstance(
+                result, OutOfBounds
+            ), f"Expected OutOfBounds, got {result}"
             assert result.bounds == PowerBounds(-1000, -600, 600, 1000)
             assert result.request == request
 
@@ -282,14 +312,15 @@ class TestPowerDistributingActor:
         results_channel = Broadcast[Result]("power_distributor results")
         request = Request(
             power=Power.from_watts(1200.0),
-            batteries={bat_component1.component_id, bat_component2.component_id},
+            component_ids={bat_component1.component_id, bat_component2.component_id},
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.component_ids}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -298,7 +329,7 @@ class TestPowerDistributingActor:
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
@@ -364,14 +395,15 @@ class TestPowerDistributingActor:
 
         request = Request(
             power=Power.from_watts(1200.0),
-            batteries=set(battery.component_id for battery in bat_components),
+            component_ids=set(battery.component_id for battery in bat_components),
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.component_ids}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -380,7 +412,7 @@ class TestPowerDistributingActor:
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
@@ -438,14 +470,15 @@ class TestPowerDistributingActor:
 
         request = Request(
             power=Power.from_watts(1200.0),
-            batteries={bat_component.component_id},
+            component_ids={bat_component.component_id},
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.component_ids}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -454,7 +487,7 @@ class TestPowerDistributingActor:
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
@@ -516,14 +549,15 @@ class TestPowerDistributingActor:
 
         request = Request(
             power=Power.from_watts(1700.0),
-            batteries={batteries[0].component_id, batteries[1].component_id},
+            component_ids={batteries[0].component_id, batteries[1].component_id},
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.component_ids}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -532,7 +566,7 @@ class TestPowerDistributingActor:
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
@@ -605,14 +639,15 @@ class TestPowerDistributingActor:
 
         request = Request(
             power=Power.from_watts(300.0),
-            batteries={batteries[0].component_id, batteries[1].component_id},
+            component_ids={batteries[0].component_id, batteries[1].component_id},
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.component_ids}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -621,7 +656,7 @@ class TestPowerDistributingActor:
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
@@ -693,14 +728,15 @@ class TestPowerDistributingActor:
 
         request = Request(
             power=Power.from_watts(300.0),
-            batteries={batteries[0].component_id, batteries[1].component_id},
+            component_ids={batteries[0].component_id, batteries[1].component_id},
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.component_ids}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -709,7 +745,7 @@ class TestPowerDistributingActor:
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
@@ -764,14 +800,15 @@ class TestPowerDistributingActor:
 
         request = Request(
             power=Power.from_watts(600.0),
-            batteries={batteries[0].component_id},
+            component_ids={batteries[0].component_id},
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.component_ids}
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -780,7 +817,7 @@ class TestPowerDistributingActor:
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
@@ -827,13 +864,14 @@ class TestPowerDistributingActor:
 
         request = Request(
             power=Power.from_kilowatts(1.2),
-            batteries={9, 19},
+            component_ids={9, 19},
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.component_ids}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -842,11 +880,11 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
-            attrs = {"get_working_components.return_value": request.batteries}
+            attrs = {"get_working_components.return_value": request.component_ids}
             mocker.patch(
-                "frequenz.sdk.actor.power_distributing.power_distributing"
+                "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
                 ".ComponentPoolStatusTracker",
                 return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
             )
@@ -864,7 +902,7 @@ class TestPowerDistributingActor:
 
         result: Result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeeded_batteries == {19}
+        assert result.succeeded_components == {19}
         assert result.succeeded_power.isclose(Power.from_watts(500.0))
         assert result.excess_power.isclose(Power.from_watts(700.0))
         assert result.request == request
@@ -892,12 +930,13 @@ class TestPowerDistributingActor:
 
         request = Request(
             power=Power.from_kilowatts(1.2),
-            batteries={9, 19},
+            component_ids={9, 19},
             request_timeout=SAFETY_TIMEOUT,
         )
-        attrs = {"get_working_components.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.component_ids}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -906,7 +945,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -921,7 +960,7 @@ class TestPowerDistributingActor:
 
         result: Result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeeded_batteries == {19}
+        assert result.succeeded_components == {19}
         assert result.succeeded_power.isclose(Power.from_watts(500.0))
         assert result.excess_power.isclose(Power.from_watts(700.0))
         assert result.request == request
@@ -964,12 +1003,13 @@ class TestPowerDistributingActor:
 
         request = Request(
             power=Power.from_kilowatts(1.2),
-            batteries={9, 19},
+            component_ids={9, 19},
             request_timeout=SAFETY_TIMEOUT,
         )
-        attrs = {"get_working_components.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.component_ids}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -978,7 +1018,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -993,7 +1033,7 @@ class TestPowerDistributingActor:
 
         result: Result = done.pop().result()
         assert isinstance(result, Success)
-        assert result.succeeded_batteries == {19}
+        assert result.succeeded_components == {19}
         assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
         assert result.excess_power.isclose(Power.from_watts(200.0))
         assert result.request == request
@@ -1013,13 +1053,14 @@ class TestPowerDistributingActor:
         results_channel = Broadcast[Result]("power_distributor results")
         request = Request(
             power=Power.from_kilowatts(1.2),
-            batteries={9, 100},
+            component_ids={9, 100},
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.component_ids}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
         mocker.patch("asyncio.sleep", new_callable=AsyncMock)
@@ -1028,7 +1069,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -1061,14 +1102,15 @@ class TestPowerDistributingActor:
 
         request = Request(
             power=Power.from_kilowatts(1.2),
-            batteries={9, 19},
+            component_ids={9, 19},
             request_timeout=SAFETY_TIMEOUT,
             adjust_power=False,
         )
 
-        attrs = {"get_working_components.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.component_ids}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -1078,7 +1120,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -1113,14 +1155,15 @@ class TestPowerDistributingActor:
 
         request = Request(
             power=-Power.from_kilowatts(1.2),
-            batteries={9, 19},
+            component_ids={9, 19},
             request_timeout=SAFETY_TIMEOUT,
             adjust_power=False,
         )
 
-        attrs = {"get_working_components.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.component_ids}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -1130,7 +1173,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -1165,14 +1208,15 @@ class TestPowerDistributingActor:
 
         request = Request(
             power=Power.from_kilowatts(1.0),
-            batteries={9, 19},
+            component_ids={9, 19},
             request_timeout=SAFETY_TIMEOUT,
             adjust_power=False,
         )
 
-        attrs = {"get_working_components.return_value": request.batteries}
+        attrs = {"get_working_components.return_value": request.component_ids}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -1182,7 +1226,7 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -1216,7 +1260,8 @@ class TestPowerDistributingActor:
 
         attrs = {"get_working_components.return_value": batteries - {9}}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
         )
 
@@ -1227,11 +1272,11 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             request = Request(
                 power=Power.from_kilowatts(1.2),
-                batteries=batteries,
+                component_ids=batteries,
                 request_timeout=SAFETY_TIMEOUT,
             )
 
@@ -1247,7 +1292,7 @@ class TestPowerDistributingActor:
             assert len(done) == 1
             result = done.pop().result()
             assert isinstance(result, Success)
-            assert result.succeeded_batteries == {19}
+            assert result.succeeded_components == {19}
             assert result.excess_power.isclose(Power.from_watts(700.0))
             assert result.succeeded_power.isclose(Power.from_watts(500.0))
             assert result.request == request
@@ -1269,7 +1314,8 @@ class TestPowerDistributingActor:
 
         attrs = {"get_working_components.return_value": batteries}
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.power_distributing.ComponentPoolStatusTracker",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".ComponentPoolStatusTracker",
             return_value=MagicMock(
                 spec=ComponentPoolStatusTracker,
                 **attrs,
@@ -1277,7 +1323,8 @@ class TestPowerDistributingActor:
         )
 
         mocker.patch(
-            "frequenz.sdk.actor.power_distributing.PowerDistributingActor._parse_result",
+            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+            ".BatteryManager._parse_result",
             return_value=(failed_power, failed_batteries),
         )
 
@@ -1288,11 +1335,11 @@ class TestPowerDistributingActor:
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
-            battery_status_sender=battery_status_channel.new_sender(),
+            component_pool_status_sender=battery_status_channel.new_sender(),
         ):
             request = Request(
                 power=Power.from_kilowatts(1.70),
-                batteries=batteries,
+                component_ids=batteries,
                 request_timeout=SAFETY_TIMEOUT,
             )
 
@@ -1307,8 +1354,8 @@ class TestPowerDistributingActor:
             assert len(done) == 1
             result = done.pop().result()
             assert isinstance(result, PartialFailure)
-            assert result.succeeded_batteries == batteries - failed_batteries
-            assert result.failed_batteries == failed_batteries
+            assert result.succeeded_components == batteries - failed_batteries
+            assert result.failed_components == failed_batteries
             assert result.succeeded_power.isclose(Power.from_watts(1000.0))
             assert result.failed_power.isclose(Power.from_watts(failed_power))
             assert result.excess_power.isclose(Power.from_watts(200.0))

@@ -91,7 +91,7 @@ class TestBatteryPoolControl:
             mock = MagicMock(spec=ComponentPoolStatusTracker)
             mock.get_working_components.return_value = battery_ids
             mocker.patch(
-                "frequenz.sdk.actor.power_distributing.power_distributing"
+                "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
                 ".ComponentPoolStatusTracker",
                 return_value=mock,
             )
@@ -99,7 +99,7 @@ class TestBatteryPoolControl:
             mock = MagicMock(spec=ComponentPoolStatusTracker)
             mock.get_working_components.side_effect = set
             mocker.patch(
-                "frequenz.sdk.actor.power_distributing.power_distributing"
+                "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
                 ".ComponentPoolStatusTracker",
                 return_value=mock,
             )
@@ -243,7 +243,7 @@ class TestBatteryPoolControl:
             expected_result_pred=lambda result: isinstance(
                 result, power_distributing.PartialFailure
             )
-            and result.failed_batteries == {mocks.microgrid.battery_ids[0]},
+            and result.failed_components == {mocks.microgrid.battery_ids[0]},
         )
 
         # There should be an automatic retry.
@@ -299,9 +299,10 @@ class TestBatteryPoolControl:
         set_power.reset_mock()
 
         await battery_pool_2.propose_power(Power.from_watts(1000.0))
-        self._assert_report(
-            await bounds_2_rx.receive(), power=1000.0, lower=-2000.0, upper=2000.0
-        )
+        bounds = await bounds_2_rx.receive()
+        if bounds.distribution_result is None:
+            bounds = await bounds_2_rx.receive()
+        self._assert_report(bounds, power=1000.0, lower=-2000.0, upper=2000.0)
         assert set_power.call_count == 2
         assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 500.0)
@@ -358,9 +359,10 @@ class TestBatteryPoolControl:
         self._assert_report(
             await bounds_1_rx.receive(), power=0.0, lower=-4000.0, upper=4000.0
         )
-        self._assert_report(
-            await bounds_2_rx.receive(), power=0.0, lower=-1000.0, upper=0.0
-        )
+        bounds = await bounds_2_rx.receive()
+        if bounds.distribution_result is None:
+            bounds = await bounds_2_rx.receive()
+        self._assert_report(bounds, power=0.0, lower=-1000.0, upper=0.0)
 
         assert set_power.call_count == 4
         assert sorted(set_power.call_args_list) == [

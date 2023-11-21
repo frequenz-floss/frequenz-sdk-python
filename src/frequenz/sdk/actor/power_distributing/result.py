@@ -5,6 +5,7 @@
 
 
 import dataclasses
+from collections import abc
 
 from frequenz.sdk.timeseries._quantities import Power
 
@@ -21,13 +22,13 @@ class _BaseResultMixin:
 
 @dataclasses.dataclass
 class _BaseSuccessMixin:
-    """Result returned when setting the power succeed for all batteries."""
+    """Result returned when setting the power succeed for all components."""
 
     succeeded_power: Power
     """The part of the requested power that was successfully set."""
 
-    succeeded_batteries: set[int]
-    """The subset of batteries for which power was set successfully."""
+    succeeded_components: abc.Set[int]
+    """The subset of components for which power was set successfully."""
 
     excess_power: Power
     """The part of the requested power that could not be fulfilled.
@@ -44,17 +45,17 @@ class _BaseSuccessMixin:
 
 @dataclasses.dataclass
 class Success(_BaseSuccessMixin, _BaseResultMixin):  # Order matters here. See above.
-    """Result returned when setting the power succeeded for all batteries."""
+    """Result returned when setting the power was successful for all components."""
 
 
 @dataclasses.dataclass
 class PartialFailure(_BaseSuccessMixin, _BaseResultMixin):
-    """Result returned when any battery failed to perform the request."""
+    """Result returned when some of the components had an error setting the power."""
 
     failed_power: Power
     """The part of the requested power that failed to be set."""
 
-    failed_batteries: set[int]
+    failed_components: abc.Set[int]
     """The subset of batteries for which the request failed."""
 
 
@@ -68,19 +69,19 @@ class Error(_BaseResultMixin):
 
 @dataclasses.dataclass
 class PowerBounds:
-    """Inclusion and exclusion power bounds for requested batteries."""
+    """Inclusion and exclusion power bounds for the requested components."""
 
     inclusion_lower: float
-    """The lower value of the inclusion power bounds for the requested batteries."""
+    """The lower value of the inclusion power bounds for the requested components."""
 
     exclusion_lower: float
-    """The lower value of the exclusion power bounds for the requested batteries."""
+    """The lower value of the exclusion power bounds for the requested components."""
 
     exclusion_upper: float
-    """The upper value of the exclusion power bounds for the requested batteries."""
+    """The upper value of the exclusion power bounds for the requested components."""
 
     inclusion_upper: float
-    """The upper value of the inclusion power bounds for the requested batteries."""
+    """The upper value of the inclusion power bounds for the requested components."""
 
 
 @dataclasses.dataclass
@@ -88,11 +89,11 @@ class OutOfBounds(_BaseResultMixin):
     """Result returned when the power was not set because it was out of bounds.
 
     This result happens when the originating request was done with
-    `adjust_power = False` and the requested power is not within the batteries bounds.
+    `adjust_power = False` and the requested power is not within the available bounds.
     """
 
     bounds: PowerBounds
-    """The power bounds for the requested batteries.
+    """The power bounds for the requested components.
 
     If the requested power negative, then this value is the lower bound.
     Otherwise it is upper bound.
@@ -134,26 +135,26 @@ Example: Handling power distribution results
     request = Request(
         namespace="TestChannel",
         power=Power.from_watts(123.4),
-        batteries={8, 18},
+        component_ids={8, 18},
     )
 
     results: list[Result] = [
         Success(
             request,
             succeeded_power=Power.from_watts(123.4),
-            succeeded_batteries={8, 18},
+            succeeded_components={8, 18},
             excess_power=Power.zero(),
         ),
         PartialFailure(
             request,
             succeeded_power=Power.from_watts(103.4),
-            succeeded_batteries={8},
+            succeeded_components={8},
             excess_power=Power.zero(),
-            failed_batteries={18},
+            failed_components={18},
             failed_power=Power.from_watts(20.0),
         ),
         OutOfBounds(request, bounds=PowerBounds(0, 0, 0, 800)),
-        Error(request, msg="The batteries are not available"),
+        Error(request, msg="The components are not available"),
     ]
 
     for r in results:

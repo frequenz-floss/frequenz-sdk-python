@@ -6,7 +6,17 @@
 
 ## Upgrading
 
-- The `BatteryPool.power_status` method now streams objects of type `BatteryPoolReport`.  They're identical to the previous `Report` objects, except for the name of the class.
+- The `BatteryPool.power_status` method now streams objects of type `BatteryPoolReport`, replacing the previous `Report` objects.
+
+- In `BatteryPoolReport.distribution_result`,
+  * the following fields have been renamed:
+    + `Result.succeeded_batteries` → `Result.succeeded_components`
+    + `Result.failed_batteries` → `Result.failed_components`
+    + `Request.batteries` → `Request.component_ids`
+  * and the following fields are now type-hinted as `collections.abc.Set`, to clearly indicate that they are read-only:
+    + `Result.succeeded_components`
+    + `Result.failed_components`
+
 
 ## New Features
 

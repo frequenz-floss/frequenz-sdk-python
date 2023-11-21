@@ -315,7 +315,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._power_distributing_actor = PowerDistributingActor(
             requests_receiver=self._power_distribution_requests_channel.new_receiver(),
             results_sender=self._power_distribution_results_channel.new_sender(),
-            battery_status_sender=self._battery_status_channel.new_sender(),
+            component_pool_status_sender=self._battery_status_channel.new_sender(),
         )
         self._power_distributing_actor.start()
 

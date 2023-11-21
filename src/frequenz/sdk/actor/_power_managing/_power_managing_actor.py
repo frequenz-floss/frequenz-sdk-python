@@ -171,7 +171,7 @@ class PowerManagingActor(Actor):
             await self._power_distributing_requests_sender.send(
                 power_distributing.Request(
                     power=target_power,
-                    batteries=component_ids,
+                    component_ids=component_ids,
                     request_timeout=request_timeout,
                     adjust_power=True,
                 )
@@ -229,10 +229,12 @@ class PowerManagingActor(Actor):
                 )
 
                 result = selected.value
-                self._distribution_results[frozenset(result.request.batteries)] = result
+                self._distribution_results[
+                    frozenset(result.request.component_ids)
+                ] = result
                 match result:
                     case power_distributing.PartialFailure(request):
                         await self._send_updated_target_power(
-                            frozenset(request.batteries), None, must_send=True
+                            frozenset(request.component_ids), None, must_send=True
                         )
-                await self._send_reports(frozenset(result.request.batteries))
+                await self._send_reports(frozenset(result.request.component_ids))
