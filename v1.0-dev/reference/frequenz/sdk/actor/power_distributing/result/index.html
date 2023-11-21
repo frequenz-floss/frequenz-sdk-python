@@ -1105,8 +1105,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.actor.power_distributing.result.PartialFailure.failed_batteries" class="md-nav__link">
-    failed_batteries
+  <a href="#frequenz.sdk.actor.power_distributing.result.PartialFailure.failed_components" class="md-nav__link">
+    failed_components
   </a>
   
 </li>
@@ -1126,8 +1126,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.actor.power_distributing.result.PartialFailure.succeeded_batteries" class="md-nav__link">
-    succeeded_batteries
+  <a href="#frequenz.sdk.actor.power_distributing.result.PartialFailure.succeeded_components" class="md-nav__link">
+    succeeded_components
   </a>
   
 </li>
@@ -1841,8 +1841,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.actor.power_distributing.result.PartialFailure.failed_batteries" class="md-nav__link">
-    failed_batteries
+  <a href="#frequenz.sdk.actor.power_distributing.result.PartialFailure.failed_components" class="md-nav__link">
+    failed_components
   </a>
   
 </li>
@@ -1862,8 +1862,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.actor.power_distributing.result.PartialFailure.succeeded_batteries" class="md-nav__link">
-    succeeded_batteries
+  <a href="#frequenz.sdk.actor.power_distributing.result.PartialFailure.succeeded_components" class="md-nav__link">
+    succeeded_components
   </a>
   
 </li>
@@ -2052,26 +2052,26 @@ def handle_power_request_result(result: Result) -&gt; None:
 request = Request(
     namespace=&quot;TestChannel&quot;,
     power=Power.from_watts(123.4),
-    batteries={8, 18},
+    component_ids={8, 18},
 )
 
 results: list[Result] = [
     Success(
         request,
         succeeded_power=Power.from_watts(123.4),
-        succeeded_batteries={8, 18},
+        succeeded_components={8, 18},
         excess_power=Power.zero(),
     ),
     PartialFailure(
         request,
         succeeded_power=Power.from_watts(103.4),
-        succeeded_batteries={8},
+        succeeded_components={8},
         excess_power=Power.zero(),
-        failed_batteries={18},
+        failed_components={18},
         failed_power=Power.from_watts(20.0),
     ),
     OutOfBounds(request, bounds=PowerBounds(0, 0, 0, 800)),
-    Error(request, msg=&quot;The batteries are not available&quot;),
+    Error(request, msg=&quot;The components are not available&quot;),
 ]
 
 for r in results:
@@ -2108,17 +2108,17 @@ for r in results:
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/actor/power_distributing/result.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-61">61</a></span>
-<span class="normal"><a href="#__codelineno-0-62">62</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-62">62</a></span>
 <span class="normal"><a href="#__codelineno-0-63">63</a></span>
 <span class="normal"><a href="#__codelineno-0-64">64</a></span>
 <span class="normal"><a href="#__codelineno-0-65">65</a></span>
-<span class="normal"><a href="#__codelineno-0-66">66</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61"></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62"></a><span class="k">class</span> <span class="nc">Error</span><span class="p">(</span><span class="n">_BaseResultMixin</span><span class="p">):</span>
-</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Result returned when an error occurred and power was not set at all.&quot;&quot;&quot;</span>
-</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64"></a>
-</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65"></a>    <span class="n">msg</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error message explaining why error happened.&quot;&quot;&quot;</span>
+<span class="normal"><a href="#__codelineno-0-66">66</a></span>
+<span class="normal"><a href="#__codelineno-0-67">67</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62"></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
+</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="k">class</span> <span class="nc">Error</span><span class="p">(</span><span class="n">_BaseResultMixin</span><span class="p">):</span>
+</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Result returned when an error occurred and power was not set at all.&quot;&quot;&quot;</span>
+</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65"></a>
+</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66"></a>    <span class="n">msg</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error message explaining why error happened.&quot;&quot;&quot;</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
 
@@ -2213,37 +2213,37 @@ for r in results:
   
       <p>Result returned when the power was not set because it was out of bounds.</p>
 <p>This result happens when the originating request was done with
-<code>adjust_power = False</code> and the requested power is not within the batteries bounds.</p>
+<code>adjust_power = False</code> and the requested power is not within the available bounds.</p>
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/actor/power_distributing/result.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-86">86</a></span>
-<span class="normal"><a href="#__codelineno-0-87">87</a></span>
-<span class="normal"><a href="#__codelineno-0-88">88</a></span>
-<span class="normal"><a href="#__codelineno-0-89">89</a></span>
-<span class="normal"><a href="#__codelineno-0-90">90</a></span>
-<span class="normal"><a href="#__codelineno-0-91">91</a></span>
-<span class="normal"><a href="#__codelineno-0-92">92</a></span>
-<span class="normal"><a href="#__codelineno-0-93">93</a></span>
-<span class="normal"><a href="#__codelineno-0-94">94</a></span>
-<span class="normal"><a href="#__codelineno-0-95">95</a></span>
-<span class="normal"><a href="#__codelineno-0-96">96</a></span>
-<span class="normal"><a href="#__codelineno-0-97">97</a></span>
-<span class="normal"><a href="#__codelineno-0-98">98</a></span>
-<span class="normal"><a href="#__codelineno-0-99">99</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-86"><a id="__codelineno-0-86" name="__codelineno-0-86"></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="__span-0-87"><a id="__codelineno-0-87" name="__codelineno-0-87"></a><span class="k">class</span> <span class="nc">OutOfBounds</span><span class="p">(</span><span class="n">_BaseResultMixin</span><span class="p">):</span>
-</span><span id="__span-0-88"><a id="__codelineno-0-88" name="__codelineno-0-88"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Result returned when the power was not set because it was out of bounds.</span>
-</span><span id="__span-0-89"><a id="__codelineno-0-89" name="__codelineno-0-89"></a>
-</span><span id="__span-0-90"><a id="__codelineno-0-90" name="__codelineno-0-90"></a><span class="sd">    This result happens when the originating request was done with</span>
-</span><span id="__span-0-91"><a id="__codelineno-0-91" name="__codelineno-0-91"></a><span class="sd">    `adjust_power = False` and the requested power is not within the batteries bounds.</span>
-</span><span id="__span-0-92"><a id="__codelineno-0-92" name="__codelineno-0-92"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-93"><a id="__codelineno-0-93" name="__codelineno-0-93"></a>
-</span><span id="__span-0-94"><a id="__codelineno-0-94" name="__codelineno-0-94"></a>    <span class="n">bounds</span><span class="p">:</span> <span class="n">PowerBounds</span>
-</span><span id="__span-0-95"><a id="__codelineno-0-95" name="__codelineno-0-95"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The power bounds for the requested batteries.</span>
-</span><span id="__span-0-96"><a id="__codelineno-0-96" name="__codelineno-0-96"></a>
-</span><span id="__span-0-97"><a id="__codelineno-0-97" name="__codelineno-0-97"></a><span class="sd">    If the requested power negative, then this value is the lower bound.</span>
-</span><span id="__span-0-98"><a id="__codelineno-0-98" name="__codelineno-0-98"></a><span class="sd">    Otherwise it is upper bound.</span>
-</span><span id="__span-0-99"><a id="__codelineno-0-99" name="__codelineno-0-99"></a><span class="sd">    &quot;&quot;&quot;</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-87"> 87</a></span>
+<span class="normal"><a href="#__codelineno-0-88"> 88</a></span>
+<span class="normal"><a href="#__codelineno-0-89"> 89</a></span>
+<span class="normal"><a href="#__codelineno-0-90"> 90</a></span>
+<span class="normal"><a href="#__codelineno-0-91"> 91</a></span>
+<span class="normal"><a href="#__codelineno-0-92"> 92</a></span>
+<span class="normal"><a href="#__codelineno-0-93"> 93</a></span>
+<span class="normal"><a href="#__codelineno-0-94"> 94</a></span>
+<span class="normal"><a href="#__codelineno-0-95"> 95</a></span>
+<span class="normal"><a href="#__codelineno-0-96"> 96</a></span>
+<span class="normal"><a href="#__codelineno-0-97"> 97</a></span>
+<span class="normal"><a href="#__codelineno-0-98"> 98</a></span>
+<span class="normal"><a href="#__codelineno-0-99"> 99</a></span>
+<span class="normal"><a href="#__codelineno-0-100">100</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-87"><a id="__codelineno-0-87" name="__codelineno-0-87"></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
+</span><span id="__span-0-88"><a id="__codelineno-0-88" name="__codelineno-0-88"></a><span class="k">class</span> <span class="nc">OutOfBounds</span><span class="p">(</span><span class="n">_BaseResultMixin</span><span class="p">):</span>
+</span><span id="__span-0-89"><a id="__codelineno-0-89" name="__codelineno-0-89"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Result returned when the power was not set because it was out of bounds.</span>
+</span><span id="__span-0-90"><a id="__codelineno-0-90" name="__codelineno-0-90"></a>
+</span><span id="__span-0-91"><a id="__codelineno-0-91" name="__codelineno-0-91"></a><span class="sd">    This result happens when the originating request was done with</span>
+</span><span id="__span-0-92"><a id="__codelineno-0-92" name="__codelineno-0-92"></a><span class="sd">    `adjust_power = False` and the requested power is not within the available bounds.</span>
+</span><span id="__span-0-93"><a id="__codelineno-0-93" name="__codelineno-0-93"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-94"><a id="__codelineno-0-94" name="__codelineno-0-94"></a>
+</span><span id="__span-0-95"><a id="__codelineno-0-95" name="__codelineno-0-95"></a>    <span class="n">bounds</span><span class="p">:</span> <span class="n">PowerBounds</span>
+</span><span id="__span-0-96"><a id="__codelineno-0-96" name="__codelineno-0-96"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The power bounds for the requested components.</span>
+</span><span id="__span-0-97"><a id="__codelineno-0-97" name="__codelineno-0-97"></a>
+</span><span id="__span-0-98"><a id="__codelineno-0-98" name="__codelineno-0-98"></a><span class="sd">    If the requested power negative, then this value is the lower bound.</span>
+</span><span id="__span-0-99"><a id="__codelineno-0-99" name="__codelineno-0-99"></a><span class="sd">    Otherwise it is upper bound.</span>
+</span><span id="__span-0-100"><a id="__codelineno-0-100" name="__codelineno-0-100"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
 
@@ -2276,7 +2276,7 @@ for r in results:
 
   <div class="doc doc-contents ">
   
-      <p>The power bounds for the requested batteries.</p>
+      <p>The power bounds for the requested components.</p>
 <p>If the requested power negative, then this value is the lower bound.
 Otherwise it is upper bound.</p>
   </div>
@@ -2338,27 +2338,27 @@ Otherwise it is upper bound.</p>
             Bases: <code><span title="frequenz.sdk.actor.power_distributing.result._BaseSuccessMixin">_BaseSuccessMixin</span></code>, <code><span title="frequenz.sdk.actor.power_distributing.result._BaseResultMixin">_BaseResultMixin</span></code></p>
 
   
-      <p>Result returned when any battery failed to perform the request.</p>
+      <p>Result returned when some of the components had an error setting the power.</p>
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/actor/power_distributing/result.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-50">50</a></span>
-<span class="normal"><a href="#__codelineno-0-51">51</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-51">51</a></span>
 <span class="normal"><a href="#__codelineno-0-52">52</a></span>
 <span class="normal"><a href="#__codelineno-0-53">53</a></span>
 <span class="normal"><a href="#__codelineno-0-54">54</a></span>
 <span class="normal"><a href="#__codelineno-0-55">55</a></span>
 <span class="normal"><a href="#__codelineno-0-56">56</a></span>
 <span class="normal"><a href="#__codelineno-0-57">57</a></span>
-<span class="normal"><a href="#__codelineno-0-58">58</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50"></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51"></a><span class="k">class</span> <span class="nc">PartialFailure</span><span class="p">(</span><span class="n">_BaseSuccessMixin</span><span class="p">,</span> <span class="n">_BaseResultMixin</span><span class="p">):</span>
-</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Result returned when any battery failed to perform the request.&quot;&quot;&quot;</span>
-</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53"></a>
-</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54"></a>    <span class="n">failed_power</span><span class="p">:</span> <span class="n">Power</span>
-</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The part of the requested power that failed to be set.&quot;&quot;&quot;</span>
-</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56"></a>
-</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57"></a>    <span class="n">failed_batteries</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
-</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The subset of batteries for which the request failed.&quot;&quot;&quot;</span>
+<span class="normal"><a href="#__codelineno-0-58">58</a></span>
+<span class="normal"><a href="#__codelineno-0-59">59</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51"></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
+</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52"></a><span class="k">class</span> <span class="nc">PartialFailure</span><span class="p">(</span><span class="n">_BaseSuccessMixin</span><span class="p">,</span> <span class="n">_BaseResultMixin</span><span class="p">):</span>
+</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Result returned when some of the components had an error setting the power.&quot;&quot;&quot;</span>
+</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54"></a>
+</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55"></a>    <span class="n">failed_power</span><span class="p">:</span> <span class="n">Power</span>
+</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The part of the requested power that failed to be set.&quot;&quot;&quot;</span>
+</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57"></a>
+</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58"></a>    <span class="n">failed_components</span><span class="p">:</span> <span class="n">abc</span><span class="o">.</span><span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The subset of batteries for which the request failed.&quot;&quot;&quot;</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
 
@@ -2402,16 +2402,16 @@ Otherwise it is upper bound.</p>
 
 
 
-<h6 id="frequenz.sdk.actor.power_distributing.result.PartialFailure.failed_batteries" class="doc doc-heading">
-          <span class="doc doc-object-name doc-attribute-name">failed_batteries</span>
+<h6 id="frequenz.sdk.actor.power_distributing.result.PartialFailure.failed_components" class="doc doc-heading">
+          <span class="doc doc-object-name doc-attribute-name">failed_components</span>
 
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
-<a href="#frequenz.sdk.actor.power_distributing.result.PartialFailure.failed_batteries" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">failed_batteries</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+<a href="#frequenz.sdk.actor.power_distributing.result.PartialFailure.failed_components" class="headerlink" title="Permanent link">¤</a></h6>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">failed_components</span><span class="p">:</span> <span class="n">abc</span><span class="o">.</span><span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
 </span></code></pre></div>
 
   <div class="doc doc-contents ">
@@ -2474,21 +2474,21 @@ Otherwise it is upper bound.</p>
 
 
 
-<h6 id="frequenz.sdk.actor.power_distributing.result.PartialFailure.succeeded_batteries" class="doc doc-heading">
-          <span class="doc doc-object-name doc-attribute-name">succeeded_batteries</span>
+<h6 id="frequenz.sdk.actor.power_distributing.result.PartialFailure.succeeded_components" class="doc doc-heading">
+          <span class="doc doc-object-name doc-attribute-name">succeeded_components</span>
 
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
-<a href="#frequenz.sdk.actor.power_distributing.result.PartialFailure.succeeded_batteries" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">succeeded_batteries</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+<a href="#frequenz.sdk.actor.power_distributing.result.PartialFailure.succeeded_components" class="headerlink" title="Permanent link">¤</a></h6>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">succeeded_components</span><span class="p">:</span> <span class="n">abc</span><span class="o">.</span><span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
 </span></code></pre></div>
 
   <div class="doc doc-contents ">
   
-      <p>The subset of batteries for which power was set successfully.</p>
+      <p>The subset of components for which power was set successfully.</p>
   </div>
 
 </div>
@@ -2546,12 +2546,11 @@ Otherwise it is upper bound.</p>
   <div class="doc doc-contents ">
 
   
-      <p>Inclusion and exclusion power bounds for requested batteries.</p>
+      <p>Inclusion and exclusion power bounds for the requested components.</p>
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/actor/power_distributing/result.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-69">69</a></span>
-<span class="normal"><a href="#__codelineno-0-70">70</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-70">70</a></span>
 <span class="normal"><a href="#__codelineno-0-71">71</a></span>
 <span class="normal"><a href="#__codelineno-0-72">72</a></span>
 <span class="normal"><a href="#__codelineno-0-73">73</a></span>
@@ -2564,21 +2563,22 @@ Otherwise it is upper bound.</p>
 <span class="normal"><a href="#__codelineno-0-80">80</a></span>
 <span class="normal"><a href="#__codelineno-0-81">81</a></span>
 <span class="normal"><a href="#__codelineno-0-82">82</a></span>
-<span class="normal"><a href="#__codelineno-0-83">83</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69"></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70"></a><span class="k">class</span> <span class="nc">PowerBounds</span><span class="p">:</span>
-</span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Inclusion and exclusion power bounds for requested batteries.&quot;&quot;&quot;</span>
-</span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72"></a>
-</span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73"></a>    <span class="n">inclusion_lower</span><span class="p">:</span> <span class="nb">float</span>
-</span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The lower value of the inclusion power bounds for the requested batteries.&quot;&quot;&quot;</span>
-</span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75"></a>
-</span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76"></a>    <span class="n">exclusion_lower</span><span class="p">:</span> <span class="nb">float</span>
-</span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The lower value of the exclusion power bounds for the requested batteries.&quot;&quot;&quot;</span>
-</span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78"></a>
-</span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79"></a>    <span class="n">exclusion_upper</span><span class="p">:</span> <span class="nb">float</span>
-</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The upper value of the exclusion power bounds for the requested batteries.&quot;&quot;&quot;</span>
-</span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81"></a>
-</span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82"></a>    <span class="n">inclusion_upper</span><span class="p">:</span> <span class="nb">float</span>
-</span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The upper value of the inclusion power bounds for the requested batteries.&quot;&quot;&quot;</span>
+<span class="normal"><a href="#__codelineno-0-83">83</a></span>
+<span class="normal"><a href="#__codelineno-0-84">84</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70"></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
+</span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71"></a><span class="k">class</span> <span class="nc">PowerBounds</span><span class="p">:</span>
+</span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Inclusion and exclusion power bounds for the requested components.&quot;&quot;&quot;</span>
+</span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73"></a>
+</span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74"></a>    <span class="n">inclusion_lower</span><span class="p">:</span> <span class="nb">float</span>
+</span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The lower value of the inclusion power bounds for the requested components.&quot;&quot;&quot;</span>
+</span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76"></a>
+</span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77"></a>    <span class="n">exclusion_lower</span><span class="p">:</span> <span class="nb">float</span>
+</span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The lower value of the exclusion power bounds for the requested components.&quot;&quot;&quot;</span>
+</span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79"></a>
+</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80"></a>    <span class="n">exclusion_upper</span><span class="p">:</span> <span class="nb">float</span>
+</span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The upper value of the exclusion power bounds for the requested components.&quot;&quot;&quot;</span>
+</span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82"></a>
+</span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83"></a>    <span class="n">inclusion_upper</span><span class="p">:</span> <span class="nb">float</span>
+</span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The upper value of the inclusion power bounds for the requested components.&quot;&quot;&quot;</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
 
@@ -2611,7 +2611,7 @@ Otherwise it is upper bound.</p>
 
   <div class="doc doc-contents ">
   
-      <p>The lower value of the exclusion power bounds for the requested batteries.</p>
+      <p>The lower value of the exclusion power bounds for the requested components.</p>
   </div>
 
 </div>
@@ -2635,7 +2635,7 @@ Otherwise it is upper bound.</p>
 
   <div class="doc doc-contents ">
   
-      <p>The upper value of the exclusion power bounds for the requested batteries.</p>
+      <p>The upper value of the exclusion power bounds for the requested components.</p>
   </div>
 
 </div>
@@ -2659,7 +2659,7 @@ Otherwise it is upper bound.</p>
 
   <div class="doc doc-contents ">
   
-      <p>The lower value of the inclusion power bounds for the requested batteries.</p>
+      <p>The lower value of the inclusion power bounds for the requested components.</p>
   </div>
 
 </div>
@@ -2683,7 +2683,7 @@ Otherwise it is upper bound.</p>
 
   <div class="doc doc-contents ">
   
-      <p>The upper value of the inclusion power bounds for the requested batteries.</p>
+      <p>The upper value of the inclusion power bounds for the requested components.</p>
   </div>
 
 </div>
@@ -2719,15 +2719,15 @@ Otherwise it is upper bound.</p>
             Bases: <code><span title="frequenz.sdk.actor.power_distributing.result._BaseSuccessMixin">_BaseSuccessMixin</span></code>, <code><span title="frequenz.sdk.actor.power_distributing.result._BaseResultMixin">_BaseResultMixin</span></code></p>
 
   
-      <p>Result returned when setting the power succeeded for all batteries.</p>
+      <p>Result returned when setting the power was successful for all components.</p>
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/actor/power_distributing/result.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-45">45</a></span>
-<span class="normal"><a href="#__codelineno-0-46">46</a></span>
-<span class="normal"><a href="#__codelineno-0-47">47</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45"></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46"></a><span class="k">class</span> <span class="nc">Success</span><span class="p">(</span><span class="n">_BaseSuccessMixin</span><span class="p">,</span> <span class="n">_BaseResultMixin</span><span class="p">):</span>  <span class="c1"># Order matters here. See above.</span>
-</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Result returned when setting the power succeeded for all batteries.&quot;&quot;&quot;</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-46">46</a></span>
+<span class="normal"><a href="#__codelineno-0-47">47</a></span>
+<span class="normal"><a href="#__codelineno-0-48">48</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46"></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
+</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47"></a><span class="k">class</span> <span class="nc">Success</span><span class="p">(</span><span class="n">_BaseSuccessMixin</span><span class="p">,</span> <span class="n">_BaseResultMixin</span><span class="p">):</span>  <span class="c1"># Order matters here. See above.</span>
+</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Result returned when setting the power was successful for all components.&quot;&quot;&quot;</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
 

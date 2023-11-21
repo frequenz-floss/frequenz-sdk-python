@@ -985,8 +985,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.actor.power_distributing.request.Request.batteries" class="md-nav__link">
-    batteries
+  <a href="#frequenz.sdk.actor.power_distributing.request.Request.component_ids" class="md-nav__link">
+    component_ids
   </a>
   
 </li>
@@ -1566,8 +1566,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.actor.power_distributing.request.Request.batteries" class="md-nav__link">
-    batteries
+  <a href="#frequenz.sdk.actor.power_distributing.request.Request.component_ids" class="md-nav__link">
+    component_ids
   </a>
   
 </li>
@@ -1703,8 +1703,8 @@
 </span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17"></a>    <span class="n">power</span><span class="p">:</span> <span class="n">Power</span>
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The requested power.&quot;&quot;&quot;</span>
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19"></a>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20"></a>    <span class="n">batteries</span><span class="p">:</span> <span class="n">abc</span><span class="o">.</span><span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The component ids of the batteries to be used for this request.&quot;&quot;&quot;</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20"></a>    <span class="n">component_ids</span><span class="p">:</span> <span class="n">abc</span><span class="o">.</span><span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The component ids of the components to be used for this request.&quot;&quot;&quot;</span>
 </span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22"></a>
 </span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23"></a>    <span class="n">request_timeout</span><span class="p">:</span> <span class="n">timedelta</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span>
 </span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The maximum amount of time to wait for the request to be fulfilled.&quot;&quot;&quot;</span>
@@ -1715,7 +1715,7 @@
 </span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29"></a><span class="sd">    If `True`, the power will be adjusted (lowered) to match the bounds, so</span>
 </span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30"></a><span class="sd">    only the reduced power will be set.</span>
 </span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31"></a>
-</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="sd">    If `False` and the power is outside the batteries&#39; bounds, the request will</span>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="sd">    If `False` and the power is outside the available bounds, the request will</span>
 </span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33"></a><span class="sd">    fail and be replied to with an `OutOfBound` result.</span>
 </span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span></code></pre></div></td></tr></table></div>
@@ -1754,7 +1754,7 @@
       <p>Whether to adjust the power to match the bounds.</p>
 <p>If <code>True</code>, the power will be adjusted (lowered) to match the bounds, so
 only the reduced power will be set.</p>
-<p>If <code>False</code> and the power is outside the batteries' bounds, the request will
+<p>If <code>False</code> and the power is outside the available bounds, the request will
 fail and be replied to with an <code>OutOfBound</code> result.</p>
   </div>
 
@@ -1765,21 +1765,21 @@ fail and be replied to with an <code>OutOfBound</code> result.</p>
 
 
 
-<h6 id="frequenz.sdk.actor.power_distributing.request.Request.batteries" class="doc doc-heading">
-          <span class="doc doc-object-name doc-attribute-name">batteries</span>
+<h6 id="frequenz.sdk.actor.power_distributing.request.Request.component_ids" class="doc doc-heading">
+          <span class="doc doc-object-name doc-attribute-name">component_ids</span>
 
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
-<a href="#frequenz.sdk.actor.power_distributing.request.Request.batteries" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">batteries</span><span class="p">:</span> <span class="n">abc</span><span class="o">.</span><span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+<a href="#frequenz.sdk.actor.power_distributing.request.Request.component_ids" class="headerlink" title="Permanent link">¤</a></h6>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">component_ids</span><span class="p">:</span> <span class="n">abc</span><span class="o">.</span><span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
 </span></code></pre></div>
 
   <div class="doc doc-contents ">
   
-      <p>The component ids of the batteries to be used for this request.</p>
+      <p>The component ids of the components to be used for this request.</p>
   </div>
 
 </div>
