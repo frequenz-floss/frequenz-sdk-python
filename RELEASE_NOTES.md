@@ -18,6 +18,8 @@
     + `Result.failed_components`
 
 
+- The `Fuse` class has been moved to the `frequenz.sdk.timeseries` module.
+
 ## New Features
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->

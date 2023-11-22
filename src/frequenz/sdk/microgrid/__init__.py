@@ -124,7 +124,7 @@ to limit the charge power of individual EV Chargers.
 
 from ..actor import ResamplerConfig
 from ..timeseries.grid import initialize as initialize_grid
-from . import _data_pipeline, client, component, connection_manager, fuse, metadata
+from . import _data_pipeline, client, component, connection_manager, metadata
 from ._data_pipeline import (
     battery_pool,
     ev_charger_pool,
@@ -157,7 +157,6 @@ __all__ = [
     "component",
     "battery_pool",
     "ev_charger_pool",
-    "fuse",
     "grid",
     "frequency",
     "logical_meter",

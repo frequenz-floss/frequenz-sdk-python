@@ -13,7 +13,7 @@ from dataclasses import dataclass
 
 from ..microgrid.component import Component
 from ..microgrid.component._component import ComponentCategory
-from ..microgrid.fuse import Fuse
+from . import Fuse
 
 _logger = logging.getLogger(__name__)
 

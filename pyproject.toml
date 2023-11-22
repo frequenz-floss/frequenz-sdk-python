@@ -166,6 +166,9 @@ max-attributes = 12
 testpaths = ["tests", "src"]
 asyncio_mode = "auto"
 required_plugins = ["pytest-asyncio", "pytest-mock"]
+markers = [
+  "integration: integration tests (deselect with '-m \"not integration\"')",
+]
 
 [tool.mypy]
 explicit_package_bases = true

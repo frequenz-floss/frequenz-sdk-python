@@ -21,8 +21,7 @@ from frequenz.sdk.microgrid.component import (
     GridMetadata,
     InverterType,
 )
-from frequenz.sdk.microgrid.fuse import Fuse
-from frequenz.sdk.timeseries import Current
+from frequenz.sdk.timeseries import Current, Fuse
 
 from .mock_api import MockGrpcServer, MockMicrogridServicer
 
