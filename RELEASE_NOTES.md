@@ -46,6 +46,10 @@
 
 - The `ComponentGraph.components()` parameters `component_id` and `component_category` were renamed to `component_ids` and `component_categories`, respectively.
 
+- The `GridFrequency.component` propery was renamed to `GridFrequency.source`
+
+- The `microgrid.frequency()` method no longer supports passing the `component` parameter. Instead the best component is automatically selected.
+
 ## New Features
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->

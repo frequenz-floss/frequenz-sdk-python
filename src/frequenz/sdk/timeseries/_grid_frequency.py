@@ -49,32 +49,32 @@ class GridFrequency:
         self,
         data_sourcing_request_sender: Sender[ComponentMetricRequest],
         channel_registry: ChannelRegistry,
-        component: Component,
+        source: Component | None = None,
     ):
         """Initialize the grid frequency formula generator.
 
         Args:
             data_sourcing_request_sender: The sender to use for requests.
             channel_registry: The channel registry to use for the grid frequency.
-            component: The component to use for the grid frequency receiver. If not
-                provided, the first component that is either a meter, inverter or EV
-                charger will be used.
+            source: The source component to use to receive the grid frequency.
         """
         self._request_sender = data_sourcing_request_sender
         self._channel_registry = channel_registry
-        self._component = component
-        self._component_metric_request = create_request(component.component_id)
+        self._source_component = source or GridFrequency.find_frequency_source()
+        self._component_metric_request = create_request(
+            self._source_component.component_id
+        )
 
         self._task: None | asyncio.Task[None] = None
 
     @property
-    def component(self) -> Component:
-        """The component that is used for grid frequency.
+    def source(self) -> Component:
+        """The component that is used to fetch the grid frequency.
 
         Returns:
             The component that is used for grid frequency.
         """
-        return self._component
+        return self._source_component
 
     def new_receiver(self) -> Receiver[Sample[Frequency]]:
         """Create a receiver for grid frequency.
@@ -89,22 +89,24 @@ class GridFrequency:
         if not self._task:
             self._task = asyncio.create_task(self._send_request())
         else:
-            _logger.info("Grid frequency request already sent: %s", self._component)
+            _logger.info(
+                "Grid frequency request already sent: %s", self._source_component
+            )
 
         return receiver
 
     async def _send_request(self) -> None:
         """Send the request for grid frequency."""
-        _logger.info("Sending request for grid frequency: %s", self._component)
+        _logger.info("Sending request for grid frequency: %s", self._source_component)
         await self._request_sender.send(self._component_metric_request)
-        _logger.info("Sent request for grid frequency: %s", self._component)
+        _logger.info("Sent request for grid frequency: %s", self._source_component)
 
     @staticmethod
-    def find_frequency_component() -> Component:
-        """Find the component that will be used for grid frequency.
+    def find_frequency_source() -> Component:
+        """Find the source component that will be used for grid frequency.
 
-        Uses the first meter it can find to gather the frequency. If no meter is
-        available, it will use the first inverter, then EV charger.
+        Will use the first meter it can find to gather the frequency.
+        If no meter is available, the first inverter will be used and finally the first EV charger.
 
         Returns:
             The component that will be used for grid frequency.
