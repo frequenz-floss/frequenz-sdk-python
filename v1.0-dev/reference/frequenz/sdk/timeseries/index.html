@@ -996,8 +996,6 @@
       
         
       
-        
-      
     
     
     <li class="md-nav__item md-nav__item--nested">
@@ -1107,26 +1105,6 @@
   
   <span class="md-ellipsis">
     connection_manager
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../microgrid/fuse/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    fuse
   </span>
   
 
@@ -2175,6 +2153,39 @@
           <li class="md-nav__item">
   <a href="#frequenz.sdk.timeseries.Frequency.zero" class="md-nav__link">
     zero()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries.Fuse" class="md-nav__link">
+    Fuse
+  </a>
+  
+    <nav class="md-nav" aria-label="Fuse">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries.Fuse-attributes" class="md-nav__link">
+    Attributes
+  </a>
+  
+    <nav class="md-nav" aria-label="Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.timeseries.Fuse.max_current" class="md-nav__link">
+    max_current
   </a>
   
 </li>
@@ -12586,6 +12597,87 @@ symbol.</p>
   </div>
 
 </div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h4 id="frequenz.sdk.timeseries.Fuse" class="doc doc-heading">
+          <span class="doc doc-object-name doc-class-name">frequenz.sdk.timeseries.Fuse</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries.Fuse" class="headerlink" title="Permanent link">¤</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>Fuse data class.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>frequenz/sdk/timeseries/_fuse.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-15">15</a></span>
+<span class="normal"><a href="#__codelineno-0-16">16</a></span>
+<span class="normal"><a href="#__codelineno-0-17">17</a></span>
+<span class="normal"><a href="#__codelineno-0-18">18</a></span>
+<span class="normal"><a href="#__codelineno-0-19">19</a></span>
+<span class="normal"><a href="#__codelineno-0-20">20</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16"></a><span class="k">class</span> <span class="nc">Fuse</span><span class="p">:</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Fuse data class.&quot;&quot;&quot;</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18"></a>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19"></a>    <span class="n">max_current</span><span class="p">:</span> <span class="n">Current</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Rated current of the fuse.&quot;&quot;&quot;</span>
+</span></code></pre></div></td></tr></table></div>
+            </details>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+<h5 id="frequenz.sdk.timeseries.Fuse-attributes">Attributes<a href="#frequenz.sdk.timeseries.Fuse-attributes" class="headerlink" title="Permanent link">¤</a></h5>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+
+<h6 id="frequenz.sdk.timeseries.Fuse.max_current" class="doc doc-heading">
+          <span class="doc doc-object-name doc-attribute-name">max_current</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries.Fuse.max_current" class="headerlink" title="Permanent link">¤</a></h6>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">max_current</span><span class="p">:</span> <span class="n">Current</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Rated current of the fuse.</p>
+  </div>
+
+</div>
+
+
 
 
 
