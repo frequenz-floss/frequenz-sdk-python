@@ -45,19 +45,19 @@ class ComponentGraph(ABC):
     @abstractmethod
     def components(
         self,
-        component_id: set[int] | None = None,
-        component_category: set[ComponentCategory] | None = None,
+        component_ids: set[int] | None = None,
+        component_categories: set[ComponentCategory] | None = None,
     ) -> set[Component]:
         """Fetch the components of the microgrid.
 
         Args:
-            component_id: filter out any components not matching one of the provided IDs
-            component_category: filter out any components not matching one of the
+            component_ids: filter out any components not matching one of the provided IDs
+            component_categories: filter out any components not matching one of the
                 provided types
 
         Returns:
             Set of the components currently connected to the microgrid, filtered by
-                the provided `component_id` and `component_category` values.
+                the provided `component_ids` and `component_categories` values.
         """
 
     @abstractmethod
@@ -331,31 +331,31 @@ class _MicrogridComponentGraph(ComponentGraph):
 
     def components(
         self,
-        component_id: set[int] | None = None,
-        component_category: set[ComponentCategory] | None = None,
+        component_ids: set[int] | None = None,
+        component_categories: set[ComponentCategory] | None = None,
     ) -> set[Component]:
         """Fetch the components of the microgrid.
 
         Args:
-            component_id: filter out any components not matching one of the provided IDs
-            component_category: filter out any components not matching one of the
+            component_ids: filter out any components not matching one of the provided IDs
+            component_categories: filter out any components not matching one of the
                 provided types
 
         Returns:
             Set of the components currently connected to the microgrid, filtered by
-                the provided `component_id` and `component_category` values.
+                the provided `component_ids` and `component_categories` values.
         """
-        if component_id is None:
+        if component_ids is None:
             # If any node has not node[1], then it will not pass validations step.
             selection: Iterable[Component] = map(
                 lambda node: Component(**(node[1])), self._graph.nodes(data=True)
             )
         else:
-            valid_ids = filter(self._graph.has_node, component_id)
+            valid_ids = filter(self._graph.has_node, component_ids)
             selection = map(lambda idx: Component(**self._graph.nodes[idx]), valid_ids)
 
-        if component_category is not None:
-            types: set[ComponentCategory] = component_category
+        if component_categories is not None:
+            types: set[ComponentCategory] = component_categories
             selection = filter(lambda c: c.category in types, selection)
 
         return set(selection)
@@ -832,7 +832,7 @@ class _MicrogridComponentGraph(ComponentGraph):
                 it has no successors in the graph (i.e. it is not connected to
                 anything)
         """
-        grid = list(self.components(component_category={ComponentCategory.GRID}))
+        grid = list(self.components(component_categories={ComponentCategory.GRID}))
 
         if len(grid) == 0:
             # it's OK to not have a grid endpoint as long as other properties
@@ -865,7 +865,7 @@ class _MicrogridComponentGraph(ComponentGraph):
                 or zero successors
         """
         intermediary_components = list(
-            self.components(component_category={ComponentCategory.INVERTER})
+            self.components(component_categories={ComponentCategory.INVERTER})
         )
 
         missing_predecessors = list(
@@ -893,7 +893,7 @@ class _MicrogridComponentGraph(ComponentGraph):
         """
         leaf_components = list(
             self.components(
-                component_category={
+                component_categories={
                     ComponentCategory.BATTERY,
                     ComponentCategory.EV_CHARGER,
                 }
