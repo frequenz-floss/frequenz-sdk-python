@@ -9,6 +9,7 @@ from datetime import timedelta
 
 import async_solipsism
 import pytest
+import time_machine
 from pytest_mock import MockerFixture
 
 from frequenz.sdk.microgrid._data_pipeline import _DataPipeline
@@ -27,7 +28,10 @@ def event_loop() -> Iterator[async_solipsism.EventLoop]:
     loop.close()
 
 
-async def test_actors_started(mocker: MockerFixture) -> None:
+# loop time is advanced but not the system time
+async def test_actors_started(
+    fake_time: time_machine.Coordinates, mocker: MockerFixture
+) -> None:
     """Test that the datasourcing, resampling and power distributing actors are started."""
     datapipeline = _DataPipeline(
         resampler_config=ResamplerConfig(resampling_period=timedelta(seconds=1))
@@ -44,6 +48,7 @@ async def test_actors_started(mocker: MockerFixture) -> None:
     assert datapipeline._data_sourcing_actor is not None
     assert datapipeline._data_sourcing_actor.actor is not None
     await asyncio.sleep(1)
+    fake_time.shift(timedelta(seconds=1))
     assert datapipeline._data_sourcing_actor.actor.is_running
 
     assert datapipeline._resampling_actor is not None
