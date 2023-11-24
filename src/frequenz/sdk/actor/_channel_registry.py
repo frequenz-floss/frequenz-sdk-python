@@ -47,9 +47,7 @@ class ChannelRegistry:
             self._channels[key] = Broadcast(f"{self._name}-{key}")
         # This attribute is protected in the current version of the channels library,
         # but that will change in the future.
-        self._channels[  # pylint: disable=protected-access
-            key
-        ]._resend_latest = resend_latest
+        self._channels[key].resend_latest = resend_latest
 
     def new_sender(self, key: str) -> Sender[typing.Any]:
         """Get a sender to a dynamically created channel with the given key.

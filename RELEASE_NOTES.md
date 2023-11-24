@@ -8,6 +8,8 @@
 
 - The `BatteryPool.power_status` method now streams objects of type `BatteryPoolReport`, replacing the previous `Report` objects.
 
+- `Channels` has been upgraded to version 1.0.0b2, for information on how to upgrade please read [Channels release notes](https://github.com/frequenz-floss/frequenz-channels-python/releases/tag/v1.0.0-beta.2).
+
 - In `BatteryPoolReport.distribution_result`,
   * the following fields have been renamed:
     + `Result.succeeded_batteries` → `Result.succeeded_components`
