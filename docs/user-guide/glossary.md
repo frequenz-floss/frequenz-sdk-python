@@ -166,7 +166,7 @@ microgrid are connected with each other.  Some of the ways in which the SDK uses
 the component graph are:
 
   - figure out how to calculate high level metrics like
-[`grid_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.grid_power],
+[`grid_power`][frequenz.sdk.timeseries.grid.Grid.power],
 [`consumer_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.consumer_power],
 etc. for a microgrid, using the available components.
   - identify the available {{glossary("battery", "batteries")}} or

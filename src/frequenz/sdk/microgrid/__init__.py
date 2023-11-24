@@ -59,7 +59,7 @@ junction --- ev
 
 This refers to a microgrid's connection to the external Grid.  The power flowing through
 this connection can be streamed through
-[`grid_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.grid_power].
+[`grid_power`][frequenz.sdk.timeseries.grid.Grid.power].
 
 In locations without a grid connection, this method remains accessible, and streams zero
 values.
@@ -123,7 +123,6 @@ to limit the charge power of individual EV Chargers.
 """  # noqa: D205, D400
 
 from ..actor import ResamplerConfig
-from ..timeseries.grid import initialize as initialize_grid
 from . import _data_pipeline, client, component, connection_manager, metadata
 from ._data_pipeline import (
     battery_pool,
@@ -143,11 +142,6 @@ async def initialize(host: str, port: int, resampler_config: ResamplerConfig) ->
         resampler_config: Configuration for the resampling actor.
     """
     await connection_manager.initialize(host, port)
-
-    api_client = connection_manager.get().api_client
-    components = await api_client.components()
-    initialize_grid(components)
-
     await _data_pipeline.initialize(resampler_config)
 
 

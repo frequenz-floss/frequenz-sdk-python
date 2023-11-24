@@ -87,7 +87,7 @@ async def run() -> None:
     ...
 
     # Define your application logic here
-    grid_meter = microgrid.logical_meter().grid_power.new_receiver()
+    grid_meter = microgrid.grid().power.new_receiver()
 
     async for power in grid_meter:
         print(power.value)
@@ -117,7 +117,7 @@ async def run() -> None:
     )
 
     # Define your application logic here
-    grid_meter = microgrid.logical_meter().grid_power.new_receiver()
+    grid_meter = microgrid.grid().power.new_receiver()
 
     async for power in grid_meter:
         print(power.value)

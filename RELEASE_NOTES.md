@@ -20,6 +20,28 @@
 
 - The `Fuse` class has been moved to the `frequenz.sdk.timeseries` module.
 
+- `microgrid.grid()`
+  - A `Grid` object is always instantiated now, even if the microgrid is not connected to the grid (islanded microgrids).
+  - The rated current of the grid fuse is set to `Current.zero()` in case of islanded microgrids.
+  - The grid fuse is set to `None` when the grid connection component metadata lacks information about the fuse.
+  - Grid power and current metrics were moved from `microgrid.logical_meter()` to `microgrid.grid()`.
+
+    Previously,
+
+    ```python
+    logical_meter = microgrid.logical_meter()
+    grid_power_recv = logical_meter.grid_power.new_receiver()
+    grid_current_recv = logical_meter.grid_current.new_receiver()
+    ```
+
+    Now,
+
+    ```python
+    grid = microgrid.grid()
+    grid_power_recv = grid.power.new_receiver()
+    grid_current_recv = grid.current.new_receiver()
+    ```
+
 ## New Features
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->

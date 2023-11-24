@@ -231,7 +231,7 @@ class FormulaEngine(
     resampled data streams.
 
     They are used in the SDK to calculate and stream metrics like
-    [`grid_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.grid_power],
+    [`grid_power`][frequenz.sdk.timeseries.grid.Grid.power],
     [`consumer_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.consumer_power],
     etc., which are building blocks of the
     [Frequenz SDK Microgrid Model][frequenz.sdk.microgrid--frequenz-sdk-microgrid-model].
@@ -267,7 +267,7 @@ class FormulaEngine(
     [`battery_pool().power`][frequenz.sdk.timeseries.battery_pool.BatteryPool.power] and
     [`ev_charger_pool().power`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool]
     from the
-    [`logical_meter().grid_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.grid_power],
+    [`grid().power`][frequenz.sdk.timeseries.grid.Grid.power],
     we can build a `FormulaEngine` that provides a stream of this calculated metric as
     follows:
 
@@ -277,11 +277,12 @@ class FormulaEngine(
     logical_meter = microgrid.logical_meter()
     battery_pool = microgrid.battery_pool()
     ev_charger_pool = microgrid.ev_charger_pool()
+    grid = microgrid.grid()
 
     # apply operations on formula engines to create a formula engine that would
     # apply these operations on the corresponding data streams.
     net_power = (
-        logical_meter.grid_power - (battery_pool.power + ev_charger_pool.power)
+        grid.power - (battery_pool.power + ev_charger_pool.power)
     ).build("net_power")
 
     async for power in net_power.new_receiver():
@@ -442,7 +443,7 @@ class FormulaEngine3Phase(
     [`FormulaEngine`][frequenz.sdk.timeseries.formula_engine.FormulaEngine], except that
     they stream [3-phase samples][frequenz.sdk.timeseries.Sample3Phase].  All the
     current formulas (like
-    [`LogicalMeter.grid_current`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.grid_current],
+    [`Grid.current`][frequenz.sdk.timeseries.grid.Grid.current],
     [`EVChargerPool.current`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.current],
     etc.) are implemented as 3-phase formulas.
 
@@ -474,9 +475,10 @@ class FormulaEngine3Phase(
 
     logical_meter = microgrid.logical_meter()
     ev_charger_pool = microgrid.ev_charger_pool()
+    grid = microgrid.grid()
 
     # Calculate grid consumption current that's not used by the EV chargers
-    other_current = (logical_meter.grid_current - ev_charger_pool.current).build("other_current")
+    other_current = (grid.current - ev_charger_pool.current).build("other_current")
 
     async for sample in other_current.new_receiver():
         print(f"Other current: {sample}")

@@ -25,7 +25,7 @@ class TestFormulaComposition:
         mocker: MockerFixture,
     ) -> None:
         """Test the composition of formulas."""
-        mockgrid = MockMicrogrid(grid_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False, num_namespaces=2)
         mockgrid.add_consumer_meters()
         mockgrid.add_batteries(3)
         mockgrid.add_solar_inverters(2)
@@ -33,13 +33,14 @@ class TestFormulaComposition:
 
         logical_meter = microgrid.logical_meter()
         battery_pool = microgrid.battery_pool()
+        grid = microgrid.grid()
         grid_meter_recv = get_resampled_stream(
-            logical_meter._namespace,  # pylint: disable=protected-access
+            grid._formula_pool._namespace,  # pylint: disable=protected-access
             mockgrid.meter_ids[0],
             ComponentMetricId.ACTIVE_POWER,
             Power.from_watts,
         )
-        grid_power_recv = logical_meter.grid_power.new_receiver()
+        grid_power_recv = grid.power.new_receiver()
         battery_power_recv = battery_pool.power.new_receiver()
         pv_power_recv = logical_meter.pv_power.new_receiver()
 
@@ -96,6 +97,7 @@ class TestFormulaComposition:
         await engine._stop()  # pylint: disable=protected-access
         await battery_pool._battery_pool.stop()  # pylint: disable=protected-access
         await logical_meter.stop()
+        await grid.stop()
 
     async def test_formula_composition_missing_pv(self, mocker: MockerFixture) -> None:
         """Test the composition of formulas with missing PV power data."""
@@ -177,13 +179,10 @@ class TestFormulaComposition:
         await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
-        engine_min = logical_meter.grid_power.min(logical_meter.chp_power).build(
-            "grid_power_min"
-        )
+        grid = microgrid.grid()
+        engine_min = grid.power.min(logical_meter.chp_power).build("grid_power_min")
         engine_min_rx = engine_min.new_receiver()
-        engine_max = logical_meter.grid_power.max(logical_meter.chp_power).build(
-            "grid_power_max"
-        )
+        engine_max = grid.power.max(logical_meter.chp_power).build("grid_power_max")
         engine_max_rx = engine_max.new_receiver()
 
         await mockgrid.mock_resampler.send_meter_power([100.0, 200.0])
@@ -221,6 +220,7 @@ class TestFormulaComposition:
         await engine_min._stop()  # pylint: disable=protected-access
         await mockgrid.cleanup()
         await logical_meter.stop()
+        await grid.stop()
 
     async def test_formula_composition_min_max_const(
         self, mocker: MockerFixture
@@ -230,9 +230,10 @@ class TestFormulaComposition:
         await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
-        engine_min = logical_meter.grid_power.min(Power.zero()).build("grid_power_min")
+        grid = microgrid.grid()
+        engine_min = grid.power.min(Power.zero()).build("grid_power_min")
         engine_min_rx = engine_min.new_receiver()
-        engine_max = logical_meter.grid_power.max(Power.zero()).build("grid_power_max")
+        engine_max = grid.power.max(Power.zero()).build("grid_power_max")
         engine_max_rx = engine_max.new_receiver()
 
         await mockgrid.mock_resampler.send_meter_power([100.0])
@@ -264,6 +265,7 @@ class TestFormulaComposition:
         await engine_min._stop()  # pylint: disable=protected-access
         await mockgrid.cleanup()
         await logical_meter.stop()
+        await grid.stop()
 
     async def test_formula_composition_constant(self, mocker: MockerFixture) -> None:
         """Test the composition of formulas with constant values."""
@@ -271,14 +273,13 @@ class TestFormulaComposition:
         await mockgrid.start(mocker)
 
         logical_meter = microgrid.logical_meter()
-        engine_add = (logical_meter.grid_power + Power.from_watts(50)).build(
-            "grid_power_addition"
-        )
-        engine_sub = (logical_meter.grid_power - Power.from_watts(100)).build(
+        grid = microgrid.grid()
+        engine_add = (grid.power + Power.from_watts(50)).build("grid_power_addition")
+        engine_sub = (grid.power - Power.from_watts(100)).build(
             "grid_power_subtraction"
         )
-        engine_mul = (logical_meter.grid_power * 2.0).build("grid_power_multiplication")
-        engine_div = (logical_meter.grid_power / 2.0).build("grid_power_division")
+        engine_mul = (grid.power * 2.0).build("grid_power_multiplication")
+        engine_div = (grid.power / 2.0).build("grid_power_division")
 
         await mockgrid.mock_resampler.send_meter_power([100.0])
 
@@ -316,14 +317,14 @@ class TestFormulaComposition:
 
         # Test multiplication with a Quantity
         with pytest.raises(RuntimeError):
-            engine_assert = (
-                logical_meter.grid_power * Power.from_watts(2.0)  # type: ignore
-            ).build("grid_power_multiplication")
+            engine_assert = (grid.power * Power.from_watts(2.0)).build(  # type: ignore
+                "grid_power_multiplication"
+            )
             await engine_assert.new_receiver().receive()
 
         # Test addition with a float
         with pytest.raises(RuntimeError):
-            engine_assert = (logical_meter.grid_power + 2.0).build(  # type: ignore
+            engine_assert = (grid.power + 2.0).build(  # type: ignore
                 "grid_power_multiplication"
             )
             await engine_assert.new_receiver().receive()
@@ -334,6 +335,7 @@ class TestFormulaComposition:
         await engine_div._stop()  # pylint: disable=protected-access
         await mockgrid.cleanup()
         await logical_meter.stop()
+        await grid.stop()
 
     async def test_3_phase_formulas(self, mocker: MockerFixture) -> None:
         """Test 3 phase formulas current formulas and their composition."""
@@ -343,11 +345,12 @@ class TestFormulaComposition:
         await mockgrid.start(mocker)
         logical_meter = microgrid.logical_meter()
         ev_pool = microgrid.ev_charger_pool()
+        grid = microgrid.grid()
 
-        grid_current_recv = logical_meter.grid_current.new_receiver()
+        grid_current_recv = grid.current.new_receiver()
         ev_current_recv = ev_pool.current.new_receiver()
 
-        engine = (logical_meter.grid_current - ev_pool.current).build("net_current")
+        engine = (grid.current - ev_pool.current).build("net_current")
         net_current_recv = engine.new_receiver()
 
         count = 0
@@ -402,5 +405,6 @@ class TestFormulaComposition:
         await engine._stop()  # pylint: disable=protected-access
         await logical_meter.stop()
         await ev_pool.stop()
+        await grid.stop()
 
         assert count == 10

@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 
 from frequenz.channels import Sender
 
-from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid.component import ComponentMetricId
 from .._quantities import Current, Power, Quantity
 from ._formula_generators._formula_generator import (
@@ -20,6 +19,7 @@ from ._resampled_formula_builder import ResampledFormulaBuilder
 
 if TYPE_CHECKING:
     # Break circular import
+    from ...actor import ChannelRegistry, ComponentMetricRequest
     from ..formula_engine import FormulaEngine, FormulaEngine3Phase
 
 

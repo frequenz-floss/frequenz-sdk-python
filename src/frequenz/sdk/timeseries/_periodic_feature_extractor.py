@@ -82,7 +82,7 @@ class PeriodicFeatureExtractor:
 
         async with MovingWindow(
             size=timedelta(days=35),
-            resampled_data_recv=microgrid.logical_meter().grid_power.new_receiver(),
+            resampled_data_recv=microgrid.grid().power.new_receiver(),
             input_sampling_period=timedelta(seconds=1),
         ) as moving_window:
             feature_extractor = PeriodicFeatureExtractor(
