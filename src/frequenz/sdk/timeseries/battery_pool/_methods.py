@@ -183,7 +183,7 @@ class SendOnUpdate(MetricAggregator[T]):
         _logger.error(
             "Removing component %d from the %s formula.",
             component_id,
-            self._result_channel.name,
+            self._result_channel._name,  # pylint: disable=protected-access
         )
         fetchers.pop(component_id)
 
