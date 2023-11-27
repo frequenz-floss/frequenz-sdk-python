@@ -12,6 +12,7 @@ from frequenz.channels import Broadcast, Sender
 from frequenz.channels.util import Timer, select, selected_from
 
 from ..._internal._asyncio import cancel_and_await
+from ..._internal._channels import LatestValueCache
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory
 
@@ -93,16 +94,16 @@ class BoundsSetter:
             _logger.error(err)
             raise RuntimeError(err)
 
-        meter_data = (
+        meter_data = LatestValueCache(
             await api_client.meter_data(next(iter(meters)).component_id)
-        ).into_peekable()
+        )
         latest_bound: dict[int, ComponentCurrentLimit] = {}
 
         bound_chan = self._bounds_rx
         timer = Timer.timeout(timedelta(self._repeat_interval.total_seconds()))
 
         async for selected in select(bound_chan, timer):
-            meter = meter_data.peek()
+            meter = meter_data.latest_value
             if meter is None:
                 raise ValueError("Meter channel closed.")
 
