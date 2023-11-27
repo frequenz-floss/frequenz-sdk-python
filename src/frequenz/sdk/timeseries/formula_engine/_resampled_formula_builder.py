@@ -10,7 +10,7 @@ from typing import Generic
 from frequenz.channels import Receiver, Sender
 
 from ...actor import ChannelRegistry, ComponentMetricRequest
-from ...microgrid.component import ComponentMetricId
+from ...microgrid.component import ComponentId, ComponentMetricId
 from .. import Sample
 from .._quantities import QuantityT
 from ._formula_engine import FormulaBuilder, FormulaEngine
@@ -52,7 +52,7 @@ class ResampledFormulaBuilder(Generic[QuantityT], FormulaBuilder[QuantityT]):
         super().__init__(formula_name, create_method)  # type: ignore[arg-type]
 
     def _get_resampled_receiver(
-        self, component_id: int, metric_id: ComponentMetricId
+        self, component_id: ComponentId, metric_id: ComponentMetricId
     ) -> Receiver[Sample[QuantityT]]:
         """Get a receiver with the resampled data for the given component id.
 
@@ -73,7 +73,7 @@ class ResampledFormulaBuilder(Generic[QuantityT], FormulaBuilder[QuantityT]):
             await self._resampler_subscription_sender.send(request)
 
     def push_component_metric(
-        self, component_id: int, *, nones_are_zeros: bool
+        self, component_id: ComponentId, *, nones_are_zeros: bool
     ) -> None:
         """Push a resampled component metric stream to the formula engine.
 

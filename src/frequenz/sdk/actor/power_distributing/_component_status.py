@@ -11,6 +11,8 @@ from dataclasses import dataclass
 
 from frequenz.channels import Receiver, Sender
 
+from ...microgrid.component._component import ComponentId
+
 
 @dataclass
 class ComponentPoolStatus:
@@ -58,7 +60,7 @@ class ComponentStatusEnum(enum.Enum):
 class ComponentStatus:
     """Status of a single component."""
 
-    component_id: int
+    component_id: ComponentId
     """Component ID."""
 
     value: ComponentStatusEnum
@@ -82,7 +84,7 @@ class ComponentStatusTracker(ABC):
     @abstractmethod
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        component_id: int,
+        component_id: ComponentId,
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
         status_sender: Sender[ComponentStatus],

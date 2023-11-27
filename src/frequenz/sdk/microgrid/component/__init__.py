@@ -9,6 +9,7 @@ This package provides classes to operate con microgrid components.
 from ._component import (
     Component,
     ComponentCategory,
+    ComponentId,
     ComponentMetadata,
     ComponentMetricId,
     GridMetadata,
@@ -27,6 +28,7 @@ __all__ = [
     "BatteryData",
     "Component",
     "ComponentData",
+    "ComponentId",
     "ComponentCategory",
     "ComponentMetadata",
     "ComponentMetricId",

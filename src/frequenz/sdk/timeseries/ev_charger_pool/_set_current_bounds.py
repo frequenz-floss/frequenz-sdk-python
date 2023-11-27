@@ -13,7 +13,7 @@ from frequenz.channels.util import Timer, select, selected_from
 
 from ..._internal._asyncio import cancel_and_await
 from ...microgrid import connection_manager
-from ...microgrid.component import ComponentCategory
+from ...microgrid.component import ComponentCategory, ComponentId
 
 _logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ _logger = logging.getLogger(__name__)
 class ComponentCurrentLimit:
     """A current limit, to be sent to the EV Charger."""
 
-    component_id: int
+    component_id: ComponentId
     """The component ID of the EV Charger."""
 
     max_amps: float
@@ -53,7 +53,7 @@ class BoundsSetter:
         self._bounds_rx = self._bounds_chan.new_receiver()
         self._bounds_tx = self._bounds_chan.new_sender()
 
-    async def set(self, component_id: int, max_amps: float) -> None:
+    async def set(self, component_id: ComponentId, max_amps: float) -> None:
         """Send the given current limit to the microgrid for the given component id.
 
         Args:

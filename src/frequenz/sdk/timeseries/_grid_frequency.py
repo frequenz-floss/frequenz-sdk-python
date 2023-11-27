@@ -11,6 +11,8 @@ from typing import TYPE_CHECKING
 
 from frequenz.channels import Receiver, Sender
 
+from frequenz.sdk.microgrid.component import ComponentId
+
 from ..actor import ChannelRegistry
 from ..microgrid import connection_manager
 from ..microgrid.component import Component, ComponentCategory, ComponentMetricId
@@ -24,7 +26,7 @@ if TYPE_CHECKING:
 _logger = logging.getLogger(__name__)
 
 
-def create_request(component_id: int) -> ComponentMetricRequest:
+def create_request(component_id: ComponentId) -> ComponentMetricRequest:
     """Create a request for grid frequency.
 
     Args:

@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import NamedTuple, Sequence
 
 from ...._internal._math import is_close_to_zero
-from ....microgrid.component import BatteryData, InverterData
+from ....microgrid.component import BatteryData, ComponentId, InverterData
 from ..result import PowerBounds
 
 _logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ _logger = logging.getLogger(__name__)
 class AggregatedBatteryData:
     """Aggregated battery data."""
 
-    component_id: int
+    component_id: ComponentId
     """The component ID of the first battery.
 
     This is only used to identify the pair of battery and inverter.

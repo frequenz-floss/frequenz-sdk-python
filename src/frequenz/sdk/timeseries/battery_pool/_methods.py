@@ -17,6 +17,7 @@ from ..._internal._constants import RECEIVER_MAX_SIZE, WAIT_FOR_COMPONENT_DATA_S
 from ...actor.power_distributing._component_managers._battery_manager import (
     _get_battery_inverter_mappings,
 )
+from ...microgrid.component import ComponentId
 from ._component_metric_fetcher import (
     ComponentMetricFetcher,
     LatestBatteryMetricsFetcher,
@@ -178,7 +179,7 @@ class SendOnUpdate(MetricAggregator[T]):
         return fetchers
 
     def _remove_metric_fetcher(
-        self, fetchers: dict[int, ComponentMetricFetcher], component_id: int
+        self, fetchers: dict[int, ComponentMetricFetcher], component_id: ComponentId
     ) -> None:
         _logger.error(
             "Removing component %d from the %s formula.",

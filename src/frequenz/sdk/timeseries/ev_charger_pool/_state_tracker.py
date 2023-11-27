@@ -11,6 +11,8 @@ from enum import Enum
 from frequenz.channels import Receiver
 from frequenz.channels.util import Merge
 
+from frequenz.sdk.microgrid.component import ComponentId
+
 from ... import microgrid
 from ..._internal._asyncio import cancel_and_await
 from ...microgrid.component import (
@@ -95,7 +97,7 @@ class StateTracker:
             component_id: EVChargerState.MISSING for component_id in component_ids
         }
 
-    def get(self, component_id: int) -> EVChargerState:
+    def get(self, component_id: ComponentId) -> EVChargerState:
         """Return the current state of the EV Charger with the given component ID.
 
         Args:

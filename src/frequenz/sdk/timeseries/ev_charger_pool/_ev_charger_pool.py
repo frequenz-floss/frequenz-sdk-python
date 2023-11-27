@@ -17,7 +17,7 @@ from frequenz.channels import Broadcast, ChannelClosedError, Receiver, Sender
 from ..._internal._asyncio import cancel_and_await
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid import connection_manager
-from ...microgrid.component import ComponentCategory, ComponentMetricId
+from ...microgrid.component import ComponentCategory, ComponentId, ComponentMetricId
 from .. import Sample, Sample3Phase
 from .._quantities import Current, Power, Quantity
 from ..formula_engine import FormulaEngine, FormulaEngine3Phase
@@ -41,7 +41,7 @@ class EVChargerPoolError(Exception):
 class EVChargerData:
     """Data for an EV Charger, including the 3-phase current and the component state."""
 
-    component_id: int
+    component_id: ComponentId
     """The component ID of the EV Charger."""
 
     current: Sample3Phase[Current]
@@ -185,7 +185,7 @@ class EVChargerPool:
         assert isinstance(engine, FormulaEngine)
         return engine
 
-    def component_data(self, component_id: int) -> Receiver[EVChargerData]:
+    def component_data(self, component_id: ComponentId) -> Receiver[EVChargerData]:
         """Stream 3-phase current values and state of an EV Charger.
 
         Args:
@@ -213,7 +213,7 @@ class EVChargerPool:
 
         return output_chan.new_receiver()
 
-    async def set_bounds(self, component_id: int, max_current: Current) -> None:
+    async def set_bounds(self, component_id: ComponentId, max_current: Current) -> None:
         """Send given max current bound for the given EV Charger to the microgrid API.
 
         Bounds are used to limit the max current drawn by an EV, although the exact
@@ -253,7 +253,7 @@ class EVChargerPool:
             await cancel_and_await(task)
 
     async def _get_current_streams(
-        self, component_id: int
+        self, component_id: ComponentId
     ) -> tuple[
         Receiver[Sample[Quantity]],
         Receiver[Sample[Quantity]],
@@ -289,7 +289,7 @@ class EVChargerPool:
 
     async def _stream_component_data(
         self,
-        component_id: int,
+        component_id: ComponentId,
         sender: Sender[EVChargerData],
     ) -> None:
         """Stream 3-phase current values and state of an EV Charger.

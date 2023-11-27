@@ -6,7 +6,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from ...microgrid.component._component import ComponentMetricId
+from ...microgrid.component._component import ComponentId, ComponentMetricId
 
 
 @dataclass
@@ -24,7 +24,7 @@ class ComponentMetricRequest:
     possible.
     """
 
-    component_id: int
+    component_id: ComponentId
     """The ID of the requested component."""
 
     metric_id: ComponentMetricId

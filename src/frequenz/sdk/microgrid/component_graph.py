@@ -30,7 +30,7 @@ from dataclasses import asdict
 import networkx as nx
 
 from .client import Connection, MicrogridApiClient
-from .component import Component, ComponentCategory, InverterType
+from .component import Component, ComponentCategory, ComponentId, InverterType
 
 _logger = logging.getLogger(__name__)
 
@@ -80,7 +80,7 @@ class ComponentGraph(ABC):
         """
 
     @abstractmethod
-    def predecessors(self, component_id: int) -> set[Component]:
+    def predecessors(self, component_id: ComponentId) -> set[Component]:
         """Fetch the graph predecessors of the specified component.
 
         Args:
@@ -97,7 +97,7 @@ class ComponentGraph(ABC):
         """
 
     @abstractmethod
-    def successors(self, component_id: int) -> set[Component]:
+    def successors(self, component_id: ComponentId) -> set[Component]:
         """Fetch the graph successors of the specified component.
 
         Args:
@@ -391,7 +391,7 @@ class _MicrogridComponentGraph(ComponentGraph):
 
         return set(map(lambda c: Connection(c[0], c[1]), selection))
 
-    def predecessors(self, component_id: int) -> set[Component]:
+    def predecessors(self, component_id: ComponentId) -> set[Component]:
         """Fetch the graph predecessors of the specified component.
 
         Args:
@@ -417,7 +417,7 @@ class _MicrogridComponentGraph(ComponentGraph):
             map(lambda idx: Component(**self._graph.nodes[idx]), predecessors_ids)
         )
 
-    def successors(self, component_id: int) -> set[Component]:
+    def successors(self, component_id: ComponentId) -> set[Component]:
         """Fetch the graph successors of the specified component.
 
         Args:

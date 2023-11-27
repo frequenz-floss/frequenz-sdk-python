@@ -22,6 +22,7 @@ from ..component import (
     BatteryData,
     Component,
     ComponentCategory,
+    ComponentId,
     EVChargerData,
     InverterData,
     MeterData,
@@ -93,7 +94,7 @@ class MicrogridApiClient(ABC):
     @abstractmethod
     async def meter_data(
         self,
-        component_id: int,
+        component_id: ComponentId,
         maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[MeterData]:
         """Return a channel receiver that provides a `MeterData` stream.
@@ -113,7 +114,7 @@ class MicrogridApiClient(ABC):
     @abstractmethod
     async def battery_data(
         self,
-        component_id: int,
+        component_id: ComponentId,
         maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[BatteryData]:
         """Return a channel receiver that provides a `BatteryData` stream.
@@ -133,7 +134,7 @@ class MicrogridApiClient(ABC):
     @abstractmethod
     async def inverter_data(
         self,
-        component_id: int,
+        component_id: ComponentId,
         maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[InverterData]:
         """Return a channel receiver that provides an `InverterData` stream.
@@ -153,7 +154,7 @@ class MicrogridApiClient(ABC):
     @abstractmethod
     async def ev_charger_data(
         self,
-        component_id: int,
+        component_id: ComponentId,
         maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[EVChargerData]:
         """Return a channel receiver that provides an `EvChargeData` stream.
@@ -171,7 +172,7 @@ class MicrogridApiClient(ABC):
         """
 
     @abstractmethod
-    async def set_power(self, component_id: int, power_w: float) -> None:
+    async def set_power(self, component_id: ComponentId, power_w: float) -> None:
         """Send request to the Microgrid to set power for component.
 
         If power > 0, then component will be charged with this power.
@@ -185,7 +186,9 @@ class MicrogridApiClient(ABC):
         """
 
     @abstractmethod
-    async def set_bounds(self, component_id: int, lower: float, upper: float) -> None:
+    async def set_bounds(
+        self, component_id: ComponentId, lower: float, upper: float
+    ) -> None:
         """Send `SetBoundsParam`s received from a channel to the Microgrid service.
 
         Args:
@@ -367,7 +370,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
 
     async def _component_data_task(
         self,
-        component_id: int,
+        component_id: ComponentId,
         transform: Callable[[microgrid_pb.ComponentData], _GenericComponentData],
         sender: Sender[_GenericComponentData],
     ) -> None:
@@ -421,7 +424,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
 
     def _get_component_data_channel(
         self,
-        component_id: int,
+        component_id: ComponentId,
         transform: Callable[[microgrid_pb.ComponentData], _GenericComponentData],
     ) -> Broadcast[_GenericComponentData]:
         """Return the broadcast channel for a given component_id.
@@ -456,7 +459,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
 
     async def _expect_category(
         self,
-        component_id: int,
+        component_id: ComponentId,
         expected_category: ComponentCategory,
     ) -> None:
         """Check if the given component_id is of the expected type.
@@ -488,7 +491,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
 
     async def meter_data(  # noqa: DOC502 (ValueError is raised indirectly by _expect_category)
         self,
-        component_id: int,
+        component_id: ComponentId,
         maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[MeterData]:
         """Return a channel receiver that provides a `MeterData` stream.
@@ -518,7 +521,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
 
     async def battery_data(  # noqa: DOC502 (ValueError is raised indirectly by _expect_category)
         self,
-        component_id: int,
+        component_id: ComponentId,
         maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[BatteryData]:
         """Return a channel receiver that provides a `BatteryData` stream.
@@ -548,7 +551,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
 
     async def inverter_data(  # noqa: DOC502 (ValueError is raised indirectly by _expect_category)
         self,
-        component_id: int,
+        component_id: ComponentId,
         maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[InverterData]:
         """Return a channel receiver that provides an `InverterData` stream.
@@ -578,7 +581,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
 
     async def ev_charger_data(  # noqa: DOC502 (ValueError is raised indirectly by _expect_category)
         self,
-        component_id: int,
+        component_id: ComponentId,
         maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[EVChargerData]:
         """Return a channel receiver that provides an `EvChargeData` stream.
@@ -606,7 +609,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
             EVChargerData.from_proto,
         ).new_receiver(maxsize=maxsize)
 
-    async def set_power(self, component_id: int, power_w: float) -> None:
+    async def set_power(self, component_id: ComponentId, power_w: float) -> None:
         """Send request to the Microgrid to set power for component.
 
         If power > 0, then component will be charged with this power.
@@ -644,7 +647,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
 
     async def set_bounds(
         self,
-        component_id: int,
+        component_id: ComponentId,
         lower: float,
         upper: float,
     ) -> None:

@@ -7,7 +7,7 @@
 from collections.abc import Mapping
 from datetime import datetime
 
-from ...microgrid.component import ComponentMetricId
+from ...microgrid.component import ComponentId, ComponentMetricId
 
 
 class ComponentMetricsData:
@@ -15,7 +15,7 @@ class ComponentMetricsData:
 
     def __init__(
         self,
-        component_id: int,
+        component_id: ComponentId,
         timestamp: datetime,
         metrics: Mapping[ComponentMetricId, float],
     ) -> None:

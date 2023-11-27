@@ -15,6 +15,8 @@ from typing import Any, Generic, Self, TypeVar
 
 from frequenz.channels import ChannelClosedError, Receiver
 
+from frequenz.sdk.microgrid.component import ComponentId
+
 from ..._internal._asyncio import AsyncConstructible
 from ..._internal._constants import MAX_BATTERY_DATA_AGE_SEC
 from ...actor._data_sourcing.microgrid_api_source import (
@@ -45,7 +47,7 @@ class ComponentMetricFetcher(AsyncConstructible, ABC):
 
     @classmethod
     async def async_new(
-        cls, component_id: int, metrics: Iterable[ComponentMetricId]
+        cls, component_id: ComponentId, metrics: Iterable[ComponentMetricId]
     ) -> Self:
         """Create an instance of this class.
 
@@ -78,7 +80,7 @@ class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
     @classmethod
     async def async_new(
         cls,
-        component_id: int,
+        component_id: ComponentId,
         metrics: Iterable[ComponentMetricId],
     ) -> Self:
         """Create instance of this class.
@@ -173,7 +175,7 @@ class LatestBatteryMetricsFetcher(LatestMetricsFetcher[BatteryData]):
     @classmethod
     async def async_new(  # noqa: DOC502 (ValueError is raised indirectly super.async_new)
         cls,
-        component_id: int,
+        component_id: ComponentId,
         metrics: Iterable[ComponentMetricId],
     ) -> LatestBatteryMetricsFetcher:
         """Create instance of this class.
@@ -224,7 +226,7 @@ class LatestInverterMetricsFetcher(LatestMetricsFetcher[InverterData]):
     @classmethod
     async def async_new(  # noqa: DOC502 (ValueError is raised indirectly by super.async_new)
         cls,
-        component_id: int,
+        component_id: ComponentId,
         metrics: Iterable[ComponentMetricId],
     ) -> LatestInverterMetricsFetcher:
         """Create instance of this class.

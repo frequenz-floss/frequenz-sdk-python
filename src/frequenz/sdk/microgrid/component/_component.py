@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NewType
 
 import frequenz.api.common.components_pb2 as components_pb
 import frequenz.api.microgrid.grid_pb2 as grid_pb
@@ -15,6 +15,9 @@ import frequenz.api.microgrid.inverter_pb2 as inverter_pb
 if TYPE_CHECKING:
     # Break circular import
     from ...timeseries import Fuse
+
+
+ComponentId = NewType("ComponentId", int)
 
 
 class ComponentType(Enum):
@@ -157,7 +160,7 @@ def _component_metadata_from_protobuf(
 class Component:
     """Metadata for a single microgrid component."""
 
-    component_id: int
+    component_id: ComponentId
     """The ID of this component."""
 
     category: ComponentCategory

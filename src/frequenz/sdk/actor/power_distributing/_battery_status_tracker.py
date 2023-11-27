@@ -26,6 +26,7 @@ from ...microgrid.component import (
     BatteryData,
     ComponentCategory,
     ComponentData,
+    ComponentId,
     InverterData,
 )
 from ._component_status import (
@@ -40,7 +41,7 @@ _logger = logging.getLogger(__name__)
 
 @dataclass
 class _ComponentStreamStatus:
-    component_id: int
+    component_id: ComponentId
     """Component id."""
 
     data_recv_timer: Timer
@@ -165,7 +166,7 @@ class BatteryStatusTracker(ComponentStatusTracker):
     @override
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        component_id: int,
+        component_id: ComponentId,
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
         status_sender: Sender[ComponentStatus],

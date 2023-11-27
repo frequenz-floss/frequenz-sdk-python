@@ -12,6 +12,8 @@ import frequenz.api.microgrid.battery_pb2 as battery_pb
 import frequenz.api.microgrid.inverter_pb2 as inverter_pb
 import frequenz.api.microgrid.microgrid_pb2 as microgrid_pb
 
+from frequenz.sdk.microgrid.component import ComponentId
+
 from ._component_states import EVChargerCableState, EVChargerComponentState
 
 
@@ -19,7 +21,7 @@ from ._component_states import EVChargerCableState, EVChargerComponentState
 class ComponentData(ABC):
     """A private base class for strongly typed component data classes."""
 
-    component_id: int
+    component_id: ComponentId
     """The ID identifying this component in the microgrid."""
 
     timestamp: datetime
