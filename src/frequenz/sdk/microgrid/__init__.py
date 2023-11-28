@@ -79,7 +79,7 @@ through [`pv_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.pv_power
 similarly the total CHP production in a site can be streamed through
 [`chp_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.chp_power].  And total
 producer power is available through
-[`producer_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.producer_power].
+[`producer_power`][frequenz.sdk.timeseries.producer.Producer.power].
 
 As is the case with the other methods, if PV Arrays or CHPs are not available in a
 microgrid, the corresponding methods stream zero values.
@@ -130,6 +130,7 @@ from ._data_pipeline import (
     frequency,
     grid,
     logical_meter,
+    producer,
     voltage,
 )
 
@@ -157,5 +158,6 @@ __all__ = [
     "frequency",
     "logical_meter",
     "metadata",
+    "producer",
     "voltage",
 ]

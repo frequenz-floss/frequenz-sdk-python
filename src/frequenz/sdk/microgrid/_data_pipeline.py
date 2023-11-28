@@ -49,6 +49,7 @@ if typing.TYPE_CHECKING:
     from ..timeseries.consumer import Consumer
     from ..timeseries.ev_charger_pool import EVChargerPool
     from ..timeseries.logical_meter import LogicalMeter
+    from ..timeseries.producer import Producer
 
 
 _REQUEST_RECV_BUFFER_SIZE = 500
@@ -120,6 +121,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         self._logical_meter: LogicalMeter | None = None
         self._consumer: Consumer | None = None
+        self._producer: Producer | None = None
         self._grid: Grid | None = None
         self._ev_charger_pools: dict[frozenset[int], EVChargerPool] = {}
         self._battery_pools: dict[frozenset[int], BatteryPoolReferenceStore] = {}
@@ -187,6 +189,23 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 resampler_subscription_sender=self._resampling_request_sender(),
             )
         return self._consumer
+
+    def producer(self) -> Producer:
+        """Return the producer instance.
+
+        If a Producer instance doesn't exist, a new one is created and returned.
+
+        Returns:
+            A Producer instance.
+        """
+        from ..timeseries.producer import Producer
+
+        if self._producer is None:
+            self._producer = Producer(
+                channel_registry=self._channel_registry,
+                resampler_subscription_sender=self._resampling_request_sender(),
+            )
+        return self._producer
 
     def ev_charger_pool(
         self,
@@ -469,6 +488,11 @@ def logical_meter() -> LogicalMeter:
 def consumer() -> Consumer:
     """Return the [`Consumption`][frequenz.sdk.timeseries.consumer.Consumer] measuring point."""
     return _get().consumer()
+
+
+def producer() -> Producer:
+    """Return the [`Production`][frequenz.sdk.timeseries.producer.Producer] measuring point."""
+    return _get().producer()
 
 
 def ev_charger_pool(ev_charger_ids: set[int] | None = None) -> EVChargerPool:
