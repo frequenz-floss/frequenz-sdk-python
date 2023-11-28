@@ -46,6 +46,7 @@ if typing.TYPE_CHECKING:
     from ..timeseries.battery_pool._battery_pool_reference_store import (
         BatteryPoolReferenceStore,
     )
+    from ..timeseries.consumer import Consumer
     from ..timeseries.ev_charger_pool import EVChargerPool
     from ..timeseries.logical_meter import LogicalMeter
 
@@ -118,6 +119,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._power_managing_actor: _power_managing.PowerManagingActor | None = None
 
         self._logical_meter: LogicalMeter | None = None
+        self._consumer: Consumer | None = None
         self._grid: Grid | None = None
         self._ev_charger_pools: dict[frozenset[int], EVChargerPool] = {}
         self._battery_pools: dict[frozenset[int], BatteryPoolReferenceStore] = {}
@@ -168,6 +170,23 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 resampler_subscription_sender=self._resampling_request_sender(),
             )
         return self._logical_meter
+
+    def consumer(self) -> Consumer:
+        """Return the consumer instance.
+
+        If a Consumer instance doesn't exist, a new one is created and returned.
+
+        Returns:
+            A Consumer instance.
+        """
+        from ..timeseries.consumer import Consumer
+
+        if self._consumer is None:
+            self._consumer = Consumer(
+                channel_registry=self._channel_registry,
+                resampler_subscription_sender=self._resampling_request_sender(),
+            )
+        return self._consumer
 
     def ev_charger_pool(
         self,
@@ -445,6 +464,11 @@ def logical_meter() -> LogicalMeter:
         A logical meter instance.
     """
     return _get().logical_meter()
+
+
+def consumer() -> Consumer:
+    """Return the [`Consumption`][frequenz.sdk.timeseries.consumer.Consumer] measuring point."""
+    return _get().consumer()
 
 
 def ev_charger_pool(ev_charger_ids: set[int] | None = None) -> EVChargerPool:

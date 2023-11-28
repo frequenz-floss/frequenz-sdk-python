@@ -68,8 +68,7 @@ values.
 
 This is the main power consumer at the site of a microgrid, and often the
 {{glossary("load")}} the microgrid is built to support.  The power drawn by the consumer
-is available through
-[`consumer_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.consumer_power]
+is available through [`consumer_power`][frequenz.sdk.timeseries.consumer.Consumer.power]
 
 In locations without a consumer, this method streams zero values.
 
@@ -126,6 +125,7 @@ from ..actor import ResamplerConfig
 from . import _data_pipeline, client, component, connection_manager, metadata
 from ._data_pipeline import (
     battery_pool,
+    consumer,
     ev_charger_pool,
     frequency,
     grid,
@@ -150,6 +150,7 @@ __all__ = [
     "initialize",
     "client",
     "component",
+    "consumer",
     "battery_pool",
     "ev_charger_pool",
     "grid",
