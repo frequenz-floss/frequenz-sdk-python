@@ -126,7 +126,7 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
             {
                 battery.component_id
                 for battery in graph.components(
-                    component_category={ComponentCategory.BATTERY}
+                    component_categories={ComponentCategory.BATTERY}
                 )
             }
         )

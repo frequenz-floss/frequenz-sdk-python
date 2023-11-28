@@ -271,7 +271,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         # constraint needs to be relaxed if the actor is extended to support other
         # components.
         if not component_graph.components(
-            component_category={ComponentCategory.BATTERY}
+            component_categories={ComponentCategory.BATTERY}
         ):
             _logger.warning(
                 "No batteries found in the component graph. "
@@ -306,7 +306,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         component_graph = connection_manager.get().component_graph
         if not component_graph.components(
-            component_category={ComponentCategory.BATTERY}
+            component_categories={ComponentCategory.BATTERY}
         ):
             _logger.warning(
                 "No batteries found in the component graph. "

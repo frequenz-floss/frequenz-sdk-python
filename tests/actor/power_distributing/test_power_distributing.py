@@ -114,7 +114,9 @@ class TestPowerDistributingActor:
     ) -> None:
         """Send initial component data, for power distributor to start."""
         graph = microgrid.connection_manager.get().component_graph
-        for battery in graph.components(component_category={ComponentCategory.BATTERY}):
+        for battery in graph.components(
+            component_categories={ComponentCategory.BATTERY}
+        ):
             await mockgrid.mock_client.send(
                 battery_msg(
                     battery.component_id,
@@ -124,7 +126,7 @@ class TestPowerDistributingActor:
                 )
             )
 
-        inverters = graph.components(component_category={ComponentCategory.INVERTER})
+        inverters = graph.components(component_categories={ComponentCategory.INVERTER})
         for inverter in inverters:
             await mockgrid.mock_client.send(
                 inverter_msg(

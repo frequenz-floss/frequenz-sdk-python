@@ -145,7 +145,7 @@ def initialize(
 
     grid_connections = list(
         connection_manager.get().component_graph.components(
-            component_category={ComponentCategory.GRID},
+            component_categories={ComponentCategory.GRID},
         )
     )
 

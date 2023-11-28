@@ -214,8 +214,8 @@ class TestComponentGraph:
         """Test the graph component query with component ID filter."""
         # with component_id filter specified, we get back only components whose ID
         # matches one of the specified values
-        assert len(sample_graph.components(component_id=ids)) == len(expected)
-        assert sample_graph.components(component_id=ids) == expected
+        assert len(sample_graph.components(component_ids=ids)) == len(expected)
+        assert sample_graph.components(component_ids=ids) == expected
 
     @pytest.mark.parametrize(
         "types, expected",
@@ -265,8 +265,8 @@ class TestComponentGraph:
         """Test the graph component query with component category filter."""
         # with component_id filter specified, we get back only components whose ID
         # matches one of the specified values
-        assert len(sample_graph.components(component_category=types)) == len(expected)
-        assert sample_graph.components(component_category=types) == expected
+        assert len(sample_graph.components(component_categories=types)) == len(expected)
+        assert sample_graph.components(component_categories=types) == expected
 
     @pytest.mark.parametrize(
         "ids, types, expected",
@@ -300,10 +300,10 @@ class TestComponentGraph:
         # the component must have one of the specified IDs and be of one of
         # the specified types
         assert len(
-            sample_graph.components(component_id=ids, component_category=types)
+            sample_graph.components(component_ids=ids, component_categories=types)
         ) == len(expected)
         assert (
-            set(sample_graph.components(component_id=ids, component_category=types))
+            set(sample_graph.components(component_ids=ids, component_categories=types))
             == expected
         )
 

@@ -172,7 +172,7 @@ class MockMicrogridClient:
         batteries = [
             c.component_id
             for c in self.component_graph.components(
-                component_category={ComponentCategory.BATTERY}
+                component_categories={ComponentCategory.BATTERY}
             )
         ]
 
@@ -190,7 +190,7 @@ class MockMicrogridClient:
         meters = [
             c.component_id
             for c in self.component_graph.components(
-                component_category={ComponentCategory.METER}
+                component_categories={ComponentCategory.METER}
             )
         ]
 
@@ -206,7 +206,7 @@ class MockMicrogridClient:
         inverters = [
             c.component_id
             for c in self.component_graph.components(
-                component_category={ComponentCategory.INVERTER}
+                component_categories={ComponentCategory.INVERTER}
             )
         ]
 
@@ -225,7 +225,7 @@ class MockMicrogridClient:
         meters = [
             c.component_id
             for c in self.component_graph.components(
-                component_category={ComponentCategory.EV_CHARGER}
+                component_categories={ComponentCategory.EV_CHARGER}
             )
         ]
 

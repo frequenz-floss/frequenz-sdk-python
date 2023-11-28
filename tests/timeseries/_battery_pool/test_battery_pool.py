@@ -82,7 +82,7 @@ def get_components(
     return {
         component.component_id
         for component in mock_microgrid.component_graph.components(
-            component_category={component_category}
+            component_categories={component_category}
         )
     }
 

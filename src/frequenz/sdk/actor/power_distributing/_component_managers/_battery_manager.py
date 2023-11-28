@@ -128,7 +128,7 @@ class BatteryManager(ComponentManager):
     ):
         """Initialize the battery data manager."""
         self._batteries = connection_manager.get().component_graph.components(
-            component_category={ComponentCategory.BATTERY}
+            component_categories={ComponentCategory.BATTERY}
         )
         self._battery_ids = {battery.component_id for battery in self._batteries}
 

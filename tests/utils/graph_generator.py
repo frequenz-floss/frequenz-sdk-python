@@ -281,7 +281,7 @@ def test_graph_generator_simple() -> None:
         )
     )
 
-    meters = list(graph.components(component_category={ComponentCategory.METER}))
+    meters = list(graph.components(component_categories={ComponentCategory.METER}))
     meters.sort(key=lambda x: x.component_id)
     assert len(meters) == 4
     assert len(graph.successors(meters[0].component_id)) == 4
@@ -289,7 +289,9 @@ def test_graph_generator_simple() -> None:
     assert graph.predecessors(meters[2].component_id) == {meters[0]}
     assert graph.predecessors(meters[3].component_id) == {meters[0]}
 
-    inverters = list(graph.components(component_category={ComponentCategory.INVERTER}))
+    inverters = list(
+        graph.components(component_categories={ComponentCategory.INVERTER})
+    )
     inverters.sort(key=lambda x: x.component_id)
     assert len(inverters) == 3
 
@@ -302,8 +304,10 @@ def test_graph_generator_simple() -> None:
     assert len(graph.successors(inverters[2].component_id)) == 1
     assert inverters[2].type == InverterType.BATTERY
 
-    assert len(graph.components(component_category={ComponentCategory.BATTERY})) == 2
-    assert len(graph.components(component_category={ComponentCategory.EV_CHARGER})) == 1
+    assert len(graph.components(component_categories={ComponentCategory.BATTERY})) == 2
+    assert (
+        len(graph.components(component_categories={ComponentCategory.EV_CHARGER})) == 1
+    )
 
     graph.validate()
 
@@ -327,16 +331,18 @@ def test_graph_generator_no_grid_meter() -> None:
         ]
     )
 
-    meters = list(graph.components(component_category={ComponentCategory.METER}))
+    meters = list(graph.components(component_categories={ComponentCategory.METER}))
     assert len(meters) == 1
     assert len(graph.successors(meters[0].component_id)) == 1
 
-    inverters = list(graph.components(component_category={ComponentCategory.INVERTER}))
+    inverters = list(
+        graph.components(component_categories={ComponentCategory.INVERTER})
+    )
     assert len(inverters) == 2
 
     assert len(graph.successors(inverters[0].component_id)) == 1
     assert len(graph.successors(inverters[1].component_id)) == 1
 
-    assert len(graph.components(component_category={ComponentCategory.BATTERY})) == 2
+    assert len(graph.components(component_categories={ComponentCategory.BATTERY})) == 2
 
     graph.validate()

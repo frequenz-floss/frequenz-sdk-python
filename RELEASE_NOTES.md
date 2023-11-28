@@ -44,6 +44,8 @@
     grid_current_recv = grid.current.new_receiver()
     ```
 
+- The `ComponentGraph.components()` parameters `component_id` and `component_category` were renamed to `component_ids` and `component_categories`, respectively.
+
 ## New Features
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->

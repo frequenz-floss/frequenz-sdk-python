@@ -107,7 +107,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
         grid_component = next(
             iter(
                 component_graph.components(
-                    component_category={component.ComponentCategory.GRID}
+                    component_categories={component.ComponentCategory.GRID}
                 )
             ),
             None,

@@ -111,7 +111,7 @@ class EVChargerPool:
             self._component_ids = {
                 evc.component_id
                 for evc in graph.components(
-                    component_category={ComponentCategory.EV_CHARGER}
+                    component_categories={ComponentCategory.EV_CHARGER}
                 )
             }
         self._state_tracker: StateTracker | None = None
