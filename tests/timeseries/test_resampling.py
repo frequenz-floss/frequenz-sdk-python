@@ -15,7 +15,7 @@ import pytest
 import time_machine
 from frequenz.channels import Broadcast, SenderError
 
-from frequenz.sdk.timeseries import Sample
+from frequenz.sdk.timeseries import UNIX_EPOCH, Sample
 from frequenz.sdk.timeseries._quantities import Quantity
 from frequenz.sdk.timeseries._resampling import (
     DEFAULT_BUFFER_LEN_MAX,
@@ -1300,6 +1300,157 @@ async def test_resampling_all_zeros(
         sampling_period=timedelta(seconds=0.8),
     )
     assert _get_buffer_len(resampler, source_receiver) == 3
+
+
+async def test_system_clock_changed_backwards(
+    fake_time: time_machine.Coordinates,
+    source_chan: Broadcast[Sample[Quantity]],
+) -> None:
+    """Test that the resampler is able to handle system clock changes."""
+    await _advance_time(fake_time, 600)
+    timestamp = datetime.now(timezone.utc)
+
+    resampling_period_s = 2
+
+    config = ResamplerConfig(
+        resampling_period=timedelta(seconds=resampling_period_s),
+        max_data_age_in_periods=2.0,
+        initial_buffer_len=5,
+    )
+
+    resampler = Resampler(config)
+
+    source_receiver = source_chan.new_receiver()
+    source_sender = source_chan.new_sender()
+
+    sink_mock = AsyncMock(spec=Sink, return_value=True)
+
+    resampler.add_timeseries("test", source_receiver, sink_mock)
+
+    await source_sender.send(
+        Sample(timestamp + timedelta(seconds=1.0), value=Quantity(1.0))
+    )
+    await source_sender.send(
+        Sample(timestamp + timedelta(seconds=2.0), value=Quantity(1.0))
+    )
+
+    await resampler.resample(one_shot=True)
+    sink_mock.assert_called_once_with(
+        Sample(
+            timestamp + timedelta(seconds=resampling_period_s),
+            Quantity(1.0),
+        )
+    )
+
+    # go back in time by 10 minutes
+    travaller = time_machine.travel(UNIX_EPOCH)
+    travaller.start()
+    timestamp = datetime.now(timezone.utc)
+
+    await resampler.resample(one_shot=True)
+
+    # The resampler will trigger two periods from now since when the resync
+    # happens some time is already passed and the next calculated `window_end`
+    # will always be more then one period in the future
+    sink_mock.assert_called_with(
+        Sample(
+            timestamp + timedelta(seconds=resampling_period_s),
+            None,
+        )
+    )
+
+    # we sending some samples and run the resampler again without advancing the time
+    await source_sender.send(
+        Sample(timestamp + timedelta(seconds=2.0), value=Quantity(1.0))
+    )
+    await source_sender.send(
+        Sample(timestamp + timedelta(seconds=3.0), value=Quantity(1.0))
+    )
+
+    await resampler.resample(one_shot=True)
+    sink_mock.assert_called_with(
+        Sample(
+            timestamp + timedelta(seconds=resampling_period_s),
+            Quantity(1.0),
+        )
+    )
+
+    travaller.stop()
+
+
+async def test_system_clock_changed_forwards(
+    fake_time: time_machine.Coordinates,  # pylint: disable=unused-argument
+    source_chan: Broadcast[Sample[Quantity]],
+) -> None:
+    """Test that the resampler is able to handle system clock changes."""
+    timestamp = datetime.now(timezone.utc)
+    print(timestamp)
+
+    resampling_period_s = 2
+
+    config = ResamplerConfig(
+        resampling_period=timedelta(seconds=resampling_period_s),
+        max_data_age_in_periods=2.0,
+        initial_buffer_len=5,
+    )
+
+    resampler = Resampler(config)
+
+    source_receiver = source_chan.new_receiver()
+    source_sender = source_chan.new_sender()
+
+    sink_mock = AsyncMock(spec=Sink, return_value=True)
+
+    resampler.add_timeseries("test", source_receiver, sink_mock)
+
+    await source_sender.send(
+        Sample(timestamp + timedelta(seconds=1.0), value=Quantity(1.0))
+    )
+    await source_sender.send(
+        Sample(timestamp + timedelta(seconds=2.0), value=Quantity(1.0))
+    )
+
+    await resampler.resample(one_shot=True)
+    sink_mock.assert_called_once_with(
+        Sample(
+            timestamp + timedelta(seconds=resampling_period_s),
+            Quantity(1.0),
+        )
+    )
+
+    travaller = time_machine.travel(timestamp + timedelta(minutes=10))
+    travaller.start()
+    timestamp = datetime.now(timezone.utc)
+
+    await resampler.resample(one_shot=True)
+
+    # The resampler will trigger two periods from now since when the resync
+    # happens some time is already passed and the next calculated `window_end`
+    # will always be more then one period in the future
+    sink_mock.assert_called_with(
+        Sample(
+            timestamp + timedelta(seconds=resampling_period_s),
+            None,
+        )
+    )
+
+    # we sending some samples and run the resampler again without advancing the time
+    await source_sender.send(
+        Sample(timestamp + timedelta(seconds=2.0), value=Quantity(1.0))
+    )
+    await source_sender.send(
+        Sample(timestamp + timedelta(seconds=3.0), value=Quantity(1.0))
+    )
+
+    await resampler.resample(one_shot=True)
+    sink_mock.assert_called_with(
+        Sample(
+            timestamp + timedelta(seconds=resampling_period_s),
+            Quantity(1.0),
+        )
+    )
+
+    travaller.stop()
 
 
 def _get_buffer_len(resampler: Resampler, source_receiver: Source) -> int:
