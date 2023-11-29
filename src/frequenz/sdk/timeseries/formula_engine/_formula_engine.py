@@ -332,7 +332,7 @@ class FormulaEngine(
             from frequenz.sdk.timeseries import Power
 
             async def run() -> None:
-                producer_power_engine = microgrid.logical_meter().producer_power
+                producer_power_engine = microgrid.producer().power
                 consumer_power_recv = microgrid.consumer().power.new_receiver()
 
                 excess_power_recv = (
