@@ -313,6 +313,13 @@ async def test_matryoshka_with_excl_3() -> None:
     )
 
     tester = StatefulTester(batteries, system_bounds)
+    tester.tgt_power(priority=2, power=10.0, bounds=(None, None), expected=30.0)
+    tester.tgt_power(priority=2, power=-10.0, bounds=(None, None), expected=-30.0)
+    tester.tgt_power(priority=2, power=0.0, bounds=(None, None), expected=0.0)
+    tester.tgt_power(priority=3, power=20.0, bounds=(None, None), expected=None)
+    tester.tgt_power(priority=1, power=-20.0, bounds=(None, None), expected=-30.0)
+    tester.tgt_power(priority=3, power=None, bounds=(None, None), expected=None)
+    tester.tgt_power(priority=1, power=None, bounds=(None, None), expected=0.0)
 
     tester.tgt_power(priority=2, power=25.0, bounds=(25.0, 50.0), expected=30.0)
     tester.bounds(priority=2, expected_power=30.0, expected_bounds=(-200.0, 200.0))
