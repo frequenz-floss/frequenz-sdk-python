@@ -232,7 +232,7 @@ class FormulaEngine(
 
     They are used in the SDK to calculate and stream metrics like
     [`grid_power`][frequenz.sdk.timeseries.grid.Grid.power],
-    [`consumer_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.consumer_power],
+    [`consumer_power`][frequenz.sdk.timeseries.consumer.Consumer.power],
     etc., which are building blocks of the
     [Frequenz SDK Microgrid Model][frequenz.sdk.microgrid--frequenz-sdk-microgrid-model].
 
@@ -333,9 +333,7 @@ class FormulaEngine(
 
             async def run() -> None:
                 producer_power_engine = microgrid.logical_meter().producer_power
-                consumer_power_recv = (
-                    microgrid.logical_meter().consumer_power.new_receiver()
-                )
+                consumer_power_recv = microgrid.consumer().power.new_receiver()
 
                 excess_power_recv = (
                     (
