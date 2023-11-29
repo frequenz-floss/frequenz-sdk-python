@@ -3,18 +3,22 @@
 
 """Tests power distributor."""
 
-# pylint: disable=too-many-lines
+from __future__ import annotations
 
 import asyncio
+import dataclasses
 import math
 import re
+from collections import abc
+from datetime import timedelta
 from typing import TypeVar
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 
-from frequenz.channels import Broadcast
+from frequenz.channels import Broadcast, Sender
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
+from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.actor.power_distributing import (
     ComponentPoolStatus,
     PowerDistributingActor,
@@ -35,11 +39,13 @@ from frequenz.sdk.actor.power_distributing.result import (
     Success,
 )
 from frequenz.sdk.microgrid.component import ComponentCategory
-from frequenz.sdk.timeseries._quantities import Power
-from tests.timeseries.mock_microgrid import MockMicrogrid
-from tests.utils.graph_generator import GraphGenerator
+from frequenz.sdk.microgrid.component_graph import _MicrogridComponentGraph
+from frequenz.sdk.timeseries import Power
 
 from ...conftest import SAFETY_TIMEOUT
+from ...timeseries.mock_microgrid import MockMicrogrid
+from ...utils.component_data_streamer import MockComponentDataStreamer
+from ...utils.graph_generator import GraphGenerator
 from .test_battery_distribution_algorithm import (
     Bound,
     Metric,
@@ -47,7 +53,65 @@ from .test_battery_distribution_algorithm import (
     inverter_msg,
 )
 
+# pylint: disable=too-many-lines
+
+
 T = TypeVar("T")  # Declare type variable
+
+
+@dataclasses.dataclass(frozen=True)
+class Mocks:
+    """Mocks for the tests."""
+
+    microgrid: MockMicrogrid
+    """A mock microgrid instance."""
+
+    streamer: MockComponentDataStreamer
+    """A mock component data streamer."""
+
+    battery_status_sender: Sender[ComponentPoolStatus]
+    """Sender for sending status of the batteries."""
+
+    @classmethod
+    async def new(
+        cls,
+        mocker: MockerFixture,
+        graph: _MicrogridComponentGraph | None = None,
+        grid_meter: bool | None = None,
+    ) -> Mocks:
+        """Initialize the mocks."""
+        mockgrid = MockMicrogrid(graph=graph, grid_meter=grid_meter)
+        if not graph:
+            mockgrid.add_batteries(3)
+        await mockgrid.start(mocker)
+
+        # pylint: disable=protected-access
+        if microgrid._data_pipeline._DATA_PIPELINE is not None:
+            microgrid._data_pipeline._DATA_PIPELINE = None
+        await microgrid._data_pipeline.initialize(
+            ResamplerConfig(resampling_period=timedelta(seconds=0.1))
+        )
+        streamer = MockComponentDataStreamer(mockgrid.mock_client)
+
+        assert microgrid._data_pipeline._DATA_PIPELINE is not None
+        return cls(
+            mockgrid,
+            streamer,
+            microgrid._data_pipeline._DATA_PIPELINE._battery_status_channel.new_sender(),
+        )
+
+    async def stop(self) -> None:
+        """Stop the mocks."""
+        # pylint: disable=protected-access
+        assert microgrid._data_pipeline._DATA_PIPELINE is not None
+        await asyncio.gather(
+            *[
+                microgrid._data_pipeline._DATA_PIPELINE._stop(),
+                self.streamer.stop(),
+                self.microgrid.cleanup(),
+            ]
+        )
+        # pylint: enable=protected-access
 
 
 class TestPowerDistributingActor:
@@ -56,6 +120,39 @@ class TestPowerDistributingActor:
     """Test tool to distribute power."""
 
     _namespace = "power_distributor"
+
+    async def _patch_battery_pool_status(
+        self,
+        mocks: Mocks,
+        mocker: MockerFixture,
+        battery_ids: abc.Set[int] | None = None,
+    ) -> None:
+        """Patch the battery pool status.
+
+        If `battery_ids` is not None, the mock will always return `battery_ids`.
+        Otherwise, it will return the requested batteries.
+        """
+        if battery_ids:
+            mock = MagicMock(spec=ComponentPoolStatusTracker)
+            mock.get_working_components.return_value = battery_ids
+            mocker.patch(
+                "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+                ".ComponentPoolStatusTracker",
+                return_value=mock,
+            )
+        else:
+            mock = MagicMock(spec=ComponentPoolStatusTracker)
+            mock.get_working_components.side_effect = set
+            mocker.patch(
+                "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+                ".ComponentPoolStatusTracker",
+                return_value=mock,
+            )
+        await mocks.battery_status_sender.send(
+            ComponentPoolStatus(
+                working=set(mocks.microgrid.battery_ids), uncertain=set()
+            )
+        )
 
     async def test_constructor(self, mocker: MockerFixture) -> None:
         """Test if gets all necessary data."""
@@ -110,38 +207,37 @@ class TestPowerDistributingActor:
 
     async def init_component_data(
         self,
-        mockgrid: MockMicrogrid,
+        mocks: Mocks,
+        *,
+        skip_batteries: abc.Set[int] | None = None,
+        skip_inverters: abc.Set[int] | None = None,
     ) -> None:
         """Send initial component data, for power distributor to start."""
-        graph = microgrid.connection_manager.get().component_graph
-        for battery in graph.components(
-            component_categories={ComponentCategory.BATTERY}
-        ):
-            await mockgrid.mock_client.send(
+        for battery_id in set(mocks.microgrid.battery_ids) - (skip_batteries or set()):
+            mocks.streamer.start_streaming(
                 battery_msg(
-                    battery.component_id,
+                    battery_id,
                     capacity=Metric(98000),
                     soc=Metric(40, Bound(20, 80)),
                     power=PowerBounds(-1000, 0, 0, 1000),
-                )
+                ),
+                0.05,
             )
 
-        inverters = graph.components(component_categories={ComponentCategory.INVERTER})
-        for inverter in inverters:
-            await mockgrid.mock_client.send(
+        for inverter_id in set(mocks.microgrid.battery_inverter_ids) - (
+            skip_inverters or set()
+        ):
+            mocks.streamer.start_streaming(
                 inverter_msg(
-                    inverter.component_id,
+                    inverter_id,
                     power=PowerBounds(-500, 0, 0, 500),
-                )
+                ),
+                0.05,
             )
 
     async def test_power_distributor_one_user(self, mocker: MockerFixture) -> None:
         """Test if power distribution works with a single user."""
-        mockgrid = MockMicrogrid(grid_meter=False)
-        mockgrid.add_batteries(3)
-        await mockgrid.start(mocker)
-        await self.init_component_data(mockgrid)
-
+        mocks = await Mocks.new(mocker)
         requests_channel = Broadcast[Request]("power_distributor requests")
         results_channel = Broadcast[Result]("power_distributor results")
 
@@ -151,19 +247,15 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.component_ids}
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-            ".ComponentPoolStatusTracker",
-            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
-        )
+        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
+        await self.init_component_data(mocks)
 
-        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
         battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
             component_pool_status_sender=battery_status_channel.new_sender(),
+            wait_for_data_sec=0.1,
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -182,52 +274,46 @@ class TestPowerDistributingActor:
         assert result.excess_power.isclose(Power.from_watts(200.0))
         assert result.request == request
 
-        await mockgrid.cleanup()
+        await mocks.stop()
 
     async def test_power_distributor_exclusion_bounds(
         self, mocker: MockerFixture
     ) -> None:
         """Test if power distributing actor rejects non-zero requests in exclusion bounds."""
-        mockgrid = MockMicrogrid(grid_meter=False)
-        mockgrid.add_batteries(2)
-        await mockgrid.start(mocker)
-        await self.init_component_data(mockgrid)
+        mocks = await Mocks.new(mocker)
 
-        await mockgrid.mock_client.send(
+        await self._patch_battery_pool_status(mocks, mocker, {9, 19})
+        await self.init_component_data(mocks, skip_batteries={9, 19})
+
+        mocks.streamer.start_streaming(
             battery_msg(
                 9,
                 soc=Metric(60, Bound(20, 80)),
                 capacity=Metric(98000),
                 power=PowerBounds(-1000, -300, 300, 1000),
-            )
+            ),
+            0.05,
         )
-        await mockgrid.mock_client.send(
+
+        mocks.streamer.start_streaming(
             battery_msg(
                 19,
                 soc=Metric(60, Bound(20, 80)),
                 capacity=Metric(98000),
                 power=PowerBounds(-1000, -300, 300, 1000),
-            )
+            ),
+            0.05,
         )
 
         requests_channel = Broadcast[Request]("power_distributor requests")
         results_channel = Broadcast[Result]("power_distributor results")
 
-        attrs = {
-            "get_working_components.return_value": microgrid.battery_pool().battery_ids
-        }
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-            ".ComponentPoolStatusTracker",
-            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
-        )
-
-        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
         battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
             component_pool_status_sender=battery_status_channel.new_sender(),
+            wait_for_data_sec=0.1,
         ):
             # zero power requests should pass through despite the exclusion bounds.
             request = Request(
@@ -279,7 +365,7 @@ class TestPowerDistributingActor:
             assert result.bounds == PowerBounds(-1000, -600, 600, 1000)
             assert result.request == request
 
-        await mockgrid.cleanup()
+        await mocks.stop()
 
     # pylint: disable=too-many-locals
     async def test_two_batteries_one_inverters(self, mocker: MockerFixture) -> None:
@@ -306,9 +392,8 @@ class TestPowerDistributingActor:
             )
         )
 
-        mockgrid = MockMicrogrid(graph=graph)
-        await mockgrid.start(mocker)
-        await self.init_component_data(mockgrid)
+        mocks = await Mocks.new(mocker, graph=graph)
+        await self.init_component_data(mocks)
 
         requests_channel = Broadcast[Request]("power_distributor requests")
         results_channel = Broadcast[Result]("power_distributor results")
@@ -318,21 +403,15 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.component_ids}
+        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
 
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-            ".ComponentPoolStatusTracker",
-            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
-        )
-
-        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
         battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
+            wait_for_data_sec=0.1,
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -352,7 +431,7 @@ class TestPowerDistributingActor:
             assert result.excess_power.isclose(Power.from_watts(700.0))
             assert result.request == request
 
-        await mockgrid.cleanup()
+        await mocks.stop()
 
     async def test_two_batteries_one_broken_one_inverters(
         self, mocker: MockerFixture
@@ -379,17 +458,19 @@ class TestPowerDistributingActor:
             )
         )
 
-        mockgrid = MockMicrogrid(graph=graph)
-        await mockgrid.start(mocker)
-        await self.init_component_data(mockgrid)
+        mocks = await Mocks.new(mocker, graph=graph)
+        await self.init_component_data(
+            mocks, skip_batteries={bat_components[0].component_id}
+        )
 
-        await mockgrid.mock_client.send(
+        mocks.streamer.start_streaming(
             battery_msg(
                 bat_components[0].component_id,
                 soc=Metric(math.nan, Bound(20, 80)),
                 capacity=Metric(98000),
                 power=PowerBounds(-1000, 0, 0, 1000),
-            )
+            ),
+            0.05,
         )
 
         requests_channel = Broadcast[Request]("power_distributor")
@@ -401,21 +482,14 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.component_ids}
-
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-            ".ComponentPoolStatusTracker",
-            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
-        )
-
-        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
         battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
+            wait_for_data_sec=0.1,
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -436,7 +510,7 @@ class TestPowerDistributingActor:
                 result.msg == "No data for at least one of the given batteries {9, 19}"
             )
 
-        await mockgrid.cleanup()
+        await mocks.stop()
 
     async def test_battery_two_inverters(self, mocker: MockerFixture) -> None:
         """Test if power distribution works with two inverters for one battery."""
@@ -463,9 +537,8 @@ class TestPowerDistributingActor:
             )
         )
 
-        mockgrid = MockMicrogrid(graph=graph)
-        await mockgrid.start(mocker)
-        await self.init_component_data(mockgrid)
+        mocks = await Mocks.new(mocker, graph=graph)
+        await self.init_component_data(mocks)
 
         requests_channel = Broadcast[Request]("power_distributor requests")
         results_channel = Broadcast[Result]("power_distributor results")
@@ -476,21 +549,14 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.component_ids}
-
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-            ".ComponentPoolStatusTracker",
-            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
-        )
-
-        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
         battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
+            wait_for_data_sec=0.1,
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -510,7 +576,7 @@ class TestPowerDistributingActor:
             assert result.excess_power.isclose(Power.from_watts(200.0))
             assert result.request == request
 
-        await mockgrid.cleanup()
+        await mocks.stop()
 
     async def test_two_batteries_three_inverters(self, mocker: MockerFixture) -> None:
         """Test if power distribution works with two batteries connected to three inverters."""
@@ -542,9 +608,8 @@ class TestPowerDistributingActor:
             )
         )
 
-        mockgrid = MockMicrogrid(graph=graph)
-        await mockgrid.start(mocker)
-        await self.init_component_data(mockgrid)
+        mocks = await Mocks.new(mocker, graph=graph)
+        await self.init_component_data(mocks)
 
         requests_channel = Broadcast[Request]("power_distributor requests")
         results_channel = Broadcast[Result]("power_distributor results")
@@ -555,21 +620,14 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.component_ids}
-
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-            ".ComponentPoolStatusTracker",
-            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
-        )
-
-        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
         battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
+            wait_for_data_sec=0.1,
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -589,7 +647,7 @@ class TestPowerDistributingActor:
             assert result.excess_power.isclose(Power.from_watts(200.0))
             assert result.request == request
 
-        await mockgrid.cleanup()
+        await mocks.stop()
 
     async def test_two_batteries_one_inverter_different_exclusion_bounds_2(
         self, mocker: MockerFixture
@@ -610,30 +668,32 @@ class TestPowerDistributingActor:
             )
         )
 
-        mockgrid = MockMicrogrid(graph=graph)
-        await mockgrid.start(mocker)
-        await self.init_component_data(mockgrid)
-        await mockgrid.mock_client.send(
+        mocks = await Mocks.new(mocker, graph=graph)
+
+        mocks.streamer.start_streaming(
             inverter_msg(
                 inverter.component_id,
                 power=PowerBounds(-1000, -500, 500, 1000),
-            )
+            ),
+            0.05,
         )
-        await mockgrid.mock_client.send(
+        mocks.streamer.start_streaming(
             battery_msg(
                 batteries[0].component_id,
                 soc=Metric(40, Bound(20, 80)),
                 capacity=Metric(10_000),
                 power=PowerBounds(-1000, -200, 200, 1000),
-            )
+            ),
+            0.05,
         )
-        await mockgrid.mock_client.send(
+        mocks.streamer.start_streaming(
             battery_msg(
                 batteries[1].component_id,
                 soc=Metric(40, Bound(20, 80)),
                 capacity=Metric(10_000),
                 power=PowerBounds(-1000, -100, 100, 1000),
-            )
+            ),
+            0.05,
         )
 
         requests_channel = Broadcast[Request]("power_distributor requests")
@@ -645,21 +705,14 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.component_ids}
-
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-            ".ComponentPoolStatusTracker",
-            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
-        )
-
-        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
         battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
+            wait_for_data_sec=0.1,
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -677,7 +730,7 @@ class TestPowerDistributingActor:
             assert result.request == request
             assert result.bounds == PowerBounds(-1000, -500, 500, 1000)
 
-        await mockgrid.cleanup()
+        await mocks.stop()
 
     async def test_two_batteries_one_inverter_different_exclusion_bounds(
         self, mocker: MockerFixture
@@ -705,24 +758,27 @@ class TestPowerDistributingActor:
             )
         )
 
-        mockgrid = MockMicrogrid(graph=graph)
-        await mockgrid.start(mocker)
-        await self.init_component_data(mockgrid)
-        await mockgrid.mock_client.send(
+        mocks = await Mocks.new(mocker, graph=graph)
+        await self.init_component_data(
+            mocks, skip_batteries={bat.component_id for bat in batteries}
+        )
+        mocks.streamer.start_streaming(
             battery_msg(
                 batteries[0].component_id,
                 soc=Metric(40, Bound(20, 80)),
                 capacity=Metric(10_000),
                 power=PowerBounds(-1000, -200, 200, 1000),
-            )
+            ),
+            0.05,
         )
-        await mockgrid.mock_client.send(
+        mocks.streamer.start_streaming(
             battery_msg(
                 batteries[1].component_id,
                 soc=Metric(40, Bound(20, 80)),
                 capacity=Metric(10_000),
                 power=PowerBounds(-1000, -100, 100, 1000),
-            )
+            ),
+            0.05,
         )
 
         requests_channel = Broadcast[Request]("power_distributor requests")
@@ -734,21 +790,14 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.component_ids}
-
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-            ".ComponentPoolStatusTracker",
-            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
-        )
-
-        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
         battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
+            wait_for_data_sec=0.1,
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -767,7 +816,7 @@ class TestPowerDistributingActor:
             # each inverter is bounded at 500
             assert result.bounds == PowerBounds(-500, -400, 400, 500)
 
-        await mockgrid.cleanup()
+        await mocks.stop()
 
     async def test_connected_but_not_requested_batteries(
         self, mocker: MockerFixture
@@ -793,9 +842,8 @@ class TestPowerDistributingActor:
             )
         )
 
-        mockgrid = MockMicrogrid(graph=graph)
-        await mockgrid.start(mocker)
-        await self.init_component_data(mockgrid)
+        mocks = await Mocks.new(mocker, graph=graph)
+        await self.init_component_data(mocks)
 
         requests_channel = Broadcast[Request]("power_distributor requests")
         results_channel = Broadcast[Result]("power_distributor results")
@@ -806,21 +854,14 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.component_ids}
-
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-            ".ComponentPoolStatusTracker",
-            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
-        )
-
-        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
         battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             component_pool_status_sender=battery_status_channel.new_sender(),
             results_sender=results_channel.new_sender(),
+            wait_for_data_sec=0.1,
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -843,22 +884,21 @@ class TestPowerDistributingActor:
             )
             assert err_msg is not None
 
-        await mockgrid.cleanup()
+        await mocks.stop()
 
     async def test_battery_soc_nan(self, mocker: MockerFixture) -> None:
         """Test if battery with SoC==NaN is not used."""
-        mockgrid = MockMicrogrid(grid_meter=False)
-        mockgrid.add_batteries(3)
-        await mockgrid.start(mocker)
-        await self.init_component_data(mockgrid)
+        mocks = await Mocks.new(mocker, grid_meter=False)
+        await self.init_component_data(mocks, skip_batteries={9})
 
-        await mockgrid.mock_client.send(
+        mocks.streamer.start_streaming(
             battery_msg(
                 9,
                 soc=Metric(math.nan, Bound(20, 80)),
                 capacity=Metric(98000),
                 power=PowerBounds(-1000, 0, 0, 1000),
-            )
+            ),
+            0.05,
         )
 
         requests_channel = Broadcast[Request]("power_distributor requests")
@@ -870,27 +910,14 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.component_ids}
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-            ".ComponentPoolStatusTracker",
-            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
-        )
-
-        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
         battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
             component_pool_status_sender=battery_status_channel.new_sender(),
+            wait_for_data_sec=0.1,
         ):
-            attrs = {"get_working_components.return_value": request.component_ids}
-            mocker.patch(
-                "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-                ".ComponentPoolStatusTracker",
-                return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
-            )
-
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
 
@@ -909,22 +936,21 @@ class TestPowerDistributingActor:
         assert result.excess_power.isclose(Power.from_watts(700.0))
         assert result.request == request
 
-        await mockgrid.cleanup()
+        await mocks.stop()
 
     async def test_battery_capacity_nan(self, mocker: MockerFixture) -> None:
         """Test battery with capacity set to NaN is not used."""
-        mockgrid = MockMicrogrid(grid_meter=False)
-        mockgrid.add_batteries(3)
-        await mockgrid.start(mocker)
-        await self.init_component_data(mockgrid)
+        mocks = await Mocks.new(mocker, grid_meter=False)
+        await self.init_component_data(mocks, skip_batteries={9})
 
-        await mockgrid.mock_client.send(
+        mocks.streamer.start_streaming(
             battery_msg(
                 9,
                 soc=Metric(40, Bound(20, 80)),
                 capacity=Metric(math.nan),
                 power=PowerBounds(-1000, 0, 0, 1000),
-            )
+            ),
+            0.05,
         )
 
         requests_channel = Broadcast[Request]("power_distributor requests")
@@ -935,19 +961,15 @@ class TestPowerDistributingActor:
             component_ids={9, 19},
             request_timeout=SAFETY_TIMEOUT,
         )
-        attrs = {"get_working_components.return_value": request.component_ids}
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-            ".ComponentPoolStatusTracker",
-            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
-        )
 
-        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
+
         battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
             component_pool_status_sender=battery_status_channel.new_sender(),
+            wait_for_data_sec=0.1,
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -967,37 +989,40 @@ class TestPowerDistributingActor:
         assert result.excess_power.isclose(Power.from_watts(700.0))
         assert result.request == request
 
-        await mockgrid.cleanup()
+        await mocks.stop()
 
     async def test_battery_power_bounds_nan(self, mocker: MockerFixture) -> None:
         """Test battery with power bounds set to NaN is not used."""
-        mockgrid = MockMicrogrid(grid_meter=False)
-        mockgrid.add_batteries(3)
-        await mockgrid.start(mocker)
-        await self.init_component_data(mockgrid)
+        mocks = await Mocks.new(mocker, grid_meter=False)
+        await self.init_component_data(
+            mocks, skip_batteries={9}, skip_inverters={8, 18}
+        )
 
-        await mockgrid.mock_client.send(
+        mocks.streamer.start_streaming(
             inverter_msg(
                 18,
                 power=PowerBounds(-1000, 0, 0, 1000),
-            )
+            ),
+            0.05,
         )
 
         # Battery 9 should not work because both battery and inverter sends NaN
-        await mockgrid.mock_client.send(
+        mocks.streamer.start_streaming(
             inverter_msg(
                 8,
                 power=PowerBounds(-1000, 0, 0, math.nan),
-            )
+            ),
+            0.05,
         )
 
-        await mockgrid.mock_client.send(
+        mocks.streamer.start_streaming(
             battery_msg(
                 9,
                 soc=Metric(40, Bound(20, 80)),
                 capacity=Metric(float(98000)),
                 power=PowerBounds(math.nan, 0, 0, math.nan),
-            )
+            ),
+            0.05,
         )
 
         requests_channel = Broadcast[Request]("power_distributor requests")
@@ -1008,19 +1033,15 @@ class TestPowerDistributingActor:
             component_ids={9, 19},
             request_timeout=SAFETY_TIMEOUT,
         )
-        attrs = {"get_working_components.return_value": request.component_ids}
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-            ".ComponentPoolStatusTracker",
-            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
-        )
 
-        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
+
         battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
             component_pool_status_sender=battery_status_channel.new_sender(),
+            wait_for_data_sec=0.1,
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -1040,16 +1061,14 @@ class TestPowerDistributingActor:
         assert result.excess_power.isclose(Power.from_watts(200.0))
         assert result.request == request
 
-        await mockgrid.cleanup()
+        await mocks.stop()
 
     async def test_power_distributor_invalid_battery_id(
         self, mocker: MockerFixture
     ) -> None:
         """Test if power distribution raises error if any battery id is invalid."""
-        mockgrid = MockMicrogrid(grid_meter=False)
-        mockgrid.add_batteries(3)
-        await mockgrid.start(mocker)
-        await self.init_component_data(mockgrid)
+        mocks = await Mocks.new(mocker, grid_meter=False)
+        await self.init_component_data(mocks)
 
         requests_channel = Broadcast[Request]("power_distributor requests")
         results_channel = Broadcast[Result]("power_distributor results")
@@ -1059,19 +1078,14 @@ class TestPowerDistributingActor:
             request_timeout=SAFETY_TIMEOUT,
         )
 
-        attrs = {"get_working_components.return_value": request.component_ids}
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-            ".ComponentPoolStatusTracker",
-            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
-        )
-        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
 
         battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
             component_pool_status_sender=battery_status_channel.new_sender(),
+            wait_for_data_sec=0.1,
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -1088,16 +1102,14 @@ class TestPowerDistributingActor:
         err_msg = re.search(r"No battery 100, available batteries:", result.msg)
         assert err_msg is not None
 
-        await mockgrid.cleanup()
+        await mocks.stop()
 
     async def test_power_distributor_one_user_adjust_power_consume(
         self, mocker: MockerFixture
     ) -> None:
         """Test if power distribution works with single user works."""
-        mockgrid = MockMicrogrid(grid_meter=False)
-        mockgrid.add_batteries(3)
-        await mockgrid.start(mocker)
-        await self.init_component_data(mockgrid)
+        mocks = await Mocks.new(mocker, grid_meter=False)
+        await self.init_component_data(mocks)
 
         requests_channel = Broadcast[Request]("power_distributor")
         results_channel = Broadcast[Result]("power_distributor results")
@@ -1109,20 +1121,14 @@ class TestPowerDistributingActor:
             adjust_power=False,
         )
 
-        attrs = {"get_working_components.return_value": request.component_ids}
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-            ".ComponentPoolStatusTracker",
-            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
-        )
-
-        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
 
         battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
             component_pool_status_sender=battery_status_channel.new_sender(),
+            wait_for_data_sec=0.1,
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -1141,16 +1147,14 @@ class TestPowerDistributingActor:
         assert result.request == request
         assert result.bounds.inclusion_upper == 1000
 
-        await mockgrid.cleanup()
+        await mocks.stop()
 
     async def test_power_distributor_one_user_adjust_power_supply(
         self, mocker: MockerFixture
     ) -> None:
         """Test if power distribution works with single user works."""
-        mockgrid = MockMicrogrid(grid_meter=False)
-        mockgrid.add_batteries(3)
-        await mockgrid.start(mocker)
-        await self.init_component_data(mockgrid)
+        mocks = await Mocks.new(mocker, grid_meter=False)
+        await self.init_component_data(mocks)
 
         requests_channel = Broadcast[Request]("power_distributor requests")
         results_channel = Broadcast[Result]("power_distributor results")
@@ -1162,20 +1166,14 @@ class TestPowerDistributingActor:
             adjust_power=False,
         )
 
-        attrs = {"get_working_components.return_value": request.component_ids}
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-            ".ComponentPoolStatusTracker",
-            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
-        )
-
-        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
 
         battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
             component_pool_status_sender=battery_status_channel.new_sender(),
+            wait_for_data_sec=0.1,
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -1194,16 +1192,14 @@ class TestPowerDistributingActor:
         assert result.request == request
         assert result.bounds.inclusion_lower == -1000
 
-        await mockgrid.cleanup()
+        await mocks.stop()
 
     async def test_power_distributor_one_user_adjust_power_success(
         self, mocker: MockerFixture
     ) -> None:
         """Test if power distribution works with single user works."""
-        mockgrid = MockMicrogrid(grid_meter=False)
-        mockgrid.add_batteries(3)
-        await mockgrid.start(mocker)
-        await self.init_component_data(mockgrid)
+        mocks = await Mocks.new(mocker, grid_meter=False)
+        await self.init_component_data(mocks)
 
         requests_channel = Broadcast[Request]("power_distributor requests")
         results_channel = Broadcast[Result]("power_distributor results")
@@ -1215,20 +1211,14 @@ class TestPowerDistributingActor:
             adjust_power=False,
         )
 
-        attrs = {"get_working_components.return_value": request.component_ids}
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-            ".ComponentPoolStatusTracker",
-            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
-        )
-
-        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
 
         battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
             component_pool_status_sender=battery_status_channel.new_sender(),
+            wait_for_data_sec=0.1,
         ):
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
@@ -1247,25 +1237,16 @@ class TestPowerDistributingActor:
         assert result.excess_power.isclose(Power.zero(), abs_tol=1e-9)
         assert result.request == request
 
-        await mockgrid.cleanup()
+        await mocks.stop()
 
     async def test_not_all_batteries_are_working(self, mocker: MockerFixture) -> None:
         """Test if power distribution works if not all batteries are working."""
-        mockgrid = MockMicrogrid(grid_meter=False)
-        mockgrid.add_batteries(3)
-        await mockgrid.start(mocker)
-        await self.init_component_data(mockgrid)
-
-        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        mocks = await Mocks.new(mocker, grid_meter=False)
+        await self.init_component_data(mocks)
 
         batteries = {9, 19}
 
-        attrs = {"get_working_components.return_value": batteries - {9}}
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-            ".ComponentPoolStatusTracker",
-            return_value=MagicMock(spec=ComponentPoolStatusTracker, **attrs),
-        )
+        await self._patch_battery_pool_status(mocks, mocker, batteries - {9})
 
         requests_channel = Broadcast[Request]("power_distributor requests")
         results_channel = Broadcast[Result]("power_distributor results")
@@ -1275,6 +1256,7 @@ class TestPowerDistributingActor:
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
             component_pool_status_sender=battery_status_channel.new_sender(),
+            wait_for_data_sec=0.1,
         ):
             request = Request(
                 power=Power.from_kilowatts(1.2),
@@ -1299,30 +1281,18 @@ class TestPowerDistributingActor:
             assert result.succeeded_power.isclose(Power.from_watts(500.0))
             assert result.request == request
 
-        await mockgrid.cleanup()
+        await mocks.stop()
 
     async def test_partial_failure_result(self, mocker: MockerFixture) -> None:
         """Test power results when the microgrid failed to set power for one of the batteries."""
-        mockgrid = MockMicrogrid(grid_meter=False)
-        mockgrid.add_batteries(3)
-        await mockgrid.start(mocker)
-        await self.init_component_data(mockgrid)
-
-        mocker.patch("asyncio.sleep", new_callable=AsyncMock)
+        mocks = await Mocks.new(mocker, grid_meter=False)
+        await self.init_component_data(mocks)
 
         batteries = {9, 19, 29}
         failed_batteries = {9}
         failed_power = 500.0
 
-        attrs = {"get_working_components.return_value": batteries}
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-            ".ComponentPoolStatusTracker",
-            return_value=MagicMock(
-                spec=ComponentPoolStatusTracker,
-                **attrs,
-            ),
-        )
+        await self._patch_battery_pool_status(mocks, mocker, batteries)
 
         mocker.patch(
             "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
@@ -1338,6 +1308,7 @@ class TestPowerDistributingActor:
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
             component_pool_status_sender=battery_status_channel.new_sender(),
+            wait_for_data_sec=0.1,
         ):
             request = Request(
                 power=Power.from_kilowatts(1.70),
@@ -1363,4 +1334,4 @@ class TestPowerDistributingActor:
             assert result.excess_power.isclose(Power.from_watts(200.0))
             assert result.request == request
 
-        await mockgrid.cleanup()
+        await mocks.stop()
