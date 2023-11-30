@@ -97,9 +97,8 @@ class GridFrequency:
 
     async def _send_request(self) -> None:
         """Send the request for grid frequency."""
-        _logger.info("Sending request for grid frequency: %s", self._source_component)
         await self._request_sender.send(self._component_metric_request)
-        _logger.info("Sent request for grid frequency: %s", self._source_component)
+        _logger.debug("Sent request for grid frequency: %s", self._source_component)
 
     @staticmethod
     def find_frequency_source() -> Component:
