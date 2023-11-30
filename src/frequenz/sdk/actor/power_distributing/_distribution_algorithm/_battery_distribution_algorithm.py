@@ -685,7 +685,16 @@ class BatteryDistributionAlgorithm:
         Returns:
             Distribution result
         """
-        if power >= 0.0:
+        if is_close_to_zero(power):
+            return DistributionResult(
+                distribution={
+                    inverter.component_id: 0.0
+                    for _, inverters in components
+                    for inverter in inverters
+                },
+                remaining_power=0.0,
+            )
+        if power > 0.0:
             return self._distribute_consume_power(power, components)
         return self._distribute_supply_power(power, components)
 
