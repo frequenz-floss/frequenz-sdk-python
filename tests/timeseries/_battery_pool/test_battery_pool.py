@@ -17,6 +17,7 @@ from typing import Any, Generic, TypeVar
 
 import async_solipsism
 import pytest
+import time_machine
 from frequenz.channels import Receiver, Sender
 from pytest_mock import MockerFixture
 
@@ -296,22 +297,28 @@ async def run_scenarios(
             raise err
 
 
-async def test_all_batteries_capacity(setup_all_batteries: SetupArgs) -> None:
+async def test_all_batteries_capacity(
+    fake_time: time_machine.Coordinates, setup_all_batteries: SetupArgs
+) -> None:
     """Test capacity metric for battery pool with all components in the microgrid.
 
     Args:
+        fake_time: The time machine fake time argument.
         setup_all_batteries: Fixture that creates needed microgrid tools.
     """
-    await run_capacity_test(setup_all_batteries)
+    await run_capacity_test(fake_time, setup_all_batteries)
 
 
-async def test_battery_pool_capacity(setup_batteries_pool: SetupArgs) -> None:
+async def test_battery_pool_capacity(
+    fake_time: time_machine.Coordinates, setup_batteries_pool: SetupArgs
+) -> None:
     """Test capacity metric for battery pool with subset of components in the microgrid.
 
     Args:
+        fake_time: The time machine fake time argument.
         setup_batteries_pool: Fixture that creates needed microgrid tools.
     """
-    await run_capacity_test(setup_batteries_pool)
+    await run_capacity_test(fake_time, setup_batteries_pool)
 
 
 async def test_all_batteries_soc(setup_all_batteries: SetupArgs) -> None:
@@ -499,10 +506,13 @@ async def test_battery_pool_power(mocker: MockerFixture) -> None:
     await mockgrid.cleanup()
 
 
-async def run_capacity_test(setup_args: SetupArgs) -> None:
+async def run_capacity_test(  # pylint: disable=too-many-locals
+    fake_time: time_machine.Coordinates, setup_args: SetupArgs
+) -> None:
     """Test if capacity metric is working as expected.
 
     Args:
+        fake_time: The time machine fake time argument.
         setup_args: Needed sdk tools and tools for mocking microgrid.
     """
     battery_pool = setup_args.battery_pool
@@ -666,12 +676,17 @@ async def run_capacity_test(setup_args: SetupArgs) -> None:
     # One battery stopped sending data.
     await streamer.stop_streaming(batteries_in_pool[1])
     await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.2)
+    fake_time.shift(MAX_BATTERY_DATA_AGE_SEC + 0.2)
     msg = await asyncio.wait_for(capacity_receiver.receive(), timeout=waiting_time_sec)
-    compare_messages(msg, Sample(now, Energy.from_watt_hours(21.0)), 0.2)
+    # the msg time difference shouldn't be bigger then the shifted time + 0.2 sec tolerance
+    compare_messages(
+        msg, Sample(now, Energy.from_watt_hours(21.0)), MAX_BATTERY_DATA_AGE_SEC + 0.4
+    )
 
     # All batteries stopped sending data.
     await streamer.stop_streaming(batteries_in_pool[0])
     await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.2)
+    fake_time.shift(MAX_BATTERY_DATA_AGE_SEC + 0.2)
     msg = await asyncio.wait_for(capacity_receiver.receive(), timeout=waiting_time_sec)
     assert isinstance(msg, Sample) and msg.value is None
 
@@ -679,7 +694,12 @@ async def run_capacity_test(setup_args: SetupArgs) -> None:
     latest_data = streamer.get_current_component_data(batteries_in_pool[0])
     streamer.start_streaming(latest_data, sampling_rate=0.1)
     msg = await asyncio.wait_for(capacity_receiver.receive(), timeout=waiting_time_sec)
-    compare_messages(msg, Sample(now, Energy.from_watt_hours(21.0)), 0.2)
+    # the msg time difference shouldn't be bigger then the shifted time + 0.2 sec tolerance
+    compare_messages(
+        msg,
+        Sample(datetime.now(tz=timezone.utc), Energy.from_watt_hours(21.0)),
+        MAX_BATTERY_DATA_AGE_SEC + 0.4,
+    )
 
 
 async def run_soc_test(setup_args: SetupArgs) -> None:
