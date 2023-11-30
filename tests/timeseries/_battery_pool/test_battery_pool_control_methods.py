@@ -109,7 +109,11 @@ class TestBatteryPoolControl:
             )
         )
 
-    async def _init_data_for_batteries(self, mocks: Mocks) -> None:
+    async def _init_data_for_batteries(
+        self, mocks: Mocks, *, exclusion_bounds: tuple[float, float] | None = None
+    ) -> None:
+        excl_lower = exclusion_bounds[0] if exclusion_bounds else 0.0
+        excl_upper = exclusion_bounds[1] if exclusion_bounds else 0.0
         now = datetime.now(tz=timezone.utc)
         for battery_id in mocks.microgrid.battery_ids:
             mocks.streamer.start_streaming(
@@ -119,8 +123,8 @@ class TestBatteryPoolControl:
                     soc=50.0,
                     soc_lower_bound=10.0,
                     soc_upper_bound=90.0,
-                    power_exclusion_lower_bound=0.0,
-                    power_exclusion_upper_bound=0.0,
+                    power_exclusion_lower_bound=excl_lower,
+                    power_exclusion_upper_bound=excl_upper,
                     power_inclusion_lower_bound=-1000.0,
                     power_inclusion_upper_bound=1000.0,
                     capacity=2000.0,
@@ -368,3 +372,113 @@ class TestBatteryPoolControl:
         assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 0.0) for inv_id in mocks.microgrid.battery_inverter_ids
         ]
+
+    async def test_case_4(self, mocks: Mocks, mocker: MockerFixture) -> None:
+        """Test case 4.
+
+        - single battery pool with all batteries.
+        - all batteries are working, but have exclusion bounds.
+        """
+        set_power = typing.cast(
+            AsyncMock, microgrid.connection_manager.get().api_client.set_power
+        )
+        await self._patch_battery_pool_status(mocks, mocker)
+        await self._init_data_for_batteries(mocks, exclusion_bounds=(-100.0, 100.0))
+        await self._init_data_for_inverters(mocks)
+
+        battery_pool = microgrid.battery_pool()
+        bounds_rx = battery_pool.power_status.new_receiver()
+
+        self._assert_report(
+            await bounds_rx.receive(), power=None, lower=-4000.0, upper=4000.0
+        )
+
+        await battery_pool.propose_power(Power.from_watts(1000.0))
+
+        self._assert_report(
+            await bounds_rx.receive(), power=1000.0, lower=-4000.0, upper=4000.0
+        )
+        assert set_power.call_count == 4
+        assert sorted(set_power.call_args_list) == [
+            mocker.call(inv_id, 250.0)
+            for inv_id in mocks.microgrid.battery_inverter_ids
+        ]
+        self._assert_report(
+            await bounds_rx.receive(),
+            power=1000.0,
+            lower=-4000.0,
+            upper=4000.0,
+            expected_result_pred=lambda result: isinstance(
+                result, power_distributing.Success
+            ),
+        )
+
+        set_power.reset_mock()
+
+        # Non-zero power but within the exclusion bounds should get adjusted to nearest
+        # available power.
+        await battery_pool.propose_power(Power.from_watts(50.0))
+
+        self._assert_report(
+            await bounds_rx.receive(), power=400.0, lower=-4000.0, upper=4000.0
+        )
+        assert set_power.call_count == 4
+        assert sorted(set_power.call_args_list) == [
+            mocker.call(inv_id, 100.0)
+            for inv_id in mocks.microgrid.battery_inverter_ids
+        ]
+        self._assert_report(
+            await bounds_rx.receive(),
+            power=400.0,
+            lower=-4000.0,
+            upper=4000.0,
+            expected_result_pred=lambda result: isinstance(
+                result, power_distributing.Success
+            ),
+        )
+
+        set_power.reset_mock()
+
+        # Zero power should be allowed, even if there are exclusion bounds.
+        await battery_pool.propose_power(Power.from_watts(0.0))
+
+        self._assert_report(
+            await bounds_rx.receive(), power=0.0, lower=-4000.0, upper=4000.0
+        )
+        assert set_power.call_count == 4
+        assert sorted(set_power.call_args_list) == [
+            mocker.call(inv_id, 0.0) for inv_id in mocks.microgrid.battery_inverter_ids
+        ]
+        self._assert_report(
+            await bounds_rx.receive(),
+            power=0.0,
+            lower=-4000.0,
+            upper=4000.0,
+            expected_result_pred=lambda result: isinstance(
+                result, power_distributing.Success
+            ),
+        )
+
+        set_power.reset_mock()
+
+        # Non-zero power but within the exclusion bounds should get adjusted to nearest
+        # available power.
+        await battery_pool.propose_power(Power.from_watts(-150.0))
+
+        self._assert_report(
+            await bounds_rx.receive(), power=-400.0, lower=-4000.0, upper=4000.0
+        )
+        assert set_power.call_count == 4
+        assert sorted(set_power.call_args_list) == [
+            mocker.call(inv_id, -100.0)
+            for inv_id in mocks.microgrid.battery_inverter_ids
+        ]
+        self._assert_report(
+            await bounds_rx.receive(),
+            power=-400.0,
+            lower=-4000.0,
+            upper=4000.0,
+            expected_result_pred=lambda result: isinstance(
+                result, power_distributing.Success
+            ),
+        )
