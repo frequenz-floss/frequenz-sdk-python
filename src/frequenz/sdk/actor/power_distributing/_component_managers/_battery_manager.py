@@ -11,9 +11,10 @@ import typing
 from datetime import timedelta
 
 import grpc
-from frequenz.channels import Peekable, Receiver, Sender
+from frequenz.channels import Receiver, Sender
 
 from .... import microgrid
+from ...._internal._channels import LatestValueCache
 from ...._internal._math import is_close_to_zero
 from ....microgrid import connection_manager
 from ....microgrid.component import BatteryData, ComponentCategory, InverterData
@@ -139,8 +140,8 @@ class BatteryManager(ComponentManager):
         self._bat_bats_map = maps["bat_bats"]
         self._inv_invs_map = maps["inv_invs"]
 
-        self._battery_receivers: dict[int, Peekable[BatteryData]] = {}
-        self._inverter_receivers: dict[int, Peekable[InverterData]] = {}
+        self._battery_caches: dict[int, LatestValueCache[BatteryData]] = {}
+        self._inverter_caches: dict[int, LatestValueCache[InverterData]] = {}
 
         self._component_pool_status_tracker = ComponentPoolStatusTracker(
             component_ids=set(self._battery_ids),
@@ -294,11 +295,11 @@ class BatteryManager(ComponentManager):
         api = connection_manager.get().api_client
         for battery_id, inverter_ids in self._bat_invs_map.items():
             bat_recv: Receiver[BatteryData] = await api.battery_data(battery_id)
-            self._battery_receivers[battery_id] = bat_recv.into_peekable()
+            self._battery_caches[battery_id] = LatestValueCache(bat_recv)
 
             for inverter_id in inverter_ids:
                 inv_recv: Receiver[InverterData] = await api.inverter_data(inverter_id)
-                self._inverter_receivers[inverter_id] = inv_recv.into_peekable()
+                self._inverter_caches[inverter_id] = LatestValueCache(inv_recv)
 
     def _get_bounds(
         self,
@@ -370,10 +371,10 @@ class BatteryManager(ComponentManager):
 
         for battery in request.component_ids:
             _logger.debug("Checking battery %d", battery)
-            if battery not in self._battery_receivers:
+            if battery not in self._battery_caches:
                 msg = (
                     f"No battery {battery}, available batteries: "
-                    f"{list(self._battery_receivers.keys())}"
+                    f"{list(self._battery_caches.keys())}"
                 )
                 return Error(request=request, msg=msg)
 
@@ -420,10 +421,11 @@ class BatteryManager(ComponentManager):
                 Return None if we could not replace NaN values.
         """
         battery_data_none = [
-            self._battery_receivers[battery_id].peek() for battery_id in battery_ids
+            self._battery_caches[battery_id].latest_value for battery_id in battery_ids
         ]
         inverter_data_none = [
-            self._inverter_receivers[inverter_id].peek() for inverter_id in inverter_ids
+            self._inverter_caches[inverter_id].latest_value
+            for inverter_id in inverter_ids
         ]
 
         # It means that nothing has been send on this channels, yet.
@@ -498,10 +500,10 @@ class BatteryManager(ComponentManager):
         )
 
         for battery_id in working_batteries:
-            if battery_id not in self._battery_receivers:
+            if battery_id not in self._battery_caches:
                 raise KeyError(
                     f"No battery {battery_id}, "
-                    f"available batteries: {list(self._battery_receivers.keys())}"
+                    f"available batteries: {list(self._battery_caches.keys())}"
                 )
 
         connected_inverters = _get_all_from_map(self._bat_invs_map, batteries)

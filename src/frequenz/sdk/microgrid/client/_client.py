@@ -98,10 +98,6 @@ class MicrogridApiClient(ABC):
     ) -> Receiver[MeterData]:
         """Return a channel receiver that provides a `MeterData` stream.
 
-        If only the latest value is required, the `Receiver` returned by this
-        method can be converted into a `Peekable` with the `into_peekable`
-        method on the `Receiver.`
-
         Args:
             component_id: id of the meter to get data for.
             maxsize: Size of the receiver's buffer.
@@ -117,10 +113,6 @@ class MicrogridApiClient(ABC):
         maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[BatteryData]:
         """Return a channel receiver that provides a `BatteryData` stream.
-
-        If only the latest value is required, the `Receiver` returned by this
-        method can be converted into a `Peekable` with the `into_peekable`
-        method on the `Receiver.`
 
         Args:
             component_id: id of the battery to get data for.
@@ -138,10 +130,6 @@ class MicrogridApiClient(ABC):
     ) -> Receiver[InverterData]:
         """Return a channel receiver that provides an `InverterData` stream.
 
-        If only the latest value is required, the `Receiver` returned by this
-        method can be converted into a `Peekable` with the `into_peekable`
-        method on the `Receiver.`
-
         Args:
             component_id: id of the inverter to get data for.
             maxsize: Size of the receiver's buffer.
@@ -157,10 +145,6 @@ class MicrogridApiClient(ABC):
         maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[EVChargerData]:
         """Return a channel receiver that provides an `EvChargeData` stream.
-
-        If only the latest value is required, the `Receiver` returned by this
-        method can be converted into a `Peekable` with the `into_peekable`
-        method on the `Receiver.`
 
         Args:
             component_id: id of the ev charger to get data for.
@@ -441,7 +425,7 @@ class MicrogridGrpcClient(MicrogridApiClient):
         if component_id in self._component_streams:
             return self._component_streams[component_id]
         task_name = f"raw-component-data-{component_id}"
-        chan = Broadcast[_GenericComponentData](task_name)
+        chan = Broadcast[_GenericComponentData](task_name, resend_latest=True)
         self._component_streams[component_id] = chan
 
         self._streaming_tasks[component_id] = asyncio.create_task(
@@ -493,10 +477,6 @@ class MicrogridGrpcClient(MicrogridApiClient):
     ) -> Receiver[MeterData]:
         """Return a channel receiver that provides a `MeterData` stream.
 
-        If only the latest value is required, the `Receiver` returned by this
-        method can be converted into a `Peekable` with the `into_peekable`
-        method on the `Receiver.`
-
         Raises:
             ValueError: if the given id is unknown or has a different type.
 
@@ -522,10 +502,6 @@ class MicrogridGrpcClient(MicrogridApiClient):
         maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[BatteryData]:
         """Return a channel receiver that provides a `BatteryData` stream.
-
-        If only the latest value is required, the `Receiver` returned by this
-        method can be converted into a `Peekable` with the `into_peekable`
-        method on the `Receiver.`
 
         Raises:
             ValueError: if the given id is unknown or has a different type.
@@ -553,10 +529,6 @@ class MicrogridGrpcClient(MicrogridApiClient):
     ) -> Receiver[InverterData]:
         """Return a channel receiver that provides an `InverterData` stream.
 
-        If only the latest value is required, the `Receiver` returned by this
-        method can be converted into a `Peekable` with the `into_peekable`
-        method on the `Receiver.`
-
         Raises:
             ValueError: if the given id is unknown or has a different type.
 
@@ -582,10 +554,6 @@ class MicrogridGrpcClient(MicrogridApiClient):
         maxsize: int = RECEIVER_MAX_SIZE,
     ) -> Receiver[EVChargerData]:
         """Return a channel receiver that provides an `EvChargeData` stream.
-
-        If only the latest value is required, the `Receiver` returned by this
-        method can be converted into a `Peekable` with the `into_peekable`
-        method on the `Receiver.`
 
         Raises:
             ValueError: if the given id is unknown or has a different type.

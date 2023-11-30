@@ -72,6 +72,7 @@ async def mocks(mocker: MockerFixture) -> typing.AsyncIterator[Mocks]:
         *[
             microgrid._data_pipeline._DATA_PIPELINE._stop(),
             streamer.stop(),
+            mockgrid.cleanup(),
         ]
     )
 

@@ -4,6 +4,7 @@
 """General purpose classes for use with channels."""
 
 import abc
+import asyncio
 import typing
 
 from frequenz.channels import Receiver
@@ -24,3 +25,26 @@ class ReceiverFetcher(typing.Generic[T], typing.Protocol):
         Returns:
             A receiver instance.
         """
+
+
+class LatestValueCache(typing.Generic[T]):
+    """A cache that stores the latest value in a receiver."""
+
+    def __init__(self, receiver: Receiver[T]) -> None:
+        """Create a new cache.
+
+        Args:
+            receiver: The receiver to cache.
+        """
+        self._receiver = receiver
+        self._latest_value: T | None = None
+        self._task = asyncio.create_task(self._run())
+
+    @property
+    def latest_value(self) -> T | None:
+        """Get the latest value in the cache."""
+        return self._latest_value
+
+    async def _run(self) -> None:
+        async for value in self._receiver:
+            self._latest_value = value
