@@ -42,16 +42,19 @@ from ._moving_window import MovingWindow
 from ._periodic_feature_extractor import PeriodicFeatureExtractor
 from ._resampling._base_types import SourceProperties
 from ._resampling._config import ResamplerConfig, ResamplingFunction
+from ._resampling._exceptions import ResamplingError, SourceStoppedError
 
 __all__ = [
     "Bounds",
     "Fuse",
     "MovingWindow",
     "PeriodicFeatureExtractor",
-    "ResamplerConfig",
     "ReceiverFetcher",
+    "ResamplerConfig",
+    "ResamplingError",
     "ResamplingFunction",
     "Sample",
     "Sample3Phase",
     "SourceProperties",
+    "SourceStoppedError",
 ]
