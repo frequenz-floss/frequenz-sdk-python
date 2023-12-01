@@ -554,7 +554,7 @@ class Resampler:
             # enough samples before the first resampling, otherwise the initial window
             # to collect samples could be too small.
             now + period * 2 - elapsed,
-            period - elapsed if elapsed else timedelta(0),
+            period - elapsed,
         )
 
 
