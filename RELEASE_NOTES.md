@@ -53,3 +53,4 @@
 ## Bug Fixes
 
 - 0W power requests are now not adjusted to exclusion bounds by the `PowerManager` and `PowerDistributor`, and are sent over to the microgrid API directly.
+- `timeseries.resampling` will now resync to the system time if it drifts away for more then a resample period.
