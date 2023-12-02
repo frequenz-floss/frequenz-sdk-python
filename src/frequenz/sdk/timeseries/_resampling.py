@@ -519,7 +519,9 @@ class Resampler:
             if one_shot:
                 break
 
-    def _calculate_window_end(self) -> tuple[datetime, timedelta]:
+    def _calculate_window_end(
+        self, extra_period: bool = True
+    ) -> tuple[datetime, timedelta]:
         """Calculate the end of the current resampling window.
 
         The calculated resampling window end is a multiple of
@@ -531,10 +533,14 @@ class Resampler:
         the end of the current resampling window will be more than one period away, to
         make sure to have some time to collect samples if the misalignment is too big.
 
+        Args:
+            extra_period: Add an extra period when it is not aligned to make sure we
+                collected enough samples before the first resampling, otherwise the
+                initial window to collect samples could be too small.
         Returns:
             A tuple with the end of the current resampling window aligned to
                 `self._config.align_to` as the first item and the time we need to
-                delay the timer start to make sure it is also aligned.
+                delay the timer to make sure it is also aligned.
         """
         now = datetime.now(timezone.utc)
         period = self._config.resampling_period
@@ -549,11 +555,9 @@ class Resampler:
         if not elapsed:
             return (now + period, timedelta(0))
 
+        extra_period_factor = 2 if extra_period else 1
         return (
-            # We add an extra period when it is not aligned to make sure we collected
-            # enough samples before the first resampling, otherwise the initial window
-            # to collect samples could be too small.
-            now + period * 2 - elapsed,
+            now + period * extra_period_factor - elapsed,
             period - elapsed,
         )
 
