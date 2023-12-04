@@ -138,7 +138,7 @@ def clamp_to_bounds(  # pylint: disable=too-many-return-statements
 
     # If the given value is within the exclusion bounds and the exclusion bounds are
     # within the given bounds, clamp the given value to the closest exclusion bound.
-    if exclusion_bounds is not None:
+    if exclusion_bounds is not None and not value.isclose(Power.zero()):
         if exclusion_bounds.lower < value < exclusion_bounds.upper:
             return exclusion_bounds.lower, exclusion_bounds.upper
 

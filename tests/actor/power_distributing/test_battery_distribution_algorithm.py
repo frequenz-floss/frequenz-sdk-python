@@ -1040,6 +1040,11 @@ class TestDistWithExclBounds:
         algorithm = BatteryDistributionAlgorithm()
 
         self.assert_result(
+            algorithm.distribute_power(0, components),
+            DistributionResult({1: 0, 3: 0, 5: 0}, remaining_power=0.0),
+        )
+
+        self.assert_result(
             algorithm.distribute_power(-300, components),
             DistributionResult({1: -100, 3: -100, 5: -100}, remaining_power=0.0),
         )

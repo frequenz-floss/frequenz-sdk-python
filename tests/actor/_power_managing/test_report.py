@@ -58,7 +58,7 @@ def test_adjust_to_bounds() -> None:
         inclusion_bounds=(-200.0, 200.0),
         exclusion_bounds=(-30.0, 30.0),
     )
-    tester.case(0.0, -30.0, 30.0)
+    tester.case(0.0, 0.0, 0.0)
     tester.case(-210.0, -200.0, None)
     tester.case(220.0, None, 200.0)
     tester.case(-20.0, -30.0, 30.0)
