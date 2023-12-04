@@ -96,7 +96,6 @@ plugins:
       alias_type: redirect
       canonical_version: latest
   - mkdocstrings:
-      custom_templates: templates
       default_handler: python
       handlers:
         python:
