@@ -19,7 +19,6 @@ from dataclasses import dataclass
 from frequenz.channels import Broadcast, Sender
 
 from ..actor._actor import Actor
-from ..microgrid.component import Component
 from ..timeseries._base_types import PoolType
 from ..timeseries._grid_frequency import GridFrequency
 from ..timeseries.grid import Grid
@@ -119,29 +118,21 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._grid: Grid | None = None
         self._ev_charger_pools: dict[frozenset[int], EVChargerPool] = {}
         self._battery_pools: dict[frozenset[int], BatteryPoolReferenceStore] = {}
-        self._frequency_pool: dict[int, GridFrequency] = {}
+        self._frequency_instance: GridFrequency | None = None
 
-    def frequency(self, component: Component | None = None) -> GridFrequency:
+    def frequency(self) -> GridFrequency:
         """Fetch the grid frequency for the microgrid.
 
-        Args:
-            component: The component to use when fetching the grid frequency.  If None,
-                the component will be fetched from the registry.
-
         Returns:
-            A GridFrequency instance.
+            The GridFrequency instance.
         """
-        if component is None:
-            component = GridFrequency.find_frequency_component()
+        if self._frequency_instance is None:
+            self._frequency_instance = GridFrequency(
+                self._data_sourcing_request_sender(),
+                self._channel_registry,
+            )
 
-        if component.component_id in self._frequency_pool:
-            return self._frequency_pool[component.component_id]
-
-        grid_frequency = GridFrequency(
-            self._data_sourcing_request_sender(), self._channel_registry, component
-        )
-        self._frequency_pool[component.component_id] = grid_frequency
-        return grid_frequency
+        return self._frequency_instance
 
     def logical_meter(self) -> LogicalMeter:
         """Return the logical meter instance.
@@ -409,17 +400,13 @@ async def initialize(resampler_config: ResamplerConfig) -> None:
     _DATA_PIPELINE = _DataPipeline(resampler_config)
 
 
-def frequency(component: Component | None = None) -> GridFrequency:
+def frequency() -> GridFrequency:
     """Return the grid frequency.
-
-    Args:
-        component: Optional component to get the frequency for. If not specified,
-            the frequency of the grid is returned.
 
     Returns:
         The grid frequency.
     """
-    return _get().frequency(component)
+    return _get().frequency()
 
 
 def logical_meter() -> LogicalMeter:
