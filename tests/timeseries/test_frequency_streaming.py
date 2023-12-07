@@ -48,6 +48,7 @@ async def test_grid_frequency_1(mocker: MockerFixture) -> None:
         grid_meter_data.append(Frequency.from_hertz(freq))
         val = await grid_freq_recv.receive()
         assert val is not None and val.value is not None
+        assert val.value.as_hertz() == freq
         results.append(val.value)
     await mockgrid.cleanup()
     assert equal_float_lists(results, grid_meter_data)
@@ -84,6 +85,7 @@ async def test_grid_frequency_no_grid_meter_no_consumer_meter(
 
         val = await grid_freq_recv.receive()
         assert val is not None and val.value is not None
+        assert val.value.as_hertz() == freq
         results.append(val.value)
     await mockgrid.cleanup()
     assert equal_float_lists(results, meter_data)
@@ -119,6 +121,7 @@ async def test_grid_frequency_no_grid_meter(
 
         val = await grid_freq_recv.receive()
         assert val is not None and val.value is not None
+        assert val.value.as_hertz() == freq
         results.append(val.value)
     await mockgrid.cleanup()
     assert equal_float_lists(results, meter_data)
@@ -156,6 +159,7 @@ async def test_grid_frequency_only_inverter(
         meter_data.append(Frequency.from_hertz(freq))
         val = await grid_freq_recv.receive()
         assert val is not None and val.value is not None
+        assert val.value.as_hertz() == freq
         results.append(val.value)
     await mockgrid.cleanup()
     assert equal_float_lists(results, meter_data)
