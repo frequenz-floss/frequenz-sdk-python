@@ -93,7 +93,11 @@ class GridFrequency:
                 "Grid frequency request already sent: %s", self._source_component
             )
 
-        return receiver
+        return receiver.map(
+            lambda sample: Sample(
+                sample.timestamp, Frequency.from_hertz(sample.value.base_value)
+            )
+        )
 
     async def _send_request(self) -> None:
         """Send the request for grid frequency."""

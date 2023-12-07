@@ -57,3 +57,4 @@
 ## Bug Fixes
 
 - 0W power requests are now not adjusted to exclusion bounds by the `PowerManager` and `PowerDistributor`, and are sent over to the microgrid API directly.
+- Fixed that `microgrid.frequency()` was sending `Quantity` objects instead of `Frequency`.
