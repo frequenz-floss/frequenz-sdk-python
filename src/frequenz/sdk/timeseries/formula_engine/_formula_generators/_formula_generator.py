@@ -72,10 +72,12 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
                 resampling actor.
             config: configs for the formula generator.
         """
-        self._channel_registry = channel_registry
-        self._resampler_subscription_sender = resampler_subscription_sender
-        self._namespace = namespace
-        self._config = config
+        self._channel_registry: ChannelRegistry = channel_registry
+        self._resampler_subscription_sender: Sender[
+            ComponentMetricRequest
+        ] = resampler_subscription_sender
+        self._namespace: str = namespace
+        self._config: FormulaGeneratorConfig = config
 
     def _get_builder(
         self,

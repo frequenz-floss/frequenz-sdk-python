@@ -58,10 +58,12 @@ class GridFrequency:
             channel_registry: The channel registry to use for the grid frequency.
             source: The source component to use to receive the grid frequency.
         """
-        self._request_sender = data_sourcing_request_sender
-        self._channel_registry = channel_registry
-        self._source_component = source or GridFrequency.find_frequency_source()
-        self._component_metric_request = create_request(
+        self._request_sender: Sender[
+            ComponentMetricRequest
+        ] = data_sourcing_request_sender
+        self._channel_registry: ChannelRegistry = channel_registry
+        self._source_component: Component = source or self.find_frequency_source()
+        self._component_metric_request: ComponentMetricRequest = create_request(
             self._source_component.component_id
         )
 
