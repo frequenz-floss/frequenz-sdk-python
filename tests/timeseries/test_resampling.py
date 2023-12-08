@@ -1205,6 +1205,117 @@ async def test_timer_is_aligned(
     resampling_fun_mock.reset_mock()
 
 
+async def test_resampling_all_zeros(
+    fake_time: time_machine.Coordinates, source_chan: Broadcast[Sample[Quantity]]
+) -> None:
+    """Test resampling with one resampling window full of zeros."""
+    timestamp = datetime.now(timezone.utc)
+
+    resampling_period_s = 2
+    expected_resampled_value = 0.0
+
+    resampling_fun_mock = MagicMock(
+        spec=ResamplingFunction, return_value=expected_resampled_value
+    )
+    config = ResamplerConfig(
+        resampling_period=timedelta(seconds=resampling_period_s),
+        max_data_age_in_periods=1.0,
+        resampling_function=resampling_fun_mock,
+        initial_buffer_len=4,
+    )
+    resampler = Resampler(config)
+
+    source_receiver = source_chan.new_receiver()
+    source_sender = source_chan.new_sender()
+
+    sink_mock = AsyncMock(spec=Sink, return_value=True)
+
+    resampler.add_timeseries("test", source_receiver, sink_mock)
+    source_props = resampler.get_source_properties(source_receiver)
+
+    # Test timeline
+    #
+    # t(s)   0          1          2   2.5    3          4
+    #        |----------|----------R----|-----|----------R-----> (no more samples)
+    # value  0.0       0.0             0.0   0.0        0.0
+    #
+    # R = resampling is done
+
+    # Send a few samples and run a resample tick, advancing the fake time by one period
+    sample0s = Sample(timestamp, value=Quantity(0.0))
+    sample1s = Sample(timestamp + timedelta(seconds=1), value=Quantity(0.0))
+    await source_sender.send(sample0s)
+    await source_sender.send(sample1s)
+    await _advance_time(fake_time, resampling_period_s)
+    await resampler.resample(one_shot=True)
+
+    assert datetime.now(timezone.utc).timestamp() == 2
+    sink_mock.assert_called_once_with(
+        Sample(
+            timestamp + timedelta(seconds=resampling_period_s),
+            Quantity(expected_resampled_value),
+        )
+    )
+    resampling_fun_mock.assert_called_once_with(
+        a_sequence(sample1s), config, source_props
+    )
+    assert source_props == SourceProperties(
+        sampling_start=timestamp, received_samples=2, sampling_period=None
+    )
+    assert _get_buffer_len(resampler, source_receiver) == config.initial_buffer_len
+    sink_mock.reset_mock()
+    resampling_fun_mock.reset_mock()
+
+    # Second resampling run
+    sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=Quantity(0.0))
+    sample3s = Sample(timestamp + timedelta(seconds=3), value=Quantity(0.0))
+    sample4s = Sample(timestamp + timedelta(seconds=4), value=Quantity(0.0))
+    await source_sender.send(sample2_5s)
+    await source_sender.send(sample3s)
+    await source_sender.send(sample4s)
+    await _advance_time(fake_time, resampling_period_s)
+    await resampler.resample(one_shot=True)
+
+    assert datetime.now(timezone.utc).timestamp() == 4
+    sink_mock.assert_called_once_with(
+        Sample(
+            timestamp + timedelta(seconds=resampling_period_s * 2),
+            Quantity(expected_resampled_value),
+        )
+    )
+    resampling_fun_mock.assert_called_once_with(
+        a_sequence(sample2_5s, sample3s, sample4s), config, source_props
+    )
+    # By now we have a full buffer (5 samples and a buffer of length 4), which
+    # we received in 4 seconds, so we have an input period of 0.8s.
+    assert source_props == SourceProperties(
+        sampling_start=timestamp,
+        received_samples=5,
+        sampling_period=timedelta(seconds=0.8),
+    )
+    # The buffer should be able to hold 2 seconds of data, and data is coming
+    # every 0.8 seconds, so we should be able to store 3 samples.
+    assert _get_buffer_len(resampler, source_receiver) == 3
+    sink_mock.reset_mock()
+    resampling_fun_mock.reset_mock()
+
+    await _assert_no_more_samples(
+        resampler,
+        timestamp,
+        sink_mock,
+        resampling_fun_mock,
+        fake_time,
+        resampling_period_s,
+        current_iteration=3,
+    )
+    assert source_props == SourceProperties(
+        sampling_start=timestamp,
+        received_samples=5,
+        sampling_period=timedelta(seconds=0.8),
+    )
+    assert _get_buffer_len(resampler, source_receiver) == 3
+
+
 def _get_buffer_len(resampler: Resampler, source_receiver: Source) -> int:
     # pylint: disable=protected-access
     blen = resampler._resamplers[source_receiver]._helper._buffer.maxlen
