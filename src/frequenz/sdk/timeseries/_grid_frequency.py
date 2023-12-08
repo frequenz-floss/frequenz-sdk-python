@@ -58,9 +58,20 @@ class GridFrequency:
             channel_registry: The channel registry to use for the grid frequency.
             source: The source component to use to receive the grid frequency.
         """
+        if not source:
+            component_graph = connection_manager.get().component_graph
+            source = component_graph.find_first_descendant_component(
+                root_category=ComponentCategory.GRID,
+                descendant_categories=(
+                    ComponentCategory.METER,
+                    ComponentCategory.INVERTER,
+                    ComponentCategory.EV_CHARGER,
+                ),
+            )
+
         self._request_sender = data_sourcing_request_sender
         self._channel_registry = channel_registry
-        self._source_component = source or GridFrequency.find_frequency_source()
+        self._source_component = source
         self._component_metric_request = create_request(
             self._source_component.component_id
         )
@@ -103,71 +114,3 @@ class GridFrequency:
         """Send the request for grid frequency."""
         await self._request_sender.send(self._component_metric_request)
         _logger.debug("Sent request for grid frequency: %s", self._source_component)
-
-    @staticmethod
-    def find_frequency_source() -> Component:
-        """Find the source component that will be used for grid frequency.
-
-        Will use the first meter it can find to gather the frequency.
-        If no meter is available, the first inverter will be used and finally the first EV charger.
-
-        Returns:
-            The component that will be used for grid frequency.
-
-        Raises:
-            ValueError: when the component graph doesn't have a `GRID` component.
-        """
-        component_graph = connection_manager.get().component_graph
-        grid_component = next(
-            (
-                comp
-                for comp in component_graph.components()
-                if comp.category == ComponentCategory.GRID
-            ),
-            None,
-        )
-
-        if grid_component is None:
-            raise ValueError(
-                "Unable to find a GRID component from the component graph."
-            )
-
-        # Sort by component id to ensure consistent results
-        grid_successors = sorted(
-            component_graph.successors(grid_component.component_id),
-            key=lambda comp: comp.component_id,
-        )
-
-        def find_component(component_category: ComponentCategory) -> Component | None:
-            return next(
-                (
-                    comp
-                    for comp in grid_successors
-                    if comp.category == component_category
-                ),
-                None,
-            )
-
-        # Find the first component that is either a meter, inverter or EV charger
-        # with category priority in that order.
-        component = next(
-            filter(
-                None,
-                map(
-                    find_component,
-                    [
-                        ComponentCategory.METER,
-                        ComponentCategory.INVERTER,
-                        ComponentCategory.EV_CHARGER,
-                    ],
-                ),
-            ),
-            None,
-        )
-
-        if component is None:
-            raise ValueError(
-                "Unable to find a METER, INVERTER or EV_CHARGER component from the component graph."
-            )
-
-        return component
