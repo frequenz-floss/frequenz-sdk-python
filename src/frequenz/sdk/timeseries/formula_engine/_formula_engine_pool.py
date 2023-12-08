@@ -44,9 +44,11 @@ class FormulaEnginePool:
             resampler_subscription_sender: A sender for sending metric requests to the
                 resampling actor.
         """
-        self._namespace = namespace
-        self._channel_registry = channel_registry
-        self._resampler_subscription_sender = resampler_subscription_sender
+        self._namespace: str = namespace
+        self._channel_registry: ChannelRegistry = channel_registry
+        self._resampler_subscription_sender: Sender[
+            ComponentMetricRequest
+        ] = resampler_subscription_sender
         self._string_engines: dict[str, FormulaEngine[Quantity]] = {}
         self._power_engines: dict[str, FormulaEngine[Power]] = {}
         self._current_engines: dict[str, FormulaEngine3Phase[Current]] = {}
