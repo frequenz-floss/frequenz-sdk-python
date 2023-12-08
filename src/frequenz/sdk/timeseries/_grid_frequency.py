@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from frequenz.channels import Receiver, Sender
 
@@ -105,9 +105,9 @@ class GridFrequency:
             )
 
         return receiver.map(
-            lambda sample: Sample(
-                sample.timestamp, Frequency.from_hertz(sample.value.base_value)
-            )
+            lambda sample: cast(Sample[Frequency], sample)
+            if sample.value is None
+            else Sample(sample.timestamp, Frequency.from_hertz(sample.value.base_value))
         )
 
     async def _send_request(self) -> None:
