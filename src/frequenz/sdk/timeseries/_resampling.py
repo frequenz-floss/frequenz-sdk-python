@@ -744,7 +744,7 @@ class _ResamplingHelper:
             if relevant_samples
             else None
         )
-        return Sample(timestamp, None if not value else Quantity(value))
+        return Sample(timestamp, None if value is None else Quantity(value))
 
 
 class _StreamingHelper:
