@@ -27,7 +27,7 @@ class ComponentMetricsResamplingActor(Actor):
     def __init__(  # pylint: disable=too-many-arguments
         self,
         *,
-        channel_registry: ChannelRegistry,
+        channel_registry: ChannelRegistry[Sample[Quantity]],
         data_sourcing_request_sender: Sender[ComponentMetricRequest],
         resampling_request_receiver: Receiver[ComponentMetricRequest],
         config: ResamplerConfig,
@@ -48,7 +48,7 @@ class ComponentMetricsResamplingActor(Actor):
                 is used mostly for debugging purposes.
         """
         super().__init__(name=name)
-        self._channel_registry: ChannelRegistry = channel_registry
+        self._channel_registry: ChannelRegistry[Sample[Quantity]] = channel_registry
         self._data_sourcing_request_sender: Sender[
             ComponentMetricRequest
         ] = data_sourcing_request_sender

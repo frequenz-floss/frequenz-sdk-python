@@ -5,6 +5,8 @@
 
 from frequenz.channels import Receiver
 
+from ...timeseries._base_types import Sample
+from ...timeseries._quantities import Quantity
 from .._actor import Actor
 from .._channel_registry import ChannelRegistry
 from ._component_metric_request import ComponentMetricRequest
@@ -17,7 +19,7 @@ class DataSourcingActor(Actor):
     def __init__(
         self,
         request_receiver: Receiver[ComponentMetricRequest],
-        registry: ChannelRegistry,
+        registry: ChannelRegistry[Sample[Quantity]],
         *,
         name: str | None = None,
     ) -> None:

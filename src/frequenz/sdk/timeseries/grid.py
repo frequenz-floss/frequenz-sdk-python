@@ -20,7 +20,10 @@ from ..microgrid.component._component import ComponentCategory
 from . import Fuse
 from ._quantities import Current, Power
 from .formula_engine import FormulaEngine, FormulaEngine3Phase
-from .formula_engine._formula_engine_pool import FormulaEnginePool
+from .formula_engine._formula_engine_pool import (
+    FormulaEnginePool,
+    QuantitySampleChannelRegistry,
+)
 from .formula_engine._formula_generators import GridCurrentFormula, GridPowerFormula
 
 if TYPE_CHECKING:
@@ -126,7 +129,7 @@ _GRID: Grid | None = None
 
 
 def initialize(
-    channel_registry: ChannelRegistry,
+    channel_registry: QuantitySampleChannelRegistry,
     resampler_subscription_sender: Sender[ComponentMetricRequest],
 ) -> None:
     """Initialize the grid connection.

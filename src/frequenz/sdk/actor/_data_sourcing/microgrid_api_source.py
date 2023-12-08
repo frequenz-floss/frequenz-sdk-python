@@ -97,7 +97,7 @@ class MicrogridApiSource:
 
     def __init__(
         self,
-        registry: ChannelRegistry,
+        registry: ChannelRegistry[Sample[Quantity]],
     ) -> None:
         """Create a `MicrogridApiSource` instance.
 
@@ -113,7 +113,7 @@ class MicrogridApiSource:
         self.comp_data_tasks: dict[int, asyncio.Task[None]] = {}
         """The dictionary of component IDs to asyncio tasks."""
 
-        self._registry = registry
+        self._registry: ChannelRegistry[Sample[Quantity]] = registry
         self._req_streaming_metrics: dict[
             int, dict[ComponentMetricId, list[ComponentMetricRequest]]
         ] = {}

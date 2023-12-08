@@ -5,12 +5,14 @@
 
 from __future__ import annotations
 
+import dataclasses
 from typing import TYPE_CHECKING
 
 from frequenz.channels import Sender
 
 from ...microgrid.component import ComponentMetricId
-from .._quantities import Current, Power, Quantity
+from .._base_types import Sample
+from .._quantities import Current, Power, Quantity, QuantityT
 from ._formula_generators._formula_generator import (
     FormulaGenerator,
     FormulaGeneratorConfig,
@@ -23,6 +25,59 @@ if TYPE_CHECKING:
     from ..formula_engine import FormulaEngine, FormulaEngine3Phase
 
 
+class QuantitySampleChannelRegistry:
+    """A channel registry for a specific quantity."""
+
+    def __init__(
+        self,
+        *,
+        name: str,
+        power: ChannelRegistry[Sample[Power]] | None = None,
+        current: ChannelRegistry[Sample[Current]] | None = None,
+        quantity: ChannelRegistry[Sample[Quantity]] | None = None,
+    ) -> None:
+        """Initialize this registry.
+
+        Args:
+            name: The name of the registry.
+            power: The power channel registry.
+            current: The current channel registry.
+            quantity: The quantity channel registry.
+        """
+        self._name = name
+        self._power = power or ChannelRegistry[Sample[Power]](name=f"{name}-power")
+        self._current = current or ChannelRegistry[Sample[Current]](
+            name=f"{name}-current"
+        )
+        self._quantity = quantity or ChannelRegistry[Sample[Quantity]](
+            name=f"{name}-quantity"
+        )
+
+    @property
+    def name(self) -> str:
+        """The name of the registry."""
+        return self._name
+
+    @property
+    def power(self) -> ChannelRegistry[Sample[Power]]:
+        """The power channel registry."""
+        return self._power
+
+    @property
+    def current(self) -> ChannelRegistry[Sample[Current]]:
+        """The current channel registry."""
+        return self._current
+
+    @property
+    def quantity(self) -> ChannelRegistry[Sample[Quantity]]:
+        """The quantity channel registry."""
+        return self._quantity
+
+    def __repr__(self) -> str:
+        """Get a string representation of the instance."""
+        return f"{type(self).__name__}(name={self._name!r})"
+
+
 class FormulaEnginePool:
     """Creates and owns formula engines from string formulas, or formula generators.
 
@@ -32,7 +87,7 @@ class FormulaEnginePool:
     def __init__(
         self,
         namespace: str,
-        channel_registry: ChannelRegistry,
+        channel_registry: QuantitySampleChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
     ) -> None:
         """Create a new instance.
@@ -45,7 +100,7 @@ class FormulaEnginePool:
                 resampling actor.
         """
         self._namespace: str = namespace
-        self._channel_registry: ChannelRegistry = channel_registry
+        self._channel_registry: QuantitySampleChannelRegistry = channel_registry
         self._resampler_subscription_sender: Sender[
             ComponentMetricRequest
         ] = resampler_subscription_sender
@@ -79,7 +134,7 @@ class FormulaEnginePool:
         builder = ResampledFormulaBuilder(
             self._namespace,
             formula,
-            self._channel_registry,
+            self._channel_registry.quantity,
             self._resampler_subscription_sender,
             component_metric_id,
             Quantity,
@@ -115,7 +170,7 @@ class FormulaEnginePool:
 
         engine = generator(
             self._namespace,
-            self._channel_registry,
+            self._channel_registry.power,
             self._resampler_subscription_sender,
             config,
         ).generate()
@@ -149,7 +204,7 @@ class FormulaEnginePool:
 
         engine = generator(
             self._namespace,
-            self._channel_registry,
+            self._channel_registry.current,
             self._resampler_subscription_sender,
             config,
         ).generate()

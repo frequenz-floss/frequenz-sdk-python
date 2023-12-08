@@ -12,7 +12,10 @@ from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid.component import ComponentMetricId
 from .._quantities import Power, Quantity
 from ..formula_engine import FormulaEngine
-from ..formula_engine._formula_engine_pool import FormulaEnginePool
+from ..formula_engine._formula_engine_pool import (
+    FormulaEnginePool,
+    QuantitySampleChannelRegistry,
+)
 from ..formula_engine._formula_generators import (
     CHPPowerFormula,
     ConsumerPowerFormula,
@@ -69,7 +72,7 @@ class LogicalMeter:
 
     def __init__(
         self,
-        channel_registry: ChannelRegistry,
+        channel_registry: QuantitySampleChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
     ) -> None:
         """Create a `LogicalMeter` instance.
@@ -85,7 +88,7 @@ class LogicalMeter:
             resampler_subscription_sender: A sender for sending metric requests to the
                 resampling actor.
         """
-        self._channel_registry: ChannelRegistry = channel_registry
+        self._channel_registry: QuantitySampleChannelRegistry = channel_registry
         self._resampler_subscription_sender: Sender[
             ComponentMetricRequest
         ] = resampler_subscription_sender

@@ -15,7 +15,7 @@ from ..actor import ChannelRegistry
 from ..microgrid import connection_manager
 from ..microgrid.component import Component, ComponentCategory, ComponentMetricId
 from ..timeseries._base_types import Sample
-from ..timeseries._quantities import Frequency
+from ..timeseries._quantities import Frequency, Quantity
 
 if TYPE_CHECKING:
     # Imported here to avoid a circular import.
@@ -48,7 +48,7 @@ class GridFrequency:
     def __init__(
         self,
         data_sourcing_request_sender: Sender[ComponentMetricRequest],
-        channel_registry: ChannelRegistry,
+        channel_registry: ChannelRegistry[Sample[Quantity]],
         source: Component | None = None,
     ):
         """Initialize the grid frequency formula generator.
@@ -61,7 +61,7 @@ class GridFrequency:
         self._request_sender: Sender[
             ComponentMetricRequest
         ] = data_sourcing_request_sender
-        self._channel_registry: ChannelRegistry = channel_registry
+        self._channel_registry: ChannelRegistry[Sample[Quantity]] = channel_registry
         self._source_component: Component = source or self.find_frequency_source()
         self._component_metric_request: ComponentMetricRequest = create_request(
             self._source_component.component_id

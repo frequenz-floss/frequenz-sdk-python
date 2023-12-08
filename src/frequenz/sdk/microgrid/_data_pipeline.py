@@ -21,6 +21,9 @@ from frequenz.channels import Broadcast, Sender
 from ..actor._actor import Actor
 from ..timeseries._base_types import PoolType
 from ..timeseries._grid_frequency import GridFrequency
+from ..timeseries.formula_engine._formula_engine_pool import (
+    QuantitySampleChannelRegistry,
+)
 from ..timeseries.grid import Grid
 from ..timeseries.grid import get as get_grid
 from ..timeseries.grid import initialize as initialize_grid
@@ -89,8 +92,8 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         self._resampler_config: ResamplerConfig = resampler_config
 
-        self._channel_registry: ChannelRegistry = ChannelRegistry(
-            name="Data Pipeline Registry"
+        self._channel_registry: QuantitySampleChannelRegistry = (
+            QuantitySampleChannelRegistry(name="Data Pipeline Registry")
         )
 
         self._data_sourcing_actor: _ActorInfo | None = None
@@ -131,7 +134,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         if self._frequency_instance is None:
             self._frequency_instance = GridFrequency(
                 self._data_sourcing_request_sender(),
-                self._channel_registry,
+                self._channel_registry.quantity,
             )
 
         return self._frequency_instance

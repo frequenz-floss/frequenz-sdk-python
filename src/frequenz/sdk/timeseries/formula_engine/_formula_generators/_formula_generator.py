@@ -16,6 +16,7 @@ from frequenz.channels import Sender
 
 from ....microgrid import component, connection_manager
 from ....microgrid.component import ComponentMetricId
+from ..._base_types import Sample
 from ..._quantities import QuantityT
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase
 from .._resampled_formula_builder import ResampledFormulaBuilder
@@ -58,7 +59,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
     def __init__(
         self,
         namespace: str,
-        channel_registry: ChannelRegistry,
+        channel_registry: ChannelRegistry[Sample[QuantityT]],
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         config: FormulaGeneratorConfig,
     ) -> None:
@@ -72,7 +73,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
                 resampling actor.
             config: configs for the formula generator.
         """
-        self._channel_registry: ChannelRegistry = channel_registry
+        self._channel_registry: ChannelRegistry[Sample[QuantityT]] = channel_registry
         self._resampler_subscription_sender: Sender[
             ComponentMetricRequest
         ] = resampler_subscription_sender

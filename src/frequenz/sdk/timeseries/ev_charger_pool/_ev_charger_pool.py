@@ -21,7 +21,10 @@ from ...microgrid.component import ComponentCategory, ComponentMetricId
 from .. import Sample, Sample3Phase
 from .._quantities import Current, Power, Quantity
 from ..formula_engine import FormulaEngine, FormulaEngine3Phase
-from ..formula_engine._formula_engine_pool import FormulaEnginePool
+from ..formula_engine._formula_engine_pool import (
+    FormulaEnginePool,
+    QuantitySampleChannelRegistry,
+)
 from ..formula_engine._formula_generators import (
     EVChargerCurrentFormula,
     EVChargerPowerFormula,
@@ -75,7 +78,7 @@ class EVChargerPool:
 
     def __init__(
         self,
-        channel_registry: ChannelRegistry,
+        channel_registry: QuantitySampleChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         component_ids: set[int] | None = None,
         repeat_interval: timedelta = timedelta(seconds=3.0),
@@ -98,7 +101,7 @@ class EVChargerPool:
             repeat_interval: Interval after which to repeat the last set bounds to the
                 microgrid API, if no new calls to `set_bounds` have been made.
         """
-        self._channel_registry: ChannelRegistry = channel_registry
+        self._channel_registry: QuantitySampleChannelRegistry = channel_registry
         self._repeat_interval: timedelta = repeat_interval
         self._resampler_subscription_sender: Sender[
             ComponentMetricRequest
@@ -279,7 +282,9 @@ class EVChargerPool:
                 start_time=None,
             )
             await self._resampler_subscription_sender.send(request)
-            return self._channel_registry.new_receiver(request.get_channel_name())
+            return self._channel_registry.quantity.new_receiver(
+                request.get_channel_name()
+            )
 
         return (
             await resampler_subscribe(ComponentMetricId.CURRENT_PHASE_1),

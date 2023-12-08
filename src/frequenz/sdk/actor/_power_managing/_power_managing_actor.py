@@ -17,7 +17,14 @@ from typing_extensions import override
 from ...timeseries._base_types import PoolType, SystemBounds
 from .._actor import Actor
 from .._channel_registry import ChannelRegistry
-from ._base_classes import Algorithm, BaseAlgorithm, Proposal, ReportRequest, _Report
+from ._base_classes import (
+    Algorithm,
+    BaseAlgorithm,
+    Proposal,
+    Report,
+    ReportRequest,
+    _Report,
+)
 from ._matryoshka import Matryoshka
 
 _logger = logging.getLogger(__name__)
@@ -36,7 +43,7 @@ class PowerManagingActor(Actor):
         bounds_subscription_receiver: Receiver[ReportRequest],
         power_distributing_requests_sender: Sender[power_distributing.Request],
         power_distributing_results_receiver: Receiver[power_distributing.Result],
-        channel_registry: ChannelRegistry,
+        channel_registry: ChannelRegistry[Report],
         # arguments to actors need to serializable, so we pass an enum for the algorithm
         # instead of an instance of the algorithm.
         algorithm: Algorithm = Algorithm.MATRYOSHKA,

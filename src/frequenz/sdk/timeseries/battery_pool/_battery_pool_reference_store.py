@@ -13,11 +13,14 @@ from typing import Any
 from frequenz.channels import Receiver, Sender
 
 from ..._internal._asyncio import cancel_and_await
-from ...actor import ComponentMetricRequest, _channel_registry, _power_managing
+from ...actor import ComponentMetricRequest, _power_managing
 from ...actor.power_distributing._component_status import ComponentPoolStatus
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory
-from ..formula_engine._formula_engine_pool import FormulaEnginePool
+from ..formula_engine._formula_engine_pool import (
+    FormulaEnginePool,
+    QuantitySampleChannelRegistry,
+)
 from ._methods import MetricAggregator
 
 
@@ -36,7 +39,7 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        channel_registry: _channel_registry.ChannelRegistry,
+        channel_registry: QuantitySampleChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         batteries_status_receiver: Receiver[ComponentPoolStatus],
         power_manager_requests_sender: Sender[_power_managing.Proposal],
@@ -102,7 +105,7 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
         self._power_bounds_subs: dict[str, asyncio.Task[None]] = {}
         self._namespace: str = f"battery-pool-{self._batteries}-{uuid.uuid4()}"
         self._power_distributing_namespace: str = f"power-distributor-{self._namespace}"
-        self._channel_registry: ChannelRegistry = channel_registry
+        self._channel_registry: QuantitySampleChannelRegistry = channel_registry
         self._formula_pool: FormulaEnginePool = FormulaEnginePool(
             self._namespace,
             self._channel_registry,

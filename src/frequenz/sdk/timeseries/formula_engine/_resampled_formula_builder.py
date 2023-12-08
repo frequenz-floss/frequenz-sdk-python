@@ -28,7 +28,7 @@ class ResampledFormulaBuilder(Generic[QuantityT], FormulaBuilder[QuantityT]):
         self,
         namespace: str,
         formula_name: str,
-        channel_registry: ChannelRegistry,
+        channel_registry: ChannelRegistry[Sample[QuantityT]],
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         metric_id: ComponentMetricId,
         create_method: Callable[[float], QuantityT],
@@ -48,7 +48,7 @@ class ResampledFormulaBuilder(Generic[QuantityT], FormulaBuilder[QuantityT]):
                 formula is for generating power values, this would be
                 `Power.from_watts`, for example.
         """
-        self._channel_registry: ChannelRegistry = channel_registry
+        self._channel_registry: ChannelRegistry[Sample[QuantityT]] = channel_registry
         self._resampler_subscription_sender: Sender[
             ComponentMetricRequest
         ] = resampler_subscription_sender
