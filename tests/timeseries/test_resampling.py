@@ -617,7 +617,7 @@ async def test_resampling_with_one_window(
     #
     # t(s)   0          1          2   2.5    3          4
     #        |----------|----------R----|-----|----------R-----> (no more samples)
-    # value  5.0       12.0            2.0   4.0        5.0
+    # value  5.0       12.0            0.0   4.0        5.0
     #
     # R = resampling is done
 
@@ -647,7 +647,7 @@ async def test_resampling_with_one_window(
     resampling_fun_mock.reset_mock()
 
     # Second resampling run
-    sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=Quantity(2.0))
+    sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=Quantity.zero())
     sample3s = Sample(timestamp + timedelta(seconds=3), value=Quantity(4.0))
     sample4s = Sample(timestamp + timedelta(seconds=4), value=Quantity(5.0))
     await source_sender.send(sample2_5s)
@@ -1242,8 +1242,8 @@ async def test_resampling_all_zeros(
     # R = resampling is done
 
     # Send a few samples and run a resample tick, advancing the fake time by one period
-    sample0s = Sample(timestamp, value=Quantity(0.0))
-    sample1s = Sample(timestamp + timedelta(seconds=1), value=Quantity(0.0))
+    sample0s = Sample(timestamp, value=Quantity.zero())
+    sample1s = Sample(timestamp + timedelta(seconds=1), value=Quantity.zero())
     await source_sender.send(sample0s)
     await source_sender.send(sample1s)
     await _advance_time(fake_time, resampling_period_s)
@@ -1267,9 +1267,9 @@ async def test_resampling_all_zeros(
     resampling_fun_mock.reset_mock()
 
     # Second resampling run
-    sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=Quantity(0.0))
-    sample3s = Sample(timestamp + timedelta(seconds=3), value=Quantity(0.0))
-    sample4s = Sample(timestamp + timedelta(seconds=4), value=Quantity(0.0))
+    sample2_5s = Sample(timestamp + timedelta(seconds=2.5), value=Quantity.zero())
+    sample3s = Sample(timestamp + timedelta(seconds=3), value=Quantity.zero())
+    sample4s = Sample(timestamp + timedelta(seconds=4), value=Quantity.zero())
     await source_sender.send(sample2_5s)
     await source_sender.send(sample3s)
     await source_sender.send(sample4s)
