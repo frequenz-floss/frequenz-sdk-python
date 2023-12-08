@@ -211,14 +211,16 @@ class PowerManagingActor(Actor):
 
                 if component_ids not in self._subscriptions:
                     self._subscriptions[component_ids] = {
-                        priority: self._channel_registry.new_sender(
-                            sub.get_channel_name()
+                        priority: typing.cast(
+                            Sender[_Report],
+                            self._channel_registry.new_sender(sub.get_channel_name()),
                         )
                     }
                 elif priority not in self._subscriptions[component_ids]:
-                    self._subscriptions[component_ids][
-                        priority
-                    ] = self._channel_registry.new_sender(sub.get_channel_name())
+                    self._subscriptions[component_ids][priority] = typing.cast(
+                        Sender[_Report],
+                        self._channel_registry.new_sender(sub.get_channel_name()),
+                    )
 
                 if sub.component_ids not in self._bound_tracker_tasks:
                     self._add_bounds_tracker(sub.component_ids)

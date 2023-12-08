@@ -11,6 +11,7 @@ from asyncio import Task
 from collections import abc
 from dataclasses import dataclass
 from datetime import timedelta
+from typing import cast
 
 from frequenz.channels import Broadcast, ChannelClosedError, Receiver, Sender
 
@@ -279,7 +280,10 @@ class EVChargerPool:
                 start_time=None,
             )
             await self._resampler_subscription_sender.send(request)
-            return self._channel_registry.new_receiver(request.get_channel_name())
+            return cast(
+                Receiver[Sample[Quantity]],
+                self._channel_registry.new_receiver(request.get_channel_name()),
+            )
 
         return (
             await resampler_subscribe(ComponentMetricId.CURRENT_PHASE_1),

@@ -12,6 +12,7 @@ import asyncio
 import uuid
 from collections import abc
 from datetime import timedelta
+from typing import cast
 
 from ... import timeseries
 from ..._internal._channels import ReceiverFetcher
@@ -389,8 +390,11 @@ class BatteryPool:
         self._battery_pool._channel_registry.set_resend_latest(
             sub.get_channel_name(), True
         )
-        return self._battery_pool._channel_registry.new_receiver_fetcher(
-            sub.get_channel_name()
+        return cast(
+            ReceiverFetcher[BatteryPoolReport],
+            self._battery_pool._channel_registry.new_receiver_fetcher(
+                sub.get_channel_name()
+            ),
         )
 
     @property

@@ -5,6 +5,7 @@
 
 
 import asyncio
+import typing
 from datetime import datetime
 
 from frequenz.channels import Broadcast, Receiver, Sender
@@ -21,6 +22,21 @@ from frequenz.sdk.timeseries.formula_engine._formula_generators._formula_generat
 )
 
 # pylint: disable=too-many-instance-attributes
+
+
+def _cast_sample(sample: typing.Any) -> Sample[Quantity]:
+    """Cast a sample to a sample of quantities."""
+    return typing.cast(Sample[Quantity], sample)
+
+
+def _cast_sender(sender: Sender[typing.Any]) -> Sender[Sample[Quantity]]:
+    """Cast a sample to a sample of quantities."""
+    return typing.cast(Sender[Sample[Quantity]], sender)
+
+
+def _cast_receiver(receiver: Receiver[typing.Any]) -> Receiver[Sample[Quantity]]:
+    """Cast a sample to a sample of quantities."""
+    return typing.cast(Receiver[Sample[Quantity]], receiver)
 
 
 class MockResampler:
@@ -52,9 +68,10 @@ class MockResampler:
             senders: list[Sender[Sample[Quantity]]] = []
             for comp_id in comp_ids:
                 name = f"{comp_id}:{ComponentMetricId.ACTIVE_POWER}"
-                senders.append(self._channel_registry.new_sender(name))
+                senders.append(_cast_sender(self._channel_registry.new_sender(name)))
                 self._basic_receivers[name] = [
-                    self._channel_registry.new_receiver(name) for _ in range(namespaces)
+                    _cast_receiver(self._channel_registry.new_receiver(name))
+                    for _ in range(namespaces)
                 ]
             return senders
 
@@ -64,9 +81,10 @@ class MockResampler:
             senders: list[Sender[Sample[Quantity]]] = []
             for comp_id in comp_ids:
                 name = f"{comp_id}:{ComponentMetricId.FREQUENCY}"
-                senders.append(self._channel_registry.new_sender(name))
+                senders.append(_cast_sender(self._channel_registry.new_sender(name)))
                 self._basic_receivers[name] = [
-                    self._channel_registry.new_receiver(name) for _ in range(namespaces)
+                    _cast_receiver(self._channel_registry.new_receiver(name))
+                    for _ in range(namespaces)
                 ]
             return senders
 
@@ -90,21 +108,21 @@ class MockResampler:
 
                 senders.append(
                     [
-                        self._channel_registry.new_sender(p1_name),
-                        self._channel_registry.new_sender(p2_name),
-                        self._channel_registry.new_sender(p3_name),
+                        _cast_sender(self._channel_registry.new_sender(p1_name)),
+                        _cast_sender(self._channel_registry.new_sender(p2_name)),
+                        _cast_sender(self._channel_registry.new_sender(p3_name)),
                     ]
                 )
                 self._basic_receivers[p1_name] = [
-                    self._channel_registry.new_receiver(p1_name)
+                    _cast_receiver(self._channel_registry.new_receiver(p1_name))
                     for _ in range(namespaces)
                 ]
                 self._basic_receivers[p2_name] = [
-                    self._channel_registry.new_receiver(p2_name)
+                    _cast_receiver(self._channel_registry.new_receiver(p2_name))
                     for _ in range(namespaces)
                 ]
                 self._basic_receivers[p3_name] = [
-                    self._channel_registry.new_receiver(p3_name)
+                    _cast_receiver(self._channel_registry.new_receiver(p3_name))
                     for _ in range(namespaces)
                 ]
             return senders

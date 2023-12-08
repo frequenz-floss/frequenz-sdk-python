@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Generic
+from typing import TYPE_CHECKING, Generic, cast
 
 from frequenz.channels import Receiver, Sender
 
@@ -72,7 +72,10 @@ class ResampledFormulaBuilder(Generic[QuantityT], FormulaBuilder[QuantityT]):
 
         request = ComponentMetricRequest(self._namespace, component_id, metric_id, None)
         self._resampler_requests.append(request)
-        return self._channel_registry.new_receiver(request.get_channel_name())
+        return cast(
+            Receiver[Sample[QuantityT]],
+            self._channel_registry.new_receiver(request.get_channel_name()),
+        )
 
     async def subscribe(self) -> None:
         """Subscribe to all resampled component metric streams."""

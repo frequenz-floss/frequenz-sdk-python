@@ -6,7 +6,7 @@
 import asyncio
 import logging
 from collections.abc import Callable
-from typing import Any
+from typing import Any, cast
 
 from frequenz.channels import Receiver, Sender
 
@@ -322,7 +322,10 @@ class MicrogridApiSource:
             (
                 self._get_data_extraction_method(category, metric),
                 [
-                    self._registry.new_sender(request.get_channel_name())
+                    cast(
+                        Sender[Sample[Quantity]],
+                        self._registry.new_sender(request.get_channel_name()),
+                    )
                     for request in req_list
                 ],
             )

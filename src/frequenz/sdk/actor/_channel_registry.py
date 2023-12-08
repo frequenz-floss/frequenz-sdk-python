@@ -3,13 +3,19 @@
 
 """A class that would dynamically create, own and provide access to channels."""
 
-from __future__ import annotations
-
-import typing
-
 from frequenz.channels import Broadcast, Receiver, Sender
 
 from .._internal._channels import ReceiverFetcher
+
+
+class Unknown:
+    """An unknown type.
+
+    This is used as the opposite of `typing.Any`, to indicate that the type is unknown
+    and forcing the user to explicitly cast from `Unkown` to a known type.
+
+    This is a temporary hack, eventually we should make `ChannelRegistry` generic.
+    """
 
 
 class ChannelRegistry:
@@ -26,7 +32,7 @@ class ChannelRegistry:
             name: A unique name for the registry.
         """
         self._name = name
-        self._channels: dict[str, Broadcast[typing.Any]] = {}
+        self._channels: dict[str, Broadcast[Unknown]] = {}
 
     def set_resend_latest(self, key: str, resend_latest: bool) -> None:
         """Set the `resend_latest` flag for a given channel.
@@ -49,7 +55,7 @@ class ChannelRegistry:
         # but that will change in the future.
         self._channels[key].resend_latest = resend_latest
 
-    def new_sender(self, key: str) -> Sender[typing.Any]:
+    def new_sender(self, key: str) -> Sender[Unknown]:
         """Get a sender to a dynamically created channel with the given key.
 
         Args:
@@ -62,7 +68,7 @@ class ChannelRegistry:
             self._channels[key] = Broadcast(f"{self._name}-{key}")
         return self._channels[key].new_sender()
 
-    def new_receiver(self, key: str, maxsize: int = 50) -> Receiver[typing.Any]:
+    def new_receiver(self, key: str, maxsize: int = 50) -> Receiver[Unknown]:
         """Get a receiver to a dynamically created channel with the given key.
 
         Args:
@@ -76,7 +82,7 @@ class ChannelRegistry:
             self._channels[key] = Broadcast(f"{self._name}-{key}")
         return self._channels[key].new_receiver(maxsize=maxsize)
 
-    def new_receiver_fetcher(self, key: str) -> ReceiverFetcher[typing.Any]:
+    def new_receiver_fetcher(self, key: str) -> ReceiverFetcher[Unknown]:
         """Get a receiver fetcher to a dynamically created channel with the given key.
 
         Args:
@@ -102,10 +108,7 @@ class ChannelRegistry:
                 await channel.close()
 
 
-T = typing.TypeVar("T")
-
-
-class _RegistryReceiverFetcher(typing.Generic[T]):
+class _RegistryReceiverFetcher:
     """A receiver fetcher that is bound to a channel registry and a key."""
 
     def __init__(
@@ -122,7 +125,7 @@ class _RegistryReceiverFetcher(typing.Generic[T]):
         self._registry = registry
         self._key = key
 
-    def new_receiver(self, maxsize: int = 50) -> Receiver[T]:
+    def new_receiver(self, maxsize: int = 50) -> Receiver[Unknown]:
         """Get a receiver from the channel.
 
         Args:
