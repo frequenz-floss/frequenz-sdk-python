@@ -21,6 +21,7 @@ from frequenz.channels import Broadcast, Sender
 from ..actor._actor import Actor
 from ..timeseries._base_types import PoolType
 from ..timeseries._grid_frequency import GridFrequency
+from ..timeseries._voltage_streaming import VoltageStreaming
 from ..timeseries.grid import Grid
 from ..timeseries.grid import get as get_grid
 from ..timeseries.grid import initialize as initialize_grid
@@ -119,6 +120,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._ev_charger_pools: dict[frozenset[int], EVChargerPool] = {}
         self._battery_pools: dict[frozenset[int], BatteryPoolReferenceStore] = {}
         self._frequency_instance: GridFrequency | None = None
+        self._voltage_instance: VoltageStreaming | None = None
 
     def frequency(self) -> GridFrequency:
         """Fetch the grid frequency for the microgrid.
@@ -133,6 +135,20 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             )
 
         return self._frequency_instance
+
+    def voltage(self) -> VoltageStreaming:
+        """Fetch the 3-phase voltage for the microgrid.
+
+        Returns:
+            The VoltageStreaming instance.
+        """
+        if not self._voltage_instance:
+            self._voltage_instance = VoltageStreaming(
+                self._resampling_request_sender(),
+                self._channel_registry,
+            )
+
+        return self._voltage_instance
 
     def logical_meter(self) -> LogicalMeter:
         """Return the logical meter instance.
@@ -407,6 +423,15 @@ def frequency() -> GridFrequency:
         The grid frequency.
     """
     return _get().frequency()
+
+
+def voltage() -> VoltageStreaming:
+    """Return the 3-phase voltage for the microgrid.
+
+    Returns:
+        The 3-phase voltage.
+    """
+    return _get().voltage()
 
 
 def logical_meter() -> LogicalMeter:
