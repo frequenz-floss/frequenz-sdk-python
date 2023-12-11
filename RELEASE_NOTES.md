@@ -46,13 +46,13 @@
 
 - The `ComponentGraph.components()` parameters `component_id` and `component_category` were renamed to `component_ids` and `component_categories`, respectively.
 
-- The `GridFrequency.component` propery was renamed to `GridFrequency.source`
+- The `GridFrequency.component` property was renamed to `GridFrequency.source`
 
 - The `microgrid.frequency()` method no longer supports passing the `component` parameter. Instead the best component is automatically selected.
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+- A new method `microgrid.voltage()` was added to allow easy access to the phase-to-neutral 3-phase voltage of the microgrid.
 
 ## Bug Fixes
 
