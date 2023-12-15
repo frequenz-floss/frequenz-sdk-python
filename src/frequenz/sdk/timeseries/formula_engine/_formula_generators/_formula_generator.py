@@ -16,7 +16,7 @@ from frequenz.channels import Sender
 
 from ....microgrid import component, connection_manager
 from ....microgrid.component import ComponentMetricId
-from ..._quantities import QuantityT
+from ..._base_types import SupportsFloatT
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase
 from .._resampled_formula_builder import ResampledFormulaBuilder
 
@@ -52,7 +52,7 @@ class FormulaGeneratorConfig:
     """The component IDs to use for generating the formula."""
 
 
-class FormulaGenerator(ABC, Generic[QuantityT]):
+class FormulaGenerator(ABC, Generic[SupportsFloatT]):
     """A class for generating formulas from the component graph."""
 
     def __init__(
@@ -83,8 +83,8 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
         self,
         name: str,
         component_metric_id: ComponentMetricId,
-        create_method: Callable[[float], QuantityT],
-    ) -> ResampledFormulaBuilder[QuantityT]:
+        create_method: Callable[[float], SupportsFloatT],
+    ) -> ResampledFormulaBuilder[SupportsFloatT]:
         builder = ResampledFormulaBuilder(
             self._namespace,
             name,
@@ -140,5 +140,5 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
     @abstractmethod
     def generate(
         self,
-    ) -> FormulaEngine[QuantityT] | FormulaEngine3Phase[QuantityT]:
+    ) -> FormulaEngine[SupportsFloatT] | FormulaEngine3Phase[SupportsFloatT]:
         """Generate a formula engine, based on the component graph."""

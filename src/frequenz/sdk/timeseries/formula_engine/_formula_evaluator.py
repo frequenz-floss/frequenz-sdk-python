@@ -9,20 +9,19 @@ from datetime import datetime
 from math import isinf, isnan
 from typing import Generic
 
-from .. import Sample
-from .._quantities import QuantityT
+from .._base_types import Sample, SupportsFloatT
 from ._formula_steps import FormulaStep, MetricFetcher
 
 
-class FormulaEvaluator(Generic[QuantityT]):
+class FormulaEvaluator(Generic[SupportsFloatT]):
     """A post-fix formula evaluator that operates on `Sample` receivers."""
 
     def __init__(
         self,
         name: str,
         steps: list[FormulaStep],
-        metric_fetchers: dict[str, MetricFetcher[QuantityT]],
-        create_method: Callable[[float], QuantityT],
+        metric_fetchers: dict[str, MetricFetcher[SupportsFloatT]],
+        create_method: Callable[[float], SupportsFloatT],
     ) -> None:
         """Create a `FormulaEngine` instance.
 
@@ -36,12 +35,14 @@ class FormulaEvaluator(Generic[QuantityT]):
         """
         self._name = name
         self._steps = steps
-        self._metric_fetchers: dict[str, MetricFetcher[QuantityT]] = metric_fetchers
+        self._metric_fetchers: dict[str, MetricFetcher[SupportsFloatT]] = (
+            metric_fetchers
+        )
         self._first_run = True
-        self._create_method: Callable[[float], QuantityT] = create_method
+        self._create_method: Callable[[float], SupportsFloatT] = create_method
 
     async def _synchronize_metric_timestamps(
-        self, metrics: set[asyncio.Task[Sample[QuantityT] | None]]
+        self, metrics: set[asyncio.Task[Sample[SupportsFloatT] | None]]
     ) -> datetime:
         """Synchronize the metric streams.
 
@@ -88,7 +89,7 @@ class FormulaEvaluator(Generic[QuantityT]):
         self._first_run = False
         return latest_ts
 
-    async def apply(self) -> Sample[QuantityT]:
+    async def apply(self) -> Sample[SupportsFloatT]:
         """Fetch the latest metrics, apply the formula once and return the result.
 
         Returns:

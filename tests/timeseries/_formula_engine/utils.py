@@ -12,7 +12,7 @@ from frequenz.channels import Receiver
 from frequenz.sdk.microgrid import _data_pipeline
 from frequenz.sdk.microgrid.component import ComponentMetricId
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._quantities import QuantityT
+from frequenz.sdk.timeseries._quantities import SupportsFloatT
 from frequenz.sdk.timeseries.formula_engine._resampled_formula_builder import (
     ResampledFormulaBuilder,
 )
@@ -22,8 +22,8 @@ def get_resampled_stream(
     namespace: str,
     comp_id: int,
     metric_id: ComponentMetricId,
-    create_method: Callable[[float], QuantityT],
-) -> Receiver[Sample[QuantityT]]:
+    create_method: Callable[[float], SupportsFloatT],
+) -> Receiver[Sample[SupportsFloatT]]:
     """Return the resampled data stream for the given component."""
     # Create a `FormulaBuilder` instance, just in order to reuse its
     # `_get_resampled_receiver` function implementation.
@@ -51,10 +51,10 @@ def get_resampled_stream(
     # pylint: enable=protected-access
 
 
-def equal_float_lists(list1: list[QuantityT], list2: list[QuantityT]) -> bool:
+def equal_float_lists(list1: list[SupportsFloatT], list2: list[SupportsFloatT]) -> bool:
     """Compare two float lists with `math.isclose()`."""
     return (
         len(list1) > 0
         and len(list1) == len(list2)
-        and all(isclose(v1.base_value, v2.base_value) for v1, v2 in zip(list1, list2))
+        and all(isclose(v1, v2) for v1, v2 in zip(list1, list2))
     )

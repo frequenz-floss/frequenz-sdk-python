@@ -5,12 +5,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, cast
 
 from frequenz.channels import Sender
 
 from ...microgrid.component import ComponentMetricId
-from .._quantities import Current, Power, Quantity
+from .._quantities import Current, Power, Quantity, SupportsFloatT
 from ._formula_generators._formula_generator import (
     FormulaGenerator,
     FormulaGeneratorConfig,
@@ -59,14 +59,16 @@ class FormulaEnginePool:
         formula: str,
         component_metric_id: ComponentMetricId,
         *,
+        value_constructor: Callable[[float], SupportsFloatT],
         nones_are_zeros: bool = False,
-    ) -> FormulaEngine[Quantity]:
+    ) -> FormulaEngine[SupportsFloatT]:
         """Get a receiver for a manual formula.
 
         Args:
             formula: formula to execute.
             component_metric_id: The metric ID to use when fetching receivers from the
                 resampling actor.
+            value_constructor: A function to create new values with.
             nones_are_zeros: Whether to treat None values from the stream as 0s.  If
                 False, the returned value will be a None.
 
@@ -75,18 +77,22 @@ class FormulaEnginePool:
         """
         channel_key = formula + component_metric_id.value
         if channel_key in self._string_engines:
-            return self._string_engines[channel_key]
+            return cast(
+                FormulaEngine[SupportsFloatT], self._string_engines[channel_key]
+            )
 
-        builder = ResampledFormulaBuilder(
+        builder: ResampledFormulaBuilder[SupportsFloatT] = ResampledFormulaBuilder(
             self._namespace,
             formula,
             self._channel_registry,
             self._resampler_subscription_sender,
             component_metric_id,
-            Quantity,
+            value_constructor,
         )
         formula_engine = builder.from_string(formula, nones_are_zeros=nones_are_zeros)
-        self._string_engines[channel_key] = formula_engine
+        self._string_engines[channel_key] = cast(
+            FormulaEngine[Quantity], formula_engine
+        )
 
         return formula_engine
 
