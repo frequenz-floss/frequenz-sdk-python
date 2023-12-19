@@ -5,7 +5,9 @@
 
 from datetime import timedelta
 
+import hypothesis
 import pytest
+from hypothesis import strategies as st
 
 from frequenz.sdk.timeseries._quantities import (
     Current,
@@ -359,7 +361,7 @@ def test_frequency() -> None:
     """Test the frequency class."""
     freq = Frequency.from_hertz(0.0000002)
     assert f"{freq:.9}" == "0.0000002 Hz"
-    freq = Frequency.from_kilohertz(600000.0)
+    freq = Frequency.from_kilohertz(600_000.0)
     assert f"{freq}" == "600 MHz"
 
     freq = Frequency.from_hertz(6.0)
@@ -531,3 +533,40 @@ def test_invalid_multiplications() -> None:
             _ = quantity * 200.0  # type: ignore
         with pytest.raises(TypeError):
             quantity *= 200.0  # type: ignore
+
+
+@pytest.mark.parametrize("quantity_type", [Power, Voltage, Current, Energy, Frequency])
+@pytest.mark.parametrize("exponent", [0, 3, 6, 9])
+@hypothesis.settings(
+    max_examples=1000
+)  # Set to have a decent amount of examples (default is 100)
+@hypothesis.seed(42)  # Seed that triggers a lot of problematic edge cases
+@hypothesis.given(value=st.floats(min_value=-1.0, max_value=1.0))
+def test_to_and_from_string(
+    quantity_type: type[Quantity], exponent: int, value: float
+) -> None:
+    """Test string parsing and formatting.
+
+    The parameters for this test are constructed to stay deterministic.
+
+    With a different (or random) seed or different max_examples the
+    test will show failing examples.
+
+    Fixing those cases was considered an unreasonable amount of work
+    at the time of writing.
+
+    For the future, one idea was to parse the string number after the first
+    generation and regenerate it with the more appropriate unit and precision.
+    """
+    quantity = quantity_type.__new__(quantity_type)
+    # pylint: disable=protected-access
+    quantity._base_value = value * 10**exponent
+    quantity_str = f"{quantity:.{exponent}}"
+    from_string = quantity_type.from_string(quantity_str)
+    try:
+        assert f"{from_string:.{exponent}}" == quantity_str
+    except AssertionError as error:
+        pytest.fail(
+            f"Failed for {quantity.base_value} != from_string({from_string.base_value}) "
+            + f"with exponent {exponent} and source value '{value}': {error}"
+        )

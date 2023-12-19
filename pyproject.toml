@@ -99,6 +99,7 @@ dev-pytest = [
   "async-solipsism == 0.5",
   # For checking docstring code examples
   "frequenz-sdk[dev-examples]",
+  "hypothesis == 6.92.1",
 ]
 dev = [
   "frequenz-sdk[dev-mkdocs,dev-flake8,dev-formatting,dev-mkdocs,dev-mypy,dev-noxfile,dev-pylint,dev-pytest]",

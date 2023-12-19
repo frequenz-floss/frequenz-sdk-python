@@ -91,6 +91,42 @@ class Quantity:
         assert isinstance(_zero, cls)
         return _zero
 
+    @classmethod
+    def from_string(cls, string: str) -> Self:
+        """Return a quantity from a string representation.
+
+        Args:
+            string: The string representation of the quantity.
+
+        Returns:
+            A quantity object with the value given in the string.
+
+        Raises:
+            ValueError: If the string does not match the expected format.
+
+        """
+        split_string = string.split(" ")
+
+        if len(split_string) != 2:
+            raise ValueError(
+                f"Expected a string of the form 'value unit', got {string}"
+            )
+
+        assert cls._exponent_unit_map is not None
+        exp_map = cls._exponent_unit_map
+
+        for exponent, unit in exp_map.items():
+            if unit == split_string[1]:
+                instance = cls.__new__(cls)
+                try:
+                    instance._base_value = float(split_string[0]) * 10**exponent
+                except ValueError as error:
+                    raise ValueError(f"Failed to parse string '{string}'.") from error
+
+                return instance
+
+        raise ValueError(f"Unknown unit {split_string[1]}")
+
     @property
     def base_value(self) -> float:
         """Return the value of this quantity in the base unit.

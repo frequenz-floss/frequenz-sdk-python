@@ -72,6 +72,8 @@
 
 - The `actor.ChannelRegistry` is now type-aware.
 
+- A new class method `Quantity.from_string()` has been added to allow the creation of `Quantity` objects from strings.
+
 ## Bug Fixes
 
 - 0W power requests are now not adjusted to exclusion bounds by the `PowerManager` and `PowerDistributor`, and are sent over to the microgrid API directly.
@@ -87,4 +89,5 @@
   A bug made the resampler interpret zero values as `None` when generating new samples, so if the result of the resampling is zero, the resampler would just produce `None` values.
 
 - The PowerManager no longer holds on to proposals from dead actors forever.  If an actor hasn't sent a new proposal in 60 seconds, the available proposal from that actor is dropped.
+
 - Fix `Quantity.__format__()` sometimes skipping the number for very small values.
