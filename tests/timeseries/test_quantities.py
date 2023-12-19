@@ -107,6 +107,8 @@ def test_string_representation() -> None:
     )
     assert f"{Quantity(1.024445, exponent=0)}" == "1.024"
     assert f"{Quantity(1.024445, exponent=0):.0}" == "1"
+    assert f"{Quantity(0.124445, exponent=0):.0}" == "0"
+    assert f"{Quantity(0.50001, exponent=0):.0}" == "1"
     assert f"{Quantity(1.024445, exponent=0):.6}" == "1.024445"
 
     assert f"{Quantity(1.024445, exponent=3)}" == "1024.445"
@@ -128,7 +130,6 @@ def test_string_representation() -> None:
 
     assert f"{Fz1(1.024445, exponent=6)}" == "1024.445 kHz"
     assert f"{Fz2(1.024445, exponent=6)}" == "1.024 MHz"
-
     assert f"{Fz1(1.024445, exponent=9)}" == "1024445 kHz"
     assert f"{Fz2(1.024445, exponent=9)}" == "1.024 GHz"
 
@@ -146,6 +147,9 @@ def test_string_representation() -> None:
 
     assert f"{Fz1(-20)}" == "-20 Hz"
     assert f"{Fz1(-20000)}" == "-20 kHz"
+
+    assert f"{Power.from_watts(0.000124445):.0}" == "0 W"
+    assert f"{Energy.from_watt_hours(0.124445):.0}" == "0 Wh"
 
 
 def test_isclose() -> None:

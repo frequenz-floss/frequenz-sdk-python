@@ -226,7 +226,12 @@ class Quantity:
         else:
             unit = self._exponent_unit_map[unit_place]
         value_str = f"{self._base_value / 10 ** unit_place:.{precision}f}"
-        stripped = value_str.rstrip("0").rstrip(".")
+
+        if value_str != "0":
+            stripped = value_str.rstrip("0").rstrip(".")
+        else:
+            stripped = value_str
+
         if not keep_trailing_zeros:
             value_str = stripped
         unit_str = unit if stripped != "0" else self._exponent_unit_map[0]
