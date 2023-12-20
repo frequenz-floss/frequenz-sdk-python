@@ -82,6 +82,7 @@ class VoltageStreaming:
                 root_category=ComponentCategory.GRID,
                 descendant_categories=[
                     ComponentCategory.METER,
+                    ComponentCategory.INVERTER,
                     ComponentCategory.EV_CHARGER,
                 ],
             )
