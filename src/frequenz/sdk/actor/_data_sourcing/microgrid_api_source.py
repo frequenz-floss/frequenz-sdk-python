@@ -74,6 +74,9 @@ _InverterDataMethods: dict[ComponentMetricId, Callable[[InverterData], float]] =
     ComponentMetricId.CURRENT_PHASE_1: lambda msg: msg.current_per_phase[0],
     ComponentMetricId.CURRENT_PHASE_2: lambda msg: msg.current_per_phase[1],
     ComponentMetricId.CURRENT_PHASE_3: lambda msg: msg.current_per_phase[2],
+    ComponentMetricId.VOLTAGE_PHASE_1: lambda msg: msg.voltage_per_phase[0],
+    ComponentMetricId.VOLTAGE_PHASE_2: lambda msg: msg.voltage_per_phase[1],
+    ComponentMetricId.VOLTAGE_PHASE_3: lambda msg: msg.voltage_per_phase[2],
     ComponentMetricId.FREQUENCY: lambda msg: msg.frequency,
 }
 
