@@ -18,8 +18,8 @@ from frequenz.channels import Receiver, Sender
 from ..actor import ChannelRegistry
 from ..microgrid import connection_manager
 from ..microgrid.component import Component, ComponentCategory, ComponentMetricId
-from ..timeseries._base_types import Sample3Phase
-from ..timeseries._quantities import Voltage
+from ..timeseries._base_types import Sample, Sample3Phase
+from ..timeseries._quantities import Quantity, Voltage
 
 if TYPE_CHECKING:
     # Imported here to avoid a circular import.
@@ -133,25 +133,22 @@ class VoltageStreaming:
             ComponentMetricRequest,
         )
 
-        def _create_request(phase: ComponentMetricId) -> ComponentMetricRequest:
-            return ComponentMetricRequest(
-                self._namespace,
-                self._source_component.component_id,
-                phase,
-                None,
+        metric_ids = (
+            ComponentMetricId.VOLTAGE_PHASE_1,
+            ComponentMetricId.VOLTAGE_PHASE_2,
+            ComponentMetricId.VOLTAGE_PHASE_3,
+        )
+        phases_rx: list[Receiver[Sample[Quantity]]] = []
+        for metric_id in metric_ids:
+            req = ComponentMetricRequest(
+                self._namespace, self._source_component.component_id, metric_id, None
             )
 
-        phase_1_req = _create_request(ComponentMetricId.VOLTAGE_PHASE_1)
-        phase_2_req = _create_request(ComponentMetricId.VOLTAGE_PHASE_2)
-        phase_3_req = _create_request(ComponentMetricId.VOLTAGE_PHASE_3)
+            await self._resampler_subscription_sender.send(req)
 
-        await self._resampler_subscription_sender.send(phase_1_req)
-        await self._resampler_subscription_sender.send(phase_2_req)
-        await self._resampler_subscription_sender.send(phase_3_req)
-
-        phase_1_rx = self._channel_registry.new_receiver(phase_1_req.get_channel_name())
-        phase_2_rx = self._channel_registry.new_receiver(phase_2_req.get_channel_name())
-        phase_3_rx = self._channel_registry.new_receiver(phase_3_req.get_channel_name())
+            phases_rx.append(
+                self._channel_registry.new_receiver(req.get_channel_name())
+            )
 
         sender = self._channel_registry.new_sender(self._channel_key)
 
@@ -161,25 +158,24 @@ class VoltageStreaming:
 
         while True:
             try:
-                phase_1 = await phase_1_rx.receive()
-                phase_2 = await phase_2_rx.receive()
-                phase_3 = await phase_3_rx.receive()
+                phases = [await r.receive() for r in phases_rx]
 
-                if phase_1 is None or phase_2 is None or phase_3 is None:
+                if not all(map(lambda p: p is not None, phases)):
                     _logger.warning(
-                        "Received None from voltage request: %s (%s, %s, %s)",
+                        "Received None from voltage request: %s %s",
                         self._source_component,
-                        phase_1,
-                        phase_2,
-                        phase_3,
+                        phases,
                     )
                     continue
 
                 msg = Sample3Phase(
-                    phase_1.timestamp,
-                    Voltage.from_volts(phase_1.value.base_value),
-                    Voltage.from_volts(phase_2.value.base_value),
-                    Voltage.from_volts(phase_3.value.base_value),
+                    phases[0].timestamp,
+                    *map(
+                        lambda p: Voltage.from_volts(p.value.base_value)
+                        if p.value
+                        else None,
+                        phases,
+                    ),
                 )
             except asyncio.CancelledError:
                 _logger.exception(
