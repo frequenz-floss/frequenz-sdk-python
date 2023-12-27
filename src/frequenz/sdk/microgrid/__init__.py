@@ -130,6 +130,7 @@ from ._data_pipeline import (
     frequency,
     grid,
     logical_meter,
+    voltage,
 )
 
 
@@ -155,4 +156,5 @@ __all__ = [
     "frequency",
     "logical_meter",
     "metadata",
+    "voltage",
 ]

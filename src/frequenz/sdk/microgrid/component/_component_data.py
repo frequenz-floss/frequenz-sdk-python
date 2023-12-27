@@ -237,6 +237,11 @@ class InverterData(ComponentData):
             -ve current means supply into the grid.
     """
 
+    voltage_per_phase: tuple[float, float, float]
+    """The AC voltage in Volts (V) between the line and the neutral wire for
+       phase/line 1, 2 and 3 respectively.
+    """
+
     # pylint: disable=line-too-long
     active_power_inclusion_lower_bound: float
     """Lower inclusion bound for inverter power in watts.
@@ -311,6 +316,11 @@ class InverterData(ComponentData):
                 raw.inverter.data.ac.phase_1.current.value,
                 raw.inverter.data.ac.phase_2.current.value,
                 raw.inverter.data.ac.phase_3.current.value,
+            ),
+            voltage_per_phase=(
+                raw.inverter.data.ac.phase_1.voltage.value,
+                raw.inverter.data.ac.phase_2.voltage.value,
+                raw.inverter.data.ac.phase_3.voltage.value,
             ),
             active_power_inclusion_lower_bound=raw_power.system_inclusion_bounds.lower,
             active_power_exclusion_lower_bound=raw_power.system_exclusion_bounds.lower,

@@ -233,6 +233,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                     timestamp=ts,
                     active_power=value,
                     current_per_phase=(value + 100.0, value + 101.0, value + 102.0),
+                    voltage_per_phase=(value + 200.0, value + 199.8, value + 200.2),
                 ),
             )
         )
@@ -461,6 +462,11 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                         value + 100.0,
                         value + 101.0,
                         value + 102.0,
+                    ),
+                    voltage_per_phase=(
+                        value + 200.0,
+                        value + 199.8,
+                        value + 200.2,
                     ),
                 )
             )

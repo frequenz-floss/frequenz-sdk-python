@@ -524,6 +524,81 @@ class TestComponentGraph:
         assert set() == graph.dfs(grid, set(), graph.is_pv_chain)
         assert battery_components == graph.dfs(grid, set(), graph.is_battery_chain)
 
+    def test_find_first_descendant_component(self) -> None:
+        """Test scenarios for finding the first descendant component."""
+        graph = gr._MicrogridComponentGraph(
+            components={
+                Component(1, ComponentCategory.GRID),
+                Component(2, ComponentCategory.METER),
+                Component(3, ComponentCategory.METER),
+                Component(4, ComponentCategory.INVERTER, InverterType.BATTERY),
+                Component(5, ComponentCategory.INVERTER, InverterType.SOLAR),
+                Component(6, ComponentCategory.EV_CHARGER),
+            },
+            connections={
+                Connection(1, 2),
+                Connection(2, 3),
+                Connection(2, 4),
+                Connection(2, 5),
+                Connection(3, 6),
+            },
+        )
+
+        # Find the first descendant component of the grid endpoint.
+        result = graph.find_first_descendant_component(
+            root_category=ComponentCategory.GRID,
+            descendant_categories=(ComponentCategory.METER,),
+        )
+        assert result == Component(2, ComponentCategory.METER)
+
+        # Find the first descendant component of the first meter found.
+        result = graph.find_first_descendant_component(
+            root_category=ComponentCategory.METER,
+            descendant_categories=(ComponentCategory.INVERTER,),
+        )
+        assert result == Component(4, ComponentCategory.INVERTER, InverterType.BATTERY)
+
+        # Find the first descendant component of the grid,
+        # considering meter or inverter categories.
+        result = graph.find_first_descendant_component(
+            root_category=ComponentCategory.GRID,
+            descendant_categories=(ComponentCategory.METER, ComponentCategory.INVERTER),
+        )
+        assert result == Component(2, ComponentCategory.METER)
+
+        # Find the first descendant component of the first meter with nested meters.
+        result = graph.find_first_descendant_component(
+            root_category=ComponentCategory.METER,
+            descendant_categories=(ComponentCategory.METER,),
+        )
+        assert result == Component(3, ComponentCategory.METER)
+
+        # Verify behavior when root component is not found.
+        with pytest.raises(ValueError):
+            graph.find_first_descendant_component(
+                root_category=ComponentCategory.CHP,
+                descendant_categories=(ComponentCategory.INVERTER,),
+            )
+
+        # Verify behavior when component is not found in immediate descendant
+        # categories for the first meter.
+        with pytest.raises(ValueError):
+            graph.find_first_descendant_component(
+                root_category=ComponentCategory.METER,
+                descendant_categories=(
+                    ComponentCategory.EV_CHARGER,
+                    ComponentCategory.BATTERY,
+                ),
+            )
+
+        # Verify behavior when component is not found in immediate descendant
+        # categories from the grid component as root.
+        with pytest.raises(ValueError):
+            graph.find_first_descendant_component(
+                root_category=ComponentCategory.GRID,
+                descendant_categories=(ComponentCategory.INVERTER,),
+            )
+
 
 class Test_MicrogridComponentGraph:
     """Test cases for the package-internal implementation of the ComponentGraph.

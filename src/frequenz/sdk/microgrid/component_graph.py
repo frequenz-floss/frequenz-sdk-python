@@ -34,6 +34,8 @@ from .component import Component, ComponentCategory, InverterType
 
 _logger = logging.getLogger(__name__)
 
+# pylint: disable=too-many-lines
+
 
 class InvalidGraphError(Exception):
     """Exception type that will be thrown if graph data is not valid."""
@@ -289,8 +291,40 @@ class ComponentGraph(ABC):
             the condition function.
         """
 
+    @abstractmethod
+    def find_first_descendant_component(
+        self,
+        *,
+        root_category: ComponentCategory,
+        descendant_categories: Iterable[ComponentCategory],
+    ) -> Component:
+        """Find the first descendant component given root and descendant categories.
 
-class _MicrogridComponentGraph(ComponentGraph):
+        This method searches for the root component within the provided root
+        category. If multiple components share the same root category, the
+        first found one is considered as the root component.
+
+        Subsequently, it looks for the first descendant component from the root
+        component, considering only the immediate descendants.
+
+        The priority of the component to search for is determined by the order
+        of the descendant categories, with the first category having the
+        highest priority.
+
+        Args:
+            root_category: The category of the root component to search for.
+            descendant_categories: The descendant categories to search for the
+                first descendant component in.
+
+        Returns:
+            The first descendant component found in the component graph,
+            considering the specified root and descendant categories.
+        """
+
+
+class _MicrogridComponentGraph(
+    ComponentGraph
+):  # pylint: disable=too-many-public-methods
     """ComponentGraph implementation designed to work with the microgrid API.
 
     For internal-only use of the `microgrid` package.
@@ -745,6 +779,67 @@ class _MicrogridComponentGraph(ComponentGraph):
 
         for successor in self.successors(current_node.component_id):
             component.update(self.dfs(successor, visited, condition))
+
+        return component
+
+    def find_first_descendant_component(
+        self,
+        *,
+        root_category: ComponentCategory,
+        descendant_categories: Iterable[ComponentCategory],
+    ) -> Component:
+        """Find the first descendant component given root and descendant categories.
+
+        This method searches for the root component within the provided root
+        category. If multiple components share the same root category, the
+        first found one is considered as the root component.
+
+        Subsequently, it looks for the first descendant component from the root
+        component, considering only the immediate descendants.
+
+        The priority of the component to search for is determined by the order
+        of the descendant categories, with the first category having the
+        highest priority.
+
+        Args:
+            root_category: The category of the root component to search for.
+            descendant_categories: The descendant categories to search for the
+                first descendant component in.
+
+        Raises:
+            ValueError: when the root component is not found in the component
+                graph or when no component is found in the given categories.
+
+        Returns:
+            The first descendant component found in the component graph,
+            considering the specified root and descendant categories.
+        """
+        root_component = next(
+            (comp for comp in self.components(component_categories={root_category})),
+            None,
+        )
+
+        if root_component is None:
+            raise ValueError(f"Root component not found for {root_category.name}")
+
+        # Sort by component ID to ensure consistent results.
+        successors = sorted(
+            self.successors(root_component.component_id),
+            key=lambda comp: comp.component_id,
+        )
+
+        def find_component(component_category: ComponentCategory) -> Component | None:
+            return next(
+                (comp for comp in successors if comp.category == component_category),
+                None,
+            )
+
+        # Find the first component that matches the given descendant categories
+        # in the order of the categories list.
+        component = next(filter(None, map(find_component, descendant_categories)), None)
+
+        if component is None:
+            raise ValueError("Component not found in any of the descendant categories.")
 
         return component
 

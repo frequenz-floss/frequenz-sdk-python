@@ -81,12 +81,15 @@ class MockResampler:
             [NON_EXISTING_COMPONENT_ID]
         )[0]
 
-        def current_senders(ids: list[int]) -> list[list[Sender[Sample[Quantity]]]]:
+        def multi_phase_senders(
+            ids: list[int],
+            metrics: tuple[ComponentMetricId, ComponentMetricId, ComponentMetricId],
+        ) -> list[list[Sender[Sample[Quantity]]]]:
             senders: list[list[Sender[Sample[Quantity]]]] = []
             for comp_id in ids:
-                p1_name = f"{comp_id}:{ComponentMetricId.CURRENT_PHASE_1}"
-                p2_name = f"{comp_id}:{ComponentMetricId.CURRENT_PHASE_2}"
-                p3_name = f"{comp_id}:{ComponentMetricId.CURRENT_PHASE_3}"
+                p1_name = f"{comp_id}:{metrics[0]}"
+                p2_name = f"{comp_id}:{metrics[1]}"
+                p3_name = f"{comp_id}:{metrics[2]}"
 
                 senders.append(
                     [
@@ -109,11 +112,33 @@ class MockResampler:
                 ]
             return senders
 
+        def current_senders(ids: list[int]) -> list[list[Sender[Sample[Quantity]]]]:
+            return multi_phase_senders(
+                ids,
+                (
+                    ComponentMetricId.CURRENT_PHASE_1,
+                    ComponentMetricId.CURRENT_PHASE_2,
+                    ComponentMetricId.CURRENT_PHASE_3,
+                ),
+            )
+
+        def voltage_senders(ids: list[int]) -> list[list[Sender[Sample[Quantity]]]]:
+            return multi_phase_senders(
+                ids,
+                (
+                    ComponentMetricId.VOLTAGE_PHASE_1,
+                    ComponentMetricId.VOLTAGE_PHASE_2,
+                    ComponentMetricId.VOLTAGE_PHASE_3,
+                ),
+            )
+
         self._bat_inverter_current_senders = current_senders(bat_inverter_ids)
         self._pv_inverter_current_senders = current_senders(pv_inverter_ids)
         self._ev_current_senders = current_senders(evc_ids)
         self._chp_current_senders = current_senders(chp_ids)
         self._meter_current_senders = current_senders(meter_ids)
+
+        self._meter_voltage_senders = voltage_senders(meter_ids)
 
         self._next_ts = datetime.now()
 
@@ -238,6 +263,15 @@ class MockResampler:
         """Send the given values as resampler output for meter current."""
         assert len(values) == len(self._meter_current_senders)
         for chan, meter_values in zip(self._meter_current_senders, values):
+            assert len(meter_values) == 3  # 3 values for phases
+            for phase, value in enumerate(meter_values):
+                sample = Sample(self._next_ts, None if not value else Quantity(value))
+                await chan[phase].send(sample)
+
+    async def send_meter_voltage(self, values: list[list[float | None]]) -> None:
+        """Send the given values as resampler output for meter voltage."""
+        assert len(values) == len(self._meter_voltage_senders)
+        for chan, meter_values in zip(self._meter_voltage_senders, values):
             assert len(meter_values) == 3  # 3 values for phases
             for phase, value in enumerate(meter_values):
                 sample = Sample(self._next_ts, None if not value else Quantity(value))
