@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 _logger = logging.getLogger(__name__)
 
 
-class VoltageStreaming:
+class VoltageStreamer:
     """Fetch and stream the phase-to-neutral voltage from a source component.
 
     Example:
