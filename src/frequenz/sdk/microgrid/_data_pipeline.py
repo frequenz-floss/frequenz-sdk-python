@@ -140,7 +140,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         """Fetch the 3-phase voltage for the microgrid.
 
         Returns:
-            The VoltageStreaming instance.
+            The VoltageStreamer instance.
         """
         if not self._voltage_instance:
             self._voltage_instance = VoltageStreamer(
