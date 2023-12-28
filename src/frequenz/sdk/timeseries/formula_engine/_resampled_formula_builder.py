@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Generic
+from typing import TYPE_CHECKING
 
 from frequenz.channels import Receiver, Sender
 
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from ...actor import ChannelRegistry, ComponentMetricRequest
 
 
-class ResampledFormulaBuilder(Generic[QuantityT], FormulaBuilder[QuantityT]):
+class ResampledFormulaBuilder(FormulaBuilder[QuantityT]):
     """Provides a way to build a FormulaEngine from resampled data streams."""
 
     def __init__(  # pylint: disable=too-many-arguments
