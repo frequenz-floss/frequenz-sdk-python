@@ -101,8 +101,8 @@ class InverterDataWrapper(InverterData):
         component_id: int,
         timestamp: datetime,
         active_power: float = math.nan,
-        current_per_phase: tuple[float, float, float] | None = None,
-        voltage_per_phase: tuple[float, float, float] | None = None,
+        current_per_phase: tuple[float, float, float] = (math.nan, math.nan, math.nan),
+        voltage_per_phase: tuple[float, float, float] = (math.nan, math.nan, math.nan),
         active_power_inclusion_lower_bound: float = math.nan,
         active_power_exclusion_lower_bound: float = math.nan,
         active_power_inclusion_upper_bound: float = math.nan,
@@ -122,16 +122,8 @@ class InverterDataWrapper(InverterData):
             component_id=component_id,
             timestamp=timestamp,
             active_power=active_power,
-            current_per_phase=(
-                current_per_phase
-                if current_per_phase
-                else (math.nan, math.nan, math.nan)
-            ),
-            voltage_per_phase=(
-                voltage_per_phase
-                if voltage_per_phase
-                else (math.nan, math.nan, math.nan)
-            ),
+            current_per_phase=current_per_phase,
+            voltage_per_phase=voltage_per_phase,
             active_power_inclusion_lower_bound=active_power_inclusion_lower_bound,
             active_power_exclusion_lower_bound=active_power_exclusion_lower_bound,
             active_power_inclusion_upper_bound=active_power_inclusion_upper_bound,
@@ -165,8 +157,8 @@ class EvChargerDataWrapper(EVChargerData):
         component_id: int,
         timestamp: datetime,
         active_power: float = math.nan,
-        current_per_phase: tuple[float, float, float] | None = None,
-        voltage_per_phase: tuple[float, float, float] | None = None,
+        current_per_phase: tuple[float, float, float] = (math.nan, math.nan, math.nan),
+        voltage_per_phase: tuple[float, float, float] = (math.nan, math.nan, math.nan),
         frequency: float = 50.0,
         cable_state: EVChargerCableState = EVChargerCableState.UNSPECIFIED,
         component_state: EVChargerComponentState = EVChargerComponentState.UNSPECIFIED,
@@ -180,16 +172,8 @@ class EvChargerDataWrapper(EVChargerData):
             component_id=component_id,
             timestamp=timestamp,
             active_power=active_power,
-            current_per_phase=(
-                current_per_phase
-                if current_per_phase
-                else (math.nan, math.nan, math.nan)
-            ),
-            voltage_per_phase=(
-                voltage_per_phase
-                if voltage_per_phase
-                else (math.nan, math.nan, math.nan)
-            ),
+            current_per_phase=current_per_phase,
+            voltage_per_phase=voltage_per_phase,
             frequency=frequency,
             cable_state=cable_state,
             component_state=component_state,
@@ -219,8 +203,8 @@ class MeterDataWrapper(MeterData):
         component_id: int,
         timestamp: datetime,
         active_power: float = math.nan,
-        current_per_phase: tuple[float, float, float] | None = None,
-        voltage_per_phase: tuple[float, float, float] | None = None,
+        current_per_phase: tuple[float, float, float] = (math.nan, math.nan, math.nan),
+        voltage_per_phase: tuple[float, float, float] = (math.nan, math.nan, math.nan),
         frequency: float = math.nan,
     ) -> None:
         """Initialize the MeterDataWrapper.
@@ -232,16 +216,8 @@ class MeterDataWrapper(MeterData):
             component_id=component_id,
             timestamp=timestamp,
             active_power=active_power,
-            current_per_phase=(
-                current_per_phase
-                if current_per_phase
-                else (math.nan, math.nan, math.nan)
-            ),
-            voltage_per_phase=(
-                voltage_per_phase
-                if voltage_per_phase
-                else (math.nan, math.nan, math.nan)
-            ),
+            current_per_phase=current_per_phase,
+            voltage_per_phase=voltage_per_phase,
             frequency=frequency,
         )
 
