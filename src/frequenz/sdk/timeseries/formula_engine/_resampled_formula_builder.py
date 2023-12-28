@@ -74,9 +74,18 @@ class ResampledFormulaBuilder(FormulaBuilder[QuantityT]):
 
         request = ComponentMetricRequest(self._namespace, component_id, metric_id, None)
         self._resampler_requests.append(request)
-        return self._channel_registry.get_or_create(
-            Sample[QuantityT], request.get_channel_name()
-        ).new_receiver()
+        resampled_channel = self._channel_registry.get_or_create(
+            Sample[Quantity], request.get_channel_name()
+        )
+        resampled_receiver = resampled_channel.new_receiver().map(
+            lambda sample: Sample(
+                sample.timestamp,
+                self._create_method(sample.value.base_value)
+                if sample.value is not None
+                else None,
+            )
+        )
+        return resampled_receiver
 
     async def subscribe(self) -> None:
         """Subscribe to all resampled component metric streams."""
