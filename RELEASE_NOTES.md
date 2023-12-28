@@ -50,9 +50,27 @@
 
 - The `microgrid.frequency()` method no longer supports passing the `component` parameter. Instead the best component is automatically selected.
 
+- The `actor.ChannelRegistry` was rewritten to be type-aware and just a container of channels. You now need to provide the type of message that will be contained by the channel and use the `get_or_create()` method to get a channel and the `stop_and_remove()` method to stop and remove a channel. Once you get a channel you can create new senders and receivers, or set channel options, as usual. Please read the docs for a full description, but in general this:
+
+    ```python
+    r = registry.new_receiver(name)
+    s = registry.new_sender(name)
+    ```
+
+    Should be replaced by:
+
+    ```python
+    r = registry.get_or_create(T, name).new_receiver()
+    s = registry.get_or_create(T, name).new_sender()
+    ```
+
+- The `ReceiverFetcher` interface was slightly changed to make `maxsize` a keyword-only argument. This is to make it compatible with the `Broadcast` channel, so it can be considered a `ReceiverFetcher`.
+
 ## New Features
 
 - A new method `microgrid.voltage()` was added to allow easy access to the phase-to-neutral 3-phase voltage of the microgrid.
+
+- The `actor.ChannelRegistry` is now type-aware.
 
 ## Bug Fixes
 
