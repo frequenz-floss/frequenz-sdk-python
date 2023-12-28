@@ -57,6 +57,43 @@ def actor_auto_restart_once() -> Iterator[None]:
         yield
 
 
+@contextlib.contextmanager
+def actor_restart_delay(delay: float | timedelta) -> Iterator[None]:
+    """Temporarily set the actor restart delay to a given value.
+
+    Example:
+        ```python
+        with actor_restart_delay(0.0):  # No delay
+            async with MyActor() as actor:
+                # Do something with actor
+        ```
+
+    Args:
+        delay: The new delay.
+    """
+    if isinstance(delay, float):
+        delay = timedelta(seconds=delay)
+    original_delay = _actor.Actor.RESTART_DELAY
+    print(
+        f"<actor_restart_delay> Changing the `RESTART_DELAY` from "
+        f"{original_delay} to {delay}"
+    )
+
+    _actor.Actor.RESTART_DELAY = delay
+    try:
+        yield
+    finally:
+        print(f"<actor_restart_limit> Resetting restart limit to {original_delay}")
+        _actor.Actor.RESTART_DELAY = original_delay
+
+
+@pytest.fixture(scope="session", autouse=True)
+def disable_actor_restart_delay() -> Iterator[None]:
+    """Disable auto-restart of actors while running tests."""
+    with actor_restart_delay(0.0):
+        yield
+
+
 @pytest.fixture
 def fake_time() -> Iterator[time_machine.Coordinates]:
     """Replace real time with a time machine that doesn't automatically tick."""
