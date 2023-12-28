@@ -83,15 +83,15 @@ class TestDataSourcingActor:
 
             for _ in range(3):
                 sample = await soc_recv.receive()
-                assert sample is not None
+                assert sample.value is not None
                 assert 9.0 == sample.value.base_value
 
                 sample = await soc2_recv.receive()
-                assert sample is not None
+                assert sample.value is not None
                 assert 9.0 == sample.value.base_value
 
                 sample = await active_power_recv.receive()
-                assert sample is not None
+                assert sample.value is not None
                 assert 100.0 == sample.value.base_value
 
             assert await server.graceful_shutdown()
