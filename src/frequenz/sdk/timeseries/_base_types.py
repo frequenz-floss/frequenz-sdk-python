@@ -6,11 +6,10 @@
 import dataclasses
 import enum
 import functools
-import typing
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Generic, Self, overload
+from typing import Generic, Self, TypeVar, overload
 
 from ._quantities import Power, QuantityT
 
@@ -140,7 +139,7 @@ class Sample3Phase(Generic[QuantityT]):
         )
 
 
-_T = typing.TypeVar("_T")
+_T = TypeVar("_T")
 
 
 @dataclass(frozen=True)
