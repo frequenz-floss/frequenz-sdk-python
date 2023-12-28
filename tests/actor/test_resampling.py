@@ -46,8 +46,12 @@ async def _assert_resampling_works(
     resampling_chan_name: str,
     data_source_chan_name: str,
 ) -> None:
-    timeseries_receiver = channel_registry.new_receiver(resampling_chan_name)
-    timeseries_sender = channel_registry.new_sender(data_source_chan_name)
+    timeseries_receiver = channel_registry.get_or_create(
+        Sample[Quantity], resampling_chan_name
+    ).new_receiver()
+    timeseries_sender = channel_registry.get_or_create(
+        Sample[Quantity], data_source_chan_name
+    ).new_sender()
 
     fake_time.shift(0.2)
     new_sample = await timeseries_receiver.receive()  # At 0.2s (timer)

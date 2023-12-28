@@ -325,7 +325,9 @@ class MicrogridApiSource:
             (
                 self._get_data_extraction_method(category, metric),
                 [
-                    self._registry.new_sender(request.get_channel_name())
+                    self._registry.get_or_create(
+                        Sample[Quantity], request.get_channel_name()
+                    ).new_sender()
                     for request in req_list
                 ],
             )
@@ -379,8 +381,7 @@ class MicrogridApiSource:
 
         await asyncio.gather(
             *[
-                # pylint: disable=protected-access
-                self._registry._close_channel(r.get_channel_name())
+                self._registry.close_and_remove(r.get_channel_name())
                 for requests in self._req_streaming_metrics[comp_id].values()
                 for r in requests
             ]

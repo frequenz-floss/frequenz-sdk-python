@@ -53,9 +53,16 @@ class MockResampler:
             senders: list[Sender[Sample[Quantity]]] = []
             for comp_id in comp_ids:
                 name = f"{comp_id}:{ComponentMetricId.ACTIVE_POWER}"
-                senders.append(self._channel_registry.new_sender(name))
+                senders.append(
+                    self._channel_registry.get_or_create(
+                        Sample[Quantity], name
+                    ).new_sender()
+                )
                 self._basic_receivers[name] = [
-                    self._channel_registry.new_receiver(name) for _ in range(namespaces)
+                    self._channel_registry.get_or_create(
+                        Sample[Quantity], name
+                    ).new_receiver()
+                    for _ in range(namespaces)
                 ]
             return senders
 
@@ -65,9 +72,16 @@ class MockResampler:
             senders: list[Sender[Sample[Quantity]]] = []
             for comp_id in comp_ids:
                 name = f"{comp_id}:{ComponentMetricId.FREQUENCY}"
-                senders.append(self._channel_registry.new_sender(name))
+                senders.append(
+                    self._channel_registry.get_or_create(
+                        Sample[Quantity], name
+                    ).new_sender()
+                )
                 self._basic_receivers[name] = [
-                    self._channel_registry.new_receiver(name) for _ in range(namespaces)
+                    self._channel_registry.get_or_create(
+                        Sample[Quantity], name
+                    ).new_receiver(name)
+                    for _ in range(namespaces)
                 ]
             return senders
 
@@ -94,21 +108,33 @@ class MockResampler:
 
                 senders.append(
                     [
-                        self._channel_registry.new_sender(p1_name),
-                        self._channel_registry.new_sender(p2_name),
-                        self._channel_registry.new_sender(p3_name),
+                        self._channel_registry.get_or_create(
+                            Sample[Quantity], p1_name
+                        ).new_sender(),
+                        self._channel_registry.get_or_create(
+                            Sample[Quantity], p2_name
+                        ).new_sender(),
+                        self._channel_registry.get_or_create(
+                            Sample[Quantity], p3_name
+                        ).new_sender(),
                     ]
                 )
                 self._basic_receivers[p1_name] = [
-                    self._channel_registry.new_receiver(p1_name)
+                    self._channel_registry.get_or_create(
+                        Sample[Quantity], p1_name
+                    ).new_receiver()
                     for _ in range(namespaces)
                 ]
                 self._basic_receivers[p2_name] = [
-                    self._channel_registry.new_receiver(p2_name)
+                    self._channel_registry.get_or_create(
+                        Sample[Quantity], p2_name
+                    ).new_receiver()
                     for _ in range(namespaces)
                 ]
                 self._basic_receivers[p3_name] = [
-                    self._channel_registry.new_receiver(p3_name)
+                    self._channel_registry.get_or_create(
+                        Sample[Quantity], p3_name
+                    ).new_receiver()
                     for _ in range(namespaces)
                 ]
             return senders
@@ -184,7 +210,9 @@ class MockResampler:
             self._forward_tasks[request.get_channel_name()] = asyncio.create_task(
                 self._channel_forward_messages(
                     recv,
-                    self._channel_registry.new_sender(request.get_channel_name()),
+                    self._channel_registry.get_or_create(
+                        Sample[Quantity], request.get_channel_name()
+                    ).new_sender(),
                 )
             )
 

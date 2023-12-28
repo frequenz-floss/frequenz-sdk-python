@@ -77,11 +77,15 @@ class ComponentMetricsResamplingActor(Actor):
         )
         data_source_channel_name = data_source_request.get_channel_name()
         await self._data_sourcing_request_sender.send(data_source_request)
-        receiver = self._channel_registry.new_receiver(data_source_channel_name)
+        receiver = self._channel_registry.get_or_create(
+            Sample[Quantity], data_source_channel_name
+        ).new_receiver()
 
         # This is a temporary hack until the Sender implementation uses
         # exceptions to report errors.
-        sender = self._channel_registry.new_sender(request_channel_name)
+        sender = self._channel_registry.get_or_create(
+            Sample[Quantity], request_channel_name
+        ).new_sender()
 
         async def sink_adapter(sample: Sample[Quantity]) -> None:
             await sender.send(sample)

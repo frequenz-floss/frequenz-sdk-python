@@ -12,7 +12,7 @@ from frequenz.channels import Receiver, Sender
 
 from ...microgrid.component import ComponentMetricId
 from .. import Sample
-from .._quantities import QuantityT
+from .._quantities import Quantity, QuantityT
 from ._formula_engine import FormulaBuilder, FormulaEngine
 from ._tokenizer import Tokenizer, TokenType
 
@@ -74,7 +74,9 @@ class ResampledFormulaBuilder(FormulaBuilder[QuantityT]):
 
         request = ComponentMetricRequest(self._namespace, component_id, metric_id, None)
         self._resampler_requests.append(request)
-        return self._channel_registry.new_receiver(request.get_channel_name())
+        return self._channel_registry.get_or_create(
+            Sample[QuantityT], request.get_channel_name()
+        ).new_receiver()
 
     async def subscribe(self) -> None:
         """Subscribe to all resampled component metric streams."""
