@@ -192,7 +192,7 @@ class MockResampler:
         """Create a sample with the given value."""
         return Sample(
             self._next_ts,
-            None if value is None else Quantity(value),
+            None if value is None or math.isnan(value) else Quantity(value),
         )
 
     async def send_meter_power(self, values: list[float | None]) -> None:
