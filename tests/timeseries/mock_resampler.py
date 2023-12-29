@@ -5,6 +5,7 @@
 
 
 import asyncio
+import math
 from datetime import datetime
 
 from frequenz.channels import Broadcast, Receiver, Sender
@@ -187,58 +188,65 @@ class MockResampler:
                 )
             )
 
+    def make_sample(self, value: float | None) -> Sample[Quantity]:
+        """Create a sample with the given value."""
+        return Sample(
+            self._next_ts,
+            None if value is None else Quantity(value),
+        )
+
     async def send_meter_power(self, values: list[float | None]) -> None:
         """Send the given values as resampler output for meter power."""
         assert len(values) == len(self._meter_power_senders)
         for chan, value in zip(self._meter_power_senders, values):
-            sample = Sample(self._next_ts, None if not value else Quantity(value))
+            sample = self.make_sample(value)
             await chan.send(sample)
 
     async def send_chp_power(self, values: list[float | None]) -> None:
         """Send the given values as resampler output for CHP power."""
         assert len(values) == len(self._chp_power_senders)
         for chan, value in zip(self._chp_power_senders, values):
-            sample = Sample(self._next_ts, None if not value else Quantity(value))
+            sample = self.make_sample(value)
             await chan.send(sample)
 
     async def send_pv_inverter_power(self, values: list[float | None]) -> None:
         """Send the given values as resampler output for PV Inverter power."""
         assert len(values) == len(self._pv_inverter_power_senders)
         for chan, value in zip(self._pv_inverter_power_senders, values):
-            sample = Sample(self._next_ts, None if not value else Quantity(value))
+            sample = self.make_sample(value)
             await chan.send(sample)
 
     async def send_meter_frequency(self, values: list[float | None]) -> None:
         """Send the given values as resampler output for meter frequency."""
         assert len(values) == len(self._meter_frequency_senders)
         for sender, value in zip(self._meter_frequency_senders, values):
-            sample = Sample(self._next_ts, None if not value else Quantity(value))
+            sample = self.make_sample(value)
             await sender.send(sample)
 
     async def send_bat_inverter_frequency(self, values: list[float | None]) -> None:
         """Send the given values as resampler output for battery inverter frequency."""
         assert len(values) == len(self._bat_inverter_frequency_senders)
         for chan, value in zip(self._bat_inverter_frequency_senders, values):
-            sample = Sample(self._next_ts, None if not value else Quantity(value))
+            sample = self.make_sample(value)
             await chan.send(sample)
 
     async def send_evc_power(self, values: list[float | None]) -> None:
         """Send the given values as resampler output for EV Charger power."""
         assert len(values) == len(self._ev_power_senders)
         for chan, value in zip(self._ev_power_senders, values):
-            sample = Sample(self._next_ts, None if not value else Quantity(value))
+            sample = self.make_sample(value)
             await chan.send(sample)
 
     async def send_bat_inverter_power(self, values: list[float | None]) -> None:
         """Send the given values as resampler output for battery inverter power."""
         assert len(values) == len(self._bat_inverter_power_senders)
         for chan, value in zip(self._bat_inverter_power_senders, values):
-            sample = Sample(self._next_ts, None if not value else Quantity(value))
+            sample = self.make_sample(value)
             await chan.send(sample)
 
     async def send_non_existing_component_value(self) -> None:
         """Send a value for a non existing component."""
-        sample = Sample[Quantity](self._next_ts, None)
+        sample = self.make_sample(None)
         await self._non_existing_component_sender.send(sample)
 
     async def send_evc_current(self, values: list[list[float | None]]) -> None:
@@ -247,7 +255,7 @@ class MockResampler:
         for chan, evc_values in zip(self._ev_current_senders, values):
             assert len(evc_values) == 3  # 3 values for phases
             for phase, value in enumerate(evc_values):
-                sample = Sample(self._next_ts, None if not value else Quantity(value))
+                sample = self.make_sample(value)
                 await chan[phase].send(sample)
 
     async def send_bat_inverter_current(self, values: list[list[float | None]]) -> None:
@@ -256,7 +264,7 @@ class MockResampler:
         for chan, bat_values in zip(self._bat_inverter_current_senders, values):
             assert len(bat_values) == 3  # 3 values for phases
             for phase, value in enumerate(bat_values):
-                sample = Sample(self._next_ts, None if not value else Quantity(value))
+                sample = self.make_sample(value)
                 await chan[phase].send(sample)
 
     async def send_meter_current(self, values: list[list[float | None]]) -> None:
@@ -265,7 +273,7 @@ class MockResampler:
         for chan, meter_values in zip(self._meter_current_senders, values):
             assert len(meter_values) == 3  # 3 values for phases
             for phase, value in enumerate(meter_values):
-                sample = Sample(self._next_ts, None if not value else Quantity(value))
+                sample = self.make_sample(value)
                 await chan[phase].send(sample)
 
     async def send_meter_voltage(self, values: list[list[float | None]]) -> None:
@@ -274,5 +282,5 @@ class MockResampler:
         for chan, meter_values in zip(self._meter_voltage_senders, values):
             assert len(meter_values) == 3  # 3 values for phases
             for phase, value in enumerate(meter_values):
-                sample = Sample(self._next_ts, None if not value else Quantity(value))
+                sample = self.make_sample(value)
                 await chan[phase].send(sample)
