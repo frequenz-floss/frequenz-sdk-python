@@ -7,45 +7,63 @@
 # https://github.com/marketplace/actions/labeler
 
 "part:actor":
-  - "src/frequenz/sdk/actor/**"
+  - changed-files:
+    - any-glob-to-any-file:
+      - "src/frequenz/sdk/actor/**"
 
 "part:config":
-  - "src/frequenz/sdk/config/**"
+  - changed-files:
+    - any-glob-to-any-file:
+      - "src/frequenz/sdk/config/**"
 
 "part:core":
-  - "src/frequenz/sdk/_internal/**"
+  - changed-files:
+    - any-glob-to-any-file:
+      - "src/frequenz/sdk/_internal/**"
 
 "part:data-pipeline":
-  - "src/frequenz/sdk/_data_handling/**"
-  - "src/frequenz/sdk/_data_ingestion/**"
-  - "src/frequenz/sdk/timeseries/**"
+  - changed-files:
+    - any-glob-to-any-file:
+      - "src/frequenz/sdk/_data_handling/**"
+      - "src/frequenz/sdk/_data_ingestion/**"
+      - "src/frequenz/sdk/timeseries/**"
 
 "part:docs":
-  - "**/*.md"
-  - "docs/**"
-  - "examples/**"
-  - LICENSE
+  - changed-files:
+    - any-glob-to-any-file:
+      - "**/*.md"
+      - "docs/**"
+      - "examples/**"
+      - LICENSE
 
 "part:microgrid":
-  - "src/frequenz/sdk/microgrid/**"
+  - changed-files:
+    - any-glob-to-any-file:
+      - "src/frequenz/sdk/microgrid/**"
 
 "part:power-distribution":
-  - "src/frequenz/sdk/power/**"
+  - changed-files:
+    - any-glob-to-any-file:
+      - "src/frequenz/sdk/power/**"
 
 "part:tests":
-  - "**/conftest.py"
-  - "tests/**"
+  - changed-files:
+    - any-glob-to-any-file:
+      - "**/conftest.py"
+      - "tests/**"
 
 "part:tooling":
-  - "**/*.ini"
-  - "**/*.toml"
-  - "**/*.yaml"
-  - "**/*.yml"
-  - "**/conftest.py"
-  - ".editorconfig"
-  - ".git*"
-  - ".git*/**"
-  - "docs/*.py"
-  - CODEOWNERS
-  - MANIFEST.in
-  - noxfile.py
+  - changed-files:
+    - any-glob-to-any-file:
+      - "**/*.ini"
+      - "**/*.toml"
+      - "**/*.yaml"
+      - "**/*.yml"
+      - "**/conftest.py"
+      - ".editorconfig"
+      - ".git*"
+      - ".git*/**"
+      - "docs/*.py"
+      - CODEOWNERS
+      - MANIFEST.in
+      - noxfile.py
