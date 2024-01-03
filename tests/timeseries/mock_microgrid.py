@@ -3,6 +3,7 @@
 
 """A configurable mock microgrid for testing logical meter formulas."""
 
+from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
@@ -569,3 +570,12 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             await cancel_and_await(task)
         microgrid.connection_manager._CONNECTION_MANAGER = None
         # pylint: enable=protected-access
+
+    async def __aenter__(self) -> MockMicrogrid:
+        """Enter context manager."""
+        await self.start()
+        return self
+
+    async def __aexit__(self, exc_type: None, exc_val: None, exc_tb: None) -> None:
+        """Exit context manager."""
+        await self.cleanup()
