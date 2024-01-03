@@ -80,10 +80,10 @@ class _Mocks:
         grid_meter: bool | None = None,
     ) -> _Mocks:
         """Initialize the mocks."""
-        mockgrid = MockMicrogrid(graph=graph, grid_meter=grid_meter)
+        mockgrid = MockMicrogrid(graph=graph, grid_meter=grid_meter, mocker=mocker)
         if not graph:
             mockgrid.add_batteries(3)
-        await mockgrid.start(mocker)
+        await mockgrid.start()
 
         # pylint: disable=protected-access
         if microgrid._data_pipeline._DATA_PIPELINE is not None:
@@ -154,56 +154,59 @@ class TestPowerDistributingActor:
             )
         )
 
-    async def test_constructor(self, mocker: MockerFixture) -> None:
-        """Test if gets all necessary data."""
-        mockgrid = MockMicrogrid(grid_meter=True)
+    async def test_constructor_with_grid_meter(self, mocker: MockerFixture) -> None:
+        """Test the constructor works with a grid meter."""
+        mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
         mockgrid.add_batteries(2)
         mockgrid.add_batteries(1, no_meter=True)
-        await mockgrid.start(mocker)
 
-        requests_channel = Broadcast[Request]("power_distributor requests")
-        results_channel = Broadcast[Result]("power_distributor results")
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            results_sender=results_channel.new_sender(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-        ) as distributor:
-            assert isinstance(distributor._component_manager, BatteryManager)
-            assert distributor._component_manager._bat_invs_map == {
-                9: {8},
-                19: {18},
-                29: {28},
-            }
-            assert distributor._component_manager._inv_bats_map == {
-                8: {9},
-                18: {19},
-                28: {29},
-            }
-        await mockgrid.cleanup()
+        async with mockgrid:
+            requests_channel = Broadcast[Request]("power_distributor requests")
+            results_channel = Broadcast[Result]("power_distributor results")
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                results_sender=results_channel.new_sender(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+            ) as distributor:
+                assert isinstance(distributor._component_manager, BatteryManager)
+                assert distributor._component_manager._bat_invs_map == {
+                    9: {8},
+                    19: {18},
+                    29: {28},
+                }
+                assert distributor._component_manager._inv_bats_map == {
+                    8: {9},
+                    18: {19},
+                    28: {29},
+                }
 
-        # Test if it works without grid side meter
-        mockgrid = MockMicrogrid(grid_meter=False)
+    async def test_constructor_without_grid_meter(self, mocker: MockerFixture) -> None:
+        """Test the constructor works without a grid meter."""
+        mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
         mockgrid.add_batteries(1)
         mockgrid.add_batteries(2, no_meter=True)
-        await mockgrid.start(mocker)
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            results_sender=results_channel.new_sender(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-        ) as distributor:
-            assert isinstance(distributor._component_manager, BatteryManager)
-            assert distributor._component_manager._bat_invs_map == {
-                9: {8},
-                19: {18},
-                29: {28},
-            }
-            assert distributor._component_manager._inv_bats_map == {
-                8: {9},
-                18: {19},
-                28: {29},
-            }
-        await mockgrid.cleanup()
+
+        async with mockgrid:
+            requests_channel = Broadcast[Request]("power_distributor requests")
+            results_channel = Broadcast[Result]("power_distributor results")
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                results_sender=results_channel.new_sender(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+            ) as distributor:
+                assert isinstance(distributor._component_manager, BatteryManager)
+                assert distributor._component_manager._bat_invs_map == {
+                    9: {8},
+                    19: {18},
+                    29: {28},
+                }
+                assert distributor._component_manager._inv_bats_map == {
+                    8: {9},
+                    18: {19},
+                    28: {29},
+                }
 
     async def init_component_data(
         self,

@@ -487,23 +487,21 @@ async def run_test_battery_status_channel(  # pylint: disable=too-many-arguments
 
 async def test_battery_pool_power(mocker: MockerFixture) -> None:
     """Test `BatteryPool.{,production,consumption}_power` methods."""
-    mockgrid = MockMicrogrid(grid_meter=True)
+    mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
     mockgrid.add_batteries(2)
-    await mockgrid.start(mocker)
 
-    battery_pool = microgrid.battery_pool()
-    power_receiver = battery_pool.power.new_receiver()
+    async with mockgrid:
+        battery_pool = microgrid.battery_pool()
+        power_receiver = battery_pool.power.new_receiver()
 
-    await mockgrid.mock_resampler.send_bat_inverter_power([2.0, 3.0])
-    assert (await power_receiver.receive()).value == Power.from_watts(5.0)
+        await mockgrid.mock_resampler.send_bat_inverter_power([2.0, 3.0])
+        assert (await power_receiver.receive()).value == Power.from_watts(5.0)
 
-    await mockgrid.mock_resampler.send_bat_inverter_power([-2.0, -5.0])
-    assert (await power_receiver.receive()).value == Power.from_watts(-7.0)
+        await mockgrid.mock_resampler.send_bat_inverter_power([-2.0, -5.0])
+        assert (await power_receiver.receive()).value == Power.from_watts(-7.0)
 
-    await mockgrid.mock_resampler.send_bat_inverter_power([2.0, -5.0])
-    assert (await power_receiver.receive()).value == Power.from_watts(-3.0)
-
-    await mockgrid.cleanup()
+        await mockgrid.mock_resampler.send_bat_inverter_power([2.0, -5.0])
+        assert (await power_receiver.receive()).value == Power.from_watts(-3.0)
 
 
 async def run_capacity_test(  # pylint: disable=too-many-locals

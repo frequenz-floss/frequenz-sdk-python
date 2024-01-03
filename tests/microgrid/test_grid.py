@@ -37,14 +37,12 @@ async def test_grid_1(mocker: MockerFixture) -> None:
     # pylint: disable=protected-access
     graph = gr._MicrogridComponentGraph(components=components, connections=connections)
 
-    mockgrid = MockMicrogrid(graph=graph)
-    await mockgrid.start(mocker)
-    grid = microgrid.grid()
+    async with MockMicrogrid(graph=graph, mocker=mocker):
+        grid = microgrid.grid()
 
-    assert grid
-    assert grid.fuse
-    assert grid.fuse.max_current == Current.from_amperes(0.0)
-    await mockgrid.cleanup()
+        assert grid
+        assert grid.fuse
+        assert grid.fuse.max_current == Current.from_amperes(0.0)
 
 
 def _create_fuse() -> Fuse:
@@ -71,16 +69,15 @@ async def test_grid_2(mocker: MockerFixture) -> None:
     # pylint: disable=protected-access
     graph = gr._MicrogridComponentGraph(components=components, connections=connections)
 
-    mockgrid = MockMicrogrid(graph=graph)
-    await mockgrid.start(mocker)
+    async with MockMicrogrid(graph=graph, mocker=mocker):
+        grid = microgrid.grid()
+        assert grid is not None
 
-    grid = microgrid.grid()
-    assert grid is not None
+        expected_fuse_current = Current.from_amperes(123.0)
+        expected_fuse = Fuse(expected_fuse_current)
 
-    expected_fuse_current = Current.from_amperes(123.0)
-    expected_fuse = Fuse(expected_fuse_current)
+        assert grid.fuse == expected_fuse
 
-    assert grid.fuse == expected_fuse
 
 
 async def test_grid_3(mocker: MockerFixture) -> None:
@@ -96,166 +93,166 @@ async def test_grid_3(mocker: MockerFixture) -> None:
     # pylint: disable=protected-access
     graph = gr._MicrogridComponentGraph(components=components, connections=connections)
 
-    mockgrid = MockMicrogrid(graph=graph)
-    await mockgrid.start(mocker)
+    async with MockMicrogrid(graph=graph, mocker=mocker):
+        grid = microgrid.grid()
+        assert grid is not None
+        assert grid.fuse is None
 
-    grid = microgrid.grid()
-    assert grid is not None
-    assert grid.fuse is None
 
 
 async def test_grid_power_1(mocker: MockerFixture) -> None:
     """Test the grid power formula with a grid side meter."""
-    mockgrid = MockMicrogrid(grid_meter=True)
+    mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
     mockgrid.add_batteries(2)
     mockgrid.add_solar_inverters(1)
-    await mockgrid.start(mocker)
-    grid = microgrid.grid()
-    assert grid, "Grid is not initialized"
 
-    grid_power_recv = grid.power.new_receiver()
+    async with mockgrid:
+        grid = microgrid.grid()
+        assert grid, "Grid is not initialized"
 
-    grid_meter_recv = get_resampled_stream(
-        grid._formula_pool._namespace,  # pylint: disable=protected-access
-        mockgrid.meter_ids[0],
-        ComponentMetricId.ACTIVE_POWER,
-        Power.from_watts,
-    )
+        grid_power_recv = grid.power.new_receiver()
 
-    results = []
-    grid_meter_data = []
-    for count in range(10):
-        await mockgrid.mock_resampler.send_meter_power(
-            [20.0 + count, 12.0, -13.0, -5.0]
-        )
-        val = await grid_meter_recv.receive()
-        assert val is not None and val.value is not None and val.value.as_watts() != 0.0
-        grid_meter_data.append(val.value)
-
-        val = await grid_power_recv.receive()
-        assert val is not None and val.value is not None
-        results.append(val.value)
-
-    await mockgrid.cleanup()
-    await grid.stop()
-
-    assert equal_float_lists(results, grid_meter_data)
-
-
-async def test_grid_power_2(mocker: MockerFixture) -> None:
-    """Test the grid power formula without a grid side meter."""
-    mockgrid = MockMicrogrid(grid_meter=False)
-    mockgrid.add_consumer_meters(1)
-    mockgrid.add_batteries(1, no_meter=False)
-    mockgrid.add_batteries(1, no_meter=True)
-    mockgrid.add_solar_inverters(1)
-    await mockgrid.start(mocker)
-    grid = microgrid.grid()
-    assert grid, "Grid is not initialized"
-
-    grid_power_recv = grid.power.new_receiver()
-
-    component_receivers = [
-        get_resampled_stream(
+        grid_meter_recv = get_resampled_stream(
             grid._formula_pool._namespace,  # pylint: disable=protected-access
-            component_id,
+            mockgrid.meter_ids[0],
             ComponentMetricId.ACTIVE_POWER,
             Power.from_watts,
         )
-        for component_id in [
-            *mockgrid.meter_ids,
-            # The last battery has no meter, so we get the power from the inverter
-            mockgrid.battery_inverter_ids[-1],
-        ]
-    ]
 
-    results: list[Quantity] = []
-    meter_sums: list[Quantity] = []
-    for count in range(10):
-        await mockgrid.mock_resampler.send_meter_power([20.0 + count, 12.0, -13.0])
-        await mockgrid.mock_resampler.send_bat_inverter_power([0.0, -5.0])
-        meter_sum = 0.0
-        for recv in component_receivers:
-            val = await recv.receive()
+        results = []
+        grid_meter_data = []
+        for count in range(10):
+            await mockgrid.mock_resampler.send_meter_power(
+                [20.0 + count, 12.0, -13.0, -5.0]
+            )
+            val = await grid_meter_recv.receive()
             assert (
                 val is not None
                 and val.value is not None
                 and val.value.as_watts() != 0.0
             )
-            meter_sum += val.value.as_watts()
+            grid_meter_data.append(val.value)
 
-        val = await grid_power_recv.receive()
-        assert val is not None and val.value is not None
-        results.append(val.value)
-        meter_sums.append(Quantity(meter_sum))
+            val = await grid_power_recv.receive()
+            assert val is not None and val.value is not None
+            results.append(val.value)
 
-    await mockgrid.cleanup()
-    await grid.stop()
+        await grid.stop()
 
-    assert len(results) == 10
-    assert equal_float_lists(results, meter_sums)
+        assert equal_float_lists(results, grid_meter_data)
+
+
+async def test_grid_power_2(mocker: MockerFixture) -> None:
+    """Test the grid power formula without a grid side meter."""
+    mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
+    mockgrid.add_consumer_meters(1)
+    mockgrid.add_batteries(1, no_meter=False)
+    mockgrid.add_batteries(1, no_meter=True)
+    mockgrid.add_solar_inverters(1)
+
+    async with mockgrid:
+        grid = microgrid.grid()
+        assert grid, "Grid is not initialized"
+
+        grid_power_recv = grid.power.new_receiver()
+
+        component_receivers = [
+            get_resampled_stream(
+                grid._formula_pool._namespace,  # pylint: disable=protected-access
+                component_id,
+                ComponentMetricId.ACTIVE_POWER,
+                Power.from_watts,
+            )
+            for component_id in [
+                *mockgrid.meter_ids,
+                # The last battery has no meter, so we get the power from the inverter
+                mockgrid.battery_inverter_ids[-1],
+            ]
+        ]
+
+        results: list[Quantity] = []
+        meter_sums: list[Quantity] = []
+        for count in range(10):
+            await mockgrid.mock_resampler.send_meter_power([20.0 + count, 12.0, -13.0])
+            await mockgrid.mock_resampler.send_bat_inverter_power([0.0, -5.0])
+            meter_sum = 0.0
+            for recv in component_receivers:
+                val = await recv.receive()
+                assert (
+                    val is not None
+                    and val.value is not None
+                    and val.value.as_watts() != 0.0
+                )
+                meter_sum += val.value.as_watts()
+
+            val = await grid_power_recv.receive()
+            assert val is not None and val.value is not None
+            results.append(val.value)
+            meter_sums.append(Quantity(meter_sum))
+
+        await grid.stop()
+
+        assert len(results) == 10
+        assert equal_float_lists(results, meter_sums)
 
 
 async def test_grid_production_consumption_power_consumer_meter(
     mocker: MockerFixture,
 ) -> None:
     """Test the grid production and consumption power formulas."""
-    mockgrid = MockMicrogrid(grid_meter=False)
+    mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
     mockgrid.add_consumer_meters()
     mockgrid.add_batteries(2)
     mockgrid.add_solar_inverters(1)
-    await mockgrid.start(mocker)
 
-    grid = microgrid.grid()
-    assert grid, "Grid is not initialized"
-    grid_recv = grid.power.new_receiver()
+    async with mockgrid:
+        grid = microgrid.grid()
+        assert grid, "Grid is not initialized"
+        grid_recv = grid.power.new_receiver()
 
-    await mockgrid.mock_resampler.send_meter_power([1.0, 2.0, 3.0, 4.0])
-    assert (await grid_recv.receive()).value == Power.from_watts(10.0)
+        await mockgrid.mock_resampler.send_meter_power([1.0, 2.0, 3.0, 4.0])
+        assert (await grid_recv.receive()).value == Power.from_watts(10.0)
 
-    await mockgrid.mock_resampler.send_meter_power([1.0, 2.0, -3.0, -4.0])
-    assert (await grid_recv.receive()).value == Power.from_watts(-4.0)
+        await mockgrid.mock_resampler.send_meter_power([1.0, 2.0, -3.0, -4.0])
+        assert (await grid_recv.receive()).value == Power.from_watts(-4.0)
 
-    await mockgrid.cleanup()
-    await grid.stop()
+        await grid.stop()
 
 
 async def test_grid_production_consumption_power_no_grid_meter(
     mocker: MockerFixture,
 ) -> None:
     """Test the grid production and consumption power formulas."""
-    mockgrid = MockMicrogrid(grid_meter=False)
+    mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
     mockgrid.add_batteries(2)
     mockgrid.add_solar_inverters(1)
-    await mockgrid.start(mocker)
 
-    grid = microgrid.grid()
-    assert grid, "Grid is not initialized"
-    grid_recv = grid.power.new_receiver()
+    async with mockgrid:
+        grid = microgrid.grid()
+        assert grid, "Grid is not initialized"
+        grid_recv = grid.power.new_receiver()
 
-    await mockgrid.mock_resampler.send_meter_power([2.5, 3.5, 4.0])
-    assert (await grid_recv.receive()).value == Power.from_watts(10.0)
+        await mockgrid.mock_resampler.send_meter_power([2.5, 3.5, 4.0])
+        assert (await grid_recv.receive()).value == Power.from_watts(10.0)
 
-    await mockgrid.mock_resampler.send_meter_power([3.0, -3.0, -4.0])
-    assert (await grid_recv.receive()).value == Power.from_watts(-4.0)
+        await mockgrid.mock_resampler.send_meter_power([3.0, -3.0, -4.0])
+        assert (await grid_recv.receive()).value == Power.from_watts(-4.0)
 
-    await mockgrid.cleanup()
-    await grid.stop()
+        await grid.stop()
 
 
 async def test_consumer_power_2_grid_meters(mocker: MockerFixture) -> None:
     """Test the grid power formula with two grid meters."""
-    mockgrid = MockMicrogrid(grid_meter=False)
+    mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
     # with no further successor these will be detected as grid meters
     mockgrid.add_consumer_meters(2)
-    await mockgrid.start(mocker)
 
-    grid = microgrid.grid()
-    assert grid, "Grid is not initialized"
-    grid_recv = grid.power.new_receiver()
+    async with mockgrid:
+        grid = microgrid.grid()
+        assert grid, "Grid is not initialized"
+        grid_recv = grid.power.new_receiver()
 
-    await mockgrid.mock_resampler.send_meter_power([1.0, 2.0])
-    assert (await grid_recv.receive()).value == Power.from_watts(3.0)
+        await mockgrid.mock_resampler.send_meter_power([1.0, 2.0])
+        assert (await grid_recv.receive()).value == Power.from_watts(3.0)
 
-    await mockgrid.cleanup()
-    await grid.stop()
+        await grid.stop()
