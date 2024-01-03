@@ -7,12 +7,12 @@
 import asyncio
 import math
 from collections.abc import AsyncIterator, Iterable
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 import pytest
-import time_machine
 
 # pylint: disable=no-name-in-module
 from frequenz.api.microgrid.battery_pb2 import ComponentState as BatteryState
@@ -27,6 +27,7 @@ from frequenz.api.microgrid.inverter_pb2 import ErrorCode as InverterErrorCode
 # pylint: enable=no-name-in-module
 from frequenz.channels import Broadcast, Receiver
 from pytest_mock import MockerFixture
+from time_machine import TimeMachineFixture
 
 from frequenz.sdk.actor.power_distributing._battery_status_tracker import (
     BatteryStatusTracker,
@@ -145,13 +146,32 @@ async def recv_timeout(recv: Receiver[T], timeout: float = 0.1) -> T | type[_Tim
         return _Timeout
 
 
+@asynccontextmanager
+async def battery_status_tracker(
+    *args: Any, **kwargs: Any
+) -> AsyncIterator[BatteryStatusTracker]:
+    """Create BatteryStatusTracker with given arguments.
+
+    Args:
+        *args: Arguments for BatteryStatusTracker.
+        **kwargs: Arguments for BatteryStatusTracker.
+
+    Yields:
+        BatteryStatusTracker with given arguments.
+    """
+    tracker = BatteryStatusTracker(*args, **kwargs)
+    try:
+        yield tracker
+    finally:
+        await tracker.stop()
+
+
 # pylint: disable=protected-access, unused-argument
 class TestBatteryStatus:
     """Tests BatteryStatusTracker."""
 
-    @time_machine.travel("2022-01-01 00:00 UTC", tick=False)
     async def test_sync_update_status_with_messages(
-        self, mocker: MockerFixture
+        self, mocker: MockerFixture, time_machine: TimeMachineFixture
     ) -> None:
         """Test if messages changes battery status.
 
@@ -160,159 +180,164 @@ class TestBatteryStatus:
 
         Args:
             mocker: Pytest mocker fixture.
+            time_machine: Pytest time_machine fixture.
         """
-        mock_microgrid = MockMicrogrid(grid_meter=True)
+        mock_microgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
         mock_microgrid.add_batteries(3)
-        await mock_microgrid.start(mocker)
 
         status_channel = Broadcast[ComponentStatus]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
-        tracker = BatteryStatusTracker(
+        async with mock_microgrid, battery_status_tracker(
             BATTERY_ID,
             max_data_age_sec=5,
             max_blocking_duration_sec=30,
             status_sender=status_channel.new_sender(),
             set_power_result_receiver=set_power_result_channel.new_receiver(),
-        )
+        ) as tracker:
+            time_machine.move_to("2022-01-01 00:00 UTC", tick=False)
+            assert tracker.battery_id == BATTERY_ID
+            assert tracker._last_status == ComponentStatusEnum.NOT_WORKING
 
-        assert tracker.battery_id == BATTERY_ID
-        assert tracker._last_status == ComponentStatusEnum.NOT_WORKING
+            tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
+            assert tracker._get_new_status_if_changed() is None
 
-        tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
-        assert tracker._get_new_status_if_changed() is None
+            tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+            assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
 
-        tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
-        assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
+            # --- Send correct message once again, status should not change ---
+            tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
+            assert tracker._get_new_status_if_changed() is None
 
-        # --- Send correct message once again, status should not change ---
-        tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
-        assert tracker._get_new_status_if_changed() is None
+            tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+            assert tracker._get_new_status_if_changed() is None
 
-        tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
-        assert tracker._get_new_status_if_changed() is None
-
-        # --- Send outdated message ---
-        tracker._handle_status_inverter(
-            inverter_data(
-                component_id=INVERTER_ID,
-                timestamp=datetime.now(tz=timezone.utc) - timedelta(seconds=31),
+            # --- Send outdated message ---
+            tracker._handle_status_inverter(
+                inverter_data(
+                    component_id=INVERTER_ID,
+                    timestamp=datetime.now(tz=timezone.utc) - timedelta(seconds=31),
+                )
             )
-        )
-        assert tracker._get_new_status_if_changed() is ComponentStatusEnum.NOT_WORKING
-
-        # --- BatteryRelayState is invalid. ---
-        tracker._handle_status_battery(
-            battery_data(
-                component_id=BATTERY_ID,
-                relay_state=BatteryRelayState.RELAY_STATE_OPENED,
+            assert (
+                tracker._get_new_status_if_changed() is ComponentStatusEnum.NOT_WORKING
             )
-        )
-        assert tracker._get_new_status_if_changed() is None
 
-        # --- Inverter started sending data, but battery relays state are still invalid ---
-        tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
-        assert tracker._get_new_status_if_changed() is None
-
-        tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
-        assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
-
-        # --- Inverter started sending data, but battery relays state are still invalid ---
-        tracker._handle_status_inverter(
-            inverter_data(
-                component_id=INVERTER_ID,
-                component_state=InverterState.COMPONENT_STATE_SWITCHING_OFF,
+            # --- BatteryRelayState is invalid. ---
+            tracker._handle_status_battery(
+                battery_data(
+                    component_id=BATTERY_ID,
+                    relay_state=BatteryRelayState.RELAY_STATE_OPENED,
+                )
             )
-        )
-        assert tracker._get_new_status_if_changed() is ComponentStatusEnum.NOT_WORKING
+            assert tracker._get_new_status_if_changed() is None
 
-        inverter_critical_error = InverterError(
-            code=InverterErrorCode.ERROR_CODE_UNSPECIFIED,
-            level=ErrorLevel.ERROR_LEVEL_CRITICAL,
-            msg="",
-        )
+            # --- Inverter started sending data, but battery relays state are still invalid ---
+            tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
+            assert tracker._get_new_status_if_changed() is None
 
-        inverter_warning_error = InverterError(
-            code=InverterErrorCode.ERROR_CODE_UNSPECIFIED,
-            level=ErrorLevel.ERROR_LEVEL_WARN,
-            msg="",
-        )
+            tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+            assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
 
-        tracker._handle_status_inverter(
-            inverter_data(
-                component_id=INVERTER_ID,
-                component_state=InverterState.COMPONENT_STATE_SWITCHING_OFF,
-                errors=[inverter_critical_error, inverter_warning_error],
+            # --- Inverter started sending data, but battery relays state are still invalid ---
+            tracker._handle_status_inverter(
+                inverter_data(
+                    component_id=INVERTER_ID,
+                    component_state=InverterState.COMPONENT_STATE_SWITCHING_OFF,
+                )
             )
-        )
-
-        assert tracker._get_new_status_if_changed() is None
-
-        tracker._handle_status_inverter(
-            inverter_data(
-                component_id=INVERTER_ID,
-                errors=[inverter_critical_error, inverter_warning_error],
+            assert (
+                tracker._get_new_status_if_changed() is ComponentStatusEnum.NOT_WORKING
             )
-        )
 
-        assert tracker._get_new_status_if_changed() is None
-
-        tracker._handle_status_inverter(
-            inverter_data(component_id=INVERTER_ID, errors=[inverter_warning_error])
-        )
-
-        assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
-
-        battery_critical_error = BatteryError(
-            code=BatteryErrorCode.ERROR_CODE_UNSPECIFIED,
-            level=ErrorLevel.ERROR_LEVEL_CRITICAL,
-            msg="",
-        )
-
-        battery_warning_error = BatteryError(
-            code=BatteryErrorCode.ERROR_CODE_UNSPECIFIED,
-            level=ErrorLevel.ERROR_LEVEL_WARN,
-            msg="",
-        )
-
-        tracker._handle_status_battery(
-            battery_data(component_id=BATTERY_ID, errors=[battery_warning_error])
-        )
-
-        assert tracker._get_new_status_if_changed() is None
-
-        tracker._handle_status_battery(
-            battery_data(
-                component_id=BATTERY_ID,
-                errors=[battery_warning_error, battery_critical_error],
+            inverter_critical_error = InverterError(
+                code=InverterErrorCode.ERROR_CODE_UNSPECIFIED,
+                level=ErrorLevel.ERROR_LEVEL_CRITICAL,
+                msg="",
             )
-        )
 
-        assert tracker._get_new_status_if_changed() is ComponentStatusEnum.NOT_WORKING
-
-        tracker._handle_status_battery(
-            battery_data(
-                component_id=BATTERY_ID,
-                component_state=BatteryState.COMPONENT_STATE_ERROR,
-                errors=[battery_warning_error, battery_critical_error],
+            inverter_warning_error = InverterError(
+                code=InverterErrorCode.ERROR_CODE_UNSPECIFIED,
+                level=ErrorLevel.ERROR_LEVEL_WARN,
+                msg="",
             )
-        )
 
-        assert tracker._get_new_status_if_changed() is None
+            tracker._handle_status_inverter(
+                inverter_data(
+                    component_id=INVERTER_ID,
+                    component_state=InverterState.COMPONENT_STATE_SWITCHING_OFF,
+                    errors=[inverter_critical_error, inverter_warning_error],
+                )
+            )
 
-        # Check if NaN capacity changes the battery status.
-        tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+            assert tracker._get_new_status_if_changed() is None
 
-        assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
+            tracker._handle_status_inverter(
+                inverter_data(
+                    component_id=INVERTER_ID,
+                    errors=[inverter_critical_error, inverter_warning_error],
+                )
+            )
 
-        tracker._handle_status_battery(
-            battery_data(component_id=BATTERY_ID, capacity=math.nan)
-        )
+            assert tracker._get_new_status_if_changed() is None
 
-        assert tracker._get_new_status_if_changed() is ComponentStatusEnum.NOT_WORKING
+            tracker._handle_status_inverter(
+                inverter_data(component_id=INVERTER_ID, errors=[inverter_warning_error])
+            )
 
-        await tracker.stop()
-        await mock_microgrid.cleanup()
+            assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
+
+            battery_critical_error = BatteryError(
+                code=BatteryErrorCode.ERROR_CODE_UNSPECIFIED,
+                level=ErrorLevel.ERROR_LEVEL_CRITICAL,
+                msg="",
+            )
+
+            battery_warning_error = BatteryError(
+                code=BatteryErrorCode.ERROR_CODE_UNSPECIFIED,
+                level=ErrorLevel.ERROR_LEVEL_WARN,
+                msg="",
+            )
+
+            tracker._handle_status_battery(
+                battery_data(component_id=BATTERY_ID, errors=[battery_warning_error])
+            )
+
+            assert tracker._get_new_status_if_changed() is None
+
+            tracker._handle_status_battery(
+                battery_data(
+                    component_id=BATTERY_ID,
+                    errors=[battery_warning_error, battery_critical_error],
+                )
+            )
+
+            assert (
+                tracker._get_new_status_if_changed() is ComponentStatusEnum.NOT_WORKING
+            )
+
+            tracker._handle_status_battery(
+                battery_data(
+                    component_id=BATTERY_ID,
+                    component_state=BatteryState.COMPONENT_STATE_ERROR,
+                    errors=[battery_warning_error, battery_critical_error],
+                )
+            )
+
+            assert tracker._get_new_status_if_changed() is None
+
+            # Check if NaN capacity changes the battery status.
+            tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+
+            assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
+
+            tracker._handle_status_battery(
+                battery_data(component_id=BATTERY_ID, capacity=math.nan)
+            )
+
+            assert (
+                tracker._get_new_status_if_changed() is ComponentStatusEnum.NOT_WORKING
+            )
 
     async def test_sync_blocking_feature(self, mocker: MockerFixture) -> None:
         """Test if status changes when SetPowerResult message is received.
@@ -323,52 +348,88 @@ class TestBatteryStatus:
         Args:
             mocker: Pytest mocker fixture.
         """
-        mock_microgrid = MockMicrogrid(grid_meter=True)
+        import time_machine  # pylint: disable=import-outside-toplevel
+
+        mock_microgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
         mock_microgrid.add_batteries(3)
-        await mock_microgrid.start(mocker)
 
         status_channel = Broadcast[ComponentStatus]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
-        # increase max_data_age_sec for blocking tests.
-        # Otherwise it will block blocking.
-        tracker = BatteryStatusTracker(
+        async with mock_microgrid, battery_status_tracker(
+            # increase max_data_age_sec for blocking tests.
+            # Otherwise it will block blocking.
             BATTERY_ID,
             max_data_age_sec=500,
             max_blocking_duration_sec=30,
             status_sender=status_channel.new_sender(),
             set_power_result_receiver=set_power_result_channel.new_receiver(),
-        )
+        ) as tracker:
+            with time_machine.travel("2022-01-01 00:00 UTC", tick=False) as time:
+                tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
 
-        with time_machine.travel("2022-01-01 00:00 UTC", tick=False) as time:
-            tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
+                assert tracker._get_new_status_if_changed() is None
 
-            assert tracker._get_new_status_if_changed() is None
-
-            tracker._handle_status_battery(
-                battery_data(
-                    component_id=BATTERY_ID,
-                    component_state=BatteryState.COMPONENT_STATE_ERROR,
+                tracker._handle_status_battery(
+                    battery_data(
+                        component_id=BATTERY_ID,
+                        component_state=BatteryState.COMPONENT_STATE_ERROR,
+                    )
                 )
-            )
 
-            assert tracker._get_new_status_if_changed() is None
+                assert tracker._get_new_status_if_changed() is None
 
-            # message is not correct, component should not block.
-            tracker._handle_status_set_power_result(
-                SetPowerResult(succeeded={1}, failed={BATTERY_ID})
-            )
-
-            assert tracker._get_new_status_if_changed() is None
-
-            tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
-
-            assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
-
-            expected_blocking_timeout = [1, 2, 4, 8, 16, 30, 30]
-
-            for timeout in expected_blocking_timeout:
                 # message is not correct, component should not block.
+                tracker._handle_status_set_power_result(
+                    SetPowerResult(succeeded={1}, failed={BATTERY_ID})
+                )
+
+                assert tracker._get_new_status_if_changed() is None
+
+                tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+
+                assert (
+                    tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
+                )
+
+                expected_blocking_timeout = [1, 2, 4, 8, 16, 30, 30]
+
+                for timeout in expected_blocking_timeout:
+                    # message is not correct, component should not block.
+                    tracker._handle_status_set_power_result(
+                        SetPowerResult(succeeded={1}, failed={BATTERY_ID})
+                    )
+
+                    assert (
+                        tracker._get_new_status_if_changed()
+                        is ComponentStatusEnum.UNCERTAIN
+                    )
+
+                    # Battery should be still blocked, nothing should happen
+                    time.shift(timeout - 1)
+                    tracker._handle_status_set_power_result(
+                        SetPowerResult(succeeded={1}, failed={BATTERY_ID})
+                    )
+
+                    assert tracker._get_new_status_if_changed() is None
+
+                    tracker._handle_status_battery(
+                        battery_data(component_id=BATTERY_ID)
+                    )
+
+                    assert tracker._get_new_status_if_changed() is None
+
+                    time.shift(1)
+                    tracker._handle_status_battery(
+                        battery_data(component_id=BATTERY_ID)
+                    )
+
+                    assert (
+                        tracker._get_new_status_if_changed()
+                        is ComponentStatusEnum.WORKING
+                    )
+
+                # should block for 30 sec
                 tracker._handle_status_set_power_result(
                     SetPowerResult(succeeded={1}, failed={BATTERY_ID})
                 )
@@ -377,67 +438,46 @@ class TestBatteryStatus:
                     tracker._get_new_status_if_changed()
                     is ComponentStatusEnum.UNCERTAIN
                 )
+                time.shift(28)
 
-                # Battery should be still blocked, nothing should happen
-                time.shift(timeout - 1)
-                tracker._handle_status_set_power_result(
-                    SetPowerResult(succeeded={1}, failed={BATTERY_ID})
+                tracker._handle_status_battery(
+                    battery_data(
+                        component_id=BATTERY_ID,
+                        component_state=BatteryState.COMPONENT_STATE_ERROR,
+                    )
                 )
 
-                assert tracker._get_new_status_if_changed() is None
+                assert (
+                    tracker._get_new_status_if_changed()
+                    is ComponentStatusEnum.NOT_WORKING
+                )
 
+                # Message that changed status to correct should unblock the battery.
                 tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
-
-                assert tracker._get_new_status_if_changed() is None
-
-                time.shift(1)
-                tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
-
                 assert (
                     tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
                 )
 
-            # should block for 30 sec
-            tracker._handle_status_set_power_result(
-                SetPowerResult(succeeded={1}, failed={BATTERY_ID})
-            )
-
-            assert tracker._get_new_status_if_changed() is ComponentStatusEnum.UNCERTAIN
-            time.shift(28)
-
-            tracker._handle_status_battery(
-                battery_data(
-                    component_id=BATTERY_ID,
-                    component_state=BatteryState.COMPONENT_STATE_ERROR,
+                # should block for 30 sec
+                tracker._handle_status_set_power_result(
+                    SetPowerResult(succeeded={1}, failed={BATTERY_ID})
                 )
-            )
+                assert (
+                    tracker._get_new_status_if_changed()
+                    is ComponentStatusEnum.UNCERTAIN
+                )
+                time.shift(28)
 
-            assert (
-                tracker._get_new_status_if_changed() is ComponentStatusEnum.NOT_WORKING
-            )
-
-            # Message that changed status to correct should unblock the battery.
-            tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
-            assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
-
-            # should block for 30 sec
-            tracker._handle_status_set_power_result(
-                SetPowerResult(succeeded={1}, failed={BATTERY_ID})
-            )
-            assert tracker._get_new_status_if_changed() is ComponentStatusEnum.UNCERTAIN
-            time.shift(28)
-
-            # If battery succeed, then it should unblock.
-            tracker._handle_status_set_power_result(
-                SetPowerResult(succeeded={BATTERY_ID}, failed={19})
-            )
-            assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
-
-        await tracker.stop()
-        await mock_microgrid.cleanup()
+                # If battery succeed, then it should unblock.
+                tracker._handle_status_set_power_result(
+                    SetPowerResult(succeeded={BATTERY_ID}, failed={19})
+                )
+                assert (
+                    tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
+                )
 
     async def test_sync_blocking_interrupted_with_with_max_data(
-        self, mocker: MockerFixture
+        self, mocker: MockerFixture, time_machine: TimeMachineFixture
     ) -> None:
         """Test if status changes when SetPowerResult message is received.
 
@@ -446,23 +486,24 @@ class TestBatteryStatus:
 
         Args:
             mocker: Pytest mocker fixture.
+            time_machine: Pytest time_machine fixture.
         """
-        mock_microgrid = MockMicrogrid(grid_meter=True)
+        mock_microgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
         mock_microgrid.add_batteries(3)
-        await mock_microgrid.start(mocker)
 
         status_channel = Broadcast[ComponentStatus]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
-        tracker = BatteryStatusTracker(
+        async with mock_microgrid, battery_status_tracker(
             BATTERY_ID,
             max_data_age_sec=5,
             max_blocking_duration_sec=30,
             status_sender=status_channel.new_sender(),
             set_power_result_receiver=set_power_result_channel.new_receiver(),
-        )
+        ) as tracker:
+            start = datetime(2022, 1, 1, tzinfo=timezone.utc)
+            time_machine.move_to(start, tick=False)
 
-        with time_machine.travel("2022-01-01 00:00 UTC", tick=False) as time:
             tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
             assert tracker._get_new_status_if_changed() is None
 
@@ -481,14 +522,10 @@ class TestBatteryStatus:
                     SetPowerResult(succeeded={1}, failed={BATTERY_ID})
                 )
                 assert tracker._get_new_status_if_changed() is None
-                time.shift(timeout)
+                time_machine.move_to(start + timedelta(seconds=timeout))
 
-        await tracker.stop()
-        await mock_microgrid.cleanup()
-
-    @time_machine.travel("2022-01-01 00:00 UTC", tick=False)
     async def test_sync_blocking_interrupted_with_invalid_message(
-        self, mocker: MockerFixture
+        self, mocker: MockerFixture, time_machine: TimeMachineFixture
     ) -> None:
         """Test if status changes when SetPowerResult message is received.
 
@@ -497,59 +534,60 @@ class TestBatteryStatus:
 
         Args:
             mocker: Pytest mocker fixture.
+            time_machine: Pytest time_machine fixture.
         """
-        mock_microgrid = MockMicrogrid(grid_meter=True)
+        mock_microgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
         mock_microgrid.add_batteries(3)
-        await mock_microgrid.start(mocker)
 
         status_channel = Broadcast[ComponentStatus]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
-        tracker = BatteryStatusTracker(
+        async with mock_microgrid, battery_status_tracker(
             BATTERY_ID,
             max_data_age_sec=5,
             max_blocking_duration_sec=30,
             status_sender=status_channel.new_sender(),
             set_power_result_receiver=set_power_result_channel.new_receiver(),
-        )
+        ) as tracker:
+            time_machine.move_to("2022-01-01 00:00 UTC", tick=False)
 
-        tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
-        assert tracker._get_new_status_if_changed() is None
+            tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
+            assert tracker._get_new_status_if_changed() is None
 
-        tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
-        assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
+            tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+            assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
 
-        tracker._handle_status_set_power_result(
-            SetPowerResult(succeeded={1}, failed={BATTERY_ID})
-        )
-        assert tracker._get_new_status_if_changed() is ComponentStatusEnum.UNCERTAIN
-
-        tracker._handle_status_inverter(
-            inverter_data(
-                component_id=INVERTER_ID,
-                component_state=InverterState.COMPONENT_STATE_ERROR,
+            tracker._handle_status_set_power_result(
+                SetPowerResult(succeeded={1}, failed={BATTERY_ID})
             )
-        )
-        assert tracker._get_new_status_if_changed() is ComponentStatusEnum.NOT_WORKING
+            assert tracker._get_new_status_if_changed() is ComponentStatusEnum.UNCERTAIN
 
-        tracker._handle_status_set_power_result(
-            SetPowerResult(succeeded={1}, failed={BATTERY_ID})
-        )
-        assert tracker._get_new_status_if_changed() is None
+            tracker._handle_status_inverter(
+                inverter_data(
+                    component_id=INVERTER_ID,
+                    component_state=InverterState.COMPONENT_STATE_ERROR,
+                )
+            )
+            assert (
+                tracker._get_new_status_if_changed() is ComponentStatusEnum.NOT_WORKING
+            )
 
-        tracker._handle_status_set_power_result(
-            SetPowerResult(succeeded={BATTERY_ID}, failed=set())
-        )
-        assert tracker._get_new_status_if_changed() is None
+            tracker._handle_status_set_power_result(
+                SetPowerResult(succeeded={1}, failed={BATTERY_ID})
+            )
+            assert tracker._get_new_status_if_changed() is None
 
-        tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
-        assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
+            tracker._handle_status_set_power_result(
+                SetPowerResult(succeeded={BATTERY_ID}, failed=set())
+            )
+            assert tracker._get_new_status_if_changed() is None
 
-        await tracker.stop()
-        await mock_microgrid.cleanup()
+            tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
+            assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
 
-    @time_machine.travel("2022-01-01 00:00 UTC", tick=False)
-    async def test_timers(self, mocker: MockerFixture) -> None:
+    async def test_timers(
+        self, mocker: MockerFixture, time_machine: TimeMachineFixture
+    ) -> None:
         """Test if messages changes battery status.
 
         Tests uses FakeSelect to test status in sync way.
@@ -557,72 +595,73 @@ class TestBatteryStatus:
 
         Args:
             mocker: Pytest mocker fixture.
+            time_machine: Pytest time_machine fixture.
         """
-        mock_microgrid = MockMicrogrid(grid_meter=True)
+        mock_microgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
         mock_microgrid.add_batteries(3)
-        await mock_microgrid.start(mocker)
 
         status_channel = Broadcast[ComponentStatus]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
-        tracker = BatteryStatusTracker(
+        async with mock_microgrid, battery_status_tracker(
             BATTERY_ID,
             max_data_age_sec=5,
             max_blocking_duration_sec=30,
             status_sender=status_channel.new_sender(),
             set_power_result_receiver=set_power_result_channel.new_receiver(),
-        )
+        ) as tracker:
+            time_machine.move_to("2022-01-01 00:00 UTC", tick=False)
 
-        battery_timer_spy = mocker.spy(tracker._battery.data_recv_timer, "reset")
-        inverter_timer_spy = mocker.spy(tracker._inverter.data_recv_timer, "reset")
+            battery_timer_spy = mocker.spy(tracker._battery.data_recv_timer, "reset")
+            inverter_timer_spy = mocker.spy(tracker._inverter.data_recv_timer, "reset")
 
-        assert tracker.battery_id == BATTERY_ID
-        assert tracker._last_status == ComponentStatusEnum.NOT_WORKING
+            assert tracker.battery_id == BATTERY_ID
+            assert tracker._last_status == ComponentStatusEnum.NOT_WORKING
 
-        tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
-        assert tracker._get_new_status_if_changed() is None
+            tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
+            assert tracker._get_new_status_if_changed() is None
 
-        tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
-        assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
+            tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+            assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
 
-        assert battery_timer_spy.call_count == 1
+            assert battery_timer_spy.call_count == 1
 
-        tracker._handle_status_battery_timer()
-        assert tracker._get_new_status_if_changed() is ComponentStatusEnum.NOT_WORKING
+            tracker._handle_status_battery_timer()
+            assert (
+                tracker._get_new_status_if_changed() is ComponentStatusEnum.NOT_WORKING
+            )
 
-        assert battery_timer_spy.call_count == 1
+            assert battery_timer_spy.call_count == 1
 
-        tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
-        assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
+            tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+            assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
 
-        assert battery_timer_spy.call_count == 2
+            assert battery_timer_spy.call_count == 2
 
-        tracker._handle_status_inverter_timer()
-        assert tracker._get_new_status_if_changed() is ComponentStatusEnum.NOT_WORKING
+            tracker._handle_status_inverter_timer()
+            assert (
+                tracker._get_new_status_if_changed() is ComponentStatusEnum.NOT_WORKING
+            )
 
-        tracker._handle_status_battery_timer()
-        assert tracker._get_new_status_if_changed() is None
+            tracker._handle_status_battery_timer()
+            assert tracker._get_new_status_if_changed() is None
 
-        tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
-        assert tracker._get_new_status_if_changed() is None
+            tracker._handle_status_battery(battery_data(component_id=BATTERY_ID))
+            assert tracker._get_new_status_if_changed() is None
 
-        tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
-        assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
+            tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
+            assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
 
-        assert inverter_timer_spy.call_count == 2
-        await tracker.stop()
-        await mock_microgrid.cleanup()
+            assert inverter_timer_spy.call_count == 2
 
-    @time_machine.travel("2022-01-01 00:00 UTC", tick=False)
     async def test_async_battery_status(self, mocker: MockerFixture) -> None:
         """Test if status changes.
 
         Args:
             mocker: Pytest mocker fixture.
         """
-        mock_microgrid = MockMicrogrid(grid_meter=True)
+        mock_microgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
         mock_microgrid.add_batteries(3)
-        await mock_microgrid.start(mocker)
 
         status_channel = Broadcast[ComponentStatus]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
@@ -630,58 +669,62 @@ class TestBatteryStatus:
         status_receiver = status_channel.new_receiver()
         set_power_result_sender = set_power_result_channel.new_sender()
 
-        tracker = BatteryStatusTracker(
+        async with mock_microgrid, battery_status_tracker(
             BATTERY_ID,
             max_data_age_sec=5,
             max_blocking_duration_sec=30,
             status_sender=status_channel.new_sender(),
             set_power_result_receiver=set_power_result_channel.new_receiver(),
-        )
-        await asyncio.sleep(0.01)
+        ):
+            import time_machine  # pylint: disable=import-outside-toplevel
 
-        with time_machine.travel("2022-01-01 00:00 UTC", tick=False) as time:
-            await mock_microgrid.mock_client.send(
-                inverter_data(component_id=INVERTER_ID)
-            )
-            await mock_microgrid.mock_client.send(battery_data(component_id=BATTERY_ID))
-            status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
-            assert status.value is ComponentStatusEnum.WORKING
+            await asyncio.sleep(0.01)
 
-            await set_power_result_sender.send(
-                SetPowerResult(succeeded=set(), failed={BATTERY_ID})
-            )
-            status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
-            assert status.value is ComponentStatusEnum.UNCERTAIN
-
-            time.shift(2)
-
-            await mock_microgrid.mock_client.send(battery_data(component_id=BATTERY_ID))
-            status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
-            assert status.value is ComponentStatusEnum.WORKING
-
-            await mock_microgrid.mock_client.send(
-                inverter_data(
-                    component_id=INVERTER_ID,
-                    timestamp=datetime.now(tz=timezone.utc) - timedelta(seconds=7),
+            with time_machine.travel("2022-01-01 00:00 UTC", tick=False) as time:
+                await mock_microgrid.mock_client.send(
+                    inverter_data(component_id=INVERTER_ID)
                 )
-            )
-            status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
-            assert status.value is ComponentStatusEnum.NOT_WORKING
+                await mock_microgrid.mock_client.send(
+                    battery_data(component_id=BATTERY_ID)
+                )
+                status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
+                assert status.value is ComponentStatusEnum.WORKING
 
-            await set_power_result_sender.send(
-                SetPowerResult(succeeded=set(), failed={BATTERY_ID})
-            )
-            await asyncio.sleep(0.3)
-            assert len(status_receiver) == 0
+                await set_power_result_sender.send(
+                    SetPowerResult(succeeded=set(), failed={BATTERY_ID})
+                )
+                status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
+                assert status.value is ComponentStatusEnum.UNCERTAIN
 
-            await mock_microgrid.mock_client.send(
-                inverter_data(component_id=INVERTER_ID)
-            )
-            status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
-            assert status.value is ComponentStatusEnum.WORKING
+                time.shift(2)
 
-        await tracker.stop()
-        await mock_microgrid.cleanup()
+                await mock_microgrid.mock_client.send(
+                    battery_data(component_id=BATTERY_ID)
+                )
+                status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
+                assert status.value is ComponentStatusEnum.WORKING
+
+                await mock_microgrid.mock_client.send(
+                    inverter_data(
+                        component_id=INVERTER_ID,
+                        timestamp=datetime.now(tz=timezone.utc) - timedelta(seconds=7),
+                    )
+                )
+                status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
+                assert status.value is ComponentStatusEnum.NOT_WORKING
+
+                await set_power_result_sender.send(
+                    SetPowerResult(succeeded=set(), failed={BATTERY_ID})
+                )
+                time.shift(10)
+                await asyncio.sleep(0.3)
+                assert len(status_receiver) == 0
+
+                await mock_microgrid.mock_client.send(
+                    inverter_data(component_id=INVERTER_ID)
+                )
+                status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
+                assert status.value is ComponentStatusEnum.WORKING
 
 
 class TestBatteryStatusRecovery:
@@ -698,32 +741,27 @@ class TestBatteryStatusRecovery:
 
     @pytest.fixture
     async def setup_tracker(
-        self, mocker: MockerFixture
+        self,
+        mocker: MockerFixture,
     ) -> AsyncIterator[tuple[MockMicrogrid, Receiver[ComponentStatus]]]:
         """Set a BatteryStatusTracker instance up to run tests with."""
-        mock_microgrid = MockMicrogrid(grid_meter=True)
+        mock_microgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
         mock_microgrid.add_batteries(1)
-        await mock_microgrid.start(mocker)
 
         status_channel = Broadcast[ComponentStatus]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
         status_receiver = status_channel.new_receiver()
 
-        _tracker = BatteryStatusTracker(
+        async with mock_microgrid, battery_status_tracker(
             BATTERY_ID,
             max_data_age_sec=0.1,
             max_blocking_duration_sec=1,
             status_sender=status_channel.new_sender(),
             set_power_result_receiver=set_power_result_channel.new_receiver(),
-        )
-
-        await asyncio.sleep(0.05)
-
-        yield (mock_microgrid, status_receiver)
-
-        await _tracker.stop()
-        await mock_microgrid.cleanup()
+        ):
+            await asyncio.sleep(0.05)
+            yield (mock_microgrid, status_receiver)
 
     async def _send_healthy_battery(
         self, mock_microgrid: MockMicrogrid, timestamp: datetime | None = None
