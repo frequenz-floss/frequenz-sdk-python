@@ -3,6 +3,8 @@
 
 """Tests for the `Grid` module."""
 
+from contextlib import AsyncExitStack
+
 from pytest_mock import MockerFixture
 
 import frequenz.sdk.microgrid.component_graph as gr
@@ -37,8 +39,10 @@ async def test_grid_1(mocker: MockerFixture) -> None:
     # pylint: disable=protected-access
     graph = gr._MicrogridComponentGraph(components=components, connections=connections)
 
-    async with MockMicrogrid(graph=graph, mocker=mocker):
+    async with MockMicrogrid(graph=graph, mocker=mocker), AsyncExitStack() as stack:
         grid = microgrid.grid()
+        assert grid is not None
+        stack.push_async_callback(grid.stop)
 
         assert grid
         assert grid.fuse
@@ -69,15 +73,15 @@ async def test_grid_2(mocker: MockerFixture) -> None:
     # pylint: disable=protected-access
     graph = gr._MicrogridComponentGraph(components=components, connections=connections)
 
-    async with MockMicrogrid(graph=graph, mocker=mocker):
+    async with MockMicrogrid(graph=graph, mocker=mocker), AsyncExitStack() as stack:
         grid = microgrid.grid()
         assert grid is not None
+        stack.push_async_callback(grid.stop)
 
         expected_fuse_current = Current.from_amperes(123.0)
         expected_fuse = Fuse(expected_fuse_current)
 
         assert grid.fuse == expected_fuse
-
 
 
 async def test_grid_3(mocker: MockerFixture) -> None:
@@ -93,11 +97,11 @@ async def test_grid_3(mocker: MockerFixture) -> None:
     # pylint: disable=protected-access
     graph = gr._MicrogridComponentGraph(components=components, connections=connections)
 
-    async with MockMicrogrid(graph=graph, mocker=mocker):
+    async with MockMicrogrid(graph=graph, mocker=mocker), AsyncExitStack() as stack:
         grid = microgrid.grid()
         assert grid is not None
+        stack.push_async_callback(grid.stop)
         assert grid.fuse is None
-
 
 
 async def test_grid_power_1(mocker: MockerFixture) -> None:
@@ -106,9 +110,12 @@ async def test_grid_power_1(mocker: MockerFixture) -> None:
     mockgrid.add_batteries(2)
     mockgrid.add_solar_inverters(1)
 
-    async with mockgrid:
+    results = []
+    grid_meter_data = []
+    async with mockgrid, AsyncExitStack() as stack:
         grid = microgrid.grid()
         assert grid, "Grid is not initialized"
+        stack.push_async_callback(grid.stop)
 
         grid_power_recv = grid.power.new_receiver()
 
@@ -119,8 +126,6 @@ async def test_grid_power_1(mocker: MockerFixture) -> None:
             Power.from_watts,
         )
 
-        results = []
-        grid_meter_data = []
         for count in range(10):
             await mockgrid.mock_resampler.send_meter_power(
                 [20.0 + count, 12.0, -13.0, -5.0]
@@ -137,9 +142,7 @@ async def test_grid_power_1(mocker: MockerFixture) -> None:
             assert val is not None and val.value is not None
             results.append(val.value)
 
-        await grid.stop()
-
-        assert equal_float_lists(results, grid_meter_data)
+    assert equal_float_lists(results, grid_meter_data)
 
 
 async def test_grid_power_2(mocker: MockerFixture) -> None:
@@ -150,9 +153,12 @@ async def test_grid_power_2(mocker: MockerFixture) -> None:
     mockgrid.add_batteries(1, no_meter=True)
     mockgrid.add_solar_inverters(1)
 
-    async with mockgrid:
+    results: list[Quantity] = []
+    meter_sums: list[Quantity] = []
+    async with mockgrid, AsyncExitStack() as stack:
         grid = microgrid.grid()
         assert grid, "Grid is not initialized"
+        stack.push_async_callback(grid.stop)
 
         grid_power_recv = grid.power.new_receiver()
 
@@ -170,8 +176,6 @@ async def test_grid_power_2(mocker: MockerFixture) -> None:
             ]
         ]
 
-        results: list[Quantity] = []
-        meter_sums: list[Quantity] = []
         for count in range(10):
             await mockgrid.mock_resampler.send_meter_power([20.0 + count, 12.0, -13.0])
             await mockgrid.mock_resampler.send_bat_inverter_power([0.0, -5.0])
@@ -190,10 +194,8 @@ async def test_grid_power_2(mocker: MockerFixture) -> None:
             results.append(val.value)
             meter_sums.append(Quantity(meter_sum))
 
-        await grid.stop()
-
-        assert len(results) == 10
-        assert equal_float_lists(results, meter_sums)
+    assert len(results) == 10
+    assert equal_float_lists(results, meter_sums)
 
 
 async def test_grid_production_consumption_power_consumer_meter(
@@ -205,9 +207,11 @@ async def test_grid_production_consumption_power_consumer_meter(
     mockgrid.add_batteries(2)
     mockgrid.add_solar_inverters(1)
 
-    async with mockgrid:
+    async with mockgrid, AsyncExitStack() as stack:
         grid = microgrid.grid()
         assert grid, "Grid is not initialized"
+        stack.push_async_callback(grid.stop)
+
         grid_recv = grid.power.new_receiver()
 
         await mockgrid.mock_resampler.send_meter_power([1.0, 2.0, 3.0, 4.0])
@@ -215,8 +219,6 @@ async def test_grid_production_consumption_power_consumer_meter(
 
         await mockgrid.mock_resampler.send_meter_power([1.0, 2.0, -3.0, -4.0])
         assert (await grid_recv.receive()).value == Power.from_watts(-4.0)
-
-        await grid.stop()
 
 
 async def test_grid_production_consumption_power_no_grid_meter(
@@ -227,9 +229,11 @@ async def test_grid_production_consumption_power_no_grid_meter(
     mockgrid.add_batteries(2)
     mockgrid.add_solar_inverters(1)
 
-    async with mockgrid:
+    async with mockgrid, AsyncExitStack() as stack:
         grid = microgrid.grid()
         assert grid, "Grid is not initialized"
+        stack.push_async_callback(grid.stop)
+
         grid_recv = grid.power.new_receiver()
 
         await mockgrid.mock_resampler.send_meter_power([2.5, 3.5, 4.0])
@@ -238,8 +242,6 @@ async def test_grid_production_consumption_power_no_grid_meter(
         await mockgrid.mock_resampler.send_meter_power([3.0, -3.0, -4.0])
         assert (await grid_recv.receive()).value == Power.from_watts(-4.0)
 
-        await grid.stop()
-
 
 async def test_consumer_power_2_grid_meters(mocker: MockerFixture) -> None:
     """Test the grid power formula with two grid meters."""
@@ -247,12 +249,12 @@ async def test_consumer_power_2_grid_meters(mocker: MockerFixture) -> None:
     # with no further successor these will be detected as grid meters
     mockgrid.add_consumer_meters(2)
 
-    async with mockgrid:
+    async with mockgrid, AsyncExitStack() as stack:
         grid = microgrid.grid()
         assert grid, "Grid is not initialized"
+        stack.push_async_callback(grid.stop)
+
         grid_recv = grid.power.new_receiver()
 
         await mockgrid.mock_resampler.send_meter_power([1.0, 2.0])
         assert (await grid_recv.receive()).value == Power.from_watts(3.0)
-
-        await grid.stop()
