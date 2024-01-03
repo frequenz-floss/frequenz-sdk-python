@@ -36,8 +36,10 @@ async def test_grid_1(mocker: MockerFixture) -> None:
     connections = {
         Connection(1, 2),
     }
-    # pylint: disable=protected-access
-    graph = gr._MicrogridComponentGraph(components=components, connections=connections)
+
+    graph = gr._MicrogridComponentGraph(  # pylint: disable=protected-access
+        components=components, connections=connections
+    )
 
     async with MockMicrogrid(graph=graph, mocker=mocker), AsyncExitStack() as stack:
         grid = microgrid.grid()
@@ -70,8 +72,9 @@ async def test_grid_2(mocker: MockerFixture) -> None:
         Connection(1, 2),
     }
 
-    # pylint: disable=protected-access
-    graph = gr._MicrogridComponentGraph(components=components, connections=connections)
+    graph = gr._MicrogridComponentGraph(  # pylint: disable=protected-access
+        components=components, connections=connections
+    )
 
     async with MockMicrogrid(graph=graph, mocker=mocker), AsyncExitStack() as stack:
         grid = microgrid.grid()
@@ -94,8 +97,9 @@ async def test_grid_3(mocker: MockerFixture) -> None:
         Connection(1, 2),
     }
 
-    # pylint: disable=protected-access
-    graph = gr._MicrogridComponentGraph(components=components, connections=connections)
+    graph = gr._MicrogridComponentGraph(  # pylint: disable=protected-access
+        components=components, connections=connections
+    )
 
     async with MockMicrogrid(graph=graph, mocker=mocker), AsyncExitStack() as stack:
         grid = microgrid.grid()
