@@ -5,9 +5,9 @@
 
 
 import asyncio
-import typing
 from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
+from typing import Coroutine
 
 from pytest_mock import MockerFixture
 
@@ -151,7 +151,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         self.evc_component_states: dict[int, EVChargerComponentState] = {}
         self.evc_cable_states: dict[int, EVChargerCableState] = {}
 
-        self._streaming_coros: list[typing.Coroutine[None, None, None]] = []
+        self._streaming_coros: list[Coroutine[None, None, None]] = []
         self._streaming_tasks: list[asyncio.Task[None]] = []
 
         if grid_meter:
