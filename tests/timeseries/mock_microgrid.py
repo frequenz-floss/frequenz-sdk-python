@@ -62,6 +62,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         num_namespaces: int = 1,
         fuse: Fuse | None = Fuse(Current.from_amperes(10_000.0)),
         graph: _MicrogridComponentGraph | None = None,
+        mocker: MockerFixture | None = None,
     ):
         """Create a new instance.
 
@@ -78,10 +79,12 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             fuse: optional, the fuse to use for the grid connection.
             graph: optional, a graph of components to use instead of the default grid
                 layout. If specified, grid_meter must be None.
+            mocker: optional, a mocker to pass to the mock client and mock resampler.
 
         Raises:
             ValueError: if both grid_meter and graph are specified.
         """
+        self._mocker = mocker
         if grid_meter is not None and graph is not None:
             raise ValueError("grid_meter and graph are mutually exclusive")
 
@@ -163,9 +166,22 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             self.meter_ids.append(self._grid_meter_id)
             self._start_meter_streaming(self._grid_meter_id)
 
-    async def start(self, mocker: MockerFixture) -> None:
+    async def start(self, mocker: MockerFixture | None = None) -> None:
         """Init the mock microgrid client and start the mock resampler."""
-        self.init_mock_client(lambda mock_client: mock_client.initialize(mocker))
+        # Return if it is already started
+        if hasattr(self, "mock_client") or hasattr(self, "mock_resampler"):
+            return
+
+        if mocker is None:
+            mocker = self._mocker
+        assert mocker is not None, "A mocker must be set at init or start time"
+
+        # This binding to a local is needed because Python uses late binding for
+        # closures and `mocker` could be bound to `None` again after the lambda is
+        # created. See:
+        # https://mypy.readthedocs.io/en/stable/common_issues.html#narrowing-and-inner-functions
+        local_mocker = mocker
+        self.init_mock_client(lambda mock_client: mock_client.initialize(local_mocker))
         self.mock_resampler = MockResampler(
             mocker,
             ResamplerConfig(timedelta(seconds=self._sample_rate_s)),
