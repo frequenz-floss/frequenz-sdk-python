@@ -99,7 +99,7 @@ class EVChargerPool:
                 microgrid API, if no new calls to `set_bounds` have been made.
         """
         self._channel_registry: ChannelRegistry = channel_registry
-        self._repeat_interval = repeat_interval
+        self._repeat_interval: timedelta = repeat_interval
         self._resampler_subscription_sender: Sender[
             ComponentMetricRequest
         ] = resampler_subscription_sender

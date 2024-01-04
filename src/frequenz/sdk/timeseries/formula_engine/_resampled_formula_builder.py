@@ -48,10 +48,12 @@ class ResampledFormulaBuilder(Generic[QuantityT], FormulaBuilder[QuantityT]):
                 formula is for generating power values, this would be
                 `Power.from_watts`, for example.
         """
-        self._channel_registry = channel_registry
-        self._resampler_subscription_sender = resampler_subscription_sender
-        self._namespace = namespace
-        self._metric_id = metric_id
+        self._channel_registry: ChannelRegistry = channel_registry
+        self._resampler_subscription_sender: Sender[
+            ComponentMetricRequest
+        ] = resampler_subscription_sender
+        self._namespace: str = namespace
+        self._metric_id: ComponentMetricId = metric_id
         self._resampler_requests: list[ComponentMetricRequest] = []
         super().__init__(formula_name, create_method)  # type: ignore[arg-type]
 

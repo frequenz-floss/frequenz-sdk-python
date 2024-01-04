@@ -74,8 +74,9 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
                 battery pool. If None or empty, then all batteries from the microgrid
                 will be used.
         """
+        self._batteries: frozenset[int]
         if batteries_id:
-            self._batteries: frozenset[int] = frozenset(batteries_id)
+            self._batteries = frozenset(batteries_id)
         else:
             self._batteries = self._get_all_batteries()
 
@@ -87,18 +88,21 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
                 self._update_battery_status(batteries_status_receiver)
             )
 
-        self._min_update_interval = min_update_interval
+        self._min_update_interval: timedelta = min_update_interval
 
-        self._power_manager_requests_sender = power_manager_requests_sender
-        self._power_manager_bounds_subscription_sender = (
-            power_manager_bounds_subscription_sender
-        )
+        self._power_manager_requests_sender: Sender[
+            _power_managing.Proposal
+        ] = power_manager_requests_sender
+
+        self._power_manager_bounds_subscription_sender: Sender[
+            _power_managing.ReportRequest
+        ] = power_manager_bounds_subscription_sender
 
         self._active_methods: dict[str, MetricAggregator[Any]] = {}
         self._power_bounds_subs: dict[str, asyncio.Task[None]] = {}
         self._namespace: str = f"battery-pool-{self._batteries}-{uuid.uuid4()}"
         self._power_distributing_namespace: str = f"power-distributor-{self._namespace}"
-        self._channel_registry = channel_registry
+        self._channel_registry: _channel_registry.ChannelRegistry = channel_registry
         self._formula_pool: FormulaEnginePool = FormulaEnginePool(
             self._namespace,
             self._channel_registry,

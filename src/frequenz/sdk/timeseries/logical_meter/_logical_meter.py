@@ -85,8 +85,10 @@ class LogicalMeter:
             resampler_subscription_sender: A sender for sending metric requests to the
                 resampling actor.
         """
-        self._channel_registry = channel_registry
-        self._resampler_subscription_sender = resampler_subscription_sender
+        self._channel_registry: ChannelRegistry = channel_registry
+        self._resampler_subscription_sender: Sender[
+            ComponentMetricRequest
+        ] = resampler_subscription_sender
 
         # Use a randomly generated uuid to create a unique namespace name for the local
         # meter to use when communicating with the resampling actor.

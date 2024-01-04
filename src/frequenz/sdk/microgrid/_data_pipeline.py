@@ -88,9 +88,11 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         """
         from ..actor import ChannelRegistry
 
-        self._resampler_config = resampler_config
+        self._resampler_config: ResamplerConfig = resampler_config
 
-        self._channel_registry = ChannelRegistry(name="Data Pipeline Registry")
+        self._channel_registry: ChannelRegistry = ChannelRegistry(
+            name="Data Pipeline Registry"
+        )
 
         self._data_sourcing_actor: _ActorInfo | None = None
         self._resampling_actor: _ActorInfo | None = None
