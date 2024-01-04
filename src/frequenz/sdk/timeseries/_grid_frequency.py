@@ -107,9 +107,9 @@ class GridFrequency:
             )
 
         return receiver.map(
-            lambda sample: Sample(
-                sample.timestamp, Frequency.from_hertz(sample.value.base_value)
-            )
+            lambda sample: Sample[Frequency](sample.timestamp, None)
+            if sample.value is None or sample.value.isnan()
+            else Sample(sample.timestamp, Frequency.from_hertz(sample.value.base_value))
         )
 
     async def _send_request(self) -> None:

@@ -19,6 +19,34 @@ from .mock_microgrid import MockMicrogrid
 # pylint: disable=protected-access
 
 
+async def test_grid_frequency_none(mocker: MockerFixture) -> None:
+    """Test the grid frequency formula."""
+    mockgrid = MockMicrogrid(grid_meter=True)
+    mockgrid.add_batteries(2)
+    mockgrid.add_solar_inverters(1)
+    await mockgrid.start(mocker)
+
+    grid_freq = microgrid.frequency()
+    grid_freq_recv = grid_freq.new_receiver()
+
+    assert grid_freq._task is not None
+    # We have to wait for the metric request to be sent
+    await grid_freq._task
+    # And consumed
+    await asyncio.sleep(0)
+
+    await mockgrid.mock_client.send(
+        component_data_wrapper.MeterDataWrapper(
+            mockgrid.meter_ids[0], datetime.now(tz=timezone.utc)
+        )
+    )
+
+    val = await grid_freq_recv.receive()
+    assert val is not None
+    assert val.value is None
+    await mockgrid.cleanup()
+
+
 async def test_grid_frequency_1(mocker: MockerFixture) -> None:
     """Test the grid frequency formula."""
     mockgrid = MockMicrogrid(grid_meter=True)
