@@ -155,8 +155,10 @@ disable = [
   "unsubscriptable-object",
   # Checked by flake8
   "line-too-long",
-  "unused-variable",
+  "redefined-outer-name",
   "unnecessary-lambda-assignment",
+  "unused-import",
+  "unused-variable",
 ]
 
 [tool.pylint.design]

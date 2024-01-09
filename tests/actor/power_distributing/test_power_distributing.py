@@ -10,8 +10,9 @@ import dataclasses
 import math
 import re
 from collections import abc
+from contextlib import asynccontextmanager
 from datetime import timedelta
-from typing import TypeVar
+from typing import AsyncIterator, TypeVar
 from unittest.mock import MagicMock
 
 from frequenz.channels import Broadcast, Sender
@@ -60,7 +61,7 @@ T = TypeVar("T")  # Declare type variable
 
 
 @dataclasses.dataclass(frozen=True)
-class Mocks:
+class _Mocks:
     """Mocks for the tests."""
 
     microgrid: MockMicrogrid
@@ -78,12 +79,12 @@ class Mocks:
         mocker: MockerFixture,
         graph: _MicrogridComponentGraph | None = None,
         grid_meter: bool | None = None,
-    ) -> Mocks:
+    ) -> _Mocks:
         """Initialize the mocks."""
-        mockgrid = MockMicrogrid(graph=graph, grid_meter=grid_meter)
+        mockgrid = MockMicrogrid(graph=graph, grid_meter=grid_meter, mocker=mocker)
         if not graph:
             mockgrid.add_batteries(3)
-        await mockgrid.start(mocker)
+        await mockgrid.start()
 
         # pylint: disable=protected-access
         if microgrid._data_pipeline._DATA_PIPELINE is not None:
@@ -114,6 +115,21 @@ class Mocks:
         # pylint: enable=protected-access
 
 
+@asynccontextmanager
+async def _mocks(
+    mocker: MockerFixture,
+    *,
+    graph: _MicrogridComponentGraph | None = None,
+    grid_meter: bool | None = None,
+) -> AsyncIterator[_Mocks]:
+    """Initialize the mocks."""
+    mocks = await _Mocks.new(mocker, graph=graph, grid_meter=grid_meter)
+    try:
+        yield mocks
+    finally:
+        await mocks.stop()
+
+
 class TestPowerDistributingActor:
     # pylint: disable=protected-access
     # pylint: disable=too-many-public-methods
@@ -123,7 +139,7 @@ class TestPowerDistributingActor:
 
     async def _patch_battery_pool_status(
         self,
-        mocks: Mocks,
+        mocks: _Mocks,
         mocker: MockerFixture,
         battery_ids: abc.Set[int] | None = None,
     ) -> None:
@@ -154,60 +170,63 @@ class TestPowerDistributingActor:
             )
         )
 
-    async def test_constructor(self, mocker: MockerFixture) -> None:
-        """Test if gets all necessary data."""
-        mockgrid = MockMicrogrid(grid_meter=True)
+    async def test_constructor_with_grid_meter(self, mocker: MockerFixture) -> None:
+        """Test the constructor works with a grid meter."""
+        mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
         mockgrid.add_batteries(2)
         mockgrid.add_batteries(1, no_meter=True)
-        await mockgrid.start(mocker)
 
-        requests_channel = Broadcast[Request]("power_distributor requests")
-        results_channel = Broadcast[Result]("power_distributor results")
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            results_sender=results_channel.new_sender(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-        ) as distributor:
-            assert isinstance(distributor._component_manager, BatteryManager)
-            assert distributor._component_manager._bat_invs_map == {
-                9: {8},
-                19: {18},
-                29: {28},
-            }
-            assert distributor._component_manager._inv_bats_map == {
-                8: {9},
-                18: {19},
-                28: {29},
-            }
-        await mockgrid.cleanup()
+        async with mockgrid:
+            requests_channel = Broadcast[Request]("power_distributor requests")
+            results_channel = Broadcast[Result]("power_distributor results")
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                results_sender=results_channel.new_sender(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+            ) as distributor:
+                assert isinstance(distributor._component_manager, BatteryManager)
+                assert distributor._component_manager._bat_invs_map == {
+                    9: {8},
+                    19: {18},
+                    29: {28},
+                }
+                assert distributor._component_manager._inv_bats_map == {
+                    8: {9},
+                    18: {19},
+                    28: {29},
+                }
 
-        # Test if it works without grid side meter
-        mockgrid = MockMicrogrid(grid_meter=False)
+    async def test_constructor_without_grid_meter(self, mocker: MockerFixture) -> None:
+        """Test the constructor works without a grid meter."""
+        mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
         mockgrid.add_batteries(1)
         mockgrid.add_batteries(2, no_meter=True)
-        await mockgrid.start(mocker)
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            results_sender=results_channel.new_sender(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-        ) as distributor:
-            assert isinstance(distributor._component_manager, BatteryManager)
-            assert distributor._component_manager._bat_invs_map == {
-                9: {8},
-                19: {18},
-                29: {28},
-            }
-            assert distributor._component_manager._inv_bats_map == {
-                8: {9},
-                18: {19},
-                28: {29},
-            }
-        await mockgrid.cleanup()
+
+        async with mockgrid:
+            requests_channel = Broadcast[Request]("power_distributor requests")
+            results_channel = Broadcast[Result]("power_distributor results")
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                results_sender=results_channel.new_sender(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+            ) as distributor:
+                assert isinstance(distributor._component_manager, BatteryManager)
+                assert distributor._component_manager._bat_invs_map == {
+                    9: {8},
+                    19: {18},
+                    29: {28},
+                }
+                assert distributor._component_manager._inv_bats_map == {
+                    8: {9},
+                    18: {19},
+                    28: {29},
+                }
 
     async def init_component_data(
         self,
-        mocks: Mocks,
+        mocks: _Mocks,
         *,
         skip_batteries: abc.Set[int] | None = None,
         skip_inverters: abc.Set[int] | None = None,
@@ -237,7 +256,7 @@ class TestPowerDistributingActor:
 
     async def test_power_distributor_one_user(self, mocker: MockerFixture) -> None:
         """Test if power distribution works with a single user."""
-        mocks = await Mocks.new(mocker)
+        mocks = await _Mocks.new(mocker)
         requests_channel = Broadcast[Request]("power_distributor requests")
         results_channel = Broadcast[Result]("power_distributor results")
 
@@ -280,92 +299,89 @@ class TestPowerDistributingActor:
         self, mocker: MockerFixture
     ) -> None:
         """Test if power distributing actor rejects non-zero requests in exclusion bounds."""
-        mocks = await Mocks.new(mocker)
+        async with _mocks(mocker) as mocks:
+            await self._patch_battery_pool_status(mocks, mocker, {9, 19})
+            await self.init_component_data(mocks, skip_batteries={9, 19})
 
-        await self._patch_battery_pool_status(mocks, mocker, {9, 19})
-        await self.init_component_data(mocks, skip_batteries={9, 19})
-
-        mocks.streamer.start_streaming(
-            battery_msg(
-                9,
-                soc=Metric(60, Bound(20, 80)),
-                capacity=Metric(98000),
-                power=PowerBounds(-1000, -300, 300, 1000),
-            ),
-            0.05,
-        )
-
-        mocks.streamer.start_streaming(
-            battery_msg(
-                19,
-                soc=Metric(60, Bound(20, 80)),
-                capacity=Metric(98000),
-                power=PowerBounds(-1000, -300, 300, 1000),
-            ),
-            0.05,
-        )
-
-        requests_channel = Broadcast[Request]("power_distributor requests")
-        results_channel = Broadcast[Result]("power_distributor results")
-
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            results_sender=results_channel.new_sender(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-            wait_for_data_sec=0.1,
-        ):
-            # zero power requests should pass through despite the exclusion bounds.
-            request = Request(
-                power=Power.zero(),
-                component_ids={9, 19},
-                request_timeout=SAFETY_TIMEOUT,
+            mocks.streamer.start_streaming(
+                battery_msg(
+                    9,
+                    soc=Metric(60, Bound(20, 80)),
+                    capacity=Metric(98000),
+                    power=PowerBounds(-1000, -300, 300, 1000),
+                ),
+                0.05,
             )
 
-            await requests_channel.new_sender().send(request)
-            result_rx = results_channel.new_receiver()
-
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT.total_seconds(),
+            mocks.streamer.start_streaming(
+                battery_msg(
+                    19,
+                    soc=Metric(60, Bound(20, 80)),
+                    capacity=Metric(98000),
+                    power=PowerBounds(-1000, -300, 300, 1000),
+                ),
+                0.05,
             )
 
-            assert len(pending) == 0
-            assert len(done) == 1
+            requests_channel = Broadcast[Request]("power_distributor requests")
+            results_channel = Broadcast[Result]("power_distributor results")
 
-            result: Result = done.pop().result()
-            assert isinstance(result, Success)
-            assert result.succeeded_power.isclose(Power.zero(), abs_tol=1e-9)
-            assert result.excess_power.isclose(Power.zero(), abs_tol=1e-9)
-            assert result.request == request
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                results_sender=results_channel.new_sender(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+                wait_for_data_sec=0.1,
+            ):
+                # zero power requests should pass through despite the exclusion bounds.
+                request = Request(
+                    power=Power.zero(),
+                    component_ids={9, 19},
+                    request_timeout=SAFETY_TIMEOUT,
+                )
 
-            # non-zero power requests that fall within the exclusion bounds should be
-            # rejected.
-            request = Request(
-                power=Power.from_watts(300.0),
-                component_ids={9, 19},
-                request_timeout=SAFETY_TIMEOUT,
-            )
+                await requests_channel.new_sender().send(request)
+                result_rx = results_channel.new_receiver()
 
-            await requests_channel.new_sender().send(request)
-            result_rx = results_channel.new_receiver()
+                done, pending = await asyncio.wait(
+                    [asyncio.create_task(result_rx.receive())],
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
+                )
 
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT.total_seconds(),
-            )
+                assert len(pending) == 0
+                assert len(done) == 1
 
-            assert len(pending) == 0
-            assert len(done) == 1
+                result: Result = done.pop().result()
+                assert isinstance(result, Success)
+                assert result.succeeded_power.isclose(Power.zero(), abs_tol=1e-9)
+                assert result.excess_power.isclose(Power.zero(), abs_tol=1e-9)
+                assert result.request == request
 
-            result = done.pop().result()
-            assert isinstance(
-                result, OutOfBounds
-            ), f"Expected OutOfBounds, got {result}"
-            assert result.bounds == PowerBounds(-1000, -600, 600, 1000)
-            assert result.request == request
+                # non-zero power requests that fall within the exclusion bounds should be
+                # rejected.
+                request = Request(
+                    power=Power.from_watts(300.0),
+                    component_ids={9, 19},
+                    request_timeout=SAFETY_TIMEOUT,
+                )
 
-        await mocks.stop()
+                await requests_channel.new_sender().send(request)
+                result_rx = results_channel.new_receiver()
+
+                done, pending = await asyncio.wait(
+                    [asyncio.create_task(result_rx.receive())],
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
+                )
+
+                assert len(pending) == 0
+                assert len(done) == 1
+
+                result = done.pop().result()
+                assert isinstance(
+                    result, OutOfBounds
+                ), f"Expected OutOfBounds, got {result}"
+                assert result.bounds == PowerBounds(-1000, -600, 600, 1000)
+                assert result.request == request
 
     # pylint: disable=too-many-locals
     async def test_two_batteries_one_inverters(self, mocker: MockerFixture) -> None:
@@ -392,46 +408,47 @@ class TestPowerDistributingActor:
             )
         )
 
-        mocks = await Mocks.new(mocker, graph=graph)
-        await self.init_component_data(mocks)
+        async with _mocks(mocker, graph=graph) as mocks:
+            await self.init_component_data(mocks)
 
-        requests_channel = Broadcast[Request]("power_distributor requests")
-        results_channel = Broadcast[Result]("power_distributor results")
-        request = Request(
-            power=Power.from_watts(1200.0),
-            component_ids={bat_component1.component_id, bat_component2.component_id},
-            request_timeout=SAFETY_TIMEOUT,
-        )
-
-        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
-
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-            results_sender=results_channel.new_sender(),
-            wait_for_data_sec=0.1,
-        ):
-            await requests_channel.new_sender().send(request)
-            result_rx = results_channel.new_receiver()
-
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT.total_seconds(),
+            requests_channel = Broadcast[Request]("power_distributor requests")
+            results_channel = Broadcast[Result]("power_distributor results")
+            request = Request(
+                power=Power.from_watts(1200.0),
+                component_ids={
+                    bat_component1.component_id,
+                    bat_component2.component_id,
+                },
+                request_timeout=SAFETY_TIMEOUT,
             )
 
-            assert len(pending) == 0
-            assert len(done) == 1
+            await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
 
-            result: Result = done.pop().result()
-            assert isinstance(result, Success)
-            # Inverter bounded at 500
-            assert result.succeeded_power.isclose(Power.from_watts(500.0))
-            assert result.excess_power.isclose(Power.from_watts(700.0))
-            assert result.request == request
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
-        await mocks.stop()
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+                results_sender=results_channel.new_sender(),
+                wait_for_data_sec=0.1,
+            ):
+                await requests_channel.new_sender().send(request)
+                result_rx = results_channel.new_receiver()
+
+                done, pending = await asyncio.wait(
+                    [asyncio.create_task(result_rx.receive())],
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
+                )
+
+                assert len(pending) == 0
+                assert len(done) == 1
+
+                result: Result = done.pop().result()
+                assert isinstance(result, Success)
+                # Inverter bounded at 500
+                assert result.succeeded_power.isclose(Power.from_watts(500.0))
+                assert result.excess_power.isclose(Power.from_watts(700.0))
+                assert result.request == request
 
     async def test_two_batteries_one_broken_one_inverters(
         self, mocker: MockerFixture
@@ -458,59 +475,58 @@ class TestPowerDistributingActor:
             )
         )
 
-        mocks = await Mocks.new(mocker, graph=graph)
-        await self.init_component_data(
-            mocks, skip_batteries={bat_components[0].component_id}
-        )
-
-        mocks.streamer.start_streaming(
-            battery_msg(
-                bat_components[0].component_id,
-                soc=Metric(math.nan, Bound(20, 80)),
-                capacity=Metric(98000),
-                power=PowerBounds(-1000, 0, 0, 1000),
-            ),
-            0.05,
-        )
-
-        requests_channel = Broadcast[Request]("power_distributor")
-        results_channel = Broadcast[Result]("power_distributor results")
-
-        request = Request(
-            power=Power.from_watts(1200.0),
-            component_ids=set(battery.component_id for battery in bat_components),
-            request_timeout=SAFETY_TIMEOUT,
-        )
-
-        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
-
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-            results_sender=results_channel.new_sender(),
-            wait_for_data_sec=0.1,
-        ):
-            await requests_channel.new_sender().send(request)
-            result_rx = results_channel.new_receiver()
-
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT.total_seconds(),
+        async with _mocks(mocker, graph=graph) as mocks:
+            await self.init_component_data(
+                mocks, skip_batteries={bat_components[0].component_id}
             )
 
-            assert len(pending) == 0
-            assert len(done) == 1
-
-            result: Result = done.pop().result()
-
-            assert isinstance(result, Error)
-            assert result.request == request
-            assert (
-                result.msg == "No data for at least one of the given batteries {9, 19}"
+            mocks.streamer.start_streaming(
+                battery_msg(
+                    bat_components[0].component_id,
+                    soc=Metric(math.nan, Bound(20, 80)),
+                    capacity=Metric(98000),
+                    power=PowerBounds(-1000, 0, 0, 1000),
+                ),
+                0.05,
             )
 
-        await mocks.stop()
+            requests_channel = Broadcast[Request]("power_distributor")
+            results_channel = Broadcast[Result]("power_distributor results")
+
+            request = Request(
+                power=Power.from_watts(1200.0),
+                component_ids=set(battery.component_id for battery in bat_components),
+                request_timeout=SAFETY_TIMEOUT,
+            )
+
+            await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+                results_sender=results_channel.new_sender(),
+                wait_for_data_sec=0.1,
+            ):
+                await requests_channel.new_sender().send(request)
+                result_rx = results_channel.new_receiver()
+
+                done, pending = await asyncio.wait(
+                    [asyncio.create_task(result_rx.receive())],
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
+                )
+
+                assert len(pending) == 0
+                assert len(done) == 1
+
+                result: Result = done.pop().result()
+
+                assert isinstance(result, Error)
+                assert result.request == request
+                assert (
+                    result.msg
+                    == "No data for at least one of the given batteries {9, 19}"
+                )
 
     async def test_battery_two_inverters(self, mocker: MockerFixture) -> None:
         """Test if power distribution works with two inverters for one battery."""
@@ -537,46 +553,44 @@ class TestPowerDistributingActor:
             )
         )
 
-        mocks = await Mocks.new(mocker, graph=graph)
-        await self.init_component_data(mocks)
+        async with _mocks(mocker, graph=graph) as mocks:
+            await self.init_component_data(mocks)
 
-        requests_channel = Broadcast[Request]("power_distributor requests")
-        results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request]("power_distributor requests")
+            results_channel = Broadcast[Result]("power_distributor results")
 
-        request = Request(
-            power=Power.from_watts(1200.0),
-            component_ids={bat_component.component_id},
-            request_timeout=SAFETY_TIMEOUT,
-        )
-
-        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
-
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-            results_sender=results_channel.new_sender(),
-            wait_for_data_sec=0.1,
-        ):
-            await requests_channel.new_sender().send(request)
-            result_rx = results_channel.new_receiver()
-
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT.total_seconds(),
+            request = Request(
+                power=Power.from_watts(1200.0),
+                component_ids={bat_component.component_id},
+                request_timeout=SAFETY_TIMEOUT,
             )
 
-            assert len(pending) == 0
-            assert len(done) == 1
+            await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
-            result: Result = done.pop().result()
-            assert isinstance(result, Success)
-            # Inverters each bounded at 500, together 1000
-            assert result.succeeded_power.isclose(Power.from_watts(1000.0))
-            assert result.excess_power.isclose(Power.from_watts(200.0))
-            assert result.request == request
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+                results_sender=results_channel.new_sender(),
+                wait_for_data_sec=0.1,
+            ):
+                await requests_channel.new_sender().send(request)
+                result_rx = results_channel.new_receiver()
 
-        await mocks.stop()
+                done, pending = await asyncio.wait(
+                    [asyncio.create_task(result_rx.receive())],
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
+                )
+
+                assert len(pending) == 0
+                assert len(done) == 1
+
+                result: Result = done.pop().result()
+                assert isinstance(result, Success)
+                # Inverters each bounded at 500, together 1000
+                assert result.succeeded_power.isclose(Power.from_watts(1000.0))
+                assert result.excess_power.isclose(Power.from_watts(200.0))
+                assert result.request == request
 
     async def test_two_batteries_three_inverters(self, mocker: MockerFixture) -> None:
         """Test if power distribution works with two batteries connected to three inverters."""
@@ -608,46 +622,44 @@ class TestPowerDistributingActor:
             )
         )
 
-        mocks = await Mocks.new(mocker, graph=graph)
-        await self.init_component_data(mocks)
+        async with _mocks(mocker, graph=graph) as mocks:
+            await self.init_component_data(mocks)
 
-        requests_channel = Broadcast[Request]("power_distributor requests")
-        results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request]("power_distributor requests")
+            results_channel = Broadcast[Result]("power_distributor results")
 
-        request = Request(
-            power=Power.from_watts(1700.0),
-            component_ids={batteries[0].component_id, batteries[1].component_id},
-            request_timeout=SAFETY_TIMEOUT,
-        )
-
-        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
-
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-            results_sender=results_channel.new_sender(),
-            wait_for_data_sec=0.1,
-        ):
-            await requests_channel.new_sender().send(request)
-            result_rx = results_channel.new_receiver()
-
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT.total_seconds(),
+            request = Request(
+                power=Power.from_watts(1700.0),
+                component_ids={batteries[0].component_id, batteries[1].component_id},
+                request_timeout=SAFETY_TIMEOUT,
             )
 
-            assert len(pending) == 0
-            assert len(done) == 1
+            await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
-            result: Result = done.pop().result()
-            assert isinstance(result, Success)
-            # each inverter is bounded at 500 and we have 3 inverters
-            assert result.succeeded_power.isclose(Power.from_watts(1500.0))
-            assert result.excess_power.isclose(Power.from_watts(200.0))
-            assert result.request == request
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+                results_sender=results_channel.new_sender(),
+                wait_for_data_sec=0.1,
+            ):
+                await requests_channel.new_sender().send(request)
+                result_rx = results_channel.new_receiver()
 
-        await mocks.stop()
+                done, pending = await asyncio.wait(
+                    [asyncio.create_task(result_rx.receive())],
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
+                )
+
+                assert len(pending) == 0
+                assert len(done) == 1
+
+                result: Result = done.pop().result()
+                assert isinstance(result, Success)
+                # each inverter is bounded at 500 and we have 3 inverters
+                assert result.succeeded_power.isclose(Power.from_watts(1500.0))
+                assert result.excess_power.isclose(Power.from_watts(200.0))
+                assert result.request == request
 
     async def test_two_batteries_one_inverter_different_exclusion_bounds_2(
         self, mocker: MockerFixture
@@ -668,69 +680,66 @@ class TestPowerDistributingActor:
             )
         )
 
-        mocks = await Mocks.new(mocker, graph=graph)
-
-        mocks.streamer.start_streaming(
-            inverter_msg(
-                inverter.component_id,
-                power=PowerBounds(-1000, -500, 500, 1000),
-            ),
-            0.05,
-        )
-        mocks.streamer.start_streaming(
-            battery_msg(
-                batteries[0].component_id,
-                soc=Metric(40, Bound(20, 80)),
-                capacity=Metric(10_000),
-                power=PowerBounds(-1000, -200, 200, 1000),
-            ),
-            0.05,
-        )
-        mocks.streamer.start_streaming(
-            battery_msg(
-                batteries[1].component_id,
-                soc=Metric(40, Bound(20, 80)),
-                capacity=Metric(10_000),
-                power=PowerBounds(-1000, -100, 100, 1000),
-            ),
-            0.05,
-        )
-
-        requests_channel = Broadcast[Request]("power_distributor requests")
-        results_channel = Broadcast[Result]("power_distributor results")
-
-        request = Request(
-            power=Power.from_watts(300.0),
-            component_ids={batteries[0].component_id, batteries[1].component_id},
-            request_timeout=SAFETY_TIMEOUT,
-        )
-
-        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
-
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-            results_sender=results_channel.new_sender(),
-            wait_for_data_sec=0.1,
-        ):
-            await requests_channel.new_sender().send(request)
-            result_rx = results_channel.new_receiver()
-
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT.total_seconds(),
+        async with _mocks(mocker, graph=graph) as mocks:
+            mocks.streamer.start_streaming(
+                inverter_msg(
+                    inverter.component_id,
+                    power=PowerBounds(-1000, -500, 500, 1000),
+                ),
+                0.05,
+            )
+            mocks.streamer.start_streaming(
+                battery_msg(
+                    batteries[0].component_id,
+                    soc=Metric(40, Bound(20, 80)),
+                    capacity=Metric(10_000),
+                    power=PowerBounds(-1000, -200, 200, 1000),
+                ),
+                0.05,
+            )
+            mocks.streamer.start_streaming(
+                battery_msg(
+                    batteries[1].component_id,
+                    soc=Metric(40, Bound(20, 80)),
+                    capacity=Metric(10_000),
+                    power=PowerBounds(-1000, -100, 100, 1000),
+                ),
+                0.05,
             )
 
-            assert len(pending) == 0
-            assert len(done) == 1
+            requests_channel = Broadcast[Request]("power_distributor requests")
+            results_channel = Broadcast[Result]("power_distributor results")
 
-            result: Result = done.pop().result()
-            assert isinstance(result, OutOfBounds)
-            assert result.request == request
-            assert result.bounds == PowerBounds(-1000, -500, 500, 1000)
+            request = Request(
+                power=Power.from_watts(300.0),
+                component_ids={batteries[0].component_id, batteries[1].component_id},
+                request_timeout=SAFETY_TIMEOUT,
+            )
 
-        await mocks.stop()
+            await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+                results_sender=results_channel.new_sender(),
+                wait_for_data_sec=0.1,
+            ):
+                await requests_channel.new_sender().send(request)
+                result_rx = results_channel.new_receiver()
+
+                done, pending = await asyncio.wait(
+                    [asyncio.create_task(result_rx.receive())],
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
+                )
+
+                assert len(pending) == 0
+                assert len(done) == 1
+
+                result: Result = done.pop().result()
+                assert isinstance(result, OutOfBounds)
+                assert result.request == request
+                assert result.bounds == PowerBounds(-1000, -500, 500, 1000)
 
     async def test_two_batteries_one_inverter_different_exclusion_bounds(
         self, mocker: MockerFixture
@@ -758,65 +767,63 @@ class TestPowerDistributingActor:
             )
         )
 
-        mocks = await Mocks.new(mocker, graph=graph)
-        await self.init_component_data(
-            mocks, skip_batteries={bat.component_id for bat in batteries}
-        )
-        mocks.streamer.start_streaming(
-            battery_msg(
-                batteries[0].component_id,
-                soc=Metric(40, Bound(20, 80)),
-                capacity=Metric(10_000),
-                power=PowerBounds(-1000, -200, 200, 1000),
-            ),
-            0.05,
-        )
-        mocks.streamer.start_streaming(
-            battery_msg(
-                batteries[1].component_id,
-                soc=Metric(40, Bound(20, 80)),
-                capacity=Metric(10_000),
-                power=PowerBounds(-1000, -100, 100, 1000),
-            ),
-            0.05,
-        )
-
-        requests_channel = Broadcast[Request]("power_distributor requests")
-        results_channel = Broadcast[Result]("power_distributor results")
-
-        request = Request(
-            power=Power.from_watts(300.0),
-            component_ids={batteries[0].component_id, batteries[1].component_id},
-            request_timeout=SAFETY_TIMEOUT,
-        )
-
-        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
-
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-            results_sender=results_channel.new_sender(),
-            wait_for_data_sec=0.1,
-        ):
-            await requests_channel.new_sender().send(request)
-            result_rx = results_channel.new_receiver()
-
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT.total_seconds(),
+        async with _mocks(mocker, graph=graph) as mocks:
+            await self.init_component_data(
+                mocks, skip_batteries={bat.component_id for bat in batteries}
+            )
+            mocks.streamer.start_streaming(
+                battery_msg(
+                    batteries[0].component_id,
+                    soc=Metric(40, Bound(20, 80)),
+                    capacity=Metric(10_000),
+                    power=PowerBounds(-1000, -200, 200, 1000),
+                ),
+                0.05,
+            )
+            mocks.streamer.start_streaming(
+                battery_msg(
+                    batteries[1].component_id,
+                    soc=Metric(40, Bound(20, 80)),
+                    capacity=Metric(10_000),
+                    power=PowerBounds(-1000, -100, 100, 1000),
+                ),
+                0.05,
             )
 
-            assert len(pending) == 0
-            assert len(done) == 1
+            requests_channel = Broadcast[Request]("power_distributor requests")
+            results_channel = Broadcast[Result]("power_distributor results")
 
-            result: Result = done.pop().result()
-            assert isinstance(result, OutOfBounds)
-            assert result.request == request
-            # each inverter is bounded at 500
-            assert result.bounds == PowerBounds(-500, -400, 400, 500)
+            request = Request(
+                power=Power.from_watts(300.0),
+                component_ids={batteries[0].component_id, batteries[1].component_id},
+                request_timeout=SAFETY_TIMEOUT,
+            )
 
-        await mocks.stop()
+            await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+                results_sender=results_channel.new_sender(),
+                wait_for_data_sec=0.1,
+            ):
+                await requests_channel.new_sender().send(request)
+                result_rx = results_channel.new_receiver()
+
+                done, pending = await asyncio.wait(
+                    [asyncio.create_task(result_rx.receive())],
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
+                )
+
+                assert len(pending) == 0
+                assert len(done) == 1
+
+                result: Result = done.pop().result()
+                assert isinstance(result, OutOfBounds)
+                assert result.request == request
+                # each inverter is bounded at 500
+                assert result.bounds == PowerBounds(-500, -400, 400, 500)
 
     async def test_connected_but_not_requested_batteries(
         self, mocker: MockerFixture
@@ -842,496 +849,477 @@ class TestPowerDistributingActor:
             )
         )
 
-        mocks = await Mocks.new(mocker, graph=graph)
-        await self.init_component_data(mocks)
+        async with _mocks(mocker, graph=graph) as mocks:
+            await self.init_component_data(mocks)
 
-        requests_channel = Broadcast[Request]("power_distributor requests")
-        results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request]("power_distributor requests")
+            results_channel = Broadcast[Result]("power_distributor results")
 
-        request = Request(
-            power=Power.from_watts(600.0),
-            component_ids={batteries[0].component_id},
-            request_timeout=SAFETY_TIMEOUT,
-        )
-
-        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
-
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-            results_sender=results_channel.new_sender(),
-            wait_for_data_sec=0.1,
-        ):
-            await requests_channel.new_sender().send(request)
-            result_rx = results_channel.new_receiver()
-
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT.total_seconds(),
+            request = Request(
+                power=Power.from_watts(600.0),
+                component_ids={batteries[0].component_id},
+                request_timeout=SAFETY_TIMEOUT,
             )
+
+            await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+                results_sender=results_channel.new_sender(),
+                wait_for_data_sec=0.1,
+            ):
+                await requests_channel.new_sender().send(request)
+                result_rx = results_channel.new_receiver()
+
+                done, pending = await asyncio.wait(
+                    [asyncio.create_task(result_rx.receive())],
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
+                )
+
+                assert len(pending) == 0
+                assert len(done) == 1
+
+                result: Result = done.pop().result()
+                assert isinstance(result, Error)
+                assert result.request == request
+
+                err_msg = re.search(
+                    r"'Inverters \{48\} are connected to batteries that were not "
+                    r"requested: \{19\}'",
+                    result.msg,
+                )
+                assert err_msg is not None
+
+    async def test_battery_soc_nan(self, mocker: MockerFixture) -> None:
+        """Test if battery with SoC==NaN is not used."""
+        async with _mocks(mocker, grid_meter=False) as mocks:
+            await self.init_component_data(mocks, skip_batteries={9})
+
+            mocks.streamer.start_streaming(
+                battery_msg(
+                    9,
+                    soc=Metric(math.nan, Bound(20, 80)),
+                    capacity=Metric(98000),
+                    power=PowerBounds(-1000, 0, 0, 1000),
+                ),
+                0.05,
+            )
+
+            requests_channel = Broadcast[Request]("power_distributor requests")
+            results_channel = Broadcast[Result]("power_distributor results")
+
+            request = Request(
+                power=Power.from_kilowatts(1.2),
+                component_ids={9, 19},
+                request_timeout=SAFETY_TIMEOUT,
+            )
+
+            await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                results_sender=results_channel.new_sender(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+                wait_for_data_sec=0.1,
+            ):
+                await requests_channel.new_sender().send(request)
+                result_rx = results_channel.new_receiver()
+
+                done, pending = await asyncio.wait(
+                    [asyncio.create_task(result_rx.receive())],
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
+                )
 
             assert len(pending) == 0
             assert len(done) == 1
 
             result: Result = done.pop().result()
-            assert isinstance(result, Error)
+            assert isinstance(result, Success)
+            assert result.succeeded_components == {19}
+            assert result.succeeded_power.isclose(Power.from_watts(500.0))
+            assert result.excess_power.isclose(Power.from_watts(700.0))
             assert result.request == request
-
-            err_msg = re.search(
-                r"'Inverters \{48\} are connected to batteries that were not requested: \{19\}'",
-                result.msg,
-            )
-            assert err_msg is not None
-
-        await mocks.stop()
-
-    async def test_battery_soc_nan(self, mocker: MockerFixture) -> None:
-        """Test if battery with SoC==NaN is not used."""
-        mocks = await Mocks.new(mocker, grid_meter=False)
-        await self.init_component_data(mocks, skip_batteries={9})
-
-        mocks.streamer.start_streaming(
-            battery_msg(
-                9,
-                soc=Metric(math.nan, Bound(20, 80)),
-                capacity=Metric(98000),
-                power=PowerBounds(-1000, 0, 0, 1000),
-            ),
-            0.05,
-        )
-
-        requests_channel = Broadcast[Request]("power_distributor requests")
-        results_channel = Broadcast[Result]("power_distributor results")
-
-        request = Request(
-            power=Power.from_kilowatts(1.2),
-            component_ids={9, 19},
-            request_timeout=SAFETY_TIMEOUT,
-        )
-
-        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            results_sender=results_channel.new_sender(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-            wait_for_data_sec=0.1,
-        ):
-            await requests_channel.new_sender().send(request)
-            result_rx = results_channel.new_receiver()
-
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT.total_seconds(),
-            )
-
-        assert len(pending) == 0
-        assert len(done) == 1
-
-        result: Result = done.pop().result()
-        assert isinstance(result, Success)
-        assert result.succeeded_components == {19}
-        assert result.succeeded_power.isclose(Power.from_watts(500.0))
-        assert result.excess_power.isclose(Power.from_watts(700.0))
-        assert result.request == request
-
-        await mocks.stop()
 
     async def test_battery_capacity_nan(self, mocker: MockerFixture) -> None:
         """Test battery with capacity set to NaN is not used."""
-        mocks = await Mocks.new(mocker, grid_meter=False)
-        await self.init_component_data(mocks, skip_batteries={9})
+        async with _mocks(mocker, grid_meter=False) as mocks:
+            await self.init_component_data(mocks, skip_batteries={9})
 
-        mocks.streamer.start_streaming(
-            battery_msg(
-                9,
-                soc=Metric(40, Bound(20, 80)),
-                capacity=Metric(math.nan),
-                power=PowerBounds(-1000, 0, 0, 1000),
-            ),
-            0.05,
-        )
-
-        requests_channel = Broadcast[Request]("power_distributor requests")
-        results_channel = Broadcast[Result]("power_distributor results")
-
-        request = Request(
-            power=Power.from_kilowatts(1.2),
-            component_ids={9, 19},
-            request_timeout=SAFETY_TIMEOUT,
-        )
-
-        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            results_sender=results_channel.new_sender(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-            wait_for_data_sec=0.1,
-        ):
-            await requests_channel.new_sender().send(request)
-            result_rx = results_channel.new_receiver()
-
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT.total_seconds(),
+            mocks.streamer.start_streaming(
+                battery_msg(
+                    9,
+                    soc=Metric(40, Bound(20, 80)),
+                    capacity=Metric(math.nan),
+                    power=PowerBounds(-1000, 0, 0, 1000),
+                ),
+                0.05,
             )
 
-        assert len(pending) == 0
-        assert len(done) == 1
+            requests_channel = Broadcast[Request]("power_distributor requests")
+            results_channel = Broadcast[Result]("power_distributor results")
 
-        result: Result = done.pop().result()
-        assert isinstance(result, Success)
-        assert result.succeeded_components == {19}
-        assert result.succeeded_power.isclose(Power.from_watts(500.0))
-        assert result.excess_power.isclose(Power.from_watts(700.0))
-        assert result.request == request
+            request = Request(
+                power=Power.from_kilowatts(1.2),
+                component_ids={9, 19},
+                request_timeout=SAFETY_TIMEOUT,
+            )
 
-        await mocks.stop()
+            await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
+
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                results_sender=results_channel.new_sender(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+                wait_for_data_sec=0.1,
+            ):
+                await requests_channel.new_sender().send(request)
+                result_rx = results_channel.new_receiver()
+
+                done, pending = await asyncio.wait(
+                    [asyncio.create_task(result_rx.receive())],
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
+                )
+
+            assert len(pending) == 0
+            assert len(done) == 1
+
+            result: Result = done.pop().result()
+            assert isinstance(result, Success)
+            assert result.succeeded_components == {19}
+            assert result.succeeded_power.isclose(Power.from_watts(500.0))
+            assert result.excess_power.isclose(Power.from_watts(700.0))
+            assert result.request == request
 
     async def test_battery_power_bounds_nan(self, mocker: MockerFixture) -> None:
         """Test battery with power bounds set to NaN is not used."""
-        mocks = await Mocks.new(mocker, grid_meter=False)
-        await self.init_component_data(
-            mocks, skip_batteries={9}, skip_inverters={8, 18}
-        )
-
-        mocks.streamer.start_streaming(
-            inverter_msg(
-                18,
-                power=PowerBounds(-1000, 0, 0, 1000),
-            ),
-            0.05,
-        )
-
-        # Battery 9 should not work because both battery and inverter sends NaN
-        mocks.streamer.start_streaming(
-            inverter_msg(
-                8,
-                power=PowerBounds(-1000, 0, 0, math.nan),
-            ),
-            0.05,
-        )
-
-        mocks.streamer.start_streaming(
-            battery_msg(
-                9,
-                soc=Metric(40, Bound(20, 80)),
-                capacity=Metric(float(98000)),
-                power=PowerBounds(math.nan, 0, 0, math.nan),
-            ),
-            0.05,
-        )
-
-        requests_channel = Broadcast[Request]("power_distributor requests")
-        results_channel = Broadcast[Result]("power_distributor results")
-
-        request = Request(
-            power=Power.from_kilowatts(1.2),
-            component_ids={9, 19},
-            request_timeout=SAFETY_TIMEOUT,
-        )
-
-        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            results_sender=results_channel.new_sender(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-            wait_for_data_sec=0.1,
-        ):
-            await requests_channel.new_sender().send(request)
-            result_rx = results_channel.new_receiver()
-
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT.total_seconds(),
+        async with _mocks(mocker, grid_meter=False) as mocks:
+            await self.init_component_data(
+                mocks, skip_batteries={9}, skip_inverters={8, 18}
             )
 
-        assert len(pending) == 0
-        assert len(done) == 1
+            mocks.streamer.start_streaming(
+                inverter_msg(
+                    18,
+                    power=PowerBounds(-1000, 0, 0, 1000),
+                ),
+                0.05,
+            )
 
-        result: Result = done.pop().result()
-        assert isinstance(result, Success)
-        assert result.succeeded_components == {19}
-        assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
-        assert result.excess_power.isclose(Power.from_watts(200.0))
-        assert result.request == request
+            # Battery 9 should not work because both battery and inverter sends NaN
+            mocks.streamer.start_streaming(
+                inverter_msg(
+                    8,
+                    power=PowerBounds(-1000, 0, 0, math.nan),
+                ),
+                0.05,
+            )
 
-        await mocks.stop()
+            mocks.streamer.start_streaming(
+                battery_msg(
+                    9,
+                    soc=Metric(40, Bound(20, 80)),
+                    capacity=Metric(float(98000)),
+                    power=PowerBounds(math.nan, 0, 0, math.nan),
+                ),
+                0.05,
+            )
+
+            requests_channel = Broadcast[Request]("power_distributor requests")
+            results_channel = Broadcast[Result]("power_distributor results")
+
+            request = Request(
+                power=Power.from_kilowatts(1.2),
+                component_ids={9, 19},
+                request_timeout=SAFETY_TIMEOUT,
+            )
+
+            await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
+
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                results_sender=results_channel.new_sender(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+                wait_for_data_sec=0.1,
+            ):
+                await requests_channel.new_sender().send(request)
+                result_rx = results_channel.new_receiver()
+
+                done, pending = await asyncio.wait(
+                    [asyncio.create_task(result_rx.receive())],
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
+                )
+
+            assert len(pending) == 0
+            assert len(done) == 1
+
+            result: Result = done.pop().result()
+            assert isinstance(result, Success)
+            assert result.succeeded_components == {19}
+            assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
+            assert result.excess_power.isclose(Power.from_watts(200.0))
+            assert result.request == request
 
     async def test_power_distributor_invalid_battery_id(
         self, mocker: MockerFixture
     ) -> None:
         """Test if power distribution raises error if any battery id is invalid."""
-        mocks = await Mocks.new(mocker, grid_meter=False)
-        await self.init_component_data(mocks)
+        async with _mocks(mocker, grid_meter=False) as mocks:
+            await self.init_component_data(mocks)
 
-        requests_channel = Broadcast[Request]("power_distributor requests")
-        results_channel = Broadcast[Result]("power_distributor results")
-        request = Request(
-            power=Power.from_kilowatts(1.2),
-            component_ids={9, 100},
-            request_timeout=SAFETY_TIMEOUT,
-        )
-
-        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            results_sender=results_channel.new_sender(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-            wait_for_data_sec=0.1,
-        ):
-            await requests_channel.new_sender().send(request)
-            result_rx = results_channel.new_receiver()
-
-            done, _ = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT.total_seconds(),
+            requests_channel = Broadcast[Request]("power_distributor requests")
+            results_channel = Broadcast[Result]("power_distributor results")
+            request = Request(
+                power=Power.from_kilowatts(1.2),
+                component_ids={9, 100},
+                request_timeout=SAFETY_TIMEOUT,
             )
 
-        assert len(done) == 1
-        result: Result = done.pop().result()
-        assert isinstance(result, Error)
-        assert result.request == request
-        err_msg = re.search(r"No battery 100, available batteries:", result.msg)
-        assert err_msg is not None
+            await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
 
-        await mocks.stop()
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                results_sender=results_channel.new_sender(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+                wait_for_data_sec=0.1,
+            ):
+                await requests_channel.new_sender().send(request)
+                result_rx = results_channel.new_receiver()
+
+                done, _ = await asyncio.wait(
+                    [asyncio.create_task(result_rx.receive())],
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
+                )
+
+            assert len(done) == 1
+            result: Result = done.pop().result()
+            assert isinstance(result, Error)
+            assert result.request == request
+            err_msg = re.search(r"No battery 100, available batteries:", result.msg)
+            assert err_msg is not None
 
     async def test_power_distributor_one_user_adjust_power_consume(
         self, mocker: MockerFixture
     ) -> None:
         """Test if power distribution works with single user works."""
-        mocks = await Mocks.new(mocker, grid_meter=False)
-        await self.init_component_data(mocks)
+        async with _mocks(mocker, grid_meter=False) as mocks:
+            await self.init_component_data(mocks)
 
-        requests_channel = Broadcast[Request]("power_distributor")
-        results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request]("power_distributor")
+            results_channel = Broadcast[Result]("power_distributor results")
 
-        request = Request(
-            power=Power.from_kilowatts(1.2),
-            component_ids={9, 19},
-            request_timeout=SAFETY_TIMEOUT,
-            adjust_power=False,
-        )
-
-        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            results_sender=results_channel.new_sender(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-            wait_for_data_sec=0.1,
-        ):
-            await requests_channel.new_sender().send(request)
-            result_rx = results_channel.new_receiver()
-
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT.total_seconds(),
+            request = Request(
+                power=Power.from_kilowatts(1.2),
+                component_ids={9, 19},
+                request_timeout=SAFETY_TIMEOUT,
+                adjust_power=False,
             )
 
-        assert len(pending) == 0
-        assert len(done) == 1
+            await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
 
-        result = done.pop().result()
-        assert isinstance(result, OutOfBounds)
-        assert result is not None
-        assert result.request == request
-        assert result.bounds.inclusion_upper == 1000
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                results_sender=results_channel.new_sender(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+                wait_for_data_sec=0.1,
+            ):
+                await requests_channel.new_sender().send(request)
+                result_rx = results_channel.new_receiver()
 
-        await mocks.stop()
+                done, pending = await asyncio.wait(
+                    [asyncio.create_task(result_rx.receive())],
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
+                )
+
+            assert len(pending) == 0
+            assert len(done) == 1
+
+            result = done.pop().result()
+            assert isinstance(result, OutOfBounds)
+            assert result is not None
+            assert result.request == request
+            assert result.bounds.inclusion_upper == 1000
 
     async def test_power_distributor_one_user_adjust_power_supply(
         self, mocker: MockerFixture
     ) -> None:
         """Test if power distribution works with single user works."""
-        mocks = await Mocks.new(mocker, grid_meter=False)
-        await self.init_component_data(mocks)
+        async with _mocks(mocker, grid_meter=False) as mocks:
+            await self.init_component_data(mocks)
 
-        requests_channel = Broadcast[Request]("power_distributor requests")
-        results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request]("power_distributor requests")
+            results_channel = Broadcast[Result]("power_distributor results")
 
-        request = Request(
-            power=-Power.from_kilowatts(1.2),
-            component_ids={9, 19},
-            request_timeout=SAFETY_TIMEOUT,
-            adjust_power=False,
-        )
-
-        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            results_sender=results_channel.new_sender(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-            wait_for_data_sec=0.1,
-        ):
-            await requests_channel.new_sender().send(request)
-            result_rx = results_channel.new_receiver()
-
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT.total_seconds(),
+            request = Request(
+                power=-Power.from_kilowatts(1.2),
+                component_ids={9, 19},
+                request_timeout=SAFETY_TIMEOUT,
+                adjust_power=False,
             )
 
-        assert len(pending) == 0
-        assert len(done) == 1
+            await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
 
-        result = done.pop().result()
-        assert isinstance(result, OutOfBounds)
-        assert result is not None
-        assert result.request == request
-        assert result.bounds.inclusion_lower == -1000
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                results_sender=results_channel.new_sender(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+                wait_for_data_sec=0.1,
+            ):
+                await requests_channel.new_sender().send(request)
+                result_rx = results_channel.new_receiver()
 
-        await mocks.stop()
+                done, pending = await asyncio.wait(
+                    [asyncio.create_task(result_rx.receive())],
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
+                )
+
+            assert len(pending) == 0
+            assert len(done) == 1
+
+            result = done.pop().result()
+            assert isinstance(result, OutOfBounds)
+            assert result is not None
+            assert result.request == request
+            assert result.bounds.inclusion_lower == -1000
 
     async def test_power_distributor_one_user_adjust_power_success(
         self, mocker: MockerFixture
     ) -> None:
         """Test if power distribution works with single user works."""
-        mocks = await Mocks.new(mocker, grid_meter=False)
-        await self.init_component_data(mocks)
+        async with _mocks(mocker, grid_meter=False) as mocks:
+            await self.init_component_data(mocks)
 
-        requests_channel = Broadcast[Request]("power_distributor requests")
-        results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request]("power_distributor requests")
+            results_channel = Broadcast[Result]("power_distributor results")
 
-        request = Request(
-            power=Power.from_kilowatts(1.0),
-            component_ids={9, 19},
-            request_timeout=SAFETY_TIMEOUT,
-            adjust_power=False,
-        )
-
-        await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            results_sender=results_channel.new_sender(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-            wait_for_data_sec=0.1,
-        ):
-            await requests_channel.new_sender().send(request)
-            result_rx = results_channel.new_receiver()
-
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT.total_seconds(),
+            request = Request(
+                power=Power.from_kilowatts(1.0),
+                component_ids={9, 19},
+                request_timeout=SAFETY_TIMEOUT,
+                adjust_power=False,
             )
 
-        assert len(pending) == 0
-        assert len(done) == 1
+            await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
 
-        result = done.pop().result()
-        assert isinstance(result, Success)
-        assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
-        assert result.excess_power.isclose(Power.zero(), abs_tol=1e-9)
-        assert result.request == request
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                results_sender=results_channel.new_sender(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+                wait_for_data_sec=0.1,
+            ):
+                await requests_channel.new_sender().send(request)
+                result_rx = results_channel.new_receiver()
 
-        await mocks.stop()
+                done, pending = await asyncio.wait(
+                    [asyncio.create_task(result_rx.receive())],
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
+                )
+
+            assert len(pending) == 0
+            assert len(done) == 1
+
+            result = done.pop().result()
+            assert isinstance(result, Success)
+            assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
+            assert result.excess_power.isclose(Power.zero(), abs_tol=1e-9)
+            assert result.request == request
 
     async def test_not_all_batteries_are_working(self, mocker: MockerFixture) -> None:
         """Test if power distribution works if not all batteries are working."""
-        mocks = await Mocks.new(mocker, grid_meter=False)
-        await self.init_component_data(mocks)
+        async with _mocks(mocker, grid_meter=False) as mocks:
+            await self.init_component_data(mocks)
 
-        batteries = {9, 19}
+            batteries = {9, 19}
 
-        await self._patch_battery_pool_status(mocks, mocker, batteries - {9})
+            await self._patch_battery_pool_status(mocks, mocker, batteries - {9})
 
-        requests_channel = Broadcast[Request]("power_distributor requests")
-        results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request]("power_distributor requests")
+            results_channel = Broadcast[Result]("power_distributor results")
 
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            results_sender=results_channel.new_sender(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-            wait_for_data_sec=0.1,
-        ):
-            request = Request(
-                power=Power.from_kilowatts(1.2),
-                component_ids=batteries,
-                request_timeout=SAFETY_TIMEOUT,
-            )
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                results_sender=results_channel.new_sender(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+                wait_for_data_sec=0.1,
+            ):
+                request = Request(
+                    power=Power.from_kilowatts(1.2),
+                    component_ids=batteries,
+                    request_timeout=SAFETY_TIMEOUT,
+                )
 
-            await requests_channel.new_sender().send(request)
-            result_rx = results_channel.new_receiver()
+                await requests_channel.new_sender().send(request)
+                result_rx = results_channel.new_receiver()
 
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT.total_seconds(),
-            )
+                done, pending = await asyncio.wait(
+                    [asyncio.create_task(result_rx.receive())],
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
+                )
 
-            assert len(pending) == 0
-            assert len(done) == 1
-            result = done.pop().result()
-            assert isinstance(result, Success)
-            assert result.succeeded_components == {19}
-            assert result.excess_power.isclose(Power.from_watts(700.0))
-            assert result.succeeded_power.isclose(Power.from_watts(500.0))
-            assert result.request == request
-
-        await mocks.stop()
+                assert len(pending) == 0
+                assert len(done) == 1
+                result = done.pop().result()
+                assert isinstance(result, Success)
+                assert result.succeeded_components == {19}
+                assert result.excess_power.isclose(Power.from_watts(700.0))
+                assert result.succeeded_power.isclose(Power.from_watts(500.0))
+                assert result.request == request
 
     async def test_partial_failure_result(self, mocker: MockerFixture) -> None:
         """Test power results when the microgrid failed to set power for one of the batteries."""
-        mocks = await Mocks.new(mocker, grid_meter=False)
-        await self.init_component_data(mocks)
+        async with _mocks(mocker, grid_meter=False) as mocks:
+            await self.init_component_data(mocks)
 
-        batteries = {9, 19, 29}
-        failed_batteries = {9}
-        failed_power = 500.0
+            batteries = {9, 19, 29}
+            failed_batteries = {9}
+            failed_power = 500.0
 
-        await self._patch_battery_pool_status(mocks, mocker, batteries)
+            await self._patch_battery_pool_status(mocks, mocker, batteries)
 
-        mocker.patch(
-            "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-            ".BatteryManager._parse_result",
-            return_value=(failed_power, failed_batteries),
-        )
-
-        requests_channel = Broadcast[Request]("power_distributor requests")
-        results_channel = Broadcast[Result]("power_distributor results")
-
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
-        async with PowerDistributingActor(
-            requests_receiver=requests_channel.new_receiver(),
-            results_sender=results_channel.new_sender(),
-            component_pool_status_sender=battery_status_channel.new_sender(),
-            wait_for_data_sec=0.1,
-        ):
-            request = Request(
-                power=Power.from_kilowatts(1.70),
-                component_ids=batteries,
-                request_timeout=SAFETY_TIMEOUT,
+            mocker.patch(
+                "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
+                ".BatteryManager._parse_result",
+                return_value=(failed_power, failed_batteries),
             )
 
-            await requests_channel.new_sender().send(request)
-            result_rx = results_channel.new_receiver()
+            requests_channel = Broadcast[Request]("power_distributor requests")
+            results_channel = Broadcast[Result]("power_distributor results")
 
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT.total_seconds(),
-            )
-            assert len(pending) == 0
-            assert len(done) == 1
-            result = done.pop().result()
-            assert isinstance(result, PartialFailure)
-            assert result.succeeded_components == batteries - failed_batteries
-            assert result.failed_components == failed_batteries
-            assert result.succeeded_power.isclose(Power.from_watts(1000.0))
-            assert result.failed_power.isclose(Power.from_watts(failed_power))
-            assert result.excess_power.isclose(Power.from_watts(200.0))
-            assert result.request == request
+            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            async with PowerDistributingActor(
+                requests_receiver=requests_channel.new_receiver(),
+                results_sender=results_channel.new_sender(),
+                component_pool_status_sender=battery_status_channel.new_sender(),
+                wait_for_data_sec=0.1,
+            ):
+                request = Request(
+                    power=Power.from_kilowatts(1.70),
+                    component_ids=batteries,
+                    request_timeout=SAFETY_TIMEOUT,
+                )
 
-        await mocks.stop()
+                await requests_channel.new_sender().send(request)
+                result_rx = results_channel.new_receiver()
+
+                done, pending = await asyncio.wait(
+                    [asyncio.create_task(result_rx.receive())],
+                    timeout=SAFETY_TIMEOUT.total_seconds(),
+                )
+                assert len(pending) == 0
+                assert len(done) == 1
+                result = done.pop().result()
+                assert isinstance(result, PartialFailure)
+                assert result.succeeded_components == batteries - failed_batteries
+                assert result.failed_components == failed_batteries
+                assert result.succeeded_power.isclose(Power.from_watts(1000.0))
+                assert result.failed_power.isclose(Power.from_watts(failed_power))
+                assert result.excess_power.isclose(Power.from_watts(200.0))
+                assert result.request == request

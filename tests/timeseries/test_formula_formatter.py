@@ -4,6 +4,8 @@
 """Tests for the FormulaFormatter."""
 
 
+from contextlib import AsyncExitStack
+
 from frequenz.channels import Broadcast
 from pytest_mock import MockerFixture
 
@@ -112,22 +114,24 @@ class TestFormulaFormatter:
 
     async def test_higher_order_formula(self, mocker: MockerFixture) -> None:
         """Test that the formula is formatted correctly for a higher-order formula."""
-        mockgrid = MockMicrogrid(grid_meter=False)
+        mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
         mockgrid.add_batteries(3)
         mockgrid.add_ev_chargers(1)
         mockgrid.add_solar_inverters(2)
-        await mockgrid.start(mocker)
 
-        logical_meter = microgrid.logical_meter()
-        grid = microgrid.grid()
-        assert str(grid.power) == "#36 + #7 + #47 + #17 + #57 + #27"
+        async with mockgrid, AsyncExitStack() as stack:
+            logical_meter = microgrid.logical_meter()
+            stack.push_async_callback(logical_meter.stop)
 
-        composed_formula = (grid.power - logical_meter.pv_power).build("grid_minus_pv")
-        assert (
-            str(composed_formula)
-            == "[grid-power](#36 + #7 + #47 + #17 + #57 + #27) - [pv-power](#57 + #47)"
-        )
+            grid = microgrid.grid()
+            stack.push_async_callback(grid.stop)
 
-        await mockgrid.cleanup()
-        await logical_meter.stop()
-        await grid.stop()
+            assert str(grid.power) == "#36 + #7 + #47 + #17 + #57 + #27"
+
+            composed_formula = (grid.power - logical_meter.pv_power).build(
+                "grid_minus_pv"
+            )
+            assert (
+                str(composed_formula)
+                == "[grid-power](#36 + #7 + #47 + #17 + #57 + #27) - [pv-power](#57 + #47)"
+            )
