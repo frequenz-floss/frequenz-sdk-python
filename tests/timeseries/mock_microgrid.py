@@ -155,8 +155,18 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         self.evc_component_states: dict[int, EVChargerComponentState] = {}
         self.evc_cable_states: dict[int, EVChargerCableState] = {}
 
-        self._streaming_coros: list[Coroutine[None, None, None]] = []
-        self._streaming_tasks: list[asyncio.Task[None]] = []
+        self._streaming_coros: list[tuple[int, Coroutine[None, None, None]]] = []
+        """The streaming coroutines for each component.
+
+        The tuple stores the component id we are streaming for as the first item and the
+        coroutine as the second item.
+        """
+
+        self._streaming_tasks: dict[int, asyncio.Task[None]] = {}
+        """The streaming tasks for each component.
+
+        The key is the component id we are streaming for in this task.
+        """
 
         if grid_meter:
             self._connect_to = self._grid_meter_id
@@ -218,9 +228,16 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             A MockMicrogridClient instance.
         """
         self.init_mock_client(initialize_cb)
-        self._streaming_tasks = [
-            asyncio.create_task(coro) for coro in self._streaming_coros
-        ]
+
+        def _done_callback(task: asyncio.Task[None]) -> None:
+            if exc := task.exception():
+                raise SystemExit(f"Streaming task {task.get_name()!r} failed: {exc}")
+
+        for component_id, coro in self._streaming_coros:
+            task = asyncio.create_task(coro, name=f"component-id:{component_id}")
+            self._streaming_tasks[component_id] = task
+            task.add_done_callback(_done_callback)
+
         return self.mock_client
 
     async def _comp_data_send_task(
@@ -243,14 +260,17 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         if not self._api_client_streaming:
             return
         self._streaming_coros.append(
-            self._comp_data_send_task(
+            (
                 meter_id,
-                lambda value, ts: MeterDataWrapper(
-                    component_id=meter_id,
-                    timestamp=ts,
-                    active_power=value,
-                    current_per_phase=(value + 100.0, value + 101.0, value + 102.0),
-                    voltage_per_phase=(value + 200.0, value + 199.8, value + 200.2),
+                self._comp_data_send_task(
+                    meter_id,
+                    lambda value, ts: MeterDataWrapper(
+                        component_id=meter_id,
+                        timestamp=ts,
+                        active_power=value,
+                        current_per_phase=(value + 100.0, value + 101.0, value + 102.0),
+                        voltage_per_phase=(value + 200.0, value + 199.8, value + 200.2),
+                    ),
                 ),
             )
         )
@@ -259,10 +279,13 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         if not self._api_client_streaming:
             return
         self._streaming_coros.append(
-            self._comp_data_send_task(
+            (
                 bat_id,
-                lambda value, ts: BatteryDataWrapper(
-                    component_id=bat_id, timestamp=ts, soc=value
+                self._comp_data_send_task(
+                    bat_id,
+                    lambda value, ts: BatteryDataWrapper(
+                        component_id=bat_id, timestamp=ts, soc=value
+                    ),
                 ),
             )
         )
@@ -271,10 +294,13 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         if not self._api_client_streaming:
             return
         self._streaming_coros.append(
-            self._comp_data_send_task(
+            (
                 inv_id,
-                lambda value, ts: InverterDataWrapper(
-                    component_id=inv_id, timestamp=ts, active_power=value
+                self._comp_data_send_task(
+                    inv_id,
+                    lambda value, ts: InverterDataWrapper(
+                        component_id=inv_id, timestamp=ts, active_power=value
+                    ),
                 ),
             )
         )
@@ -283,17 +309,20 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         if not self._api_client_streaming:
             return
         self._streaming_coros.append(
-            self._comp_data_send_task(
+            (
                 evc_id,
-                lambda value, ts: EvChargerDataWrapper(
-                    component_id=evc_id,
-                    timestamp=ts,
-                    active_power=value,
-                    current_per_phase=(value + 10.0, value + 11.0, value + 12.0),
-                    component_state=self.evc_component_states[evc_id],
-                    cable_state=self.evc_cable_states[evc_id],
+                self._comp_data_send_task(
+                    evc_id,
+                    lambda value, ts: EvChargerDataWrapper(
+                        component_id=evc_id,
+                        timestamp=ts,
+                        active_power=value,
+                        current_per_phase=(value + 10.0, value + 11.0, value + 12.0),
+                        component_state=self.evc_component_states[evc_id],
+                        cable_state=self.evc_cable_states[evc_id],
+                    ),
                 ),
-            ),
+            )
         )
 
     def add_consumer_meters(self, count: int = 1) -> None:
@@ -563,10 +592,10 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
         await self.mock_resampler._stop()
 
-        for coro in self._streaming_coros:
+        for _, coro in self._streaming_coros:
             coro.close()
 
-        for task in self._streaming_tasks:
+        for task in self._streaming_tasks.values():
             await cancel_and_await(task)
         microgrid.connection_manager._CONNECTION_MANAGER = None
         # pylint: enable=protected-access

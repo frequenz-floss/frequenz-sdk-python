@@ -108,7 +108,9 @@ async def benchmark_data_sourcing(
                 "current_phase_requests", evc_id, component_metric_id, None
             )
 
-            recv_channel = channel_registry.new_receiver(request.get_channel_name())
+            recv_channel = channel_registry.get_or_create(
+                ComponentMetricRequest, request.get_channel_name()
+            ).new_receiver()
 
             await request_sender.send(request)
             consume_tasks.append(asyncio.create_task(consume(recv_channel)))

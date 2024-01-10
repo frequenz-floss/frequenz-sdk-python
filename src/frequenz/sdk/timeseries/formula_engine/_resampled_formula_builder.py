@@ -6,13 +6,13 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Generic
+from typing import TYPE_CHECKING
 
 from frequenz.channels import Receiver, Sender
 
 from ...microgrid.component import ComponentMetricId
 from .. import Sample
-from .._quantities import QuantityT
+from .._quantities import Quantity, QuantityT
 from ._formula_engine import FormulaBuilder, FormulaEngine
 from ._tokenizer import Tokenizer, TokenType
 
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from ...actor import ChannelRegistry, ComponentMetricRequest
 
 
-class ResampledFormulaBuilder(Generic[QuantityT], FormulaBuilder[QuantityT]):
+class ResampledFormulaBuilder(FormulaBuilder[QuantityT]):
     """Provides a way to build a FormulaEngine from resampled data streams."""
 
     def __init__(  # pylint: disable=too-many-arguments
@@ -74,7 +74,18 @@ class ResampledFormulaBuilder(Generic[QuantityT], FormulaBuilder[QuantityT]):
 
         request = ComponentMetricRequest(self._namespace, component_id, metric_id, None)
         self._resampler_requests.append(request)
-        return self._channel_registry.new_receiver(request.get_channel_name())
+        resampled_channel = self._channel_registry.get_or_create(
+            Sample[Quantity], request.get_channel_name()
+        )
+        resampled_receiver = resampled_channel.new_receiver().map(
+            lambda sample: Sample(
+                sample.timestamp,
+                self._create_method(sample.value.base_value)
+                if sample.value is not None
+                else None,
+            )
+        )
+        return resampled_receiver
 
     async def subscribe(self) -> None:
         """Subscribe to all resampled component metric streams."""

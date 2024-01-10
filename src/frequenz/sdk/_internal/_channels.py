@@ -16,7 +16,7 @@ class ReceiverFetcher(typing.Generic[T], typing.Protocol):
     """An interface that just exposes a `new_receiver` method."""
 
     @abc.abstractmethod
-    def new_receiver(self, maxsize: int = 50) -> Receiver[T]:
+    def new_receiver(self, *, maxsize: int = 50) -> Receiver[T]:
         """Get a receiver from the channel.
 
         Args:

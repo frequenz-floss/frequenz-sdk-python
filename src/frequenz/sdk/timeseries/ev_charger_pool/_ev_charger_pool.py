@@ -279,7 +279,9 @@ class EVChargerPool:
                 start_time=None,
             )
             await self._resampler_subscription_sender.send(request)
-            return self._channel_registry.new_receiver(request.get_channel_name())
+            return self._channel_registry.get_or_create(
+                Sample[Quantity], request.get_channel_name()
+            ).new_receiver()
 
         return (
             await resampler_subscribe(ComponentMetricId.CURRENT_PHASE_1),

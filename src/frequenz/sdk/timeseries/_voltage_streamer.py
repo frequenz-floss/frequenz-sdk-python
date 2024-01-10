@@ -118,7 +118,9 @@ class VoltageStreamer:
             A receiver that will receive the phase-to-neutral voltage as a
             3-phase sample.
         """
-        receiver = self._channel_registry.new_receiver(self._channel_key)
+        receiver = self._channel_registry.get_or_create(
+            Sample3Phase[Voltage], self._channel_key
+        ).new_receiver()
 
         if not self._task:
             self._task = asyncio.create_task(self._send_request())
@@ -148,10 +150,14 @@ class VoltageStreamer:
             await self._resampler_subscription_sender.send(req)
 
             phases_rx.append(
-                self._channel_registry.new_receiver(req.get_channel_name())
+                self._channel_registry.get_or_create(
+                    Sample[Quantity], req.get_channel_name()
+                ).new_receiver()
             )
 
-        sender = self._channel_registry.new_sender(self._channel_key)
+        sender = self._channel_registry.get_or_create(
+            Sample3Phase[Voltage], self._channel_key
+        ).new_sender()
 
         _logger.debug(
             "Sent request for fetching voltage from: %s", self._source_component

@@ -13,7 +13,9 @@ from typing import Any
 from frequenz.channels import Receiver, Sender
 
 from ..._internal._asyncio import cancel_and_await
-from ...actor import ComponentMetricRequest, _channel_registry, _power_managing
+from ...actor._channel_registry import ChannelRegistry
+from ...actor._data_sourcing._component_metric_request import ComponentMetricRequest
+from ...actor._power_managing._base_classes import Proposal, ReportRequest
 from ...actor.power_distributing._component_status import ComponentPoolStatus
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory
@@ -36,11 +38,11 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        channel_registry: _channel_registry.ChannelRegistry,
+        channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         batteries_status_receiver: Receiver[ComponentPoolStatus],
-        power_manager_requests_sender: Sender[_power_managing.Proposal],
-        power_manager_bounds_subscription_sender: Sender[_power_managing.ReportRequest],
+        power_manager_requests_sender: Sender[Proposal],
+        power_manager_bounds_subscription_sender: Sender[ReportRequest],
         min_update_interval: timedelta,
         batteries_id: Set[int] | None = None,
     ) -> None:
@@ -91,18 +93,18 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
         self._min_update_interval: timedelta = min_update_interval
 
         self._power_manager_requests_sender: Sender[
-            _power_managing.Proposal
+            Proposal
         ] = power_manager_requests_sender
 
         self._power_manager_bounds_subscription_sender: Sender[
-            _power_managing.ReportRequest
+            ReportRequest
         ] = power_manager_bounds_subscription_sender
 
         self._active_methods: dict[str, MetricAggregator[Any]] = {}
         self._power_bounds_subs: dict[str, asyncio.Task[None]] = {}
         self._namespace: str = f"battery-pool-{self._batteries}-{uuid.uuid4()}"
         self._power_distributing_namespace: str = f"power-distributor-{self._namespace}"
-        self._channel_registry: _channel_registry.ChannelRegistry = channel_registry
+        self._channel_registry: ChannelRegistry = channel_registry
         self._formula_pool: FormulaEnginePool = FormulaEnginePool(
             self._namespace,
             self._channel_registry,
