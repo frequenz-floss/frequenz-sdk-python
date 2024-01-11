@@ -40,7 +40,8 @@ from ._base_types import UNIX_EPOCH, Bounds, Sample, Sample3Phase
 from ._fuse import Fuse
 from ._moving_window import MovingWindow
 from ._periodic_feature_extractor import PeriodicFeatureExtractor
-from ._resampling._config import ResamplerConfig
+from ._resampling._base_types import SourceProperties
+from ._resampling._config import ResamplerConfig, ResamplingFunction
 
 __all__ = [
     "Bounds",
@@ -49,7 +50,9 @@ __all__ = [
     "PeriodicFeatureExtractor",
     "ResamplerConfig",
     "ReceiverFetcher",
+    "ResamplingFunction",
     "Sample",
     "Sample3Phase",
+    "SourceProperties",
     "UNIX_EPOCH",
 ]
