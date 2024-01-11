@@ -73,6 +73,7 @@ class _BlockingStatus:
             f"than maximum blocking duration ({self.max_duration})"
         )
         self.last_blocking_duration = self.min_duration
+        self._timedelta_zero = timedelta(seconds=0.0)
 
     def block(self) -> timedelta:
         """Block battery.
@@ -92,7 +93,7 @@ class _BlockingStatus:
 
         # If still blocked, then do nothing
         if self.blocked_until > now:
-            return timedelta(seconds=0.0)
+            return self._timedelta_zero
 
         # If previous blocking time expired, then blocked it once again.
         # Increase last blocking time, unless it reach the maximum.
@@ -192,6 +193,7 @@ class BatteryStatusTracker(ComponentStatusTracker):
         self._blocking_status: _BlockingStatus = _BlockingStatus(
             timedelta(seconds=1.0), max_blocking_duration
         )
+        self._timedelta_zero = timedelta(seconds=0.0)
 
         inverter_id = self._find_adjacent_inverter_id(component_id)
         if inverter_id is None:
@@ -256,7 +258,7 @@ class BatteryStatusTracker(ComponentStatusTracker):
         ):
             duration = self._blocking_status.block()
 
-            if duration > timedelta(seconds=0.0):
+            if duration > self._timedelta_zero:
                 _logger.warning(
                     "battery %d failed last response. block it for %s",
                     self.battery_id,
