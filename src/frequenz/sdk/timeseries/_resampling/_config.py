@@ -13,7 +13,7 @@ from typing import Protocol
 
 from frequenz.quantities import Quantity
 
-from .._base_types import UNIX_EPOCH, QuantityT, Sample
+from .._base_types import UNIX_EPOCH, QuantityT
 from ._base_types import SourceProperties
 
 _logger = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ class ResamplingFunction(Protocol):
 
     def __call__(
         self,
-        input_samples: Sequence[Sample[Quantity]],
+        input_samples: Sequence[tuple[datetime, Quantity]],
         resampler_config: ResamplerConfig,
         source_properties: SourceProperties,
         /,
@@ -68,8 +68,9 @@ class ResamplingFunction(Protocol):
         """Call the resampling function.
 
         Args:
-            input_samples: The sequence of pre-existing samples. It must be
-                non-empty.
+            input_samples: The sequence of pre-existing samples, where the first item is
+                the timestamp of the sample, and the second is the value of the sample.
+                The sequence must be non-empty.
             resampler_config: The configuration of the resampler calling this
                 function.
             source_properties: The properties of the source being resampled.
@@ -81,7 +82,7 @@ class ResamplingFunction(Protocol):
 
 
 def average(
-    samples: Sequence[Sample[QuantityT]],
+    samples: Sequence[tuple[datetime, QuantityT]],
     resampler_config: ResamplerConfig,  # pylint: disable=unused-argument
     source_properties: SourceProperties,  # pylint: disable=unused-argument
 ) -> float:
@@ -97,9 +98,7 @@ def average(
         The average of all `samples` values.
     """
     assert len(samples) > 0, "Average cannot be given an empty list of samples"
-    values = list(
-        sample.value.base_value for sample in samples if sample.value is not None
-    )
+    values = list(sample[1].base_value for sample in samples)
     return sum(values) / len(values)
 
 
