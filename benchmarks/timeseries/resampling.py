@@ -39,10 +39,12 @@ def _benchmark_resampling_helper(resamples: int, samples: int) -> None:
 
     def _do_work() -> None:
         nonlocal now
+        zero = Quantity.zero()
+        delta = timedelta(seconds=1 / samples)
         for _n_resample in range(resamples):
             for _n_sample in range(samples):
-                now = now + timedelta(seconds=1 / samples)
-                helper.add_sample((now, Quantity(0.0)))
+                now = now + delta
+                helper.add_sample((now, zero))
             helper.resample(now)
 
     print(timeit(_do_work, number=5))
