@@ -40,7 +40,7 @@ from ._base_types import UNIX_EPOCH, Bounds, Sample, Sample3Phase
 from ._fuse import Fuse
 from ._moving_window import MovingWindow
 from ._periodic_feature_extractor import PeriodicFeatureExtractor
-from ._resampling import ResamplerConfig
+from ._resampling._config import ResamplerConfig
 
 __all__ = [
     "Bounds",

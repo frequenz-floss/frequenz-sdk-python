@@ -9,12 +9,9 @@ from timeit import timeit
 
 from frequenz.quantities import Quantity
 
-from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._resampling import (
-    ResamplerConfig,
-    SourceProperties,
-    _ResamplingHelper,
-)
+from frequenz.sdk.timeseries import ResamplerConfig, Sample
+from frequenz.sdk.timeseries._resampling._base_types import SourceProperties
+from frequenz.sdk.timeseries._resampling._resampler import _ResamplingHelper
 
 
 def nop(  # pylint: disable=unused-argument
