@@ -104,15 +104,15 @@ class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
         """
         self: Self = await super().async_new(component_id, metrics)
 
+        # pylint: disable=protected-access
         for metric in metrics:
-            # pylint: disable=protected-access
             if metric not in self._supported_metrics():
                 category = self._component_category()
                 raise ValueError(f"Metric {metric} not supported for {category}")
 
-        # pylint: disable=protected-access
         self._receiver = await self._subscribe()
         self._max_waiting_time = MAX_BATTERY_DATA_AGE_SEC
+        # pylint: enable=protected-access
         return self
 
     async def fetch_next(self) -> ComponentMetricsData | None:

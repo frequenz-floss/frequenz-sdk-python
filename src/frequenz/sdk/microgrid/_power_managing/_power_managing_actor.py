@@ -158,16 +158,17 @@ class PowerManagingActor(Actor):
             NotImplementedError: When the pool type is not supported.
         """
         bounds_receiver: Receiver[SystemBounds]
-        # pylint: disable=protected-access
         if self._component_category is ComponentCategory.BATTERY:
             battery_pool = _data_pipeline.new_battery_pool(
                 priority=-sys.maxsize - 1, component_ids=component_ids
             )
+            # pylint: disable-next=protected-access
             bounds_receiver = battery_pool._system_power_bounds.new_receiver()
         elif self._component_category is ComponentCategory.EV_CHARGER:
             ev_charger_pool = _data_pipeline.new_ev_charger_pool(
                 priority=-sys.maxsize - 1, component_ids=component_ids
             )
+            # pylint: disable-next=protected-access
             bounds_receiver = ev_charger_pool._system_power_bounds.new_receiver()
         elif (
             self._component_category is ComponentCategory.INVERTER
@@ -176,8 +177,8 @@ class PowerManagingActor(Actor):
             pv_pool = _data_pipeline.new_pv_pool(
                 priority=-sys.maxsize - 1, component_ids=component_ids
             )
+            # pylint: disable-next=protected-access
             bounds_receiver = pv_pool._system_power_bounds.new_receiver()
-        # pylint: enable=protected-access
         else:
             err = (
                 "PowerManagingActor: Unsupported component category: "

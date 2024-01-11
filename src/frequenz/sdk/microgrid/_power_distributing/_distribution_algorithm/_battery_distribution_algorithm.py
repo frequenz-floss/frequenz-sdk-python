@@ -461,7 +461,8 @@ class BatteryDistributionAlgorithm:
 
         return battery_availability_ratio, total_battery_availability_ratio
 
-    def _distribute_power(  # pylint: disable=too-many-arguments
+    # pylint: disable-next=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
+    def _distribute_power(
         self,
         *,
         components: list[InvBatPair],
@@ -470,7 +471,6 @@ class BatteryDistributionAlgorithm:
         incl_bounds: dict[ComponentId, Power],
         excl_bounds: dict[ComponentId, Power],
     ) -> DistributionResult:
-        # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         """Distribute power between given components.
 
         After this method power should be distributed between batteries
