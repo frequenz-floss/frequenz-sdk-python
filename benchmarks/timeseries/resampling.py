@@ -7,7 +7,6 @@ from collections.abc import Sequence
 from datetime import datetime, timedelta, timezone
 from timeit import timeit
 
-from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._quantities import Quantity
 from frequenz.sdk.timeseries._resampling._base_types import SourceProperties
 from frequenz.sdk.timeseries._resampling._config import ResamplerConfig
@@ -15,7 +14,7 @@ from frequenz.sdk.timeseries._resampling._resampler import _ResamplingHelper
 
 
 def nop(  # pylint: disable=unused-argument
-    samples: Sequence[Sample[Quantity]],
+    samples: Sequence[tuple[datetime, Quantity]],
     resampler_config: ResamplerConfig,
     source_properties: SourceProperties,
 ) -> float:
@@ -43,7 +42,7 @@ def _benchmark_resampling_helper(resamples: int, samples: int) -> None:
         for _n_resample in range(resamples):
             for _n_sample in range(samples):
                 now = now + timedelta(seconds=1 / samples)
-                helper.add_sample(Sample(now, Quantity(0.0)))
+                helper.add_sample((now, Quantity(0.0)))
             helper.resample(now)
 
     print(timeit(_do_work, number=5))

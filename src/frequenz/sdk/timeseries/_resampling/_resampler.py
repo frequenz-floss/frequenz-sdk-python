@@ -292,7 +292,9 @@ class _ResamplingHelper:
         """
         self._name = name
         self._config = config
-        self._buffer: deque[Sample[Quantity]] = deque(maxlen=config.initial_buffer_len)
+        self._buffer: deque[tuple[datetime, Quantity]] = deque(
+            maxlen=config.initial_buffer_len
+        )
         self._source_properties: SourceProperties = SourceProperties()
 
     @property
@@ -304,7 +306,7 @@ class _ResamplingHelper:
         """
         return self._source_properties
 
-    def add_sample(self, sample: Sample[Quantity]) -> None:
+    def add_sample(self, sample: tuple[datetime, Quantity]) -> None:
         """Add a new sample to the internal buffer.
 
         Args:
@@ -312,7 +314,7 @@ class _ResamplingHelper:
         """
         self._buffer.append(sample)
         if self._source_properties.sampling_start is None:
-            self._source_properties.sampling_start = sample.timestamp
+            self._source_properties.sampling_start = sample[0]
         self._source_properties.received_samples += 1
 
     def _update_source_sample_period(self, now: datetime) -> bool:
@@ -450,9 +452,9 @@ class _ResamplingHelper:
         min_index = bisect(
             self._buffer,
             minimum_relevant_timestamp,
-            key=lambda s: s.timestamp,
+            key=lambda s: s[0],
         )
-        max_index = bisect(self._buffer, timestamp, key=lambda s: s.timestamp)
+        max_index = bisect(self._buffer, timestamp, key=lambda s: s[0])
         # Using itertools for slicing doesn't look very efficient, but
         # experiments with a custom (ring) buffer that can slice showed that
         # it is not that bad. See:
@@ -514,7 +516,7 @@ class _StreamingHelper:
         """
         async for sample in self._source:
             if sample.value is not None and not sample.value.isnan():
-                self._helper.add_sample(sample)
+                self._helper.add_sample((sample.timestamp, sample.value))
 
     async def resample(self, timestamp: datetime) -> None:
         """Calculate a new sample for the passed `timestamp` and send it.

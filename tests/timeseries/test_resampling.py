@@ -7,6 +7,7 @@
 import asyncio
 import logging
 from collections.abc import AsyncIterator
+from dataclasses import astuple
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock
 
@@ -158,7 +159,7 @@ async def test_helper_buffer_too_big(
     helper = _ResamplingHelper("test", config)
 
     for i in range(DEFAULT_BUFFER_LEN_MAX + 1):
-        sample = Sample(datetime.now(timezone.utc), Quantity(i))
+        sample = (datetime.now(timezone.utc), Quantity(i))
         helper.add_sample(sample)
         await _advance_time(fake_time, 1)
 
@@ -313,7 +314,7 @@ async def test_resampling_window_size_is_constant(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample1s), config, source_props
+        a_sequence(astuple(sample1s)), config, source_props
     )
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
@@ -340,7 +341,13 @@ async def test_resampling_window_size_is_constant(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample2_5s, sample3s, sample4s), config, source_props
+        a_sequence(
+            astuple(sample2_5s),
+            astuple(sample3s),
+            astuple(sample4s),
+        ),
+        config,
+        source_props,
     )
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
@@ -406,7 +413,12 @@ async def test_timer_errors_are_logged(  # pylint: disable=too-many-statements
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample0s, sample1s), config, source_props
+        a_sequence(
+            astuple(sample0s),
+            astuple(sample1s),
+        ),
+        config,
+        source_props,
     )
     assert not [
         *_filter_logs(
@@ -440,7 +452,12 @@ async def test_timer_errors_are_logged(  # pylint: disable=too-many-statements
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample1s, sample2_5s, sample3s, sample4s),
+        a_sequence(
+            astuple(sample1s),
+            astuple(sample2_5s),
+            astuple(sample3s),
+            astuple(sample4s),
+        ),
         config,
         source_props,
     )
@@ -474,7 +491,13 @@ async def test_timer_errors_are_logged(  # pylint: disable=too-many-statements
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample3s, sample4s, sample4_5s, sample5s, sample6s),
+        a_sequence(
+            astuple(sample3s),
+            astuple(sample4s),
+            astuple(sample4_5s),
+            astuple(sample5s),
+            astuple(sample6s),
+        ),
         config,
         source_props,
     )
@@ -545,7 +568,12 @@ async def test_future_samples_not_included(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample0s, sample1s), config, source_props  # sample2_1s is not here
+        a_sequence(
+            astuple(sample0s),
+            astuple(sample1s),
+        ),
+        config,
+        source_props,  # sample2_1s is not here
     )
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=3, sampling_period=None
@@ -570,7 +598,11 @@ async def test_future_samples_not_included(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample1s, sample2_1s, sample3s),
+        a_sequence(
+            astuple(sample1s),
+            astuple(sample2_1s),
+            astuple(sample3s),
+        ),
         config,
         source_props,  # sample4_1s is not here
     )
@@ -628,7 +660,11 @@ async def test_resampling_with_one_window(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample1s), config, source_props
+        a_sequence(
+            astuple(sample1s),
+        ),
+        config,
+        source_props,
     )
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=2, sampling_period=None
@@ -655,7 +691,13 @@ async def test_resampling_with_one_window(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample2_5s, sample3s, sample4s), config, source_props
+        a_sequence(
+            astuple(sample2_5s),
+            astuple(sample3s),
+            astuple(sample4s),
+        ),
+        config,
+        source_props,
     )
     # By now we have a full buffer (5 samples and a buffer of length 4), which
     # we received in 4 seconds, so we have an input period of 0.8s.
@@ -742,7 +784,12 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample0s, sample1s), config, source_props
+        a_sequence(
+            astuple(sample0s),
+            astuple(sample1s),
+        ),
+        config,
+        source_props,
     )
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=2, sampling_period=None
@@ -770,7 +817,13 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     )
     # It should include samples in the interval (1, 4] seconds
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample2_5s, sample3s, sample4s), config, source_props
+        a_sequence(
+            astuple(sample2_5s),
+            astuple(sample3s),
+            astuple(sample4s),
+        ),
+        config,
+        source_props,
     )
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=5, sampling_period=None
@@ -796,7 +849,13 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     )
     # It should include samples in the interval (3, 6] seconds
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample4s, sample5s, sample6s), config, source_props
+        a_sequence(
+            astuple(sample4s),
+            astuple(sample5s),
+            astuple(sample6s),
+        ),
+        config,
+        source_props,
     )
     # By now we have a full buffer (7 samples and a buffer of length 6), which
     # we received in 4 seconds, so we have an input period of 6/7s.
@@ -825,7 +884,7 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     )
     # It should include samples in the interval (5, 8] seconds
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample6s),
+        a_sequence(astuple(sample6s)),
         config,
         source_props,
     )
@@ -904,7 +963,12 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample0s, sample1s), config, source_props
+        a_sequence(
+            astuple(sample0s),
+            astuple(sample1s),
+        ),
+        config,
+        source_props,
     )
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=2, sampling_period=None
@@ -932,7 +996,14 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     )
     # It should include samples in the interval (0, 4] seconds
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample1s, sample2_5s, sample3s, sample4s), config, source_props
+        a_sequence(
+            astuple(sample1s),
+            astuple(sample2_5s),
+            astuple(sample3s),
+            astuple(sample4s),
+        ),
+        config,
+        source_props,
     )
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=5, sampling_period=None
@@ -958,7 +1029,13 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     )
     # It should include samples in the interval (2, 6] seconds
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample2_5s, sample3s, sample4s, sample5s, sample6s),
+        a_sequence(
+            astuple(sample2_5s),
+            astuple(sample3s),
+            astuple(sample4s),
+            astuple(sample5s),
+            astuple(sample6s),
+        ),
         config,
         source_props,
     )
@@ -982,7 +1059,12 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     )
     # It should include samples in the interval (4, 8] seconds
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample5s, sample6s), config, source_props
+        a_sequence(
+            astuple(sample5s),
+            astuple(sample6s),
+        ),
+        config,
+        source_props,
     )
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=7, sampling_period=None
@@ -1047,7 +1129,7 @@ async def test_receiving_stopped_resampling_error(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample0s), config, source_props
+        a_sequence(astuple(sample0s)), config, source_props
     )
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
@@ -1182,7 +1264,13 @@ async def test_timer_is_aligned(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample1s, sample1_5s, sample2_5s, sample3s, sample4s),
+        a_sequence(
+            astuple(sample1s),
+            astuple(sample1_5s),
+            astuple(sample2_5s),
+            astuple(sample3s),
+            astuple(sample4s),
+        ),
         config,
         source_props,
     )
@@ -1248,7 +1336,7 @@ async def test_resampling_all_zeros(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample1s), config, source_props
+        a_sequence(astuple(sample1s)), config, source_props
     )
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=2, sampling_period=None
@@ -1275,7 +1363,13 @@ async def test_resampling_all_zeros(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample2_5s, sample3s, sample4s), config, source_props
+        a_sequence(
+            astuple(sample2_5s),
+            astuple(sample3s),
+            astuple(sample4s),
+        ),
+        config,
+        source_props,
     )
     # By now we have a full buffer (5 samples and a buffer of length 4), which
     # we received in 4 seconds, so we have an input period of 0.8s.
