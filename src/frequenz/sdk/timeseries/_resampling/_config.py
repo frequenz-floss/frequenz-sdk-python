@@ -79,11 +79,10 @@ class ResamplingFunction(Protocol):
         ...  # pylint: disable=unnecessary-ellipsis
 
 
-# pylint: disable=unused-argument
 def average(
     samples: Sequence[Sample[QuantityT]],
-    resampler_config: ResamplerConfig,
-    source_properties: SourceProperties,
+    resampler_config: ResamplerConfig,  # pylint: disable=unused-argument
+    source_properties: SourceProperties,  # pylint: disable=unused-argument
 ) -> float:
     """Calculate average of all the provided values.
 
