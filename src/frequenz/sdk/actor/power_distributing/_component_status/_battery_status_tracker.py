@@ -55,55 +55,53 @@ class _ComponentStreamStatus:
 
 @dataclass
 class _BlockingStatus:
-    min_duration_sec: float
-    """The minimum blocking duration (in seconds)."""
+    min_duration: timedelta
+    """The minimum blocking duration."""
 
-    max_duration_sec: float
-    """The maximum blocking duration (in seconds)."""
+    max_duration: timedelta
+    """The maximum blocking duration."""
 
-    last_blocking_duration_sec: float = 0.0
-    """Last blocking duration (in seconds)."""
+    last_blocking_duration: timedelta = timedelta(seconds=0.0)
+    """Last blocking duration."""
 
     blocked_until: datetime | None = None
     """Until when the battery is blocked."""
 
     def __post_init__(self) -> None:
-        assert self.min_duration_sec <= self.max_duration_sec, (
-            f"Minimum blocking duration ({self.min_duration_sec}) cannot be greater "
-            f"than maximum blocking duration ({self.max_duration_sec})"
+        assert self.min_duration <= self.max_duration, (
+            f"Minimum blocking duration ({self.min_duration}) cannot be greater "
+            f"than maximum blocking duration ({self.max_duration})"
         )
-        self.last_blocking_duration_sec = self.min_duration_sec
+        self.last_blocking_duration = self.min_duration
 
-    def block(self) -> float:
+    def block(self) -> timedelta:
         """Block battery.
 
         Battery can be unblocked using `self.unblock()` method.
 
         Returns:
-            For how long (in seconds) the battery is blocked.
+            The duration for which the battery is blocked.
         """
         now = datetime.now(tz=timezone.utc)
 
         # If is not blocked
         if self.blocked_until is None:
-            self.last_blocking_duration_sec = self.min_duration_sec
-            self.blocked_until = now + timedelta(
-                seconds=self.last_blocking_duration_sec
-            )
-            return self.last_blocking_duration_sec
+            self.last_blocking_duration = self.min_duration
+            self.blocked_until = now + self.last_blocking_duration
+            return self.last_blocking_duration
 
         # If still blocked, then do nothing
         if self.blocked_until > now:
-            return 0.0
+            return timedelta(seconds=0.0)
 
         # If previous blocking time expired, then blocked it once again.
         # Increase last blocking time, unless it reach the maximum.
-        self.last_blocking_duration_sec = min(
-            2 * self.last_blocking_duration_sec, self.max_duration_sec
+        self.last_blocking_duration = min(
+            2 * self.last_blocking_duration, self.max_duration
         )
-        self.blocked_until = now + timedelta(seconds=self.last_blocking_duration_sec)
+        self.blocked_until = now + self.last_blocking_duration
 
-        return self.last_blocking_duration_sec
+        return self.last_blocking_duration
 
     def unblock(self) -> None:
         """Unblock battery.
@@ -166,8 +164,8 @@ class BatteryStatusTracker(ComponentStatusTracker):
     def __init__(  # pylint: disable=too-many-arguments
         self,
         component_id: int,
-        max_data_age_sec: float,
-        max_blocking_duration_sec: float,
+        max_data_age: timedelta,
+        max_blocking_duration: timedelta,
         status_sender: Sender[ComponentStatus],
         set_power_result_receiver: Receiver[SetPowerResult],
     ) -> None:
@@ -175,11 +173,10 @@ class BatteryStatusTracker(ComponentStatusTracker):
 
         Args:
             component_id: Id of this battery
-            max_data_age_sec: If component stopped sending data, then
-                this is the maximum time when its last message should be considered as
-                valid. After that time, component won't be used until it starts sending
-                data.
-            max_blocking_duration_sec: This value tell what should be the maximum
+            max_data_age: If component stopped sending data, then this is the maximum
+                time when its last message should be considered as valid. After that
+                time, component won't be used until it starts sending data.
+            max_blocking_duration: This value tell what should be the maximum
                 timeout used for blocking failing component.
             status_sender: Channel to send status updates.
             set_power_result_receiver: Channel to receive results of the requests to the
@@ -188,12 +185,12 @@ class BatteryStatusTracker(ComponentStatusTracker):
         Raises:
             RuntimeError: If battery has no adjacent inverter.
         """
-        self._max_data_age = max_data_age_sec
+        self._max_data_age = max_data_age
         # First battery is considered as not working.
         # Change status after first messages are received.
         self._last_status: ComponentStatusEnum = ComponentStatusEnum.NOT_WORKING
         self._blocking_status: _BlockingStatus = _BlockingStatus(
-            1.0, max_blocking_duration_sec
+            timedelta(seconds=1.0), max_blocking_duration
         )
 
         inverter_id = self._find_adjacent_inverter_id(component_id)
@@ -204,11 +201,11 @@ class BatteryStatusTracker(ComponentStatusTracker):
 
         self._battery: _ComponentStreamStatus = _ComponentStreamStatus(
             component_id,
-            data_recv_timer=Timer.timeout(timedelta(seconds=max_data_age_sec)),
+            data_recv_timer=Timer.timeout(max_data_age),
         )
         self._inverter: _ComponentStreamStatus = _ComponentStreamStatus(
             inverter_id,
-            data_recv_timer=Timer.timeout(timedelta(seconds=max_data_age_sec)),
+            data_recv_timer=Timer.timeout(max_data_age),
         )
 
         # Select needs receivers that can be get in async way only.
@@ -259,9 +256,9 @@ class BatteryStatusTracker(ComponentStatusTracker):
         ):
             duration = self._blocking_status.block()
 
-            if duration > 0:
+            if duration > timedelta(seconds=0.0):
                 _logger.warning(
-                    "battery %d failed last response. block it for %f sec",
+                    "battery %d failed last response. block it for %s",
                     self.battery_id,
                     duration,
                 )
@@ -345,7 +342,7 @@ class BatteryStatusTracker(ComponentStatusTracker):
                         if (
                             datetime.now(tz=timezone.utc)
                             - self._battery.last_msg_timestamp
-                        ) < timedelta(seconds=self._max_data_age):
+                        ) < self._max_data_age:
                             # This means that we have received data from the battery
                             # since the timer triggered, but the timer event arrived
                             # late, so we can ignore it.
@@ -356,7 +353,7 @@ class BatteryStatusTracker(ComponentStatusTracker):
                         if (
                             datetime.now(tz=timezone.utc)
                             - self._inverter.last_msg_timestamp
-                        ) < timedelta(seconds=self._max_data_age):
+                        ) < self._max_data_age:
                             # This means that we have received data from the inverter
                             # since the timer triggered, but the timer event arrived
                             # late, so we can ignore it.
@@ -505,7 +502,7 @@ class BatteryStatusTracker(ComponentStatusTracker):
             _True if timestamp is to old, False otherwise
         """
         now = datetime.now(tz=timezone.utc)
-        diff = (now - timestamp).total_seconds()
+        diff = now - timestamp
         return diff > self._max_data_age
 
     def _is_message_reliable(self, message: ComponentData) -> bool:

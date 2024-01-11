@@ -8,6 +8,7 @@ import enum
 from abc import ABC, abstractmethod
 from collections import abc
 from dataclasses import dataclass
+from datetime import timedelta
 
 from frequenz.channels import Receiver, Sender
 
@@ -83,8 +84,8 @@ class ComponentStatusTracker(ABC):
     def __init__(  # pylint: disable=too-many-arguments
         self,
         component_id: int,
-        max_data_age_sec: float,
-        max_blocking_duration_sec: float,
+        max_data_age: timedelta,
+        max_blocking_duration: timedelta,
         status_sender: Sender[ComponentStatus],
         set_power_result_receiver: Receiver[SetPowerResult],
     ) -> None:
@@ -92,11 +93,10 @@ class ComponentStatusTracker(ABC):
 
         Args:
             component_id: Id of this component
-            max_data_age_sec: If component stopped sending data, then
-                this is the maximum time when its last message should be considered as
-                valid. After that time, component won't be used until it starts sending
-                data.
-            max_blocking_duration_sec: This value tell what should be the maximum
+            max_data_age: If component stopped sending data, then this is the maximum
+                time when its last message should be considered as valid. After that
+                time, component won't be used until it starts sending data.
+            max_blocking_duration: This value tell what should be the maximum
                 timeout used for blocking failing component.
             status_sender: Channel to send status updates.
             set_power_result_receiver: Channel to receive results of the requests to the

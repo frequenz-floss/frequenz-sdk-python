@@ -145,8 +145,8 @@ class BatteryManager(ComponentManager):
         self._component_pool_status_tracker = ComponentPoolStatusTracker(
             component_ids=set(self._battery_ids),
             component_status_sender=component_pool_status_sender,
-            max_blocking_duration_sec=30.0,
-            max_data_age_sec=10.0,
+            max_blocking_duration=timedelta(seconds=30.0),
+            max_data_age=timedelta(seconds=10.0),
             component_status_tracker_type=BatteryStatusTracker,
         )
 

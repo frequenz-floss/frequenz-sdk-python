@@ -188,8 +188,8 @@ class TestBatteryStatus:
 
         async with mock_microgrid, battery_status_tracker(
             BATTERY_ID,
-            max_data_age_sec=5,
-            max_blocking_duration_sec=30,
+            max_data_age=timedelta(seconds=5),
+            max_blocking_duration=timedelta(seconds=30),
             status_sender=status_channel.new_sender(),
             set_power_result_receiver=set_power_result_channel.new_receiver(),
         ) as tracker:
@@ -358,8 +358,8 @@ class TestBatteryStatus:
             # increase max_data_age_sec for blocking tests.
             # Otherwise it will block blocking.
             BATTERY_ID,
-            max_data_age_sec=500,
-            max_blocking_duration_sec=30,
+            max_data_age=timedelta(seconds=500),
+            max_blocking_duration=timedelta(seconds=30),
             status_sender=status_channel.new_sender(),
             set_power_result_receiver=set_power_result_channel.new_receiver(),
         ) as tracker:
@@ -494,8 +494,8 @@ class TestBatteryStatus:
 
         async with mock_microgrid, battery_status_tracker(
             BATTERY_ID,
-            max_data_age_sec=5,
-            max_blocking_duration_sec=30,
+            max_data_age=timedelta(seconds=5),
+            max_blocking_duration=timedelta(seconds=30),
             status_sender=status_channel.new_sender(),
             set_power_result_receiver=set_power_result_channel.new_receiver(),
         ) as tracker:
@@ -542,8 +542,8 @@ class TestBatteryStatus:
 
         async with mock_microgrid, battery_status_tracker(
             BATTERY_ID,
-            max_data_age_sec=5,
-            max_blocking_duration_sec=30,
+            max_data_age=timedelta(seconds=5),
+            max_blocking_duration=timedelta(seconds=30),
             status_sender=status_channel.new_sender(),
             set_power_result_receiver=set_power_result_channel.new_receiver(),
         ) as tracker:
@@ -603,8 +603,8 @@ class TestBatteryStatus:
 
         async with mock_microgrid, battery_status_tracker(
             BATTERY_ID,
-            max_data_age_sec=5,
-            max_blocking_duration_sec=30,
+            max_data_age=timedelta(seconds=5),
+            max_blocking_duration=timedelta(seconds=30),
             status_sender=status_channel.new_sender(),
             set_power_result_receiver=set_power_result_channel.new_receiver(),
         ) as tracker:
@@ -669,8 +669,8 @@ class TestBatteryStatus:
 
         async with mock_microgrid, battery_status_tracker(
             BATTERY_ID,
-            max_data_age_sec=5,
-            max_blocking_duration_sec=30,
+            max_data_age=timedelta(seconds=5),
+            max_blocking_duration=timedelta(seconds=30),
             status_sender=status_channel.new_sender(),
             set_power_result_receiver=set_power_result_channel.new_receiver(),
         ):
@@ -753,8 +753,8 @@ class TestBatteryStatusRecovery:
 
         async with mock_microgrid, battery_status_tracker(
             BATTERY_ID,
-            max_data_age_sec=0.1,
-            max_blocking_duration_sec=1,
+            max_data_age=timedelta(seconds=0.1),
+            max_blocking_duration=timedelta(seconds=1),
             status_sender=status_channel.new_sender(),
             set_power_result_receiver=set_power_result_channel.new_receiver(),
         ):
