@@ -6,13 +6,14 @@
 from __future__ import annotations
 
 import logging
+import statistics
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Protocol
 
 from .._base_types import UNIX_EPOCH
-from .._quantities import Quantity, QuantityT
+from .._quantities import Quantity
 from ._base_types import SourceProperties
 
 _logger = logging.getLogger(__name__)
@@ -80,27 +81,6 @@ class ResamplingFunction(Protocol):
         ...  # pylint: disable=unnecessary-ellipsis
 
 
-def average(
-    samples: Sequence[tuple[datetime, QuantityT]],
-    resampler_config: ResamplerConfig,  # pylint: disable=unused-argument
-    source_properties: SourceProperties,  # pylint: disable=unused-argument
-) -> float:
-    """Calculate average of all the provided values.
-
-    Args:
-        samples: The samples to apply the average to. It must be non-empty.
-        resampler_config: The configuration of the resampler calling this
-            function.
-        source_properties: The properties of the source being resampled.
-
-    Returns:
-        The average of all `samples` values.
-    """
-    assert len(samples) > 0, "Average cannot be given an empty list of samples"
-    values = list(sample[1].base_value for sample in samples)
-    return sum(values) / len(values)
-
-
 @dataclass(frozen=True)
 class ResamplerConfig:
     """Resampler configuration."""
@@ -135,7 +115,9 @@ class ResamplerConfig:
         passed to the resampling function.
     """
 
-    resampling_function: ResamplingFunction = average
+    resampling_function: ResamplingFunction = lambda samples, _, __: statistics.fmean(
+        [s[1].base_value for s in samples]
+    )
     """The resampling function.
 
     This function will be applied to the sequence of relevant samples at
