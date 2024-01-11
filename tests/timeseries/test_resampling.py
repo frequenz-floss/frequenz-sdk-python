@@ -17,19 +17,22 @@ from frequenz.channels import Broadcast, SenderError
 
 from frequenz.sdk.timeseries import UNIX_EPOCH, Sample
 from frequenz.sdk.timeseries._quantities import Quantity
-from frequenz.sdk.timeseries._resampling import (
-    DEFAULT_BUFFER_LEN_MAX,
-    DEFAULT_BUFFER_LEN_WARN,
-    Resampler,
-    ResamplerConfig,
-    ResamplingError,
-    ResamplingFunction,
+from frequenz.sdk.timeseries._resampling._base_types import (
     Sink,
     Source,
     SourceProperties,
-    SourceStoppedError,
-    _ResamplingHelper,
 )
+from frequenz.sdk.timeseries._resampling._config import (
+    DEFAULT_BUFFER_LEN_MAX,
+    DEFAULT_BUFFER_LEN_WARN,
+    ResamplerConfig,
+    ResamplingFunction,
+)
+from frequenz.sdk.timeseries._resampling._exceptions import (
+    ResamplingError,
+    SourceStoppedError,
+)
+from frequenz.sdk.timeseries._resampling._resampler import Resampler, _ResamplingHelper
 
 from ..utils import a_sequence
 
@@ -118,9 +121,11 @@ async def test_resampler_config_len_warn(
     )
     assert config.initial_buffer_len == init_len
     # Ignore errors produced by wrongly finalized gRPC server in unrelated tests
-    assert _filter_logs(caplog.record_tuples) == [
+    assert _filter_logs(
+        caplog.record_tuples, logger_name="frequenz.sdk.timeseries._resampling._config"
+    ) == [
         (
-            "frequenz.sdk.timeseries._resampling",
+            "frequenz.sdk.timeseries._resampling._config",
             logging.WARNING,
             f"initial_buffer_len ({init_len}) is bigger than "
             f"warn_buffer_len ({DEFAULT_BUFFER_LEN_WARN})",
@@ -160,7 +165,7 @@ async def test_helper_buffer_too_big(
     _ = helper.resample(datetime.now(timezone.utc))
     # Ignore errors produced by wrongly finalized gRPC server in unrelated tests
     assert (
-        "frequenz.sdk.timeseries._resampling",
+        "frequenz.sdk.timeseries._resampling._resampler",
         logging.ERROR,
         f"The new buffer length ({DEFAULT_BUFFER_LEN_MAX + 1}) "
         f"for timeseries test is too big, using {DEFAULT_BUFFER_LEN_MAX} instead",
@@ -474,7 +479,7 @@ async def test_timer_errors_are_logged(  # pylint: disable=too-many-statements
         source_props,
     )
     assert (
-        "frequenz.sdk.timeseries._resampling",
+        "frequenz.sdk.timeseries._resampling._resampler",
         logging.WARNING,
         "The resampling task woke up too late. Resampling should have started at "
         "1970-01-01 00:00:06+00:00, but it started at 1970-01-01 "
@@ -1463,7 +1468,7 @@ def _get_buffer_len(resampler: Resampler, source_receiver: Source) -> int:
 def _filter_logs(
     record_tuples: list[tuple[str, int, str]],
     *,
-    logger_name: str = "frequenz.sdk.timeseries._resampling",
+    logger_name: str = "frequenz.sdk.timeseries._resampling._resampler",
     logger_level: int | None = None,
 ) -> list[tuple[str, int, str]]:
     return [

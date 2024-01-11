@@ -50,7 +50,7 @@ from ._quantities import (
     Temperature,
     Voltage,
 )
-from ._resampling import ResamplerConfig
+from ._resampling._config import ResamplerConfig
 
 __all__ = [
     "Bounds",

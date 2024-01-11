@@ -18,7 +18,8 @@ from numpy.typing import ArrayLike
 from ..actor._background_service import BackgroundService
 from ._base_types import UNIX_EPOCH, Sample
 from ._quantities import Quantity
-from ._resampling import Resampler, ResamplerConfig
+from ._resampling._config import ResamplerConfig
+from ._resampling._resampler import Resampler
 from ._ringbuffer import OrderedRingBuffer
 
 _logger = logging.getLogger(__name__)

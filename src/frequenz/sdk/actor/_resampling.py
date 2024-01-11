@@ -13,7 +13,9 @@ from frequenz.channels import Receiver, Sender
 from .._internal._asyncio import cancel_and_await
 from ..timeseries import Sample
 from ..timeseries._quantities import Quantity
-from ..timeseries._resampling import Resampler, ResamplerConfig, ResamplingError
+from ..timeseries._resampling._config import ResamplerConfig
+from ..timeseries._resampling._exceptions import ResamplingError
+from ..timeseries._resampling._resampler import Resampler
 from ._actor import Actor
 from ._channel_registry import ChannelRegistry
 from ._data_sourcing import ComponentMetricRequest
