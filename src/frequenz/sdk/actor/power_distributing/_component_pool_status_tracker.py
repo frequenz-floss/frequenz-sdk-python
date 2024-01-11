@@ -32,7 +32,7 @@ class ComponentPoolStatusTracker:
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        component_ids: set[int],
+        component_ids: abc.Set[int],
         component_status_sender: Sender[ComponentPoolStatus],
         max_data_age_sec: float,
         max_blocking_duration_sec: float,
