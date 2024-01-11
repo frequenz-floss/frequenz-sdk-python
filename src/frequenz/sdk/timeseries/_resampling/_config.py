@@ -6,9 +6,10 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Protocol
 
 from .._base_types import UNIX_EPOCH, Sample
 from .._quantities import Quantity, QuantityT
@@ -40,32 +41,42 @@ DEFAULT_BUFFER_LEN_WARN = 128
 If a buffer length would get bigger than this, a warning will be logged.
 """
 
-ResamplingFunction = Callable[
-    [Sequence[Sample[Quantity]], "ResamplerConfig", SourceProperties], float
-]
-"""Resampling function type.
 
-A resampling function produces a new sample based on a list of pre-existing
-samples. It can do "upsampling" when there data rate of the `input_samples`
-period is smaller than the `resampling_period`, or "downsampling" if it is
-bigger.
+class ResamplingFunction(Protocol):
+    """Combine multiple samples into a new one.
 
-In general a resampling window is the same as the `resampling_period`, and
-this function might receive input samples from multiple windows in the past to
-enable extrapolation, but no samples from the future (so the timestamp of the
-new sample that is going to be produced will always be bigger than the biggest
-timestamp in the input data).
+    A resampling function produces a new sample based on a list of pre-existing
+    samples. It can do "upsampling" when there data rate of the `input_samples`
+    period is smaller than the `resampling_period`, or "downsampling" if it is
+    bigger.
 
-Args:
-    input_samples (Sequence[Sample]): The sequence of pre-existing samples.
-    resampler_config (ResamplerConfig): The configuration of the resampling
-        calling this function.
-    source_properties (SourceProperties): The properties of the source being
-        resampled.
+    In general, a resampling window is the same as the `resampling_period`, and
+    this function might receive input samples from multiple windows in the past to
+    enable extrapolation, but no samples from the future (so the timestamp of the
+    new sample that is going to be produced will always be bigger than the biggest
+    timestamp in the input data).
+    """
 
-Returns:
-    new_sample (float): The value of new sample produced after the resampling.
-"""
+    def __call__(
+        self,
+        input_samples: Sequence[Sample[Quantity]],
+        resampler_config: ResamplerConfig,
+        source_properties: SourceProperties,
+        /,
+    ) -> float:
+        """Call the resampling function.
+
+        Args:
+            input_samples: The sequence of pre-existing samples. It must be
+                non-empty.
+            resampler_config: The configuration of the resampler calling this
+                function.
+            source_properties: The properties of the source being resampled.
+
+        Returns:
+            The value of new sample produced after the resampling.
+        """
+        ...  # pylint: disable=unnecessary-ellipsis
 
 
 # pylint: disable=unused-argument
