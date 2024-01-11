@@ -50,7 +50,8 @@ from ._quantities import (
     Temperature,
     Voltage,
 )
-from ._resampling._config import ResamplerConfig
+from ._resampling._base_types import SourceProperties
+from ._resampling._config import ResamplerConfig, ResamplingFunction
 
 __all__ = [
     "Bounds",
@@ -59,8 +60,10 @@ __all__ = [
     "PeriodicFeatureExtractor",
     "ResamplerConfig",
     "ReceiverFetcher",
+    "ResamplingFunction",
     "Sample",
     "Sample3Phase",
+    "SourceProperties",
     "UNIX_EPOCH",
     #
     # Quantities
