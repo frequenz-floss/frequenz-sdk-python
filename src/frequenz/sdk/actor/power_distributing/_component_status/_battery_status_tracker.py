@@ -20,9 +20,9 @@ from frequenz.channels import Receiver, Sender
 from frequenz.channels.util import Timer, select, selected_from
 from typing_extensions import override
 
-from ..._internal._asyncio import cancel_and_await
-from ...microgrid import connection_manager
-from ...microgrid.component import (
+from ...._internal._asyncio import cancel_and_await
+from ....microgrid import connection_manager
+from ....microgrid.component import (
     BatteryData,
     ComponentCategory,
     ComponentData,

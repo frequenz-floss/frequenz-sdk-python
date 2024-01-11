@@ -7,13 +7,13 @@ import asyncio
 from frequenz.channels import Broadcast
 from pytest_mock import MockerFixture
 
-from frequenz.sdk.actor.power_distributing._battery_status_tracker import (
-    BatteryStatusTracker,
-)
 from frequenz.sdk.actor.power_distributing._component_pool_status_tracker import (
     ComponentPoolStatusTracker,
 )
-from frequenz.sdk.actor.power_distributing._component_status import ComponentPoolStatus
+from frequenz.sdk.actor.power_distributing._component_status import (
+    BatteryStatusTracker,
+    ComponentPoolStatus,
+)
 from frequenz.sdk.microgrid.component import ComponentCategory
 from tests.timeseries.mock_microgrid import MockMicrogrid
 

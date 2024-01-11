@@ -29,10 +29,8 @@ from frequenz.channels import Broadcast, Receiver
 from pytest_mock import MockerFixture
 from time_machine import TimeMachineFixture
 
-from frequenz.sdk.actor.power_distributing._battery_status_tracker import (
-    BatteryStatusTracker,
-)
 from frequenz.sdk.actor.power_distributing._component_status import (
+    BatteryStatusTracker,
     ComponentStatus,
     ComponentStatusEnum,
     SetPowerResult,
