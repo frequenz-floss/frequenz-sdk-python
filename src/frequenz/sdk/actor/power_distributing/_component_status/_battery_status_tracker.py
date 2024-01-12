@@ -20,7 +20,6 @@ from frequenz.channels import Receiver, Sender
 from frequenz.channels.util import Timer, select, selected_from
 from typing_extensions import override
 
-from ...._internal._asyncio import cancel_and_await
 from ....microgrid import connection_manager
 from ....microgrid.component import (
     BatteryData,
@@ -28,6 +27,7 @@ from ....microgrid.component import (
     ComponentData,
     InverterData,
 )
+from ..._background_service import BackgroundService
 from ._component_status import (
     ComponentStatus,
     ComponentStatusEnum,
@@ -126,7 +126,7 @@ class _BlockingStatus:
         return self.blocked_until > datetime.now(tz=timezone.utc)
 
 
-class BatteryStatusTracker(ComponentStatusTracker):
+class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
     """Class for tracking if battery is working.
 
     Status updates are sent out only when there is a status change.
@@ -186,7 +186,11 @@ class BatteryStatusTracker(ComponentStatusTracker):
         Raises:
             RuntimeError: If battery has no adjacent inverter.
         """
+        BackgroundService.__init__(self, name=f"BatteryStatusTracker({component_id})")
         self._max_data_age = max_data_age
+        self._status_sender = status_sender
+        self._set_power_result_receiver = set_power_result_receiver
+
         # First battery is considered as not working.
         # Change status after first messages are received.
         self._last_status: ComponentStatusEnum = ComponentStatusEnum.NOT_WORKING
@@ -212,8 +216,13 @@ class BatteryStatusTracker(ComponentStatusTracker):
 
         # Select needs receivers that can be get in async way only.
 
-        self._task: asyncio.Task[None] = asyncio.create_task(
-            self._run(status_sender, set_power_result_receiver)
+    @override
+    def start(self) -> None:
+        """Start the BatteryStatusTracker instance."""
+        self._tasks.add(
+            asyncio.create_task(
+                self._run(self._status_sender, self._set_power_result_receiver)
+            )
         )
 
     @property
@@ -224,10 +233,6 @@ class BatteryStatusTracker(ComponentStatusTracker):
             Battery id
         """
         return self._battery.component_id
-
-    async def stop(self) -> None:
-        """Stop tracking battery status."""
-        await cancel_and_await(self._task)
 
     def _handle_status_battery(self, bat_data: BatteryData) -> None:
         self._battery.last_msg_correct = (

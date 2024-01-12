@@ -5,6 +5,7 @@
 
 
 import asyncio
+import contextlib
 import logging
 from collections import abc
 from datetime import timedelta
@@ -83,9 +84,6 @@ class ComponentPoolStatusTracker:
     async def stop(self) -> None:
         """Stop the ComponentPoolStatusTracker instance."""
         await cancel_and_await(self._task)
-        await asyncio.gather(
-            *[tracker.stop() for tracker in self._component_status_trackers],
-        )
         await self._merged_status_receiver.stop()
 
     def _make_merged_status_receiver(
@@ -110,14 +108,17 @@ class ComponentPoolStatusTracker:
 
     async def _run(self) -> None:
         """Start tracking component status."""
-        while True:
-            try:
-                await self._update_status()
-            except Exception as err:  # pylint: disable=broad-except
-                _logger.error(
-                    "ComponentPoolStatus failed with error: %s. Restarting.", err
-                )
-                await asyncio.sleep(1.0)
+        async with contextlib.AsyncExitStack() as stack:
+            for tracker in self._component_status_trackers:
+                await stack.enter_async_context(tracker)
+            while True:
+                try:
+                    await self._update_status()
+                except Exception as err:  # pylint: disable=broad-except
+                    _logger.error(
+                        "ComponentPoolStatus failed with error: %s. Restarting.", err
+                    )
+                    await asyncio.sleep(1.0)
 
     async def _update_status(self) -> None:
         async for status in self._merged_status_receiver:

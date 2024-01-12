@@ -12,6 +12,8 @@ from datetime import timedelta
 
 from frequenz.channels import Receiver, Sender
 
+from ..._background_service import BackgroundService
+
 
 @dataclass
 class ComponentPoolStatus:
@@ -77,11 +79,11 @@ class SetPowerResult:
     """Component IDs for which the last set power command failed."""
 
 
-class ComponentStatusTracker(ABC):
+class ComponentStatusTracker(BackgroundService, ABC):
     """Interface for specialized component status trackers to implement."""
 
     @abstractmethod
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(  # pylint: disable=too-many-arguments,super-init-not-called
         self,
         component_id: int,
         max_data_age: timedelta,
@@ -102,7 +104,3 @@ class ComponentStatusTracker(ABC):
             set_power_result_receiver: Channel to receive results of the requests to the
                 components.
         """
-
-    @abstractmethod
-    async def stop(self) -> None:
-        """Stop the ComponentStatusTracker instance."""
