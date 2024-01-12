@@ -90,6 +90,7 @@ class BackgroundService(abc.ABC):
         Returns:
             The name of this background service.
         """
+        self._assert_initialized()
         return self._name
 
     @property
@@ -107,6 +108,7 @@ class BackgroundService(abc.ABC):
         Returns:
             The set of running tasks spawned by this background service.
         """
+        self._assert_initialized()
         return self._tasks
 
     @property
@@ -118,6 +120,7 @@ class BackgroundService(abc.ABC):
         Returns:
             Whether this background service is running.
         """
+        self._assert_initialized()
         return any(not task.done() for task in self._tasks)
 
     def cancel(self, msg: str | None = None) -> None:
@@ -126,6 +129,7 @@ class BackgroundService(abc.ABC):
         Args:
             msg: The message to be passed to the tasks being cancelled.
         """
+        self._assert_initialized()
         for task in self._tasks:
             task.cancel(msg)
 
@@ -144,6 +148,7 @@ class BackgroundService(abc.ABC):
 
         [//]: # (# noqa: DAR401 rest)
         """
+        self._assert_initialized()
         if not self._tasks:
             return
         self.cancel(msg)
@@ -166,6 +171,7 @@ class BackgroundService(abc.ABC):
         Returns:
             This background service.
         """
+        self._assert_initialized()
         self.start()
         return self
 
@@ -196,6 +202,7 @@ class BackgroundService(abc.ABC):
                 exception (`CancelError` is not considered an error and not returned in
                 the exception group).
         """
+        self._assert_initialized()
         # We need to account for tasks that were created between when we started
         # awaiting and we finished awaiting.
         while self._tasks:
@@ -251,3 +258,10 @@ class BackgroundService(abc.ABC):
             A string representation of this instance.
         """
         return f"{type(self).__name__}[{self._name}]"
+
+    def _assert_initialized(self) -> None:
+        """Assert this instance is initialized."""
+        assert hasattr(self, "_tasks"), (
+            f"{type(self).__name__} instance is not initialized. "
+            "Make sure to call `super().__init__()` in your __init__() method."
+        )
