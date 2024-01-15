@@ -363,9 +363,9 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
             Return None if there are no component metrics.
         """
         timestamp = _MIN_TIMESTAMP
-        usable_capacity_x100: float = 0
-        used_capacity_x100: float = 0
-        total_capacity_x100: float = 0
+        usable_capacity_x100: float = 0.0
+        used_capacity_x100: float = 0.0
+        total_capacity_x100: float = 0.0
 
         for battery_id in working_batteries:
             if battery_id not in metrics_data:
@@ -397,10 +397,10 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
             # Therefore, the variables are named with a `_x100` suffix.
             usable_capacity_x100 = capacity * (soc_upper_bound - soc_lower_bound)
             soc_scaled = (
-                (soc - soc_lower_bound) / (soc_upper_bound - soc_lower_bound) * 100
+                (soc - soc_lower_bound) / (soc_upper_bound - soc_lower_bound) * 100.0
             )
             # we are clamping here because the SoC might be out of bounds
-            soc_scaled = min(max(soc_scaled, 0), 100)
+            soc_scaled = min(max(soc_scaled, 0.0), 100.0)
             timestamp = max(timestamp, metrics.timestamp)
             used_capacity_x100 += usable_capacity_x100 * soc_scaled
             total_capacity_x100 += usable_capacity_x100
