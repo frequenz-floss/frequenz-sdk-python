@@ -5,12 +5,14 @@
 
 
 import logging
+import math
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Set
 from datetime import datetime, timezone
 from typing import Generic, TypeVar
 
 from ... import timeseries
+from ..._internal import _math
 from ...actor.power_distributing._component_managers._battery_manager import (
     _get_battery_inverter_mappings,
 )
@@ -406,15 +408,18 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
         if timestamp == _MIN_TIMESTAMP:
             return Sample(datetime.now(tz=timezone.utc), None)
 
+        # When the calculated is close to 0.0 or 100.0, they are set to exactly 0.0 or
+        # 100.0, to make full/empty checks using the == operator less error prone.
+        pct = 0.0
         # To avoid zero division error
-        if total_capacity_x100 == 0:
-            return Sample(
-                timestamp=timestamp,
-                value=Percentage.from_percent(0.0),
-            )
+        if not _math.is_close_to_zero(total_capacity_x100):
+            pct = used_capacity_x100 / total_capacity_x100
+            if math.isclose(pct, 100.0):
+                pct = 100.0
+
         return Sample(
             timestamp=timestamp,
-            value=Percentage.from_percent(used_capacity_x100 / total_capacity_x100),
+            value=Percentage.from_percent(pct),
         )
 
 
