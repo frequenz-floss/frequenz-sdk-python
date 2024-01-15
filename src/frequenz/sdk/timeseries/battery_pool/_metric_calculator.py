@@ -5,12 +5,14 @@
 
 
 import logging
+import math
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Set
 from datetime import datetime, timezone
 from typing import Generic, TypeVar
 
 from ... import timeseries
+from ..._internal import _math
 from ...actor.power_distributing._component_managers._battery_manager import (
     _get_battery_inverter_mappings,
 )
@@ -361,9 +363,9 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
             Return None if there are no component metrics.
         """
         timestamp = _MIN_TIMESTAMP
-        usable_capacity_x100: float = 0
-        used_capacity_x100: float = 0
-        total_capacity_x100: float = 0
+        usable_capacity_x100: float = 0.0
+        used_capacity_x100: float = 0.0
+        total_capacity_x100: float = 0.0
 
         for battery_id in working_batteries:
             if battery_id not in metrics_data:
@@ -395,10 +397,10 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
             # Therefore, the variables are named with a `_x100` suffix.
             usable_capacity_x100 = capacity * (soc_upper_bound - soc_lower_bound)
             soc_scaled = (
-                (soc - soc_lower_bound) / (soc_upper_bound - soc_lower_bound) * 100
+                (soc - soc_lower_bound) / (soc_upper_bound - soc_lower_bound) * 100.0
             )
             # we are clamping here because the SoC might be out of bounds
-            soc_scaled = min(max(soc_scaled, 0), 100)
+            soc_scaled = min(max(soc_scaled, 0.0), 100.0)
             timestamp = max(timestamp, metrics.timestamp)
             used_capacity_x100 += usable_capacity_x100 * soc_scaled
             total_capacity_x100 += usable_capacity_x100
@@ -406,15 +408,18 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
         if timestamp == _MIN_TIMESTAMP:
             return Sample(datetime.now(tz=timezone.utc), None)
 
+        # When the calculated is close to 0.0 or 100.0, they are set to exactly 0.0 or
+        # 100.0, to make full/empty checks using the == operator less error prone.
+        pct = 0.0
         # To avoid zero division error
-        if total_capacity_x100 == 0:
-            return Sample(
-                timestamp=timestamp,
-                value=Percentage.from_percent(0.0),
-            )
+        if not _math.is_close_to_zero(total_capacity_x100):
+            pct = used_capacity_x100 / total_capacity_x100
+            if math.isclose(pct, 100.0):
+                pct = 100.0
+
         return Sample(
             timestamp=timestamp,
-            value=Percentage.from_percent(used_capacity_x100 / total_capacity_x100),
+            value=Percentage.from_percent(pct),
         )
 
 
