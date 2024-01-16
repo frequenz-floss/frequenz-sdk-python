@@ -135,7 +135,7 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
         # Change status after first messages are received.
         self._last_status: ComponentStatusEnum = ComponentStatusEnum.NOT_WORKING
         self._blocking_status: BlockingStatus = BlockingStatus(
-            timedelta(seconds=1.0), max_blocking_duration
+            min_duration=timedelta(seconds=1.0), max_duration=max_blocking_duration
         )
         self._timedelta_zero = timedelta(seconds=0.0)
 

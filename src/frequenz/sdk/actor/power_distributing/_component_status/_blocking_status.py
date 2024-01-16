@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 
-@dataclass
+@dataclass(kw_only=True)
 class BlockingStatus:
     """Tracking of the blocking status of a component."""
 
