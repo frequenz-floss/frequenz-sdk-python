@@ -19,9 +19,8 @@ from ...._internal._math import is_close_to_zero
 from ....microgrid import connection_manager
 from ....microgrid.component import BatteryData, ComponentCategory, InverterData
 from ....timeseries._quantities import Power
-from .._battery_status_tracker import BatteryStatusTracker
 from .._component_pool_status_tracker import ComponentPoolStatusTracker
-from .._component_status import ComponentPoolStatus
+from .._component_status import BatteryStatusTracker, ComponentPoolStatus
 from .._distribution_algorithm import (
     AggregatedBatteryData,
     BatteryDistributionAlgorithm,
@@ -146,8 +145,8 @@ class BatteryManager(ComponentManager):
         self._component_pool_status_tracker = ComponentPoolStatusTracker(
             component_ids=set(self._battery_ids),
             component_status_sender=component_pool_status_sender,
-            max_blocking_duration_sec=30.0,
-            max_data_age_sec=10.0,
+            max_blocking_duration=timedelta(seconds=30.0),
+            max_data_age=timedelta(seconds=10.0),
             component_status_tracker_type=BatteryStatusTracker,
         )
 

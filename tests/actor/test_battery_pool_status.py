@@ -3,17 +3,18 @@
 """Tests for BatteryPoolStatus."""
 
 import asyncio
+from datetime import timedelta
 
 from frequenz.channels import Broadcast
 from pytest_mock import MockerFixture
 
-from frequenz.sdk.actor.power_distributing._battery_status_tracker import (
-    BatteryStatusTracker,
-)
 from frequenz.sdk.actor.power_distributing._component_pool_status_tracker import (
     ComponentPoolStatusTracker,
 )
-from frequenz.sdk.actor.power_distributing._component_status import ComponentPoolStatus
+from frequenz.sdk.actor.power_distributing._component_status import (
+    BatteryStatusTracker,
+    ComponentPoolStatus,
+)
 from frequenz.sdk.microgrid.component import ComponentCategory
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
@@ -47,8 +48,8 @@ class TestBatteryPoolStatus:
             batteries_status = ComponentPoolStatusTracker(
                 component_ids=batteries,
                 component_status_sender=battery_status_channel.new_sender(),
-                max_data_age_sec=5,
-                max_blocking_duration_sec=30,
+                max_data_age=timedelta(seconds=5),
+                max_blocking_duration=timedelta(seconds=30),
                 component_status_tracker_type=BatteryStatusTracker,
             )
             await asyncio.sleep(0.1)

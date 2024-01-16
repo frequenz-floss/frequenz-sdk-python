@@ -5,8 +5,10 @@
 
 
 import asyncio
+import contextlib
 import logging
 from collections import abc
+from datetime import timedelta
 
 from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.channels.util import Merge
@@ -32,10 +34,10 @@ class ComponentPoolStatusTracker:
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        component_ids: set[int],
+        component_ids: abc.Set[int],
         component_status_sender: Sender[ComponentPoolStatus],
-        max_data_age_sec: float,
-        max_blocking_duration_sec: float,
+        max_data_age: timedelta,
+        max_blocking_duration: timedelta,
         component_status_tracker_type: type[ComponentStatusTracker],
     ) -> None:
         """Create ComponentPoolStatusTracker instance.
@@ -44,18 +46,17 @@ class ComponentPoolStatusTracker:
             component_ids: set of component ids whose status is to be tracked.
             component_status_sender: The sender used for sending the status of the
                 tracked components.
-            max_data_age_sec: If a component stops sending data, then this is the
-                maximum time for which its last message should be considered as
-                valid. After that time, the component won't be used until it starts
-                sending data.
-            max_blocking_duration_sec: This value tell what should be the maximum
-                timeout used for blocking failing component.
-            component_status_tracker_type: component status tracker to use
-                for tracking the status of the components.
+            max_data_age: If a component stops sending data, then this is the maximum
+                time for which its last message should be considered as valid. After
+                that time, the component won't be used until it starts sending data.
+            max_blocking_duration: This value tell what should be the maximum timeout
+                used for blocking failing component.
+            component_status_tracker_type: component status tracker to use for tracking
+                the status of the components.
         """
         self._component_ids = component_ids
-        self._max_data_age_sec = max_data_age_sec
-        self._max_blocking_duration_sec = max_blocking_duration_sec
+        self._max_data_age = max_data_age
+        self._max_blocking_duration = max_blocking_duration
         self._component_status_sender = component_status_sender
         self._component_status_tracker_type = component_status_tracker_type
 
@@ -83,9 +84,6 @@ class ComponentPoolStatusTracker:
     async def stop(self) -> None:
         """Stop the ComponentPoolStatusTracker instance."""
         await cancel_and_await(self._task)
-        await asyncio.gather(
-            *[tracker.stop() for tracker in self._component_status_trackers],
-        )
         await self._merged_status_receiver.stop()
 
     def _make_merged_status_receiver(
@@ -99,8 +97,8 @@ class ComponentPoolStatusTracker:
             )
             tracker = self._component_status_tracker_type(
                 component_id=component_id,
-                max_data_age_sec=self._max_data_age_sec,
-                max_blocking_duration_sec=self._max_blocking_duration_sec,
+                max_data_age=self._max_data_age,
+                max_blocking_duration=self._max_blocking_duration,
                 status_sender=channel.new_sender(),
                 set_power_result_receiver=self._set_power_result_channel.new_receiver(),
             )
@@ -110,14 +108,17 @@ class ComponentPoolStatusTracker:
 
     async def _run(self) -> None:
         """Start tracking component status."""
-        while True:
-            try:
-                await self._update_status()
-            except Exception as err:  # pylint: disable=broad-except
-                _logger.error(
-                    "ComponentPoolStatus failed with error: %s. Restarting.", err
-                )
-                await asyncio.sleep(1.0)
+        async with contextlib.AsyncExitStack() as stack:
+            for tracker in self._component_status_trackers:
+                await stack.enter_async_context(tracker)
+            while True:
+                try:
+                    await self._update_status()
+                except Exception as err:  # pylint: disable=broad-except
+                    _logger.error(
+                        "ComponentPoolStatus failed with error: %s. Restarting.", err
+                    )
+                    await asyncio.sleep(1.0)
 
     async def _update_status(self) -> None:
         async for status in self._merged_status_receiver:
