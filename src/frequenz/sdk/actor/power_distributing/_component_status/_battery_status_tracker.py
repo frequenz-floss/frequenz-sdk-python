@@ -40,6 +40,7 @@ from ....microgrid.component import (
     InverterData,
 )
 from ..._background_service import BackgroundService
+from ._blocking_status import BlockingStatus
 from ._component_status import (
     ComponentStatus,
     ComponentStatusEnum,
@@ -63,79 +64,6 @@ class _ComponentStreamStatus:
 
     last_msg_correct: bool = False
     """Flag whether last message was correct or not."""
-
-
-@dataclass
-class _BlockingStatus:
-    min_duration: timedelta
-    """The minimum blocking duration."""
-
-    max_duration: timedelta
-    """The maximum blocking duration."""
-
-    last_blocking_duration: timedelta = timedelta(seconds=0.0)
-    """Last blocking duration."""
-
-    blocked_until: datetime | None = None
-    """Until when the battery is blocked."""
-
-    def __post_init__(self) -> None:
-        assert self.min_duration <= self.max_duration, (
-            f"Minimum blocking duration ({self.min_duration}) cannot be greater "
-            f"than maximum blocking duration ({self.max_duration})"
-        )
-        self.last_blocking_duration = self.min_duration
-        self._timedelta_zero = timedelta(seconds=0.0)
-
-    def block(self) -> timedelta:
-        """Block battery.
-
-        Battery can be unblocked using `self.unblock()` method.
-
-        Returns:
-            The duration for which the battery is blocked.
-        """
-        now = datetime.now(tz=timezone.utc)
-
-        # If is not blocked
-        if self.blocked_until is None:
-            self.last_blocking_duration = self.min_duration
-            self.blocked_until = now + self.last_blocking_duration
-            return self.last_blocking_duration
-
-        # If still blocked, then do nothing
-        if self.blocked_until > now:
-            return self._timedelta_zero
-
-        # If previous blocking time expired, then blocked it once again.
-        # Increase last blocking time, unless it reach the maximum.
-        self.last_blocking_duration = min(
-            2 * self.last_blocking_duration, self.max_duration
-        )
-        self.blocked_until = now + self.last_blocking_duration
-
-        return self.last_blocking_duration
-
-    def unblock(self) -> None:
-        """Unblock battery.
-
-        This will reset duration of the next blocking timeout.
-
-        Battery can be blocked using `self.block()` method.
-        """
-        self.blocked_until = None
-
-    def is_blocked(self) -> bool:
-        """Return if battery is blocked.
-
-        Battery can be blocked if last request for that battery failed.
-
-        Returns:
-            True if battery is blocked, False otherwise.
-        """
-        if self.blocked_until is None:
-            return False
-        return self.blocked_until > datetime.now(tz=timezone.utc)
 
 
 class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
@@ -206,7 +134,7 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
         # First battery is considered as not working.
         # Change status after first messages are received.
         self._last_status: ComponentStatusEnum = ComponentStatusEnum.NOT_WORKING
-        self._blocking_status: _BlockingStatus = _BlockingStatus(
+        self._blocking_status: BlockingStatus = BlockingStatus(
             timedelta(seconds=1.0), max_blocking_duration
         )
         self._timedelta_zero = timedelta(seconds=0.0)
