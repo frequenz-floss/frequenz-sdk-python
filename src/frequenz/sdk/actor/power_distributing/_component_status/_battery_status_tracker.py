@@ -1,7 +1,19 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
-"""Class to return battery status."""
 
+"""Background service that tracks the status of a battery.
+
+A battery is consider to be WORKING if both the battery and the adjacent inverter are
+sending data that shows that they are working.
+
+If either of them stops sending data, or if the data shows that they are not working,
+then the battery is considered to be NOT_WORKING.
+
+If a battery and its adjacent inverter are WORKING, but the last request to the battery
+failed, then the battery's status is considered to be UNCERTAIN. In this case, the
+battery is blocked for a short time, and it is not recommended to use it unless it is
+necessary.
+"""
 
 import asyncio
 import logging
