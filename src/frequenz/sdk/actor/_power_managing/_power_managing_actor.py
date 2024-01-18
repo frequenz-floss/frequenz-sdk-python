@@ -180,6 +180,7 @@ class PowerManagingActor(Actor):
     @override
     async def _run(self) -> None:
         """Run the power managing actor."""
+        last_result_partial_failure = False
         async for selected in select(
             self._proposals_receiver,
             self._bounds_subscription_receiver,
@@ -234,9 +235,17 @@ class PowerManagingActor(Actor):
                 self._distribution_results[
                     frozenset(result.request.component_ids)
                 ] = result
+                if not isinstance(result, power_distributing.Success):
+                    _logger.warning(
+                        "PowerManagingActor: PowerDistributing failed: %s", result
+                    )
                 match result:
                     case power_distributing.PartialFailure(request):
-                        await self._send_updated_target_power(
-                            frozenset(request.component_ids), None, must_send=True
-                        )
+                        if not last_result_partial_failure:
+                            last_result_partial_failure = True
+                            await self._send_updated_target_power(
+                                frozenset(request.component_ids), None, must_send=True
+                            )
+                    case power_distributing.Success():
+                        last_result_partial_failure = False
                 await self._send_reports(frozenset(result.request.component_ids))
