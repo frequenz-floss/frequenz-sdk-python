@@ -11,7 +11,7 @@ import typing
 from datetime import datetime, timedelta, timezone
 
 from frequenz.channels import Receiver, Sender
-from frequenz.channels.util import select, selected_from
+from frequenz.channels.util import SkipMissedAndDrift, Timer, select, selected_from
 from typing_extensions import override
 
 from ...timeseries._base_types import PoolType, SystemBounds
@@ -183,10 +183,12 @@ class PowerManagingActor(Actor):
     async def _run(self) -> None:
         """Run the power managing actor."""
         last_result_partial_failure = False
+        drop_old_proposals_timer = Timer(timedelta(seconds=1.0), SkipMissedAndDrift())
         async for selected in select(
             self._proposals_receiver,
             self._bounds_subscription_receiver,
             self._power_distributing_results_receiver,
+            drop_old_proposals_timer,
         ):
             if selected_from(selected, self._proposals_receiver):
                 proposal = selected.value
@@ -251,3 +253,6 @@ class PowerManagingActor(Actor):
                     case power_distributing.Success():
                         last_result_partial_failure = False
                 await self._send_reports(frozenset(result.request.component_ids))
+
+            elif selected_from(selected, drop_old_proposals_timer):
+                self._algorithm.drop_old_proposals(asyncio.get_event_loop().time())
