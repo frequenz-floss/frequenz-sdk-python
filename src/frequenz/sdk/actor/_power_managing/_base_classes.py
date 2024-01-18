@@ -207,6 +207,12 @@ class Proposal:
     priority: int
     """The priority of the actor sending the proposal."""
 
+    creation_time: float
+    """The loop time when the proposal is created.
+
+    This is used by the power manager to determine the age of the proposal.
+    """
+
     request_timeout: datetime.timedelta = datetime.timedelta(seconds=5.0)
     """The maximum amount of time to wait for the request to be fulfilled."""
 

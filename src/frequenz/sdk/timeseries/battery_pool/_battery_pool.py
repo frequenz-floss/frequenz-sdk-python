@@ -132,6 +132,7 @@ class BatteryPool:
                 bounds=bounds,
                 component_ids=self._battery_pool._batteries,
                 priority=self._priority,
+                creation_time=asyncio.get_running_loop().time(),
                 request_timeout=request_timeout,
             )
         )
@@ -177,6 +178,7 @@ class BatteryPool:
                 bounds=timeseries.Bounds(None, None),
                 component_ids=self._battery_pool._batteries,
                 priority=self._priority,
+                creation_time=asyncio.get_running_loop().time(),
                 request_timeout=request_timeout,
             )
         )
@@ -222,6 +224,7 @@ class BatteryPool:
                 bounds=timeseries.Bounds(None, None),
                 component_ids=self._battery_pool._batteries,
                 priority=self._priority,
+                creation_time=asyncio.get_running_loop().time(),
                 request_timeout=request_timeout,
             )
         )

@@ -3,6 +3,7 @@
 
 """Tests for the Matryoshka power manager algorithm."""
 
+import asyncio
 from datetime import datetime, timezone
 
 from frequenz.sdk import timeseries
@@ -46,6 +47,7 @@ class StatefulTester:
                     None if bounds[1] is None else Power.from_watts(bounds[1]),
                 ),
                 priority=priority,
+                creation_time=asyncio.get_event_loop().time(),
             ),
             self._system_bounds,
             must_send,
