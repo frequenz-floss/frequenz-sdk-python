@@ -285,3 +285,13 @@ class BaseAlgorithm(abc.ABC):
         Returns:
             The bounds for the components.
         """
+
+    @abc.abstractmethod
+    def drop_old_proposals(self, loop_time: float) -> None:
+        """Drop old proposals.
+
+        This method is called periodically by the power manager.
+
+        Args:
+            loop_time: The current loop time.
+        """

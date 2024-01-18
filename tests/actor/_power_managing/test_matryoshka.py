@@ -4,7 +4,7 @@
 """Tests for the Matryoshka power manager algorithm."""
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from frequenz.sdk import timeseries
 from frequenz.sdk.actor._power_managing import Proposal
@@ -23,7 +23,7 @@ class StatefulTester:
         """Create a new instance of the stateful tester."""
         self._call_count = 0
         self._batteries = batteries
-        self._algorithm = Matryoshka()
+        self._algorithm = Matryoshka(max_proposal_age=timedelta(seconds=60.0))
         self._system_bounds = system_bounds
 
     def tgt_power(  # pylint: disable=too-many-arguments

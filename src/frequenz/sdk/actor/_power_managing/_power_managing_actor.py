@@ -75,7 +75,9 @@ class PowerManagingActor(Actor):
         self._subscriptions: dict[frozenset[int], dict[int, Sender[_Report]]] = {}
         self._distribution_results: dict[frozenset[int], power_distributing.Result] = {}
 
-        self._algorithm: BaseAlgorithm = Matryoshka()
+        self._algorithm: BaseAlgorithm = Matryoshka(
+            max_proposal_age=timedelta(seconds=60.0)
+        )
 
         super().__init__()
 
