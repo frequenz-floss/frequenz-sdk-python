@@ -3,7 +3,8 @@
 
 """Tests for the Matryoshka power manager algorithm."""
 
-from datetime import datetime, timezone
+import asyncio
+from datetime import datetime, timedelta, timezone
 
 from frequenz.sdk import timeseries
 from frequenz.sdk.actor._power_managing import Proposal
@@ -22,8 +23,8 @@ class StatefulTester:
         """Create a new instance of the stateful tester."""
         self._call_count = 0
         self._batteries = batteries
-        self._algorithm = Matryoshka()
         self._system_bounds = system_bounds
+        self.algorithm = Matryoshka(max_proposal_age=timedelta(seconds=60.0))
 
     def tgt_power(  # pylint: disable=too-many-arguments
         self,
@@ -31,11 +32,12 @@ class StatefulTester:
         power: float | None,
         bounds: tuple[float | None, float | None],
         expected: float | None,
+        creation_time: float | None = None,
         must_send: bool = False,
     ) -> None:
         """Test the target power calculation."""
         self._call_count += 1
-        tgt_power = self._algorithm.calculate_target_power(
+        tgt_power = self.algorithm.calculate_target_power(
             self._batteries,
             Proposal(
                 component_ids=self._batteries,
@@ -46,6 +48,9 @@ class StatefulTester:
                     None if bounds[1] is None else Power.from_watts(bounds[1]),
                 ),
                 priority=priority,
+                creation_time=creation_time
+                if creation_time is not None
+                else asyncio.get_event_loop().time(),
             ),
             self._system_bounds,
             must_send,
@@ -61,7 +66,7 @@ class StatefulTester:
         expected_bounds: tuple[float, float],
     ) -> None:
         """Test the status report."""
-        report = self._algorithm.get_status(
+        report = self.algorithm.get_status(
             self._batteries, priority, self._system_bounds, None
         )
         if expected_power is None:
@@ -350,3 +355,67 @@ async def test_matryoshka_with_excl_3() -> None:
 
     tester.tgt_power(priority=1, power=-40.0, bounds=(-100.0, -35.0), expected=-40.0)
     tester.bounds(priority=0, expected_power=-40.0, expected_bounds=(-100.0, -35.0))
+
+
+async def test_matryoshka_drop_old_proposals() -> None:
+    """Tests for the power managing actor.
+
+    With inclusion bounds, and exclusion bounds -30.0 to 30.0.
+    """
+    batteries = frozenset({2, 5})
+
+    system_bounds = _base_types.SystemBounds(
+        timestamp=datetime.now(tz=timezone.utc),
+        inclusion_bounds=timeseries.Bounds(
+            lower=Power.from_watts(-200.0), upper=Power.from_watts(200.0)
+        ),
+        exclusion_bounds=timeseries.Bounds(lower=Power.zero(), upper=Power.zero()),
+    )
+
+    tester = StatefulTester(batteries, system_bounds)
+
+    now = asyncio.get_event_loop().time()
+
+    tester.tgt_power(priority=3, power=22.0, bounds=(22.0, 30.0), expected=22.0)
+
+    # When a proposal is too old and hasn't been updated, it is dropped.
+    tester.tgt_power(
+        priority=2,
+        power=25.0,
+        bounds=(25.0, 50.0),
+        creation_time=now - 70.0,
+        expected=25.0,
+    )
+
+    tester.tgt_power(
+        priority=1, power=20.0, bounds=(20.0, 50.0), expected=25.0, must_send=True
+    )
+    tester.algorithm.drop_old_proposals(now)
+    tester.tgt_power(
+        priority=1, power=20.0, bounds=(20.0, 50.0), expected=22.0, must_send=True
+    )
+
+    # When overwritten by a newer proposal, that proposal is not dropped.
+    tester.tgt_power(
+        priority=2,
+        power=25.0,
+        bounds=(25.0, 50.0),
+        creation_time=now - 70.0,
+        expected=25.0,
+    )
+    tester.tgt_power(
+        priority=2,
+        power=25.0,
+        bounds=(25.0, 50.0),
+        creation_time=now - 30.0,
+        expected=25.0,
+        must_send=True,
+    )
+
+    tester.tgt_power(
+        priority=1, power=20.0, bounds=(20.0, 50.0), expected=25.0, must_send=True
+    )
+    tester.algorithm.drop_old_proposals(now)
+    tester.tgt_power(
+        priority=1, power=20.0, bounds=(20.0, 50.0), expected=25.0, must_send=True
+    )

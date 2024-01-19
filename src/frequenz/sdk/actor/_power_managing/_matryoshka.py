@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import logging
 import typing
+from datetime import timedelta
 
 from typing_extensions import override
 
@@ -40,8 +41,9 @@ _logger = logging.getLogger(__name__)
 class Matryoshka(BaseAlgorithm):
     """The matryoshka algorithm."""
 
-    def __init__(self) -> None:
+    def __init__(self, max_proposal_age: timedelta) -> None:
         """Create a new instance of the matryoshka algorithm."""
+        self._max_proposal_age_sec = max_proposal_age.total_seconds()
         self._component_buckets: dict[frozenset[int], SortedSet[Proposal]] = {}
         self._target_power: dict[frozenset[int], Power] = {}
 
@@ -267,3 +269,21 @@ class Matryoshka(BaseAlgorithm):
             _exclusion_bounds=system_bounds.exclusion_bounds,
             distribution_result=distribution_result,
         )
+
+    @override
+    def drop_old_proposals(self, loop_time: float) -> None:
+        """Drop old proposals.
+
+        This will remove all proposals that have not been updated for longer than
+        `max_proposal_age`.
+
+        Args:
+            loop_time: The current loop time.
+        """
+        for bucket in self._component_buckets.values():
+            to_delete = []
+            for proposal in bucket:
+                if (loop_time - proposal.creation_time) > self._max_proposal_age_sec:
+                    to_delete.append(proposal)
+            for proposal in to_delete:
+                bucket.delete(proposal)

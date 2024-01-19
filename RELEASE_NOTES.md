@@ -85,3 +85,5 @@
 - The resampler now properly handles sending zero values.
 
   A bug made the resampler interpret zero values as `None` when generating new samples, so if the result of the resampling is zero, the resampler would just produce `None` values.
+
+- The PowerManager no longer holds on to proposals from dead actors forever.  If an actor hasn't sent a new proposal in 60 seconds, the available proposal from that actor is dropped.

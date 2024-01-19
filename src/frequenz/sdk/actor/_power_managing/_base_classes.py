@@ -207,6 +207,12 @@ class Proposal:
     priority: int
     """The priority of the actor sending the proposal."""
 
+    creation_time: float
+    """The loop time when the proposal is created.
+
+    This is used by the power manager to determine the age of the proposal.
+    """
+
     request_timeout: datetime.timedelta = datetime.timedelta(seconds=5.0)
     """The maximum amount of time to wait for the request to be fulfilled."""
 
@@ -278,4 +284,14 @@ class BaseAlgorithm(abc.ABC):
 
         Returns:
             The bounds for the components.
+        """
+
+    @abc.abstractmethod
+    def drop_old_proposals(self, loop_time: float) -> None:
+        """Drop old proposals.
+
+        This method is called periodically by the power manager.
+
+        Args:
+            loop_time: The current loop time.
         """
