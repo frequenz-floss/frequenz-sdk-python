@@ -195,6 +195,13 @@ class ComponentMetricId(Enum):
     ACTIVE_POWER = "active_power"
     """Active power."""
 
+    ACTIVE_POWER_PHASE_1 = "active_power_phase_1"
+    """Active power in phase 1."""
+    ACTIVE_POWER_PHASE_2 = "active_power_phase_2"
+    """Active power in phase 2."""
+    ACTIVE_POWER_PHASE_3 = "active_power_phase_3"
+    """Active power in phase 3."""
+
     CURRENT_PHASE_1 = "current_phase_1"
     """Current in phase 1."""
     CURRENT_PHASE_2 = "current_phase_2"
