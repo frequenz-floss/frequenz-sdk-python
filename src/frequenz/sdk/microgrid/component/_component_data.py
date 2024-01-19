@@ -68,6 +68,9 @@ class MeterData(ComponentData):
             -ve current means supply into the grid.
     """
 
+    active_power_per_phase: tuple[float, float, float]
+    """The AC active power for phase/line 1,2 and 3 respectively."""
+
     current_per_phase: tuple[float, float, float]
     """AC current in Amperes (A) for phase/line 1,2 and 3 respectively.
             +ve current means consumption, away from the grid.
@@ -96,6 +99,11 @@ class MeterData(ComponentData):
             component_id=raw.id,
             timestamp=raw.ts.ToDatetime(tzinfo=timezone.utc),
             active_power=raw.meter.data.ac.power_active.value,
+            active_power_per_phase=(
+                raw.meter.data.ac.phase_1.power_active.value,
+                raw.meter.data.ac.phase_2.power_active.value,
+                raw.meter.data.ac.phase_3.power_active.value,
+            ),
             current_per_phase=(
                 raw.meter.data.ac.phase_1.current.value,
                 raw.meter.data.ac.phase_2.current.value,
@@ -231,6 +239,9 @@ class InverterData(ComponentData):
             -ve current means supply into the grid.
     """
 
+    active_power_per_phase: tuple[float, float, float]
+    """The AC active power for phase/line 1, 2 and 3 respectively."""
+
     current_per_phase: tuple[float, float, float]
     """AC current in Amperes (A) for phase/line 1, 2 and 3 respectively.
             +ve current means consumption, away from the grid.
@@ -312,6 +323,11 @@ class InverterData(ComponentData):
             component_id=raw.id,
             timestamp=raw.ts.ToDatetime(tzinfo=timezone.utc),
             active_power=raw.inverter.data.ac.power_active.value,
+            active_power_per_phase=(
+                raw.inverter.data.ac.phase_1.power_active.value,
+                raw.inverter.data.ac.phase_2.power_active.value,
+                raw.inverter.data.ac.phase_3.power_active.value,
+            ),
             current_per_phase=(
                 raw.inverter.data.ac.phase_1.current.value,
                 raw.inverter.data.ac.phase_2.current.value,
@@ -344,6 +360,9 @@ class EVChargerData(ComponentData):
         +ve current means consumption, away from the grid.
         -ve current means supply into the grid.
     """
+
+    active_power_per_phase: tuple[float, float, float]
+    """The AC active power for phase/line 1,2 and 3 respectively."""
 
     current_per_phase: tuple[float, float, float]
     """AC current in Amperes (A) for phase/line 1,2 and 3 respectively.
@@ -424,6 +443,11 @@ class EVChargerData(ComponentData):
             component_id=raw.id,
             timestamp=raw.ts.ToDatetime(tzinfo=timezone.utc),
             active_power=raw_power.value,
+            active_power_per_phase=(
+                raw.ev_charger.data.ac.phase_1.power_active.value,
+                raw.ev_charger.data.ac.phase_2.power_active.value,
+                raw.ev_charger.data.ac.phase_3.power_active.value,
+            ),
             current_per_phase=(
                 raw.ev_charger.data.ac.phase_1.current.value,
                 raw.ev_charger.data.ac.phase_2.current.value,
