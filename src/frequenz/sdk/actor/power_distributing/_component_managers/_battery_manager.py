@@ -419,18 +419,14 @@ class BatteryManager(ComponentManager):
             Data for the battery and adjacent inverter without NaN values.
                 Return None if we could not replace NaN values.
         """
-        battery_data_none = [
-            self._battery_caches[battery_id].latest_value for battery_id in battery_ids
-        ]
-        inverter_data_none = [
-            self._inverter_caches[inverter_id].latest_value
-            for inverter_id in inverter_ids
-        ]
-
-        # It means that nothing has been send on this channels, yet.
+        # It means that nothing has been send on these channels, yet.
         # This should be handled by BatteryStatus. BatteryStatus should not return
         # this batteries as working.
-        if not all(battery_data_none) or not all(inverter_data_none):
+        if not all(
+            self._battery_caches[bat_id].has_value for bat_id in battery_ids
+        ) or not all(
+            self._inverter_caches[inv_id].has_value for inv_id in inverter_ids
+        ):
             _logger.error(
                 "Battery %s or inverter %s send no data, yet. They should be not used.",
                 battery_ids,
@@ -438,8 +434,13 @@ class BatteryManager(ComponentManager):
             )
             return None
 
-        battery_data = typing.cast(list[BatteryData], battery_data_none)
-        inverter_data = typing.cast(list[InverterData], inverter_data_none)
+        battery_data = [
+            self._battery_caches[battery_id].latest_value for battery_id in battery_ids
+        ]
+        inverter_data = [
+            self._inverter_caches[inverter_id].latest_value
+            for inverter_id in inverter_ids
+        ]
 
         DataType = typing.TypeVar("DataType", BatteryData, InverterData)
 
