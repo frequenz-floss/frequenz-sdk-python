@@ -28,6 +28,9 @@ _logger = logging.getLogger(__name__)
 
 _MeterDataMethods: dict[ComponentMetricId, Callable[[MeterData], float]] = {
     ComponentMetricId.ACTIVE_POWER: lambda msg: msg.active_power,
+    ComponentMetricId.ACTIVE_POWER_PHASE_1: lambda msg: msg.active_power_per_phase[0],
+    ComponentMetricId.ACTIVE_POWER_PHASE_2: lambda msg: msg.active_power_per_phase[1],
+    ComponentMetricId.ACTIVE_POWER_PHASE_3: lambda msg: msg.active_power_per_phase[2],
     ComponentMetricId.CURRENT_PHASE_1: lambda msg: msg.current_per_phase[0],
     ComponentMetricId.CURRENT_PHASE_2: lambda msg: msg.current_per_phase[1],
     ComponentMetricId.CURRENT_PHASE_3: lambda msg: msg.current_per_phase[2],
@@ -59,6 +62,9 @@ _BatteryDataMethods: dict[ComponentMetricId, Callable[[BatteryData], float]] = {
 
 _InverterDataMethods: dict[ComponentMetricId, Callable[[InverterData], float]] = {
     ComponentMetricId.ACTIVE_POWER: lambda msg: msg.active_power,
+    ComponentMetricId.ACTIVE_POWER_PHASE_1: lambda msg: msg.active_power_per_phase[0],
+    ComponentMetricId.ACTIVE_POWER_PHASE_2: lambda msg: msg.active_power_per_phase[1],
+    ComponentMetricId.ACTIVE_POWER_PHASE_3: lambda msg: msg.active_power_per_phase[2],
     ComponentMetricId.ACTIVE_POWER_INCLUSION_LOWER_BOUND: lambda msg: (
         msg.active_power_inclusion_lower_bound
     ),
@@ -82,6 +88,9 @@ _InverterDataMethods: dict[ComponentMetricId, Callable[[InverterData], float]] =
 
 _EVChargerDataMethods: dict[ComponentMetricId, Callable[[EVChargerData], float]] = {
     ComponentMetricId.ACTIVE_POWER: lambda msg: msg.active_power,
+    ComponentMetricId.ACTIVE_POWER_PHASE_1: lambda msg: msg.active_power_per_phase[0],
+    ComponentMetricId.ACTIVE_POWER_PHASE_2: lambda msg: msg.active_power_per_phase[1],
+    ComponentMetricId.ACTIVE_POWER_PHASE_3: lambda msg: msg.active_power_per_phase[2],
     ComponentMetricId.CURRENT_PHASE_1: lambda msg: msg.current_per_phase[0],
     ComponentMetricId.CURRENT_PHASE_2: lambda msg: msg.current_per_phase[1],
     ComponentMetricId.CURRENT_PHASE_3: lambda msg: msg.current_per_phase[2],
