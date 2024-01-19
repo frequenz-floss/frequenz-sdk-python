@@ -12,6 +12,7 @@ from datetime import timedelta
 
 import grpc
 from frequenz.channels import Receiver, Sender
+from typing_extensions import override
 
 from .... import microgrid
 from ...._internal._channels import LatestValueCache
@@ -122,6 +123,7 @@ def _get_battery_inverter_mappings(
 class BatteryManager(ComponentManager):
     """Class to manage the data streams for batteries."""
 
+    @override
     def __init__(
         self,
         component_pool_status_sender: Sender[ComponentPoolStatus],
@@ -163,18 +165,22 @@ class BatteryManager(ComponentManager):
         )
         """The distribution algorithm used to distribute power between batteries."""
 
+    @override
     def component_ids(self) -> collections.abc.Set[int]:
         """Return the set of component ids."""
         return self._battery_ids
 
+    @override
     async def start(self) -> None:
         """Start the battery data manager."""
         await self._create_channels()
 
+    @override
     async def stop(self) -> None:
         """Stop the battery data manager."""
         await self._component_pool_status_tracker.stop()
 
+    @override
     async def distribute_power(self, request: Request) -> Result:
         """Distribute the requested power to the components.
 
