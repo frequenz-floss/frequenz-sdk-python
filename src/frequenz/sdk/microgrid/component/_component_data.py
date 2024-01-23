@@ -397,3 +397,18 @@ class EVChargerData(ComponentData):
         )
         ev_charger_data._set_raw(raw=raw)
         return ev_charger_data
+
+    def is_ev_connected(self) -> bool:
+        """Check whether an EV is connected to the charger.
+
+        Returns:
+            When the charger is not in an error state, whether an EV is connected to
+                the charger.
+        """
+        return self.component_state not in (
+            EVChargerComponentState.AUTHORIZATION_REJECTED,
+            EVChargerComponentState.ERROR,
+        ) and self.cable_state in (
+            EVChargerCableState.EV_LOCKED,
+            EVChargerCableState.EV_PLUGGED,
+        )
