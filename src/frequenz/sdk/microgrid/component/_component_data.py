@@ -356,6 +356,50 @@ class EVChargerData(ComponentData):
         wire for phase/line 1,2 and 3 respectively.
     """
 
+    active_power_inclusion_lower_bound: float
+    """Lower inclusion bound for EV charger power in watts.
+
+    This is the lower limit of the range within which power requests are allowed for the
+    EV charger.
+
+    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and
+    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more
+    details.
+    """
+
+    active_power_exclusion_lower_bound: float
+    """Lower exclusion bound for EV charger power in watts.
+
+    This is the lower limit of the range within which power requests are not allowed for
+    the EV charger.
+
+    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and
+    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more
+    details.
+    """
+
+    active_power_inclusion_upper_bound: float
+    """Upper inclusion bound for EV charger power in watts.
+
+    This is the upper limit of the range within which power requests are allowed for the
+    EV charger.
+
+    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and
+    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more
+    details.
+    """
+
+    active_power_exclusion_upper_bound: float
+    """Upper exclusion bound for EV charger power in watts.
+
+    This is the upper limit of the range within which power requests are not allowed for
+    the EV charger.
+
+    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and
+    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more
+    details.
+    """
+
     frequency: float
     """AC frequency, in Hertz (Hz)."""
 
@@ -375,10 +419,11 @@ class EVChargerData(ComponentData):
         Returns:
             Instance of EVChargerData created from the protobuf message.
         """
+        raw_power = raw.ev_charger.data.ac.power_active
         ev_charger_data = cls(
             component_id=raw.id,
             timestamp=raw.ts.ToDatetime(tzinfo=timezone.utc),
-            active_power=raw.ev_charger.data.ac.power_active.value,
+            active_power=raw_power.value,
             current_per_phase=(
                 raw.ev_charger.data.ac.phase_1.current.value,
                 raw.ev_charger.data.ac.phase_2.current.value,
@@ -389,6 +434,10 @@ class EVChargerData(ComponentData):
                 raw.ev_charger.data.ac.phase_2.voltage.value,
                 raw.ev_charger.data.ac.phase_3.voltage.value,
             ),
+            active_power_inclusion_lower_bound=raw_power.system_inclusion_bounds.lower,
+            active_power_exclusion_lower_bound=raw_power.system_exclusion_bounds.lower,
+            active_power_inclusion_upper_bound=raw_power.system_inclusion_bounds.upper,
+            active_power_exclusion_upper_bound=raw_power.system_exclusion_bounds.upper,
             cable_state=EVChargerCableState.from_pb(raw.ev_charger.state.cable_state),
             component_state=EVChargerComponentState.from_pb(
                 raw.ev_charger.state.component_state
@@ -397,3 +446,18 @@ class EVChargerData(ComponentData):
         )
         ev_charger_data._set_raw(raw=raw)
         return ev_charger_data
+
+    def is_ev_connected(self) -> bool:
+        """Check whether an EV is connected to the charger.
+
+        Returns:
+            When the charger is not in an error state, whether an EV is connected to
+                the charger.
+        """
+        return self.component_state not in (
+            EVChargerComponentState.AUTHORIZATION_REJECTED,
+            EVChargerComponentState.ERROR,
+        ) and self.cable_state in (
+            EVChargerCableState.EV_LOCKED,
+            EVChargerCableState.EV_PLUGGED,
+        )
