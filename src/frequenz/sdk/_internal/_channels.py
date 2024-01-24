@@ -44,9 +44,8 @@ class LatestValueCache(typing.Generic[T]):
         self._latest_value: T | _Sentinel = _Sentinel()
         self._task = asyncio.create_task(self._run())
 
-    @property
-    def latest_value(self) -> T:
-        """The latest value that has been received.
+    def get(self) -> T:
+        """Return the latest value that has been received.
 
         This raises a `ValueError` if no value has been received yet. Use `has_value` to
         check whether a value has been received yet, before trying to access the value,

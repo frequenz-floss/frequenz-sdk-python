@@ -103,7 +103,7 @@ class BoundsSetter:
         timer = Timer.timeout(timedelta(self._repeat_interval.total_seconds()))
 
         async for selected in select(bound_chan, timer):
-            meter = meter_data.latest_value
+            meter = meter_data.get()
             if meter is None:
                 raise ValueError("Meter channel closed.")
 

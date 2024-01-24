@@ -435,11 +435,10 @@ class BatteryManager(ComponentManager):
             return None
 
         battery_data = [
-            self._battery_caches[battery_id].latest_value for battery_id in battery_ids
+            self._battery_caches[battery_id].get() for battery_id in battery_ids
         ]
         inverter_data = [
-            self._inverter_caches[inverter_id].latest_value
-            for inverter_id in inverter_ids
+            self._inverter_caches[inverter_id].get() for inverter_id in inverter_ids
         ]
 
         DataType = typing.TypeVar("DataType", BatteryData, InverterData)
