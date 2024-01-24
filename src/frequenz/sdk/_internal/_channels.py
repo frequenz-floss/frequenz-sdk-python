@@ -27,6 +27,10 @@ class ReceiverFetcher(typing.Generic[T], typing.Protocol):
         """
 
 
+class _Sentinel:
+    """A sentinel to denote that no value has been received yet."""
+
+
 class LatestValueCache(typing.Generic[T]):
     """A cache that stores the latest value in a receiver."""
 
@@ -37,13 +41,33 @@ class LatestValueCache(typing.Generic[T]):
             receiver: The receiver to cache.
         """
         self._receiver = receiver
-        self._latest_value: T | None = None
+        self._latest_value: T | _Sentinel = _Sentinel()
         self._task = asyncio.create_task(self._run())
 
-    @property
-    def latest_value(self) -> T | None:
-        """Get the latest value in the cache."""
+    def get(self) -> T:
+        """Return the latest value that has been received.
+
+        This raises a `ValueError` if no value has been received yet. Use `has_value` to
+        check whether a value has been received yet, before trying to access the value,
+        to avoid the exception.
+
+        Returns:
+            The latest value that has been received.
+
+        Raises:
+            ValueError: If no value has been received yet.
+        """
+        if isinstance(self._latest_value, _Sentinel):
+            raise ValueError("No value has been received yet.")
         return self._latest_value
+
+    def has_value(self) -> bool:
+        """Check whether a value has been received yet.
+
+        Returns:
+            `True` if a value has been received, `False` otherwise.
+        """
+        return not isinstance(self._latest_value, _Sentinel)
 
     async def _run(self) -> None:
         async for value in self._receiver:
