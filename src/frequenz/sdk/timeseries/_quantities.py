@@ -261,16 +261,17 @@ class Quantity:
             unit_place = max(self._exponent_unit_map)
         else:
             unit = self._exponent_unit_map[unit_place]
+
         value_str = f"{self._base_value / 10 ** unit_place:.{precision}f}"
 
-        if value_str != "0":
-            stripped = value_str.rstrip("0").rstrip(".")
-        else:
+        if value_str in ("-0", "0"):
             stripped = value_str
+        else:
+            stripped = value_str.rstrip("0").rstrip(".")
 
         if not keep_trailing_zeros:
             value_str = stripped
-        unit_str = unit if stripped != "0" else self._exponent_unit_map[0]
+        unit_str = unit if stripped not in ("-0", "0") else self._exponent_unit_map[0]
         return f"{value_str} {unit_str}"
 
     def __add__(self, other: Self) -> Self:

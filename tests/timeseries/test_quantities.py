@@ -152,6 +152,8 @@ def test_string_representation() -> None:
 
     assert f"{Power.from_watts(0.000124445):.0}" == "0 W"
     assert f"{Energy.from_watt_hours(0.124445):.0}" == "0 Wh"
+    assert f"{Power.from_watts(-0.0):.0}" == "-0 W"
+    assert f"{Power.from_watts(0.0):.0}" == "0 W"
 
 
 def test_isclose() -> None:
