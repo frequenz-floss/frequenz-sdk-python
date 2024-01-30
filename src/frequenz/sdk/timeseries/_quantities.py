@@ -199,6 +199,7 @@ class Quantity:
         """
         return self.__format__("")
 
+    # pylint: disable=too-many-branches
     def __format__(self, __format_spec: str) -> str:
         """Return a formatted string representation of this quantity.
 
@@ -250,8 +251,22 @@ class Quantity:
         if math.isinf(self._base_value) or math.isnan(self._base_value):
             return f"{self._base_value} {self._exponent_unit_map[0]}"
 
-        abs_value = abs(self._base_value)
-        exponent = math.floor(math.log10(abs_value)) if abs_value else 0
+        if abs_value := abs(self._base_value):
+            precision_pow = 10 ** (precision)
+            # Prevent numbers like 999.999999 being rendered as 1000 V
+            # instead of 1 kV.
+            # This could happen because the str formatting function does
+            # rounding as well.
+            # This is an imperfect solution that works for _most_ cases.
+            # isclose parameters were chosen according to the observed cases
+            if math.isclose(abs_value, precision_pow, abs_tol=1e-4, rel_tol=0.01):
+                # If the value is close to the precision, round it
+                exponent = math.ceil(math.log10(precision_pow))
+            else:
+                exponent = math.floor(math.log10(abs_value))
+        else:
+            exponent = 0
+
         unit_place = exponent - exponent % 3
         if unit_place < min(self._exponent_unit_map):
             unit = self._exponent_unit_map[min(self._exponent_unit_map.keys())]

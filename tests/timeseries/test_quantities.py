@@ -107,6 +107,7 @@ def test_string_representation() -> None:
     assert (
         repr(Quantity(1.024445, exponent=0)) == "Quantity(value=1.024445, exponent=0)"
     )
+    assert f"{Quantity(0.50001, exponent=0):.0}" == "1"
     assert f"{Quantity(1.024445, exponent=0)}" == "1.024"
     assert f"{Quantity(1.024445, exponent=0):.0}" == "1"
     assert f"{Quantity(0.124445, exponent=0):.0}" == "0"
@@ -154,6 +155,7 @@ def test_string_representation() -> None:
     assert f"{Energy.from_watt_hours(0.124445):.0}" == "0 Wh"
     assert f"{Power.from_watts(-0.0):.0}" == "-0 W"
     assert f"{Power.from_watts(0.0):.0}" == "0 W"
+    assert f"{Voltage.from_volts(999.9999850988388)}" == "1 kV"
 
 
 def test_isclose() -> None:
