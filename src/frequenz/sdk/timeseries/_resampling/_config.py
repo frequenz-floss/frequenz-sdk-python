@@ -12,9 +12,9 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Protocol
 
-from .._base_types import UNIX_EPOCH
 from .._quantities import Quantity
 from ._base_types import SourceProperties
+from ._wall_clock_timer import WallClockTimerConfig
 
 _logger = logging.getLogger(__name__)
 
@@ -155,15 +155,13 @@ class ResamplerConfig:
     It must be at bigger than `warn_buffer_len`.
     """
 
-    align_to: datetime | None = UNIX_EPOCH
-    """The time to align the resampling period to.
+    timer_config: WallClockTimerConfig | None = None
+    """The custom configuration of the wall clock timer used to keep track of time.
 
-    The resampling period will be aligned to this time, so the first resampled
-    sample will be at the first multiple of `resampling_period` starting from
-    `align_to`. It must be an aware datetime and can be in the future too.
-
-    If `align_to` is `None`, the resampling period will be aligned to the
-    time the resampler is created.
+    If not provided or `None`, a configuration will be created by passing the
+    [`resampling_period`][frequenz.sdk.timeseries.ResamplerConfig.resampling_period] to
+    the [`from_interval()`][frequenz.sdk.timeseries.WallClockTimerConfig.from_interval]
+    method.
     """
 
     def __post_init__(self) -> None:
@@ -205,8 +203,4 @@ class ResamplerConfig:
                 "initial_buffer_len (%s) is bigger than warn_buffer_len (%s)",
                 self.initial_buffer_len,
                 self.warn_buffer_len,
-            )
-        if self.align_to is not None and self.align_to.tzinfo is None:
-            raise ValueError(
-                f"align_to ({self.align_to}) should be a timezone aware datetime"
             )

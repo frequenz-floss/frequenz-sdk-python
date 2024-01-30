@@ -52,6 +52,8 @@ from ._quantities import (
 )
 from ._resampling._base_types import SourceProperties
 from ._resampling._config import ResamplerConfig, ResamplingFunction
+from ._resampling._exceptions import ResamplingError, SourceStoppedError
+from ._resampling._wall_clock_timer import WallClockTimerConfig
 
 __all__ = [
     "Bounds",
@@ -60,11 +62,14 @@ __all__ = [
     "PeriodicFeatureExtractor",
     "ResamplerConfig",
     "ReceiverFetcher",
+    "ResamplingError",
     "ResamplingFunction",
     "Sample",
     "Sample3Phase",
     "SourceProperties",
+    "SourceStoppedError",
     "UNIX_EPOCH",
+    "WallClockTimerConfig",
     #
     # Quantities
     #
