@@ -108,3 +108,7 @@
 - The PowerManager no longer holds on to proposals from dead actors forever.  If an actor hasn't sent a new proposal in 60 seconds, the available proposal from that actor is dropped.
 
 - Fix `Quantity.__format__()` sometimes skipping the number for very small values.
+
+- Not strictly a bug fix, but the microgrid API version was bumped to v0.15.3, which indirectly bumps the common API dependency to v0.5.x, so the SDK can be compatible with other APIs using a newer version of the common API.
+
+  Downstream projects that require a `frequenz-api-common` v0.5.x and want to ensure proper dependency resolution should update their minimum SDK version to this release.
