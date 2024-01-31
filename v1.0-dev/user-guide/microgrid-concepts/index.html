@@ -1233,17 +1233,21 @@
         
       
         
-          
-        
       
         
           
         
       
         
+          
+        
+      
+        
       
         
           
+        
+      
         
       
     
@@ -1295,6 +1299,26 @@
   
   <span class="md-ellipsis">
     battery_pool
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/frequenz/sdk/timeseries/consumer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    consumer
   </span>
   
 
@@ -1375,6 +1399,26 @@
   
   <span class="md-ellipsis">
     logical_meter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/frequenz/sdk/timeseries/producer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    producer
   </span>
   
 
@@ -1586,8 +1630,7 @@ values.</p>
 <h3 id="frequenz.sdk.microgrid--consumer">Consumer<a class="headerlink" href="#frequenz.sdk.microgrid--consumer" title="Permanent link">¤</a></h3>
 <p>This is the main power consumer at the site of a microgrid, and often the
 <a href="../glossary/#load">load</a> the microgrid is built to support.  The power drawn by the consumer
-is available through
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter.consumer_power"><code>consumer_power</code></a></p>
+is available through <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/consumer/#frequenz.sdk.timeseries.consumer.Consumer.power"><code>consumer_power</code></a></p>
 <p>In locations without a consumer, this method streams zero values.</p>
 <h3 id="frequenz.sdk.microgrid--producers-pv-arrays-chp">Producers: PV Arrays, CHP<a class="headerlink" href="#frequenz.sdk.microgrid--producers-pv-arrays-chp" title="Permanent link">¤</a></h3>
 <p>The total <a href="../glossary/#pv">PV</a> power production in a microgrid can be streamed
@@ -1595,7 +1638,7 @@ through <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk
 similarly the total CHP production in a site can be streamed through
 <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter.chp_power"><code>chp_power</code></a>.  And total
 producer power is available through
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter.producer_power"><code>producer_power</code></a>.</p>
+<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/producer/#frequenz.sdk.timeseries.producer.Producer.power"><code>producer_power</code></a>.</p>
 <p>As is the case with the other methods, if PV Arrays or CHPs are not available in a
 microgrid, the corresponding methods stream zero values.</p>
 <h3 id="frequenz.sdk.microgrid--batteries">Batteries<a class="headerlink" href="#frequenz.sdk.microgrid--batteries" title="Permanent link">¤</a></h3>
