@@ -478,9 +478,10 @@ class EVChargerData(ComponentData):
             When the charger is not in an error state, whether an EV is connected to
                 the charger.
         """
-        return self.component_state not in (
-            EVChargerComponentState.AUTHORIZATION_REJECTED,
-            EVChargerComponentState.ERROR,
+        return self.component_state in (
+            EVChargerComponentState.READY,
+            EVChargerComponentState.CHARGING,
+            EVChargerComponentState.DISCHARGING,
         ) and self.cable_state in (
             EVChargerCableState.EV_LOCKED,
             EVChargerCableState.EV_PLUGGED,

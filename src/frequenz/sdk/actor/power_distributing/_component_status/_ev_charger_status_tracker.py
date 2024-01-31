@@ -75,14 +75,17 @@ class EVChargerStatusTracker(ComponentStatusTracker, BackgroundService):
         self._tasks.add(asyncio.create_task(self._run()))
 
     def _is_working(self, ev_data: EVChargerData) -> bool:
-        """Return whether the given data indicates that the component is working."""
-        return (
-            ev_data.cable_state == EVChargerCableState.EV_PLUGGED
-            and ev_data.component_state
-            in (
-                EVChargerComponentState.READY,
-                EVChargerComponentState.CHARGING,
-            )
+        """Return whether the given EV charger can be assigned power.
+
+        This is True when an EV is connected and the charger is in a healthy state.
+        """
+        return ev_data.cable_state in (
+            EVChargerCableState.EV_PLUGGED,
+            EVChargerCableState.EV_LOCKED,
+        ) and ev_data.component_state in (
+            EVChargerComponentState.READY,
+            EVChargerComponentState.CHARGING,
+            EVChargerComponentState.DISCHARGING,
         )
 
     def _is_stale(self, ev_data: EVChargerData) -> bool:
