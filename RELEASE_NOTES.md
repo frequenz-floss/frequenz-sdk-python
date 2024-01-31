@@ -44,6 +44,23 @@
     grid_current_recv = grid.current.new_receiver()
     ```
 
+- Consumer and producer power formulas were moved from `microgrid.logical_meter()` to `microgrid.consumer()` and `microgrid.producer()`, respectively.
+
+    Previously,
+
+    ```python
+    logical_meter = microgrid.logical_meter()
+    consumer_power_recv = logical_meter.consumer_power.new_receiver()
+    producer_power_recv = logical_meter.producer_power.new_receiver()
+    ```
+
+    Now,
+
+    ```python
+    consumer_power_recv = microgrid.consumer().power.new_receiver()
+    producer_power_recv = microgrid.producer().power.new_receiver()
+    ```
+
 - The `ComponentGraph.components()` parameters `component_id` and `component_category` were renamed to `component_ids` and `component_categories`, respectively.
 
 - The `GridFrequency.component` property was renamed to `GridFrequency.source`

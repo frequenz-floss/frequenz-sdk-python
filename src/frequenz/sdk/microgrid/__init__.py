@@ -68,8 +68,7 @@ values.
 
 This is the main power consumer at the site of a microgrid, and often the
 {{glossary("load")}} the microgrid is built to support.  The power drawn by the consumer
-is available through
-[`consumer_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.consumer_power]
+is available through [`consumer_power`][frequenz.sdk.timeseries.consumer.Consumer.power]
 
 In locations without a consumer, this method streams zero values.
 
@@ -80,7 +79,7 @@ through [`pv_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.pv_power
 similarly the total CHP production in a site can be streamed through
 [`chp_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.chp_power].  And total
 producer power is available through
-[`producer_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.producer_power].
+[`producer_power`][frequenz.sdk.timeseries.producer.Producer.power].
 
 As is the case with the other methods, if PV Arrays or CHPs are not available in a
 microgrid, the corresponding methods stream zero values.
@@ -126,10 +125,12 @@ from ..actor import ResamplerConfig
 from . import _data_pipeline, client, component, connection_manager, metadata
 from ._data_pipeline import (
     battery_pool,
+    consumer,
     ev_charger_pool,
     frequency,
     grid,
     logical_meter,
+    producer,
     voltage,
 )
 
@@ -150,11 +151,13 @@ __all__ = [
     "initialize",
     "client",
     "component",
+    "consumer",
     "battery_pool",
     "ev_charger_pool",
     "grid",
     "frequency",
     "logical_meter",
     "metadata",
+    "producer",
     "voltage",
 ]

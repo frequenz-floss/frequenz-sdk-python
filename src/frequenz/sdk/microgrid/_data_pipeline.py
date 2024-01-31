@@ -46,8 +46,10 @@ if typing.TYPE_CHECKING:
     from ..timeseries.battery_pool._battery_pool_reference_store import (
         BatteryPoolReferenceStore,
     )
+    from ..timeseries.consumer import Consumer
     from ..timeseries.ev_charger_pool import EVChargerPool
     from ..timeseries.logical_meter import LogicalMeter
+    from ..timeseries.producer import Producer
 
 
 _REQUEST_RECV_BUFFER_SIZE = 500
@@ -118,6 +120,8 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._power_managing_actor: _power_managing.PowerManagingActor | None = None
 
         self._logical_meter: LogicalMeter | None = None
+        self._consumer: Consumer | None = None
+        self._producer: Producer | None = None
         self._grid: Grid | None = None
         self._ev_charger_pools: dict[frozenset[int], EVChargerPool] = {}
         self._battery_pools: dict[frozenset[int], BatteryPoolReferenceStore] = {}
@@ -125,11 +129,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._voltage_instance: VoltageStreamer | None = None
 
     def frequency(self) -> GridFrequency:
-        """Fetch the grid frequency for the microgrid.
-
-        Returns:
-            The GridFrequency instance.
-        """
+        """Return the grid frequency measuring point."""
         if self._frequency_instance is None:
             self._frequency_instance = GridFrequency(
                 self._data_sourcing_request_sender(),
@@ -139,11 +139,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         return self._frequency_instance
 
     def voltage(self) -> VoltageStreamer:
-        """Fetch the 3-phase voltage for the microgrid.
-
-        Returns:
-            The VoltageStreamer instance.
-        """
+        """Return the 3-phase voltage measuring point."""
         if not self._voltage_instance:
             self._voltage_instance = VoltageStreamer(
                 self._resampling_request_sender(),
@@ -153,13 +149,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         return self._voltage_instance
 
     def logical_meter(self) -> LogicalMeter:
-        """Return the logical meter instance.
-
-        If a LogicalMeter instance doesn't exist, a new one is created and returned.
-
-        Returns:
-            A logical meter instance.
-        """
+        """Return the logical meter of the microgrid."""
         from ..timeseries.logical_meter import LogicalMeter
 
         if self._logical_meter is None:
@@ -168,6 +158,28 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 resampler_subscription_sender=self._resampling_request_sender(),
             )
         return self._logical_meter
+
+    def consumer(self) -> Consumer:
+        """Return the consumption measuring point of the microgrid."""
+        from ..timeseries.consumer import Consumer
+
+        if self._consumer is None:
+            self._consumer = Consumer(
+                channel_registry=self._channel_registry,
+                resampler_subscription_sender=self._resampling_request_sender(),
+            )
+        return self._consumer
+
+    def producer(self) -> Producer:
+        """Return the production measuring point of the microgrid."""
+        from ..timeseries.producer import Producer
+
+        if self._producer is None:
+            self._producer = Producer(
+                channel_registry=self._channel_registry,
+                resampler_subscription_sender=self._resampling_request_sender(),
+            )
+        return self._producer
 
     def ev_charger_pool(
         self,
@@ -201,13 +213,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         return self._ev_charger_pools[key]
 
     def grid(self) -> Grid:
-        """Return the grid instance.
-
-        If a Grid instance doesn't exist, a new one is created and returned.
-
-        Returns:
-            A Grid instance.
-        """
+        """Return the grid measuring point."""
         if self._grid is None:
             initialize_grid(
                 channel_registry=self._channel_registry,
@@ -419,32 +425,28 @@ async def initialize(resampler_config: ResamplerConfig) -> None:
 
 
 def frequency() -> GridFrequency:
-    """Return the grid frequency.
-
-    Returns:
-        The grid frequency.
-    """
+    """Return the grid frequency measuring point."""
     return _get().frequency()
 
 
 def voltage() -> VoltageStreamer:
-    """Return the 3-phase voltage for the microgrid.
-
-    Returns:
-        The 3-phase voltage.
-    """
+    """Return the 3-phase voltage measuring point."""
     return _get().voltage()
 
 
 def logical_meter() -> LogicalMeter:
-    """Return the logical meter instance.
-
-    If a LogicalMeter instance doesn't exist, a new one is created and returned.
-
-    Returns:
-        A logical meter instance.
-    """
+    """Return the logical meter of the microgrid."""
     return _get().logical_meter()
+
+
+def consumer() -> Consumer:
+    """Return the [`Consumption`][frequenz.sdk.timeseries.consumer.Consumer] measuring point."""
+    return _get().consumer()
+
+
+def producer() -> Producer:
+    """Return the [`Production`][frequenz.sdk.timeseries.producer.Producer] measuring point."""
+    return _get().producer()
 
 
 def ev_charger_pool(ev_charger_ids: set[int] | None = None) -> EVChargerPool:
@@ -492,11 +494,7 @@ def battery_pool(
 
 
 def grid() -> Grid:
-    """Return the grid instance.
-
-    Returns:
-        The Grid instance.
-    """
+    """Return the grid measuring point."""
     return _get().grid()
 
 
