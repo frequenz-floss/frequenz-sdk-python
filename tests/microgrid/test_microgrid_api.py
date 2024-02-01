@@ -102,7 +102,7 @@ class TestMicrogridApi:
     @mock.patch("grpc.aio.insecure_channel")
     async def test_connection_manager(
         self,
-        _: MagicMock,
+        _insecure_channel_mock: MagicMock,
         components: list[list[Component]],
         connections: list[list[Connection]],
         metadata: meta.Metadata,
@@ -110,7 +110,7 @@ class TestMicrogridApi:
         """Test microgrid api.
 
         Args:
-            _: insecure channel mock from `mock.patch`
+            _insecure_channel_mock: insecure channel mock from `mock.patch`
             components: components
             connections: connections
             metadata: the metadata of the microgrid
@@ -179,7 +179,7 @@ class TestMicrogridApi:
     @mock.patch("grpc.aio.insecure_channel")
     async def test_connection_manager_another_method(
         self,
-        _: MagicMock,
+        _insecure_channel_mock: MagicMock,
         components: list[list[Component]],
         connections: list[list[Connection]],
         metadata: meta.Metadata,
@@ -187,7 +187,7 @@ class TestMicrogridApi:
         """Test if the api was not deallocated.
 
         Args:
-            _: insecure channel mock
+            _insecure_channel_mock: insecure channel mock
             components: components
             connections: connections
             metadata: the metadata of the microgrid
