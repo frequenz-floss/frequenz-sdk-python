@@ -54,22 +54,6 @@ _operator_precedence = {
 }
 """The dictionary of operator precedence for the shunting yard algorithm."""
 
-_CompositionType = Union[
-    "FormulaEngine",
-    "HigherOrderFormulaBuilder",
-    "FormulaEngine3Phase",
-    "HigherOrderFormulaBuilder3Phase",
-]
-
-_CompositionType1Phase = Union[
-    "FormulaEngine",
-    "HigherOrderFormulaBuilder",
-]
-
-_CompositionType3Phase = Union[
-    "FormulaEngine3Phase",
-    "HigherOrderFormulaBuilder3Phase",
-]
 
 # The `FormulaEngine*` and `HigherOrderFormulaBuilder*` classes are generic, but
 # `TypeVar`s can't be defined on generic types, so we need to use `# type: ignore` to
@@ -77,11 +61,29 @@ _CompositionType3Phase = Union[
 #
 # This is not ideal, but it's the best we can do until mypy supports generic types with
 # `TypeVar`s.
+_CompositionType = Union[
+    "FormulaEngine",  # type: ignore[type-arg]
+    "HigherOrderFormulaBuilder",  # type: ignore[type-arg]
+    "FormulaEngine3Phase",  # type: ignore[type-arg]
+    "HigherOrderFormulaBuilder3Phase",  # type: ignore[type-arg]
+]
+
+_CompositionType1Phase = Union[
+    "FormulaEngine",  # type: ignore[type-arg]
+    "HigherOrderFormulaBuilder",  # type: ignore[type-arg]
+]
+
+_CompositionType3Phase = Union[
+    "FormulaEngine3Phase",  # type: ignore[type-arg]
+    "HigherOrderFormulaBuilder3Phase",  # type: ignore[type-arg]
+]
+
 _GenericEngine = TypeVar(
     "_GenericEngine",
     "FormulaEngine",  # type: ignore
     "FormulaEngine3Phase",  # type: ignore
 )
+
 _GenericHigherOrderBuilder = TypeVar(
     "_GenericHigherOrderBuilder",
     "HigherOrderFormulaBuilder",  # type: ignore
