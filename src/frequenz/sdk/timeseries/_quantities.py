@@ -91,6 +91,42 @@ class Quantity:
         assert isinstance(_zero, cls)
         return _zero
 
+    @classmethod
+    def from_string(cls, string: str) -> Self:
+        """Return a quantity from a string representation.
+
+        Args:
+            string: The string representation of the quantity.
+
+        Returns:
+            A quantity object with the value given in the string.
+
+        Raises:
+            ValueError: If the string does not match the expected format.
+
+        """
+        split_string = string.split(" ")
+
+        if len(split_string) != 2:
+            raise ValueError(
+                f"Expected a string of the form 'value unit', got {string}"
+            )
+
+        assert cls._exponent_unit_map is not None
+        exp_map = cls._exponent_unit_map
+
+        for exponent, unit in exp_map.items():
+            if unit == split_string[1]:
+                instance = cls.__new__(cls)
+                try:
+                    instance._base_value = float(split_string[0]) * 10**exponent
+                except ValueError as error:
+                    raise ValueError(f"Failed to parse string '{string}'.") from error
+
+                return instance
+
+        raise ValueError(f"Unknown unit {split_string[1]}")
+
     @property
     def base_value(self) -> float:
         """Return the value of this quantity in the base unit.
@@ -163,6 +199,7 @@ class Quantity:
         """
         return self.__format__("")
 
+    # pylint: disable=too-many-branches
     def __format__(self, __format_spec: str) -> str:
         """Return a formatted string representation of this quantity.
 
@@ -214,8 +251,22 @@ class Quantity:
         if math.isinf(self._base_value) or math.isnan(self._base_value):
             return f"{self._base_value} {self._exponent_unit_map[0]}"
 
-        abs_value = abs(self._base_value)
-        exponent = math.floor(math.log10(abs_value)) if abs_value else 0
+        if abs_value := abs(self._base_value):
+            precision_pow = 10 ** (precision)
+            # Prevent numbers like 999.999999 being rendered as 1000 V
+            # instead of 1 kV.
+            # This could happen because the str formatting function does
+            # rounding as well.
+            # This is an imperfect solution that works for _most_ cases.
+            # isclose parameters were chosen according to the observed cases
+            if math.isclose(abs_value, precision_pow, abs_tol=1e-4, rel_tol=0.01):
+                # If the value is close to the precision, round it
+                exponent = math.ceil(math.log10(precision_pow))
+            else:
+                exponent = math.floor(math.log10(abs_value))
+        else:
+            exponent = 0
+
         unit_place = exponent - exponent % 3
         if unit_place < min(self._exponent_unit_map):
             unit = self._exponent_unit_map[min(self._exponent_unit_map.keys())]
@@ -225,11 +276,17 @@ class Quantity:
             unit_place = max(self._exponent_unit_map)
         else:
             unit = self._exponent_unit_map[unit_place]
+
         value_str = f"{self._base_value / 10 ** unit_place:.{precision}f}"
-        stripped = value_str.rstrip("0").rstrip(".")
+
+        if value_str in ("-0", "0"):
+            stripped = value_str
+        else:
+            stripped = value_str.rstrip("0").rstrip(".")
+
         if not keep_trailing_zeros:
             value_str = stripped
-        unit_str = unit if stripped != "0" else self._exponent_unit_map[0]
+        unit_str = unit if stripped not in ("-0", "0") else self._exponent_unit_map[0]
         return f"{value_str} {unit_str}"
 
     def __add__(self, other: Self) -> Self:
