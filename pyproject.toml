@@ -26,7 +26,7 @@ classifiers = [
 ]
 requires-python = ">= 3.11, < 4"
 dependencies = [
-  "frequenz-api-microgrid >= 0.15.1, < 0.16.0",
+  "frequenz-api-microgrid >= 0.15.3, < 0.16.0",
   # Make sure to update the mkdocs.yml file when
   # changing the version
   # (plugins.mkdocstrings.handlers.python.import)
