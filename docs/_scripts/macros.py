@@ -29,10 +29,7 @@ def _slugify(text: str) -> str:
     Returns:
         The slugified text.
     """
-    # The type of the return value is not defined for the markdown library.
-    # Also for some reason `mypy` thinks the `toc` module doesn't have a
-    # `slugify_unicode` function, but it definitely does.
-    return toc.slugify_unicode(text, "-")  # type: ignore[attr-defined,no-any-return]
+    return toc.slugify_unicode(text, "-")
 
 
 def _hook_macros_plugin(env: macros.MacrosPlugin) -> None:
