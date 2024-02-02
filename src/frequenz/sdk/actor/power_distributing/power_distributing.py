@@ -49,7 +49,7 @@ class PowerDistributingActor(Actor):
     printed.
     """
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         requests_receiver: Receiver[Request],
         results_sender: Sender[Result],
