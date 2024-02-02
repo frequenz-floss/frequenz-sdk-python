@@ -51,6 +51,7 @@ class FormulaEnginePool:
         )
         self._string_engines: dict[str, FormulaEngine[Quantity]] = {}
         self._power_engines: dict[str, FormulaEngine[Power]] = {}
+        self._power_3_phase_engines: dict[str, FormulaEngine3Phase[Power]] = {}
         self._current_engines: dict[str, FormulaEngine3Phase[Current]] = {}
 
     def from_string(
@@ -123,6 +124,40 @@ class FormulaEnginePool:
         self._power_engines[channel_key] = engine
         return engine
 
+    def from_power_3_phase_formula_generator(
+        self,
+        channel_key: str,
+        generator: type[FormulaGenerator[Power]],
+        config: FormulaGeneratorConfig = FormulaGeneratorConfig(),
+    ) -> FormulaEngine3Phase[Power]:
+        """Get a formula engine that streams 3-phase power values.
+
+        Args:
+            channel_key: The string to uniquely identify the formula.
+            generator: The formula generator.
+            config: The config to initialize the formula generator with.
+
+        Returns:
+            A formula engine that streams [3-phase][frequenz.sdk.timeseries.Sample3Phase]
+            power values.
+        """
+        from ._formula_engine import (  # pylint: disable=import-outside-toplevel
+            FormulaEngine3Phase,
+        )
+
+        if channel_key in self._power_3_phase_engines:
+            return self._power_3_phase_engines[channel_key]
+
+        engine = generator(
+            self._namespace,
+            self._channel_registry,
+            self._resampler_subscription_sender,
+            config,
+        ).generate()
+        assert isinstance(engine, FormulaEngine3Phase)
+        self._power_3_phase_engines[channel_key] = engine
+        return engine
+
     def from_3_phase_current_formula_generator(
         self,
         channel_key: str,
@@ -163,5 +198,7 @@ class FormulaEnginePool:
             await string_engine._stop()  # pylint: disable=protected-access
         for power_engine in self._power_engines.values():
             await power_engine._stop()  # pylint: disable=protected-access
+        for power_3_phase_engine in self._power_3_phase_engines.values():
+            await power_3_phase_engine._stop()  # pylint: disable=protected-access
         for current_engine in self._current_engines.values():
             await current_engine._stop()  # pylint: disable=protected-access
