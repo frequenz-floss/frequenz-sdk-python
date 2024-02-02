@@ -2088,9 +2088,9 @@ creating <code>LogicalMeter</code> instances.</p>
 </span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81"></a><span class="sd">                resampling actor.</span>
 </span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82"></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_channel_registry</span><span class="p">:</span> <span class="n">ChannelRegistry</span> <span class="o">=</span> <span class="n">channel_registry</span>
-</span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_resampler_subscription_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span>
-</span><span id="__span-0-85"><a id="__codelineno-0-85" name="__codelineno-0-85"></a>            <span class="n">ComponentMetricRequest</span>
-</span><span id="__span-0-86"><a id="__codelineno-0-86" name="__codelineno-0-86"></a>        <span class="p">]</span> <span class="o">=</span> <span class="n">resampler_subscription_sender</span>
+</span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_resampler_subscription_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span><span class="n">ComponentMetricRequest</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="__span-0-85"><a id="__codelineno-0-85" name="__codelineno-0-85"></a>            <span class="n">resampler_subscription_sender</span>
+</span><span id="__span-0-86"><a id="__codelineno-0-86" name="__codelineno-0-86"></a>        <span class="p">)</span>
 </span><span id="__span-0-87"><a id="__codelineno-0-87" name="__codelineno-0-87"></a>
 </span><span id="__span-0-88"><a id="__codelineno-0-88" name="__codelineno-0-88"></a>        <span class="c1"># Use a randomly generated uuid to create a unique namespace name for the local</span>
 </span><span id="__span-0-89"><a id="__codelineno-0-89" name="__codelineno-0-89"></a>        <span class="c1"># meter to use when communicating with the resampling actor.</span>
@@ -2420,9 +2420,9 @@ resampling actor.</p>
 </span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81"></a><span class="sd">            resampling actor.</span>
 </span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">_channel_registry</span><span class="p">:</span> <span class="n">ChannelRegistry</span> <span class="o">=</span> <span class="n">channel_registry</span>
-</span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">_resampler_subscription_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span>
-</span><span id="__span-0-85"><a id="__codelineno-0-85" name="__codelineno-0-85"></a>        <span class="n">ComponentMetricRequest</span>
-</span><span id="__span-0-86"><a id="__codelineno-0-86" name="__codelineno-0-86"></a>    <span class="p">]</span> <span class="o">=</span> <span class="n">resampler_subscription_sender</span>
+</span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">_resampler_subscription_sender</span><span class="p">:</span> <span class="n">Sender</span><span class="p">[</span><span class="n">ComponentMetricRequest</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="__span-0-85"><a id="__codelineno-0-85" name="__codelineno-0-85"></a>        <span class="n">resampler_subscription_sender</span>
+</span><span id="__span-0-86"><a id="__codelineno-0-86" name="__codelineno-0-86"></a>    <span class="p">)</span>
 </span><span id="__span-0-87"><a id="__codelineno-0-87" name="__codelineno-0-87"></a>
 </span><span id="__span-0-88"><a id="__codelineno-0-88" name="__codelineno-0-88"></a>    <span class="c1"># Use a randomly generated uuid to create a unique namespace name for the local</span>
 </span><span id="__span-0-89"><a id="__codelineno-0-89" name="__codelineno-0-89"></a>    <span class="c1"># meter to use when communicating with the resampling actor.</span>
