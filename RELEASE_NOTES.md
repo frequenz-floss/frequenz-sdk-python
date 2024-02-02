@@ -2,7 +2,7 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
+This release represents 3 months of work so it includes a lot of changes. Most of them are (breaking) API changes, in the hopes to make a more consistent and easier to use SDK 1.0. There are also quite a few bug fixes and a couple of new features.
 
 ## Upgrading
 
