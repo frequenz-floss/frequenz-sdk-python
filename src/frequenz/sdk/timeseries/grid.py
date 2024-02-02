@@ -21,7 +21,11 @@ from . import Fuse
 from ._quantities import Current, Power
 from .formula_engine import FormulaEngine, FormulaEngine3Phase
 from .formula_engine._formula_engine_pool import FormulaEnginePool
-from .formula_engine._formula_generators import GridCurrentFormula, GridPowerFormula
+from .formula_engine._formula_generators import (
+    GridCurrentFormula,
+    GridPower3PhaseFormula,
+    GridPowerFormula,
+)
 
 if TYPE_CHECKING:
     # Break circular import
@@ -93,6 +97,24 @@ class Grid:
             GridPowerFormula,
         )
         assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def _power_3_phase(self) -> FormulaEngine3Phase[Power]:
+        """Fetch the grid 3-phase power for the microgrid.
+
+        This formula produces values that are in the Passive Sign Convention (PSC).
+
+        A receiver from the formula engine can be created using the
+        `new_receiver`method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream grid 3-phase power.
+        """
+        engine = self._formula_pool.from_power_3_phase_formula_generator(
+            "grid_power_3_phase", GridPower3PhaseFormula
+        )
+        assert isinstance(engine, FormulaEngine3Phase)
         return engine
 
     @property
