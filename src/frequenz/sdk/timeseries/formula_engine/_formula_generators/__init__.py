@@ -15,6 +15,7 @@ from ._formula_generator import (
     FormulaGeneratorConfig,
 )
 from ._grid_current_formula import GridCurrentFormula
+from ._grid_power_3_phase_formula import GridPower3PhaseFormula
 from ._grid_power_formula import GridPowerFormula
 from ._producer_power_formula import ProducerPowerFormula
 from ._pv_power_formula import PVPowerFormula
@@ -30,6 +31,7 @@ __all__ = [
     #
     "CHPPowerFormula",
     "ConsumerPowerFormula",
+    "GridPower3PhaseFormula",
     "GridPowerFormula",
     "BatteryPowerFormula",
     "EVChargerPowerFormula",
