@@ -100,9 +100,9 @@ class EVChargerPool:
         """
         self._channel_registry: ChannelRegistry = channel_registry
         self._repeat_interval: timedelta = repeat_interval
-        self._resampler_subscription_sender: Sender[
-            ComponentMetricRequest
-        ] = resampler_subscription_sender
+        self._resampler_subscription_sender: Sender[ComponentMetricRequest] = (
+            resampler_subscription_sender
+        )
         self._component_ids: set[int] = set()
         if component_ids is not None:
             self._component_ids = component_ids
@@ -115,9 +115,9 @@ class EVChargerPool:
                 )
             }
         self._state_tracker: StateTracker | None = None
-        self._status_streams: dict[
-            int, tuple[Task[None], Broadcast[EVChargerData]]
-        ] = {}
+        self._status_streams: dict[int, tuple[Task[None], Broadcast[EVChargerData]]] = (
+            {}
+        )
         self._namespace: str = f"ev-charger-pool-{uuid.uuid4()}"
         self._formula_pool: FormulaEnginePool = FormulaEnginePool(
             self._namespace,
@@ -252,9 +252,7 @@ class EVChargerPool:
             await chan.close()
             await cancel_and_await(task)
 
-    async def _get_current_streams(
-        self, component_id: int
-    ) -> tuple[
+    async def _get_current_streams(self, component_id: int) -> tuple[
         Receiver[Sample[Quantity]],
         Receiver[Sample[Quantity]],
         Receiver[Sample[Quantity]],
@@ -322,15 +320,21 @@ class EVChargerPool:
 
             sample = Sample3Phase(
                 timestamp=phase_1.timestamp,
-                value_p1=None
-                if phase_1.value is None
-                else Current.from_amperes(phase_1.value.base_value),
-                value_p2=None
-                if phase_2.value is None
-                else Current.from_amperes(phase_2.value.base_value),
-                value_p3=None
-                if phase_3.value is None
-                else Current.from_amperes(phase_3.value.base_value),
+                value_p1=(
+                    None
+                    if phase_1.value is None
+                    else Current.from_amperes(phase_1.value.base_value)
+                ),
+                value_p2=(
+                    None
+                    if phase_2.value is None
+                    else Current.from_amperes(phase_2.value.base_value)
+                ),
+                value_p3=(
+                    None
+                    if phase_3.value is None
+                    else Current.from_amperes(phase_3.value.base_value)
+                ),
             )
 
             if (

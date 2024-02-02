@@ -790,12 +790,12 @@ class BatteryDistributionAlgorithm:
         excl_bounds: dict[int, float] = {}
         for battery, inverters in components:
             if supply:
-                excl_bounds[
-                    battery.component_id
-                ] = -battery.power_bounds.exclusion_lower
-                incl_bounds[
-                    battery.component_id
-                ] = -battery.power_bounds.inclusion_lower
+                excl_bounds[battery.component_id] = (
+                    -battery.power_bounds.exclusion_lower
+                )
+                incl_bounds[battery.component_id] = (
+                    -battery.power_bounds.inclusion_lower
+                )
             else:
                 excl_bounds[battery.component_id] = battery.power_bounds.exclusion_upper
                 incl_bounds[battery.component_id] = battery.power_bounds.inclusion_upper
@@ -806,16 +806,16 @@ class BatteryDistributionAlgorithm:
                         inverter.active_power_inclusion_lower_bound,
                         battery.power_bounds.inclusion_lower,
                     )
-                    excl_bounds[
-                        inverter.component_id
-                    ] = -inverter.active_power_exclusion_lower_bound
+                    excl_bounds[inverter.component_id] = (
+                        -inverter.active_power_exclusion_lower_bound
+                    )
 
                 else:
                     incl_bounds[inverter.component_id] = min(
                         inverter.active_power_inclusion_upper_bound,
                         battery.power_bounds.inclusion_upper,
                     )
-                    excl_bounds[
-                        inverter.component_id
-                    ] = inverter.active_power_exclusion_upper_bound
+                    excl_bounds[inverter.component_id] = (
+                        inverter.active_power_exclusion_upper_bound
+                    )
         return incl_bounds, excl_bounds

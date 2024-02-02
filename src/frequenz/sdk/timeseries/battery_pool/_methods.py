@@ -106,9 +106,9 @@ class SendOnUpdate(MetricAggregator[T]):
 
         self._update_task = asyncio.create_task(self._update_and_notify())
         self._send_task = asyncio.create_task(self._send_on_update(min_update_interval))
-        self._pending_data_fetchers: set[
-            asyncio.Task[ComponentMetricsData | None]
-        ] = set()
+        self._pending_data_fetchers: set[asyncio.Task[ComponentMetricsData | None]] = (
+            set()
+        )
 
     @classmethod
     def name(cls) -> str:

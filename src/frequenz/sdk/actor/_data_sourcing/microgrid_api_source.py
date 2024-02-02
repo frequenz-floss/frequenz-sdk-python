@@ -164,9 +164,9 @@ class MicrogridApiSource:
                 _logger.error(err)
                 raise ValueError(err)
         if comp_id not in self.comp_data_receivers:
-            self.comp_data_receivers[
-                comp_id
-            ] = await connection_manager.get().api_client.battery_data(comp_id)
+            self.comp_data_receivers[comp_id] = (
+                await connection_manager.get().api_client.battery_data(comp_id)
+            )
 
     async def _check_ev_charger_request(
         self,
@@ -189,9 +189,9 @@ class MicrogridApiSource:
                 _logger.error(err)
                 raise ValueError(err)
         if comp_id not in self.comp_data_receivers:
-            self.comp_data_receivers[
-                comp_id
-            ] = await connection_manager.get().api_client.ev_charger_data(comp_id)
+            self.comp_data_receivers[comp_id] = (
+                await connection_manager.get().api_client.ev_charger_data(comp_id)
+            )
 
     async def _check_inverter_request(
         self,
@@ -214,9 +214,9 @@ class MicrogridApiSource:
                 _logger.error(err)
                 raise ValueError(err)
         if comp_id not in self.comp_data_receivers:
-            self.comp_data_receivers[
-                comp_id
-            ] = await connection_manager.get().api_client.inverter_data(comp_id)
+            self.comp_data_receivers[comp_id] = (
+                await connection_manager.get().api_client.inverter_data(comp_id)
+            )
 
     async def _check_meter_request(
         self,
@@ -239,9 +239,9 @@ class MicrogridApiSource:
                 _logger.error(err)
                 raise ValueError(err)
         if comp_id not in self.comp_data_receivers:
-            self.comp_data_receivers[
-                comp_id
-            ] = await connection_manager.get().api_client.meter_data(comp_id)
+            self.comp_data_receivers[comp_id] = (
+                await connection_manager.get().api_client.meter_data(comp_id)
+            )
 
     async def _check_requested_component_and_metrics(
         self,

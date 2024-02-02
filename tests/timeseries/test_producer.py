@@ -82,9 +82,10 @@ class TestProducer:
 
     async def test_no_producer_power(self, mocker: MockerFixture) -> None:
         """Test the producer power formula without producers."""
-        async with MockMicrogrid(
-            grid_meter=True, mocker=mocker
-        ) as mockgrid, AsyncExitStack() as stack:
+        async with (
+            MockMicrogrid(grid_meter=True, mocker=mocker) as mockgrid,
+            AsyncExitStack() as stack,
+        ):
             producer = microgrid.producer()
             stack.push_async_callback(producer.stop)
             producer_power_receiver = producer.power.new_receiver()

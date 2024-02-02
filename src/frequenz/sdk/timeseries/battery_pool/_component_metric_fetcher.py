@@ -144,16 +144,13 @@ class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
         return ComponentMetricsData(self._component_id, data.timestamp, metrics)
 
     @abstractmethod
-    def _extract_metric(self, data: T, mid: ComponentMetricId) -> float:
-        ...
+    def _extract_metric(self, data: T, mid: ComponentMetricId) -> float: ...
 
     @abstractmethod
-    def _supported_metrics(self) -> set[ComponentMetricId]:
-        ...
+    def _supported_metrics(self) -> set[ComponentMetricId]: ...
 
     @abstractmethod
-    def _component_category(self) -> ComponentCategory:
-        ...
+    def _component_category(self) -> ComponentCategory: ...
 
     @abstractmethod
     async def _subscribe(self) -> Receiver[Any]:

@@ -178,9 +178,9 @@ class VoltageStreamer:
                 msg = Sample3Phase(
                     phases[0].timestamp,
                     *map(
-                        lambda p: Voltage.from_volts(p.value.base_value)
-                        if p.value
-                        else None,
+                        lambda p: (
+                            Voltage.from_volts(p.value.base_value) if p.value else None
+                        ),
                         phases,
                     ),
                 )

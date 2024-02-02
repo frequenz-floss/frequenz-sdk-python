@@ -796,14 +796,12 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
     @overload
     def _push(
         self, oper: str, other: _CompositionType1Phase
-    ) -> HigherOrderFormulaBuilder[QuantityT]:
-        ...
+    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
 
     @overload
     def _push(
         self, oper: str, other: _CompositionType3Phase | QuantityT | float
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
-        ...
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
 
     def _push(
         self, oper: str, other: _CompositionType | QuantityT | float
@@ -845,14 +843,12 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
     @overload
     def __add__(
         self, other: _CompositionType1Phase
-    ) -> HigherOrderFormulaBuilder[QuantityT]:
-        ...
+    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
 
     @overload
     def __add__(
         self, other: _CompositionType3Phase | QuantityT
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
-        ...
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
 
     def __add__(
         self, other: _CompositionType | QuantityT
@@ -875,14 +871,12 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
     @overload
     def __sub__(
         self, other: _CompositionType1Phase
-    ) -> HigherOrderFormulaBuilder[QuantityT]:
-        ...
+    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
 
     @overload
     def __sub__(
         self, other: _CompositionType3Phase | QuantityT
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
-        ...
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
 
     def __sub__(
         self,
@@ -906,14 +900,12 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
     @overload
     def __mul__(
         self, other: _CompositionType1Phase
-    ) -> HigherOrderFormulaBuilder[QuantityT]:
-        ...
+    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
 
     @overload
     def __mul__(
         self, other: _CompositionType3Phase | float
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
-        ...
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
 
     def __mul__(
         self,
@@ -937,14 +929,12 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
     @overload
     def __truediv__(
         self, other: _CompositionType1Phase
-    ) -> HigherOrderFormulaBuilder[QuantityT]:
-        ...
+    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
 
     @overload
     def __truediv__(
         self, other: _CompositionType3Phase | float
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
-        ...
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
 
     def __truediv__(
         self,
@@ -968,14 +958,12 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
     @overload
     def max(
         self, other: _CompositionType1Phase
-    ) -> HigherOrderFormulaBuilder[QuantityT]:
-        ...
+    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
 
     @overload
     def max(
         self, other: _CompositionType3Phase | QuantityT
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
-        ...
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
 
     def max(
         self, other: _CompositionType | QuantityT
@@ -998,14 +986,12 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
     @overload
     def min(
         self, other: _CompositionType1Phase
-    ) -> HigherOrderFormulaBuilder[QuantityT]:
-        ...
+    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
 
     @overload
     def min(
         self, other: _CompositionType3Phase | QuantityT
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
-        ...
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
 
     def min(
         self, other: _CompositionType | QuantityT

@@ -46,9 +46,9 @@ class FormulaEnginePool:
         """
         self._namespace: str = namespace
         self._channel_registry: ChannelRegistry = channel_registry
-        self._resampler_subscription_sender: Sender[
-            ComponentMetricRequest
-        ] = resampler_subscription_sender
+        self._resampler_subscription_sender: Sender[ComponentMetricRequest] = (
+            resampler_subscription_sender
+        )
         self._string_engines: dict[str, FormulaEngine[Quantity]] = {}
         self._power_engines: dict[str, FormulaEngine[Power]] = {}
         self._current_engines: dict[str, FormulaEngine3Phase[Current]] = {}

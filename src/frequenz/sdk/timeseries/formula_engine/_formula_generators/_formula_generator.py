@@ -73,9 +73,9 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
             config: configs for the formula generator.
         """
         self._channel_registry: ChannelRegistry = channel_registry
-        self._resampler_subscription_sender: Sender[
-            ComponentMetricRequest
-        ] = resampler_subscription_sender
+        self._resampler_subscription_sender: Sender[ComponentMetricRequest] = (
+            resampler_subscription_sender
+        )
         self._namespace: str = namespace
         self._config: FormulaGeneratorConfig = config
 
