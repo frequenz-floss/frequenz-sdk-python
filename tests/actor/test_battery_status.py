@@ -165,13 +165,16 @@ class TestBatteryStatus:
         status_channel = Broadcast[ComponentStatus]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
-        async with mock_microgrid, BatteryStatusTracker(
-            BATTERY_ID,
-            max_data_age=timedelta(seconds=5),
-            max_blocking_duration=timedelta(seconds=30),
-            status_sender=status_channel.new_sender(),
-            set_power_result_receiver=set_power_result_channel.new_receiver(),
-        ) as tracker:
+        async with (
+            mock_microgrid,
+            BatteryStatusTracker(
+                BATTERY_ID,
+                max_data_age=timedelta(seconds=5),
+                max_blocking_duration=timedelta(seconds=30),
+                status_sender=status_channel.new_sender(),
+                set_power_result_receiver=set_power_result_channel.new_receiver(),
+            ) as tracker,
+        ):
             time_machine.move_to("2022-01-01 00:00 UTC", tick=False)
             assert tracker.battery_id == BATTERY_ID
             assert tracker._last_status == ComponentStatusEnum.NOT_WORKING
@@ -333,15 +336,18 @@ class TestBatteryStatus:
         status_channel = Broadcast[ComponentStatus]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
-        async with mock_microgrid, BatteryStatusTracker(
-            # increase max_data_age_sec for blocking tests.
-            # Otherwise it will block blocking.
-            BATTERY_ID,
-            max_data_age=timedelta(seconds=500),
-            max_blocking_duration=timedelta(seconds=30),
-            status_sender=status_channel.new_sender(),
-            set_power_result_receiver=set_power_result_channel.new_receiver(),
-        ) as tracker:
+        async with (
+            mock_microgrid,
+            BatteryStatusTracker(
+                # increase max_data_age_sec for blocking tests.
+                # Otherwise it will block blocking.
+                BATTERY_ID,
+                max_data_age=timedelta(seconds=500),
+                max_blocking_duration=timedelta(seconds=30),
+                status_sender=status_channel.new_sender(),
+                set_power_result_receiver=set_power_result_channel.new_receiver(),
+            ) as tracker,
+        ):
             with time_machine.travel("2022-01-01 00:00 UTC", tick=False) as time:
                 tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
 
@@ -471,13 +477,16 @@ class TestBatteryStatus:
         status_channel = Broadcast[ComponentStatus]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
-        async with mock_microgrid, BatteryStatusTracker(
-            BATTERY_ID,
-            max_data_age=timedelta(seconds=5),
-            max_blocking_duration=timedelta(seconds=30),
-            status_sender=status_channel.new_sender(),
-            set_power_result_receiver=set_power_result_channel.new_receiver(),
-        ) as tracker:
+        async with (
+            mock_microgrid,
+            BatteryStatusTracker(
+                BATTERY_ID,
+                max_data_age=timedelta(seconds=5),
+                max_blocking_duration=timedelta(seconds=30),
+                status_sender=status_channel.new_sender(),
+                set_power_result_receiver=set_power_result_channel.new_receiver(),
+            ) as tracker,
+        ):
             start = datetime(2022, 1, 1, tzinfo=timezone.utc)
             time_machine.move_to(start, tick=False)
 
@@ -519,13 +528,16 @@ class TestBatteryStatus:
         status_channel = Broadcast[ComponentStatus]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
-        async with mock_microgrid, BatteryStatusTracker(
-            BATTERY_ID,
-            max_data_age=timedelta(seconds=5),
-            max_blocking_duration=timedelta(seconds=30),
-            status_sender=status_channel.new_sender(),
-            set_power_result_receiver=set_power_result_channel.new_receiver(),
-        ) as tracker:
+        async with (
+            mock_microgrid,
+            BatteryStatusTracker(
+                BATTERY_ID,
+                max_data_age=timedelta(seconds=5),
+                max_blocking_duration=timedelta(seconds=30),
+                status_sender=status_channel.new_sender(),
+                set_power_result_receiver=set_power_result_channel.new_receiver(),
+            ) as tracker,
+        ):
             time_machine.move_to("2022-01-01 00:00 UTC", tick=False)
 
             tracker._handle_status_inverter(inverter_data(component_id=INVERTER_ID))
@@ -580,13 +592,16 @@ class TestBatteryStatus:
         status_channel = Broadcast[ComponentStatus]("battery_status")
         set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
 
-        async with mock_microgrid, BatteryStatusTracker(
-            BATTERY_ID,
-            max_data_age=timedelta(seconds=5),
-            max_blocking_duration=timedelta(seconds=30),
-            status_sender=status_channel.new_sender(),
-            set_power_result_receiver=set_power_result_channel.new_receiver(),
-        ) as tracker:
+        async with (
+            mock_microgrid,
+            BatteryStatusTracker(
+                BATTERY_ID,
+                max_data_age=timedelta(seconds=5),
+                max_blocking_duration=timedelta(seconds=30),
+                status_sender=status_channel.new_sender(),
+                set_power_result_receiver=set_power_result_channel.new_receiver(),
+            ) as tracker,
+        ):
             time_machine.move_to("2022-01-01 00:00 UTC", tick=False)
 
             battery_timer_spy = mocker.spy(tracker._battery.data_recv_timer, "reset")
@@ -646,12 +661,15 @@ class TestBatteryStatus:
         status_receiver = status_channel.new_receiver()
         set_power_result_sender = set_power_result_channel.new_sender()
 
-        async with mock_microgrid, BatteryStatusTracker(
-            BATTERY_ID,
-            max_data_age=timedelta(seconds=5),
-            max_blocking_duration=timedelta(seconds=30),
-            status_sender=status_channel.new_sender(),
-            set_power_result_receiver=set_power_result_channel.new_receiver(),
+        async with (
+            mock_microgrid,
+            BatteryStatusTracker(
+                BATTERY_ID,
+                max_data_age=timedelta(seconds=5),
+                max_blocking_duration=timedelta(seconds=30),
+                status_sender=status_channel.new_sender(),
+                set_power_result_receiver=set_power_result_channel.new_receiver(),
+            ),
         ):
             import time_machine  # pylint: disable=import-outside-toplevel
 
@@ -730,12 +748,15 @@ class TestBatteryStatusRecovery:
 
         status_receiver = status_channel.new_receiver()
 
-        async with mock_microgrid, BatteryStatusTracker(
-            BATTERY_ID,
-            max_data_age=timedelta(seconds=0.1),
-            max_blocking_duration=timedelta(seconds=1),
-            status_sender=status_channel.new_sender(),
-            set_power_result_receiver=set_power_result_channel.new_receiver(),
+        async with (
+            mock_microgrid,
+            BatteryStatusTracker(
+                BATTERY_ID,
+                max_data_age=timedelta(seconds=0.1),
+                max_blocking_duration=timedelta(seconds=1),
+                status_sender=status_channel.new_sender(),
+                set_power_result_receiver=set_power_result_channel.new_receiver(),
+            ),
         ):
             await asyncio.sleep(0.05)
             yield (mock_microgrid, status_receiver)

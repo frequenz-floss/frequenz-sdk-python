@@ -66,9 +66,10 @@ class TestLogicalMeter:  # pylint: disable=too-many-public-methods
 
     async def test_pv_power_no_pv_components(self, mocker: MockerFixture) -> None:
         """Test the pv power formula without having any pv components."""
-        async with MockMicrogrid(
-            grid_meter=True, mocker=mocker
-        ) as mockgrid, AsyncExitStack() as stack:
+        async with (
+            MockMicrogrid(grid_meter=True, mocker=mocker) as mockgrid,
+            AsyncExitStack() as stack,
+        ):
             logical_meter = microgrid.logical_meter()
             stack.push_async_callback(logical_meter.stop)
             pv_power_receiver = logical_meter.pv_power.new_receiver()

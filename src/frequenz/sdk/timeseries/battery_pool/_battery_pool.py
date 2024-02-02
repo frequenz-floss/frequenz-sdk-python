@@ -385,10 +385,10 @@ class BatteryPool:
             priority=self._priority,
             component_ids=self._battery_pool._batteries,
         )
-        self._battery_pool._power_bounds_subs[
-            sub.get_channel_name()
-        ] = asyncio.create_task(
-            self._battery_pool._power_manager_bounds_subscription_sender.send(sub)
+        self._battery_pool._power_bounds_subs[sub.get_channel_name()] = (
+            asyncio.create_task(
+                self._battery_pool._power_manager_bounds_subscription_sender.send(sub)
+            )
         )
         channel = self._battery_pool._channel_registry.get_or_create(
             _power_managing._Report, sub.get_channel_name()

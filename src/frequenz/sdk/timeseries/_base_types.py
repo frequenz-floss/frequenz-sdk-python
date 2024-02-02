@@ -65,12 +65,10 @@ class Sample3Phase(Generic[QuantityT]):
         yield self.value_p3
 
     @overload
-    def max(self, default: QuantityT) -> QuantityT:
-        ...
+    def max(self, default: QuantityT) -> QuantityT: ...
 
     @overload
-    def max(self, default: None = None) -> QuantityT | None:
-        ...
+    def max(self, default: None = None) -> QuantityT | None: ...
 
     def max(self, default: QuantityT | None = None) -> QuantityT | None:
         """Return the max value among all phases, or default if they are all `None`.
@@ -90,12 +88,10 @@ class Sample3Phase(Generic[QuantityT]):
         return value
 
     @overload
-    def min(self, default: QuantityT) -> QuantityT:
-        ...
+    def min(self, default: QuantityT) -> QuantityT: ...
 
     @overload
-    def min(self, default: None = None) -> QuantityT | None:
-        ...
+    def min(self, default: None = None) -> QuantityT | None: ...
 
     def min(self, default: QuantityT | None = None) -> QuantityT | None:
         """Return the min value among all phases, or default if they are all `None`.

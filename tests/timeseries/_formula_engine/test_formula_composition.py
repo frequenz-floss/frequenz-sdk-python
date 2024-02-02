@@ -248,9 +248,10 @@ class TestFormulaComposition:
         self, mocker: MockerFixture
     ) -> None:
         """Test the compositing formulas and constants with the min and max functions."""
-        async with MockMicrogrid(
-            grid_meter=True, mocker=mocker
-        ) as mockgrid, AsyncExitStack() as stack:
+        async with (
+            MockMicrogrid(grid_meter=True, mocker=mocker) as mockgrid,
+            AsyncExitStack() as stack,
+        ):
             logical_meter = microgrid.logical_meter()
             stack.push_async_callback(logical_meter.stop)
 
@@ -299,9 +300,10 @@ class TestFormulaComposition:
 
     async def test_formula_composition_constant(self, mocker: MockerFixture) -> None:
         """Test the composition of formulas with constant values."""
-        async with MockMicrogrid(
-            grid_meter=True, mocker=mocker
-        ) as mockgrid, AsyncExitStack() as stack:
+        async with (
+            MockMicrogrid(grid_meter=True, mocker=mocker) as mockgrid,
+            AsyncExitStack() as stack,
+        ):
             logical_meter = microgrid.logical_meter()
             stack.push_async_callback(logical_meter.stop)
             grid = microgrid.grid()

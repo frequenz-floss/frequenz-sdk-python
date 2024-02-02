@@ -49,9 +49,9 @@ class ResampledFormulaBuilder(FormulaBuilder[QuantityT]):
                 `Power.from_watts`, for example.
         """
         self._channel_registry: ChannelRegistry = channel_registry
-        self._resampler_subscription_sender: Sender[
-            ComponentMetricRequest
-        ] = resampler_subscription_sender
+        self._resampler_subscription_sender: Sender[ComponentMetricRequest] = (
+            resampler_subscription_sender
+        )
         self._namespace: str = namespace
         self._metric_id: ComponentMetricId = metric_id
         self._resampler_requests: list[ComponentMetricRequest] = []
@@ -80,9 +80,11 @@ class ResampledFormulaBuilder(FormulaBuilder[QuantityT]):
         resampled_receiver = resampled_channel.new_receiver().map(
             lambda sample: Sample(
                 sample.timestamp,
-                self._create_method(sample.value.base_value)
-                if sample.value is not None
-                else None,
+                (
+                    self._create_method(sample.value.base_value)
+                    if sample.value is not None
+                    else None
+                ),
             )
         )
         return resampled_receiver

@@ -17,8 +17,7 @@ _C = typing.TypeVar("_C", bound="_Comparable")
 
 class _Comparable(typing.Protocol):
     @abc.abstractmethod
-    def __lt__(self: _C, other: _C, /) -> bool:
-        ...
+    def __lt__(self: _C, other: _C, /) -> bool: ...
 
 
 _ComparableT = typing.TypeVar("_ComparableT", bound=_Comparable)

@@ -48,9 +48,11 @@ class StatefulTester:
                     None if bounds[1] is None else Power.from_watts(bounds[1]),
                 ),
                 priority=priority,
-                creation_time=creation_time
-                if creation_time is not None
-                else asyncio.get_event_loop().time(),
+                creation_time=(
+                    creation_time
+                    if creation_time is not None
+                    else asyncio.get_event_loop().time()
+                ),
             ),
             self._system_bounds,
             must_send,

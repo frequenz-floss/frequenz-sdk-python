@@ -221,11 +221,11 @@ class PowerManagingActor(Actor):
                         ).new_sender()
                     }
                 elif priority not in self._subscriptions[component_ids]:
-                    self._subscriptions[component_ids][
-                        priority
-                    ] = self._channel_registry.get_or_create(
-                        _Report, sub.get_channel_name()
-                    ).new_sender()
+                    self._subscriptions[component_ids][priority] = (
+                        self._channel_registry.get_or_create(
+                            _Report, sub.get_channel_name()
+                        ).new_sender()
+                    )
 
                 if sub.component_ids not in self._bound_tracker_tasks:
                     self._add_bounds_tracker(sub.component_ids)
@@ -236,9 +236,9 @@ class PowerManagingActor(Actor):
                 )
 
                 result = selected.value
-                self._distribution_results[
-                    frozenset(result.request.component_ids)
-                ] = result
+                self._distribution_results[frozenset(result.request.component_ids)] = (
+                    result
+                )
                 if not isinstance(result, power_distributing.Success):
                     _logger.warning(
                         "PowerManagingActor: PowerDistributing failed: %s", result

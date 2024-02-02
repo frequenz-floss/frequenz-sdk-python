@@ -155,8 +155,9 @@ class TestBatteryPoolControl:
         power: float | None,
         lower: float,
         upper: float,
-        expected_result_pred: typing.Callable[[power_distributing.Result], bool]
-        | None = None,
+        expected_result_pred: (
+            typing.Callable[[power_distributing.Result], bool] | None
+        ) = None,
     ) -> None:
         assert report.target_power == (
             Power.from_watts(power) if power is not None else None

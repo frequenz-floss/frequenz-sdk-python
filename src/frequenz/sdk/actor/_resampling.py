@@ -49,12 +49,12 @@ class ComponentMetricsResamplingActor(Actor):
         """
         super().__init__(name=name)
         self._channel_registry: ChannelRegistry = channel_registry
-        self._data_sourcing_request_sender: Sender[
-            ComponentMetricRequest
-        ] = data_sourcing_request_sender
-        self._resampling_request_receiver: Receiver[
-            ComponentMetricRequest
-        ] = resampling_request_receiver
+        self._data_sourcing_request_sender: Sender[ComponentMetricRequest] = (
+            data_sourcing_request_sender
+        )
+        self._resampling_request_receiver: Receiver[ComponentMetricRequest] = (
+            resampling_request_receiver
+        )
         self._resampler: Resampler = Resampler(config)
         self._active_req_channels: set[str] = set()
 

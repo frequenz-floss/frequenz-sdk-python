@@ -69,9 +69,9 @@ class GridFrequency:
                 ),
             )
 
-        self._request_sender: Sender[
-            ComponentMetricRequest
-        ] = data_sourcing_request_sender
+        self._request_sender: Sender[ComponentMetricRequest] = (
+            data_sourcing_request_sender
+        )
         self._channel_registry: ChannelRegistry = channel_registry
         self._source_component: Component = source
         self._component_metric_request: ComponentMetricRequest = create_request(
@@ -107,9 +107,13 @@ class GridFrequency:
             )
 
         return receiver.map(
-            lambda sample: Sample[Frequency](sample.timestamp, None)
-            if sample.value is None or sample.value.isnan()
-            else Sample(sample.timestamp, Frequency.from_hertz(sample.value.base_value))
+            lambda sample: (
+                Sample[Frequency](sample.timestamp, None)
+                if sample.value is None or sample.value.isnan()
+                else Sample(
+                    sample.timestamp, Frequency.from_hertz(sample.value.base_value)
+                )
+            )
         )
 
     async def _send_request(self) -> None:

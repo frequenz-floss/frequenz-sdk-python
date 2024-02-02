@@ -92,13 +92,13 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
 
         self._min_update_interval: timedelta = min_update_interval
 
-        self._power_manager_requests_sender: Sender[
-            Proposal
-        ] = power_manager_requests_sender
+        self._power_manager_requests_sender: Sender[Proposal] = (
+            power_manager_requests_sender
+        )
 
-        self._power_manager_bounds_subscription_sender: Sender[
-            ReportRequest
-        ] = power_manager_bounds_subscription_sender
+        self._power_manager_bounds_subscription_sender: Sender[ReportRequest] = (
+            power_manager_bounds_subscription_sender
+        )
 
         self._active_methods: dict[str, MetricAggregator[Any]] = {}
         self._power_bounds_subs: dict[str, asyncio.Task[None]] = {}
