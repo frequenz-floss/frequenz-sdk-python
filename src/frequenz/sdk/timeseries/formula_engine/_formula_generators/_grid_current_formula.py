@@ -52,9 +52,6 @@ class GridCurrentFormula(FormulaGenerator[Current]):
         # generate a formula that just adds values from all components that are
         # directly connected to the grid.
         for idx, comp in enumerate(grid_successors):
-            if idx > 0:
-                builder.push_oper("+")
-
             # When inverters or ev chargers produce `None` samples, those
             # inverters are excluded from the calculation by treating their
             # `None` values as `0`s.
@@ -70,6 +67,9 @@ class GridCurrentFormula(FormulaGenerator[Current]):
                 nones_are_zeros = False
             else:
                 continue
+
+            if idx > 0:
+                builder.push_oper("+")
 
             builder.push_component_metric(
                 comp.component_id, nones_are_zeros=nones_are_zeros
