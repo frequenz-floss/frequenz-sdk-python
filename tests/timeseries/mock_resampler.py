@@ -21,7 +21,7 @@ from frequenz.sdk.timeseries.formula_engine._formula_generators._formula_generat
     NON_EXISTING_COMPONENT_ID,
 )
 
-# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-instance-attributes disable=too-many-locals
 
 
 class MockResampler:
@@ -159,6 +159,18 @@ class MockResampler:
                 ),
             )
 
+        def power_3_phase_senders(
+            ids: list[int],
+        ) -> list[list[Sender[Sample[Quantity]]]]:
+            return multi_phase_senders(
+                ids,
+                (
+                    ComponentMetricId.ACTIVE_POWER_PHASE_1,
+                    ComponentMetricId.ACTIVE_POWER_PHASE_2,
+                    ComponentMetricId.ACTIVE_POWER_PHASE_3,
+                ),
+            )
+
         self._bat_inverter_current_senders = current_senders(bat_inverter_ids)
         self._pv_inverter_current_senders = current_senders(pv_inverter_ids)
         self._ev_current_senders = current_senders(evc_ids)
@@ -166,6 +178,7 @@ class MockResampler:
         self._meter_current_senders = current_senders(meter_ids)
 
         self._meter_voltage_senders = voltage_senders(meter_ids)
+        self._meter_power_3_phase_senders = power_3_phase_senders(meter_ids)
 
         self._next_ts = datetime.now()
 
@@ -321,6 +334,15 @@ class MockResampler:
         """Send the given values as resampler output for meter voltage."""
         assert len(values) == len(self._meter_voltage_senders)
         for chan, meter_values in zip(self._meter_voltage_senders, values):
+            assert len(meter_values) == 3  # 3 values for phases
+            for phase, value in enumerate(meter_values):
+                sample = self.make_sample(value)
+                await chan[phase].send(sample)
+
+    async def send_meter_power_3_phase(self, values: list[list[float | None]]) -> None:
+        """Send the given values as resampler output for meter active power."""
+        assert len(values) == len(self._meter_power_3_phase_senders)
+        for chan, meter_values in zip(self._meter_power_3_phase_senders, values):
             assert len(meter_values) == 3  # 3 values for phases
             for phase, value in enumerate(meter_values):
                 sample = self.make_sample(value)

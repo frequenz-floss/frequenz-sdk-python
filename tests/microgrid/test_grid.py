@@ -202,6 +202,75 @@ async def test_grid_power_2(mocker: MockerFixture) -> None:
     assert equal_float_lists(results, meter_sums)
 
 
+async def test_grid_power_3_phase_side_meter(mocker: MockerFixture) -> None:
+    """Test the grid 3-phase power with a grid side meter."""
+    mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
+    mockgrid.add_batteries(1, no_meter=True)
+    mockgrid.add_batteries(1, no_meter=False)
+
+    async with mockgrid, AsyncExitStack() as stack:
+        grid = microgrid.grid()
+        assert grid, "Grid is not initialized"
+        stack.push_async_callback(grid.stop)
+
+        grid_power_3_phase_recv = (
+            grid._power_3_phase.new_receiver()  # pylint: disable=protected-access
+        )
+
+        for count in range(10):
+            watts_delta = 1 if count % 2 == 0 else -1
+            watts_phases: list[float | None] = [
+                220.0 * watts_delta,
+                219.8 * watts_delta,
+                220.2 * watts_delta,
+            ]
+
+            await mockgrid.mock_resampler.send_meter_power_3_phase(
+                [watts_phases, watts_phases]
+            )
+
+            val = await grid_power_3_phase_recv.receive()
+            assert val is not None
+            assert val.value_p1 and val.value_p2 and val.value_p3
+            assert val.value_p1.as_watts() == watts_phases[0]
+            assert val.value_p2.as_watts() == watts_phases[1]
+            assert val.value_p3.as_watts() == watts_phases[2]
+
+
+async def test_grid_power_3_phase_none_values(mocker: MockerFixture) -> None:
+    """Test the grid 3-phase power with None values."""
+    mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
+    mockgrid.add_batteries(2, no_meter=False)
+
+    async with mockgrid, AsyncExitStack() as stack:
+        grid = microgrid.grid()
+        assert grid, "Grid is not initialized"
+        stack.push_async_callback(grid.stop)
+
+        grid_power_3_phase_recv = (
+            grid._power_3_phase.new_receiver()  # pylint: disable=protected-access
+        )
+
+        for count in range(10):
+            watts_delta = 1 if count % 2 == 0 else -1
+            watts_phases: list[float | None] = [
+                220.0 * watts_delta,
+                219.8 * watts_delta,
+                220.2 * watts_delta,
+            ]
+
+            await mockgrid.mock_resampler.send_meter_power_3_phase(
+                [watts_phases, [None, None, None], [None, 219.8, 220.2]]
+            )
+
+            val = await grid_power_3_phase_recv.receive()
+            assert val is not None
+            assert val.value_p1 and val.value_p2 and val.value_p3
+            assert val.value_p1.as_watts() == watts_phases[0]
+            assert val.value_p2.as_watts() == watts_phases[1]
+            assert val.value_p3.as_watts() == watts_phases[2]
+
+
 async def test_grid_production_consumption_power_consumer_meter(
     mocker: MockerFixture,
 ) -> None:

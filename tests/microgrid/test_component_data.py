@@ -53,14 +53,17 @@ def test_inverter_data() -> None:
                     phase_1=electrical_pb2.AC.ACPhase(
                         current=metrics_pb2.Metric(value=12.3),
                         voltage=metrics_pb2.Metric(value=229.8),
+                        power_active=metrics_pb2.Metric(value=33.1),
                     ),
                     phase_2=electrical_pb2.AC.ACPhase(
                         current=metrics_pb2.Metric(value=23.4),
                         voltage=metrics_pb2.Metric(value=230.0),
+                        power_active=metrics_pb2.Metric(value=33.3),
                     ),
                     phase_3=electrical_pb2.AC.ACPhase(
                         current=metrics_pb2.Metric(value=34.5),
                         voltage=metrics_pb2.Metric(value=230.2),
+                        power_active=metrics_pb2.Metric(value=33.8),
                     ),
                 ),
             ),
@@ -78,6 +81,7 @@ def test_inverter_data() -> None:
     ]
     assert inv_data.frequency == pytest.approx(50.1)
     assert inv_data.active_power == pytest.approx(100.2)
+    assert inv_data.active_power_per_phase == pytest.approx((33.1, 33.3, 33.8))
     assert inv_data.current_per_phase == pytest.approx((12.3, 23.4, 34.5))
     assert inv_data.voltage_per_phase == pytest.approx((229.8, 230.0, 230.2))
     assert inv_data.active_power_inclusion_lower_bound == pytest.approx(-51_000.0)
