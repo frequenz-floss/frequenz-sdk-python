@@ -108,7 +108,14 @@ class Quantity(abc.ABC):
 
         Returns:
             A quantity with value 0.0.
+
+        Raises:
+            TypeError: If called on the base
+                [`Quantity`][frequenz.sdk.timeseries.Quantity] class.
         """
+        if cls is Quantity:
+            raise TypeError("Cannot instantiate a base Quantity class.")
+
         _zero = cls._zero_cache.get(cls, None)
         if _zero is None:
             _zero = cls.__new__(cls)
@@ -129,8 +136,12 @@ class Quantity(abc.ABC):
 
         Raises:
             ValueError: If the string does not match the expected format.
-
+            TypeError: If called on the base
+                [`Quantity`][frequenz.sdk.timeseries.Quantity] class.
         """
+        if cls is Quantity:
+            raise TypeError("Cannot instantiate a base Quantity class.")
+
         split_string = string.split(" ")
 
         if len(split_string) != 2:
