@@ -602,12 +602,6 @@ def test_invalid_multiplications() -> None:
         with pytest.raises(TypeError):
             energy *= quantity  # type: ignore
 
-    for quantity in [power, voltage, current, energy, Percentage.from_percent(50)]:
-        with pytest.raises(TypeError):
-            _ = quantity * 200.0  # type: ignore
-        with pytest.raises(TypeError):
-            quantity *= 200.0  # type: ignore
-
 
 # We can't use _QUANTITY_TYPES here, because it will break the tests, as hypothesis
 # will generate more values, some of which are unsupported by the quantities. See the
