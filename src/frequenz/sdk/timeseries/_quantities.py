@@ -48,7 +48,7 @@ class Quantity:
             value: The value of this quantity in a given exponent of the base unit.
             exponent: The exponent of the base unit the given value is in.
         """
-        self._base_value = value * 10**exponent
+        self._base_value = value * 10.0**exponent
 
     @classmethod
     def _new(cls, value: float, *, exponent: int = 0) -> Self:
@@ -62,7 +62,7 @@ class Quantity:
             A new quantity subclass instance.
         """
         self = cls.__new__(cls)
-        self._base_value = value * 10**exponent
+        self._base_value = value * 10.0**exponent
         return self
 
     def __init_subclass__(cls, exponent_unit_map: dict[int, str]) -> None:
@@ -93,15 +93,15 @@ class Quantity:
 
     @classmethod
     def zero(cls) -> Self:
-        """Return a quantity with value 0.
+        """Return a quantity with value 0.0.
 
         Returns:
-            A quantity with value 0.
+            A quantity with value 0.0.
         """
         _zero = cls._zero_cache.get(cls, None)
         if _zero is None:
             _zero = cls.__new__(cls)
-            _zero._base_value = 0
+            _zero._base_value = 0.0
             cls._zero_cache[cls] = _zero
         assert isinstance(_zero, cls)
         return _zero
