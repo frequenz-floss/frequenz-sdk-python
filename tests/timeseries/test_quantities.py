@@ -50,9 +50,9 @@ class Fz2(
 
 _CtorType = Callable[[float], Quantity]
 
-# Thi is the current number of subclasses. This probably will get outdated, but it will
+# This is the current number of subclasses. This probably will get outdated, but it will
 # provide at least some safety against something going really wrong and end up testing
-# an empty list. With this we should at least make sure we are not testint less classes
+# an empty list. With this we should at least make sure we are not testing less classes
 # than before. We don't get the actual number using len(_QUANTITY_SUBCLASSES) because it
 # would defeat the purpose of the test.
 _SANITFY_NUM_CLASSES = 7
@@ -65,7 +65,7 @@ _QUANTITY_SUBCLASSES = [
     )
 ]
 
-# A very basic sainty check that we are messing up the introspection
+# A very basic sanity check that are messing up the introspection
 assert len(_QUANTITY_SUBCLASSES) >= _SANITFY_NUM_CLASSES
 
 _QUANTITY_BASE_UNIT_STRINGS = [
@@ -85,7 +85,7 @@ _QUANTITY_CTORS = [
         and m.__name__ != ("from_string"),
     )
 ]
-# A very basic sainty check that we are messing up the introspection. There are actually
+# A very basic sanity check that are messing up the introspection. There are actually
 # many more constructors than classes, but this still works as a very basic check.
 assert len(_QUANTITY_CTORS) >= _SANITFY_NUM_CLASSES
 
@@ -609,6 +609,9 @@ def test_invalid_multiplications() -> None:
             quantity *= 200.0  # type: ignore
 
 
+# We can't use _QUANTITY_TYPES here, because it will break the tests, as hypothesis
+# will generate more values, some of which are unsupported by the quantities. See the
+# test comment for more details.
 @pytest.mark.parametrize("quantity_type", [Power, Voltage, Current, Energy, Frequency])
 @pytest.mark.parametrize("exponent", [0, 3, 6, 9])
 @hypothesis.settings(
@@ -633,8 +636,14 @@ def test_to_and_from_string(
     generation and regenerate it with the more appropriate unit and precision.
     """
     quantity = quantity_type.__new__(quantity_type)
-    # pylint: disable=protected-access
-    quantity._base_value = value * 10**exponent
+    quantity._base_value = value * 10**exponent  # pylint: disable=protected-access
+    # The above should be replaced with:
+    # quantity = quantity_type._new(  # pylint: disable=protected-access
+    #     value, exponent=exponent
+    # )
+    # But we can't do that now, because, you guessed it, it will also break the tests
+    # (_new() will use 10.0**exponent instead of 10**exponent, which seems to have some
+    # effect on the tests.
     quantity_str = f"{quantity:.{exponent}}"
     from_string = quantity_type.from_string(quantity_str)
     try:
