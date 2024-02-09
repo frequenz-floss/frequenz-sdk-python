@@ -141,8 +141,6 @@ class BackgroundService(abc.ABC):
         Raises:
             BaseExceptionGroup: If any of the tasks spawned by this service raised an
                 exception.
-
-        [//]: # (# noqa: DAR401 rest)
         """
         if not self._tasks:
             return

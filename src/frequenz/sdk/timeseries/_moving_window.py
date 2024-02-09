@@ -374,24 +374,15 @@ class MovingWindow(BackgroundService):
 
     @overload
     def __getitem__(self, key: SupportsIndex) -> float:
-        """See the main __getitem__ method.
-
-        [//]: # (# noqa: DAR101 key)
-        """
+        """See the main __getitem__ method."""
 
     @overload
     def __getitem__(self, key: datetime) -> float:
-        """See the main __getitem__ method.
-
-        [//]: # (# noqa: DAR101 key)
-        """
+        """See the main __getitem__ method."""
 
     @overload
     def __getitem__(self, key: slice) -> ArrayLike:
-        """See the main __getitem__ method.
-
-        [//]: # (# noqa: DAR101 key)
-        """
+        """See the main __getitem__ method."""
 
     def __getitem__(self, key: SupportsIndex | datetime | slice) -> float | ArrayLike:
         """
