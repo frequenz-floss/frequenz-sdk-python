@@ -50,6 +50,21 @@ class Quantity:
         """
         self._base_value = value * 10**exponent
 
+    @classmethod
+    def _new(cls, value: float, *, exponent: int = 0) -> Self:
+        """Instantiate a new quantity subclass instance.
+
+        Args:
+            value: The value of this quantity in a given exponent of the base unit.
+            exponent: The exponent of the base unit the given value is in.
+
+        Returns:
+            A new quantity subclass instance.
+        """
+        self = cls.__new__(cls)
+        self._base_value = value * 10**exponent
+        return self
+
     def __init_subclass__(cls, exponent_unit_map: dict[int, str]) -> None:
         """Initialize a new subclass of Quantity.
 
@@ -464,9 +479,7 @@ class Temperature(
         Returns:
             A new temperature quantity.
         """
-        power = cls.__new__(cls)
-        power._base_value = value
-        return power
+        return cls._new(value)
 
     def as_celsius(self) -> float:
         """Return the temperature in degrees Celsius.
@@ -508,9 +521,7 @@ class Power(
         Returns:
             A new power quantity.
         """
-        power = cls.__new__(cls)
-        power._base_value = watts
-        return power
+        return cls._new(watts)
 
     @classmethod
     def from_milliwatts(cls, milliwatts: float) -> Self:
@@ -522,9 +533,7 @@ class Power(
         Returns:
             A new power quantity.
         """
-        power = cls.__new__(cls)
-        power._base_value = milliwatts * 10**-3
-        return power
+        return cls._new(milliwatts, exponent=-3)
 
     @classmethod
     def from_kilowatts(cls, kilowatts: float) -> Self:
@@ -536,9 +545,7 @@ class Power(
         Returns:
             A new power quantity.
         """
-        power = cls.__new__(cls)
-        power._base_value = kilowatts * 10**3
-        return power
+        return cls._new(kilowatts, exponent=3)
 
     @classmethod
     def from_megawatts(cls, megawatts: float) -> Self:
@@ -550,9 +557,7 @@ class Power(
         Returns:
             A new power quantity.
         """
-        power = cls.__new__(cls)
-        power._base_value = megawatts * 10**6
-        return power
+        return cls._new(megawatts, exponent=6)
 
     def as_watts(self) -> float:
         """Return the power in watts.
@@ -690,9 +695,7 @@ class Current(
         Returns:
             A new current quantity.
         """
-        current = cls.__new__(cls)
-        current._base_value = amperes
-        return current
+        return cls._new(amperes)
 
     @classmethod
     def from_milliamperes(cls, milliamperes: float) -> Self:
@@ -704,9 +707,7 @@ class Current(
         Returns:
             A new current quantity.
         """
-        current = cls.__new__(cls)
-        current._base_value = milliamperes * 10**-3
-        return current
+        return cls._new(milliamperes, exponent=-3)
 
     def as_amperes(self) -> float:
         """Return the current in amperes.
@@ -789,9 +790,7 @@ class Voltage(
         Returns:
             A new voltage quantity.
         """
-        voltage = cls.__new__(cls)
-        voltage._base_value = volts
-        return voltage
+        return cls._new(volts)
 
     @classmethod
     def from_millivolts(cls, millivolts: float) -> Self:
@@ -803,9 +802,7 @@ class Voltage(
         Returns:
             A new voltage quantity.
         """
-        voltage = cls.__new__(cls)
-        voltage._base_value = millivolts * 10**-3
-        return voltage
+        return cls._new(millivolts, exponent=-3)
 
     @classmethod
     def from_kilovolts(cls, kilovolts: float) -> Self:
@@ -817,9 +814,7 @@ class Voltage(
         Returns:
             A new voltage quantity.
         """
-        voltage = cls.__new__(cls)
-        voltage._base_value = kilovolts * 10**3
-        return voltage
+        return cls._new(kilovolts, exponent=3)
 
     def as_volts(self) -> float:
         """Return the voltage in volts.
@@ -914,9 +909,7 @@ class Energy(
         Returns:
             A new energy quantity.
         """
-        energy = cls.__new__(cls)
-        energy._base_value = watt_hours
-        return energy
+        return cls._new(watt_hours)
 
     @classmethod
     def from_kilowatt_hours(cls, kilowatt_hours: float) -> Self:
@@ -928,9 +921,7 @@ class Energy(
         Returns:
             A new energy quantity.
         """
-        energy = cls.__new__(cls)
-        energy._base_value = kilowatt_hours * 10**3
-        return energy
+        return cls._new(kilowatt_hours, exponent=3)
 
     @classmethod
     def from_megawatt_hours(cls, megawatt_hours: float) -> Self:
@@ -942,9 +933,7 @@ class Energy(
         Returns:
             A new energy quantity.
         """
-        energy = cls.__new__(cls)
-        energy._base_value = megawatt_hours * 10**6
-        return energy
+        return cls._new(megawatt_hours, exponent=6)
 
     def as_watt_hours(self) -> float:
         """Return the energy in watt hours.
@@ -1039,9 +1028,7 @@ class Frequency(
         Returns:
             A new frequency quantity.
         """
-        frequency = cls.__new__(cls)
-        frequency._base_value = hertz
-        return frequency
+        return cls._new(hertz)
 
     @classmethod
     def from_kilohertz(cls, kilohertz: float) -> Self:
@@ -1053,9 +1040,7 @@ class Frequency(
         Returns:
             A new frequency quantity.
         """
-        frequency = cls.__new__(cls)
-        frequency._base_value = kilohertz * 10**3
-        return frequency
+        return cls._new(kilohertz, exponent=3)
 
     @classmethod
     def from_megahertz(cls, megahertz: float) -> Self:
@@ -1067,9 +1052,7 @@ class Frequency(
         Returns:
             A new frequency quantity.
         """
-        frequency = cls.__new__(cls)
-        frequency._base_value = megahertz * 10**6
-        return frequency
+        return cls._new(megahertz, exponent=6)
 
     @classmethod
     def from_gigahertz(cls, gigahertz: float) -> Self:
@@ -1081,9 +1064,7 @@ class Frequency(
         Returns:
             A new frequency quantity.
         """
-        frequency = cls.__new__(cls)
-        frequency._base_value = gigahertz * 10**9
-        return frequency
+        return cls._new(gigahertz, exponent=9)
 
     def as_hertz(self) -> float:
         """Return the frequency in hertz.
@@ -1152,9 +1133,7 @@ class Percentage(
         Returns:
             A new percentage quantity.
         """
-        percentage = cls.__new__(cls)
-        percentage._base_value = percent
-        return percentage
+        return cls._new(percent)
 
     @classmethod
     def from_fraction(cls, fraction: float) -> Self:
@@ -1166,9 +1145,7 @@ class Percentage(
         Returns:
             A new percentage quantity.
         """
-        percentage = cls.__new__(cls)
-        percentage._base_value = fraction * 100
-        return percentage
+        return cls._new(fraction * 100)
 
     def as_percent(self) -> float:
         """Return this quantity as a percentage.
