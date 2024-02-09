@@ -12,7 +12,7 @@ import logging
 from abc import ABC
 from collections import deque
 from collections.abc import Callable
-from typing import Generic, TypeVar, Union, overload
+from typing import Generic, SupportsFloat, TypeVar, Union, overload
 
 from frequenz.channels import Broadcast, Receiver
 
@@ -39,6 +39,12 @@ from ._formula_steps import (
 from ._tokenizer import TokenType
 
 _logger = logging.Logger(__name__)
+
+SupportsFloatInputT = TypeVar("SupportsFloatInputT", bound=SupportsFloat)
+"""Type variable for inputs that support conversion to float."""
+
+SupportsFloatOutputT = TypeVar("SupportsFloatOutputT", bound=SupportsFloat)
+"""Type variable for outputs that support conversion to float."""
 
 _operator_precedence = {
     "max": 0,
@@ -95,11 +101,17 @@ _GenericHigherOrderBuilder = TypeVar(
 # but mypy doesn't support that, so we need to use `# type: ignore` in several places in
 # this, and subsequent classes, to avoid mypy errors.
 class _ComposableFormulaEngine(
-    ABC, Generic[_GenericEngine, _GenericHigherOrderBuilder, SupportsFloatT]
+    ABC,
+    Generic[
+        _GenericEngine,
+        _GenericHigherOrderBuilder,
+        SupportsFloatInputT,
+        SupportsFloatOutputT,
+    ],
 ):
     """A base class for formula engines."""
 
-    _create_method: Callable[[float], SupportsFloatT]
+    _create_method: Callable[[float], SupportsFloatOutputT]
     _higher_order_builder: type[_GenericHigherOrderBuilder]
     _task: asyncio.Task[None] | None = None
 
@@ -110,8 +122,7 @@ class _ComposableFormulaEngine(
         await cancel_and_await(self._task)
 
     def __add__(
-        self,
-        other: _GenericEngine | _GenericHigherOrderBuilder | SupportsFloatT,
+        self, other: _GenericEngine | _GenericHigherOrderBuilder | SupportsFloatInputT
     ) -> _GenericHigherOrderBuilder:
         """Return a formula builder that adds (data in) `other` to `self`.
 
@@ -126,7 +137,7 @@ class _ComposableFormulaEngine(
         return self._higher_order_builder(self, self._create_method) + other  # type: ignore
 
     def __sub__(
-        self, other: _GenericEngine | _GenericHigherOrderBuilder | SupportsFloatT
+        self, other: _GenericEngine | _GenericHigherOrderBuilder | SupportsFloatInputT
     ) -> _GenericHigherOrderBuilder:
         """Return a formula builder that subtracts (data in) `other` from `self`.
 
@@ -171,7 +182,7 @@ class _ComposableFormulaEngine(
         return self._higher_order_builder(self, self._create_method) / other  # type: ignore
 
     def max(
-        self, other: _GenericEngine | _GenericHigherOrderBuilder | SupportsFloatT
+        self, other: _GenericEngine | _GenericHigherOrderBuilder | SupportsFloatInputT
     ) -> _GenericHigherOrderBuilder:
         """Return a formula engine that outputs the maximum of `self` and `other`.
 
@@ -186,7 +197,7 @@ class _ComposableFormulaEngine(
         return self._higher_order_builder(self, self._create_method).max(other)  # type: ignore
 
     def min(
-        self, other: _GenericEngine | _GenericHigherOrderBuilder | SupportsFloatT
+        self, other: _GenericEngine | _GenericHigherOrderBuilder | SupportsFloatInputT
     ) -> _GenericHigherOrderBuilder:
         """Return a formula engine that outputs the minimum of `self` and `other`.
 
@@ -221,11 +232,11 @@ class _ComposableFormulaEngine(
 
 
 class FormulaEngine(
-    Generic[SupportsFloatT],
+    Generic[SupportsFloatInputT, SupportsFloatOutputT],
     _ComposableFormulaEngine[
         "FormulaEngine",  # type: ignore[type-arg]
         "HigherOrderFormulaBuilder",  # type: ignore[type-arg]
-        SupportsFloatT,
+        SupportsFloatOutputT,
     ],
 ):
     """[`FormulaEngine`][frequenz.sdk.timeseries.formula_engine.FormulaEngine]s are a
@@ -294,8 +305,8 @@ class FormulaEngine(
 
     def __init__(
         self,
-        builder: FormulaBuilder[SupportsFloatT],
-        create_method: Callable[[float], SupportsFloatT],
+        builder: FormulaBuilder[SupportsFloatInputT, SupportsFloatOutputT],
+        create_method: Callable[[float], SupportsFloatOutputT],
     ) -> None:
         """Create a `FormulaEngine` instance.
 
@@ -308,19 +319,21 @@ class FormulaEngine(
         """
         self._higher_order_builder = HigherOrderFormulaBuilder
         self._name: str = builder.name
-        self._builder: FormulaBuilder[SupportsFloatT] = builder
+        self._builder: FormulaBuilder[SupportsFloatInputT, SupportsFloatOutputT] = (
+            builder
+        )
         self._create_method = create_method
-        self._channel: Broadcast[Sample[SupportsFloatT]] = Broadcast(self._name)
+        self._channel: Broadcast[Sample[SupportsFloatInputT]] = Broadcast(self._name)
 
     @classmethod
     def from_receiver(
         cls,
         name: str,
-        receiver: Receiver[Sample[SupportsFloatT]],
-        create_method: Callable[[float], SupportsFloatT],
+        receiver: Receiver[Sample[SupportsFloatInputT]],
+        create_method: Callable[[float], SupportsFloatOutputT],
         *,
         nones_are_zeros: bool = False,
-    ) -> FormulaEngine[SupportsFloatT]:
+    ) -> FormulaEngine[SupportsFloatInputT, SupportsFloatOutputT]:
         """
         Create a formula engine from a receiver.
 
@@ -370,7 +383,7 @@ class FormulaEngine(
     async def _run(self) -> None:
         await self._builder.subscribe()
         steps, metric_fetchers = self._builder.finalize()
-        evaluator = FormulaEvaluator[SupportsFloatT](
+        evaluator = FormulaEvaluator[SupportsFloatInputT, SupportsFloatOutputT](
             self._name, steps, metric_fetchers, self._create_method
         )
         sender = self._channel.new_sender()
@@ -556,7 +569,7 @@ class FormulaEngine3Phase(
         return self._channel.new_receiver(name, max_size)
 
 
-class FormulaBuilder(Generic[SupportsFloatT]):
+class FormulaBuilder(Generic[SupportsFloatInputT, SupportsFloatOutputT]):
     """Builds a post-fix formula engine that operates on `Sample` receivers.
 
     Operators and metrics need to be pushed in in-fix order, and they get rearranged
@@ -585,7 +598,7 @@ class FormulaBuilder(Generic[SupportsFloatT]):
     """
 
     def __init__(
-        self, name: str, create_method: Callable[[float], SupportsFloatT]
+        self, name: str, create_method: Callable[[float], SupportsFloatOutputT]
     ) -> None:
         """Create a `FormulaBuilder` instance.
 
@@ -596,10 +609,10 @@ class FormulaBuilder(Generic[SupportsFloatT]):
                 `Power.from_watts`, for example.
         """
         self._name = name
-        self._create_method: Callable[[float], SupportsFloatT] = create_method
+        self._create_method: Callable[[float], SupportsFloatOutputT] = create_method
         self._build_stack: list[FormulaStep] = []
         self._steps: list[FormulaStep] = []
-        self._metric_fetchers: dict[str, MetricFetcher[SupportsFloatT]] = {}
+        self._metric_fetchers: dict[str, MetricFetcher[SupportsFloatInputT]] = {}
 
     def push_oper(self, oper: str) -> None:  # pylint: disable=too-many-branches
         """Push an operator into the engine.
@@ -643,7 +656,7 @@ class FormulaBuilder(Generic[SupportsFloatT]):
     def push_metric(
         self,
         name: str,
-        data_stream: Receiver[Sample[SupportsFloatT]],
+        data_stream: Receiver[Sample[SupportsFloatInputT]],
         *,
         nones_are_zeros: bool,
     ) -> None:
@@ -735,7 +748,7 @@ class FormulaBuilder(Generic[SupportsFloatT]):
 
     def finalize(
         self,
-    ) -> tuple[list[FormulaStep], dict[str, MetricFetcher[SupportsFloatT]]]:
+    ) -> tuple[list[FormulaStep], dict[str, MetricFetcher[SupportsFloatInputT]]]:
         """Finalize and return the steps and fetchers for the formula.
 
         Returns:
@@ -755,7 +768,7 @@ class FormulaBuilder(Generic[SupportsFloatT]):
         steps = self._steps if len(self._steps) > 0 else self._build_stack
         return format_formula(steps)
 
-    def build(self) -> FormulaEngine[SupportsFloatT]:
+    def build(self) -> FormulaEngine[SupportsFloatInputT, SupportsFloatOutputT]:
         """Create a formula engine with the steps and fetchers that have been pushed.
 
         Returns:
@@ -765,13 +778,16 @@ class FormulaBuilder(Generic[SupportsFloatT]):
         return FormulaEngine(self, create_method=self._create_method)
 
 
-class _BaseHOFormulaBuilder(ABC, Generic[SupportsFloatT]):
+class _BaseHOFormulaBuilder(ABC, Generic[SupportsFloatInputT, SupportsFloatOutputT]):
     """Provides a way to build formulas from the outputs of other formulas."""
 
     def __init__(
         self,
-        engine: FormulaEngine[SupportsFloatT] | FormulaEngine3Phase[SupportsFloatT],
-        create_method: Callable[[float], SupportsFloatT],
+        engine: (
+            FormulaEngine[SupportsFloatInputT, SupportsFloatOutputT]
+            | FormulaEngine3Phase[SupportsFloatT]
+        ),
+        create_method: Callable[[float], SupportsFloatOutputT],
     ) -> None:
         """Create a `GenericHigherOrderFormulaBuilder` instance.
 
@@ -785,7 +801,7 @@ class _BaseHOFormulaBuilder(ABC, Generic[SupportsFloatT]):
         self._steps: deque[
             tuple[
                 TokenType,
-                FormulaEngine[SupportsFloatT]
+                FormulaEngine[SupportsFloatInputT, SupportsFloatOutputT]
                 | FormulaEngine3Phase[SupportsFloatT]
                 | Quantity
                 | float
@@ -793,12 +809,12 @@ class _BaseHOFormulaBuilder(ABC, Generic[SupportsFloatT]):
             ]
         ] = deque()
         self._steps.append((TokenType.COMPONENT_METRIC, engine))
-        self._create_method: Callable[[float], SupportsFloatT] = create_method
+        self._create_method: Callable[[float], SupportsFloatOutputT] = create_method
 
     @overload
     def _push(
         self, oper: str, other: _CompositionType1Phase
-    ) -> HigherOrderFormulaBuilder[SupportsFloatT]: ...
+    ) -> HigherOrderFormulaBuilder[SupportsFloatInputT, SupportsFloatOutputT]: ...
 
     @overload
     def _push(
@@ -1061,13 +1077,13 @@ class _BaseHOFormulaBuilder(ABC, Generic[SupportsFloatT]):
 
 
 class HigherOrderFormulaBuilder(
-    Generic[SupportsFloatT], _BaseHOFormulaBuilder[SupportsFloatT]
+    _BaseHOFormulaBuilder[SupportsFloatInputT, SupportsFloatT]
 ):
     """A specialization of the _BaseHOFormulaBuilder for `FormulaReceiver`."""
 
     def build(
         self, name: str, *, nones_are_zeros: bool = False
-    ) -> FormulaEngine[SupportsFloatT]:
+    ) -> FormulaEngine[SupportsFloatInputT, SupportsFloatT]:
         """Build a `FormulaEngine` instance from the builder.
 
         Args:
@@ -1099,7 +1115,7 @@ class HigherOrderFormulaBuilder(
 
 
 class HigherOrderFormulaBuilder3Phase(
-    Generic[SupportsFloatT], _BaseHOFormulaBuilder[SupportsFloatT]
+    _BaseHOFormulaBuilder[SupportsFloatInputT, SupportsFloatT]
 ):
     """A specialization of the _BaseHOFormulaBuilder for `FormulaReceiver3Phase`."""
 

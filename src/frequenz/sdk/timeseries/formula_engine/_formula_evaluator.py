@@ -7,23 +7,33 @@ import asyncio
 from collections.abc import Callable
 from datetime import datetime
 from math import isinf, isnan
-from typing import Generic
+from typing import Generic, SupportsFloat, TypeVar
 
 from .._base_types import Sample, SupportsFloatT
 from ._formula_steps import FormulaStep, MetricFetcher
 
+SupportsFloatInputT = TypeVar("SupportsFloatInputT", bound=SupportsFloat)
+"""Type variable for inputs that support conversion to float."""
 
-class FormulaEvaluator(Generic[SupportsFloatT]):
-    """A post-fix formula evaluator that operates on `Sample` receivers."""
+SupportsFloatOutputT = TypeVar("SupportsFloatOutputT", bound=SupportsFloat)
+"""Type variable for outputs that support conversion to float."""
+
+
+class FormulaEvaluator(Generic[SupportsFloatInputT, SupportsFloatOutputT]):
+    """A post-fix formula evaluator that operates on `Sample` receivers.
+
+    This formula evaluator takes [`float`][] samples as input and produces
+    `SupportFloatT` samples.
+    """
 
     def __init__(
         self,
         name: str,
         steps: list[FormulaStep],
-        metric_fetchers: dict[str, MetricFetcher[SupportsFloatT]],
-        create_method: Callable[[float], SupportsFloatT],
+        metric_fetchers: dict[str, MetricFetcher[SupportsFloatInputT]],
+        create_method: Callable[[float], SupportsFloatOutputT],
     ) -> None:
-        """Create a `FormulaEngine` instance.
+        """Initialize this instance.
 
         Args:
             name: A name for the formula.
@@ -35,14 +45,14 @@ class FormulaEvaluator(Generic[SupportsFloatT]):
         """
         self._name = name
         self._steps = steps
-        self._metric_fetchers: dict[str, MetricFetcher[SupportsFloatT]] = (
+        self._metric_fetchers: dict[str, MetricFetcher[SupportsFloatInputT]] = (
             metric_fetchers
         )
         self._first_run = True
-        self._create_method: Callable[[float], SupportsFloatT] = create_method
+        self._create_method: Callable[[float], SupportsFloatOutputT] = create_method
 
     async def _synchronize_metric_timestamps(
-        self, metrics: set[asyncio.Task[Sample[SupportsFloatT] | None]]
+        self, metrics: set[asyncio.Task[Sample[SupportsFloatInputT] | None]]
     ) -> datetime:
         """Synchronize the metric streams.
 
@@ -89,7 +99,7 @@ class FormulaEvaluator(Generic[SupportsFloatT]):
         self._first_run = False
         return latest_ts
 
-    async def apply(self) -> Sample[SupportsFloatT]:
+    async def apply(self) -> Sample[SupportsFloatOutputT]:
         """Fetch the latest metrics, apply the formula once and return the result.
 
         Returns:

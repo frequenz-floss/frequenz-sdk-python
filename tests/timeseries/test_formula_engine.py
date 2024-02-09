@@ -10,7 +10,7 @@ from datetime import datetime
 from frequenz.channels import Broadcast, Receiver
 
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._quantities import Power, Quantity
+from frequenz.sdk.timeseries._quantities import Power
 from frequenz.sdk.timeseries.formula_engine._formula_engine import (
     FormulaBuilder,
     FormulaEngine,
@@ -56,8 +56,8 @@ class TestFormulaEngine:
         nones_are_zeros: bool = False,
     ) -> None:
         """Run a formula test."""
-        channels: dict[str, Broadcast[Sample[Quantity]]] = {}
-        builder = FormulaBuilder("test_formula", Quantity)
+        channels: dict[str, Broadcast[Sample[float]]] = {}
+        builder = FormulaBuilder("test_formula", Power.from_watts)
         for token in Tokenizer(formula):
             if token.type == TokenType.COMPONENT_METRIC:
                 if token.value not in channels:
@@ -80,9 +80,7 @@ class TestFormulaEngine:
             io_input, io_output = io_pair
             await asyncio.gather(
                 *[
-                    chan.new_sender().send(
-                        Sample(now, None if not value else Quantity(value))
-                    )
+                    chan.new_sender().send(Sample(now, None if not value else value))
                     for chan, value in zip(channels.values(), io_input)
                 ]
             )
@@ -92,7 +90,7 @@ class TestFormulaEngine:
             else:
                 assert (
                     next_val.value is not None
-                    and next_val.value.base_value == io_output
+                    and Power.as_watts(next_val.value) == io_output
                 )
             tests_passed += 1
         await engine._stop()  # pylint: disable=protected-access
@@ -301,17 +299,17 @@ class TestFormulaEngineComposition:
     """Tests for formula channels."""
 
     def make_engine(
-        self, stream_id: int, data: Receiver[Sample[Quantity]]
-    ) -> FormulaEngine[Quantity]:
+        self, stream_id: int, data: Receiver[Sample[float]]
+    ) -> FormulaEngine[Power]:
         """Make a basic FormulaEngine."""
         name = f"#{stream_id}"
-        builder = FormulaBuilder(name, create_method=Quantity)
+        builder = FormulaBuilder(name, create_method=Power.from_watts)
         builder.push_metric(
             name,
             data,
             nones_are_zeros=False,
         )
-        return FormulaEngine(builder, create_method=Quantity)
+        return FormulaEngine(builder, create_method=Power.from_watts)
 
     async def run_test(  # pylint: disable=too-many-locals
         self,
@@ -319,40 +317,40 @@ class TestFormulaEngineComposition:
         make_builder: (
             Callable[
                 [
-                    FormulaEngine[Quantity],
+                    FormulaEngine[Power],
                 ],
-                HigherOrderFormulaBuilder[Quantity],
+                HigherOrderFormulaBuilder[Power],
             ]
             | Callable[
                 [
-                    FormulaEngine[Quantity],
-                    FormulaEngine[Quantity],
+                    FormulaEngine[Power],
+                    FormulaEngine[Power],
                 ],
-                HigherOrderFormulaBuilder[Quantity],
+                HigherOrderFormulaBuilder[Power],
             ]
             | Callable[
                 [
-                    FormulaEngine[Quantity],
-                    FormulaEngine[Quantity],
-                    FormulaEngine[Quantity],
+                    FormulaEngine[Power],
+                    FormulaEngine[Power],
+                    FormulaEngine[Power],
                 ],
-                HigherOrderFormulaBuilder[Quantity],
+                HigherOrderFormulaBuilder[Power],
             ]
             | Callable[
                 [
-                    FormulaEngine[Quantity],
-                    FormulaEngine[Quantity],
-                    FormulaEngine[Quantity],
-                    FormulaEngine[Quantity],
+                    FormulaEngine[Power],
+                    FormulaEngine[Power],
+                    FormulaEngine[Power],
+                    FormulaEngine[Power],
                 ],
-                HigherOrderFormulaBuilder[Quantity],
+                HigherOrderFormulaBuilder[Power],
             ]
         ),
         io_pairs: list[tuple[list[float | None], float | None]],
         nones_are_zeros: bool = False,
     ) -> None:
         """Run a test with the specs provided."""
-        channels = [Broadcast[Sample[Quantity]](str(ctr)) for ctr in range(num_items)]
+        channels = [Broadcast[Sample[float]](str(ctr)) for ctr in range(num_items)]
         l1_engines = [
             self.make_engine(ctr, channels[ctr].new_receiver())
             for ctr in range(num_items)
@@ -367,9 +365,7 @@ class TestFormulaEngineComposition:
             io_input, io_output = io_pair
             await asyncio.gather(
                 *[
-                    chan.new_sender().send(
-                        Sample(now, None if not value else Quantity(value))
-                    )
+                    chan.new_sender().send(Sample(now, None if not value else value))
                     for chan, value in zip(channels, io_input)
                 ]
             )
@@ -379,7 +375,7 @@ class TestFormulaEngineComposition:
             else:
                 assert (
                     next_val.value is not None
-                    and next_val.value.base_value == io_output
+                    and Power.as_watts(next_val.value) == io_output
                 )
             tests_passed += 1
         await engine._stop()  # pylint: disable=protected-access

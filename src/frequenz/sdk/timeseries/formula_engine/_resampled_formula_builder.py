@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, get_type_hints
 
 from frequenz.channels import Receiver, Sender
 
@@ -54,6 +54,15 @@ class ResampledFormulaBuilder(FormulaBuilder[SupportsFloatT]):
         self._namespace: str = namespace
         self._metric_id: ComponentMetricId = metric_id
         self._resampler_requests: list[ComponentMetricRequest] = []
+        # We need to store the runtime value type of the formula, so that we can
+        # create the correct channel in the channel registry, as we need to pass the
+        # runtime type to the channel registry.
+        # Since invoking the function seems to be the only reliable way to do this
+        # (trying to get it from the type hints doesn't work because usually `Self`
+        # is used as the return type), we do it only once in the constructor to avoid
+        # unnecessary runtime cost.
+        self._value_type = type(create_method(0.0))
+
         super().__init__(formula_name, create_method)
 
     def _get_resampled_receiver(
@@ -74,7 +83,7 @@ class ResampledFormulaBuilder(FormulaBuilder[SupportsFloatT]):
         request = ComponentMetricRequest(self._namespace, component_id, metric_id, None)
         self._resampler_requests.append(request)
         resampled_channel = self._channel_registry.get_or_create(
-            Sample[SupportsFloatT], request.get_channel_name()
+            Sample[float], request.get_channel_name()
         )
         resampled_receiver = resampled_channel.new_receiver().map(
             lambda sample: Sample(

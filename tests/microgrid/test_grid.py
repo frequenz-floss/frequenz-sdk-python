@@ -123,6 +123,7 @@ async def test_grid_power_1(mocker: MockerFixture) -> None:
 
         grid_power_recv = grid.power.new_receiver()
 
+        # TODO: REMOVE THIS and validate the test against hardcoded values
         grid_meter_recv = get_resampled_stream(
             grid._formula_pool._namespace,  # pylint: disable=protected-access
             mockgrid.meter_ids[0],

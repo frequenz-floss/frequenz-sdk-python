@@ -37,16 +37,9 @@ def get_resampled_stream(
         metric_id,
         create_method,
     )
-    # Resampled data is always `Quantity` type, so we need to convert it to the desired
-    # output type.
     return builder._get_resampled_receiver(
         comp_id,
         metric_id,
-    ).map(
-        lambda sample: Sample(
-            sample.timestamp,
-            None if sample.value is None else create_method(sample.value.base_value),
-        )
     )
     # pylint: enable=protected-access
 
