@@ -10,7 +10,7 @@ from __future__ import annotations
 import abc
 import math
 from datetime import timedelta
-from typing import Any, NoReturn, Self, TypeVar, overload
+from typing import Self, TypeVar, overload
 
 QuantityT = TypeVar(
     "QuantityT",
@@ -32,9 +32,6 @@ class Quantity(abc.ABC):
     Quantities try to behave like float and are also immutable.
     """
 
-    _base_value: float
-    """The value of this quantity in the base unit."""
-
     _exponent_unit_map: dict[int, str] | None = None
     """A mapping from the exponent of the base unit to the unit symbol.
 
@@ -42,14 +39,27 @@ class Quantity(abc.ABC):
     class.  Sub-classes must define this.
     """
 
-    def __init__(self, value: float, exponent: int = 0) -> None:
-        """Initialize a new quantity.
+    def __init__(self) -> None:
+        """Initialize this instance.
 
-        Args:
-            value: The value of this quantity in a given exponent of the base unit.
-            exponent: The exponent of the base unit the given value is in.
+        This constructor is not meant to be used directly.  Use one of the `from_*()`
+        methods instead.
+
+        Raises:
+            TypeError: Every time this constructor is called.
         """
-        self._base_value = value * 10.0**exponent
+        # This is for documentation purposes and to hint to mypy that this
+        # attribute exists.
+        self._base_value: float = 0.0
+        """The value of this quantity in the base unit."""
+
+        cls = type(self)
+        raise TypeError(
+            "Use of default constructor is not allowed for "
+            f"{cls.__module__}.{cls.__qualname__}, "
+            f"use {cls.__name__}.zero() or one of the "
+            f"`{cls.__name__}.from_*()` constructors instead."
+        )
 
     @classmethod
     def _new(cls, value: float, *, exponent: int = 0) -> Self:
@@ -494,29 +504,8 @@ class Quantity(abc.ABC):
         return absolute
 
 
-class _NoDefaultConstructible(type):
-    """A metaclass that disables the default constructor."""
-
-    def __call__(cls, *_args: Any, **_kwargs: Any) -> NoReturn:
-        """Raise a TypeError when the default constructor is called.
-
-        Args:
-            *_args: ignored positional arguments.
-            **_kwargs: ignored keyword arguments.
-
-        Raises:
-            TypeError: Always.
-        """
-        raise TypeError(
-            "Use of default constructor NOT allowed for "
-            f"{cls.__module__}.{cls.__qualname__}, "
-            f"use one of the `{cls.__name__}.from_*()` methods instead."
-        )
-
-
 class Temperature(
     Quantity,
-    metaclass=_NoDefaultConstructible,
     exponent_unit_map={
         0: "°C",
     },
@@ -546,7 +535,6 @@ class Temperature(
 
 class Power(
     Quantity,
-    metaclass=_NoDefaultConstructible,
     exponent_unit_map={
         -3: "mW",
         0: "W",
@@ -740,7 +728,6 @@ class Power(
 
 class Current(
     Quantity,
-    metaclass=_NoDefaultConstructible,
     exponent_unit_map={
         -3: "mA",
         0: "A",
@@ -851,7 +838,6 @@ class Current(
 
 class Voltage(
     Quantity,
-    metaclass=_NoDefaultConstructible,
     exponent_unit_map={0: "V", -3: "mV", 3: "kV"},
 ):
     """A voltage quantity.
@@ -979,7 +965,6 @@ class Voltage(
 
 class Energy(
     Quantity,
-    metaclass=_NoDefaultConstructible,
     exponent_unit_map={
         0: "Wh",
         3: "kWh",
@@ -1119,7 +1104,6 @@ class Energy(
 
 class Frequency(
     Quantity,
-    metaclass=_NoDefaultConstructible,
     exponent_unit_map={0: "Hz", 3: "kHz", 6: "MHz", 9: "GHz"},
 ):
     """A frequency quantity.
@@ -1224,7 +1208,6 @@ class Frequency(
 
 class Percentage(
     Quantity,
-    metaclass=_NoDefaultConstructible,
     exponent_unit_map={0: "%"},
 ):
     """A percentage quantity.
