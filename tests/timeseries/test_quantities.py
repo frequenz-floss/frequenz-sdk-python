@@ -544,31 +544,37 @@ def test_abs() -> None:
     assert abs(-pct) == Percentage.from_fraction(30)
 
 
-def test_quantity_multiplied_with_precentage() -> None:
+@pytest.mark.parametrize("quantity_ctor", _QUANTITY_CTORS + [Quantity])
+# Use a small amount to avoid long running tests, we have too many combinations
+@hypothesis.settings(max_examples=10)
+@hypothesis.given(
+    quantity_value=st.floats(
+        allow_infinity=False,
+        allow_nan=False,
+        allow_subnormal=False,
+        # We need to set this because otherwise constructors with big exponents will
+        # cause the value to be too big for the float type, and the test will fail.
+        max_value=1e298,
+        min_value=-1e298,
+    ),
+    percent=st.floats(allow_infinity=False, allow_nan=False, allow_subnormal=False),
+)
+def test_quantity_multiplied_with_precentage(
+    quantity_ctor: type[Quantity], quantity_value: float, percent: float
+) -> None:
     """Test the multiplication of all quantities with percentage."""
-    percentage = Percentage.from_percent(50)
-    power = Power.from_watts(1000.0)
-    voltage = Voltage.from_volts(230.0)
-    current = Current.from_amperes(2)
-    energy = Energy.from_kilowatt_hours(12)
-    percentage_ = Percentage.from_percent(50)
+    percentage = Percentage.from_percent(percent)
+    quantity = quantity_ctor(quantity_value)
+    expected_value = quantity.base_value * (percent / 100.0)
+    print(f"{quantity=}, {percentage=}, {expected_value=}")
 
-    assert power * percentage == Power.from_watts(500.0)
-    assert voltage * percentage == Voltage.from_volts(115.0)
-    assert current * percentage == Current.from_amperes(1)
-    assert energy * percentage == Energy.from_kilowatt_hours(6)
-    assert percentage_ * percentage == Percentage.from_percent(25)
+    product = quantity * percentage
+    print(f"{product=}")
+    assert product.base_value == expected_value
 
-    power *= percentage
-    assert power == Power.from_watts(500.0)
-    voltage *= percentage
-    assert voltage == Voltage.from_volts(115.0)
-    current *= percentage
-    assert current == Current.from_amperes(1)
-    energy *= percentage
-    assert energy == Energy.from_kilowatt_hours(6)
-    percentage_ *= percentage
-    assert percentage_ == Percentage.from_percent(25)
+    quantity *= percentage
+    print(f"*{quantity=}")
+    assert quantity.base_value == expected_value
 
 
 def test_invalid_multiplications() -> None:
