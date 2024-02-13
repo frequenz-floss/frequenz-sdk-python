@@ -15,3 +15,4 @@
 ## Bug Fixes
 
 - Fix grid current formula generator to add the operator `+` to the engine only when the component category is handled.
+- Fix bug where sometimes the `base_value` of a `Quantity` could be of a different type than `float`.
