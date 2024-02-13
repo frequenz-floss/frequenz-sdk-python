@@ -606,7 +606,15 @@ class Power(
         """
         return self._base_value / 1e6
 
-    @overload  # type: ignore
+    # We need the ignore here because otherwise mypy will give this error:
+    # > Overloaded operator methods can't have wider argument types in overrides
+    # The problem seems to be when the other type implements an **incompatible**
+    # __rmul__ method, which is not the case here, so we should be safe.
+    # Please see this example:
+    # https://github.com/python/mypy/blob/c26f1297d4f19d2d1124a30efc97caebb8c28616/test-data/unit/check-overloading.test#L4738C1-L4769C55
+    # And a discussion in a mypy issue here:
+    # https://github.com/python/mypy/issues/4985#issuecomment-389692396
+    @overload  # type: ignore[override]
     def __mul__(self, scalar: float, /) -> Self:
         """Scale this power by a scalar.
 
@@ -758,7 +766,8 @@ class Current(
         """
         return self._base_value * 1e3
 
-    @overload  # type: ignore
+    # See comment for Power.__mul__ for why we need the ignore here.
+    @overload  # type: ignore[override]
     def __mul__(self, scalar: float, /) -> Self:
         """Scale this current by a scalar.
 
@@ -885,7 +894,8 @@ class Voltage(
         """
         return self._base_value / 1e3
 
-    @overload  # type: ignore
+    # See comment for Power.__mul__ for why we need the ignore here.
+    @overload  # type: ignore[override]
     def __mul__(self, scalar: float, /) -> Self:
         """Scale this voltage by a scalar.
 
