@@ -13,8 +13,7 @@ from typing import Generic, SupportsIndex, TypeVar, overload
 import numpy as np
 import numpy.typing as npt
 
-from .._base_types import UNIX_EPOCH, Sample
-from .._quantities import QuantityT
+from .._base_types import UNIX_EPOCH, Sample, SupportsFloatT
 
 FloatArray = TypeVar("FloatArray", list[float], npt.NDArray[np.float64])
 """Type variable of the buffer container."""
@@ -107,7 +106,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         """
         return self._gaps
 
-    def has_value(self, sample: Sample[QuantityT]) -> bool:
+    def has_value(self, sample: Sample[SupportsFloatT]) -> bool:
         """Check if a sample has a value and it's not NaN.
 
         Args:
@@ -127,7 +126,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         """
         return len(self._buffer)
 
-    def update(self, sample: Sample[QuantityT]) -> None:
+    def update(self, sample: Sample[SupportsFloatT]) -> None:
         """Update the buffer with a new value for the given timestamp.
 
         Missing values are written as NaN. Be advised that when
