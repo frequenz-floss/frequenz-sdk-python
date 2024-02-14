@@ -121,7 +121,8 @@ when an EV is connected or disconnected, and a
 to limit the charge power of individual EV Chargers.
 """  # noqa: D205, D400
 
-from ..actor import ResamplerConfig
+import typing
+
 from . import _data_pipeline, client, component, connection_manager, metadata
 from ._data_pipeline import (
     battery_pool,
@@ -134,8 +135,13 @@ from ._data_pipeline import (
     voltage,
 )
 
+if typing.TYPE_CHECKING:
+    from ..actor._resampling import ResamplingActorConfig
 
-async def initialize(host: str, port: int, resampler_config: ResamplerConfig) -> None:
+
+async def initialize(
+    host: str, port: int, resampler_config: "ResamplingActorConfig"
+) -> None:
     """Initialize the microgrid connection manager and the data pipeline.
 
     Args:

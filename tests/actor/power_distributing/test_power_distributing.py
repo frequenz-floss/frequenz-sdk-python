@@ -19,7 +19,7 @@ from frequenz.channels import Broadcast, Sender
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
-from frequenz.sdk.actor import ResamplerConfig
+from frequenz.sdk.actor import ResamplingActorConfig
 from frequenz.sdk.actor.power_distributing import (
     ComponentPoolStatus,
     PowerDistributingActor,
@@ -90,7 +90,7 @@ class _Mocks:
         if microgrid._data_pipeline._DATA_PIPELINE is not None:
             microgrid._data_pipeline._DATA_PIPELINE = None
         await microgrid._data_pipeline.initialize(
-            ResamplerConfig(resampling_period=timedelta(seconds=0.1))
+            ResamplingActorConfig(resampling_period=timedelta(seconds=0.1))
         )
         streamer = MockComponentDataStreamer(mockgrid.mock_client)
 

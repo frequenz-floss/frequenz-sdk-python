@@ -12,7 +12,7 @@ from frequenz.channels import Broadcast, Receiver, Sender
 from pytest_mock import MockerFixture
 
 from frequenz.sdk._internal._asyncio import cancel_and_await
-from frequenz.sdk.actor import ComponentMetricRequest, ResamplerConfig
+from frequenz.sdk.actor import ComponentMetricRequest, ResamplingActorConfig
 from frequenz.sdk.microgrid._data_pipeline import _DataPipeline
 from frequenz.sdk.microgrid.component import ComponentMetricId
 from frequenz.sdk.timeseries import Current, Power, Sample
@@ -29,7 +29,7 @@ class MockResampler:
     def __init__(  # pylint: disable=too-many-arguments
         self,
         mocker: MockerFixture,
-        resampler_config: ResamplerConfig,
+        resampler_config: ResamplingActorConfig,
         bat_inverter_ids: list[int],
         pv_inverter_ids: list[int],
         evc_ids: list[int],

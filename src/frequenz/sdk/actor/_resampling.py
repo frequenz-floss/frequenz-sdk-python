@@ -7,6 +7,7 @@
 import asyncio
 import dataclasses
 import logging
+from typing import Callable
 
 from frequenz.channels import Receiver, Sender
 
@@ -20,6 +21,17 @@ from ._data_sourcing import ComponentMetricRequest
 _logger = logging.getLogger(__name__)
 
 
+# We need to use the dataclass decorator again because we are making a required
+# attribute optional, so we need the dataclass to re-generate the constructor with the
+# new signature.
+@dataclasses.dataclass(frozen=True)
+class ResamplingActorConfig(ResamplerConfig[float]):
+    """Configuration for the resampling actor."""
+
+    value_constructor: Callable[[float], float] = float
+    """The constructor to use to create new sample values."""
+
+
 class ComponentMetricsResamplingActor(Actor):
     """An actor to resample microgrid component metrics."""
 
@@ -29,7 +41,7 @@ class ComponentMetricsResamplingActor(Actor):
         channel_registry: ChannelRegistry,
         data_sourcing_request_sender: Sender[ComponentMetricRequest],
         resampling_request_receiver: Receiver[ComponentMetricRequest],
-        config: ResamplerConfig,
+        config: ResamplingActorConfig,
         name: str | None = None,
     ) -> None:
         """Initialize an instance.

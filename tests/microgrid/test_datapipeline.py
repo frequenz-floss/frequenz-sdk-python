@@ -12,10 +12,10 @@ import pytest
 import time_machine
 from pytest_mock import MockerFixture
 
+from frequenz.sdk.actor import ResamplingActorConfig
 from frequenz.sdk.microgrid._data_pipeline import _DataPipeline
 from frequenz.sdk.microgrid.client import Connection
 from frequenz.sdk.microgrid.component import Component, ComponentCategory, InverterType
-from frequenz.sdk.timeseries._resampling import ResamplerConfig
 
 from ..utils.mock_microgrid_client import MockMicrogridClient
 
@@ -34,7 +34,7 @@ async def test_actors_started(
 ) -> None:
     """Test that the datasourcing, resampling and power distributing actors are started."""
     datapipeline = _DataPipeline(
-        resampler_config=ResamplerConfig(resampling_period=timedelta(seconds=1))
+        resampler_config=ResamplingActorConfig(resampling_period=timedelta(seconds=1))
     )
     await asyncio.sleep(1)
 

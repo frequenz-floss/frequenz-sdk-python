@@ -592,13 +592,12 @@ Received message=False
 [_run]: #the-_run-method
 """
 
-from ..timeseries._resampling import ResamplerConfig
 from ._actor import Actor
 from ._background_service import BackgroundService
 from ._channel_registry import ChannelRegistry
 from ._config_managing import ConfigManagingActor
 from ._data_sourcing import ComponentMetricRequest, DataSourcingActor
-from ._resampling import ComponentMetricsResamplingActor
+from ._resampling import ComponentMetricsResamplingActor, ResamplingActorConfig
 from ._run_utils import run
 
 __all__ = [
@@ -609,6 +608,6 @@ __all__ = [
     "ComponentMetricsResamplingActor",
     "ConfigManagingActor",
     "DataSourcingActor",
-    "ResamplerConfig",
+    "ResamplingActorConfig",
     "run",
 ]
