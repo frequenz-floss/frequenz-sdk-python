@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import abc
 import math
 from datetime import timedelta
 from typing import Any, NoReturn, Self, TypeVar, overload
@@ -25,7 +26,7 @@ QuantityT = TypeVar(
 """Type variable for representing various quantity types."""
 
 
-class Quantity:
+class Quantity(abc.ABC):
     """A quantity with a unit.
 
     Quantities try to behave like float and are also immutable.
