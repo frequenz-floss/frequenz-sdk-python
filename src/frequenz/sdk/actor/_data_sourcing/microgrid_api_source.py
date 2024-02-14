@@ -20,7 +20,6 @@ from ...microgrid.component import (
     MeterData,
 )
 from ...timeseries import Sample
-from ...timeseries._quantities import Quantity
 from .._channel_registry import ChannelRegistry
 from ._component_metric_request import ComponentMetricRequest
 
@@ -318,7 +317,7 @@ class MicrogridApiSource:
         self,
         category: ComponentCategory,
         requests: dict[ComponentMetricId, list[ComponentMetricRequest]],
-    ) -> list[tuple[Callable[[Any], float], list[Sender[Sample[Quantity]]]]]:
+    ) -> list[tuple[Callable[[Any], float], list[Sender[Sample[float]]]]]:
         """Get channel senders from the channel registry for each requested metric.
 
         Args:
@@ -335,7 +334,7 @@ class MicrogridApiSource:
                 self._get_data_extraction_method(category, metric),
                 [
                     self._registry.get_or_create(
-                        Sample[Quantity], request.get_channel_name()
+                        Sample[float], request.get_channel_name()
                     ).new_sender()
                     for request in req_list
                 ],

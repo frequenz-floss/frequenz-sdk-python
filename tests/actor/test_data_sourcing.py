@@ -13,7 +13,7 @@ from frequenz.sdk.actor import (
 )
 from frequenz.sdk.microgrid import connection_manager
 from frequenz.sdk.microgrid.component import ComponentMetricId
-from frequenz.sdk.timeseries import Quantity, Sample
+from frequenz.sdk.timeseries import Sample
 from tests.microgrid import mock_api
 
 # pylint: disable=no-member
@@ -61,7 +61,7 @@ class TestDataSourcingActor:
                 "test-namespace", 4, ComponentMetricId.ACTIVE_POWER, None
             )
             active_power_recv = registry.get_or_create(
-                Sample[Quantity], active_power_request.get_channel_name()
+                Sample[float], active_power_request.get_channel_name()
             ).new_receiver()
             await req_sender.send(active_power_request)
 
@@ -69,7 +69,7 @@ class TestDataSourcingActor:
                 "test-namespace", 9, ComponentMetricId.SOC, None
             )
             soc_recv = registry.get_or_create(
-                Sample[Quantity], soc_request.get_channel_name()
+                Sample[float], soc_request.get_channel_name()
             ).new_receiver()
             await req_sender.send(soc_request)
 
@@ -77,7 +77,7 @@ class TestDataSourcingActor:
                 "test-namespace", 9, ComponentMetricId.SOC, None
             )
             soc2_recv = registry.get_or_create(
-                Sample[Quantity], soc2_request.get_channel_name()
+                Sample[float], soc2_request.get_channel_name()
             ).new_receiver()
             await req_sender.send(soc2_request)
 
