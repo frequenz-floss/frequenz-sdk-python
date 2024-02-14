@@ -11,8 +11,7 @@ import logging
 from frequenz.channels import Receiver, Sender
 
 from .._internal._asyncio import cancel_and_await
-from ..timeseries import Sample
-from ..timeseries._quantities import Quantity
+from ..timeseries._base_types import Sample
 from ..timeseries._resampling import Resampler, ResamplerConfig, ResamplingError
 from ._actor import Actor
 from ._channel_registry import ChannelRegistry
@@ -49,13 +48,15 @@ class ComponentMetricsResamplingActor(Actor):
         """
         super().__init__(name=name)
         self._channel_registry: ChannelRegistry = channel_registry
+
         self._data_sourcing_request_sender: Sender[ComponentMetricRequest] = (
             data_sourcing_request_sender
         )
         self._resampling_request_receiver: Receiver[ComponentMetricRequest] = (
             resampling_request_receiver
         )
-        self._resampler: Resampler = Resampler(config)
+        self._resampler: Resampler[float] = Resampler(config)
+
         self._active_req_channels: set[str] = set()
 
     async def _subscribe(self, request: ComponentMetricRequest) -> None:
@@ -78,13 +79,13 @@ class ComponentMetricsResamplingActor(Actor):
         data_source_channel_name = data_source_request.get_channel_name()
         await self._data_sourcing_request_sender.send(data_source_request)
         receiver = self._channel_registry.get_or_create(
-            Sample[Quantity], data_source_channel_name
+            Sample[float], data_source_channel_name
         ).new_receiver()
 
         # This is a temporary hack until the Sender implementation uses
         # exceptions to report errors.
         sender = self._channel_registry.get_or_create(
-            Sample[Quantity], request_channel_name
+            Sample[float], request_channel_name
         ).new_sender()
 
         self._resampler.add_timeseries(request_channel_name, receiver, sender.send)

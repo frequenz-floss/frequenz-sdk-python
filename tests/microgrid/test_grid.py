@@ -16,7 +16,7 @@ from frequenz.sdk.microgrid.component import (
     ComponentMetricId,
     GridMetadata,
 )
-from frequenz.sdk.timeseries import Current, Fuse, Power, Quantity
+from frequenz.sdk.timeseries import Current, Fuse, Power
 
 from ..timeseries._formula_engine.utils import equal_float_lists, get_resampled_stream
 from ..timeseries.mock_microgrid import MockMicrogrid
@@ -157,8 +157,8 @@ async def test_grid_power_2(mocker: MockerFixture) -> None:
     mockgrid.add_batteries(1, no_meter=True)
     mockgrid.add_solar_inverters(1)
 
-    results: list[Quantity] = []
-    meter_sums: list[Quantity] = []
+    results: list[float] = []
+    meter_sums: list[float] = []
     async with mockgrid, AsyncExitStack() as stack:
         grid = microgrid.grid()
         assert grid, "Grid is not initialized"
@@ -196,7 +196,7 @@ async def test_grid_power_2(mocker: MockerFixture) -> None:
             val = await grid_power_recv.receive()
             assert val is not None and val.value is not None
             results.append(float(val.value))
-            meter_sums.append(Quantity(meter_sum))
+            meter_sums.append(meter_sum)
 
     assert len(results) == 10
     assert equal_float_lists(results, meter_sums)
