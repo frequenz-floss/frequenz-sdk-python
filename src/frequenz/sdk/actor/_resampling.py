@@ -113,8 +113,6 @@ class ComponentMetricsResamplingActor(Actor):
         Raises:
             RuntimeError: If there is some unexpected error while resampling or
                 handling requests.
-
-        [//]: # (# noqa: DAR401 error)
         """
         tasks_to_cancel: set[asyncio.Task[None]] = set()
         try:
