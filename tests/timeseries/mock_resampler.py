@@ -45,7 +45,7 @@ class MockResampler:
         self._resampler_request_channel = Broadcast[ComponentMetricRequest](
             "resampler-request"
         )
-        self._basic_receivers: dict[str, list[Receiver[Sample[Quantity]]]] = {}
+        self._input_channels_receivers: dict[str, list[Receiver[Sample[Quantity]]]] = {}
 
         def power_senders(
             comp_ids: list[int],
@@ -58,7 +58,7 @@ class MockResampler:
                         Sample[Quantity], name
                     ).new_sender()
                 )
-                self._basic_receivers[name] = [
+                self._input_channels_receivers[name] = [
                     self._channel_registry.get_or_create(
                         Sample[Quantity], name
                     ).new_receiver()
@@ -77,7 +77,7 @@ class MockResampler:
                         Sample[Quantity], name
                     ).new_sender()
                 )
-                self._basic_receivers[name] = [
+                self._input_channels_receivers[name] = [
                     self._channel_registry.get_or_create(
                         Sample[Quantity], name
                     ).new_receiver(name)
@@ -119,19 +119,19 @@ class MockResampler:
                         ).new_sender(),
                     ]
                 )
-                self._basic_receivers[p1_name] = [
+                self._input_channels_receivers[p1_name] = [
                     self._channel_registry.get_or_create(
                         Sample[Quantity], p1_name
                     ).new_receiver()
                     for _ in range(namespaces)
                 ]
-                self._basic_receivers[p2_name] = [
+                self._input_channels_receivers[p2_name] = [
                     self._channel_registry.get_or_create(
                         Sample[Quantity], p2_name
                     ).new_receiver()
                     for _ in range(namespaces)
                 ]
-                self._basic_receivers[p3_name] = [
+                self._input_channels_receivers[p3_name] = [
                     self._channel_registry.get_or_create(
                         Sample[Quantity], p3_name
                     ).new_receiver()
@@ -222,15 +222,18 @@ class MockResampler:
             name = request.get_channel_name()
             if name in self._forward_tasks:
                 continue
-            basic_recv_name = f"{request.component_id}:{request.metric_id}"
-            recv = self._basic_receivers[basic_recv_name].pop()
-            assert recv is not None
+            input_chan_recv_name = f"{request.component_id}:{request.metric_id}"
+            input_chan_recv = self._input_channels_receivers[input_chan_recv_name].pop()
+            assert input_chan_recv is not None
+            output_chan_sender: Sender[Sample[Quantity]] = (
+                self._channel_registry.get_or_create(
+                    Sample[Quantity], name
+                ).new_sender()
+            )
             task = asyncio.create_task(
                 self._channel_forward_messages(
-                    recv,
-                    self._channel_registry.get_or_create(
-                        Sample[Quantity], name
-                    ).new_sender(),
+                    input_chan_recv,
+                    output_chan_sender,
                 ),
                 name=name,
             )
