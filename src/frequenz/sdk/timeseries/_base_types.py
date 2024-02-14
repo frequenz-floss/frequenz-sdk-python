@@ -21,7 +21,7 @@ UNIX_EPOCH = datetime.fromtimestamp(0.0, tz=timezone.utc)
 
 
 @dataclass(frozen=True, order=True)
-class Sample(Generic[QuantityT]):
+class Sample(Generic[SupportsFloatT]):
     """A measurement taken at a particular point in time.
 
     The `value` could be `None` if a component is malfunctioning or data is
@@ -32,12 +32,12 @@ class Sample(Generic[QuantityT]):
     timestamp: datetime
     """The time when this sample was generated."""
 
-    value: QuantityT | None = None
+    value: SupportsFloatT | None = None
     """The value of this sample."""
 
 
 @dataclass(frozen=True)
-class Sample3Phase(Generic[QuantityT]):
+class Sample3Phase(Generic[SupportsFloatT]):
     """A 3-phase measurement made at a particular point in time.
 
     Each of the `value` fields could be `None` if a component is malfunctioning
@@ -48,16 +48,16 @@ class Sample3Phase(Generic[QuantityT]):
 
     timestamp: datetime
     """The time when this sample was generated."""
-    value_p1: QuantityT | None
+    value_p1: SupportsFloatT | None
     """The value of the 1st phase in this sample."""
 
-    value_p2: QuantityT | None
+    value_p2: SupportsFloatT | None
     """The value of the 2nd phase in this sample."""
 
-    value_p3: QuantityT | None
+    value_p3: SupportsFloatT | None
     """The value of the 3rd phase in this sample."""
 
-    def __iter__(self) -> Iterator[QuantityT | None]:
+    def __iter__(self) -> Iterator[SupportsFloatT | None]:
         """Return an iterator that yields values from each of the phases.
 
         Yields:
@@ -68,12 +68,12 @@ class Sample3Phase(Generic[QuantityT]):
         yield self.value_p3
 
     @overload
-    def max(self, default: QuantityT) -> QuantityT: ...
+    def max(self, default: SupportsFloatT) -> SupportsFloatT: ...
 
     @overload
-    def max(self, default: None = None) -> QuantityT | None: ...
+    def max(self, default: None = None) -> SupportsFloatT | None: ...
 
-    def max(self, default: QuantityT | None = None) -> QuantityT | None:
+    def max(self, default: SupportsFloatT | None = None) -> SupportsFloatT | None:
         """Return the max value among all phases, or default if they are all `None`.
 
         Args:
@@ -84,19 +84,19 @@ class Sample3Phase(Generic[QuantityT]):
         """
         if not any(self):
             return default
-        value: QuantityT = functools.reduce(
-            lambda x, y: x if x > y else y,
+        value: SupportsFloatT = functools.reduce(
+            lambda x, y: x if float(x) > float(y) else y,
             filter(None, self),
         )
         return value
 
     @overload
-    def min(self, default: QuantityT) -> QuantityT: ...
+    def min(self, default: SupportsFloatT) -> SupportsFloatT: ...
 
     @overload
-    def min(self, default: None = None) -> QuantityT | None: ...
+    def min(self, default: None = None) -> SupportsFloatT | None: ...
 
-    def min(self, default: QuantityT | None = None) -> QuantityT | None:
+    def min(self, default: SupportsFloatT | None = None) -> SupportsFloatT | None:
         """Return the min value among all phases, or default if they are all `None`.
 
         Args:
@@ -107,16 +107,16 @@ class Sample3Phase(Generic[QuantityT]):
         """
         if not any(self):
             return default
-        value: QuantityT = functools.reduce(
-            lambda x, y: x if x < y else y,
+        value: SupportsFloatT = functools.reduce(
+            lambda x, y: x if float(x) < float(y) else y,
             filter(None, self),
         )
         return value
 
     def map(
         self,
-        function: Callable[[QuantityT], QuantityT],
-        default: QuantityT | None = None,
+        function: Callable[[SupportsFloatT], SupportsFloatT],
+        default: SupportsFloatT | None = None,
     ) -> Self:
         """Apply the given function on each of the phase values and return the result.
 
