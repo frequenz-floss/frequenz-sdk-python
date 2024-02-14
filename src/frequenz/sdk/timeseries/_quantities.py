@@ -339,7 +339,7 @@ class Quantity:
         """Scale this quantity by a scalar.
 
         Args:
-            scalar: The scaler by which to scale this quantity.
+            scalar: The scalar by which to scale this quantity.
 
         Returns:
             The scaled quantity.
@@ -619,10 +619,10 @@ class Power(
         """Scale this power by a scalar.
 
         Args:
-            scalar: The scaler by which to scale this power.
+            scalar: The scalar by which to scale this power.
 
         Returns:
-            The scaled quantity.
+            The scaled power.
         """
 
     @overload
@@ -772,10 +772,10 @@ class Current(
         """Scale this current by a scalar.
 
         Args:
-            scalar: The scaler by which to scale this current.
+            scalar: The scalar by which to scale this current.
 
         Returns:
-            The scaled quantity.
+            The scaled current.
         """
 
     @overload
@@ -900,10 +900,10 @@ class Voltage(
         """Scale this voltage by a scalar.
 
         Args:
-            scalar: The scaler by which to scale this voltage.
+            scalar: The scalar by which to scale this voltage.
 
         Returns:
-            The scaled quantity.
+            The scaled voltage.
         """
 
     @overload

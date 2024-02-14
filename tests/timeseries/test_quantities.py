@@ -595,7 +595,7 @@ def test_quantity_multiplied_with_precentage(
 def test_quantity_multiplied_with_float(
     quantity_ctor: type[Quantity], quantity_value: float, scalar: float
 ) -> None:
-    """Test the multiplication of all quantities with percentage."""
+    """Test the multiplication of all quantities with a float."""
     quantity = quantity_ctor(quantity_value)
     expected_value = quantity.base_value * scalar
     print(f"{quantity=}, {expected_value=}")
