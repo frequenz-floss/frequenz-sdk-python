@@ -87,10 +87,7 @@ class ComponentMetricsResamplingActor(Actor):
             Sample[Quantity], request_channel_name
         ).new_sender()
 
-        async def sink_adapter(sample: Sample[Quantity]) -> None:
-            await sender.send(sample)
-
-        self._resampler.add_timeseries(request_channel_name, receiver, sink_adapter)
+        self._resampler.add_timeseries(request_channel_name, receiver, sender.send)
 
     async def _process_resampling_requests(self) -> None:
         """Process resampling data requests."""
