@@ -164,12 +164,20 @@ class Quantity(abc.ABC):
 
         raise ValueError(f"Unknown unit {split_string[1]}")
 
-    @property
-    def base_value(self) -> float:
+    def __float__(self) -> float:
         """Return the value of this quantity in the base unit.
 
+        Warning:
+            Normally you should convert to float by using the `as_*()` methods, which
+            makes it clear what unit you are converting to.
+
+            This method is provided only for generics, where using
+            a [`Quantity`][frequenz.sdk.timeseries.Quantity] as
+            a [`SupportsFloat`][typing.SupportsFloat] is required.
+
         Returns:
-            The value of this quantity in the base unit.
+            The value of this quantity in the [base
+                unit][frequenz.sdk.timeseries.Quantity.base_unit].
         """
         return self._base_value
 
@@ -215,22 +223,6 @@ class Quantity(abc.ABC):
         if not self._exponent_unit_map:
             return None
         return self._exponent_unit_map[0]
-
-    def isnan(self) -> bool:
-        """Return whether this quantity is NaN.
-
-        Returns:
-            Whether this quantity is NaN.
-        """
-        return math.isnan(self._base_value)
-
-    def isinf(self) -> bool:
-        """Return whether this quantity is infinite.
-
-        Returns:
-            Whether this quantity is infinite.
-        """
-        return math.isinf(self._base_value)
 
     def isclose(self, other: Self, rel_tol: float = 1e-9, abs_tol: float = 0.0) -> bool:
         """Return whether this quantity is close to another.

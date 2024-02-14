@@ -4,6 +4,7 @@
 """Ringbuffer implementation with focus on time & memory efficiency."""
 
 
+import math
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -115,7 +116,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         Returns:
             True if the sample has a value and it's not NaN.
         """
-        return not (sample.value is None or sample.value.isnan())
+        return not (sample.value is None or math.isnan(sample.value))
 
     @property
     def maxlen(self) -> int:
@@ -165,7 +166,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         # Update data
         if self.has_value(sample):
             assert sample.value is not None
-            value = sample.value.base_value
+            value = float(sample.value)
         else:
             value = np.nan
         self._buffer[self.to_internal_index(timestamp)] = value

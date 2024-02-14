@@ -179,7 +179,7 @@ class VoltageStreamer:
                     phases[0].timestamp,
                     *map(
                         lambda p: (
-                            Voltage.from_volts(p.value.base_value) if p.value else None
+                            Voltage.from_volts(float(p.value)) if p.value else None
                         ),
                         phases,
                     ),

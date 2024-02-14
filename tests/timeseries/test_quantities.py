@@ -682,6 +682,6 @@ def test_to_and_from_string(
         assert f"{from_string:.{exponent}}" == quantity_str
     except AssertionError as error:
         pytest.fail(
-            f"Failed for {quantity.base_value} != from_string({from_string.base_value}) "
+            f"Failed for {float(quantity)} != from_string({float(from_string)}) "
             + f"with exponent {exponent} and source value '{value}': {error}"
         )

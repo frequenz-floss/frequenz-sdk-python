@@ -195,7 +195,7 @@ async def test_grid_power_2(mocker: MockerFixture) -> None:
 
             val = await grid_power_recv.receive()
             assert val is not None and val.value is not None
-            results.append(val.value)
+            results.append(float(val.value))
             meter_sums.append(Quantity(meter_sum))
 
     assert len(results) == 10

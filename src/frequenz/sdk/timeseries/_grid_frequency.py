@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 from typing import TYPE_CHECKING
 
 from frequenz.channels import Receiver, Sender
@@ -109,10 +110,8 @@ class GridFrequency:
         return receiver.map(
             lambda sample: (
                 Sample[Frequency](sample.timestamp, None)
-                if sample.value is None or sample.value.isnan()
-                else Sample(
-                    sample.timestamp, Frequency.from_hertz(sample.value.base_value)
-                )
+                if sample.value is None or math.isnan(sample.value)
+                else Sample(sample.timestamp, Frequency.from_hertz(float(sample.value)))
             )
         )
 
