@@ -9,22 +9,21 @@ import logging
 import math
 from collections.abc import Sequence
 from datetime import datetime, timedelta
-from typing import SupportsIndex, overload
+from typing import Generic, SupportsIndex, overload
 
 import numpy as np
 from frequenz.channels import Broadcast, Receiver, Sender
 from numpy.typing import ArrayLike
 
 from ..actor._background_service import BackgroundService
-from ._base_types import UNIX_EPOCH, Sample
-from ._quantities import Quantity
+from ._base_types import UNIX_EPOCH, Sample, SupportsFloatT
 from ._resampling import Resampler, ResamplerConfig
 from ._ringbuffer import OrderedRingBuffer
 
 _logger = logging.getLogger(__name__)
 
 
-class MovingWindow(BackgroundService):
+class MovingWindow(BackgroundService, Generic[SupportsFloatT]):
     """
     A data window that moves with the latest datapoints of a data stream.
 
@@ -130,9 +129,9 @@ class MovingWindow(BackgroundService):
     def __init__(  # pylint: disable=too-many-arguments
         self,
         size: timedelta,
-        resampled_data_recv: Receiver[Sample[Quantity]],
+        resampled_data_recv: Receiver[Sample[SupportsFloatT]],
         input_sampling_period: timedelta,
-        resampler_config: ResamplerConfig | None = None,
+        resampler_config: ResamplerConfig[SupportsFloatT] | None = None,
         align_to: datetime = UNIX_EPOCH,
         *,
         name: str | None = None,
@@ -166,8 +165,8 @@ class MovingWindow(BackgroundService):
 
         self._sampling_period = input_sampling_period
 
-        self._resampler: Resampler | None = None
-        self._resampler_sender: Sender[Sample[Quantity]] | None = None
+        self._resampler: Resampler[SupportsFloatT] | None = None
+        self._resampler_sender: Sender[Sample[SupportsFloatT]] | None = None
 
         if resampler_config:
             assert (
@@ -182,7 +181,9 @@ class MovingWindow(BackgroundService):
             size.total_seconds() / self._sampling_period.total_seconds()
         )
 
-        self._resampled_data_recv = resampled_data_recv
+        self._resampled_data_recv: Receiver[Sample[SupportsFloatT]] = (
+            resampled_data_recv
+        )
         self._buffer = OrderedRingBuffer(
             np.empty(shape=num_samples, dtype=float),
             sampling_period=self._sampling_period,
@@ -341,11 +342,11 @@ class MovingWindow(BackgroundService):
         """Configure the components needed to run the resampler."""
         assert self._resampler is not None
 
-        async def sink_buffer(sample: Sample[Quantity]) -> None:
+        async def sink_buffer(sample: Sample[SupportsFloatT]) -> None:
             if sample.value is not None:
                 self._buffer.update(sample)
 
-        resampler_channel = Broadcast[Sample[Quantity]]("average")
+        resampler_channel = Broadcast[Sample[SupportsFloatT]]("average")
         self._resampler_sender = resampler_channel.new_sender()
         self._resampler.add_timeseries(
             "avg", resampler_channel.new_receiver(), sink_buffer

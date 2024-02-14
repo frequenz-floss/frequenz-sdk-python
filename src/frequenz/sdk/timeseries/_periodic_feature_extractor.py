@@ -16,12 +16,14 @@ modulo a fixed period.
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Generic
 
 import numpy as np
 from numpy.typing import NDArray
 
 from .._internal._math import is_close_to_zero
 from ._moving_window import MovingWindow
+from ._quantities import SupportsFloatT
 from ._ringbuffer import OrderedRingBuffer
 
 _logger = logging.getLogger(__name__)
@@ -48,7 +50,7 @@ class RelativePositions:
     """The relative position of the next incoming sample."""
 
 
-class PeriodicFeatureExtractor:
+class PeriodicFeatureExtractor(Generic[SupportsFloatT]):
     """
     A feature extractor for historical timeseries data.
 
@@ -106,7 +108,7 @@ class PeriodicFeatureExtractor:
 
     def __init__(
         self,
-        moving_window: MovingWindow,
+        moving_window: MovingWindow[SupportsFloatT],
         period: timedelta,
     ) -> None:
         """
@@ -119,7 +121,7 @@ class PeriodicFeatureExtractor:
         Raises:
             ValueError: If the MovingWindow size is not a integer multiple of the period.
         """
-        self._moving_window = moving_window
+        self._moving_window: MovingWindow[SupportsFloatT] = moving_window
 
         self._sampling_period = self._moving_window.sampling_period
         """The sampling_period as float to use it for indexing of samples."""
