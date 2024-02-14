@@ -151,6 +151,36 @@ class Quantity:
         """
         return self._base_value
 
+    def __round__(self, ndigits: int | None = None) -> Self:
+        """Round this quantity to the given number of digits.
+
+        Args:
+            ndigits: The number of digits to round to.
+
+        Returns:
+            The rounded quantity.
+        """
+        return self._new(round(self._base_value, ndigits))
+
+    def __pos__(self) -> Self:
+        """Return this quantity.
+
+        Returns:
+            This quantity.
+        """
+        return self
+
+    def __mod__(self, other: Self) -> Self:
+        """Return the remainder of this quantity and another.
+
+        Args:
+            other: The other quantity.
+
+        Returns:
+            The remainder of this quantity and another.
+        """
+        return self._new(self._base_value % other._base_value)
+
     @property
     def base_unit(self) -> str | None:
         """Return the base unit of this quantity.
