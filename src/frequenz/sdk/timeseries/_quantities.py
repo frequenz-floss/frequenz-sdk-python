@@ -10,20 +10,7 @@ from __future__ import annotations
 import abc
 import math
 from datetime import timedelta
-from typing import Self, TypeVar, overload
-
-QuantityT = TypeVar(
-    "QuantityT",
-    "Quantity",
-    "Power",
-    "Current",
-    "Voltage",
-    "Energy",
-    "Frequency",
-    "Percentage",
-    "Temperature",
-)
-"""Type variable for representing various quantity types."""
+from typing import Self, overload
 
 
 class Quantity(abc.ABC):

@@ -9,9 +9,12 @@ import functools
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Generic, Self, TypeVar, overload
+from typing import Generic, Self, SupportsFloat, TypeVar, overload
 
-from ._quantities import Power, QuantityT
+from ._quantities import Power
+
+SupportsFloatT = TypeVar("SupportsFloatT", bound=SupportsFloat)
+"""Type variable for types that support conversion to float."""
 
 UNIX_EPOCH = datetime.fromtimestamp(0.0, tz=timezone.utc)
 """The UNIX epoch (in UTC)."""
