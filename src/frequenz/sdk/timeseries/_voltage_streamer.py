@@ -19,7 +19,7 @@ from ..actor import ChannelRegistry
 from ..microgrid import connection_manager
 from ..microgrid.component import Component, ComponentCategory, ComponentMetricId
 from ..timeseries._base_types import Sample, Sample3Phase
-from ..timeseries._quantities import Quantity, Voltage
+from ..timeseries._quantities import Voltage
 
 if TYPE_CHECKING:
     # Imported here to avoid a circular import.
@@ -141,7 +141,7 @@ class VoltageStreamer:
             ComponentMetricId.VOLTAGE_PHASE_2,
             ComponentMetricId.VOLTAGE_PHASE_3,
         )
-        phases_rx: list[Receiver[Sample[Quantity]]] = []
+        phases_rx: list[Receiver[Sample[float]]] = []
         for metric_id in metric_ids:
             req = ComponentMetricRequest(
                 self._namespace, self._source_component.component_id, metric_id, None
@@ -151,7 +151,7 @@ class VoltageStreamer:
 
             phases_rx.append(
                 self._channel_registry.get_or_create(
-                    Sample[Quantity], req.get_channel_name()
+                    Sample[float], req.get_channel_name()
                 ).new_receiver()
             )
 

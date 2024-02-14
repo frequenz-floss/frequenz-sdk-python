@@ -16,7 +16,7 @@ from ..actor import ChannelRegistry
 from ..microgrid import connection_manager
 from ..microgrid.component import Component, ComponentCategory, ComponentMetricId
 from ..timeseries._base_types import Sample
-from ..timeseries._quantities import Frequency, Quantity
+from ..timeseries._quantities import Frequency
 
 if TYPE_CHECKING:
     # Imported here to avoid a circular import.
@@ -97,7 +97,7 @@ class GridFrequency:
             A receiver that will receive grid frequency samples.
         """
         receiver = self._channel_registry.get_or_create(
-            Sample[Quantity], self._component_metric_request.get_channel_name()
+            Sample[float], self._component_metric_request.get_channel_name()
         ).new_receiver()
 
         if not self._task:

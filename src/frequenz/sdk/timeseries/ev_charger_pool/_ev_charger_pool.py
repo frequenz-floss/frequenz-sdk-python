@@ -19,7 +19,7 @@ from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory, ComponentMetricId
 from .. import Sample, Sample3Phase
-from .._quantities import Current, Power, Quantity
+from .._quantities import Current, Power
 from ..formula_engine import FormulaEngine, FormulaEngine3Phase
 from ..formula_engine._formula_engine_pool import FormulaEnginePool
 from ..formula_engine._formula_generators import (
@@ -253,9 +253,9 @@ class EVChargerPool:
             await cancel_and_await(task)
 
     async def _get_current_streams(self, component_id: int) -> tuple[
-        Receiver[Sample[Quantity]],
-        Receiver[Sample[Quantity]],
-        Receiver[Sample[Quantity]],
+        Receiver[Sample[float]],
+        Receiver[Sample[float]],
+        Receiver[Sample[float]],
     ]:
         """Fetch current streams from the resampler for each phase.
 
@@ -269,7 +269,7 @@ class EVChargerPool:
 
         async def resampler_subscribe(
             metric_id: ComponentMetricId,
-        ) -> Receiver[Sample[Quantity]]:
+        ) -> Receiver[Sample[float]]:
             request = ComponentMetricRequest(
                 namespace="ev-pool",
                 component_id=component_id,
@@ -278,7 +278,7 @@ class EVChargerPool:
             )
             await self._resampler_subscription_sender.send(request)
             return self._channel_registry.get_or_create(
-                Sample[Quantity], request.get_channel_name()
+                Sample[float], request.get_channel_name()
             ).new_receiver()
 
         return (
@@ -323,17 +323,17 @@ class EVChargerPool:
                 value_p1=(
                     None
                     if phase_1.value is None
-                    else Current.from_amperes(phase_1.value.base_value)
+                    else Current.from_amperes(phase_1.value)
                 ),
                 value_p2=(
                     None
                     if phase_2.value is None
-                    else Current.from_amperes(phase_2.value.base_value)
+                    else Current.from_amperes(phase_2.value)
                 ),
                 value_p3=(
                     None
                     if phase_3.value is None
-                    else Current.from_amperes(phase_3.value.base_value)
+                    else Current.from_amperes(phase_3.value)
                 ),
             )
 
