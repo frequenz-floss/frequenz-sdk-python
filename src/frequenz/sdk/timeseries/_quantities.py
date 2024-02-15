@@ -334,7 +334,19 @@ class Quantity:
         difference._base_value = self._base_value - other._base_value
         return difference
 
-    def __mul__(self, percent: Percentage) -> Self:
+    @overload
+    def __mul__(self, scalar: float, /) -> Self:
+        """Scale this quantity by a scalar.
+
+        Args:
+            scalar: The scalar by which to scale this quantity.
+
+        Returns:
+            The scaled quantity.
+        """
+
+    @overload
+    def __mul__(self, percent: Percentage, /) -> Self:
         """Scale this quantity by a percentage.
 
         Args:
@@ -343,12 +355,23 @@ class Quantity:
         Returns:
             The scaled quantity.
         """
-        if not isinstance(percent, Percentage):
-            return NotImplemented
 
-        product = type(self).__new__(type(self))
-        product._base_value = self._base_value * percent.as_fraction()
-        return product
+    def __mul__(self, value: float | Percentage, /) -> Self:
+        """Scale this quantity by a scalar or percentage.
+
+        Args:
+            value: The scalar or percentage by which to scale this quantity.
+
+        Returns:
+            The scaled quantity.
+        """
+        match value:
+            case float():
+                return type(self)._new(self._base_value * value)
+            case Percentage():
+                return type(self)._new(self._base_value * value.as_fraction())
+            case _:
+                return NotImplemented
 
     def __gt__(self, other: Self) -> bool:
         """Return whether this quantity is greater than another.
@@ -583,19 +606,38 @@ class Power(
         """
         return self._base_value / 1e6
 
-    @overload  # type: ignore
-    def __mul__(self, other: Percentage) -> Self:
-        """Scale this power by a percentage.
+    # We need the ignore here because otherwise mypy will give this error:
+    # > Overloaded operator methods can't have wider argument types in overrides
+    # The problem seems to be when the other type implements an **incompatible**
+    # __rmul__ method, which is not the case here, so we should be safe.
+    # Please see this example:
+    # https://github.com/python/mypy/blob/c26f1297d4f19d2d1124a30efc97caebb8c28616/test-data/unit/check-overloading.test#L4738C1-L4769C55
+    # And a discussion in a mypy issue here:
+    # https://github.com/python/mypy/issues/4985#issuecomment-389692396
+    @overload  # type: ignore[override]
+    def __mul__(self, scalar: float, /) -> Self:
+        """Scale this power by a scalar.
 
         Args:
-            other: The percentage by which to scale this power.
+            scalar: The scalar by which to scale this power.
 
         Returns:
             The scaled power.
         """
 
     @overload
-    def __mul__(self, other: timedelta) -> Energy:
+    def __mul__(self, percent: Percentage, /) -> Self:
+        """Scale this power by a percentage.
+
+        Args:
+            percent: The percentage by which to scale this power.
+
+        Returns:
+            The scaled power.
+        """
+
+    @overload
+    def __mul__(self, other: timedelta, /) -> Energy:
         """Return an energy from multiplying this power by the given duration.
 
         Args:
@@ -605,23 +647,22 @@ class Power(
             The calculated energy.
         """
 
-    def __mul__(self, other: Percentage | timedelta) -> Self | Energy:
+    def __mul__(self, other: float | Percentage | timedelta, /) -> Self | Energy:
         """Return a power or energy from multiplying this power by the given value.
 
         Args:
-            other: The percentage or duration to multiply by.
+            other: The scalar, percentage or duration to multiply by.
 
         Returns:
             A power or energy.
         """
-        if isinstance(other, Percentage):
-            return super().__mul__(other)
-        if isinstance(other, timedelta):
-            return Energy.from_watt_hours(
-                self._base_value * other.total_seconds() / 3600.0
-            )
-
-        return NotImplemented
+        match other:
+            case float() | Percentage():
+                return super().__mul__(other)
+            case timedelta():
+                return Energy._new(self._base_value * other.total_seconds() / 3600.0)
+            case _:
+                return NotImplemented
 
     @overload
     def __truediv__(self, other: Current) -> Voltage:
@@ -725,19 +766,31 @@ class Current(
         """
         return self._base_value * 1e3
 
-    @overload  # type: ignore
-    def __mul__(self, other: Percentage) -> Self:
-        """Scale this current by a percentage.
+    # See comment for Power.__mul__ for why we need the ignore here.
+    @overload  # type: ignore[override]
+    def __mul__(self, scalar: float, /) -> Self:
+        """Scale this current by a scalar.
 
         Args:
-            other: The percentage by which to scale this current.
+            scalar: The scalar by which to scale this current.
 
         Returns:
             The scaled current.
         """
 
     @overload
-    def __mul__(self, other: Voltage) -> Power:
+    def __mul__(self, percent: Percentage, /) -> Self:
+        """Scale this current by a percentage.
+
+        Args:
+            percent: The percentage by which to scale this current.
+
+        Returns:
+            The scaled current.
+        """
+
+    @overload
+    def __mul__(self, other: Voltage, /) -> Power:
         """Multiply the current by a voltage to get a power.
 
         Args:
@@ -747,21 +800,22 @@ class Current(
             The calculated power.
         """
 
-    def __mul__(self, other: Percentage | Voltage) -> Self | Power:
+    def __mul__(self, other: float | Percentage | Voltage, /) -> Self | Power:
         """Return a current or power from multiplying this current by the given value.
 
         Args:
-            other: The percentage or voltage to multiply by.
+            other: The scalar, percentage or voltage to multiply by.
 
         Returns:
             A current or power.
         """
-        if isinstance(other, Percentage):
-            return super().__mul__(other)
-        if isinstance(other, Voltage):
-            return Power.from_watts(self._base_value * other._base_value)
-
-        return NotImplemented
+        match other:
+            case float() | Percentage():
+                return super().__mul__(other)
+            case Voltage():
+                return Power._new(self._base_value * other._base_value)
+            case _:
+                return NotImplemented
 
 
 class Voltage(
@@ -840,19 +894,31 @@ class Voltage(
         """
         return self._base_value / 1e3
 
-    @overload  # type: ignore
-    def __mul__(self, other: Percentage) -> Self:
-        """Scale this voltage by a percentage.
+    # See comment for Power.__mul__ for why we need the ignore here.
+    @overload  # type: ignore[override]
+    def __mul__(self, scalar: float, /) -> Self:
+        """Scale this voltage by a scalar.
 
         Args:
-            other: The percentage by which to scale this voltage.
+            scalar: The scalar by which to scale this voltage.
 
         Returns:
             The scaled voltage.
         """
 
     @overload
-    def __mul__(self, other: Current) -> Power:
+    def __mul__(self, percent: Percentage, /) -> Self:
+        """Scale this voltage by a percentage.
+
+        Args:
+            percent: The percentage by which to scale this voltage.
+
+        Returns:
+            The scaled voltage.
+        """
+
+    @overload
+    def __mul__(self, other: Current, /) -> Power:
         """Multiply the voltage by the current to get the power.
 
         Args:
@@ -862,21 +928,22 @@ class Voltage(
             The calculated power.
         """
 
-    def __mul__(self, other: Percentage | Current) -> Self | Power:
+    def __mul__(self, other: float | Percentage | Current, /) -> Self | Power:
         """Return a voltage or power from multiplying this voltage by the given value.
 
         Args:
-            other: The percentage or current to multiply by.
+            other: The scalar, percentage or current to multiply by.
 
         Returns:
             The calculated voltage or power.
         """
-        if isinstance(other, Percentage):
-            return super().__mul__(other)
-        if isinstance(other, Current):
-            return Power.from_watts(self._base_value * other._base_value)
-
-        return NotImplemented
+        match other:
+            case float() | Percentage():
+                return super().__mul__(other)
+            case Current():
+                return Power._new(self._base_value * other._base_value)
+            case _:
+                return NotImplemented
 
 
 class Energy(
@@ -958,6 +1025,23 @@ class Energy(
             The energy in megawatt hours.
         """
         return self._base_value / 1e6
+
+    def __mul__(self, other: float | Percentage) -> Self:
+        """Scale this energy by a percentage.
+
+        Args:
+            other: The percentage by which to scale this energy.
+
+        Returns:
+            The scaled energy.
+        """
+        match other:
+            case float():
+                return self._new(self._base_value * other)
+            case Percentage():
+                return self._new(self._base_value * other.as_fraction())
+            case _:
+                return NotImplemented
 
     @overload
     def __truediv__(self, other: timedelta) -> Power:

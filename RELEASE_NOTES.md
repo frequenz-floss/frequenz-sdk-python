@@ -10,7 +10,7 @@
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+- Allow multiplying any `Quantity` by a `float` too. This just scales the `Quantity` value.
 
 ## Bug Fixes
 
