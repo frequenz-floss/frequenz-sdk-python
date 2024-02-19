@@ -10,7 +10,8 @@
 
 ## New Features
 
-- Allow multiplying any `Quantity` by a `float` too. This just scales the `Quantity` value.
+- Allow multiplying and dividing any `Quantity` by a `float`. This just scales the `Quantity` value.
+- Allow dividing any `Quantity` by another quaintity of the same type. This just returns a ration between both quantities.
 
 ## Bug Fixes
 

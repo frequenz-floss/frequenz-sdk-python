@@ -373,6 +373,45 @@ class Quantity:
             case _:
                 return NotImplemented
 
+    @overload
+    def __truediv__(self, other: float, /) -> Self:
+        """Divide this quantity by a scalar.
+
+        Args:
+            other: The scalar or percentage to divide this quantity by.
+
+        Returns:
+            The divided quantity.
+        """
+
+    @overload
+    def __truediv__(self, other: Self, /) -> float:
+        """Return the ratio of this quantity to another.
+
+        Args:
+            other: The other quantity.
+
+        Returns:
+            The ratio of this quantity to another.
+        """
+
+    def __truediv__(self, value: float | Self, /) -> Self | float:
+        """Divide this quantity by a scalar or another quantity.
+
+        Args:
+            value: The scalar or quantity to divide this quantity by.
+
+        Returns:
+            The divided quantity or the ratio of this quantity to another.
+        """
+        match value:
+            case float():
+                return type(self)._new(self._base_value / value)
+            case Quantity() if type(value) is type(self):
+                return self._base_value / value._base_value
+            case _:
+                return NotImplemented
+
     def __gt__(self, other: Self) -> bool:
         """Return whether this quantity is greater than another.
 
@@ -664,47 +703,73 @@ class Power(
             case _:
                 return NotImplemented
 
+    # See the comment for Power.__mul__ for why we need the ignore here.
+    @overload  # type: ignore[override]
+    def __truediv__(self, other: float, /) -> Self:
+        """Divide this power by a scalar.
+
+        Args:
+            other: The scalar to divide this power by.
+
+        Returns:
+            The divided power.
+        """
+
     @overload
-    def __truediv__(self, other: Current) -> Voltage:
+    def __truediv__(self, other: Self, /) -> float:
+        """Return the ratio of this power to another.
+
+        Args:
+            other: The other power.
+
+        Returns:
+            The ratio of this power to another.
+        """
+
+    @overload
+    def __truediv__(self, current: Current, /) -> Voltage:
         """Return a voltage from dividing this power by the given current.
 
         Args:
-            other: The current to divide by.
+            current: The current to divide by.
 
         Returns:
             A voltage from dividing this power by the a current.
         """
 
     @overload
-    def __truediv__(self, other: Voltage) -> Current:
+    def __truediv__(self, voltage: Voltage, /) -> Current:
         """Return a current from dividing this power by the given voltage.
 
         Args:
-            other: The voltage to divide by.
+            voltage: The voltage to divide by.
 
         Returns:
             A current from dividing this power by a voltage.
         """
 
-    def __truediv__(self, other: Current | Voltage) -> Voltage | Current:
+    def __truediv__(
+        self, other: float | Self | Current | Voltage, /
+    ) -> Self | float | Voltage | Current:
         """Return a current or voltage from dividing this power by the given value.
 
         Args:
-            other: The current or voltage to divide by.
+            other: The scalar, power, current or voltage to divide by.
 
         Returns:
             A current or voltage from dividing this power by the given value.
-
-        Raises:
-            TypeError: If the given value is not a current or voltage.
         """
-        if isinstance(other, Current):
-            return Voltage.from_volts(self._base_value / other._base_value)
-        if isinstance(other, Voltage):
-            return Current.from_amperes(self._base_value / other._base_value)
-        raise TypeError(
-            f"unsupported operand type(s) for /: '{type(self)}' and '{type(other)}'"
-        )
+        match other:
+            case float():
+                return super().__truediv__(other)
+            case Power():
+                return self._base_value / other._base_value
+            case Current():
+                return Voltage._new(self._base_value / other._base_value)
+            case Voltage():
+                return Current._new(self._base_value / other._base_value)
+            case _:
+                return NotImplemented
 
 
 class Current(
@@ -1043,47 +1108,75 @@ class Energy(
             case _:
                 return NotImplemented
 
+    # See the comment for Power.__mul__ for why we need the ignore here.
+    @overload  # type: ignore[override]
+    def __truediv__(self, other: float, /) -> Self:
+        """Divide this energy by a scalar.
+
+        Args:
+            other: The scalar to divide this energy by.
+
+        Returns:
+            The divided energy.
+        """
+
     @overload
-    def __truediv__(self, other: timedelta) -> Power:
+    def __truediv__(self, other: Self, /) -> float:
+        """Return the ratio of this energy to another.
+
+        Args:
+            other: The other energy.
+
+        Returns:
+            The ratio of this energy to another.
+        """
+
+    @overload
+    def __truediv__(self, duration: timedelta, /) -> Power:
         """Return a power from dividing this energy by the given duration.
 
         Args:
-            other: The duration to divide by.
+            duration: The duration to divide by.
 
         Returns:
             A power from dividing this energy by the given duration.
         """
 
     @overload
-    def __truediv__(self, other: Power) -> timedelta:
+    def __truediv__(self, power: Power, /) -> timedelta:
         """Return a duration from dividing this energy by the given power.
 
         Args:
-            other: The power to divide by.
+            power: The power to divide by.
 
         Returns:
             A duration from dividing this energy by the given power.
         """
 
-    def __truediv__(self, other: timedelta | Power) -> Power | timedelta:
+    def __truediv__(
+        self, other: float | Self | timedelta | Power, /
+    ) -> Self | float | Power | timedelta:
         """Return a power or duration from dividing this energy by the given value.
 
         Args:
-            other: The power or duration to divide by.
+            other: The scalar, energy, power or duration to divide by.
 
         Returns:
             A power or duration from dividing this energy by the given value.
-
-        Raises:
-            TypeError: If the given value is not a power or duration.
         """
-        if isinstance(other, timedelta):
-            return Power.from_watts(self._base_value / (other.total_seconds() / 3600.0))
-        if isinstance(other, Power):
-            return timedelta(seconds=(self._base_value / other._base_value) * 3600.0)
-        raise TypeError(
-            f"unsupported operand type(s) for /: '{type(self)}' and '{type(other)}'"
-        )
+        match other:
+            case float():
+                return super().__truediv__(other)
+            case Energy():
+                return self._base_value / other._base_value
+            case timedelta():
+                return Power._new(self._base_value / (other.total_seconds() / 3600.0))
+            case Power():
+                return timedelta(
+                    seconds=(self._base_value / other._base_value) * 3600.0
+                )
+            case _:
+                return NotImplemented
 
 
 class Frequency(

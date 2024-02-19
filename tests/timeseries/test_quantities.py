@@ -641,6 +641,253 @@ def test_invalid_multiplications() -> None:
             energy *= quantity  # type: ignore
 
 
+@pytest.mark.parametrize("quantity_ctor", _QUANTITY_CTORS + [Quantity])
+# Use a small amount to avoid long running tests, we have too many combinations
+@hypothesis.settings(max_examples=10)
+@hypothesis.given(
+    quantity_value=st.floats(
+        allow_infinity=False,
+        allow_nan=False,
+        allow_subnormal=False,
+        # We need to set this because otherwise constructors with big exponents will
+        # cause the value to be too big for the float type, and the test will fail.
+        max_value=1e298,
+        min_value=-1e298,
+    ),
+    scalar=st.floats(allow_infinity=False, allow_nan=False, allow_subnormal=False),
+)
+def test_quantity_divided_by_float(
+    quantity_ctor: type[Quantity], quantity_value: float, scalar: float
+) -> None:
+    """Test the division of all quantities by a float."""
+    hypothesis.assume(scalar != 0.0)
+    quantity = quantity_ctor(quantity_value)
+    expected_value = quantity.base_value / scalar
+    print(f"{quantity=}, {expected_value=}")
+
+    quotient = quantity / scalar
+    print(f"{quotient=}")
+    assert quotient.base_value == expected_value
+
+    quantity /= scalar
+    print(f"*{quantity=}")
+    assert quantity.base_value == expected_value
+
+
+@pytest.mark.parametrize("quantity_ctor", _QUANTITY_CTORS + [Quantity])
+# Use a small amount to avoid long running tests, we have too many combinations
+@hypothesis.settings(max_examples=10)
+@hypothesis.given(
+    quantity_value=st.floats(
+        allow_infinity=False,
+        allow_nan=False,
+        allow_subnormal=False,
+        # We need to set this because otherwise constructors with big exponents will
+        # cause the value to be too big for the float type, and the test will fail.
+        max_value=1e298,
+        min_value=-1e298,
+    ),
+    divisor_value=st.floats(
+        allow_infinity=False, allow_nan=False, allow_subnormal=False
+    ),
+)
+def test_quantity_divided_by_self(
+    quantity_ctor: type[Quantity], quantity_value: float, divisor_value: float
+) -> None:
+    """Test the division of all quantities by a float."""
+    hypothesis.assume(divisor_value != 0.0)
+    # We need to have float here because quantity /= divisor will return a float
+    quantity: Quantity | float = quantity_ctor(quantity_value)
+    divisor = quantity_ctor(divisor_value)
+    assert isinstance(quantity, Quantity)
+    expected_value = quantity.base_value / divisor.base_value
+    print(f"{quantity=}, {expected_value=}")
+
+    quotient = quantity / divisor
+    print(f"{quotient=}")
+    assert isinstance(quotient, float)
+    assert quotient == expected_value
+
+    quantity /= divisor
+    print(f"*{quantity=}")
+    assert isinstance(quantity, float)
+    assert quantity == expected_value
+
+
+@pytest.mark.parametrize(
+    "divisor",
+    [
+        Energy.from_kilowatt_hours(500.0),
+        Frequency.from_hertz(50),
+        Power.from_watts(1000.0),
+        Quantity(30.0),
+        Temperature.from_celsius(30),
+        Voltage.from_volts(230.0),
+    ],
+    ids=lambda q: q.__class__.__name__,
+)
+def test_invalid_current_divisions(divisor: Quantity) -> None:
+    """Test the divisions of current with invalid quantities."""
+    current = Current.from_amperes(2)
+
+    with pytest.raises(TypeError):
+        _ = current / divisor  # type: ignore
+    with pytest.raises(TypeError):
+        current /= divisor  # type: ignore
+
+
+@pytest.mark.parametrize(
+    "divisor",
+    [
+        Current.from_amperes(2),
+        Frequency.from_hertz(50),
+        Quantity(30.0),
+        Temperature.from_celsius(30),
+        Voltage.from_volts(230.0),
+    ],
+    ids=lambda q: q.__class__.__name__,
+)
+def test_invalid_energy_divisions(divisor: Quantity) -> None:
+    """Test the divisions of energy with invalid quantities."""
+    energy = Energy.from_kilowatt_hours(500.0)
+
+    with pytest.raises(TypeError):
+        _ = energy / divisor  # type: ignore
+    with pytest.raises(TypeError):
+        energy /= divisor  # type: ignore
+
+
+@pytest.mark.parametrize(
+    "divisor",
+    [
+        Current.from_amperes(2),
+        Energy.from_kilowatt_hours(500.0),
+        Power.from_watts(1000.0),
+        Quantity(30.0),
+        Temperature.from_celsius(30),
+        Voltage.from_volts(230.0),
+    ],
+    ids=lambda q: q.__class__.__name__,
+)
+def test_invalid_frequency_divisions(divisor: Quantity) -> None:
+    """Test the divisions of frequency with invalid quantities."""
+    frequency = Frequency.from_hertz(50)
+
+    with pytest.raises(TypeError):
+        _ = frequency / divisor  # type: ignore
+    with pytest.raises(TypeError):
+        frequency /= divisor  # type: ignore
+
+
+@pytest.mark.parametrize(
+    "divisor",
+    [
+        Current.from_amperes(2),
+        Energy.from_kilowatt_hours(500.0),
+        Frequency.from_hertz(50),
+        Power.from_watts(1000.0),
+        Quantity(30.0),
+        Temperature.from_celsius(30),
+        Voltage.from_volts(230.0),
+    ],
+    ids=lambda q: q.__class__.__name__,
+)
+def test_invalid_percentage_divisions(divisor: Quantity) -> None:
+    """Test the divisions of percentage with invalid quantities."""
+    percentage = Percentage.from_percent(50.0)
+
+    with pytest.raises(TypeError):
+        _ = percentage / divisor  # type: ignore
+    with pytest.raises(TypeError):
+        percentage /= divisor  # type: ignore
+
+
+@pytest.mark.parametrize(
+    "divisor",
+    [
+        Energy.from_kilowatt_hours(500.0),
+        Frequency.from_hertz(50),
+        Quantity(30.0),
+        Temperature.from_celsius(30),
+    ],
+    ids=lambda q: q.__class__.__name__,
+)
+def test_invalid_power_divisions(divisor: Quantity) -> None:
+    """Test the divisions of power with invalid quantities."""
+    power = Power.from_watts(1000.0)
+
+    with pytest.raises(TypeError):
+        _ = power / divisor  # type: ignore
+    with pytest.raises(TypeError):
+        power /= divisor  # type: ignore
+
+
+@pytest.mark.parametrize(
+    "divisor",
+    [
+        Current.from_amperes(2),
+        Energy.from_kilowatt_hours(500.0),
+        Frequency.from_hertz(50),
+        Power.from_watts(1000.0),
+        Temperature.from_celsius(30),
+        Voltage.from_volts(230.0),
+    ],
+    ids=lambda q: q.__class__.__name__,
+)
+def test_invalid_quantity_divisions(divisor: Quantity) -> None:
+    """Test the divisions of quantity with invalid quantities."""
+    quantity = Quantity(30.0)
+
+    with pytest.raises(TypeError):
+        _ = quantity / divisor
+    with pytest.raises(TypeError):
+        quantity /= divisor  # type: ignore[assignment]
+
+
+@pytest.mark.parametrize(
+    "divisor",
+    [
+        Current.from_amperes(2),
+        Energy.from_kilowatt_hours(500.0),
+        Frequency.from_hertz(50),
+        Power.from_watts(1000.0),
+        Quantity(30.0),
+        Voltage.from_volts(230.0),
+    ],
+    ids=lambda q: q.__class__.__name__,
+)
+def test_invalid_temperature_divisions(divisor: Quantity) -> None:
+    """Test the divisions of temperature with invalid quantities."""
+    temperature = Temperature.from_celsius(30)
+
+    with pytest.raises(TypeError):
+        _ = temperature / divisor  # type: ignore
+    with pytest.raises(TypeError):
+        temperature /= divisor  # type: ignore
+
+
+@pytest.mark.parametrize(
+    "divisor",
+    [
+        Current.from_amperes(2),
+        Energy.from_kilowatt_hours(500.0),
+        Frequency.from_hertz(50),
+        Power.from_watts(1000.0),
+        Quantity(30.0),
+        Temperature.from_celsius(30),
+    ],
+    ids=lambda q: q.__class__.__name__,
+)
+def test_invalid_voltage_divisions(divisor: Quantity) -> None:
+    """Test the divisions of voltage with invalid quantities."""
+    voltage = Voltage.from_volts(230.0)
+
+    with pytest.raises(TypeError):
+        _ = voltage / divisor  # type: ignore
+    with pytest.raises(TypeError):
+        voltage /= divisor  # type: ignore
+
+
 # We can't use _QUANTITY_TYPES here, because it will break the tests, as hypothesis
 # will generate more values, some of which are unsupported by the quantities. See the
 # test comment for more details.
