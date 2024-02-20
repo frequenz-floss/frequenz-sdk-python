@@ -41,7 +41,7 @@ async def test_actors_started(
     # pylint: disable=protected-access
     assert datapipeline._data_sourcing_actor is None
     assert datapipeline._resampling_actor is None
-    assert datapipeline._power_distributing_actor is None
+    assert datapipeline._battery_power_wrapper._power_distributing_actor is None
 
     datapipeline.logical_meter()
 
@@ -55,7 +55,7 @@ async def test_actors_started(
     assert datapipeline._resampling_actor.actor is not None
     assert datapipeline._resampling_actor.actor.is_running
 
-    assert datapipeline._power_distributing_actor is None
+    assert datapipeline._battery_power_wrapper._power_distributing_actor is None
 
     mock_client = MockMicrogridClient(
         {
@@ -69,8 +69,8 @@ async def test_actors_started(
 
     datapipeline.battery_pool()
 
-    assert datapipeline._power_distributing_actor is not None
+    assert datapipeline._battery_power_wrapper._power_distributing_actor is not None
     await asyncio.sleep(1)
-    assert datapipeline._power_distributing_actor.is_running
+    assert datapipeline._battery_power_wrapper._power_distributing_actor.is_running
 
     await datapipeline._stop()

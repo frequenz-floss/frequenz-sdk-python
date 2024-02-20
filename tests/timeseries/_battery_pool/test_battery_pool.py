@@ -156,20 +156,21 @@ async def setup_all_batteries(mocker: MockerFixture) -> AsyncIterator[SetupArgs]
     # batteries.
     battery_pool = microgrid.battery_pool()
 
-    assert microgrid._data_pipeline._DATA_PIPELINE is not None
+    dp = microgrid._data_pipeline._DATA_PIPELINE
+    assert dp is not None
 
     args = SetupArgs(
         battery_pool,
         min_update_interval,
         mock_microgrid,
         streamer,
-        microgrid._data_pipeline._DATA_PIPELINE._battery_status_channel.new_sender(),
+        dp._battery_power_wrapper.status_channel.new_sender(),
     )
 
     yield args
     await asyncio.gather(
         *[
-            microgrid._data_pipeline._DATA_PIPELINE._stop(),
+            dp._stop(),
             battery_pool._battery_pool.stop(),
             streamer.stop(),
         ]
@@ -209,21 +210,22 @@ async def setup_batteries_pool(mocker: MockerFixture) -> AsyncIterator[SetupArgs
 
     battery_pool = microgrid.battery_pool(set(all_batteries[:2]))
 
-    assert microgrid._data_pipeline._DATA_PIPELINE is not None
+    dp = microgrid._data_pipeline._DATA_PIPELINE
+    assert dp is not None
 
     args = SetupArgs(
         battery_pool,
         min_update_interval,
         mock_microgrid,
         streamer,
-        microgrid._data_pipeline._DATA_PIPELINE._battery_status_channel.new_sender(),
+        dp._battery_power_wrapper.status_channel.new_sender(),
     )
 
     yield args
 
     await asyncio.gather(
         *[
-            microgrid._data_pipeline._DATA_PIPELINE._stop(),
+            dp._stop(),
             battery_pool._battery_pool.stop(),
             streamer.stop(),
         ]

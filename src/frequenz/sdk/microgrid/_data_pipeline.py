@@ -10,7 +10,6 @@ ResamplingActor.
 
 from __future__ import annotations
 
-import logging
 import sys
 import typing
 from collections import abc
@@ -19,29 +18,19 @@ from dataclasses import dataclass
 from frequenz.channels import Broadcast, Sender
 
 from ..actor._actor import Actor
-from ..timeseries._base_types import PoolType
 from ..timeseries._grid_frequency import GridFrequency
 from ..timeseries._voltage_streamer import VoltageStreamer
 from ..timeseries.grid import Grid
 from ..timeseries.grid import get as get_grid
 from ..timeseries.grid import initialize as initialize_grid
-from . import connection_manager
-from .component import ComponentCategory
-
-_logger = logging.getLogger(__name__)
+from ._power_wrapper import PowerWrapper
 
 # A number of imports had to be done inside functions where they are used, to break
 # import cycles.
 #
 # pylint: disable=import-outside-toplevel
 if typing.TYPE_CHECKING:
-    from ..actor import ComponentMetricRequest, ResamplerConfig, _power_managing
-    from ..actor.power_distributing import (  # noqa: F401 (imports used by string type hints)
-        ComponentPoolStatus,
-        PowerDistributingActor,
-        Request,
-        Result,
-    )
+    from ..actor import ComponentMetricRequest, ResamplerConfig
     from ..timeseries.battery_pool import BatteryPool
     from ..timeseries.battery_pool._battery_pool_reference_store import (
         BatteryPoolReferenceStore,
@@ -99,25 +88,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._data_sourcing_actor: _ActorInfo | None = None
         self._resampling_actor: _ActorInfo | None = None
 
-        self._battery_status_channel: Broadcast[ComponentPoolStatus] = Broadcast(
-            "battery-status", resend_latest=True
-        )
-        self._power_distribution_requests_channel: Broadcast[Request] = Broadcast(
-            "Power Distributing Actor, Requests Broadcast Channel"
-        )
-        self._power_distribution_results_channel: Broadcast[Result] = Broadcast(
-            "Power Distributing Actor, Results Broadcast Channel"
-        )
-
-        self._power_management_proposals_channel: Broadcast[
-            _power_managing.Proposal
-        ] = Broadcast("Power Managing Actor, Requests Broadcast Channel")
-        self._power_manager_bounds_subscription_channel: Broadcast[
-            _power_managing.ReportRequest
-        ] = Broadcast("Power Managing Actor, Bounds Subscription Channel")
-
-        self._power_distributing_actor: PowerDistributingActor | None = None
-        self._power_managing_actor: _power_managing.PowerManagingActor | None = None
+        self._battery_power_wrapper = PowerWrapper(self._channel_registry)
 
         self._logical_meter: LogicalMeter | None = None
         self._consumer: Consumer | None = None
@@ -249,8 +220,8 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             BatteryPoolReferenceStore,
         )
 
-        if not self._power_managing_actor:
-            self._start_power_managing_actor()
+        if not self._battery_power_wrapper.started:
+            self._battery_power_wrapper.start()
 
         # We use frozenset to make a hashable key from the input set.
         key: frozenset[int] = frozenset()
@@ -261,85 +232,20 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             self._battery_pools[key] = BatteryPoolReferenceStore(
                 channel_registry=self._channel_registry,
                 resampler_subscription_sender=self._resampling_request_sender(),
-                batteries_status_receiver=self._battery_status_channel.new_receiver(
+                batteries_status_receiver=self._battery_power_wrapper.status_channel.new_receiver(
                     maxsize=1
                 ),
                 power_manager_requests_sender=(
-                    self._power_management_proposals_channel.new_sender()
+                    self._battery_power_wrapper.proposal_channel.new_sender()
                 ),
                 power_manager_bounds_subscription_sender=(
-                    self._power_manager_bounds_subscription_channel.new_sender()
+                    self._battery_power_wrapper.bounds_subscription_channel.new_sender()
                 ),
                 min_update_interval=self._resampler_config.resampling_period,
                 batteries_id=battery_ids,
             )
 
         return BatteryPool(self._battery_pools[key], name, priority)
-
-    def _start_power_managing_actor(self) -> None:
-        """Start the power managing actor if it is not already running."""
-        if self._power_managing_actor:
-            return
-
-        component_graph = connection_manager.get().component_graph
-        # Currently the power managing actor only supports batteries.  The below
-        # constraint needs to be relaxed if the actor is extended to support other
-        # components.
-        if not component_graph.components(
-            component_categories={ComponentCategory.BATTERY}
-        ):
-            _logger.warning(
-                "No batteries found in the component graph. "
-                "The power managing actor will not be started."
-            )
-            return
-
-        self._start_power_distributing_actor()
-
-        from ..actor._power_managing._power_managing_actor import PowerManagingActor
-
-        self._power_managing_actor = PowerManagingActor(
-            pool_type=PoolType.BATTERY_POOL,
-            proposals_receiver=self._power_management_proposals_channel.new_receiver(),
-            bounds_subscription_receiver=(
-                self._power_manager_bounds_subscription_channel.new_receiver()
-            ),
-            power_distributing_requests_sender=(
-                self._power_distribution_requests_channel.new_sender()
-            ),
-            power_distributing_results_receiver=(
-                self._power_distribution_results_channel.new_receiver()
-            ),
-            channel_registry=self._channel_registry,
-        )
-        self._power_managing_actor.start()
-
-    def _start_power_distributing_actor(self) -> None:
-        """Start the power distributing actor if it is not already running."""
-        if self._power_distributing_actor:
-            return
-
-        component_graph = connection_manager.get().component_graph
-        if not component_graph.components(
-            component_categories={ComponentCategory.BATTERY}
-        ):
-            _logger.warning(
-                "No batteries found in the component graph. "
-                "The power distributing actor will not be started."
-            )
-            return
-
-        from ..actor.power_distributing import PowerDistributingActor
-
-        # The PowerDistributingActor is started with only a single default user channel.
-        # Until the PowerManager is implemented, support for multiple use-case actors
-        # will not be available in the high level interface.
-        self._power_distributing_actor = PowerDistributingActor(
-            requests_receiver=self._power_distribution_requests_channel.new_receiver(),
-            results_sender=self._power_distribution_results_channel.new_sender(),
-            component_pool_status_sender=self._battery_status_channel.new_sender(),
-        )
-        self._power_distributing_actor.start()
 
     def _data_sourcing_request_sender(self) -> Sender[ComponentMetricRequest]:
         """Return a Sender for sending requests to the data sourcing actor.
@@ -397,10 +303,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             await self._data_sourcing_actor.actor.stop()
         if self._resampling_actor:
             await self._resampling_actor.actor.stop()
-        if self._power_distributing_actor:
-            await self._power_distributing_actor.stop()
-        if self._power_managing_actor:
-            await self._power_managing_actor.stop()
+        await self._battery_power_wrapper.stop()
         for pool in self._battery_pools.values():
             await pool.stop()
 
