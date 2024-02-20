@@ -34,12 +34,17 @@ _logger = logging.getLogger(__name__)
 class PowerWrapper:
     """Wrapper around the power managing and power distributing actors."""
 
-    def __init__(self, channel_registry: ChannelRegistry):
+    def __init__(
+        self, component_category: ComponentCategory, channel_registry: ChannelRegistry
+    ):
         """Initialize the power control.
 
         Args:
+            component_category: The category of the components that actors started by
+                this instance of the PowerWrapper will be responsible for.
             channel_registry: A channel registry for use in the actors.
         """
+        self._component_category = component_category
         self._channel_registry = channel_registry
 
         self.status_channel: Broadcast[ComponentPoolStatus] = Broadcast(
@@ -74,10 +79,10 @@ class PowerWrapper:
         # constraint needs to be relaxed if the actor is extended to support other
         # components.
         if not component_graph.components(
-            component_categories={ComponentCategory.BATTERY}
+            component_categories={self._component_category}
         ):
             _logger.warning(
-                "No batteries found in the component graph. "
+                f"No {self._component_category} found in the component graph. "
                 "The power managing actor will not be started."
             )
             return
@@ -85,7 +90,7 @@ class PowerWrapper:
         from ..actor._power_managing._power_managing_actor import PowerManagingActor
 
         self._power_managing_actor = PowerManagingActor(
-            component_category=ComponentCategory.BATTERY,
+            component_category=self._component_category,
             proposals_receiver=self.proposal_channel.new_receiver(),
             bounds_subscription_receiver=(
                 self.bounds_subscription_channel.new_receiver()
@@ -109,10 +114,10 @@ class PowerWrapper:
 
         component_graph = microgrid.connection_manager.get().component_graph
         if not component_graph.components(
-            component_categories={ComponentCategory.BATTERY}
+            component_categories={self._component_category}
         ):
             _logger.warning(
-                "No batteries found in the component graph. "
+                f"No {self._component_category} found in the component graph. "
                 "The power distributing actor will not be started."
             )
             return
@@ -123,6 +128,7 @@ class PowerWrapper:
         # Until the PowerManager is implemented, support for multiple use-case actors
         # will not be available in the high level interface.
         self._power_distributing_actor = PowerDistributingActor(
+            component_category=self._component_category,
             requests_receiver=self._power_distribution_requests_channel.new_receiver(),
             results_sender=self._power_distribution_results_channel.new_sender(),
             component_pool_status_sender=self.status_channel.new_sender(),

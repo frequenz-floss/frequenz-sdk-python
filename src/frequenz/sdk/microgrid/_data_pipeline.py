@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from frequenz.channels import Broadcast, Sender
 
 from ..actor._actor import Actor
+from ..microgrid.component import ComponentCategory
 from ..timeseries._grid_frequency import GridFrequency
 from ..timeseries._voltage_streamer import VoltageStreamer
 from ..timeseries.grid import Grid
@@ -88,7 +89,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._data_sourcing_actor: _ActorInfo | None = None
         self._resampling_actor: _ActorInfo | None = None
 
-        self._battery_power_wrapper = PowerWrapper(self._channel_registry)
+        self._battery_power_wrapper = PowerWrapper(
+            ComponentCategory.BATTERY, self._channel_registry
+        )
 
         self._logical_meter: LogicalMeter | None = None
         self._consumer: Consumer | None = None

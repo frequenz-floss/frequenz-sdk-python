@@ -183,6 +183,7 @@ class TestPowerDistributingActor:
             results_channel = Broadcast[Result]("power_distributor results")
             battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
             async with PowerDistributingActor(
+                component_category=ComponentCategory.BATTERY,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -210,6 +211,7 @@ class TestPowerDistributingActor:
             results_channel = Broadcast[Result]("power_distributor results")
             battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
             async with PowerDistributingActor(
+                component_category=ComponentCategory.BATTERY,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -273,6 +275,7 @@ class TestPowerDistributingActor:
 
         battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
         async with PowerDistributingActor(
+            component_category=ComponentCategory.BATTERY,
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
             component_pool_status_sender=battery_status_channel.new_sender(),
@@ -330,6 +333,7 @@ class TestPowerDistributingActor:
 
             battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
             async with PowerDistributingActor(
+                component_category=ComponentCategory.BATTERY,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -429,6 +433,7 @@ class TestPowerDistributingActor:
             battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
             async with PowerDistributingActor(
+                component_category=ComponentCategory.BATTERY,
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
@@ -505,6 +510,7 @@ class TestPowerDistributingActor:
             battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
             async with PowerDistributingActor(
+                component_category=ComponentCategory.BATTERY,
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
@@ -557,6 +563,7 @@ class TestPowerDistributingActor:
             battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
             async with PowerDistributingActor(
+                component_category=ComponentCategory.BATTERY,
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
@@ -605,6 +612,7 @@ class TestPowerDistributingActor:
             battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
             async with PowerDistributingActor(
+                component_category=ComponentCategory.BATTERY,
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
@@ -687,6 +695,7 @@ class TestPowerDistributingActor:
             battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
             async with PowerDistributingActor(
+                component_category=ComponentCategory.BATTERY,
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
@@ -770,6 +779,7 @@ class TestPowerDistributingActor:
             battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
             async with PowerDistributingActor(
+                component_category=ComponentCategory.BATTERY,
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
@@ -832,6 +842,7 @@ class TestPowerDistributingActor:
             battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
 
             async with PowerDistributingActor(
+                component_category=ComponentCategory.BATTERY,
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
@@ -886,6 +897,7 @@ class TestPowerDistributingActor:
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
             battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
             async with PowerDistributingActor(
+                component_category=ComponentCategory.BATTERY,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -937,6 +949,7 @@ class TestPowerDistributingActor:
 
             battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
             async with PowerDistributingActor(
+                component_category=ComponentCategory.BATTERY,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -1007,6 +1020,7 @@ class TestPowerDistributingActor:
 
             battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
             async with PowerDistributingActor(
+                component_category=ComponentCategory.BATTERY,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -1049,6 +1063,7 @@ class TestPowerDistributingActor:
 
             battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
             async with PowerDistributingActor(
+                component_category=ComponentCategory.BATTERY,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -1090,6 +1105,7 @@ class TestPowerDistributingActor:
 
             battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
             async with PowerDistributingActor(
+                component_category=ComponentCategory.BATTERY,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -1133,6 +1149,7 @@ class TestPowerDistributingActor:
 
             battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
             async with PowerDistributingActor(
+                component_category=ComponentCategory.BATTERY,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -1176,6 +1193,7 @@ class TestPowerDistributingActor:
 
             battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
             async with PowerDistributingActor(
+                component_category=ComponentCategory.BATTERY,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -1212,6 +1230,7 @@ class TestPowerDistributingActor:
 
             battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
             async with PowerDistributingActor(
+                component_category=ComponentCategory.BATTERY,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -1262,6 +1281,7 @@ class TestPowerDistributingActor:
 
             battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
             async with PowerDistributingActor(
+                component_category=ComponentCategory.BATTERY,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),

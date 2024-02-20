@@ -17,7 +17,8 @@ import asyncio
 from frequenz.channels import Receiver, Sender
 
 from ...actor._actor import Actor
-from ._component_managers import BatteryManager, ComponentManager
+from ...microgrid.component import ComponentCategory
+from ._component_managers import BatteryManager, ComponentManager, EVChargerManager
 from ._component_status import ComponentPoolStatus
 from .request import Request
 from .result import Result
@@ -51,6 +52,7 @@ class PowerDistributingActor(Actor):
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
+        component_category: ComponentCategory,
         requests_receiver: Receiver[Request],
         results_sender: Sender[Result],
         component_pool_status_sender: Sender[ComponentPoolStatus],
@@ -61,6 +63,8 @@ class PowerDistributingActor(Actor):
         """Create class instance.
 
         Args:
+            component_category: The category of the components that this actor is
+                responsible for.
             requests_receiver: Receiver for receiving power requests from the power
                 manager.
             results_sender: Sender for sending results to the power manager.
@@ -70,15 +74,25 @@ class PowerDistributingActor(Actor):
                 request. It is a time needed to collect first components data.
             name: The name of the actor. If `None`, `str(id(self))` will be used. This
                 is used mostly for debugging purposes.
+
+        Raises:
+            ValueError: If the given component category is not supported.
         """
         super().__init__(name=name)
+        self._component_category = component_category
         self._requests_receiver = requests_receiver
         self._result_sender = results_sender
         self._wait_for_data_sec = wait_for_data_sec
 
-        self._component_manager: ComponentManager = BatteryManager(
-            component_pool_status_sender
-        )
+        self._component_manager: ComponentManager
+        if component_category == ComponentCategory.BATTERY:
+            self._component_manager = BatteryManager(component_pool_status_sender)
+        elif component_category == ComponentCategory.EV_CHARGER:
+            self._component_manager = EVChargerManager(component_pool_status_sender)
+        else:
+            raise ValueError(
+                f"PowerDistributor doesn't support controlling: {component_category}"
+            )
 
     async def _run(self) -> None:  # pylint: disable=too-many-locals
         """Run actor main function.
