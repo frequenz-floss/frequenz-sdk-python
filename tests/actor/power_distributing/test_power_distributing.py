@@ -94,11 +94,13 @@ class _Mocks:
         )
         streamer = MockComponentDataStreamer(mockgrid.mock_client)
 
-        assert microgrid._data_pipeline._DATA_PIPELINE is not None
+        dp = microgrid._data_pipeline._DATA_PIPELINE
+        assert dp is not None
+
         return cls(
             mockgrid,
             streamer,
-            microgrid._data_pipeline._DATA_PIPELINE._battery_status_channel.new_sender(),
+            dp._battery_power_wrapper.status_channel.new_sender(),
         )
 
     async def stop(self) -> None:
