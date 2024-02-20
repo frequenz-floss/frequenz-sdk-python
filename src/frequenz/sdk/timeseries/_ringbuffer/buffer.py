@@ -4,6 +4,7 @@
 """Ringbuffer implementation with focus on time & memory efficiency."""
 
 
+import math
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -12,8 +13,7 @@ from typing import Generic, SupportsIndex, TypeVar, overload
 import numpy as np
 import numpy.typing as npt
 
-from .._base_types import UNIX_EPOCH, Sample
-from .._quantities import QuantityT
+from .._base_types import UNIX_EPOCH, Sample, SupportsFloatT
 
 FloatArray = TypeVar("FloatArray", list[float], npt.NDArray[np.float64])
 """Type variable of the buffer container."""
@@ -106,7 +106,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         """
         return self._gaps
 
-    def has_value(self, sample: Sample[QuantityT]) -> bool:
+    def has_value(self, sample: Sample[SupportsFloatT]) -> bool:
         """Check if a sample has a value and it's not NaN.
 
         Args:
@@ -115,7 +115,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         Returns:
             True if the sample has a value and it's not NaN.
         """
-        return not (sample.value is None or sample.value.isnan())
+        return not (sample.value is None or math.isnan(sample.value))
 
     @property
     def maxlen(self) -> int:
@@ -126,7 +126,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         """
         return len(self._buffer)
 
-    def update(self, sample: Sample[QuantityT]) -> None:
+    def update(self, sample: Sample[SupportsFloatT]) -> None:
         """Update the buffer with a new value for the given timestamp.
 
         Missing values are written as NaN. Be advised that when
@@ -165,7 +165,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
         # Update data
         if self.has_value(sample):
             assert sample.value is not None
-            value = sample.value.base_value
+            value = float(sample.value)
         else:
             value = np.nan
         self._buffer[self.to_internal_index(timestamp)] = value

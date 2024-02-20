@@ -7,12 +7,14 @@ from __future__ import annotations
 
 import math
 from abc import ABC, abstractmethod
-from typing import Generic
+from typing import Generic, SupportsFloat, TypeVar
 
 from frequenz.channels import Receiver
 
 from .. import Sample
-from .._quantities import QuantityT
+
+SupportsFloatT = TypeVar("SupportsFloatT", bound=SupportsFloat)
+"""Type variable for types that support conversion to float."""
 
 
 class FormulaStep(ABC):
@@ -343,13 +345,13 @@ class Clipper(FormulaStep):
         eval_stack.append(val)
 
 
-class MetricFetcher(Generic[QuantityT], FormulaStep):
+class MetricFetcher(Generic[SupportsFloatT], FormulaStep):
     """A formula step for fetching a value from a metric Receiver."""
 
     def __init__(
         self,
         name: str,
-        stream: Receiver[Sample[QuantityT]],
+        stream: Receiver[Sample[SupportsFloatT]],
         *,
         nones_are_zeros: bool,
     ) -> None:
@@ -361,12 +363,12 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
             nones_are_zeros: Whether to treat None values from the stream as 0s.
         """
         self._name = name
-        self._stream: Receiver[Sample[QuantityT]] = stream
-        self._next_value: Sample[QuantityT] | None = None
+        self._stream: Receiver[Sample[SupportsFloatT]] = stream
+        self._next_value: Sample[SupportsFloatT] | None = None
         self._nones_are_zeros = nones_are_zeros
 
     @property
-    def stream(self) -> Receiver[Sample[QuantityT]]:
+    def stream(self) -> Receiver[Sample[SupportsFloatT]]:
         """Return the stream from which to fetch values.
 
         Returns:
@@ -382,7 +384,7 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
         """
         return str(self._stream.__doc__)
 
-    async def fetch_next(self) -> Sample[QuantityT] | None:
+    async def fetch_next(self) -> Sample[SupportsFloatT] | None:
         """Fetch the next value from the stream.
 
         To be called before each call to `apply`.
@@ -394,7 +396,7 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
         return self._next_value
 
     @property
-    def value(self) -> Sample[QuantityT] | None:
+    def value(self) -> Sample[SupportsFloatT] | None:
         """Get the next value in the stream.
 
         Returns:
@@ -423,10 +425,10 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
             raise RuntimeError("No next value available to append.")
 
         next_value = self._next_value.value
-        if next_value is None or next_value.isnan() or next_value.isinf():
+        if next_value is None or math.isnan(next_value) or math.isinf(next_value):
             if self._nones_are_zeros:
                 eval_stack.append(0.0)
             else:
                 eval_stack.append(math.nan)
         else:
-            eval_stack.append(next_value.base_value)
+            eval_stack.append(float(next_value))

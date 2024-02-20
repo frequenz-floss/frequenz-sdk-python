@@ -12,11 +12,10 @@ from frequenz.channels import Broadcast, Receiver, Sender
 from pytest_mock import MockerFixture
 
 from frequenz.sdk._internal._asyncio import cancel_and_await
-from frequenz.sdk.actor import ComponentMetricRequest, ResamplerConfig
+from frequenz.sdk.actor import ComponentMetricRequest, ResamplingActorConfig
 from frequenz.sdk.microgrid._data_pipeline import _DataPipeline
 from frequenz.sdk.microgrid.component import ComponentMetricId
-from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._quantities import Quantity
+from frequenz.sdk.timeseries import Current, Power, Sample
 from frequenz.sdk.timeseries.formula_engine._formula_generators._formula_generator import (
     NON_EXISTING_COMPONENT_ID,
 )
@@ -30,7 +29,7 @@ class MockResampler:
     def __init__(  # pylint: disable=too-many-arguments
         self,
         mocker: MockerFixture,
-        resampler_config: ResamplerConfig,
+        resampler_config: ResamplingActorConfig,
         bat_inverter_ids: list[int],
         pv_inverter_ids: list[int],
         evc_ids: list[int],
@@ -45,22 +44,22 @@ class MockResampler:
         self._resampler_request_channel = Broadcast[ComponentMetricRequest](
             "resampler-request"
         )
-        self._input_channels_receivers: dict[str, list[Receiver[Sample[Quantity]]]] = {}
+        self._input_channels_receivers: dict[str, list[Receiver[Sample[float]]]] = {}
 
         def power_senders(
             comp_ids: list[int],
-        ) -> list[Sender[Sample[Quantity]]]:
-            senders: list[Sender[Sample[Quantity]]] = []
+        ) -> list[Sender[Sample[float]]]:
+            senders: list[Sender[Sample[float]]] = []
             for comp_id in comp_ids:
                 name = f"{comp_id}:{ComponentMetricId.ACTIVE_POWER}"
                 senders.append(
                     self._channel_registry.get_or_create(
-                        Sample[Quantity], name
+                        Sample[float], name
                     ).new_sender()
                 )
                 self._input_channels_receivers[name] = [
                     self._channel_registry.get_or_create(
-                        Sample[Quantity], name
+                        Sample[float], name
                     ).new_receiver()
                     for _ in range(namespaces)
                 ]
@@ -68,18 +67,18 @@ class MockResampler:
 
         def frequency_senders(
             comp_ids: list[int],
-        ) -> list[Sender[Sample[Quantity]]]:
-            senders: list[Sender[Sample[Quantity]]] = []
+        ) -> list[Sender[Sample[float]]]:
+            senders: list[Sender[Sample[float]]] = []
             for comp_id in comp_ids:
                 name = f"{comp_id}:{ComponentMetricId.FREQUENCY}"
                 senders.append(
                     self._channel_registry.get_or_create(
-                        Sample[Quantity], name
+                        Sample[float], name
                     ).new_sender()
                 )
                 self._input_channels_receivers[name] = [
                     self._channel_registry.get_or_create(
-                        Sample[Quantity], name
+                        Sample[float], name
                     ).new_receiver(name)
                     for _ in range(namespaces)
                 ]
@@ -99,8 +98,8 @@ class MockResampler:
         def multi_phase_senders(
             ids: list[int],
             metrics: tuple[ComponentMetricId, ComponentMetricId, ComponentMetricId],
-        ) -> list[list[Sender[Sample[Quantity]]]]:
-            senders: list[list[Sender[Sample[Quantity]]]] = []
+        ) -> list[list[Sender[Sample[float]]]]:
+            senders: list[list[Sender[Sample[float]]]] = []
             for comp_id in ids:
                 p1_name = f"{comp_id}:{metrics[0]}"
                 p2_name = f"{comp_id}:{metrics[1]}"
@@ -109,37 +108,39 @@ class MockResampler:
                 senders.append(
                     [
                         self._channel_registry.get_or_create(
-                            Sample[Quantity], p1_name
+                            Sample[float], p1_name
                         ).new_sender(),
                         self._channel_registry.get_or_create(
-                            Sample[Quantity], p2_name
+                            Sample[float], p2_name
                         ).new_sender(),
                         self._channel_registry.get_or_create(
-                            Sample[Quantity], p3_name
+                            Sample[float], p3_name
                         ).new_sender(),
                     ]
                 )
                 self._input_channels_receivers[p1_name] = [
                     self._channel_registry.get_or_create(
-                        Sample[Quantity], p1_name
+                        Sample[float], p1_name
                     ).new_receiver()
                     for _ in range(namespaces)
                 ]
                 self._input_channels_receivers[p2_name] = [
                     self._channel_registry.get_or_create(
-                        Sample[Quantity], p2_name
+                        Sample[float], p2_name
                     ).new_receiver()
                     for _ in range(namespaces)
                 ]
                 self._input_channels_receivers[p3_name] = [
                     self._channel_registry.get_or_create(
-                        Sample[Quantity], p3_name
+                        Sample[float], p3_name
                     ).new_receiver()
                     for _ in range(namespaces)
                 ]
             return senders
 
-        def current_senders(ids: list[int]) -> list[list[Sender[Sample[Quantity]]]]:
+        def current_senders(
+            ids: list[int],
+        ) -> list[list[Sender[Sample[float]]]]:
             return multi_phase_senders(
                 ids,
                 (
@@ -149,7 +150,9 @@ class MockResampler:
                 ),
             )
 
-        def voltage_senders(ids: list[int]) -> list[list[Sender[Sample[Quantity]]]]:
+        def voltage_senders(
+            ids: list[int],
+        ) -> list[list[Sender[Sample[float]]]]:
             return multi_phase_senders(
                 ids,
                 (
@@ -212,7 +215,9 @@ class MockResampler:
         return self._resampler_request_channel.new_sender()
 
     async def _channel_forward_messages(
-        self, receiver: Receiver[Sample[Quantity]], sender: Sender[Sample[Quantity]]
+        self,
+        receiver: Receiver[Sample[float]],
+        sender: Sender[Sample[float]],
     ) -> None:
         async for sample in receiver:
             await sender.send(sample)
@@ -225,10 +230,8 @@ class MockResampler:
             input_chan_recv_name = f"{request.component_id}:{request.metric_id}"
             input_chan_recv = self._input_channels_receivers[input_chan_recv_name].pop()
             assert input_chan_recv is not None
-            output_chan_sender: Sender[Sample[Quantity]] = (
-                self._channel_registry.get_or_create(
-                    Sample[Quantity], name
-                ).new_sender()
+            output_chan_sender: Sender[Sample[float]] = (
+                self._channel_registry.get_or_create(Sample[float], name).new_sender()
             )
             task = asyncio.create_task(
                 self._channel_forward_messages(
@@ -245,11 +248,11 @@ class MockResampler:
             task.add_done_callback(_done_callback)
             self._forward_tasks[name] = task
 
-    def make_sample(self, value: float | None) -> Sample[Quantity]:
+    def make_sample(self, value: float | None) -> Sample[float]:
         """Create a sample with the given value."""
         return Sample(
             self._next_ts,
-            None if value is None or math.isnan(value) else Quantity(value),
+            None if value is None or math.isnan(value) else value,
         )
 
     async def send_meter_power(self, values: list[float | None]) -> None:

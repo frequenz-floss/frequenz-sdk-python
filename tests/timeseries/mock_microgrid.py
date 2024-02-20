@@ -14,7 +14,7 @@ from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
 from frequenz.sdk._internal._asyncio import cancel_and_await
-from frequenz.sdk.actor import ResamplerConfig
+from frequenz.sdk.actor import ResamplingActorConfig
 from frequenz.sdk.microgrid import _data_pipeline
 from frequenz.sdk.microgrid.client import Connection
 from frequenz.sdk.microgrid.component import (
@@ -195,7 +195,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         self.init_mock_client(lambda mock_client: mock_client.initialize(local_mocker))
         self.mock_resampler = MockResampler(
             mocker,
-            ResamplerConfig(timedelta(seconds=self._sample_rate_s)),
+            ResamplingActorConfig(timedelta(seconds=self._sample_rate_s)),
             bat_inverter_ids=self.battery_inverter_ids,
             pv_inverter_ids=self.pv_inverter_ids,
             evc_ids=self.evc_ids,

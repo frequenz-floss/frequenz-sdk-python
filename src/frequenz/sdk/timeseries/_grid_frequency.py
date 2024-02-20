@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 from typing import TYPE_CHECKING
 
 from frequenz.channels import Receiver, Sender
@@ -15,7 +16,7 @@ from ..actor import ChannelRegistry
 from ..microgrid import connection_manager
 from ..microgrid.component import Component, ComponentCategory, ComponentMetricId
 from ..timeseries._base_types import Sample
-from ..timeseries._quantities import Frequency, Quantity
+from ..timeseries._quantities import Frequency
 
 if TYPE_CHECKING:
     # Imported here to avoid a circular import.
@@ -96,7 +97,7 @@ class GridFrequency:
             A receiver that will receive grid frequency samples.
         """
         receiver = self._channel_registry.get_or_create(
-            Sample[Quantity], self._component_metric_request.get_channel_name()
+            Sample[float], self._component_metric_request.get_channel_name()
         ).new_receiver()
 
         if not self._task:
@@ -109,10 +110,8 @@ class GridFrequency:
         return receiver.map(
             lambda sample: (
                 Sample[Frequency](sample.timestamp, None)
-                if sample.value is None or sample.value.isnan()
-                else Sample(
-                    sample.timestamp, Frequency.from_hertz(sample.value.base_value)
-                )
+                if sample.value is None or math.isnan(sample.value)
+                else Sample(sample.timestamp, Frequency.from_hertz(float(sample.value)))
             )
         )
 

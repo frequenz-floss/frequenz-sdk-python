@@ -6,13 +6,12 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, get_type_hints
 
 from frequenz.channels import Receiver, Sender
 
 from ...microgrid.component import ComponentMetricId
-from .. import Sample
-from .._quantities import Quantity, QuantityT
+from .._base_types import Sample, SupportsFloatT
 from ._formula_engine import FormulaBuilder, FormulaEngine
 from ._tokenizer import Tokenizer, TokenType
 
@@ -21,7 +20,7 @@ if TYPE_CHECKING:
     from ...actor import ChannelRegistry, ComponentMetricRequest
 
 
-class ResampledFormulaBuilder(FormulaBuilder[QuantityT]):
+class ResampledFormulaBuilder(FormulaBuilder[SupportsFloatT]):
     """Provides a way to build a FormulaEngine from resampled data streams."""
 
     def __init__(  # pylint: disable=too-many-arguments
@@ -31,7 +30,7 @@ class ResampledFormulaBuilder(FormulaBuilder[QuantityT]):
         channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         metric_id: ComponentMetricId,
-        create_method: Callable[[float], QuantityT],
+        create_method: Callable[[float], SupportsFloatT],
     ) -> None:
         """Create a `ResampledFormulaBuilder` instance.
 
@@ -55,11 +54,20 @@ class ResampledFormulaBuilder(FormulaBuilder[QuantityT]):
         self._namespace: str = namespace
         self._metric_id: ComponentMetricId = metric_id
         self._resampler_requests: list[ComponentMetricRequest] = []
-        super().__init__(formula_name, create_method)  # type: ignore[arg-type]
+        # We need to store the runtime value type of the formula, so that we can
+        # create the correct channel in the channel registry, as we need to pass the
+        # runtime type to the channel registry.
+        # Since invoking the function seems to be the only reliable way to do this
+        # (trying to get it from the type hints doesn't work because usually `Self`
+        # is used as the return type), we do it only once in the constructor to avoid
+        # unnecessary runtime cost.
+        self._value_type = type(create_method(0.0))
+
+        super().__init__(formula_name, create_method)
 
     def _get_resampled_receiver(
         self, component_id: int, metric_id: ComponentMetricId
-    ) -> Receiver[Sample[QuantityT]]:
+    ) -> Receiver[Sample[SupportsFloatT]]:
         """Get a receiver with the resampled data for the given component id.
 
         Args:
@@ -75,13 +83,13 @@ class ResampledFormulaBuilder(FormulaBuilder[QuantityT]):
         request = ComponentMetricRequest(self._namespace, component_id, metric_id, None)
         self._resampler_requests.append(request)
         resampled_channel = self._channel_registry.get_or_create(
-            Sample[Quantity], request.get_channel_name()
+            Sample[float], request.get_channel_name()
         )
         resampled_receiver = resampled_channel.new_receiver().map(
             lambda sample: Sample(
                 sample.timestamp,
                 (
-                    self._create_method(sample.value.base_value)
+                    self._create_method(float(sample.value))
                     if sample.value is not None
                     else None
                 ),
@@ -112,7 +120,7 @@ class ResampledFormulaBuilder(FormulaBuilder[QuantityT]):
         formula: str,
         *,
         nones_are_zeros: bool,
-    ) -> FormulaEngine[QuantityT]:
+    ) -> FormulaEngine[SupportsFloatT]:
         """Construct a `FormulaEngine` from the given formula string.
 
         Formulas can have Component IDs that are preceeded by a pound symbol("#"), and

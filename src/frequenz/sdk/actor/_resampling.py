@@ -7,18 +7,29 @@
 import asyncio
 import dataclasses
 import logging
+from typing import Callable
 
 from frequenz.channels import Receiver, Sender
 
 from .._internal._asyncio import cancel_and_await
-from ..timeseries import Sample
-from ..timeseries._quantities import Quantity
+from ..timeseries._base_types import Sample
 from ..timeseries._resampling import Resampler, ResamplerConfig, ResamplingError
 from ._actor import Actor
 from ._channel_registry import ChannelRegistry
 from ._data_sourcing import ComponentMetricRequest
 
 _logger = logging.getLogger(__name__)
+
+
+# We need to use the dataclass decorator again because we are making a required
+# attribute optional, so we need the dataclass to re-generate the constructor with the
+# new signature.
+@dataclasses.dataclass(frozen=True)
+class ResamplingActorConfig(ResamplerConfig[float]):
+    """Configuration for the resampling actor."""
+
+    value_constructor: Callable[[float], float] = float
+    """The constructor to use to create new sample values."""
 
 
 class ComponentMetricsResamplingActor(Actor):
@@ -30,7 +41,7 @@ class ComponentMetricsResamplingActor(Actor):
         channel_registry: ChannelRegistry,
         data_sourcing_request_sender: Sender[ComponentMetricRequest],
         resampling_request_receiver: Receiver[ComponentMetricRequest],
-        config: ResamplerConfig,
+        config: ResamplingActorConfig,
         name: str | None = None,
     ) -> None:
         """Initialize an instance.
@@ -49,13 +60,15 @@ class ComponentMetricsResamplingActor(Actor):
         """
         super().__init__(name=name)
         self._channel_registry: ChannelRegistry = channel_registry
+
         self._data_sourcing_request_sender: Sender[ComponentMetricRequest] = (
             data_sourcing_request_sender
         )
         self._resampling_request_receiver: Receiver[ComponentMetricRequest] = (
             resampling_request_receiver
         )
-        self._resampler: Resampler = Resampler(config)
+        self._resampler: Resampler[float] = Resampler(config)
+
         self._active_req_channels: set[str] = set()
 
     async def _subscribe(self, request: ComponentMetricRequest) -> None:
@@ -78,13 +91,13 @@ class ComponentMetricsResamplingActor(Actor):
         data_source_channel_name = data_source_request.get_channel_name()
         await self._data_sourcing_request_sender.send(data_source_request)
         receiver = self._channel_registry.get_or_create(
-            Sample[Quantity], data_source_channel_name
+            Sample[float], data_source_channel_name
         ).new_receiver()
 
         # This is a temporary hack until the Sender implementation uses
         # exceptions to report errors.
         sender = self._channel_registry.get_or_create(
-            Sample[Quantity], request_channel_name
+            Sample[float], request_channel_name
         ).new_sender()
 
         self._resampler.add_timeseries(request_channel_name, receiver, sender.send)

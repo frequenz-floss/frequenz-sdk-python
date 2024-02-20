@@ -5,7 +5,7 @@
 
 import inspect
 from datetime import timedelta
-from typing import Callable
+from typing import Callable, Self
 
 import hypothesis
 import pytest
@@ -33,6 +33,18 @@ class Fz1(
 ):
     """Frequency quantity with narrow exponent unit map."""
 
+    @classmethod
+    def new(cls, value: float, exponent: int = 0) -> Self:
+        """Create a frequency quantity from a value in Hz."""
+        return cls._new(value, exponent=exponent)
+
+
+assert Fz1._exponent_unit_map is not None
+
+
+class Fz1Subclass(Fz1, exponent_unit_map=Fz1._exponent_unit_map):
+    """Subclass of Fz1."""
+
 
 class Fz2(
     Quantity,
@@ -46,6 +58,11 @@ class Fz2(
     },
 ):
     """Frequency quantity with broad exponent unit map."""
+
+    @classmethod
+    def new(cls, value: float, exponent: int = 0) -> Self:
+        """Create a frequency quantity from a value in Hz."""
+        return cls._new(value, exponent=exponent)
 
 
 _CtorType = Callable[[float], Quantity]
@@ -92,16 +109,20 @@ assert len(_QUANTITY_CTORS) >= _SANITFY_NUM_CLASSES
 
 def test_zero() -> None:
     """Test the zero value for quantity."""
-    assert Quantity(0.0) == Quantity.zero()
-    assert Quantity(0.0, exponent=100) == Quantity.zero()
-    assert Quantity.zero() is Quantity.zero()  # It is a "singleton"
-    assert Quantity.zero().base_value == 0.0
+    # Quantity can't be instantiated, even with zero()
+    with pytest.raises(TypeError):
+        Quantity.zero()
+
+    assert Power.from_watts(0.0) == Power.zero()
+    assert Power.from_kilowatts(0.0) == Power.zero()
+    assert Power.zero() is Power.zero()  # It is a "singleton"
+    assert float(Power.zero()) == 0.0
 
     # Test the singleton is immutable
-    one = Quantity.zero()
-    one += Quantity(1.0)
-    assert one != Quantity.zero()
-    assert Quantity.zero() == Quantity(0.0)
+    one = Power.zero()
+    one += Power.from_megawatts(1.0)
+    assert one != Power.zero()
+    assert Power.zero() == Power.from_milliwatts(0.0)
 
     assert Power.from_watts(0.0) == Power.zero()
     assert Power.from_kilowatts(0.0) == Power.zero()
@@ -173,53 +194,40 @@ def test_base_value_from_string_is_float(
 
 def test_string_representation() -> None:
     """Test the string representation of the quantities."""
-    assert str(Quantity(1.024445, exponent=0)) == "1.024"
-    assert (
-        repr(Quantity(1.024445, exponent=0)) == "Quantity(value=1.024445, exponent=0)"
-    )
-    assert f"{Quantity(0.50001, exponent=0):.0}" == "1"
-    assert f"{Quantity(1.024445, exponent=0)}" == "1.024"
-    assert f"{Quantity(1.024445, exponent=0):.0}" == "1"
-    assert f"{Quantity(0.124445, exponent=0):.0}" == "0"
-    assert f"{Quantity(0.50001, exponent=0):.0}" == "1"
-    assert f"{Quantity(1.024445, exponent=0):.6}" == "1.024445"
+    assert str(Fz1.new(1.024445, exponent=0)) == "1.024 Hz"
+    assert repr(Fz1.new(1.024445, exponent=0)) == "Fz1(value=1.024445, exponent=0)"
+    assert f"{Fz1.new(1.024445, exponent=0)}" == "1.024 Hz"
+    assert f"{Fz1.new(1.024445, exponent=0):.0}" == "1 Hz"
+    assert f"{Fz1.new(1.024445, exponent=0):.1}" == "1 Hz"
+    assert f"{Fz1.new(1.024445, exponent=0):.2}" == "1.02 Hz"
+    assert f"{Fz1.new(1.024445, exponent=0):.9}" == "1.024445 Hz"
+    assert f"{Fz1.new(1.024445, exponent=0):0.0}" == "1 Hz"
+    assert f"{Fz1.new(1.024445, exponent=0):0.1}" == "1.0 Hz"
+    assert f"{Fz1.new(1.024445, exponent=0):0.2}" == "1.02 Hz"
+    assert f"{Fz1.new(1.024445, exponent=0):0.9}" == "1.024445000 Hz"
 
-    assert f"{Quantity(1.024445, exponent=3)}" == "1024.445"
+    assert f"{Fz1.new(1.024445, exponent=3)}" == "1.024 kHz"
+    assert f"{Fz2.new(1.024445, exponent=3)}" == "1.024 kHz"
 
-    assert str(Fz1(1.024445, exponent=0)) == "1.024 Hz"
-    assert repr(Fz1(1.024445, exponent=0)) == "Fz1(value=1.024445, exponent=0)"
-    assert f"{Fz1(1.024445, exponent=0)}" == "1.024 Hz"
-    assert f"{Fz1(1.024445, exponent=0):.0}" == "1 Hz"
-    assert f"{Fz1(1.024445, exponent=0):.1}" == "1 Hz"
-    assert f"{Fz1(1.024445, exponent=0):.2}" == "1.02 Hz"
-    assert f"{Fz1(1.024445, exponent=0):.9}" == "1.024445 Hz"
-    assert f"{Fz1(1.024445, exponent=0):0.0}" == "1 Hz"
-    assert f"{Fz1(1.024445, exponent=0):0.1}" == "1.0 Hz"
-    assert f"{Fz1(1.024445, exponent=0):0.2}" == "1.02 Hz"
-    assert f"{Fz1(1.024445, exponent=0):0.9}" == "1.024445000 Hz"
+    assert f"{Fz1.new(1.024445, exponent=6)}" == "1024.445 kHz"
+    assert f"{Fz2.new(1.024445, exponent=6)}" == "1.024 MHz"
+    assert f"{Fz1.new(1.024445, exponent=9)}" == "1024445 kHz"
+    assert f"{Fz2.new(1.024445, exponent=9)}" == "1.024 GHz"
 
-    assert f"{Fz1(1.024445, exponent=3)}" == "1.024 kHz"
-    assert f"{Fz2(1.024445, exponent=3)}" == "1.024 kHz"
+    assert f"{Fz1.new(1.024445, exponent=-3)}" == "0.001 Hz"
+    assert f"{Fz2.new(1.024445, exponent=-3)}" == "1.024 mHz"
 
-    assert f"{Fz1(1.024445, exponent=6)}" == "1024.445 kHz"
-    assert f"{Fz2(1.024445, exponent=6)}" == "1.024 MHz"
-    assert f"{Fz1(1.024445, exponent=9)}" == "1024445 kHz"
-    assert f"{Fz2(1.024445, exponent=9)}" == "1.024 GHz"
+    assert f"{Fz1.new(1.024445, exponent=-6)}" == "0 Hz"
+    assert f"{Fz1.new(1.024445, exponent=-6):.6}" == "0.000001 Hz"
+    assert f"{Fz2.new(1.024445, exponent=-6)}" == "1.024 uHz"
 
-    assert f"{Fz1(1.024445, exponent=-3)}" == "0.001 Hz"
-    assert f"{Fz2(1.024445, exponent=-3)}" == "1.024 mHz"
+    assert f"{Fz1.new(1.024445, exponent=-12)}" == "0 Hz"
+    assert f"{Fz2.new(1.024445, exponent=-12)}" == "0 Hz"
 
-    assert f"{Fz1(1.024445, exponent=-6)}" == "0 Hz"
-    assert f"{Fz1(1.024445, exponent=-6):.6}" == "0.000001 Hz"
-    assert f"{Fz2(1.024445, exponent=-6)}" == "1.024 uHz"
+    assert f"{Fz1.new(0)}" == "0 Hz"
 
-    assert f"{Fz1(1.024445, exponent=-12)}" == "0 Hz"
-    assert f"{Fz2(1.024445, exponent=-12)}" == "0 Hz"
-
-    assert f"{Fz1(0)}" == "0 Hz"
-
-    assert f"{Fz1(-20)}" == "-20 Hz"
-    assert f"{Fz1(-20000)}" == "-20 kHz"
+    assert f"{Fz1.new(-20)}" == "-20 Hz"
+    assert f"{Fz1.new(-20000)}" == "-20 kHz"
 
     assert f"{Power.from_watts(0.000124445):.0}" == "0 W"
     assert f"{Energy.from_watt_hours(0.124445):.0}" == "0 Wh"
@@ -230,91 +238,82 @@ def test_string_representation() -> None:
 
 def test_isclose() -> None:
     """Test the isclose method of the quantities."""
-    assert Fz1(1.024445).isclose(Fz1(1.024445))
-    assert not Fz1(1.024445).isclose(Fz1(1.0))
+    assert Fz1.new(1.024445).isclose(Fz1.new(1.024445))
+    assert not Fz1.new(1.024445).isclose(Fz1.new(1.0))
 
 
 def test_addition_subtraction() -> None:
     """Test the addition and subtraction of the quantities."""
-    assert Quantity(1) + Quantity(1, exponent=0) == Quantity(2, exponent=0)
-    assert Quantity(1) + Quantity(1, exponent=3) == Quantity(1001, exponent=0)
-    assert Quantity(1) - Quantity(1, exponent=0) == Quantity(0, exponent=0)
+    assert Fz1.new(1) + Fz1.new(1, exponent=0) == Fz1.new(2, exponent=0)
+    assert Fz1.new(1) + Fz1.new(1, exponent=3) == Fz1.new(1001, exponent=0)
+    assert Fz1.new(1) - Fz1.new(1, exponent=0) == Fz1.new(0, exponent=0)
 
-    assert Fz1(1) + Fz1(1) == Fz1(2)
+    assert Fz1.new(1) + Fz1.new(1) == Fz1.new(2)
     with pytest.raises(TypeError) as excinfo:
-        assert Fz1(1) + Fz2(1)  # type: ignore
+        assert Fz1.new(1) + Fz2.new(1)  # type: ignore
     assert excinfo.value.args[0] == "unsupported operand type(s) for +: 'Fz1' and 'Fz2'"
     with pytest.raises(TypeError) as excinfo:
-        assert Fz1(1) - Fz2(1)  # type: ignore
+        assert Fz1.new(1) - Fz2.new(1)  # type: ignore
     assert excinfo.value.args[0] == "unsupported operand type(s) for -: 'Fz1' and 'Fz2'"
 
-    fz1 = Fz1(1.0)
-    fz1 += Fz1(4.0)
-    assert fz1 == Fz1(5.0)
-    fz1 -= Fz1(9.0)
-    assert fz1 == Fz1(-4.0)
+    fz1 = Fz1.new(1.0)
+    fz1 += Fz1.new(4.0)
+    assert fz1 == Fz1.new(5.0)
+    fz1 -= Fz1.new(9.0)
+    assert fz1 == Fz1.new(-4.0)
 
     with pytest.raises(TypeError) as excinfo:
-        fz1 += Fz2(1.0)  # type: ignore
+        fz1 += Fz2.new(1.0)  # type: ignore
 
 
 def test_comparison() -> None:
     """Test the comparison of the quantities."""
-    assert Quantity(1.024445, exponent=0) == Quantity(1.024445, exponent=0)
-    assert Quantity(1.024445, exponent=0) != Quantity(1.024445, exponent=3)
-    assert Quantity(1.024445, exponent=0) < Quantity(1.024445, exponent=3)
-    assert Quantity(1.024445, exponent=0) <= Quantity(1.024445, exponent=3)
-    assert Quantity(1.024445, exponent=0) <= Quantity(1.024445, exponent=0)
-    assert Quantity(1.024445, exponent=0) > Quantity(1.024445, exponent=-3)
-    assert Quantity(1.024445, exponent=0) >= Quantity(1.024445, exponent=-3)
-    assert Quantity(1.024445, exponent=0) >= Quantity(1.024445, exponent=0)
+    assert Fz1.new(1.024445, exponent=0) == Fz1.new(1.024445, exponent=0)
+    assert Fz1.new(1.024445, exponent=0) != Fz1.new(1.024445, exponent=3)
+    assert Fz1.new(1.024445, exponent=0) < Fz1.new(1.024445, exponent=3)
+    assert Fz1.new(1.024445, exponent=0) <= Fz1.new(1.024445, exponent=3)
+    assert Fz1.new(1.024445, exponent=0) <= Fz1.new(1.024445, exponent=0)
+    assert Fz1.new(1.024445, exponent=0) > Fz1.new(1.024445, exponent=-3)
+    assert Fz1.new(1.024445, exponent=0) >= Fz1.new(1.024445, exponent=-3)
+    assert Fz1.new(1.024445, exponent=0) >= Fz1.new(1.024445, exponent=0)
 
-    assert Fz1(1.024445, exponent=0) == Fz1(1.024445, exponent=0)
-    assert Fz1(1.024445, exponent=0) != Fz1(1.024445, exponent=3)
-    assert Fz1(1.024445, exponent=0) < Fz1(1.024445, exponent=3)
-    assert Fz1(1.024445, exponent=0) <= Fz1(1.024445, exponent=3)
-    assert Fz1(1.024445, exponent=0) <= Fz1(1.024445, exponent=0)
-    assert Fz1(1.024445, exponent=0) > Fz1(1.024445, exponent=-3)
-    assert Fz1(1.024445, exponent=0) >= Fz1(1.024445, exponent=-3)
-    assert Fz1(1.024445, exponent=0) >= Fz1(1.024445, exponent=0)
-
-    assert Fz1(1.024445, exponent=0) != Fz2(1.024445, exponent=0)
+    assert Fz1.new(1.024445, exponent=0) != Fz2.new(1.024445, exponent=0)
     with pytest.raises(TypeError) as excinfo:
         # unfortunately, mypy does not identify this as an error, when comparing a child
         # type against a base type, but they should still fail, because base-type
         # instances are being used as dimension-less quantities, whereas all child types
         # have dimensions/units.
-        assert Fz1(1.024445, exponent=0) <= Quantity(1.024445, exponent=0)
+        assert Fz1.new(1.024445, exponent=0) <= Fz1Subclass.new(1.024445, exponent=0)
     assert (
         excinfo.value.args[0]
-        == "'<=' not supported between instances of 'Fz1' and 'Quantity'"
+        == "'<=' not supported between instances of 'Fz1' and 'Fz1Subclass'"
     )
     with pytest.raises(TypeError) as excinfo:
-        assert Quantity(1.024445, exponent=0) <= Fz1(1.024445, exponent=0)
+        assert Fz1Subclass.new(1.024445, exponent=0) <= Fz1.new(1.024445, exponent=0)
     assert (
         excinfo.value.args[0]
-        == "'<=' not supported between instances of 'Quantity' and 'Fz1'"
+        == "'<=' not supported between instances of 'Fz1Subclass' and 'Fz1'"
     )
     with pytest.raises(TypeError) as excinfo:
-        assert Fz1(1.024445, exponent=0) < Fz2(1.024445, exponent=3)  # type: ignore
+        assert Fz1.new(1.024445, exponent=0) < Fz2.new(1.024445, exponent=3)  # type: ignore
     assert (
         excinfo.value.args[0]
         == "'<' not supported between instances of 'Fz1' and 'Fz2'"
     )
     with pytest.raises(TypeError) as excinfo:
-        assert Fz1(1.024445, exponent=0) <= Fz2(1.024445, exponent=3)  # type: ignore
+        assert Fz1.new(1.024445, exponent=0) <= Fz2.new(1.024445, exponent=3)  # type: ignore
     assert (
         excinfo.value.args[0]
         == "'<=' not supported between instances of 'Fz1' and 'Fz2'"
     )
     with pytest.raises(TypeError) as excinfo:
-        assert Fz1(1.024445, exponent=0) > Fz2(1.024445, exponent=-3)  # type: ignore
+        assert Fz1.new(1.024445, exponent=0) > Fz2.new(1.024445, exponent=-3)  # type: ignore
     assert (
         excinfo.value.args[0]
         == "'>' not supported between instances of 'Fz1' and 'Fz2'"
     )
     with pytest.raises(TypeError) as excinfo:
-        assert Fz1(1.024445, exponent=0) >= Fz2(1.024445, exponent=-3)  # type: ignore
+        assert Fz1.new(1.024445, exponent=0) >= Fz2.new(1.024445, exponent=-3)  # type: ignore
     assert (
         excinfo.value.args[0]
         == "'>=' not supported between instances of 'Fz1' and 'Fz2'"
@@ -338,7 +337,7 @@ def test_power() -> None:
 
     with pytest.raises(TypeError):
         # using the default constructor should raise.
-        Power(1.0, exponent=0)
+        Power()
 
 
 def test_current() -> None:
@@ -357,7 +356,7 @@ def test_current() -> None:
 
     with pytest.raises(TypeError):
         # using the default constructor should raise.
-        Current(1.0, exponent=0)
+        Current()
 
 
 def test_voltage() -> None:
@@ -378,7 +377,7 @@ def test_voltage() -> None:
 
     with pytest.raises(TypeError):
         # using the default constructor should raise.
-        Voltage(1.0, exponent=0)
+        Voltage()
 
 
 def test_energy() -> None:
@@ -398,7 +397,7 @@ def test_energy() -> None:
 
     with pytest.raises(TypeError):
         # using the default constructor should raise.
-        Energy(1.0, exponent=0)
+        Energy()
 
 
 def test_temperature() -> None:
@@ -411,7 +410,7 @@ def test_temperature() -> None:
 
     with pytest.raises(TypeError):
         # using the default constructor should raise.
-        Temperature(1.0, exponent=0)
+        Temperature()
 
 
 def test_quantity_compositions() -> None:
@@ -447,7 +446,7 @@ def test_frequency() -> None:
 
     with pytest.raises(TypeError):
         # using the default constructor should raise.
-        Frequency(1.0, exponent=0)
+        Frequency()
 
 
 def test_percentage() -> None:
@@ -929,6 +928,12 @@ def test_to_and_from_string(
         assert f"{from_string:.{exponent}}" == quantity_str
     except AssertionError as error:
         pytest.fail(
-            f"Failed for {quantity.base_value} != from_string({from_string.base_value}) "
+            f"Failed for {float(quantity)} != from_string({float(from_string)}) "
             + f"with exponent {exponent} and source value '{value}': {error}"
         )
+
+
+def test_cant_use_Quantity_from_string() -> None:
+    """Test string parsing and formatting is not allowed for the base Quantity class."""
+    with pytest.raises(TypeError):
+        Quantity.from_string("1.0")

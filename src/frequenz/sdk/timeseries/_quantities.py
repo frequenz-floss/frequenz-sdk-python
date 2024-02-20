@@ -7,32 +7,17 @@
 
 from __future__ import annotations
 
+import abc
 import math
 from datetime import timedelta
-from typing import Any, NoReturn, Self, TypeVar, overload
-
-QuantityT = TypeVar(
-    "QuantityT",
-    "Quantity",
-    "Power",
-    "Current",
-    "Voltage",
-    "Energy",
-    "Frequency",
-    "Percentage",
-    "Temperature",
-)
-"""Type variable for representing various quantity types."""
+from typing import Self, overload
 
 
-class Quantity:
+class Quantity(abc.ABC):
     """A quantity with a unit.
 
     Quantities try to behave like float and are also immutable.
     """
-
-    _base_value: float
-    """The value of this quantity in the base unit."""
 
     _exponent_unit_map: dict[int, str] | None = None
     """A mapping from the exponent of the base unit to the unit symbol.
@@ -41,14 +26,27 @@ class Quantity:
     class.  Sub-classes must define this.
     """
 
-    def __init__(self, value: float, exponent: int = 0) -> None:
-        """Initialize a new quantity.
+    def __init__(self) -> None:
+        """Initialize this instance.
 
-        Args:
-            value: The value of this quantity in a given exponent of the base unit.
-            exponent: The exponent of the base unit the given value is in.
+        This constructor is not meant to be used directly.  Use one of the `from_*()`
+        methods instead.
+
+        Raises:
+            TypeError: Every time this constructor is called.
         """
-        self._base_value = value * 10.0**exponent
+        # This is for documentation purposes and to hint to mypy that this
+        # attribute exists.
+        self._base_value: float = 0.0
+        """The value of this quantity in the base unit."""
+
+        cls = type(self)
+        raise TypeError(
+            "Use of default constructor is not allowed for "
+            f"{cls.__module__}.{cls.__qualname__}, "
+            f"use {cls.__name__}.zero() or one of the "
+            f"`{cls.__name__}.from_*()` constructors instead."
+        )
 
     @classmethod
     def _new(cls, value: float, *, exponent: int = 0) -> Self:
@@ -97,7 +95,14 @@ class Quantity:
 
         Returns:
             A quantity with value 0.0.
+
+        Raises:
+            TypeError: If called on the base
+                [`Quantity`][frequenz.sdk.timeseries.Quantity] class.
         """
+        if cls is Quantity:
+            raise TypeError("Cannot instantiate a base Quantity class.")
+
         _zero = cls._zero_cache.get(cls, None)
         if _zero is None:
             _zero = cls.__new__(cls)
@@ -118,8 +123,12 @@ class Quantity:
 
         Raises:
             ValueError: If the string does not match the expected format.
-
+            TypeError: If called on the base
+                [`Quantity`][frequenz.sdk.timeseries.Quantity] class.
         """
+        if cls is Quantity:
+            raise TypeError("Cannot instantiate a base Quantity class.")
+
         split_string = string.split(" ")
 
         if len(split_string) != 2:
@@ -142,14 +151,52 @@ class Quantity:
 
         raise ValueError(f"Unknown unit {split_string[1]}")
 
-    @property
-    def base_value(self) -> float:
+    def __float__(self) -> float:
         """Return the value of this quantity in the base unit.
 
+        Warning:
+            Normally you should convert to float by using the `as_*()` methods, which
+            makes it clear what unit you are converting to.
+
+            This method is provided only for generics, where using
+            a [`Quantity`][frequenz.sdk.timeseries.Quantity] as
+            a [`SupportsFloat`][typing.SupportsFloat] is required.
+
         Returns:
-            The value of this quantity in the base unit.
+            The value of this quantity in the [base
+                unit][frequenz.sdk.timeseries.Quantity.base_unit].
         """
         return self._base_value
+
+    def __round__(self, ndigits: int | None = None) -> Self:
+        """Round this quantity to the given number of digits.
+
+        Args:
+            ndigits: The number of digits to round to.
+
+        Returns:
+            The rounded quantity.
+        """
+        return self._new(round(self._base_value, ndigits))
+
+    def __pos__(self) -> Self:
+        """Return this quantity.
+
+        Returns:
+            This quantity.
+        """
+        return self
+
+    def __mod__(self, other: Self) -> Self:
+        """Return the remainder of this quantity and another.
+
+        Args:
+            other: The other quantity.
+
+        Returns:
+            The remainder of this quantity and another.
+        """
+        return self._new(self._base_value % other._base_value)
 
     @property
     def base_unit(self) -> str | None:
@@ -163,22 +210,6 @@ class Quantity:
         if not self._exponent_unit_map:
             return None
         return self._exponent_unit_map[0]
-
-    def isnan(self) -> bool:
-        """Return whether this quantity is NaN.
-
-        Returns:
-            Whether this quantity is NaN.
-        """
-        return math.isnan(self._base_value)
-
-    def isinf(self) -> bool:
-        """Return whether this quantity is infinite.
-
-        Returns:
-            Whether this quantity is infinite.
-        """
-        return math.isinf(self._base_value)
 
     def isclose(self, other: Self, rel_tol: float = 1e-9, abs_tol: float = 0.0) -> bool:
         """Return whether this quantity is close to another.
@@ -502,29 +533,8 @@ class Quantity:
         return absolute
 
 
-class _NoDefaultConstructible(type):
-    """A metaclass that disables the default constructor."""
-
-    def __call__(cls, *_args: Any, **_kwargs: Any) -> NoReturn:
-        """Raise a TypeError when the default constructor is called.
-
-        Args:
-            *_args: ignored positional arguments.
-            **_kwargs: ignored keyword arguments.
-
-        Raises:
-            TypeError: Always.
-        """
-        raise TypeError(
-            "Use of default constructor NOT allowed for "
-            f"{cls.__module__}.{cls.__qualname__}, "
-            f"use one of the `{cls.__name__}.from_*()` methods instead."
-        )
-
-
 class Temperature(
     Quantity,
-    metaclass=_NoDefaultConstructible,
     exponent_unit_map={
         0: "°C",
     },
@@ -554,7 +564,6 @@ class Temperature(
 
 class Power(
     Quantity,
-    metaclass=_NoDefaultConstructible,
     exponent_unit_map={
         -3: "mW",
         0: "W",
@@ -774,7 +783,6 @@ class Power(
 
 class Current(
     Quantity,
-    metaclass=_NoDefaultConstructible,
     exponent_unit_map={
         -3: "mA",
         0: "A",
@@ -885,7 +893,6 @@ class Current(
 
 class Voltage(
     Quantity,
-    metaclass=_NoDefaultConstructible,
     exponent_unit_map={0: "V", -3: "mV", 3: "kV"},
 ):
     """A voltage quantity.
@@ -1013,7 +1020,6 @@ class Voltage(
 
 class Energy(
     Quantity,
-    metaclass=_NoDefaultConstructible,
     exponent_unit_map={
         0: "Wh",
         3: "kWh",
@@ -1181,7 +1187,6 @@ class Energy(
 
 class Frequency(
     Quantity,
-    metaclass=_NoDefaultConstructible,
     exponent_unit_map={0: "Hz", 3: "kHz", 6: "MHz", 9: "GHz"},
 ):
     """A frequency quantity.
@@ -1286,7 +1291,6 @@ class Frequency(
 
 class Percentage(
     Quantity,
-    metaclass=_NoDefaultConstructible,
     exponent_unit_map={0: "%"},
 ):
     """A percentage quantity.

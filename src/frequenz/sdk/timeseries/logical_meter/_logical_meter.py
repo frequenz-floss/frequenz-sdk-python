@@ -5,12 +5,13 @@
 
 
 import uuid
+from typing import Callable
 
 from frequenz.channels import Sender
 
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid.component import ComponentMetricId
-from .._quantities import Power, Quantity
+from .._quantities import Power, SupportsFloatT
 from ..formula_engine import FormulaEngine
 from ..formula_engine._formula_engine_pool import FormulaEnginePool
 from ..formula_engine._formula_generators import CHPPowerFormula, PVPowerFormula
@@ -99,8 +100,9 @@ class LogicalMeter:
         formula: str,
         component_metric_id: ComponentMetricId,
         *,
+        value_constructor: Callable[[float], SupportsFloatT],
         nones_are_zeros: bool = False,
-    ) -> FormulaEngine[Quantity]:
+    ) -> FormulaEngine[SupportsFloatT]:
         """Start execution of the given formula.
 
         Formulas can have Component IDs that are preceeded by a pound symbol("#"), and
@@ -113,6 +115,7 @@ class LogicalMeter:
             formula: formula to execute.
             component_metric_id: The metric ID to use when fetching receivers from the
                 resampling actor.
+            value_constructor: A function to create new values with.
             nones_are_zeros: Whether to treat None values from the stream as 0s.  If
                 False, the returned value will be a None.
 
@@ -120,7 +123,10 @@ class LogicalMeter:
             A FormulaEngine that applies the formula and streams values.
         """
         return self._formula_pool.from_string(
-            formula, component_metric_id, nones_are_zeros=nones_are_zeros
+            formula,
+            component_metric_id,
+            value_constructor=value_constructor,
+            nones_are_zeros=nones_are_zeros,
         )
 
     @property

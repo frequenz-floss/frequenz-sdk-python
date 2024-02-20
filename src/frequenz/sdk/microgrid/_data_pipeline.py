@@ -35,7 +35,7 @@ _logger = logging.getLogger(__name__)
 #
 # pylint: disable=import-outside-toplevel
 if typing.TYPE_CHECKING:
-    from ..actor import ComponentMetricRequest, ResamplerConfig, _power_managing
+    from ..actor import ComponentMetricRequest, ResamplingActorConfig, _power_managing
     from ..actor.power_distributing import (  # noqa: F401 (imports used by string type hints)
         ComponentPoolStatus,
         PowerDistributingActor,
@@ -81,7 +81,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
     def __init__(
         self,
-        resampler_config: ResamplerConfig,
+        resampler_config: ResamplingActorConfig,
     ) -> None:
         """Create a `DataPipeline` instance.
 
@@ -90,7 +90,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         """
         from ..actor import ChannelRegistry
 
-        self._resampler_config: ResamplerConfig = resampler_config
+        self._resampler_config: ResamplingActorConfig = resampler_config
 
         self._channel_registry: ChannelRegistry = ChannelRegistry(
             name="Data Pipeline Registry"
@@ -408,7 +408,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 _DATA_PIPELINE: _DataPipeline | None = None
 
 
-async def initialize(resampler_config: ResamplerConfig) -> None:
+async def initialize(resampler_config: ResamplingActorConfig) -> None:
     """Initialize a `DataPipeline` instance.
 
     Args:

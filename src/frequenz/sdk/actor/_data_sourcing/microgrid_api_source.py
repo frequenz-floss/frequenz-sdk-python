@@ -20,7 +20,6 @@ from ...microgrid.component import (
     MeterData,
 )
 from ...timeseries import Sample
-from ...timeseries._quantities import Quantity
 from .._channel_registry import ChannelRegistry
 from ._component_metric_request import ComponentMetricRequest
 
@@ -318,7 +317,7 @@ class MicrogridApiSource:
         self,
         category: ComponentCategory,
         requests: dict[ComponentMetricId, list[ComponentMetricRequest]],
-    ) -> list[tuple[Callable[[Any], float], list[Sender[Sample[Quantity]]]]]:
+    ) -> list[tuple[Callable[[Any], float], list[Sender[Sample[float]]]]]:
         """Get channel senders from the channel registry for each requested metric.
 
         Args:
@@ -335,7 +334,7 @@ class MicrogridApiSource:
                 self._get_data_extraction_method(category, metric),
                 [
                     self._registry.get_or_create(
-                        Sample[Quantity], request.get_channel_name()
+                        Sample[float], request.get_channel_name()
                     ).new_sender()
                     for request in req_list
                 ],
@@ -353,48 +352,55 @@ class MicrogridApiSource:
         Args:
             comp_id: Id of the requested component.
             category: The category of the component.
+
+        Raises:
+            Exception: if an error occurs while streaming data.
         """
-        stream_senders = []
-        if comp_id in self._req_streaming_metrics:
-            await self._check_requested_component_and_metrics(
-                comp_id, category, self._req_streaming_metrics[comp_id]
+        try:
+            stream_senders = []
+            if comp_id in self._req_streaming_metrics:
+                await self._check_requested_component_and_metrics(
+                    comp_id, category, self._req_streaming_metrics[comp_id]
+                )
+                stream_senders = self._get_metric_senders(
+                    category, self._req_streaming_metrics[comp_id]
+                )
+            api_data_receiver: Receiver[Any] = self.comp_data_receivers[comp_id]
+
+            senders_done: asyncio.Event = asyncio.Event()
+            pending_messages = 0
+
+            def process_msg(data: Any) -> None:
+                tasks = []
+                for extractor, senders in stream_senders:
+                    for sender in senders:
+                        tasks.append(
+                            sender.send(Sample(data.timestamp, extractor(data)))
+                        )
+                asyncio.gather(*tasks)
+                nonlocal pending_messages
+                pending_messages -= 1
+                if pending_messages == 0:
+                    senders_done.set()
+
+            async for data in api_data_receiver:
+                pending_messages += 1
+                senders_done.clear()
+                process_msg(data)
+
+            while pending_messages > 0:
+                await senders_done.wait()
+
+            await asyncio.gather(
+                *[
+                    self._registry.close_and_remove(r.get_channel_name())
+                    for requests in self._req_streaming_metrics[comp_id].values()
+                    for r in requests
+                ]
             )
-            stream_senders = self._get_metric_senders(
-                category, self._req_streaming_metrics[comp_id]
-            )
-        api_data_receiver: Receiver[Any] = self.comp_data_receivers[comp_id]
-
-        senders_done: asyncio.Event = asyncio.Event()
-        pending_messages = 0
-
-        def process_msg(data: Any) -> None:
-            tasks = []
-            for extractor, senders in stream_senders:
-                for sender in senders:
-                    tasks.append(
-                        sender.send(Sample(data.timestamp, Quantity(extractor(data))))
-                    )
-            asyncio.gather(*tasks)
-            nonlocal pending_messages
-            pending_messages -= 1
-            if pending_messages == 0:
-                senders_done.set()
-
-        async for data in api_data_receiver:
-            pending_messages += 1
-            senders_done.clear()
-            process_msg(data)
-
-        while pending_messages > 0:
-            await senders_done.wait()
-
-        await asyncio.gather(
-            *[
-                self._registry.close_and_remove(r.get_channel_name())
-                for requests in self._req_streaming_metrics[comp_id].values()
-                for r in requests
-            ]
-        )
+        except Exception as exc:
+            _logger.exception("Error while streaming data for component %d", comp_id)
+            raise exc
 
     async def _update_streams(
         self,
