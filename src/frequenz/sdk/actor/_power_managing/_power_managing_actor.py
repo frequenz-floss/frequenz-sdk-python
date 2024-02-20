@@ -14,7 +14,8 @@ from frequenz.channels import Receiver, Sender
 from frequenz.channels.util import SkipMissedAndDrift, Timer, select, selected_from
 from typing_extensions import override
 
-from ...timeseries._base_types import PoolType, SystemBounds
+from ...microgrid.component import ComponentCategory
+from ...timeseries._base_types import SystemBounds
 from .._actor import Actor
 from .._channel_registry import ChannelRegistry
 from ._base_classes import Algorithm, BaseAlgorithm, Proposal, ReportRequest, _Report
@@ -31,7 +32,7 @@ class PowerManagingActor(Actor):
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        pool_type: PoolType,
+        component_category: ComponentCategory,
         proposals_receiver: Receiver[Proposal],
         bounds_subscription_receiver: Receiver[ReportRequest],
         power_distributing_requests_sender: Sender[power_distributing.Request],
@@ -44,8 +45,8 @@ class PowerManagingActor(Actor):
         """Create a new instance of the power manager.
 
         Args:
-            pool_type: The type of the component pool this power manager instance is
-                going to support.
+            component_category: The category of the component this power manager
+                instance is going to support.
             proposals_receiver: The receiver for proposals.
             bounds_subscription_receiver: The receiver for bounds subscriptions.
             power_distributing_requests_sender: The sender for power distribution
@@ -63,7 +64,7 @@ class PowerManagingActor(Actor):
                 f"PowerManagingActor: Unknown algorithm: {algorithm}"
             )
 
-        self._pool_type = pool_type
+        self._component_category = component_category
         self._bounds_subscription_receiver = bounds_subscription_receiver
         self._power_distributing_requests_sender = power_distributing_requests_sender
         self._power_distributing_results_receiver = power_distributing_results_receiver
@@ -132,8 +133,11 @@ class PowerManagingActor(Actor):
             microgrid,
         )
 
-        if self._pool_type is not PoolType.BATTERY_POOL:
-            err = f"PowerManagingActor: Unsupported pool type: {self._pool_type}"
+        if self._component_category is not ComponentCategory.BATTERY:
+            err = (
+                "PowerManagingActor: Unsupported component category: "
+                f"{self._component_category}"
+            )
             _logger.error(err)
             raise NotImplementedError(err)
         battery_pool = microgrid.battery_pool(component_ids)

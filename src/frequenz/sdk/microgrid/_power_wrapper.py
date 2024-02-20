@@ -83,10 +83,9 @@ class PowerWrapper:
             return
 
         from ..actor._power_managing._power_managing_actor import PowerManagingActor
-        from ..timeseries._base_types import PoolType
 
         self._power_managing_actor = PowerManagingActor(
-            pool_type=PoolType.BATTERY_POOL,
+            component_category=ComponentCategory.BATTERY,
             proposals_receiver=self.proposal_channel.new_receiver(),
             bounds_subscription_receiver=(
                 self.bounds_subscription_channel.new_receiver()
