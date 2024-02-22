@@ -59,12 +59,68 @@ class GraphGenerator:
         self._id_increment += 1
         return id_per_category
 
+    def battery_with_inverter(self, battery: Component, num_inverters: int) -> Any:
+        """Add a meter and inverters to the given battery.
+
+        Args:
+            battery: the battery component.
+            num_inverters: the number of inverters to create.
+
+        Returns:
+            connected graph components for the given battery.
+        """
+        assert battery.category == ComponentCategory.BATTERY
+        return self._battery_with_inverter(battery, num_inverters)
+
+    def batteries_with_inverter(
+        self, one_or_more_batteries: list[Component], num_inverters: int
+    ) -> Any:
+        """Add a meter and inverters to the given batteries.
+
+        Args:
+            one_or_more_batteries: the battery components.
+            num_inverters: the number of inverters to create.
+
+        Returns:
+            connected graph components for the given batteries.
+        """
+        assert all(
+            b.category == ComponentCategory.BATTERY for b in one_or_more_batteries
+        )
+        return self._battery_with_inverter(one_or_more_batteries, num_inverters)
+
+    def _battery_with_inverter(
+        self, one_or_more_batteries: Component | list[Component], num_inverters: int
+    ) -> Any:
+        """Add a meter and inverters to the given battery or batteries.
+
+        Args:
+            one_or_more_batteries: the battery component or components.
+            num_inverters: the number of inverters to create.
+
+        Returns:
+            connected graph components for the given battery or batteries.
+        """
+        return (
+            ComponentCategory.METER,
+            [
+                (
+                    self.component(ComponentCategory.INVERTER, InverterType.BATTERY),
+                    one_or_more_batteries,
+                )
+                for _ in range(num_inverters)
+            ],
+        )
+
     @overload
-    def component(self, other: Component) -> Component:
+    def component(
+        self, other: Component, comp_type: ComponentType | None = None
+    ) -> Component:
         """Just return the given component.
 
         Args:
             other: the component to return.
+            comp_type: the component type to set, ignored
 
         Returns:
             the given component.

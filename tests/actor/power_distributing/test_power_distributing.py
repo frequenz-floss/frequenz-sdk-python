@@ -537,21 +537,7 @@ class TestPowerDistributingActor:
         graph = gen.to_graph(
             (
                 ComponentCategory.METER,
-                [
-                    (
-                        ComponentCategory.METER,
-                        [
-                            (
-                                ComponentCategory.INVERTER,
-                                bat_component,
-                            ),
-                            (
-                                ComponentCategory.INVERTER,
-                                bat_component,
-                            ),
-                        ],
-                    ),
-                ],
+                [gen.battery_with_inverter(bat_component, 2)],
             )
         )
 
@@ -600,28 +586,7 @@ class TestPowerDistributingActor:
         batteries = gen.components(*[ComponentCategory.BATTERY] * 2)
 
         graph = gen.to_graph(
-            (
-                ComponentCategory.METER,
-                [
-                    (
-                        ComponentCategory.METER,
-                        [
-                            (
-                                ComponentCategory.INVERTER,
-                                [*batteries],
-                            ),
-                            (
-                                ComponentCategory.INVERTER,
-                                [*batteries],
-                            ),
-                            (
-                                ComponentCategory.INVERTER,
-                                [*batteries],
-                            ),
-                        ],
-                    ),
-                ],
-            )
+            (ComponentCategory.METER, gen.batteries_with_inverter(batteries, 3))
         )
 
         async with _mocks(mocker, graph=graph) as mocks:

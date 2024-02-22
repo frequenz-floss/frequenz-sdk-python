@@ -42,6 +42,10 @@ from frequenz.sdk.timeseries import (
 )
 from frequenz.sdk.timeseries._base_types import SystemBounds
 from frequenz.sdk.timeseries.battery_pool import BatteryPool
+from frequenz.sdk.timeseries.formula_engine._formula_generators._formula_generator import (
+    FormulaGenerationError,
+)
+from tests.utils.graph_generator import GraphGenerator
 
 from ...timeseries.mock_microgrid import MockMicrogrid
 from ...utils.component_data_streamer import MockComponentDataStreamer
@@ -488,10 +492,110 @@ async def run_test_battery_status_channel(  # pylint: disable=too-many-arguments
 
 
 async def test_battery_pool_power(mocker: MockerFixture) -> None:
-    """Test `BatteryPool.{,production,consumption}_power` methods."""
+    """Test `BatteryPool.power` method."""
     mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
     mockgrid.add_batteries(2)
+    await mockgrid.start(mocker)
+    await _test_battery_pool_power(mockgrid)
 
+
+async def test_battery_pool_power_two_inverters_per_battery(
+    mocker: MockerFixture,
+) -> None:
+    """Test power method with two inverters per battery."""
+    gen = GraphGenerator()
+    bat = gen.component(ComponentCategory.BATTERY)
+    mockgrid = MockMicrogrid(
+        graph=gen.to_graph((ComponentCategory.METER, gen.battery_with_inverter(bat, 2)))
+    )
+    await mockgrid.start(mocker)
+    await _test_battery_pool_power(mockgrid)
+
+
+async def test_batter_pool_power_two_batteries_per_inverter(
+    mocker: MockerFixture,
+) -> None:
+    """Test power method with two batteries per inverter."""
+    gen = GraphGenerator()
+    mockgrid = MockMicrogrid(
+        graph=gen.to_graph(
+            [
+                ComponentCategory.METER,
+                (
+                    ComponentCategory.INVERTER,
+                    [ComponentCategory.BATTERY, ComponentCategory.BATTERY],
+                ),
+                ComponentCategory.METER,
+                (
+                    ComponentCategory.INVERTER,
+                    [ComponentCategory.BATTERY, ComponentCategory.BATTERY],
+                ),
+            ]
+        )
+    )
+    await mockgrid.start(mocker)
+    await _test_battery_pool_power(mockgrid)
+
+
+async def test_batter_pool_power_no_batteries(mocker: MockerFixture) -> None:
+    """Test power method with no batteries."""
+    mockgrid = MockMicrogrid(
+        graph=GraphGenerator().to_graph(
+            (
+                ComponentCategory.METER,
+                [ComponentCategory.INVERTER, ComponentCategory.INVERTER],
+            )
+        )
+    )
+    await mockgrid.start(mocker)
+    battery_pool = microgrid.battery_pool()
+    power_receiver = battery_pool.power.new_receiver()
+
+    await mockgrid.mock_resampler.send_non_existing_component_value()
+    assert (await power_receiver.receive()).value == Power.from_watts(0)
+
+
+async def test_battery_pool_power_with_no_inverters(mocker: MockerFixture) -> None:
+    """Test power method with no inverters."""
+    mockgrid = MockMicrogrid(
+        graph=GraphGenerator().to_graph(
+            (ComponentCategory.METER, ComponentCategory.BATTERY)
+        )
+    )
+    await mockgrid.start(mocker)
+
+    with pytest.raises(RuntimeError):
+        microgrid.battery_pool()
+
+
+async def test_battery_pool_power_incomplete_bat_request(mocker: MockerFixture) -> None:
+    """Test power method when not all requested ids are behind the same inverter."""
+    gen = GraphGenerator()
+    bats = gen.components(
+        ComponentCategory.BATTERY, ComponentCategory.BATTERY, ComponentCategory.BATTERY
+    )
+
+    mockgrid = MockMicrogrid(
+        graph=gen.to_graph(
+            (
+                ComponentCategory.METER,
+                gen.batteries_with_inverter(bats, 2),
+            )
+        )
+    )
+    await mockgrid.start(mocker)
+
+    with pytest.raises(FormulaGenerationError):
+        # Request only two of the three batteries behind the inverters
+        battery_pool = microgrid.battery_pool(
+            battery_ids=set([bats[1].component_id, bats[0].component_id])
+        )
+        power_receiver = battery_pool.power.new_receiver()
+        await mockgrid.mock_resampler.send_bat_inverter_power([2.0])
+        assert (await power_receiver.receive()).value == Power.from_watts(2.0)
+
+
+async def _test_battery_pool_power(mockgrid: MockMicrogrid) -> None:
     async with mockgrid:
         battery_pool = microgrid.battery_pool()
         power_receiver = battery_pool.power.new_receiver()
