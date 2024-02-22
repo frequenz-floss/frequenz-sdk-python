@@ -492,7 +492,7 @@ async def run_test_battery_status_channel(  # pylint: disable=too-many-arguments
 
 
 async def test_battery_pool_power(mocker: MockerFixture) -> None:
-    """Test `BatteryPool.{,production,consumption}_power` methods."""
+    """Test `BatteryPool.power` method."""
     mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
     mockgrid.add_batteries(2)
     await mockgrid.start(mocker)
@@ -502,7 +502,7 @@ async def test_battery_pool_power(mocker: MockerFixture) -> None:
 async def test_battery_pool_power_two_inverters_per_battery(
     mocker: MockerFixture,
 ) -> None:
-    """Test power methods with two inverters per battery."""
+    """Test power method with two inverters per battery."""
     gen = GraphGenerator()
     bat = gen.component(ComponentCategory.BATTERY)
     mockgrid = MockMicrogrid(
