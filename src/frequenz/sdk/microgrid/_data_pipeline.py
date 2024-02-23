@@ -157,7 +157,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
     def ev_charger_pool(
         self,
-        ev_charger_ids: set[int] | None = None,
+        ev_charger_ids: abc.Set[int] | None = None,
     ) -> EVChargerPool:
         """Return the corresponding EVChargerPool instance for the given ids.
 
@@ -355,7 +355,7 @@ def producer() -> Producer:
     return _get().producer()
 
 
-def ev_charger_pool(ev_charger_ids: set[int] | None = None) -> EVChargerPool:
+def ev_charger_pool(ev_charger_ids: abc.Set[int] | None = None) -> EVChargerPool:
     """Return the corresponding EVChargerPool instance for the given ids.
 
     If an EVChargerPool instance for the given ids doesn't exist, a new one is
