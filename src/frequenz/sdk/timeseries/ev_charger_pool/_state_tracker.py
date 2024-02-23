@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections import abc
 from enum import Enum
 
 from frequenz.channels import Merger, Receiver, merge
@@ -78,7 +79,7 @@ class EVChargerState(Enum):
 class StateTracker:
     """A class for keeping track of the states of all EV Chargers in a pool."""
 
-    def __init__(self, component_ids: set[int]) -> None:
+    def __init__(self, component_ids: abc.Set[int]) -> None:
         """Create a `_StateTracker` instance.
 
         Args:
