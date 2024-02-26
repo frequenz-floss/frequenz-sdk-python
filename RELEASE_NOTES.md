@@ -2,15 +2,16 @@
 
 ## Summary
 
-This is a minor non-breaking release that adds new features and fixes a few bug.
+<!-- Here goes a general summary of what this release is about -->
+
+## Upgrading
+
+<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
 
 ## New Features
 
-- Allow multiplying and dividing any `Quantity` by a `float`. This just scales the `Quantity` value.
-- Allow dividing any `Quantity` by another quaintity of the same type. This just returns a ration between both quantities.
-- The battery pool `power` method now supports scenarios where one or more inverters can have multiple batteries connected to it and one or more batteries can have multiple inverters connected to it.
+<!-- Here goes the main new features and examples or instructions on how to use them -->
 
 ## Bug Fixes
 
-- Fix grid current formula generator to add the operator `+` to the engine only when the component category is handled.
-- Fix bug where sometimes the `base_value` of a `Quantity` could be of a different type than `float`.
+<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
