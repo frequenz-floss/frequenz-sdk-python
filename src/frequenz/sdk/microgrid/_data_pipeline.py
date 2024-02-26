@@ -92,6 +92,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._battery_power_wrapper = PowerWrapper(
             ComponentCategory.BATTERY, self._channel_registry
         )
+        self._ev_power_wrapper = PowerWrapper(
+            ComponentCategory.EV_CHARGER, self._channel_registry
+        )
 
         self._logical_meter: LogicalMeter | None = None
         self._consumer: Consumer | None = None
@@ -173,6 +176,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         """
         from ..timeseries.ev_charger_pool import EVChargerPool
 
+        if not self._ev_power_wrapper.started:
+            self._ev_power_wrapper.start()
+
         # We use frozenset to make a hashable key from the input set.
         key: frozenset[int] = frozenset()
         if ev_charger_ids is not None:
@@ -182,6 +188,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             self._ev_charger_pools[key] = EVChargerPool(
                 channel_registry=self._channel_registry,
                 resampler_subscription_sender=self._resampling_request_sender(),
+                status_receiver=self._ev_power_wrapper.status_channel.new_receiver(
+                    limit=1
+                ),
                 component_ids=ev_charger_ids,
             )
         return self._ev_charger_pools[key]
