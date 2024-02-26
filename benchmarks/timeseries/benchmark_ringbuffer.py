@@ -174,14 +174,14 @@ def main() -> None:
         "Time to fill 29 days with data:\n\t"
         + f"Array: {array_times['fill']} seconds\n\t"
         + f"List:  {list_times['fill']} seconds\n\t"
-        + f"Diff:  {array_times['fill'] -  list_times['fill']}"
+        + f"Diff:  {array_times['fill'] - list_times['fill']}"
     )
 
     print(
         "Day-Slices into 29 days with data:\n\t"
         + f"Array: {array_times['test']/num_runs} seconds\n\t"
         + f"List:  {list_times['test']/num_runs} seconds\n\t"
-        + f"Diff:  {array_times['test']/num_runs -  list_times['test']/num_runs}"
+        + f"Diff:  {array_times['test']/num_runs - list_times['test']/num_runs}"
     )
 
     print(f"       {''.join(['='] * (num_runs + 1))}")
@@ -195,7 +195,7 @@ def main() -> None:
         "Avg of windows of 29 days and running average & mean on every day:\n\t"
         + f"Array: {slicing_array_times['avg']/num_runs} seconds\n\t"
         + f"List:  {slicing_list_times['avg']/num_runs} seconds\n\t"
-        + f"Diff:  {slicing_array_times['avg']/num_runs -  slicing_list_times['avg']/num_runs}"
+        + f"Diff:  {slicing_array_times['avg']/num_runs - slicing_list_times['avg']/num_runs}"
     )
 
     print(
@@ -203,7 +203,7 @@ def main() -> None:
         + f"Array: {slicing_array_times['median']/num_runs} seconds\n\t"
         + f"List:  {slicing_list_times['median']/num_runs} seconds\n\t"
         + "Diff:  "
-        + f"{slicing_array_times['median']/num_runs -  slicing_list_times['median']/num_runs}"
+        + f"{slicing_array_times['median']/num_runs - slicing_list_times['median']/num_runs}"
     )
 
 
