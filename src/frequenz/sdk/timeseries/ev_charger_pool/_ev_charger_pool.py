@@ -4,25 +4,19 @@
 """Interactions with pools of EV Chargers."""
 
 
-import asyncio
-import logging
 import uuid
-from asyncio import Task
 from collections import abc
-from dataclasses import dataclass
 from datetime import timedelta
 
-from frequenz.channels import Broadcast, ChannelClosedError, Receiver, Sender
+from frequenz.channels import Broadcast, Receiver, Sender
 
-from ..._internal._asyncio import cancel_and_await
 from ..._internal._channels import ReceiverFetcher
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...actor.power_distributing import ComponentPoolStatus
 from ...microgrid import connection_manager
-from ...microgrid.component import ComponentCategory, ComponentMetricId
-from .. import Sample, Sample3Phase
+from ...microgrid.component import ComponentCategory
 from .._base_types import SystemBounds
-from .._quantities import Current, Power, Quantity
+from .._quantities import Current, Power
 from ..formula_engine import FormulaEngine, FormulaEngine3Phase
 from ..formula_engine._formula_engine_pool import FormulaEnginePool
 from ..formula_engine._formula_generators import (
@@ -31,28 +25,11 @@ from ..formula_engine._formula_generators import (
     FormulaGeneratorConfig,
 )
 from ._set_current_bounds import BoundsSetter, ComponentCurrentLimit
-from ._state_tracker import EVChargerState, StateTracker
 from ._system_bounds_tracker import EVCSystemBoundsTracker
-
-_logger = logging.getLogger(__name__)
 
 
 class EVChargerPoolError(Exception):
     """An error that occurred in any of the EVChargerPool methods."""
-
-
-@dataclass(frozen=True)
-class EVChargerData:
-    """Data for an EV Charger, including the 3-phase current and the component state."""
-
-    component_id: int
-    """The component ID of the EV Charger."""
-
-    current: Sample3Phase[Current]
-    """The 3-phase current of the EV Charger."""
-
-    state: EVChargerState
-    """The state of the EV Charger."""
 
 
 class EVChargerPool:
@@ -122,10 +99,6 @@ class EVChargerPool:
                     component_categories={ComponentCategory.EV_CHARGER}
                 )
             }
-        self._state_tracker: StateTracker | None = None
-        self._status_streams: dict[int, tuple[Task[None], Broadcast[EVChargerData]]] = (
-            {}
-        )
         self._namespace: str = f"ev-charger-pool-{uuid.uuid4()}"
         self._formula_pool: FormulaEnginePool = FormulaEnginePool(
             self._namespace,
@@ -201,34 +174,6 @@ class EVChargerPool:
         assert isinstance(engine, FormulaEngine)
         return engine
 
-    def component_data(self, component_id: int) -> Receiver[EVChargerData]:
-        """Stream 3-phase current values and state of an EV Charger.
-
-        Args:
-            component_id: id of the EV Charger for which data is requested.
-
-        Returns:
-            A receiver that streams objects containing 3-phase current and state of
-                an EV Charger.
-        """
-        if recv := self._status_streams.get(component_id, None):
-            task, output_chan = recv
-            if not task.done():
-                return output_chan.new_receiver()
-            _logger.warning("Restarting component_status for id: %s", component_id)
-        else:
-            output_chan = Broadcast[EVChargerData](
-                f"evpool-component_status-{component_id}"
-            )
-
-        task = asyncio.create_task(
-            self._stream_component_data(component_id, output_chan.new_sender())
-        )
-
-        self._status_streams[component_id] = (task, output_chan)
-
-        return output_chan.new_receiver()
-
     async def set_bounds(self, component_id: int, max_current: Current) -> None:
         """Send given max current bound for the given EV Charger to the microgrid API.
 
@@ -260,115 +205,7 @@ class EVChargerPool:
         """Stop all tasks and channels owned by the EVChargerPool."""
         if self._bounds_setter:
             await self._bounds_setter.stop()
-        if self._state_tracker:
-            await self._state_tracker.stop()
         await self._formula_pool.stop()
-        for stream in self._status_streams.values():
-            task, chan = stream
-            await chan.close()
-            await cancel_and_await(task)
-
-    async def _get_current_streams(self, component_id: int) -> tuple[
-        Receiver[Sample[Quantity]],
-        Receiver[Sample[Quantity]],
-        Receiver[Sample[Quantity]],
-    ]:
-        """Fetch current streams from the resampler for each phase.
-
-        Args:
-            component_id: id of EV Charger for which current streams are being fetched.
-
-        Returns:
-            A tuple of 3 receivers stream resampled current values for the given
-                component id, one for each phase.
-        """
-
-        async def resampler_subscribe(
-            metric_id: ComponentMetricId,
-        ) -> Receiver[Sample[Quantity]]:
-            request = ComponentMetricRequest(
-                namespace="ev-pool",
-                component_id=component_id,
-                metric_id=metric_id,
-                start_time=None,
-            )
-            await self._resampler_subscription_sender.send(request)
-            return self._channel_registry.get_or_create(
-                Sample[Quantity], request.get_channel_name()
-            ).new_receiver()
-
-        return (
-            await resampler_subscribe(ComponentMetricId.CURRENT_PHASE_1),
-            await resampler_subscribe(ComponentMetricId.CURRENT_PHASE_2),
-            await resampler_subscribe(ComponentMetricId.CURRENT_PHASE_3),
-        )
-
-    async def _stream_component_data(
-        self,
-        component_id: int,
-        sender: Sender[EVChargerData],
-    ) -> None:
-        """Stream 3-phase current values and state of an EV Charger.
-
-        Args:
-            component_id: id of the EV Charger for which data is requested.
-            sender: A sender to stream EV Charger data to.
-
-        Raises:
-            ChannelClosedError: If the channels from the resampler are closed.
-        """
-        if not self._state_tracker:
-            self._state_tracker = StateTracker(self._component_ids)
-
-        (phase_1_rx, phase_2_rx, phase_3_rx) = await self._get_current_streams(
-            component_id
-        )
-        while True:
-            try:
-                (phase_1, phase_2, phase_3) = (
-                    await phase_1_rx.receive(),
-                    await phase_2_rx.receive(),
-                    await phase_3_rx.receive(),
-                )
-            except ChannelClosedError:
-                _logger.exception("Streams closed for component_id=%s.", component_id)
-                raise
-
-            sample = Sample3Phase(
-                timestamp=phase_1.timestamp,
-                value_p1=(
-                    None
-                    if phase_1.value is None
-                    else Current.from_amperes(phase_1.value.base_value)
-                ),
-                value_p2=(
-                    None
-                    if phase_2.value is None
-                    else Current.from_amperes(phase_2.value.base_value)
-                ),
-                value_p3=(
-                    None
-                    if phase_3.value is None
-                    else Current.from_amperes(phase_3.value.base_value)
-                ),
-            )
-
-            if (
-                phase_1.value is None
-                and phase_2.value is None
-                and phase_3.value is None
-            ):
-                state = EVChargerState.MISSING
-            else:
-                state = self._state_tracker.get(component_id)
-
-            await sender.send(
-                EVChargerData(
-                    component_id=component_id,
-                    current=sample,
-                    state=state,
-                )
-            )
 
     @property
     def _system_power_bounds(self) -> ReceiverFetcher[SystemBounds]:
