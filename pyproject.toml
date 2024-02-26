@@ -31,17 +31,17 @@ dependencies = [
   # changing the version
   # (plugins.mkdocstrings.handlers.python.import)
   "frequenz-channels == 1.0.0b2",
-  "google-api-python-client >= 2.71, < 3",
-  "grpcio >= 1.54.2, < 2",
-  "grpcio-tools >= 1.54.2, < 2",
-  "networkx >= 2.8, < 4",
-  "numpy >= 1.24.2, < 2",
-  "protobuf >= 4.21.6, < 5",
-  "pydantic >= 2.3, < 3",
-  "timezonefinder >= 6.2.0, < 7",
+  "google-api-python-client >= 2.119.0, < 3",
+  "grpcio >= 1.62.0, < 2",
+  "grpcio-tools >= 1.62.0, < 2",
+  "networkx >= 3.2.1, < 4",
+  "numpy >= 1.26.4, < 2",
+  "protobuf >= 4.25.3, < 5",
+  "pydantic >= 2.6.2, < 3",
+  "timezonefinder >= 6.4.1, < 7",
   "tqdm >= 4.38.0, < 5",
-  "typing_extensions >= 4.6.1, < 5",
-  "watchfiles >= 0.15.0",
+  "typing_extensions >= 4.10.0, < 5",
+  "watchfiles >= 0.21.0",
 ]
 dynamic = ["version"]
 
