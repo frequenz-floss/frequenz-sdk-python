@@ -15,10 +15,13 @@ from datetime import timedelta
 from frequenz.channels import Broadcast, ChannelClosedError, Receiver, Sender
 
 from ..._internal._asyncio import cancel_and_await
+from ..._internal._channels import ReceiverFetcher
 from ...actor import ChannelRegistry, ComponentMetricRequest
+from ...actor.power_distributing import ComponentPoolStatus
 from ...microgrid import connection_manager
 from ...microgrid.component import ComponentCategory, ComponentMetricId
 from .. import Sample, Sample3Phase
+from .._base_types import SystemBounds
 from .._quantities import Current, Power, Quantity
 from ..formula_engine import FormulaEngine, FormulaEngine3Phase
 from ..formula_engine._formula_engine_pool import FormulaEnginePool
@@ -29,6 +32,7 @@ from ..formula_engine._formula_generators import (
 )
 from ._set_current_bounds import BoundsSetter, ComponentCurrentLimit
 from ._state_tracker import EVChargerState, StateTracker
+from ._system_bounds_tracker import EVCSystemBoundsTracker
 
 _logger = logging.getLogger(__name__)
 
@@ -73,10 +77,11 @@ class EVChargerPool:
         method for limiting the max current of individual EV Chargers in the pool.
     """
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
+        status_receiver: Receiver[ComponentPoolStatus],
         component_ids: abc.Set[int] | None = None,
         repeat_interval: timedelta = timedelta(seconds=3.0),
     ) -> None:
@@ -92,6 +97,8 @@ class EVChargerPool:
                 actor.
             resampler_subscription_sender: A sender for sending metric requests to the
                 resampling actor.
+            status_receiver: A receiver that streams the status of the EV Chargers in
+                the pool.
             component_ids: An optional list of component_ids belonging to this pool.  If
                 not specified, IDs of all EV Chargers in the microgrid will be fetched
                 from the component graph.
@@ -103,6 +110,7 @@ class EVChargerPool:
         self._resampler_subscription_sender: Sender[ComponentMetricRequest] = (
             resampler_subscription_sender
         )
+        self._status_receiver: Receiver[ComponentPoolStatus] = status_receiver
         self._component_ids: abc.Set[int] = set()
         if component_ids is not None:
             self._component_ids = component_ids
@@ -125,6 +133,14 @@ class EVChargerPool:
             self._resampler_subscription_sender,
         )
         self._bounds_setter: BoundsSetter | None = None
+
+        self._bounds_channel: Broadcast[SystemBounds] = Broadcast(
+            name=f"System Bounds for EV Chargers: {component_ids}"
+        )
+        self._bounds_tracker: EVCSystemBoundsTracker = EVCSystemBoundsTracker(
+            self.component_ids, self._status_receiver, self._bounds_channel.new_sender()
+        )
+        self._bounds_tracker.start()
 
     @property
     def component_ids(self) -> abc.Set[int]:
@@ -353,3 +369,8 @@ class EVChargerPool:
                     state=state,
                 )
             )
+
+    @property
+    def _system_power_bounds(self) -> ReceiverFetcher[SystemBounds]:
+        """Return a receiver for the system power bounds."""
+        return self._bounds_channel
