@@ -202,6 +202,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 status_receiver=self._ev_power_wrapper.status_channel.new_receiver(
                     maxsize=1
                 ),
+                power_manager_bounds_subs_sender=(
+                    self._ev_power_wrapper.bounds_subscription_channel.new_sender()
+                ),
                 component_ids=ev_charger_ids,
             )
         return EVChargerPool(self._ev_charger_pools[key], name, priority)
