@@ -12,7 +12,7 @@ from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.client.microgrid import ComponentCategory
 
 from ...actor import ChannelRegistry, ComponentMetricRequest
-from ...actor._power_managing import ReportRequest
+from ...actor._power_managing._base_classes import Proposal, ReportRequest
 from ...actor.power_distributing import ComponentPoolStatus
 from ...microgrid import connection_manager
 from .._base_types import SystemBounds
@@ -38,6 +38,7 @@ class EVChargerPoolReferenceStore:
         channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         status_receiver: Receiver[ComponentPoolStatus],
+        power_manager_requests_sender: Sender[Proposal],
         power_manager_bounds_subs_sender: Sender[ReportRequest],
         component_ids: abc.Set[int] | None = None,
     ):
@@ -50,6 +51,8 @@ class EVChargerPoolReferenceStore:
                 resampling actor.
             status_receiver: A receiver that streams the status of the EV Chargers in
                 the pool.
+            power_manager_requests_sender: A Channel sender for sending power
+                requests to the power managing actor.
             power_manager_bounds_subs_sender: A Channel sender for sending power bounds
                 subscription requests to the power managing actor.
             component_ids: An optional list of component_ids belonging to this pool.  If
@@ -59,6 +62,7 @@ class EVChargerPoolReferenceStore:
         self.channel_registry = channel_registry
         self.resampler_subscription_sender = resampler_subscription_sender
         self.status_receiver = status_receiver
+        self.power_manager_requests_sender = power_manager_requests_sender
         self.power_manager_bounds_subs_sender = power_manager_bounds_subs_sender
 
         if component_ids is not None:
