@@ -230,7 +230,7 @@ class BatteryPool:
         )
 
     @property
-    def battery_ids(self) -> abc.Set[int]:
+    def component_ids(self) -> abc.Set[int]:
         """Return ids of the batteries in the pool.
 
         Returns:

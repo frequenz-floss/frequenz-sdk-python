@@ -659,7 +659,7 @@ async def run_capacity_test(  # pylint: disable=too-many-locals
     )
     compare_messages(msg, expected, WAIT_FOR_COMPONENT_DATA_SEC + 0.2)
 
-    batteries_in_pool = list(battery_pool.battery_ids)
+    batteries_in_pool = list(battery_pool.component_ids)
     scenarios: list[Scenario[Sample[Energy]]] = [
         Scenario(
             batteries_in_pool[0],
@@ -851,7 +851,7 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
     )
     compare_messages(msg, expected, WAIT_FOR_COMPONENT_DATA_SEC + 0.2)
 
-    batteries_in_pool = list(battery_pool.battery_ids)
+    batteries_in_pool = list(battery_pool.component_ids)
     scenarios: list[Scenario[Sample[Percentage]]] = [
         Scenario(
             batteries_in_pool[0],
@@ -1007,7 +1007,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
     )
     compare_messages(msg, expected, WAIT_FOR_COMPONENT_DATA_SEC + 0.2)
 
-    batteries_in_pool = list(battery_pool.battery_ids)
+    batteries_in_pool = list(battery_pool.component_ids)
     scenarios: list[Scenario[SystemBounds]] = [
         Scenario(
             next(iter(bat_invs_map[batteries_in_pool[0]])),
@@ -1241,7 +1241,7 @@ async def run_temperature_test(  # pylint: disable=too-many-locals
     expected = Sample(now, value=Temperature.from_celsius(25.0))
     compare_messages(msg, expected, WAIT_FOR_COMPONENT_DATA_SEC + 0.2)
 
-    batteries_in_pool = list(battery_pool.battery_ids)
+    batteries_in_pool = list(battery_pool.component_ids)
     bat_0, bat_1 = batteries_in_pool
     scenarios: list[Scenario[Sample[Temperature]]] = [
         Scenario(
