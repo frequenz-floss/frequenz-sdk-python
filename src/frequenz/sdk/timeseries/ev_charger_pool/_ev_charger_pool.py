@@ -7,23 +7,16 @@
 import uuid
 from collections import abc
 
-from frequenz.channels import Broadcast, Receiver, Sender
-
 from ..._internal._channels import ReceiverFetcher
-from ...actor import ChannelRegistry, ComponentMetricRequest
-from ...actor.power_distributing import ComponentPoolStatus
-from ...microgrid import connection_manager
-from ...microgrid.component import ComponentCategory
 from .._base_types import SystemBounds
 from .._quantities import Current, Power
 from ..formula_engine import FormulaEngine, FormulaEngine3Phase
-from ..formula_engine._formula_engine_pool import FormulaEnginePool
 from ..formula_engine._formula_generators import (
     EVChargerCurrentFormula,
     EVChargerPowerFormula,
     FormulaGeneratorConfig,
 )
-from ._system_bounds_tracker import EVCSystemBoundsTracker
+from ._ev_charger_pool_reference_store import EVChargerPoolReferenceStore
 
 
 class EVChargerPoolError(Exception):
@@ -47,10 +40,9 @@ class EVChargerPool:
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        channel_registry: ChannelRegistry,
-        resampler_subscription_sender: Sender[ComponentMetricRequest],
-        status_receiver: Receiver[ComponentPoolStatus],
-        component_ids: abc.Set[int] | None = None,
+        ev_charger_pool_ref: EVChargerPoolReferenceStore,
+        name: str | None,
+        priority: int,
     ) -> None:
         """Create an `EVChargerPool` instance.
 
@@ -60,46 +52,15 @@ class EVChargerPool:
             method for creating `EVChargerPool` instances.
 
         Args:
-            channel_registry: A channel registry instance shared with the resampling
-                actor.
-            resampler_subscription_sender: A sender for sending metric requests to the
-                resampling actor.
-            status_receiver: A receiver that streams the status of the EV Chargers in
-                the pool.
-            component_ids: An optional list of component_ids belonging to this pool.  If
-                not specified, IDs of all EV Chargers in the microgrid will be fetched
-                from the component graph.
+            ev_charger_pool_ref: The EV charger pool reference store instance.
+            name: An optional name used to identify this instance of the pool or a
+                corresponding actor in the logs.
+            priority: The priority of the actor using this wrapper.
         """
-        self._channel_registry: ChannelRegistry = channel_registry
-        self._resampler_subscription_sender: Sender[ComponentMetricRequest] = (
-            resampler_subscription_sender
-        )
-        self._status_receiver: Receiver[ComponentPoolStatus] = status_receiver
-        self._component_ids: abc.Set[int] = set()
-        if component_ids is not None:
-            self._component_ids = component_ids
-        else:
-            graph = connection_manager.get().component_graph
-            self._component_ids = {
-                evc.component_id
-                for evc in graph.components(
-                    component_categories={ComponentCategory.EV_CHARGER}
-                )
-            }
-        self._namespace: str = f"ev-charger-pool-{uuid.uuid4()}"
-        self._formula_pool: FormulaEnginePool = FormulaEnginePool(
-            self._namespace,
-            self._channel_registry,
-            self._resampler_subscription_sender,
-        )
-
-        self._bounds_channel: Broadcast[SystemBounds] = Broadcast(
-            name=f"System Bounds for EV Chargers: {component_ids}"
-        )
-        self._bounds_tracker: EVCSystemBoundsTracker = EVCSystemBoundsTracker(
-            self.component_ids, self._status_receiver, self._bounds_channel.new_sender()
-        )
-        self._bounds_tracker.start()
+        self._ev_charger_pool = ev_charger_pool_ref
+        unique_id = uuid.uuid4()
+        self._source_id = unique_id if name is None else f"{name}-{unique_id}"
+        self._priority = priority
 
     @property
     def component_ids(self) -> abc.Set[int]:
@@ -108,7 +69,7 @@ class EVChargerPool:
         Returns:
             Set of managed component IDs.
         """
-        return self._component_ids
+        return self._ev_charger_pool.component_ids
 
     @property
     def current(self) -> FormulaEngine3Phase[Current]:
@@ -126,10 +87,14 @@ class EVChargerPool:
             A FormulaEngine that will calculate and stream the total current of all EV
                 Chargers.
         """
-        engine = self._formula_pool.from_3_phase_current_formula_generator(
-            "ev_charger_total_current",
-            EVChargerCurrentFormula,
-            FormulaGeneratorConfig(component_ids=self._component_ids),
+        engine = (
+            self._ev_charger_pool.formula_pool.from_3_phase_current_formula_generator(
+                "ev_charger_total_current",
+                EVChargerCurrentFormula,
+                FormulaGeneratorConfig(
+                    component_ids=self._ev_charger_pool.component_ids
+                ),
+            )
         )
         assert isinstance(engine, FormulaEngine3Phase)
         return engine
@@ -150,11 +115,11 @@ class EVChargerPool:
             A FormulaEngine that will calculate and stream the total power of all EV
                 Chargers.
         """
-        engine = self._formula_pool.from_power_formula_generator(
+        engine = self._ev_charger_pool.formula_pool.from_power_formula_generator(
             "ev_charger_power",
             EVChargerPowerFormula,
             FormulaGeneratorConfig(
-                component_ids=self._component_ids,
+                component_ids=self._ev_charger_pool.component_ids,
             ),
         )
         assert isinstance(engine, FormulaEngine)
@@ -162,9 +127,9 @@ class EVChargerPool:
 
     async def stop(self) -> None:
         """Stop all tasks and channels owned by the EVChargerPool."""
-        await self._formula_pool.stop()
+        await self._ev_charger_pool.stop()
 
     @property
     def _system_power_bounds(self) -> ReceiverFetcher[SystemBounds]:
         """Return a receiver for the system power bounds."""
-        return self._bounds_channel
+        return self._ev_charger_pool.bounds_channel
