@@ -79,6 +79,9 @@ class EVChargerManager(ComponentManager):
             Result of the distribution.
         """
         self._target_power = request.power
+        used_power = self._evc_states.get_ev_total_used_power()
+        if self._target_power < used_power:
+            self._throttle_ev_chargers(used_power - self._target_power)
         return Success(
             request,
             Power.zero(),
@@ -217,5 +220,74 @@ class EVChargerManager(ComponentManager):
             else:
                 bounds_changes = self._act_on_new_data(evc_data)
 
-        for component_id, power in bounds_changes:
-            await api.set_power(component_id, power.as_watts())
+            for component_id, power in bounds_changes:
+                await api.set_power(component_id, power.as_watts())
+
+    def _throttle_ev_chargers(self, throttle_by: Power) -> list[tuple[int, Power]]:
+        """Reduce EV charging power to meet the target power.
+
+        Level 1 throttling is done by reducing the power to the minimum current required
+        to charge the EV.  When the consumption is still above the target power, level 2
+        throttling is done by reducing the power to 0.
+
+        Args:
+            throttle_by: The amount of power to reduce the total EV charging power by.
+
+        Returns:
+            A list of new (reduced) charging current limits for a subset of ev
+                chargers, required to bring down the consumption by the given value.
+        """
+        if throttle_by <= Power.zero():
+            return []
+
+        min_power = Power.zero()
+        voltage = self._voltage_cache.get().min()
+        if voltage is None:
+            _logger.warning(
+                "Voltage data is not available. Cannot perform level 1 throttling.",
+            )
+        else:
+            min_power = voltage * self._config.min_current
+
+        evc_list = list(self._evc_states.values())
+        evc_list.sort(key=lambda st: (st.power, st.last_allocation), reverse=True)
+
+        level1_throttling_count = 0
+        level1_amps_achieved = Power.zero()
+
+        level2_throttling_count = 0
+        level2_amps_achieved = Power.zero()
+
+        for evc in evc_list:
+            evc_power = evc.power
+            evc_level1_power = Power.zero()
+            if evc_power > min_power:
+                evc_level1_power = evc_power - min_power
+
+            if evc_power == Power.zero():
+                evc_power = evc.last_allocation
+
+            if evc_power == Power.zero():
+                break
+
+            if level1_amps_achieved < throttle_by:
+                level1_amps_achieved += evc_level1_power
+                level1_throttling_count += 1
+            else:
+                break
+            if level2_amps_achieved < throttle_by:
+                level2_amps_achieved += evc_power
+                level2_throttling_count += 1
+
+        if level1_amps_achieved >= throttle_by:
+            throttling_bounds = [
+                (evc.component_id, min_power)
+                for evc in evc_list[:level1_throttling_count]
+            ]
+        else:
+            throttling_bounds = [
+                (evc.component_id, Power.zero())
+                for evc in evc_list[:level2_throttling_count]
+            ]
+        _logger.debug("Throttling: %s", throttling_bounds)
+        return throttling_bounds
