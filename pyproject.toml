@@ -5,7 +5,7 @@
 requires = [
   "setuptools == 69.0.3",
   "setuptools_scm[toml] == 8.0.4",
-  "frequenz-repo-config[lib] == 0.7.4",
+  "frequenz-repo-config[lib] == 0.9.1",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -54,47 +54,47 @@ dev-flake8 = [
   "flake8 == 7.0.0",
   "flake8-docstrings == 1.7.0",
   "flake8-pyproject == 1.2.3",  # For reading the flake8 config from pyproject.toml
-  "pydoclint == 0.3.8",
+  "pydoclint == 0.4.1",
   "pydocstyle == 6.3.0",
 ]
-dev-examples = ["polars == 0.20.2"]
-dev-formatting = ["black == 24.1.1", "isort == 5.13.2"]
+dev-examples = ["polars == 0.20.13"]
+dev-formatting = ["black == 24.2.0", "isort == 5.13.2"]
 dev-mkdocs = [
-  "black == 24.1.1",
-  "Markdown==3.5.1",
+  "black == 24.2.0",
+  "Markdown==3.5.2",
   "mike == 2.0.0",
   "mkdocs-gen-files == 0.5.0",
   "mkdocs-literate-nav == 0.6.1",
   "mkdocs-macros-plugin == 1.0.5",
-  "mkdocs-material == 9.5.3",
-  "mkdocstrings[python] == 0.24.0",
-  "frequenz-repo-config[lib] == 0.7.4",
+  "mkdocs-material == 9.5.12",
+  "mkdocstrings[python] == 0.24.1",
+  "frequenz-repo-config[lib] == 0.9.1",
 ]
 dev-mypy = [
   "mypy == 1.8.0",
   "grpc-stubs == 1.24.12",               # This dependency introduces breaking changes in patch releases
   "types-Markdown == 3.5.0.20240129",
   "types-protobuf == 4.24.0.20240129",
-  "types-setuptools == 69.0.0.20240125",
+  "types-setuptools == 69.1.0.20240302",
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
-dev-noxfile = ["nox == 2023.4.22", "frequenz-repo-config[lib] == 0.7.4"]
+dev-noxfile = ["nox == 2023.4.22", "frequenz-repo-config[lib] == 0.9.1"]
 dev-pylint = [
-  "pylint == 3.0.3",
+  "pylint == 3.1.0",
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
 dev-pytest = [
   "pytest == 7.4.4",
-  "frequenz-repo-config[extra-lint-examples] == 0.7.4",
+  "frequenz-repo-config[extra-lint-examples] == 0.9.1",
   "pytest-mock == 3.12.0",
-  "pytest-asyncio == 0.23.3",
-  "time-machine == 2.12.0",
+  "pytest-asyncio == 0.23.5",
+  "time-machine == 2.14.0",
   "async-solipsism == 0.5",
   # For checking docstring code examples
   "frequenz-sdk[dev-examples]",
-  "hypothesis == 6.92.1",
+  "hypothesis == 6.98.17",
 ]
 dev = [
   "frequenz-sdk[dev-mkdocs,dev-flake8,dev-formatting,dev-mkdocs,dev-mypy,dev-noxfile,dev-pylint,dev-pytest]",
@@ -143,6 +143,7 @@ min-similarity-lines = 40
 [tool.pylint.messages_control]
 disable = [
   "too-few-public-methods",
+  "too-many-return-statements",
   # disabled because it conflicts with isort
   "wrong-import-order",
   "ungrouped-imports",
@@ -150,6 +151,8 @@ disable = [
   # it is a type-check, for which we already have mypy.
   "unsubscriptable-object",
   # Checked by flake8
+  "redefined-outer-name",
+  "unused-import",
   "line-too-long",
   "redefined-outer-name",
   "unnecessary-lambda-assignment",

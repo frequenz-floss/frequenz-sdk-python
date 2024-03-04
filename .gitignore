@@ -148,3 +148,10 @@ cython_debug/
 # Automatically generated documentation
 docs/reference/
 site/
+
+# Auto-generated python files from the protocol buffer compiler
+py/**/*_pb2.py
+py/**/*_pb2.pyi
+py/**/*_pb2_grpc.py
+py/**/*_pb2_grpc.pyi
+

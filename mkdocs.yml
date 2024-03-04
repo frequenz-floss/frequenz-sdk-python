@@ -94,6 +94,7 @@ plugins:
       nav_file: SUMMARY.md
   - mike:
       alias_type: redirect
+      alias_type: redirect
       canonical_version: latest
   - mkdocstrings:
       default_handler: python

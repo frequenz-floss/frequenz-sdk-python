@@ -5,7 +5,12 @@
 
 FROM --platform=${TARGETPLATFORM} python:3.11-slim
 
-RUN python -m pip install --upgrade --no-cache-dir pip
+RUN apt-get update -y && \
+    apt-get install --no-install-recommends -y \
+    git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    python -m pip install --upgrade --no-cache-dir pip
 
 COPY dist dist
 RUN pip install dist/*.whl && \
