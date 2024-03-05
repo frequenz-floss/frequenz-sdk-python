@@ -72,7 +72,7 @@ class EVChargerStatusTracker(ComponentStatusTracker, BackgroundService):
     @override
     def start(self) -> None:
         """Start the status tracker."""
-        self._tasks.add(asyncio.create_task(self._run()))
+        self._tasks.add(asyncio.create_task(self._run_forever()))
 
     def _is_working(self, ev_data: EVChargerData) -> bool:
         """Return whether the given EV charger can be assigned power.
@@ -99,9 +99,9 @@ class EVChargerStatusTracker(ComponentStatusTracker, BackgroundService):
         while True:
             try:
                 await self._run()
-            except Exception as ex:  # pylint: disable=broad-except
+            except:  # pylint: disable=broad-except
                 _logger.exception(
-                    "Restarting after exception in EVChargerStatusTracker: %s", ex
+                    "Restarting after exception in EVChargerStatusTracker"
                 )
                 await asyncio.sleep(1.0)
 
@@ -155,12 +155,15 @@ class EVChargerStatusTracker(ComponentStatusTracker, BackgroundService):
         api_client = connection_manager.get().api_client
         ev_data_rx = await api_client.ev_charger_data(self._component_id)
         set_power_result_rx = self._set_power_result_receiver
-        missing_data_timer = Timer(self._max_data_age, SkipMissedAndDrift())
+        # TODO: Add missing data timer once resets are fixed in channels
+        # missing_data_timer = Timer(self._max_data_age, SkipMissedAndDrift())
+        missing_data_timer = Timer(timedelta(seconds=100.0), SkipMissedAndDrift())
         async for selected in select(
             ev_data_rx, set_power_result_rx, missing_data_timer
         ):
             new_status = ComponentStatusEnum.NOT_WORKING
             if selected_from(selected, ev_data_rx):
+                missing_data_timer.reset()
                 new_status = self._handle_ev_data(selected.value)
             elif selected_from(selected, set_power_result_rx):
                 new_status = self._handle_set_power_result(selected.value)
@@ -172,7 +175,10 @@ class EVChargerStatusTracker(ComponentStatusTracker, BackgroundService):
                 )
 
             # Send status update if status changed
-            if self._blocking_status.is_blocked():
+            if (
+                self._blocking_status.is_blocked()
+                and new_status != ComponentStatusEnum.NOT_WORKING
+            ):
                 new_status = ComponentStatusEnum.UNCERTAIN
 
             if new_status != self._last_status:

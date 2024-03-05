@@ -23,5 +23,5 @@ class EVDistributionConfig:
     initial_current: Current = field(default_factory=lambda: Current.from_amperes(10.0))
     """The initial current that can be allocated to an EV charger."""
 
-    increase_power_interval: timedelta = timedelta(minutes=1)
+    increase_power_interval: timedelta = timedelta(seconds=30)
     """The interval at which the power can be increased for an EV charger."""

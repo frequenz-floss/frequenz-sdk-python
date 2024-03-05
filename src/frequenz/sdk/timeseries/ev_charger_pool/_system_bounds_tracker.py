@@ -5,7 +5,9 @@
 
 
 import asyncio
+import logging
 from collections import abc
+from datetime import datetime
 
 from frequenz.channels import Receiver, Sender
 from frequenz.channels.util import Merge, select, selected_from
@@ -15,6 +17,8 @@ from ...actor import BackgroundService
 from ...actor.power_distributing._component_status import ComponentPoolStatus
 from .. import Power
 from .._base_types import Bounds, SystemBounds
+
+_logger = logging.getLogger(__name__)
 
 
 class EVCSystemBoundsTracker(BackgroundService):
@@ -41,12 +45,15 @@ class EVCSystemBoundsTracker(BackgroundService):
         self._bounds_sender = bounds_sender
         self._latest_component_data: dict[int, microgrid.component.EVChargerData] = {}
         self._last_sent_bounds: SystemBounds | None = None
+        self._component_pool_status = ComponentPoolStatus(set(), set())
 
     def start(self) -> None:
         """Start the EV charger system bounds tracker."""
         self._tasks.add(asyncio.create_task(self._run()))
 
     async def _send_bounds(self) -> None:
+        if not self._latest_component_data:
+            return
         inclusion_bounds = Bounds(
             lower=Power.from_watts(
                 sum(
@@ -102,25 +109,29 @@ class EVCSystemBoundsTracker(BackgroundService):
             )
         )
 
-        component_pool_status = ComponentPoolStatus(set(), set())
-
-        async for selected in select(status_rx, ev_data_rx):
-            if selected_from(selected, status_rx):
-                status = selected.value
-                component_pool_status = status
-                for comp_id in self._latest_component_data:
-                    if (
-                        comp_id not in component_pool_status.working
-                        and comp_id not in component_pool_status.uncertain
-                    ):
+        try:
+            async for selected in select(status_rx, ev_data_rx):
+                if selected_from(selected, status_rx):
+                    self._component_pool_status = selected.value
+                    to_pop = []
+                    for comp_id in self._latest_component_data:
+                        if (
+                            comp_id not in self._component_pool_status.working
+                            and comp_id not in self._component_pool_status.uncertain
+                        ):
+                            to_pop.append(comp_id)
+                    for comp_id in to_pop:
                         self._latest_component_data.pop(comp_id, None)
-            elif selected_from(selected, ev_data_rx):
-                if (
-                    comp_id not in component_pool_status.working
-                    and comp_id not in component_pool_status.uncertain
-                ):
-                    continue
-                data = selected.value
-                self._latest_component_data[data.component_id] = data
+                elif selected_from(selected, ev_data_rx):
+                    data = selected.value
+                    comp_id = data.component_id
+                    if (
+                        comp_id not in self._component_pool_status.working
+                        and comp_id not in self._component_pool_status.uncertain
+                    ):
+                        continue
+                    self._latest_component_data[data.component_id] = data
 
-            await self._send_bounds()
+                await self._send_bounds()
+        except:
+            _logger.exception("bounds tracker failed")
