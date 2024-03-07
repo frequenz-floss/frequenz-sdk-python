@@ -4,6 +4,7 @@
 """Tests of MicrogridApi."""
 
 import asyncio
+import zoneinfo
 from asyncio.tasks import ALL_COMPLETED
 from unittest import mock
 from unittest.mock import AsyncMock, MagicMock
@@ -94,13 +95,13 @@ class TestMicrogridApi:
         Returns:
             the microgrid metadata.
         """
-        mock_timezone_finder = MagicMock()
-        mock_timezone_finder.timezone_at.return_value = "Europe/Berlin"
-        meta._timezone_finder = mock_timezone_finder  # pylint: disable=protected-access
-
         return Metadata(
             microgrid_id=8,
-            location=meta.Location(latitude=52.520008, longitude=13.404954),
+            location=Location(
+                latitude=52.520008,
+                longitude=13.404954,
+                timezone=zoneinfo.ZoneInfo("Europe/Berlin"),
+            ),
         )
 
     @mock.patch("grpc.aio.insecure_channel")
