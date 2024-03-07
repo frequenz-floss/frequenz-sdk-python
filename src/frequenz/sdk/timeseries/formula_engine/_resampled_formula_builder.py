@@ -9,8 +9,8 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from frequenz.channels import Receiver, Sender
+from frequenz.client.microgrid import ComponentMetricId
 
-from ...microgrid.component import ComponentMetricId
 from .. import Sample
 from .._quantities import Quantity, QuantityT
 from ._formula_engine import FormulaBuilder, FormulaEngine

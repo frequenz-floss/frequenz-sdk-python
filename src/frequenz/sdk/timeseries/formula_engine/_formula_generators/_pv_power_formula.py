@@ -5,8 +5,9 @@
 
 import logging
 
+from frequenz.client.microgrid import ComponentCategory, ComponentMetricId
+
 from ....microgrid import connection_manager
-from ....microgrid.component import ComponentCategory, ComponentMetricId
 from ..._quantities import Power
 from .._formula_engine import FormulaEngine
 from ._formula_generator import NON_EXISTING_COMPONENT_ID, FormulaGenerator

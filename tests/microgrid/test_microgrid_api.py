@@ -9,11 +9,15 @@ from unittest import mock
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from frequenz.client.microgrid import (
+    Component,
+    ComponentCategory,
+    Connection,
+    Location,
+    Metadata,
+)
 
 from frequenz.sdk.microgrid import connection_manager
-from frequenz.sdk.microgrid import metadata as meta
-from frequenz.sdk.microgrid.client import Connection
-from frequenz.sdk.microgrid.component import Component, ComponentCategory
 
 
 class TestMicrogridApi:
@@ -84,7 +88,7 @@ class TestMicrogridApi:
         return connections
 
     @pytest.fixture
-    def metadata(self) -> meta.Metadata:
+    def metadata(self) -> Metadata:
         """Fetch the microgrid metadata.
 
         Returns:
@@ -94,7 +98,7 @@ class TestMicrogridApi:
         mock_timezone_finder.timezone_at.return_value = "Europe/Berlin"
         meta._timezone_finder = mock_timezone_finder  # pylint: disable=protected-access
 
-        return meta.Metadata(
+        return Metadata(
             microgrid_id=8,
             location=meta.Location(latitude=52.520008, longitude=13.404954),
         )
@@ -105,7 +109,7 @@ class TestMicrogridApi:
         _insecure_channel_mock: MagicMock,
         components: list[list[Component]],
         connections: list[list[Connection]],
-        metadata: meta.Metadata,
+        metadata: Metadata,
     ) -> None:
         """Test microgrid api.
 
@@ -121,7 +125,7 @@ class TestMicrogridApi:
         microgrid_client.metadata = AsyncMock(return_value=metadata)
 
         with mock.patch(
-            "frequenz.sdk.microgrid.connection_manager.MicrogridGrpcClient",
+            "frequenz.sdk.microgrid.connection_manager.ApiClient",
             return_value=microgrid_client,
         ):
             # Get instance without initializing git first.
@@ -182,7 +186,7 @@ class TestMicrogridApi:
         _insecure_channel_mock: MagicMock,
         components: list[list[Component]],
         connections: list[list[Connection]],
-        metadata: meta.Metadata,
+        metadata: Metadata,
     ) -> None:
         """Test if the api was not deallocated.
 

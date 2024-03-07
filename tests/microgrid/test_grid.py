@@ -5,17 +5,11 @@
 
 from contextlib import AsyncExitStack
 
+import frequenz.client.microgrid as client
 from pytest_mock import MockerFixture
 
 import frequenz.sdk.microgrid.component_graph as gr
 from frequenz.sdk import microgrid
-from frequenz.sdk.microgrid.client import Connection
-from frequenz.sdk.microgrid.component import (
-    Component,
-    ComponentCategory,
-    ComponentMetricId,
-    GridMetadata,
-)
 from frequenz.sdk.timeseries import Current, Fuse, Power, Quantity
 
 from ..timeseries._formula_engine.utils import equal_float_lists, get_resampled_stream
@@ -30,11 +24,11 @@ async def test_grid_1(mocker: MockerFixture) -> None:
 
     # validate that islands with no grid connection are accepted.
     components = {
-        Component(1, ComponentCategory.NONE),
-        Component(2, ComponentCategory.METER),
+        client.Component(1, client.ComponentCategory.NONE),
+        client.Component(2, client.ComponentCategory.METER),
     }
     connections = {
-        Connection(1, 2),
+        client.Connection(1, 2),
     }
 
     graph = gr._MicrogridComponentGraph(  # pylint: disable=protected-access
@@ -65,11 +59,16 @@ def _create_fuse() -> Fuse:
 async def test_grid_2(mocker: MockerFixture) -> None:
     """Validate that microgrids with one grid connection are accepted."""
     components = {
-        Component(1, ComponentCategory.GRID, None, GridMetadata(_create_fuse())),
-        Component(2, ComponentCategory.METER),
+        client.Component(
+            1,
+            client.ComponentCategory.GRID,
+            None,
+            client.GridMetadata(_create_fuse()),
+        ),
+        client.Component(2, client.ComponentCategory.METER),
     }
     connections = {
-        Connection(1, 2),
+        client.Connection(1, 2),
     }
 
     graph = gr._MicrogridComponentGraph(  # pylint: disable=protected-access
@@ -90,11 +89,13 @@ async def test_grid_2(mocker: MockerFixture) -> None:
 async def test_grid_3(mocker: MockerFixture) -> None:
     """Validate that microgrids with a grid connection without a fuse are instantiated."""
     components = {
-        Component(1, ComponentCategory.GRID, None, GridMetadata(None)),
-        Component(2, ComponentCategory.METER),
+        client.Component(
+            1, client.ComponentCategory.GRID, None, client.GridMetadata(None)
+        ),
+        client.Component(2, client.ComponentCategory.METER),
     }
     connections = {
-        Connection(1, 2),
+        client.Connection(1, 2),
     }
 
     graph = gr._MicrogridComponentGraph(  # pylint: disable=protected-access
@@ -126,7 +127,7 @@ async def test_grid_power_1(mocker: MockerFixture) -> None:
         grid_meter_recv = get_resampled_stream(
             grid._formula_pool._namespace,  # pylint: disable=protected-access
             mockgrid.meter_ids[0],
-            ComponentMetricId.ACTIVE_POWER,
+            client.ComponentMetricId.ACTIVE_POWER,
             Power.from_watts,
         )
 
@@ -170,7 +171,7 @@ async def test_grid_power_2(mocker: MockerFixture) -> None:
             get_resampled_stream(
                 grid._formula_pool._namespace,  # pylint: disable=protected-access
                 component_id,
-                ComponentMetricId.ACTIVE_POWER,
+                client.ComponentMetricId.ACTIVE_POWER,
                 Power.from_watts,
             )
             for component_id in [

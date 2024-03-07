@@ -14,9 +14,9 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from frequenz.channels import Sender
+from frequenz.client.microgrid._component import ComponentCategory
 
 from ..microgrid import connection_manager
-from ..microgrid.component._component import ComponentCategory
 from . import Fuse
 from ._quantities import Current, Power
 from .formula_engine import FormulaEngine, FormulaEngine3Phase

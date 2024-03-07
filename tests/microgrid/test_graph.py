@@ -12,16 +12,17 @@ from dataclasses import asdict
 import frequenz.api.common.components_pb2 as components_pb
 import grpc
 import pytest
-
-import frequenz.sdk.microgrid.component_graph as gr
-from frequenz.sdk.microgrid.client import Connection, MicrogridGrpcClient
-from frequenz.sdk.microgrid.component import (
+from frequenz.client.microgrid import (
+    ApiClient,
     Component,
     ComponentCategory,
+    Connection,
+    Fuse,
     GridMetadata,
     InverterType,
 )
-from frequenz.sdk.timeseries import Current, Fuse
+
+import frequenz.sdk.microgrid.component_graph as gr
 
 from .mock_api import MockGrpcServer, MockMicrogridServicer
 
@@ -860,7 +861,7 @@ class Test_MicrogridComponentGraph:
         await server.start()
 
         target = "[::]:58765"
-        client = MicrogridGrpcClient(grpc.aio.insecure_channel(target), target)
+        client = ApiClient(grpc.aio.insecure_channel(target), target)
 
         # both components and connections must be non-empty
         servicer.set_components([])

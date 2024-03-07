@@ -8,10 +8,10 @@ import math
 from contextlib import AsyncExitStack
 
 import pytest
+from frequenz.client.microgrid import ComponentMetricId
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
-from frequenz.sdk.microgrid.component import ComponentMetricId
 from frequenz.sdk.timeseries._quantities import Power
 
 from ..mock_microgrid import MockMicrogrid

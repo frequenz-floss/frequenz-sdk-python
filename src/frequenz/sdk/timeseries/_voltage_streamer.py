@@ -14,10 +14,10 @@ import logging
 from typing import TYPE_CHECKING
 
 from frequenz.channels import Receiver, Sender
+from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
 
 from ..actor import ChannelRegistry
 from ..microgrid import connection_manager
-from ..microgrid.component import Component, ComponentCategory, ComponentMetricId
 from ..timeseries._base_types import Sample, Sample3Phase
 from ..timeseries._quantities import Quantity, Voltage
 

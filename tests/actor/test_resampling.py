@@ -11,6 +11,7 @@ import async_solipsism
 import pytest
 import time_machine
 from frequenz.channels import Broadcast
+from frequenz.client.microgrid import ComponentMetricId
 
 from frequenz.sdk.actor import (
     ChannelRegistry,
@@ -18,7 +19,6 @@ from frequenz.sdk.actor import (
     ComponentMetricsResamplingActor,
     ResamplerConfig,
 )
-from frequenz.sdk.microgrid.component import ComponentMetricId
 from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._quantities import Quantity
 

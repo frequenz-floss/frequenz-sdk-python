@@ -9,9 +9,7 @@ from collections.abc import Callable
 from typing import Any
 
 from frequenz.channels import Receiver, Sender
-
-from ...microgrid import connection_manager
-from ...microgrid.component import (
+from frequenz.client.microgrid import (
     BatteryData,
     ComponentCategory,
     ComponentMetricId,
@@ -19,6 +17,8 @@ from ...microgrid.component import (
     InverterData,
     MeterData,
 )
+
+from ...microgrid import connection_manager
 from ...timeseries import Sample
 from ...timeseries._quantities import Quantity
 from .._channel_registry import ChannelRegistry

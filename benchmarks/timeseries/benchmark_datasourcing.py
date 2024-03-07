@@ -17,6 +17,7 @@ from time import perf_counter
 from typing import Any
 
 from frequenz.channels import Broadcast, Receiver, ReceiverStoppedError
+from frequenz.client.microgrid import ComponentMetricId
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.actor import (
@@ -24,7 +25,6 @@ from frequenz.sdk.actor import (
     ComponentMetricRequest,
     DataSourcingActor,
 )
-from frequenz.sdk.microgrid.component import ComponentMetricId
 
 try:
     from tests.timeseries.mock_microgrid import MockMicrogrid

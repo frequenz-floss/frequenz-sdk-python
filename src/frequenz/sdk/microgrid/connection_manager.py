@@ -12,11 +12,9 @@ import logging
 from abc import ABC, abstractmethod
 
 import grpc.aio as grpcaio
+from frequenz.client.microgrid import ApiClient, Location, Metadata
 
-from .client import MicrogridApiClient
-from .client._client import MicrogridGrpcClient
 from .component_graph import ComponentGraph, _MicrogridComponentGraph
-from .metadata import Location, Metadata
 
 # Not public default host and port
 _DEFAULT_MICROGRID_HOST = "[::1]"
@@ -59,8 +57,8 @@ class ConnectionManager(ABC):
 
     @property
     @abstractmethod
-    def api_client(self) -> MicrogridApiClient:
-        """Get MicrogridApiClient.
+    def api_client(self) -> ApiClient:
+        """Get ApiClient.
 
         Returns:
             api client
@@ -117,7 +115,7 @@ class _InsecureConnectionManager(ConnectionManager):
         super().__init__(host, port)
         target = f"{host}:{port}"
         grpc_channel = grpcaio.insecure_channel(target)
-        self._api = MicrogridGrpcClient(grpc_channel, target)
+        self._api = ApiClient(grpc_channel, target)
         # To create graph from the api we need await.
         # So create empty graph here, and update it in `run` method.
         self._graph = _MicrogridComponentGraph()
@@ -126,8 +124,8 @@ class _InsecureConnectionManager(ConnectionManager):
         """The metadata of the microgrid."""
 
     @property
-    def api_client(self) -> MicrogridApiClient:
-        """Get MicrogridApiClient.
+    def api_client(self) -> ApiClient:
+        """Get ApiClient.
 
         Returns:
             api client
@@ -172,7 +170,7 @@ class _InsecureConnectionManager(ConnectionManager):
 
         target = f"{host}:{port}"
         grpc_channel = grpcaio.insecure_channel(target)
-        self._api = MicrogridGrpcClient(grpc_channel, target)
+        self._api = ApiClient(grpc_channel, target)
         self._metadata = await self._api.metadata()
         await self._graph.refresh_from_api(self._api)
 

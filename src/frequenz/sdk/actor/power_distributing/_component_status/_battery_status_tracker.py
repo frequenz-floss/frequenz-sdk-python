@@ -30,15 +30,15 @@ from frequenz.api.microgrid.inverter_pb2 import ComponentState as InverterCompon
 # pylint: enable=no-name-in-module
 from frequenz.channels import Receiver, Sender
 from frequenz.channels.util import Timer, select, selected_from
-from typing_extensions import override
-
-from ....microgrid import connection_manager
-from ....microgrid.component import (
+from frequenz.client.microgrid import (
     BatteryData,
     ComponentCategory,
     ComponentData,
     InverterData,
 )
+from typing_extensions import override
+
+from ....microgrid import connection_manager
 from ..._background_service import BackgroundService
 from ._blocking_status import BlockingStatus
 from ._component_status import (

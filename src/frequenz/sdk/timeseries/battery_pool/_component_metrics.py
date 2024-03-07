@@ -7,7 +7,7 @@
 from collections.abc import Mapping
 from datetime import datetime
 
-from ...microgrid.component import ComponentMetricId
+from frequenz.client.microgrid import ComponentMetricId
 
 
 class ComponentMetricsData:

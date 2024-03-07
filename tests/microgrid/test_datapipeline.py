@@ -10,11 +10,15 @@ from datetime import timedelta
 import async_solipsism
 import pytest
 import time_machine
+from frequenz.client.microgrid import (
+    Component,
+    ComponentCategory,
+    Connection,
+    InverterType,
+)
 from pytest_mock import MockerFixture
 
 from frequenz.sdk.microgrid._data_pipeline import _DataPipeline
-from frequenz.sdk.microgrid.client import Connection
-from frequenz.sdk.microgrid.component import Component, ComponentCategory, InverterType
 from frequenz.sdk.timeseries._resampling import ResamplerConfig
 
 from ..utils.mock_microgrid_client import MockMicrogridClient

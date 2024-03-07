@@ -16,6 +16,7 @@ from typing import AsyncIterator, TypeVar
 from unittest.mock import MagicMock
 
 from frequenz.channels import Broadcast, Sender
+from frequenz.client.microgrid import ComponentCategory
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
@@ -39,7 +40,6 @@ from frequenz.sdk.actor.power_distributing.result import (
     Result,
     Success,
 )
-from frequenz.sdk.microgrid.component import ComponentCategory
 from frequenz.sdk.microgrid.component_graph import _MicrogridComponentGraph
 from frequenz.sdk.timeseries import Power
 

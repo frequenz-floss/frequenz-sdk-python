@@ -14,6 +14,13 @@ from datetime import datetime, timezone
 from typing import Any, Generic, Self, TypeVar
 
 from frequenz.channels import ChannelClosedError, Receiver
+from frequenz.client.microgrid import (
+    BatteryData,
+    ComponentCategory,
+    ComponentData,
+    ComponentMetricId,
+    InverterData,
+)
 
 from ..._internal._asyncio import AsyncConstructible
 from ..._internal._constants import MAX_BATTERY_DATA_AGE_SEC
@@ -22,13 +29,6 @@ from ...actor._data_sourcing.microgrid_api_source import (
     _InverterDataMethods,
 )
 from ...microgrid import connection_manager
-from ...microgrid.component import (
-    BatteryData,
-    ComponentCategory,
-    ComponentData,
-    ComponentMetricId,
-    InverterData,
-)
 from ._component_metrics import ComponentMetricsData
 
 _logger = logging.getLogger(__name__)

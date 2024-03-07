@@ -18,8 +18,7 @@ from datetime import datetime
 
 import frequenz.api.microgrid.battery_pb2 as battery_pb
 import frequenz.api.microgrid.inverter_pb2 as inverter_pb
-
-from frequenz.sdk.microgrid.component import (
+from frequenz.client.microgrid import (
     BatteryData,
     EVChargerCableState,
     EVChargerComponentState,

@@ -5,6 +5,7 @@
 
 from frequenz.api.common import components_pb2 as components_pb
 from frequenz.channels import Broadcast
+from frequenz.client.microgrid import ComponentMetricId
 
 from frequenz.sdk.actor import (
     ChannelRegistry,
@@ -12,7 +13,6 @@ from frequenz.sdk.actor import (
     DataSourcingActor,
 )
 from frequenz.sdk.microgrid import connection_manager
-from frequenz.sdk.microgrid.component import ComponentMetricId
 from frequenz.sdk.timeseries import Quantity, Sample
 from tests.microgrid import mock_api
 
