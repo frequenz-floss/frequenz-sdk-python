@@ -61,7 +61,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         num_values: int = 2000,
         sample_rate_s: float = 0.01,
         num_namespaces: int = 1,
-        fuse: Fuse | None = Fuse(Current.from_amperes(10_000.0)),
+        fuse: Fuse | None = Fuse(10_000.0),
         graph: _MicrogridComponentGraph | None = None,
         mocker: MockerFixture | None = None,
     ):

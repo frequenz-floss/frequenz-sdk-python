@@ -906,8 +906,7 @@ class Test_MicrogridComponentGraph:
         servicer.set_connections([(101, 111), (111, 131)])
         await graph.refresh_from_api(client)
 
-        grid_max_current = Current.zero()
-        grid_fuse = Fuse(grid_max_current)
+        grid_fuse = Fuse(max_current=0.0)
 
         # Note: we need to add GriMetadata as a dict here, because that's what
         # the ComponentGraph does too, and we need to be able to compare the

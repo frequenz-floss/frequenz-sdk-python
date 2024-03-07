@@ -45,17 +45,6 @@ async def test_grid_1(mocker: MockerFixture) -> None:
         assert grid.fuse.max_current == Current.from_amperes(0.0)
 
 
-def _create_fuse() -> Fuse:
-    """Create a fuse with a fixed current.
-
-    Returns:
-        Fuse: The fuse.
-    """
-    fuse_current = Current.from_amperes(123.0)
-    fuse = Fuse(fuse_current)
-    return fuse
-
-
 async def test_grid_2(mocker: MockerFixture) -> None:
     """Validate that microgrids with one grid connection are accepted."""
     components = {
@@ -63,7 +52,7 @@ async def test_grid_2(mocker: MockerFixture) -> None:
             1,
             client.ComponentCategory.GRID,
             None,
-            client.GridMetadata(_create_fuse()),
+            client.GridMetadata(client.Fuse(123.0)),
         ),
         client.Component(2, client.ComponentCategory.METER),
     }
