@@ -1431,7 +1431,7 @@ class Test_MicrogridComponentGraph:
         }
         assert len(graph.components()) == len(expected)
         assert set(graph.components()) == expected
-        assert list(graph.connections()) == [(1, 2)]
+        assert list(graph.connections()) == [Connection(1, 2)]
 
         # invalid graph data that (for now at least)
         # cannot be corrected
@@ -1445,7 +1445,7 @@ class Test_MicrogridComponentGraph:
         # graph is still in last known good state
         assert len(graph.components()) == len(expected)
         assert set(graph.components()) == expected
-        assert list(graph.connections()) == [(1, 2)]
+        assert list(graph.connections()) == [Connection(1, 2)]
 
         # invalid graph data where there is no grid
         # endpoint but a node has the magic value 0
@@ -1462,7 +1462,7 @@ class Test_MicrogridComponentGraph:
         # graph is still in last known good state
         assert len(graph.components()) == len(expected)
         assert set(graph.components()) == expected
-        assert list(graph.connections()) == [(1, 2)]
+        assert list(graph.connections()) == [Connection(1, 2)]
 
         # with the callback, this can be corrected
         graph.refresh_from(
@@ -1477,4 +1477,4 @@ class Test_MicrogridComponentGraph:
         assert len(graph.components()) == len(expected)
         assert set(graph.components()) == expected
 
-        assert list(graph.connections()) == [(0, 8)]
+        assert list(graph.connections()) == [Connection(0, 8)]

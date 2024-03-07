@@ -22,6 +22,7 @@ flow of power.
 """
 
 import asyncio
+import dataclasses
 import logging
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable
@@ -513,7 +514,7 @@ class _MicrogridComponentGraph(
         for component in components:
             new_graph.add_node(component.component_id, **asdict(component))
 
-        new_graph.add_edges_from(connections)
+        new_graph.add_edges_from(dataclasses.astuple(c) for c in connections)
 
         # check if we can construct a valid ComponentGraph
         # from the new NetworkX graph data
