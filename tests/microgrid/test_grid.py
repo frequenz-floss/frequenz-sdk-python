@@ -69,10 +69,7 @@ async def test_grid_2(mocker: MockerFixture) -> None:
         assert grid is not None
         stack.push_async_callback(grid.stop)
 
-        expected_fuse_current = Current.from_amperes(123.0)
-        expected_fuse = Fuse(expected_fuse_current)
-
-        assert grid.fuse == expected_fuse
+        assert grid.fuse == Fuse(max_current=Current.from_amperes(123.0))
 
 
 async def test_grid_3(mocker: MockerFixture) -> None:
