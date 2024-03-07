@@ -195,8 +195,10 @@ def initialize(
         # instead of the expected ComponentMetadata type.
         metadata = grid_connections[0].metadata
         if isinstance(metadata, dict):
-            fuse_dict = metadata.get("fuse", None)
-            fuse = Fuse(**fuse_dict) if fuse_dict else None
+            if fuse_dict := metadata.get("fuse", None):
+                fuse = Fuse(
+                    max_current=Current.from_amperes(fuse_dict.get("max_current", 0.0))
+                )
 
         if fuse is None:
             _logger.warning("The grid connection point does not have a fuse")
