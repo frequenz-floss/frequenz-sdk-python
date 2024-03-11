@@ -202,7 +202,7 @@ class EVChargerPool:
             _logger.warning("Restarting component_status for id: %s", component_id)
         else:
             output_chan = Broadcast[EVChargerData](
-                f"evpool-component_status-{component_id}"
+                name=f"evpool-component_status-{component_id}"
             )
 
         task = asyncio.create_task(

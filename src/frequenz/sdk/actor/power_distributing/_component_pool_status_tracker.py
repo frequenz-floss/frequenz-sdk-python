@@ -65,7 +65,7 @@ class ComponentPoolStatusTracker:
 
         # Channel for sending results of requests to the components.
         self._set_power_result_channel = Broadcast[SetPowerResult](
-            "component_request_status"
+            name="component_request_status"
         )
         self._set_power_result_sender = self._set_power_result_channel.new_sender()
         self._component_status_trackers: list[ComponentStatusTracker] = []
@@ -92,7 +92,7 @@ class ComponentPoolStatusTracker:
 
         for component_id in self._component_ids:
             channel: Broadcast[ComponentStatus] = Broadcast(
-                f"component_{component_id}_status"
+                name=f"component_{component_id}_status"
             )
             tracker = self._component_status_tracker_type(
                 component_id=component_id,

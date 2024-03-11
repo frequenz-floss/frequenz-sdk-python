@@ -156,10 +156,10 @@ async def test_basic_actor(caplog: pytest.LogCaptureFixture) -> None:
     """Initialize the TestActor send a message and wait for the response."""
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._actor")
 
-    input_chan_1: Broadcast[bool] = Broadcast("TestChannel1")
-    input_chan_2: Broadcast[bool] = Broadcast("TestChannel2")
+    input_chan_1: Broadcast[bool] = Broadcast(name="TestChannel1")
+    input_chan_2: Broadcast[bool] = Broadcast(name="TestChannel2")
 
-    echo_chan: Broadcast[bool] = Broadcast("echo output")
+    echo_chan: Broadcast[bool] = Broadcast(name="echo output")
     echo_rx = echo_chan.new_receiver()
 
     async with EchoActor(
@@ -209,7 +209,7 @@ async def test_restart_on_unhandled_exception(
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._actor")
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._run_utils")
 
-    channel: Broadcast[int] = Broadcast("channel")
+    channel: Broadcast[int] = Broadcast(name="channel")
 
     # NB: We're adding 1.0s to the timeout to account for the time it takes to
     # run, crash, and restart the actor.
@@ -283,7 +283,7 @@ async def test_does_not_restart_on_normal_exit(
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._actor")
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._run_utils")
 
-    channel: Broadcast[int] = Broadcast("channel")
+    channel: Broadcast[int] = Broadcast(name="channel")
 
     actor = NopActor()
 
@@ -311,7 +311,7 @@ async def test_does_not_restart_on_base_exception(
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._actor")
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._run_utils")
 
-    channel: Broadcast[int] = Broadcast("channel")
+    channel: Broadcast[int] = Broadcast(name="channel")
 
     actor = RaiseBaseExceptionActor(channel.new_receiver())
 
@@ -346,10 +346,10 @@ async def test_does_not_restart_if_cancelled(
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._actor")
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._run_utils")
 
-    input_chan_1: Broadcast[bool] = Broadcast("TestChannel1")
-    input_chan_2: Broadcast[bool] = Broadcast("TestChannel2")
+    input_chan_1: Broadcast[bool] = Broadcast(name="TestChannel1")
+    input_chan_2: Broadcast[bool] = Broadcast(name="TestChannel2")
 
-    echo_chan: Broadcast[bool] = Broadcast("echo output")
+    echo_chan: Broadcast[bool] = Broadcast(name="echo output")
     echo_rx = echo_chan.new_receiver()
 
     actor = EchoActor(

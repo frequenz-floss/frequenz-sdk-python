@@ -162,8 +162,8 @@ class TestBatteryStatus:
         mock_microgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
         mock_microgrid.add_batteries(3)
 
-        status_channel = Broadcast[ComponentStatus]("battery_status")
-        set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
+        status_channel = Broadcast[ComponentStatus](name="battery_status")
+        set_power_result_channel = Broadcast[SetPowerResult](name="set_power_result")
 
         async with (
             mock_microgrid,
@@ -333,8 +333,8 @@ class TestBatteryStatus:
         mock_microgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
         mock_microgrid.add_batteries(3)
 
-        status_channel = Broadcast[ComponentStatus]("battery_status")
-        set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
+        status_channel = Broadcast[ComponentStatus](name="battery_status")
+        set_power_result_channel = Broadcast[SetPowerResult](name="set_power_result")
 
         async with (
             mock_microgrid,
@@ -474,8 +474,8 @@ class TestBatteryStatus:
         mock_microgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
         mock_microgrid.add_batteries(3)
 
-        status_channel = Broadcast[ComponentStatus]("battery_status")
-        set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
+        status_channel = Broadcast[ComponentStatus](name="battery_status")
+        set_power_result_channel = Broadcast[SetPowerResult](name="set_power_result")
 
         async with (
             mock_microgrid,
@@ -525,8 +525,8 @@ class TestBatteryStatus:
         mock_microgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
         mock_microgrid.add_batteries(3)
 
-        status_channel = Broadcast[ComponentStatus]("battery_status")
-        set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
+        status_channel = Broadcast[ComponentStatus](name="battery_status")
+        set_power_result_channel = Broadcast[SetPowerResult](name="set_power_result")
 
         async with (
             mock_microgrid,
@@ -589,8 +589,8 @@ class TestBatteryStatus:
         mock_microgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
         mock_microgrid.add_batteries(3)
 
-        status_channel = Broadcast[ComponentStatus]("battery_status")
-        set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
+        status_channel = Broadcast[ComponentStatus](name="battery_status")
+        set_power_result_channel = Broadcast[SetPowerResult](name="set_power_result")
 
         async with (
             mock_microgrid,
@@ -655,8 +655,8 @@ class TestBatteryStatus:
         mock_microgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
         mock_microgrid.add_batteries(3)
 
-        status_channel = Broadcast[ComponentStatus]("battery_status")
-        set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
+        status_channel = Broadcast[ComponentStatus](name="battery_status")
+        set_power_result_channel = Broadcast[SetPowerResult](name="set_power_result")
 
         status_receiver = status_channel.new_receiver()
         set_power_result_sender = set_power_result_channel.new_sender()
@@ -743,8 +743,8 @@ class TestBatteryStatusRecovery:
         mock_microgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
         mock_microgrid.add_batteries(1)
 
-        status_channel = Broadcast[ComponentStatus]("battery_status")
-        set_power_result_channel = Broadcast[SetPowerResult]("set_power_result")
+        status_channel = Broadcast[ComponentStatus](name="battery_status")
+        set_power_result_channel = Broadcast[SetPowerResult](name="set_power_result")
 
         status_receiver = status_channel.new_receiver()
 

@@ -98,7 +98,9 @@ class ChannelRegistry:
                     message_type,
                     "".join(traceback.format_stack(limit=10)[:9]),
                 )
-            self._channels[key] = _Entry(message_type, Broadcast(f"{self._name}-{key}"))
+            self._channels[key] = _Entry(
+                message_type, Broadcast(name=f"{self._name}-{key}")
+            )
 
         entry = self._channels[key]
         if entry.message_type is not message_type:

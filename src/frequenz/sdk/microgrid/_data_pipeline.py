@@ -259,7 +259,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         if self._data_sourcing_actor is None:
             channel: Broadcast[ComponentMetricRequest] = Broadcast(
-                "Data Pipeline: Data Sourcing Actor Request Channel"
+                name="Data Pipeline: Data Sourcing Actor Request Channel"
             )
             actor = DataSourcingActor(
                 request_receiver=channel.new_receiver(
@@ -283,7 +283,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         if self._resampling_actor is None:
             channel: Broadcast[ComponentMetricRequest] = Broadcast(
-                "Data Pipeline: Component Metric Resampling Actor Request Channel"
+                name="Data Pipeline: Component Metric Resampling Actor Request Channel"
             )
             actor = ComponentMetricsResamplingActor(
                 channel_registry=self._channel_registry,

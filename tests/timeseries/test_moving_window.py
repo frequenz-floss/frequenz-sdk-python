@@ -60,7 +60,7 @@ def init_moving_window(
     Returns:
         tuple[MovingWindow, Sender[Sample]]: A pair of sender and `MovingWindow`.
     """
-    lm_chan = Broadcast[Sample[Quantity]]("lm_net_power")
+    lm_chan = Broadcast[Sample[Quantity]](name="lm_net_power")
     lm_tx = lm_chan.new_sender()
     window = MovingWindow(size, lm_chan.new_receiver(), timedelta(seconds=1))
     return window, lm_tx
@@ -229,7 +229,7 @@ async def test_window_size() -> None:
 # pylint: disable=redefined-outer-name
 async def test_resampling_window(fake_time: time_machine.Coordinates) -> None:
     """Test resampling in MovingWindow."""
-    channel = Broadcast[Sample[Quantity]]("net_power")
+    channel = Broadcast[Sample[Quantity]](name="net_power")
     sender = channel.new_sender()
 
     window_size = timedelta(seconds=16)

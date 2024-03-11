@@ -51,7 +51,7 @@ class TestDataSourcingActor:
 
         await connection_manager.initialize("[::1]", 57899)
 
-        req_chan = Broadcast[ComponentMetricRequest]("data_sourcing_requests")
+        req_chan = Broadcast[ComponentMetricRequest](name="data_sourcing_requests")
         req_sender = req_chan.new_sender()
 
         registry = ChannelRegistry(name="test-registry")

@@ -33,7 +33,7 @@ async def init_feature_extractor(
 ) -> collections.abc.AsyncIterator[PeriodicFeatureExtractor]:
     """Initialize the PeriodicFeatureExtractor class."""
     # We only need the moving window to initialize the PeriodicFeatureExtractor class.
-    lm_chan = Broadcast[Sample[Quantity]]("lm_net_power")
+    lm_chan = Broadcast[Sample[Quantity]](name="lm_net_power")
     async with MovingWindow(
         timedelta(seconds=1), lm_chan.new_receiver(), timedelta(seconds=1)
     ) as moving_window:

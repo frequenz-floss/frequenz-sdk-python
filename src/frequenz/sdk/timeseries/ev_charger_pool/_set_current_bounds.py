@@ -50,7 +50,9 @@ class BoundsSetter:
         self._repeat_interval = repeat_interval
 
         self._task: asyncio.Task[None] = asyncio.create_task(self._run())
-        self._bounds_chan: Broadcast[ComponentCurrentLimit] = Broadcast("BoundsSetter")
+        self._bounds_chan: Broadcast[ComponentCurrentLimit] = Broadcast(
+            name="BoundsSetter"
+        )
         self._bounds_rx = self._bounds_chan.new_receiver()
         self._bounds_tx = self._bounds_chan.new_sender()
 

@@ -43,7 +43,9 @@ class TestBatteryPoolStatus:
                     component_categories={ComponentCategory.BATTERY}
                 )
             }
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
             battery_status_recv = battery_status_channel.new_receiver(maxsize=1)
             batteries_status = ComponentPoolStatusTracker(
                 component_ids=batteries,
