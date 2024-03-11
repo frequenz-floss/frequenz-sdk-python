@@ -9,14 +9,14 @@ import typing
 
 from frequenz.channels import Receiver
 
-T = typing.TypeVar("T")
+T_co = typing.TypeVar("T_co", covariant=True)
 
 
-class ReceiverFetcher(typing.Generic[T], typing.Protocol):
+class ReceiverFetcher(typing.Generic[T_co], typing.Protocol):
     """An interface that just exposes a `new_receiver` method."""
 
     @abc.abstractmethod
-    def new_receiver(self, *, maxsize: int = 50) -> Receiver[T]:
+    def new_receiver(self, *, maxsize: int = 50) -> Receiver[T_co]:
         """Get a receiver from the channel.
 
         Args:
@@ -31,20 +31,20 @@ class _Sentinel:
     """A sentinel to denote that no value has been received yet."""
 
 
-class LatestValueCache(typing.Generic[T]):
+class LatestValueCache(typing.Generic[T_co]):
     """A cache that stores the latest value in a receiver."""
 
-    def __init__(self, receiver: Receiver[T]) -> None:
+    def __init__(self, receiver: Receiver[T_co]) -> None:
         """Create a new cache.
 
         Args:
             receiver: The receiver to cache.
         """
         self._receiver = receiver
-        self._latest_value: T | _Sentinel = _Sentinel()
+        self._latest_value: T_co | _Sentinel = _Sentinel()
         self._task = asyncio.create_task(self._run())
 
-    def get(self) -> T:
+    def get(self) -> T_co:
         """Return the latest value that has been received.
 
         This raises a `ValueError` if no value has been received yet. Use `has_value` to
