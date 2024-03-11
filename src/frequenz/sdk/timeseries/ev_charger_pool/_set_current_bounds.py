@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 
 from frequenz.channels import Broadcast, Sender, select, selected_from
-from frequenz.channels.timer import Timer
+from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.microgrid import ComponentCategory
 
 from ..._internal._asyncio import cancel_and_await
@@ -100,7 +100,9 @@ class BoundsSetter:
         latest_bound: dict[int, ComponentCurrentLimit] = {}
 
         bound_chan = self._bounds_rx
-        timer = Timer.timeout(timedelta(self._repeat_interval.total_seconds()))
+        timer = Timer(
+            timedelta(self._repeat_interval.total_seconds()), SkipMissedAndDrift()
+        )
 
         async for selected in select(bound_chan, timer):
             meter = meter_data.get()

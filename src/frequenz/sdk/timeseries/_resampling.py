@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import cast
 
-from frequenz.channels.timer import Timer, _to_microseconds
+from frequenz.channels.timer import Timer, TriggerAllMissed, _to_microseconds
 
 from .._internal._asyncio import cancel_and_await
 from ._base_types import UNIX_EPOCH, Sample
@@ -384,7 +384,7 @@ class Resampler:
         the window end is deterministic.
         """
 
-        self._timer: Timer = Timer.periodic(config.resampling_period)
+        self._timer: Timer = Timer(config.resampling_period, TriggerAllMissed())
         """The timer used to trigger the resampling windows."""
 
         # Hack to align the timer, this should be implemented in the Timer class

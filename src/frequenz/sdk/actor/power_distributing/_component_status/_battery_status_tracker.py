@@ -29,7 +29,7 @@ from frequenz.api.microgrid.inverter_pb2 import ComponentState as InverterCompon
 
 # pylint: enable=no-name-in-module
 from frequenz.channels import Receiver, Sender, select, selected_from
-from frequenz.channels.timer import Timer
+from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.microgrid import (
     BatteryData,
     ComponentCategory,
@@ -147,11 +147,11 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
 
         self._battery: _ComponentStreamStatus = _ComponentStreamStatus(
             component_id,
-            data_recv_timer=Timer.timeout(max_data_age),
+            data_recv_timer=Timer(max_data_age, SkipMissedAndDrift()),
         )
         self._inverter: _ComponentStreamStatus = _ComponentStreamStatus(
             inverter_id,
-            data_recv_timer=Timer.timeout(max_data_age),
+            data_recv_timer=Timer(max_data_age, SkipMissedAndDrift()),
         )
 
         # Select needs receivers that can be get in async way only.
