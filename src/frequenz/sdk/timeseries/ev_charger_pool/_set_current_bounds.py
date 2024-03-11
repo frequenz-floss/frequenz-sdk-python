@@ -110,7 +110,7 @@ class BoundsSetter:
                 raise ValueError("Meter channel closed.")
 
             if selected_from(selected, bound_chan):
-                bound: ComponentCurrentLimit = selected.value
+                bound: ComponentCurrentLimit = selected.message
                 if (
                     bound.component_id in latest_bound
                     and latest_bound[bound.component_id] == bound

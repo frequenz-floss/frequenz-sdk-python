@@ -141,13 +141,13 @@ class EchoActor(BaseTestActor):
         channel_2 = self._recv2
 
         async for selected in select(channel_1, channel_2):
-            print(f"{self} received message {selected.value!r}")
+            print(f"{self} received message {selected.message!r}")
             if selected_from(selected, channel_1):
                 print(f"{self} sending message received from channel_1")
-                await self._output.send(selected.value)
+                await self._output.send(selected.message)
             elif selected_from(selected, channel_2):
                 print(f"{self} sending message received from channel_2")
-                await self._output.send(selected.value)
+                await self._output.send(selected.message)
 
         print(f"{self} done (should not happen)")
 

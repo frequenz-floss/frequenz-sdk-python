@@ -195,7 +195,7 @@ class PowerManagingActor(Actor):
             drop_old_proposals_timer,
         ):
             if selected_from(selected, self._proposals_receiver):
-                proposal = selected.value
+                proposal = selected.message
                 if proposal.component_ids not in self._bound_tracker_tasks:
                     self._add_bounds_tracker(proposal.component_ids)
 
@@ -214,7 +214,7 @@ class PowerManagingActor(Actor):
                 await self._send_reports(proposal.component_ids)
 
             elif selected_from(selected, self._bounds_subscription_receiver):
-                sub = selected.value
+                sub = selected.message
                 component_ids = sub.component_ids
                 priority = sub.priority
 
@@ -239,7 +239,7 @@ class PowerManagingActor(Actor):
                     power_distributing,
                 )
 
-                result = selected.value
+                result = selected.message
                 self._distribution_results[frozenset(result.request.component_ids)] = (
                     result
                 )

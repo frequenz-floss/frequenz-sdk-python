@@ -277,13 +277,13 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
                     new_status = None
 
                     if selected_from(selected, battery):
-                        self._handle_status_battery(selected.value)
+                        self._handle_status_battery(selected.message)
 
                     elif selected_from(selected, inverter):
-                        self._handle_status_inverter(selected.value)
+                        self._handle_status_inverter(selected.message)
 
                     elif selected_from(selected, set_power_result):
-                        self._handle_status_set_power_result(selected.value)
+                        self._handle_status_set_power_result(selected.message)
 
                     elif selected_from(selected, battery_timer):
                         if (
