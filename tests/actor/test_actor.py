@@ -7,8 +7,7 @@ import asyncio
 from datetime import timedelta
 
 import pytest
-from frequenz.channels import Broadcast, Receiver, Sender
-from frequenz.channels.util import select, selected_from
+from frequenz.channels import Broadcast, Receiver, Sender, select, selected_from
 
 from frequenz.sdk.actor import Actor, run
 

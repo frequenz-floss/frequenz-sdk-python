@@ -28,8 +28,8 @@ from frequenz.api.microgrid.common_pb2 import ErrorLevel
 from frequenz.api.microgrid.inverter_pb2 import ComponentState as InverterComponentState
 
 # pylint: enable=no-name-in-module
-from frequenz.channels import Receiver, Sender
-from frequenz.channels.util import Timer, select, selected_from
+from frequenz.channels import Receiver, Sender, select, selected_from
+from frequenz.channels.timer import Timer
 from frequenz.client.microgrid import (
     BatteryData,
     ComponentCategory,

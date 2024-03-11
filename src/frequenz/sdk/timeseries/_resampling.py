@@ -16,8 +16,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import cast
 
-from frequenz.channels.util import Timer
-from frequenz.channels.util._timer import _to_microseconds
+from frequenz.channels.timer import Timer, _to_microseconds
 
 from .._internal._asyncio import cancel_and_await
 from ._base_types import UNIX_EPOCH, Sample

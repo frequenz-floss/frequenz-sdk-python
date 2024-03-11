@@ -10,7 +10,7 @@ from collections import abc
 from typing import Any, assert_never
 
 from frequenz.channels import Sender
-from frequenz.channels.util import FileWatcher
+from frequenz.channels.file_watcher import FileWatcher
 
 from ..actor._actor import Actor
 from ..config import Config

@@ -10,8 +10,8 @@ import logging
 import typing
 from datetime import datetime, timedelta, timezone
 
-from frequenz.channels import Receiver, Sender
-from frequenz.channels.util import SkipMissedAndDrift, Timer, select, selected_from
+from frequenz.channels import Receiver, Sender, select, selected_from
+from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.microgrid import ComponentCategory
 from typing_extensions import override
 
