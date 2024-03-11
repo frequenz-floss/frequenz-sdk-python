@@ -10,7 +10,7 @@ from collections import abc
 from typing import Any, assert_never
 
 from frequenz.channels import Sender
-from frequenz.channels.file_watcher import FileWatcher
+from frequenz.channels.file_watcher import EventType, FileWatcher
 
 from ..actor._actor import Actor
 from ..config import Config
@@ -34,7 +34,7 @@ class ConfigManagingActor(Actor):
         self,
         config_path: pathlib.Path | str,
         output: Sender[Config],
-        event_types: abc.Set[FileWatcher.EventType] = frozenset(FileWatcher.EventType),
+        event_types: abc.Set[EventType] = frozenset(EventType),
         *,
         name: str | None = None,
     ) -> None:
@@ -99,21 +99,21 @@ class ConfigManagingActor(Actor):
                 continue
 
             match event.type:
-                case FileWatcher.EventType.CREATE:
+                case EventType.CREATE:
                     _logger.info(
                         "%s: The configuration file %s was created, sending new config...",
                         self,
                         self._config_path,
                     )
                     await self.send_config()
-                case FileWatcher.EventType.MODIFY:
+                case EventType.MODIFY:
                     _logger.info(
                         "%s: The configuration file %s was modified, sending update...",
                         self,
                         self._config_path,
                     )
                     await self.send_config()
-                case FileWatcher.EventType.DELETE:
+                case EventType.DELETE:
                     _logger.info(
                         "%s: The configuration file %s was deleted, ignoring...",
                         self,
