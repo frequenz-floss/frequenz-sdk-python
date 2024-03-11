@@ -713,7 +713,8 @@ class TestBatteryStatus:
                 )
                 time.shift(10)
                 await asyncio.sleep(0.3)
-                assert len(status_receiver) == 0
+                with pytest.raises(asyncio.TimeoutError):
+                    await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
 
                 await mock_microgrid.mock_client.send(
                     inverter_data(component_id=INVERTER_ID)
