@@ -7,10 +7,8 @@
 import asyncio
 import logging
 from datetime import timedelta
-from typing import Any
 
-from frequenz.channels import Receiver
-from frequenz.channels.util import MergeNamed
+from frequenz.channels import merge
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.actor import ResamplerConfig
@@ -31,17 +29,16 @@ async def main() -> None:
     )
 
     battery_pool = microgrid.battery_pool()
-    receivers: dict[str, Receiver[Any]] = {
-        "soc": battery_pool.soc.new_receiver(maxsize=1),
-        "capacity": battery_pool.capacity.new_receiver(maxsize=1),
+    receivers = [
+        battery_pool.soc.new_receiver(maxsize=1),
+        battery_pool.capacity.new_receiver(maxsize=1),
         # pylint: disable=protected-access
-        "power_bounds": battery_pool._system_power_bounds.new_receiver(maxsize=1),
+        battery_pool._system_power_bounds.new_receiver(maxsize=1),
         # pylint: enable=protected-access
-    }
+    ]
 
-    merged_channel = MergeNamed[Any](**receivers)
-    async for metric_name, metric in merged_channel:
-        print(f"Received new {metric_name}: {metric}")
+    async for metric in merge(*receivers):
+        print(f"Received new metric: {metric}")
 
 
 asyncio.run(main())
