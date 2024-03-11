@@ -83,7 +83,7 @@ async def benchmark_data_sourcing(
     channel_registry = ChannelRegistry(name="Microgrid Channel Registry")
     request_receiver = request_channel.new_receiver(
         name="datasourcing-benchmark",
-        maxsize=(num_ev_chargers * len(COMPONENT_METRIC_IDS)),
+        limit=(num_ev_chargers * len(COMPONENT_METRIC_IDS)),
     )
     request_sender = request_channel.new_sender()
 

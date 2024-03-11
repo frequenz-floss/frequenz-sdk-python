@@ -302,7 +302,7 @@ class MockMicrogridClient:
             Receiver from the given channels.
         """
         return channels[component_id].new_receiver(
-            name="component" + str(component_id), maxsize=maxsize
+            name="component" + str(component_id), limit=maxsize
         )
 
     def _get_meter_receiver(
@@ -322,7 +322,7 @@ class MockMicrogridClient:
             Receiver from the given channels.
         """
         return channels[component_id].new_receiver(
-            name="component" + str(component_id), maxsize=maxsize
+            name="component" + str(component_id), limit=maxsize
         )
 
     def _get_ev_charger_receiver(
@@ -342,7 +342,7 @@ class MockMicrogridClient:
             Receiver from the given channels.
         """
         return channels[component_id].new_receiver(
-            name="component" + str(component_id), maxsize=maxsize
+            name="component" + str(component_id), limit=maxsize
         )
 
     def _get_inverter_receiver(
@@ -362,5 +362,5 @@ class MockMicrogridClient:
             Receiver from the given channels.
         """
         return channels[component_id].new_receiver(
-            name="component" + str(component_id), maxsize=maxsize
+            name="component" + str(component_id), limit=maxsize
         )

@@ -233,7 +233,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 channel_registry=self._channel_registry,
                 resampler_subscription_sender=self._resampling_request_sender(),
                 batteries_status_receiver=self._battery_power_wrapper.status_channel.new_receiver(
-                    maxsize=1
+                    limit=1
                 ),
                 power_manager_requests_sender=(
                     self._battery_power_wrapper.proposal_channel.new_sender()
@@ -262,9 +262,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 name="Data Pipeline: Data Sourcing Actor Request Channel"
             )
             actor = DataSourcingActor(
-                request_receiver=channel.new_receiver(
-                    maxsize=_REQUEST_RECV_BUFFER_SIZE
-                ),
+                request_receiver=channel.new_receiver(limit=_REQUEST_RECV_BUFFER_SIZE),
                 registry=self._channel_registry,
             )
             self._data_sourcing_actor = _ActorInfo(actor, channel)
@@ -289,7 +287,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 channel_registry=self._channel_registry,
                 data_sourcing_request_sender=self._data_sourcing_request_sender(),
                 resampling_request_receiver=channel.new_receiver(
-                    maxsize=_REQUEST_RECV_BUFFER_SIZE
+                    limit=_REQUEST_RECV_BUFFER_SIZE
                 ),
                 config=self._resampler_config,
             )

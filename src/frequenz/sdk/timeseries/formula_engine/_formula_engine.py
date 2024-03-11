@@ -415,7 +415,7 @@ class FormulaEngine(
         if self._task is None:
             self._task = asyncio.create_task(self._run())
 
-        recv = self._channel.new_receiver(name=name, max_size)
+        recv = self._channel.new_receiver(name=name, limit=max_size)
 
         # This is a hack to ensure that the lifetime of the engine is tied to the
         # lifetime of the receiver.  This is necessary because the engine is a task that
@@ -553,7 +553,7 @@ class FormulaEngine3Phase(
         if self._task is None:
             self._task = asyncio.create_task(self._run())
 
-        return self._channel.new_receiver(name=name, max_size)
+        return self._channel.new_receiver(name=name, limit=max_size)
 
 
 class FormulaBuilder(Generic[QuantityT]):
