@@ -12,9 +12,9 @@ from datetime import datetime, timedelta, timezone
 
 from frequenz.channels import Receiver, Sender
 from frequenz.channels.util import SkipMissedAndDrift, Timer, select, selected_from
+from frequenz.client.microgrid import ComponentCategory
 from typing_extensions import override
 
-from ...microgrid.component import ComponentCategory
 from ...timeseries._base_types import SystemBounds
 from .._actor import Actor
 from .._channel_registry import ChannelRegistry

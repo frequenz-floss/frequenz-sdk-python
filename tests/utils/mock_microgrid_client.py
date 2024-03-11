@@ -7,26 +7,26 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 from frequenz.channels import Broadcast, Receiver
-from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
-from pytest_mock import MockerFixture
-
-from frequenz.sdk._internal._constants import RECEIVER_MAX_SIZE
-from frequenz.sdk.microgrid.client import Connection
-from frequenz.sdk.microgrid.component import (
+from frequenz.client.microgrid import (
     BatteryData,
     Component,
     ComponentCategory,
     ComponentData,
+    Connection,
     EVChargerData,
     InverterData,
+    Location,
     MeterData,
 )
+from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
+from pytest_mock import MockerFixture
+
+from frequenz.sdk._internal._constants import RECEIVER_MAX_SIZE
 from frequenz.sdk.microgrid.component_graph import (
     ComponentGraph,
     _MicrogridComponentGraph,
 )
 from frequenz.sdk.microgrid.connection_manager import ConnectionManager
-from frequenz.sdk.microgrid.metadata import Location
 
 
 class MockMicrogridClient:

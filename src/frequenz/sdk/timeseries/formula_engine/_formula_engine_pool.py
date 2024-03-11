@@ -8,8 +8,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from frequenz.channels import Sender
+from frequenz.client.microgrid import ComponentMetricId
 
-from ...microgrid.component import ComponentMetricId
 from .._quantities import Current, Power, Quantity
 from ._formula_generators._formula_generator import (
     FormulaGenerator,

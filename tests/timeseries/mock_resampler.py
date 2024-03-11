@@ -9,12 +9,12 @@ import math
 from datetime import datetime
 
 from frequenz.channels import Broadcast, Receiver, Sender
+from frequenz.client.microgrid import ComponentMetricId
 from pytest_mock import MockerFixture
 
 from frequenz.sdk._internal._asyncio import cancel_and_await
 from frequenz.sdk.actor import ComponentMetricRequest, ResamplerConfig
 from frequenz.sdk.microgrid._data_pipeline import _DataPipeline
-from frequenz.sdk.microgrid.component import ComponentMetricId
 from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._quantities import Quantity
 from frequenz.sdk.timeseries.formula_engine._formula_generators._formula_generator import (

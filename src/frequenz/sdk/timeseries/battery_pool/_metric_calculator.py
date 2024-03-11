@@ -11,6 +11,8 @@ from collections.abc import Mapping, Set
 from datetime import datetime, timezone
 from typing import Generic, TypeVar
 
+from frequenz.client.microgrid import ComponentMetricId
+
 from ... import timeseries
 from ..._internal import _math
 from ...actor.power_distributing._component_managers._battery_manager import (
@@ -20,7 +22,6 @@ from ...actor.power_distributing._distribution_algorithm._battery_distribution_a
     _aggregate_battery_power_bounds,
 )
 from ...actor.power_distributing.result import PowerBounds
-from ...microgrid.component import ComponentMetricId
 from .._base_types import Sample, SystemBounds
 from .._quantities import Energy, Percentage, Power, Temperature
 from ._component_metrics import ComponentMetricsData

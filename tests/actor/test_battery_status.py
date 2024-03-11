@@ -25,6 +25,7 @@ from frequenz.api.microgrid.inverter_pb2 import ErrorCode as InverterErrorCode
 
 # pylint: enable=no-name-in-module
 from frequenz.channels import Broadcast, Receiver
+from frequenz.client.microgrid import BatteryData, InverterData
 from pytest_mock import MockerFixture
 from time_machine import TimeMachineFixture
 
@@ -34,7 +35,6 @@ from frequenz.sdk.actor.power_distributing._component_status import (
     ComponentStatusEnum,
     SetPowerResult,
 )
-from frequenz.sdk.microgrid.component import BatteryData, InverterData
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
 from ..utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper

@@ -19,6 +19,7 @@ import async_solipsism
 import pytest
 import time_machine
 from frequenz.channels import Receiver, Sender
+from frequenz.client.microgrid import ComponentCategory
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
@@ -31,7 +32,6 @@ from frequenz.sdk.actor.power_distributing import ComponentPoolStatus
 from frequenz.sdk.actor.power_distributing._component_managers._battery_manager import (
     _get_battery_inverter_mappings,
 )
-from frequenz.sdk.microgrid.component import ComponentCategory
 from frequenz.sdk.timeseries import (
     Bounds,
     Energy,

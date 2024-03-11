@@ -6,8 +6,12 @@
 
 from dataclasses import dataclass
 
-from frequenz.sdk.microgrid.client import Connection
-from frequenz.sdk.microgrid.component import Component, ComponentCategory, InverterType
+from frequenz.client.microgrid import (
+    Component,
+    ComponentCategory,
+    Connection,
+    InverterType,
+)
 
 
 @dataclass

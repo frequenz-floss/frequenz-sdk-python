@@ -13,9 +13,9 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Generic
 
 from frequenz.channels import Sender
+from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
 
-from ....microgrid import component, connection_manager
-from ....microgrid.component import ComponentMetricId
+from ....microgrid import connection_manager
 from ..._quantities import QuantityT
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase
 from .._resampled_formula_builder import ResampledFormulaBuilder
@@ -95,7 +95,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
         )
         return builder
 
-    def _get_grid_component(self) -> component.Component:
+    def _get_grid_component(self) -> Component:
         """
         Get the grid component in the component graph.
 
@@ -109,7 +109,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
         grid_component = next(
             iter(
                 component_graph.components(
-                    component_categories={component.ComponentCategory.GRID}
+                    component_categories={ComponentCategory.GRID}
                 )
             ),
             None,
@@ -119,7 +119,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
 
         return grid_component
 
-    def _get_grid_component_successors(self) -> set[component.Component]:
+    def _get_grid_component_successors(self) -> set[Component]:
         """Get the set of grid component successors in the component graph.
 
         Returns:

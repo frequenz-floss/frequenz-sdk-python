@@ -10,24 +10,24 @@ from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 from typing import Coroutine
 
+from frequenz.client.microgrid import (
+    Component,
+    ComponentCategory,
+    ComponentData,
+    Connection,
+    EVChargerCableState,
+    EVChargerComponentState,
+    Fuse,
+    GridMetadata,
+    InverterType,
+)
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
 from frequenz.sdk._internal._asyncio import cancel_and_await
 from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.microgrid import _data_pipeline
-from frequenz.sdk.microgrid.client import Connection
-from frequenz.sdk.microgrid.component import (
-    Component,
-    ComponentCategory,
-    ComponentData,
-    EVChargerCableState,
-    EVChargerComponentState,
-    GridMetadata,
-    InverterType,
-)
 from frequenz.sdk.microgrid.component_graph import _MicrogridComponentGraph
-from frequenz.sdk.timeseries import Current, Fuse
 
 from ..utils import MockMicrogridClient
 from ..utils.component_data_wrapper import (
@@ -61,7 +61,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         num_values: int = 2000,
         sample_rate_s: float = 0.01,
         num_namespaces: int = 1,
-        fuse: Fuse | None = Fuse(Current.from_amperes(10_000.0)),
+        fuse: Fuse | None = Fuse(10_000.0),
         graph: _MicrogridComponentGraph | None = None,
         mocker: MockerFixture | None = None,
     ):

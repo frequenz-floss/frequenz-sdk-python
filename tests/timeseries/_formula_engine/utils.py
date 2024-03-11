@@ -8,9 +8,9 @@ from collections.abc import Callable
 from math import isclose
 
 from frequenz.channels import Receiver
+from frequenz.client.microgrid import ComponentMetricId
 
 from frequenz.sdk.microgrid import _data_pipeline
-from frequenz.sdk.microgrid.component import ComponentMetricId
 from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._quantities import QuantityT
 from frequenz.sdk.timeseries.formula_engine._resampled_formula_builder import (

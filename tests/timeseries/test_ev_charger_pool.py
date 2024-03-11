@@ -8,13 +8,10 @@ import asyncio
 from contextlib import AsyncExitStack, asynccontextmanager
 from typing import Any, AsyncIterator
 
+from frequenz.client.microgrid import EVChargerCableState, EVChargerComponentState
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
-from frequenz.sdk.microgrid.component import (
-    EVChargerCableState,
-    EVChargerComponentState,
-)
 from frequenz.sdk.timeseries._quantities import Current, Power
 from frequenz.sdk.timeseries.ev_charger_pool._state_tracker import (
     EVChargerState,

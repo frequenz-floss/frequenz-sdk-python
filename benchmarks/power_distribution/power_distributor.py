@@ -12,6 +12,7 @@ from datetime import timedelta
 from typing import Any
 
 from frequenz.channels import Broadcast
+from frequenz.client.microgrid import Component, ComponentCategory
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.actor import ResamplerConfig
@@ -26,7 +27,6 @@ from frequenz.sdk.actor.power_distributing import (
     Success,
 )
 from frequenz.sdk.microgrid import connection_manager
-from frequenz.sdk.microgrid.component import Component, ComponentCategory
 from frequenz.sdk.timeseries._quantities import Power
 
 HOST = "microgrid.sandbox.api.frequenz.io"

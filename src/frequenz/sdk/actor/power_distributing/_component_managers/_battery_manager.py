@@ -12,13 +12,13 @@ from datetime import timedelta
 
 import grpc
 from frequenz.channels import Receiver, Sender
+from frequenz.client.microgrid import BatteryData, ComponentCategory, InverterData
 from typing_extensions import override
 
 from .... import microgrid
 from ...._internal._channels import LatestValueCache
 from ...._internal._math import is_close_to_zero
 from ....microgrid import connection_manager
-from ....microgrid.component import BatteryData, ComponentCategory, InverterData
 from ....timeseries._quantities import Power
 from .._component_pool_status_tracker import ComponentPoolStatusTracker
 from .._component_status import BatteryStatusTracker, ComponentPoolStatus

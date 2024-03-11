@@ -13,7 +13,7 @@ from frequenz.channels import Broadcast
 # pylint seems to think this is a cyclic import, but it is not.
 #
 # pylint: disable=cyclic-import
-from .component import ComponentCategory
+from frequenz.client.microgrid import ComponentCategory
 
 # A number of imports had to be done inside functions where they are used, to break
 # import cycles.

@@ -6,7 +6,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from ...microgrid.component._component import ComponentMetricId
+from frequenz.client.microgrid import ComponentMetricId
 
 
 @dataclass

@@ -10,14 +10,14 @@ from enum import Enum
 
 from frequenz.channels import Receiver
 from frequenz.channels.util import Merge
-
-from ... import microgrid
-from ..._internal._asyncio import cancel_and_await
-from ...microgrid.component import (
+from frequenz.client.microgrid import (
     EVChargerCableState,
     EVChargerComponentState,
     EVChargerData,
 )
+
+from ... import microgrid
+from ..._internal._asyncio import cancel_and_await
 
 
 class EVChargerState(Enum):

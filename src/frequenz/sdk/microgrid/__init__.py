@@ -122,7 +122,7 @@ to limit the charge power of individual EV Chargers.
 """  # noqa: D205, D400
 
 from ..actor import ResamplerConfig
-from . import _data_pipeline, client, component, connection_manager, metadata
+from . import _data_pipeline, connection_manager
 from ._data_pipeline import (
     battery_pool,
     consumer,
@@ -149,15 +149,12 @@ async def initialize(host: str, port: int, resampler_config: ResamplerConfig) ->
 
 __all__ = [
     "initialize",
-    "client",
-    "component",
     "consumer",
     "battery_pool",
     "ev_charger_pool",
     "grid",
     "frequency",
     "logical_meter",
-    "metadata",
     "producer",
     "voltage",
 ]

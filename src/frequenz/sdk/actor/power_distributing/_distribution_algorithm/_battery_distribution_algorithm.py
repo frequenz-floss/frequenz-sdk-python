@@ -8,8 +8,9 @@ import math
 from dataclasses import dataclass
 from typing import NamedTuple, Sequence
 
+from frequenz.client.microgrid import BatteryData, InverterData
+
 from ...._internal._math import is_close_to_zero
-from ....microgrid.component import BatteryData, InverterData
 from ..result import PowerBounds
 
 _logger = logging.getLogger(__name__)

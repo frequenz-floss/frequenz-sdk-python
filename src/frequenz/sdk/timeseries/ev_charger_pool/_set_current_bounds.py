@@ -10,11 +10,11 @@ from datetime import timedelta
 
 from frequenz.channels import Broadcast, Sender
 from frequenz.channels.util import Timer, select, selected_from
+from frequenz.client.microgrid import ComponentCategory
 
 from ..._internal._asyncio import cancel_and_await
 from ..._internal._channels import LatestValueCache
 from ...microgrid import connection_manager
-from ...microgrid.component import ComponentCategory
 
 _logger = logging.getLogger(__name__)
 

@@ -13,11 +13,11 @@ from dataclasses import dataclass
 from datetime import timedelta
 
 from frequenz.channels import Broadcast, ChannelClosedError, Receiver, Sender
+from frequenz.client.microgrid import ComponentCategory, ComponentMetricId
 
 from ..._internal._asyncio import cancel_and_await
 from ...actor import ChannelRegistry, ComponentMetricRequest
 from ...microgrid import connection_manager
-from ...microgrid.component import ComponentCategory, ComponentMetricId
 from .. import Sample, Sample3Phase
 from .._quantities import Current, Power, Quantity
 from ..formula_engine import FormulaEngine, FormulaEngine3Phase

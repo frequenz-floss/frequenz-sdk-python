@@ -14,10 +14,10 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from frequenz.channels import Sender
+from frequenz.client.microgrid._component import ComponentCategory
 
 from ..microgrid import connection_manager
-from ..microgrid.component._component import ComponentCategory
-from . import Fuse
+from ._fuse import Fuse
 from ._quantities import Current, Power
 from .formula_engine import FormulaEngine, FormulaEngine3Phase
 from .formula_engine._formula_engine_pool import FormulaEnginePool
@@ -195,8 +195,10 @@ def initialize(
         # instead of the expected ComponentMetadata type.
         metadata = grid_connections[0].metadata
         if isinstance(metadata, dict):
-            fuse_dict = metadata.get("fuse", None)
-            fuse = Fuse(**fuse_dict) if fuse_dict else None
+            if fuse_dict := metadata.get("fuse", None):
+                fuse = Fuse(
+                    max_current=Current.from_amperes(fuse_dict.get("max_current", 0.0))
+                )
 
         if fuse is None:
             _logger.warning("The grid connection point does not have a fuse")

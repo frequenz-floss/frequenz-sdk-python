@@ -12,16 +12,17 @@ from dataclasses import asdict
 import frequenz.api.common.components_pb2 as components_pb
 import grpc
 import pytest
-
-import frequenz.sdk.microgrid.component_graph as gr
-from frequenz.sdk.microgrid.client import Connection, MicrogridGrpcClient
-from frequenz.sdk.microgrid.component import (
+from frequenz.client.microgrid import (
+    ApiClient,
     Component,
     ComponentCategory,
+    Connection,
+    Fuse,
     GridMetadata,
     InverterType,
 )
-from frequenz.sdk.timeseries import Current, Fuse
+
+import frequenz.sdk.microgrid.component_graph as gr
 
 from .mock_api import MockGrpcServer, MockMicrogridServicer
 
@@ -860,7 +861,7 @@ class Test_MicrogridComponentGraph:
         await server.start()
 
         target = "[::]:58765"
-        client = MicrogridGrpcClient(grpc.aio.insecure_channel(target), target)
+        client = ApiClient(grpc.aio.insecure_channel(target), target)
 
         # both components and connections must be non-empty
         servicer.set_components([])
@@ -905,8 +906,7 @@ class Test_MicrogridComponentGraph:
         servicer.set_connections([(101, 111), (111, 131)])
         await graph.refresh_from_api(client)
 
-        grid_max_current = Current.zero()
-        grid_fuse = Fuse(grid_max_current)
+        grid_fuse = Fuse(max_current=0.0)
 
         # Note: we need to add GriMetadata as a dict here, because that's what
         # the ComponentGraph does too, and we need to be able to compare the
@@ -1430,7 +1430,7 @@ class Test_MicrogridComponentGraph:
         }
         assert len(graph.components()) == len(expected)
         assert set(graph.components()) == expected
-        assert list(graph.connections()) == [(1, 2)]
+        assert list(graph.connections()) == [Connection(1, 2)]
 
         # invalid graph data that (for now at least)
         # cannot be corrected
@@ -1444,7 +1444,7 @@ class Test_MicrogridComponentGraph:
         # graph is still in last known good state
         assert len(graph.components()) == len(expected)
         assert set(graph.components()) == expected
-        assert list(graph.connections()) == [(1, 2)]
+        assert list(graph.connections()) == [Connection(1, 2)]
 
         # invalid graph data where there is no grid
         # endpoint but a node has the magic value 0
@@ -1461,7 +1461,7 @@ class Test_MicrogridComponentGraph:
         # graph is still in last known good state
         assert len(graph.components()) == len(expected)
         assert set(graph.components()) == expected
-        assert list(graph.connections()) == [(1, 2)]
+        assert list(graph.connections()) == [Connection(1, 2)]
 
         # with the callback, this can be corrected
         graph.refresh_from(
@@ -1476,4 +1476,4 @@ class Test_MicrogridComponentGraph:
         assert len(graph.components()) == len(expected)
         assert set(graph.components()) == expected
 
-        assert list(graph.connections()) == [(0, 8)]
+        assert list(graph.connections()) == [Connection(0, 8)]
