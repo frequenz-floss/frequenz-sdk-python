@@ -65,7 +65,7 @@ class MovingWindow(BackgroundService):
                 await asyncio.sleep(1.0)
 
         async def run() -> None:
-            resampled_data_channel = Broadcast[Sample]("sample-data")
+            resampled_data_channel = Broadcast[Sample](name="sample-data")
             resampled_data_receiver = resampled_data_channel.new_receiver()
             resampled_data_sender = resampled_data_channel.new_sender()
 
@@ -102,7 +102,7 @@ class MovingWindow(BackgroundService):
                 await asyncio.sleep(1.0)
 
         async def run() -> None:
-            resampled_data_channel = Broadcast[Sample]("sample-data")
+            resampled_data_channel = Broadcast[Sample](name="sample-data")
             resampled_data_receiver = resampled_data_channel.new_receiver()
             resampled_data_sender = resampled_data_channel.new_sender()
 
@@ -345,7 +345,7 @@ class MovingWindow(BackgroundService):
             if sample.value is not None:
                 self._buffer.update(sample)
 
-        resampler_channel = Broadcast[Sample[Quantity]]("average")
+        resampler_channel = Broadcast[Sample[Quantity]](name="average")
         self._resampler_sender = resampler_channel.new_sender()
         self._resampler.add_timeseries(
             "avg", resampler_channel.new_receiver(), sink_buffer

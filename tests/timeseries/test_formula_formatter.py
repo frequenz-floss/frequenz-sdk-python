@@ -41,7 +41,7 @@ def build_formula(formula: str) -> list[FormulaStep]:
     for token in Tokenizer(formula):
         if token.type == TokenType.COMPONENT_METRIC:
             if token.value not in channels:
-                channels[token.value] = Broadcast(token.value)
+                channels[token.value] = Broadcast(name=token.value)
             builder.push_metric(
                 name=f"#{token.value}",
                 data_stream=channels[token.value].new_receiver(),

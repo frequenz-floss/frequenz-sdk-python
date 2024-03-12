@@ -310,7 +310,7 @@ class FormulaEngine(
         self._name: str = builder.name
         self._builder: FormulaBuilder[QuantityT] = builder
         self._create_method = create_method
-        self._channel: Broadcast[Sample[QuantityT]] = Broadcast(self._name)
+        self._channel: Broadcast[Sample[QuantityT]] = Broadcast(name=self._name)
 
     @classmethod
     def from_receiver(
@@ -415,7 +415,7 @@ class FormulaEngine(
         if self._task is None:
             self._task = asyncio.create_task(self._run())
 
-        recv = self._channel.new_receiver(name, max_size)
+        recv = self._channel.new_receiver(name=name, limit=max_size)
 
         # This is a hack to ensure that the lifetime of the engine is tied to the
         # lifetime of the receiver.  This is necessary because the engine is a task that
@@ -507,7 +507,7 @@ class FormulaEngine3Phase(
         self._higher_order_builder = HigherOrderFormulaBuilder3Phase
         self._name: str = name
         self._create_method = create_method
-        self._channel: Broadcast[Sample3Phase[QuantityT]] = Broadcast(self._name)
+        self._channel: Broadcast[Sample3Phase[QuantityT]] = Broadcast(name=self._name)
         self._task: asyncio.Task[None] | None = None
         self._streams: tuple[
             FormulaEngine[QuantityT],
@@ -553,7 +553,7 @@ class FormulaEngine3Phase(
         if self._task is None:
             self._task = asyncio.create_task(self._run())
 
-        return self._channel.new_receiver(name, max_size)
+        return self._channel.new_receiver(name=name, limit=max_size)
 
 
 class FormulaBuilder(Generic[QuantityT]):
@@ -570,9 +570,9 @@ class FormulaBuilder(Generic[QuantityT]):
         ```python
         from frequenz.sdk.timeseries import Power
 
-        channel = Broadcast[Sample[Power]]("channel")
-        receiver_1 = channel.new_receiver("receiver_1")
-        receiver_2 = channel.new_receiver("receiver_2")
+        channel = Broadcast[Sample[Power]](name="channel")
+        receiver_1 = channel.new_receiver(name="receiver_1")
+        receiver_2 = channel.new_receiver(name="receiver_2")
         builder = FormulaBuilder("addition", Power)
         builder.push_metric("metric_1", receiver_1, nones_are_zeros=True)
         builder.push_oper("+")
@@ -681,9 +681,9 @@ class FormulaBuilder(Generic[QuantityT]):
         from frequenz.sdk.timeseries import Power
 
         builder = FormulaBuilder("example", Power)
-        channel = Broadcast[Sample[Power]]("channel")
-        receiver_1 = channel.new_receiver("receiver_1")
-        receiver_2 = channel.new_receiver("receiver_2")
+        channel = Broadcast[Sample[Power]](name="channel")
+        receiver_1 = channel.new_receiver(name="receiver_1")
+        receiver_2 = channel.new_receiver(name="receiver_2")
 
         builder.push_oper("(")
         builder.push_metric("metric_1", receiver_1, nones_are_zeros=True)
@@ -699,9 +699,9 @@ class FormulaBuilder(Generic[QuantityT]):
         from frequenz.sdk.timeseries import Power
 
         builder = FormulaBuilder("example", Power)
-        channel = Broadcast[Sample[Power]]("channel")
-        receiver_1 = channel.new_receiver("receiver_1")
-        receiver_2 = channel.new_receiver("receiver_2")
+        channel = Broadcast[Sample[Power]](name="channel")
+        receiver_1 = channel.new_receiver(name="receiver_1")
+        receiver_2 = channel.new_receiver(name="receiver_2")
 
         builder.push_metric("metric_1", receiver_1, nones_are_zeros=True)
         builder.push_oper("+")

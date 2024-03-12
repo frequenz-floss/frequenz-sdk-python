@@ -7,8 +7,7 @@ import asyncio
 from datetime import timedelta
 
 import pytest
-from frequenz.channels import Broadcast, Receiver, Sender
-from frequenz.channels.util import select, selected_from
+from frequenz.channels import Broadcast, Receiver, Sender, select, selected_from
 
 from frequenz.sdk.actor import Actor, run
 
@@ -142,13 +141,13 @@ class EchoActor(BaseTestActor):
         channel_2 = self._recv2
 
         async for selected in select(channel_1, channel_2):
-            print(f"{self} received message {selected.value!r}")
+            print(f"{self} received message {selected.message!r}")
             if selected_from(selected, channel_1):
                 print(f"{self} sending message received from channel_1")
-                await self._output.send(selected.value)
+                await self._output.send(selected.message)
             elif selected_from(selected, channel_2):
                 print(f"{self} sending message received from channel_2")
-                await self._output.send(selected.value)
+                await self._output.send(selected.message)
 
         print(f"{self} done (should not happen)")
 
@@ -157,10 +156,10 @@ async def test_basic_actor(caplog: pytest.LogCaptureFixture) -> None:
     """Initialize the TestActor send a message and wait for the response."""
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._actor")
 
-    input_chan_1: Broadcast[bool] = Broadcast("TestChannel1")
-    input_chan_2: Broadcast[bool] = Broadcast("TestChannel2")
+    input_chan_1: Broadcast[bool] = Broadcast(name="TestChannel1")
+    input_chan_2: Broadcast[bool] = Broadcast(name="TestChannel2")
 
-    echo_chan: Broadcast[bool] = Broadcast("echo output")
+    echo_chan: Broadcast[bool] = Broadcast(name="echo output")
     echo_rx = echo_chan.new_receiver()
 
     async with EchoActor(
@@ -210,7 +209,7 @@ async def test_restart_on_unhandled_exception(
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._actor")
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._run_utils")
 
-    channel: Broadcast[int] = Broadcast("channel")
+    channel: Broadcast[int] = Broadcast(name="channel")
 
     # NB: We're adding 1.0s to the timeout to account for the time it takes to
     # run, crash, and restart the actor.
@@ -284,7 +283,7 @@ async def test_does_not_restart_on_normal_exit(
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._actor")
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._run_utils")
 
-    channel: Broadcast[int] = Broadcast("channel")
+    channel: Broadcast[int] = Broadcast(name="channel")
 
     actor = NopActor()
 
@@ -312,7 +311,7 @@ async def test_does_not_restart_on_base_exception(
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._actor")
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._run_utils")
 
-    channel: Broadcast[int] = Broadcast("channel")
+    channel: Broadcast[int] = Broadcast(name="channel")
 
     actor = RaiseBaseExceptionActor(channel.new_receiver())
 
@@ -347,10 +346,10 @@ async def test_does_not_restart_if_cancelled(
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._actor")
     caplog.set_level("DEBUG", logger="frequenz.sdk.actor._run_utils")
 
-    input_chan_1: Broadcast[bool] = Broadcast("TestChannel1")
-    input_chan_2: Broadcast[bool] = Broadcast("TestChannel2")
+    input_chan_1: Broadcast[bool] = Broadcast(name="TestChannel1")
+    input_chan_2: Broadcast[bool] = Broadcast(name="TestChannel2")
 
-    echo_chan: Broadcast[bool] = Broadcast("echo output")
+    echo_chan: Broadcast[bool] = Broadcast(name="echo output")
     echo_rx = echo_chan.new_receiver()
 
     actor = EchoActor(

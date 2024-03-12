@@ -8,8 +8,8 @@ import logging
 from dataclasses import dataclass
 from datetime import timedelta
 
-from frequenz.channels import Broadcast, Sender
-from frequenz.channels.util import Timer, select, selected_from
+from frequenz.channels import Broadcast, Sender, select, selected_from
+from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.microgrid import ComponentCategory
 
 from ..._internal._asyncio import cancel_and_await
@@ -50,7 +50,9 @@ class BoundsSetter:
         self._repeat_interval = repeat_interval
 
         self._task: asyncio.Task[None] = asyncio.create_task(self._run())
-        self._bounds_chan: Broadcast[ComponentCurrentLimit] = Broadcast("BoundsSetter")
+        self._bounds_chan: Broadcast[ComponentCurrentLimit] = Broadcast(
+            name="BoundsSetter"
+        )
         self._bounds_rx = self._bounds_chan.new_receiver()
         self._bounds_tx = self._bounds_chan.new_sender()
 
@@ -100,7 +102,9 @@ class BoundsSetter:
         latest_bound: dict[int, ComponentCurrentLimit] = {}
 
         bound_chan = self._bounds_rx
-        timer = Timer.timeout(timedelta(self._repeat_interval.total_seconds()))
+        timer = Timer(
+            timedelta(self._repeat_interval.total_seconds()), SkipMissedAndDrift()
+        )
 
         async for selected in select(bound_chan, timer):
             meter = meter_data.get()
@@ -108,7 +112,7 @@ class BoundsSetter:
                 raise ValueError("Meter channel closed.")
 
             if selected_from(selected, bound_chan):
-                bound: ComponentCurrentLimit = selected.value
+                bound: ComponentCurrentLimit = selected.message
                 if (
                     bound.component_id in latest_bound
                     and latest_bound[bound.component_id] == bound

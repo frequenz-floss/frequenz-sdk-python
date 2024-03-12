@@ -113,9 +113,9 @@ async def test_single_request(
 ) -> None:
     """Run main functions that initializes and creates everything."""
     channel_registry = ChannelRegistry(name="test")
-    data_source_req_chan = Broadcast[ComponentMetricRequest]("data-source-req")
+    data_source_req_chan = Broadcast[ComponentMetricRequest](name="data-source-req")
     data_source_req_recv = data_source_req_chan.new_receiver()
-    resampling_req_chan = Broadcast[ComponentMetricRequest]("resample-req")
+    resampling_req_chan = Broadcast[ComponentMetricRequest](name="resample-req")
     resampling_req_sender = resampling_req_chan.new_sender()
 
     async with ComponentMetricsResamplingActor(
@@ -156,9 +156,9 @@ async def test_duplicate_request(
 ) -> None:
     """Run main functions that initializes and creates everything."""
     channel_registry = ChannelRegistry(name="test")
-    data_source_req_chan = Broadcast[ComponentMetricRequest]("data-source-req")
+    data_source_req_chan = Broadcast[ComponentMetricRequest](name="data-source-req")
     data_source_req_recv = data_source_req_chan.new_receiver()
-    resampling_req_chan = Broadcast[ComponentMetricRequest]("resample-req")
+    resampling_req_chan = Broadcast[ComponentMetricRequest](name="resample-req")
     resampling_req_sender = resampling_req_chan.new_sender()
 
     async with ComponentMetricsResamplingActor(

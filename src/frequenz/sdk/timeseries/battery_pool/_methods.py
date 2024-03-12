@@ -130,7 +130,7 @@ class SendOnUpdate(MetricAggregator[T]):
         """
         if maxsize is None:
             return self._result_channel.new_receiver()
-        return self._result_channel.new_receiver(maxsize=maxsize)
+        return self._result_channel.new_receiver(limit=maxsize)
 
     def update_working_batteries(self, new_working_batteries: set[int]) -> None:
         """Update set of the working batteries.

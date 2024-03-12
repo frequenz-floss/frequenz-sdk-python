@@ -8,8 +8,7 @@ from __future__ import annotations
 import asyncio
 from enum import Enum
 
-from frequenz.channels import Receiver
-from frequenz.channels.util import Merge
+from frequenz.channels import Merger, Receiver, merge
 from frequenz.client.microgrid import (
     EVChargerCableState,
     EVChargerComponentState,
@@ -87,7 +86,7 @@ class StateTracker:
         """
         self._component_ids = component_ids
         self._task: asyncio.Task[None] = asyncio.create_task(self._run())
-        self._merged_stream: Merge[EVChargerData] | None = None
+        self._merged_stream: Merger[EVChargerData] | None = None
 
         # Initialize all components to the `MISSING` state.  This will change as data
         # starts arriving from the individual components.
@@ -124,7 +123,7 @@ class StateTracker:
         streams: list[Receiver[EVChargerData]] = await asyncio.gather(
             *[api_client.ev_charger_data(cid) for cid in self._component_ids]
         )
-        self._merged_stream = Merge(*streams)
+        self._merged_stream = merge(*streams)
         async for data in self._merged_stream:
             self._update(data)
 

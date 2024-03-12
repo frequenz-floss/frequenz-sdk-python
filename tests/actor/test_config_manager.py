@@ -79,7 +79,7 @@ class TestActorConfigManager:
         - the config file modifications are picked up and the new content is correct
         """
         config_channel: Broadcast[Config] = Broadcast(
-            "Config Channel", resend_latest=True
+            name="Config Channel", resend_latest=True
         )
         config_receiver = config_channel.new_receiver()
 

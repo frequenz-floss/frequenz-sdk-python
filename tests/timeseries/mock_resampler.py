@@ -43,7 +43,7 @@ class MockResampler:
 
         self._channel_registry = self._data_pipeline._channel_registry
         self._resampler_request_channel = Broadcast[ComponentMetricRequest](
-            "resampler-request"
+            name="resampler-request"
         )
         self._input_channels_receivers: dict[str, list[Receiver[Sample[Quantity]]]] = {}
 
@@ -80,7 +80,7 @@ class MockResampler:
                 self._input_channels_receivers[name] = [
                     self._channel_registry.get_or_create(
                         Sample[Quantity], name
-                    ).new_receiver(name)
+                    ).new_receiver(name=name)
                     for _ in range(namespaces)
                 ]
             return senders

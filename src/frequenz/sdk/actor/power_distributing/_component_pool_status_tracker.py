@@ -10,8 +10,7 @@ import logging
 from collections import abc
 from datetime import timedelta
 
-from frequenz.channels import Broadcast, Receiver, Sender
-from frequenz.channels.util import Merge
+from frequenz.channels import Broadcast, Merger, Receiver, Sender, merge
 
 from ..._internal._asyncio import cancel_and_await
 from ._component_status import (
@@ -66,7 +65,7 @@ class ComponentPoolStatusTracker:
 
         # Channel for sending results of requests to the components.
         self._set_power_result_channel = Broadcast[SetPowerResult](
-            "component_request_status"
+            name="component_request_status"
         )
         self._set_power_result_sender = self._set_power_result_channel.new_sender()
         self._component_status_trackers: list[ComponentStatusTracker] = []
@@ -88,12 +87,12 @@ class ComponentPoolStatusTracker:
 
     def _make_merged_status_receiver(
         self,
-    ) -> Merge[ComponentStatus]:
+    ) -> Merger[ComponentStatus]:
         status_receivers: list[Receiver[ComponentStatus]] = []
 
         for component_id in self._component_ids:
             channel: Broadcast[ComponentStatus] = Broadcast(
-                f"component_{component_id}_status"
+                name=f"component_{component_id}_status"
             )
             tracker = self._component_status_tracker_type(
                 component_id=component_id,
@@ -104,7 +103,7 @@ class ComponentPoolStatusTracker:
             )
             self._component_status_trackers.append(tracker)
             status_receivers.append(channel.new_receiver())
-        return Merge(*status_receivers)
+        return merge(*status_receivers)
 
     async def _run(self) -> None:
         """Start tracking component status."""

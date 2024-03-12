@@ -28,8 +28,8 @@ from frequenz.api.microgrid.common_pb2 import ErrorLevel
 from frequenz.api.microgrid.inverter_pb2 import ComponentState as InverterComponentState
 
 # pylint: enable=no-name-in-module
-from frequenz.channels import Receiver, Sender
-from frequenz.channels.util import Timer, select, selected_from
+from frequenz.channels import Receiver, Sender, select, selected_from
+from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.microgrid import (
     BatteryData,
     ComponentCategory,
@@ -147,11 +147,11 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
 
         self._battery: _ComponentStreamStatus = _ComponentStreamStatus(
             component_id,
-            data_recv_timer=Timer.timeout(max_data_age),
+            data_recv_timer=Timer(max_data_age, SkipMissedAndDrift()),
         )
         self._inverter: _ComponentStreamStatus = _ComponentStreamStatus(
             inverter_id,
-            data_recv_timer=Timer.timeout(max_data_age),
+            data_recv_timer=Timer(max_data_age, SkipMissedAndDrift()),
         )
 
         # Select needs receivers that can be get in async way only.
@@ -277,13 +277,13 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
                     new_status = None
 
                     if selected_from(selected, battery):
-                        self._handle_status_battery(selected.value)
+                        self._handle_status_battery(selected.message)
 
                     elif selected_from(selected, inverter):
-                        self._handle_status_inverter(selected.value)
+                        self._handle_status_inverter(selected.message)
 
                     elif selected_from(selected, set_power_result):
-                        self._handle_status_set_power_result(selected.value)
+                        self._handle_status_set_power_result(selected.message)
 
                     elif selected_from(selected, battery_timer):
                         if (

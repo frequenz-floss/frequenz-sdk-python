@@ -49,7 +49,7 @@ def event_loop() -> Iterator[async_solipsism.EventLoop]:
 @pytest.fixture
 async def source_chan() -> AsyncIterator[Broadcast[Sample[Quantity]]]:
     """Create a broadcast channel of samples."""
-    chan = Broadcast[Sample[Quantity]]("test")
+    chan = Broadcast[Sample[Quantity]](name="test")
     yield chan
     await chan.close()
 

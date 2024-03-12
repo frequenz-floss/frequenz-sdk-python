@@ -111,9 +111,9 @@ async def run_test(  # pylint: disable=too-many-locals
     """
     start = timeit.default_timer()
 
-    power_request_channel = Broadcast[Request]("power-request")
-    battery_status_channel = Broadcast[ComponentPoolStatus]("battery-status")
-    power_result_channel = Broadcast[Result]("power-result")
+    power_request_channel = Broadcast[Request](name="power-request")
+    battery_status_channel = Broadcast[ComponentPoolStatus](name="battery-status")
+    power_result_channel = Broadcast[Result](name="power-result")
     async with PowerDistributingActor(
         requests_receiver=power_request_channel.new_receiver(),
         results_sender=power_result_channel.new_sender(),

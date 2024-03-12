@@ -61,7 +61,7 @@ class TestFormulaEngine:
         for token in Tokenizer(formula):
             if token.type == TokenType.COMPONENT_METRIC:
                 if token.value not in channels:
-                    channels[token.value] = Broadcast(token.value)
+                    channels[token.value] = Broadcast(name=token.value)
                 builder.push_metric(
                     f"#{token.value}",
                     channels[token.value].new_receiver(),
@@ -352,7 +352,9 @@ class TestFormulaEngineComposition:
         nones_are_zeros: bool = False,
     ) -> None:
         """Run a test with the specs provided."""
-        channels = [Broadcast[Sample[Quantity]](str(ctr)) for ctr in range(num_items)]
+        channels = [
+            Broadcast[Sample[Quantity]](name=str(ctr)) for ctr in range(num_items)
+        ]
         l1_engines = [
             self.make_engine(ctr, channels[ctr].new_receiver())
             for ctr in range(num_items)
@@ -750,8 +752,8 @@ class TestConstantValue:
 
     async def test_constant_value(self) -> None:
         """Test using constant values in formulas."""
-        channel_1 = Broadcast[Sample[Quantity]]("channel_1")
-        channel_2 = Broadcast[Sample[Quantity]]("channel_2")
+        channel_1 = Broadcast[Sample[Quantity]](name="channel_1")
+        channel_2 = Broadcast[Sample[Quantity]](name="channel_2")
 
         sender_1 = channel_1.new_sender()
         sender_2 = channel_2.new_sender()
@@ -812,8 +814,8 @@ class TestClipper:
 
     async def test_clipper(self) -> None:
         """Test the usage of clipper in formulas."""
-        channel_1 = Broadcast[Sample[Quantity]]("channel_1")
-        channel_2 = Broadcast[Sample[Quantity]]("channel_2")
+        channel_1 = Broadcast[Sample[Quantity]](name="channel_1")
+        channel_2 = Broadcast[Sample[Quantity]](name="channel_2")
 
         sender_1 = channel_1.new_sender()
         sender_2 = channel_2.new_sender()
@@ -878,8 +880,8 @@ class TestFormulaOutputTyping:
 
     async def test_types(self) -> None:
         """Test the typing of the output of formulas."""
-        channel_1 = Broadcast[Sample[Power]]("channel_1")
-        channel_2 = Broadcast[Sample[Power]]("channel_2")
+        channel_1 = Broadcast[Sample[Power]](name="channel_1")
+        channel_2 = Broadcast[Sample[Power]](name="channel_2")
 
         sender_1 = channel_1.new_sender()
         sender_2 = channel_2.new_sender()
@@ -909,7 +911,7 @@ class TestFromReceiver:
 
     async def test_from_receiver(self) -> None:
         """Test creating a formula engine from a receiver."""
-        channel = Broadcast[Sample[Power]]("channel_1")
+        channel = Broadcast[Sample[Power]](name="channel_1")
         sender = channel.new_sender()
 
         builder = FormulaBuilder("test_from_receiver", create_method=Power.from_watts)

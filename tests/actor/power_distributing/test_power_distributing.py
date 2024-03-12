@@ -179,9 +179,11 @@ class TestPowerDistributingActor:
         mockgrid.add_batteries(1, no_meter=True)
 
         async with mockgrid:
-            requests_channel = Broadcast[Request]("power_distributor requests")
-            results_channel = Broadcast[Result]("power_distributor results")
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            requests_channel = Broadcast[Request](name="power_distributor requests")
+            results_channel = Broadcast[Result](name="power_distributor results")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
             async with PowerDistributingActor(
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
@@ -206,9 +208,11 @@ class TestPowerDistributingActor:
         mockgrid.add_batteries(2, no_meter=True)
 
         async with mockgrid:
-            requests_channel = Broadcast[Request]("power_distributor requests")
-            results_channel = Broadcast[Result]("power_distributor results")
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            requests_channel = Broadcast[Request](name="power_distributor requests")
+            results_channel = Broadcast[Result](name="power_distributor results")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
             async with PowerDistributingActor(
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
@@ -259,8 +263,8 @@ class TestPowerDistributingActor:
     async def test_power_distributor_one_user(self, mocker: MockerFixture) -> None:
         """Test if power distribution works with a single user."""
         mocks = await _Mocks.new(mocker)
-        requests_channel = Broadcast[Request]("power_distributor requests")
-        results_channel = Broadcast[Result]("power_distributor results")
+        requests_channel = Broadcast[Request](name="power_distributor requests")
+        results_channel = Broadcast[Result](name="power_distributor results")
 
         request = Request(
             power=Power.from_kilowatts(1.2),
@@ -271,7 +275,7 @@ class TestPowerDistributingActor:
         await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
         await self.init_component_data(mocks)
 
-        battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+        battery_status_channel = Broadcast[ComponentPoolStatus](name="battery_status")
         async with PowerDistributingActor(
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
@@ -325,10 +329,12 @@ class TestPowerDistributingActor:
                 0.05,
             )
 
-            requests_channel = Broadcast[Request]("power_distributor requests")
-            results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request](name="power_distributor requests")
+            results_channel = Broadcast[Result](name="power_distributor results")
 
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
             async with PowerDistributingActor(
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
@@ -413,8 +419,8 @@ class TestPowerDistributingActor:
         async with _mocks(mocker, graph=graph) as mocks:
             await self.init_component_data(mocks)
 
-            requests_channel = Broadcast[Request]("power_distributor requests")
-            results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request](name="power_distributor requests")
+            results_channel = Broadcast[Result](name="power_distributor results")
             request = Request(
                 power=Power.from_watts(1200.0),
                 component_ids={
@@ -426,7 +432,9 @@ class TestPowerDistributingActor:
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
 
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
 
             async with PowerDistributingActor(
                 requests_receiver=requests_channel.new_receiver(),
@@ -492,8 +500,8 @@ class TestPowerDistributingActor:
                 0.05,
             )
 
-            requests_channel = Broadcast[Request]("power_distributor")
-            results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request](name="power_distributor")
+            results_channel = Broadcast[Result](name="power_distributor results")
 
             request = Request(
                 power=Power.from_watts(1200.0),
@@ -502,7 +510,9 @@ class TestPowerDistributingActor:
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
 
             async with PowerDistributingActor(
                 requests_receiver=requests_channel.new_receiver(),
@@ -544,8 +554,8 @@ class TestPowerDistributingActor:
         async with _mocks(mocker, graph=graph) as mocks:
             await self.init_component_data(mocks)
 
-            requests_channel = Broadcast[Request]("power_distributor requests")
-            results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request](name="power_distributor requests")
+            results_channel = Broadcast[Result](name="power_distributor results")
 
             request = Request(
                 power=Power.from_watts(1200.0),
@@ -554,7 +564,9 @@ class TestPowerDistributingActor:
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
 
             async with PowerDistributingActor(
                 requests_receiver=requests_channel.new_receiver(),
@@ -592,8 +604,8 @@ class TestPowerDistributingActor:
         async with _mocks(mocker, graph=graph) as mocks:
             await self.init_component_data(mocks)
 
-            requests_channel = Broadcast[Request]("power_distributor requests")
-            results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request](name="power_distributor requests")
+            results_channel = Broadcast[Result](name="power_distributor results")
 
             request = Request(
                 power=Power.from_watts(1700.0),
@@ -602,7 +614,9 @@ class TestPowerDistributingActor:
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
 
             async with PowerDistributingActor(
                 requests_receiver=requests_channel.new_receiver(),
@@ -674,8 +688,8 @@ class TestPowerDistributingActor:
                 0.05,
             )
 
-            requests_channel = Broadcast[Request]("power_distributor requests")
-            results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request](name="power_distributor requests")
+            results_channel = Broadcast[Result](name="power_distributor results")
 
             request = Request(
                 power=Power.from_watts(300.0),
@@ -684,7 +698,9 @@ class TestPowerDistributingActor:
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
 
             async with PowerDistributingActor(
                 requests_receiver=requests_channel.new_receiver(),
@@ -757,8 +773,8 @@ class TestPowerDistributingActor:
                 0.05,
             )
 
-            requests_channel = Broadcast[Request]("power_distributor requests")
-            results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request](name="power_distributor requests")
+            results_channel = Broadcast[Result](name="power_distributor results")
 
             request = Request(
                 power=Power.from_watts(300.0),
@@ -767,7 +783,9 @@ class TestPowerDistributingActor:
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
 
             async with PowerDistributingActor(
                 requests_receiver=requests_channel.new_receiver(),
@@ -819,8 +837,8 @@ class TestPowerDistributingActor:
         async with _mocks(mocker, graph=graph) as mocks:
             await self.init_component_data(mocks)
 
-            requests_channel = Broadcast[Request]("power_distributor requests")
-            results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request](name="power_distributor requests")
+            results_channel = Broadcast[Result](name="power_distributor results")
 
             request = Request(
                 power=Power.from_watts(600.0),
@@ -829,7 +847,9 @@ class TestPowerDistributingActor:
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
 
             async with PowerDistributingActor(
                 requests_receiver=requests_channel.new_receiver(),
@@ -874,8 +894,8 @@ class TestPowerDistributingActor:
                 0.05,
             )
 
-            requests_channel = Broadcast[Request]("power_distributor requests")
-            results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request](name="power_distributor requests")
+            results_channel = Broadcast[Result](name="power_distributor results")
 
             request = Request(
                 power=Power.from_kilowatts(1.2),
@@ -884,7 +904,9 @@ class TestPowerDistributingActor:
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
             async with PowerDistributingActor(
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
@@ -924,8 +946,8 @@ class TestPowerDistributingActor:
                 0.05,
             )
 
-            requests_channel = Broadcast[Request]("power_distributor requests")
-            results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request](name="power_distributor requests")
+            results_channel = Broadcast[Result](name="power_distributor results")
 
             request = Request(
                 power=Power.from_kilowatts(1.2),
@@ -935,7 +957,9 @@ class TestPowerDistributingActor:
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
 
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
             async with PowerDistributingActor(
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
@@ -994,8 +1018,8 @@ class TestPowerDistributingActor:
                 0.05,
             )
 
-            requests_channel = Broadcast[Request]("power_distributor requests")
-            results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request](name="power_distributor requests")
+            results_channel = Broadcast[Result](name="power_distributor results")
 
             request = Request(
                 power=Power.from_kilowatts(1.2),
@@ -1005,7 +1029,9 @@ class TestPowerDistributingActor:
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
 
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
             async with PowerDistributingActor(
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
@@ -1037,8 +1063,8 @@ class TestPowerDistributingActor:
         async with _mocks(mocker, grid_meter=False) as mocks:
             await self.init_component_data(mocks)
 
-            requests_channel = Broadcast[Request]("power_distributor requests")
-            results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request](name="power_distributor requests")
+            results_channel = Broadcast[Result](name="power_distributor results")
             request = Request(
                 power=Power.from_kilowatts(1.2),
                 component_ids={9, 100},
@@ -1047,7 +1073,9 @@ class TestPowerDistributingActor:
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
 
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
             async with PowerDistributingActor(
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
@@ -1076,8 +1104,8 @@ class TestPowerDistributingActor:
         async with _mocks(mocker, grid_meter=False) as mocks:
             await self.init_component_data(mocks)
 
-            requests_channel = Broadcast[Request]("power_distributor")
-            results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request](name="power_distributor")
+            results_channel = Broadcast[Result](name="power_distributor results")
 
             request = Request(
                 power=Power.from_kilowatts(1.2),
@@ -1088,7 +1116,9 @@ class TestPowerDistributingActor:
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
 
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
             async with PowerDistributingActor(
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
@@ -1119,8 +1149,8 @@ class TestPowerDistributingActor:
         async with _mocks(mocker, grid_meter=False) as mocks:
             await self.init_component_data(mocks)
 
-            requests_channel = Broadcast[Request]("power_distributor requests")
-            results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request](name="power_distributor requests")
+            results_channel = Broadcast[Result](name="power_distributor results")
 
             request = Request(
                 power=-Power.from_kilowatts(1.2),
@@ -1131,7 +1161,9 @@ class TestPowerDistributingActor:
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
 
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
             async with PowerDistributingActor(
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
@@ -1162,8 +1194,8 @@ class TestPowerDistributingActor:
         async with _mocks(mocker, grid_meter=False) as mocks:
             await self.init_component_data(mocks)
 
-            requests_channel = Broadcast[Request]("power_distributor requests")
-            results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request](name="power_distributor requests")
+            results_channel = Broadcast[Result](name="power_distributor results")
 
             request = Request(
                 power=Power.from_kilowatts(1.0),
@@ -1174,7 +1206,9 @@ class TestPowerDistributingActor:
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
 
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
             async with PowerDistributingActor(
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
@@ -1207,10 +1241,12 @@ class TestPowerDistributingActor:
 
             await self._patch_battery_pool_status(mocks, mocker, batteries - {9})
 
-            requests_channel = Broadcast[Request]("power_distributor requests")
-            results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request](name="power_distributor requests")
+            results_channel = Broadcast[Result](name="power_distributor results")
 
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
             async with PowerDistributingActor(
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
@@ -1257,10 +1293,12 @@ class TestPowerDistributingActor:
                 return_value=(failed_power, failed_batteries),
             )
 
-            requests_channel = Broadcast[Request]("power_distributor requests")
-            results_channel = Broadcast[Result]("power_distributor results")
+            requests_channel = Broadcast[Request](name="power_distributor requests")
+            results_channel = Broadcast[Result](name="power_distributor results")
 
-            battery_status_channel = Broadcast[ComponentPoolStatus]("battery_status")
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
             async with PowerDistributingActor(
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),

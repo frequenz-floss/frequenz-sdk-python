@@ -43,20 +43,20 @@ class PowerWrapper:
         self._channel_registry = channel_registry
 
         self.status_channel: Broadcast[ComponentPoolStatus] = Broadcast(
-            "Component Status Channel", resend_latest=True
+            name="Component Status Channel", resend_latest=True
         )
         self._power_distribution_requests_channel: Broadcast[Request] = Broadcast(
-            "Power Distributing Actor, Requests Broadcast Channel"
+            name="Power Distributing Actor, Requests Broadcast Channel"
         )
         self._power_distribution_results_channel: Broadcast[Result] = Broadcast(
-            "Power Distributing Actor, Results Broadcast Channel"
+            name="Power Distributing Actor, Results Broadcast Channel"
         )
 
         self.proposal_channel: Broadcast[_power_managing.Proposal] = Broadcast(
-            "Power Managing Actor, Requests Broadcast Channel"
+            name="Power Managing Actor, Requests Broadcast Channel"
         )
         self.bounds_subscription_channel: Broadcast[_power_managing.ReportRequest] = (
-            Broadcast("Power Managing Actor, Bounds Subscription Channel")
+            Broadcast(name="Power Managing Actor, Bounds Subscription Channel")
         )
 
         self._power_distributing_actor: PowerDistributingActor | None = None

@@ -77,12 +77,13 @@ async def benchmark_data_sourcing(
     mock_grid.start_mock_client(enable_mock_client)
 
     request_channel = Broadcast[ComponentMetricRequest](
-        "DataSourcingActor Request Channel"
+        name="DataSourcingActor Request Channel"
     )
 
     channel_registry = ChannelRegistry(name="Microgrid Channel Registry")
     request_receiver = request_channel.new_receiver(
-        "datasourcing-benchmark", maxsize=(num_ev_chargers * len(COMPONENT_METRIC_IDS))
+        name="datasourcing-benchmark",
+        limit=(num_ev_chargers * len(COMPONENT_METRIC_IDS)),
     )
     request_sender = request_channel.new_sender()
 
