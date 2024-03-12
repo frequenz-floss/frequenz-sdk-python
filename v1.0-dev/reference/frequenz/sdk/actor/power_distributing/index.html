@@ -1967,6 +1967,63 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Success">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.power_distributing.Success-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.power_distributing.Success.excess_power" class="md-nav__link">
+    <span class="md-ellipsis">
+      excess_power
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.power_distributing.Success.request" class="md-nav__link">
+    <span class="md-ellipsis">
+      request
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.power_distributing.Success.succeeded_components" class="md-nav__link">
+    <span class="md-ellipsis">
+      succeeded_components
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.power_distributing.Success.succeeded_power" class="md-nav__link">
+    <span class="md-ellipsis">
+      succeeded_power
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -4325,6 +4382,115 @@ fail and be replied to with an <code>OutOfBound</code> result.</p>
 </span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Result returned when setting the power was successful for all components.&quot;&quot;&quot;</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+<h5 id="frequenz.sdk.actor.power_distributing.Success-attributes">Attributes<a href="#frequenz.sdk.actor.power_distributing.Success-attributes" class="headerlink" title="Permanent link">¤</a></h5>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.actor.power_distributing.Success.excess_power" class="doc doc-heading">
+          <span class="doc doc-object-name doc-attribute-name">excess_power</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.actor.power_distributing.Success.excess_power" class="headerlink" title="Permanent link">¤</a></h6>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">excess_power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../timeseries/#frequenz.sdk.timeseries.Power">Power</a></span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>The part of the requested power that could not be fulfilled.</p>
+<p>This happens when the requested power is outside the available power bounds.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.actor.power_distributing.Success.request" class="doc doc-heading">
+          <span class="doc doc-object-name doc-attribute-name">request</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.actor.power_distributing.Success.request" class="headerlink" title="Permanent link">¤</a></h6>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">request</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.actor.power_distributing.request.Request" href="request/#frequenz.sdk.actor.power_distributing.request.Request">Request</a></span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>The user's request to which this message responds.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.actor.power_distributing.Success.succeeded_components" class="doc doc-heading">
+          <span class="doc doc-object-name doc-attribute-name">succeeded_components</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.actor.power_distributing.Success.succeeded_components" class="headerlink" title="Permanent link">¤</a></h6>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">succeeded_components</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Set" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Set">Set</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">]</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>The subset of components for which power was set successfully.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.actor.power_distributing.Success.succeeded_power" class="doc doc-heading">
+          <span class="doc doc-object-name doc-attribute-name">succeeded_power</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.actor.power_distributing.Success.succeeded_power" class="headerlink" title="Permanent link">¤</a></h6>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">succeeded_power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../timeseries/#frequenz.sdk.timeseries.Power">Power</a></span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>The part of the requested power that was successfully set.</p>
+  </div>
+
+</div>
+
+
+
+
+
+  </div>
 
   </div>
 
