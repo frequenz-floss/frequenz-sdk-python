@@ -10,6 +10,10 @@
 
 - The minimum required `frequenz-channels` version is now [`v1.0.0-rc1`](https://github.com/frequenz-floss/frequenz-channels-python/releases/tag/v1.0.0-rc.1).
 
+- The set of battery IDs managed by a battery pool are now available through `BatteryPool.component_ids`, and no longer through `BatteryPool.battery_ids`.  This is done to have a consistent interface with other `*Pool`s.
+
+- The `maxsize` parameter in calls to `BatteryPool.{soc/capacity/temperature}.new_receiver()` methods have now been renamed to `limit`, to be consistent with the channels repository.
+
 ## New Features
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->
