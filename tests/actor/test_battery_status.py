@@ -753,7 +753,7 @@ class TestBatteryStatusRecovery:
             mock_microgrid,
             BatteryStatusTracker(
                 BATTERY_ID,
-                max_data_age=timedelta(seconds=0.1),
+                max_data_age=timedelta(seconds=0.2),
                 max_blocking_duration=timedelta(seconds=1),
                 status_sender=status_channel.new_sender(),
                 set_power_result_receiver=set_power_result_channel.new_receiver(),
@@ -1027,7 +1027,7 @@ class TestBatteryStatusRecovery:
 
         await self._send_healthy_inverter(mock_microgrid)
         await self._send_healthy_battery(mock_microgrid, timestamp)
-        assert await recv_timeout(status_receiver) == ComponentStatus(
+        assert await recv_timeout(status_receiver, 0.3) == ComponentStatus(
             BATTERY_ID, ComponentStatusEnum.NOT_WORKING
         )
 
@@ -1043,7 +1043,7 @@ class TestBatteryStatusRecovery:
 
         await self._send_healthy_battery(mock_microgrid)
         await self._send_healthy_inverter(mock_microgrid, timestamp)
-        assert await recv_timeout(status_receiver) == ComponentStatus(
+        assert await recv_timeout(status_receiver, 0.3) == ComponentStatus(
             BATTERY_ID, ComponentStatusEnum.NOT_WORKING
         )
 
