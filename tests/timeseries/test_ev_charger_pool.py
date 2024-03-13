@@ -19,7 +19,7 @@ class TestEVChargerPool:
         mocker: MockerFixture,
     ) -> None:
         """Test the ev power formula."""
-        mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
+        mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
         mockgrid.add_ev_chargers(3)
 
         async with mockgrid:
