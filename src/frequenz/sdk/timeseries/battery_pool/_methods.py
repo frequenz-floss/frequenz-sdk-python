@@ -40,11 +40,11 @@ class MetricAggregator(Generic[T], ABC):
         """
 
     @abstractmethod
-    def new_receiver(self, maxsize: int | None = RECEIVER_MAX_SIZE) -> Receiver[T]:
+    def new_receiver(self, limit: int | None = RECEIVER_MAX_SIZE) -> Receiver[T]:
         """Return new receiver for the aggregated metric results.
 
         Args:
-            maxsize: Buffer size of the receiver
+            limit: Buffer size of the receiver
 
         Returns:
             Receiver for the metric results.
@@ -119,18 +119,18 @@ class SendOnUpdate(MetricAggregator[T]):
         """
         return "SendOnUpdate"
 
-    def new_receiver(self, maxsize: int | None = RECEIVER_MAX_SIZE) -> Receiver[T]:
+    def new_receiver(self, limit: int | None = RECEIVER_MAX_SIZE) -> Receiver[T]:
         """Return new receiver for the aggregated metric results.
 
         Args:
-            maxsize: Buffer size of the receiver
+            limit: Buffer size of the receiver
 
         Returns:
             Receiver for the metric results.
         """
-        if maxsize is None:
+        if limit is None:
             return self._result_channel.new_receiver()
-        return self._result_channel.new_receiver(limit=maxsize)
+        return self._result_channel.new_receiver(limit=limit)
 
     def update_working_batteries(self, new_working_batteries: set[int]) -> None:
         """Update set of the working batteries.
