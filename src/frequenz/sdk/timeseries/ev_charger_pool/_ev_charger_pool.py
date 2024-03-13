@@ -6,7 +6,6 @@
 
 import uuid
 from collections import abc
-from datetime import timedelta
 
 from frequenz.channels import Sender
 from frequenz.client.microgrid import ComponentCategory
@@ -21,7 +20,6 @@ from ..formula_engine._formula_generators import (
     EVChargerPowerFormula,
     FormulaGeneratorConfig,
 )
-from ._set_current_bounds import BoundsSetter, ComponentCurrentLimit
 
 
 class EVChargerPoolError(Exception):
@@ -41,13 +39,6 @@ class EVChargerPool:
         and 3-phase
         [`current`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.current]
         measurements of the EV Chargers in the pool.
-      - The
-        [`component_data`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.component_data]
-        method for fetching the 3-phase current and state of individual EV Chargers in
-        the pool.
-      - The
-        [`set_bounds`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.set_bounds]
-        method for limiting the max current of individual EV Chargers in the pool.
     """
 
     def __init__(
@@ -55,7 +46,6 @@ class EVChargerPool:
         channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         component_ids: abc.Set[int] | None = None,
-        repeat_interval: timedelta = timedelta(seconds=3.0),
     ) -> None:
         """Create an `EVChargerPool` instance.
 
@@ -72,11 +62,8 @@ class EVChargerPool:
             component_ids: An optional list of component_ids belonging to this pool.  If
                 not specified, IDs of all EV Chargers in the microgrid will be fetched
                 from the component graph.
-            repeat_interval: Interval after which to repeat the last set bounds to the
-                microgrid API, if no new calls to `set_bounds` have been made.
         """
         self._channel_registry: ChannelRegistry = channel_registry
-        self._repeat_interval: timedelta = repeat_interval
         self._resampler_subscription_sender: Sender[ComponentMetricRequest] = (
             resampler_subscription_sender
         )
@@ -97,7 +84,6 @@ class EVChargerPool:
             self._channel_registry,
             self._resampler_subscription_sender,
         )
-        self._bounds_setter: BoundsSetter | None = None
 
     @property
     def component_ids(self) -> abc.Set[int]:
@@ -158,35 +144,6 @@ class EVChargerPool:
         assert isinstance(engine, FormulaEngine)
         return engine
 
-    async def set_bounds(self, component_id: int, max_current: Current) -> None:
-        """Send given max current bound for the given EV Charger to the microgrid API.
-
-        Bounds are used to limit the max current drawn by an EV, although the exact
-        value will be determined by the EV.
-
-        Args:
-            component_id: ID of EV Charger to set the current bounds to.
-            max_current: maximum current that an EV can draw from this EV Charger.
-        """
-        if not self._bounds_setter:
-            self._bounds_setter = BoundsSetter(self._repeat_interval)
-        await self._bounds_setter.set(component_id, max_current.as_amperes())
-
-    def new_bounds_sender(self) -> Sender[ComponentCurrentLimit]:
-        """Return a `Sender` for setting EV Charger current bounds with.
-
-        Bounds are used to limit the max current drawn by an EV, although the exact
-        value will be determined by the EV.
-
-        Returns:
-            A new `Sender`.
-        """
-        if not self._bounds_setter:
-            self._bounds_setter = BoundsSetter(self._repeat_interval)
-        return self._bounds_setter.new_bounds_sender()
-
     async def stop(self) -> None:
         """Stop all tasks and channels owned by the EVChargerPool."""
-        if self._bounds_setter:
-            await self._bounds_setter.stop()
         await self._formula_pool.stop()
