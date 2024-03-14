@@ -112,13 +112,6 @@ The [`ev_charger_pool`][frequenz.sdk.microgrid.ev_charger_pool] offers a
 [`power`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power] method that
 streams the total power measured for all the {{glossary("ev-charger", "EV Chargers")}}
 at a site.
-
-It also offers a
-[`component_data`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.component_data]
-method for fetching the status of individual EV Chargers, including state changes like
-when an EV is connected or disconnected, and a
-[`set_bounds`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.set_bounds] method
-to limit the charge power of individual EV Chargers.
 """  # noqa: D205, D400
 
 from ..actor import ResamplerConfig
