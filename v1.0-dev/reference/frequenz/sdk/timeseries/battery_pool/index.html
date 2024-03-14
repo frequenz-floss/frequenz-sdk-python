@@ -1283,18 +1283,18 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.battery_ids" class="md-nav__link">
+  <a href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity" class="md-nav__link">
     <span class="md-ellipsis">
-      battery_ids
+      capacity
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity" class="md-nav__link">
+  <a href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.component_ids" class="md-nav__link">
     <span class="md-ellipsis">
-      capacity
+      component_ids
     </span>
   </a>
   
@@ -1739,18 +1739,18 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.battery_ids" class="md-nav__link">
+  <a href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity" class="md-nav__link">
     <span class="md-ellipsis">
-      battery_ids
+      capacity
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity" class="md-nav__link">
+  <a href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.component_ids" class="md-nav__link">
     <span class="md-ellipsis">
-      capacity
+      component_ids
     </span>
   </a>
   
@@ -2610,7 +2610,7 @@ creating <code>BatteryPool</code> instances.</p>
 </span><span id="__span-0-230"><a id="__codelineno-0-230" name="__codelineno-0-230"></a>        <span class="p">)</span>
 </span><span id="__span-0-231"><a id="__codelineno-0-231" name="__codelineno-0-231"></a>
 </span><span id="__span-0-232"><a id="__codelineno-0-232" name="__codelineno-0-232"></a>    <span class="nd">@property</span>
-</span><span id="__span-0-233"><a id="__codelineno-0-233" name="__codelineno-0-233"></a>    <span class="k">def</span> <span class="nf">battery_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">abc</span><span class="o">.</span><span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+</span><span id="__span-0-233"><a id="__codelineno-0-233" name="__codelineno-0-233"></a>    <span class="k">def</span> <span class="nf">component_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">abc</span><span class="o">.</span><span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
 </span><span id="__span-0-234"><a id="__codelineno-0-234" name="__codelineno-0-234"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return ids of the batteries in the pool.</span>
 </span><span id="__span-0-235"><a id="__codelineno-0-235" name="__codelineno-0-235"></a>
 </span><span id="__span-0-236"><a id="__codelineno-0-236" name="__codelineno-0-236"></a><span class="sd">        Returns:</span>
@@ -2824,54 +2824,6 @@ creating <code>BatteryPool</code> instances.</p>
 
 
 
-<h6 id="frequenz.sdk.timeseries.battery_pool.BatteryPool.battery_ids" class="doc doc-heading">
-          <span class="doc doc-object-name doc-attribute-name">battery_ids</span>
-
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
-  </span>
-
-<a href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.battery_ids" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">battery_ids</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Set" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Set">Set</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">]</span>
-</span></code></pre></div>
-
-  <div class="doc doc-contents ">
-  
-      <p>Return ids of the batteries in the pool.</p>
-
-
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>RETURNS</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-external" title="collections.abc.Set" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Set">Set</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a>]</code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <div class="doc-md-description">
-              <p>Ids of the batteries in the pool</p>
-            </div>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-attribute">
-
-
-
 <h6 id="frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity" class="doc doc-heading">
           <span class="doc doc-object-name doc-attribute-name">capacity</span>
 
@@ -2922,6 +2874,54 @@ inverters to calculate metrics.</p>
               <p>A MetricAggregator that will calculate and stream the capacity of all
 batteries in the pool, considering only working batteries with
 operational inverters.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h6 id="frequenz.sdk.timeseries.battery_pool.BatteryPool.component_ids" class="doc doc-heading">
+          <span class="doc doc-object-name doc-attribute-name">component_ids</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.component_ids" class="headerlink" title="Permanent link">¤</a></h6>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">component_ids</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Set" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Set">Set</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">]</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Return ids of the batteries in the pool.</p>
+
+
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-external" title="collections.abc.Set" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Set">Set</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a>]</code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <div class="doc-md-description">
+              <p>Ids of the batteries in the pool</p>
             </div>
           </td>
         </tr>
