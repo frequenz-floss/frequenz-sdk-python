@@ -77,7 +77,7 @@ class EVChargerPool:
         self,
         channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
-        component_ids: set[int] | None = None,
+        component_ids: abc.Set[int] | None = None,
         repeat_interval: timedelta = timedelta(seconds=3.0),
     ) -> None:
         """Create an `EVChargerPool` instance.
@@ -103,7 +103,7 @@ class EVChargerPool:
         self._resampler_subscription_sender: Sender[ComponentMetricRequest] = (
             resampler_subscription_sender
         )
-        self._component_ids: set[int] = set()
+        self._component_ids: abc.Set[int] = set()
         if component_ids is not None:
             self._component_ids = component_ids
         else:

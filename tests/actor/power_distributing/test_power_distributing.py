@@ -6,21 +6,16 @@
 from __future__ import annotations
 
 import asyncio
-import dataclasses
 import math
 import re
 from collections import abc
-from contextlib import asynccontextmanager
-from datetime import timedelta
-from typing import AsyncIterator, TypeVar
+from typing import TypeVar
 from unittest.mock import MagicMock
 
-from frequenz.channels import Broadcast, Sender
+from frequenz.channels import Broadcast
 from frequenz.client.microgrid import ComponentCategory
 from pytest_mock import MockerFixture
 
-from frequenz.sdk import microgrid
-from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.actor.power_distributing import (
     ComponentPoolStatus,
     PowerDistributingActor,
@@ -40,12 +35,11 @@ from frequenz.sdk.actor.power_distributing.result import (
     Result,
     Success,
 )
-from frequenz.sdk.microgrid.component_graph import _MicrogridComponentGraph
 from frequenz.sdk.timeseries import Power
 
 from ...conftest import SAFETY_TIMEOUT
+from ...microgrid.fixtures import _Mocks, _mocks
 from ...timeseries.mock_microgrid import MockMicrogrid
-from ...utils.component_data_streamer import MockComponentDataStreamer
 from ...utils.graph_generator import GraphGenerator
 from .test_battery_distribution_algorithm import (
     Bound,
@@ -58,78 +52,6 @@ from .test_battery_distribution_algorithm import (
 
 
 T = TypeVar("T")  # Declare type variable
-
-
-@dataclasses.dataclass(frozen=True)
-class _Mocks:
-    """Mocks for the tests."""
-
-    microgrid: MockMicrogrid
-    """A mock microgrid instance."""
-
-    streamer: MockComponentDataStreamer
-    """A mock component data streamer."""
-
-    battery_status_sender: Sender[ComponentPoolStatus]
-    """Sender for sending status of the batteries."""
-
-    @classmethod
-    async def new(
-        cls,
-        mocker: MockerFixture,
-        graph: _MicrogridComponentGraph | None = None,
-        grid_meter: bool | None = None,
-    ) -> _Mocks:
-        """Initialize the mocks."""
-        mockgrid = MockMicrogrid(graph=graph, grid_meter=grid_meter, mocker=mocker)
-        if not graph:
-            mockgrid.add_batteries(3)
-        await mockgrid.start()
-
-        # pylint: disable=protected-access
-        if microgrid._data_pipeline._DATA_PIPELINE is not None:
-            microgrid._data_pipeline._DATA_PIPELINE = None
-        await microgrid._data_pipeline.initialize(
-            ResamplerConfig(resampling_period=timedelta(seconds=0.1))
-        )
-        streamer = MockComponentDataStreamer(mockgrid.mock_client)
-
-        dp = microgrid._data_pipeline._DATA_PIPELINE
-        assert dp is not None
-
-        return cls(
-            mockgrid,
-            streamer,
-            dp._battery_power_wrapper.status_channel.new_sender(),
-        )
-
-    async def stop(self) -> None:
-        """Stop the mocks."""
-        # pylint: disable=protected-access
-        assert microgrid._data_pipeline._DATA_PIPELINE is not None
-        await asyncio.gather(
-            *[
-                microgrid._data_pipeline._DATA_PIPELINE._stop(),
-                self.streamer.stop(),
-                self.microgrid.cleanup(),
-            ]
-        )
-        # pylint: enable=protected-access
-
-
-@asynccontextmanager
-async def _mocks(
-    mocker: MockerFixture,
-    *,
-    graph: _MicrogridComponentGraph | None = None,
-    grid_meter: bool | None = None,
-) -> AsyncIterator[_Mocks]:
-    """Initialize the mocks."""
-    mocks = await _Mocks.new(mocker, graph=graph, grid_meter=grid_meter)
-    try:
-        yield mocks
-    finally:
-        await mocks.stop()
 
 
 class TestPowerDistributingActor:
@@ -166,7 +88,7 @@ class TestPowerDistributingActor:
                 ".ComponentPoolStatusTracker",
                 return_value=mock,
             )
-        await mocks.battery_status_sender.send(
+        await mocks.component_status_sender.send(
             ComponentPoolStatus(
                 working=set(mocks.microgrid.battery_ids), uncertain=set()
             )
@@ -262,7 +184,7 @@ class TestPowerDistributingActor:
 
     async def test_power_distributor_one_user(self, mocker: MockerFixture) -> None:
         """Test if power distribution works with a single user."""
-        mocks = await _Mocks.new(mocker)
+        mocks = await _Mocks.new(ComponentCategory.BATTERY, mocker)
         requests_channel = Broadcast[Request](name="power_distributor requests")
         results_channel = Broadcast[Result](name="power_distributor results")
 
@@ -305,7 +227,7 @@ class TestPowerDistributingActor:
         self, mocker: MockerFixture
     ) -> None:
         """Test if power distributing actor rejects non-zero requests in exclusion bounds."""
-        async with _mocks(mocker) as mocks:
+        async with _mocks(mocker, ComponentCategory.BATTERY) as mocks:
             await self._patch_battery_pool_status(mocks, mocker, {9, 19})
             await self.init_component_data(mocks, skip_batteries={9, 19})
 
@@ -416,7 +338,7 @@ class TestPowerDistributingActor:
             )
         )
 
-        async with _mocks(mocker, graph=graph) as mocks:
+        async with _mocks(mocker, ComponentCategory.BATTERY, graph=graph) as mocks:
             await self.init_component_data(mocks)
 
             requests_channel = Broadcast[Request](name="power_distributor requests")
@@ -485,7 +407,7 @@ class TestPowerDistributingActor:
             )
         )
 
-        async with _mocks(mocker, graph=graph) as mocks:
+        async with _mocks(mocker, ComponentCategory.BATTERY, graph=graph) as mocks:
             await self.init_component_data(
                 mocks, skip_batteries={bat_components[0].component_id}
             )
@@ -551,7 +473,7 @@ class TestPowerDistributingActor:
             )
         )
 
-        async with _mocks(mocker, graph=graph) as mocks:
+        async with _mocks(mocker, ComponentCategory.BATTERY, graph=graph) as mocks:
             await self.init_component_data(mocks)
 
             requests_channel = Broadcast[Request](name="power_distributor requests")
@@ -601,7 +523,7 @@ class TestPowerDistributingActor:
             (ComponentCategory.METER, gen.batteries_with_inverter(batteries, 3))
         )
 
-        async with _mocks(mocker, graph=graph) as mocks:
+        async with _mocks(mocker, ComponentCategory.BATTERY, graph=graph) as mocks:
             await self.init_component_data(mocks)
 
             requests_channel = Broadcast[Request](name="power_distributor requests")
@@ -661,7 +583,7 @@ class TestPowerDistributingActor:
             )
         )
 
-        async with _mocks(mocker, graph=graph) as mocks:
+        async with _mocks(mocker, ComponentCategory.BATTERY, graph=graph) as mocks:
             mocks.streamer.start_streaming(
                 inverter_msg(
                     inverter.component_id,
@@ -750,7 +672,7 @@ class TestPowerDistributingActor:
             )
         )
 
-        async with _mocks(mocker, graph=graph) as mocks:
+        async with _mocks(mocker, ComponentCategory.BATTERY, graph=graph) as mocks:
             await self.init_component_data(
                 mocks, skip_batteries={bat.component_id for bat in batteries}
             )
@@ -834,7 +756,7 @@ class TestPowerDistributingActor:
             )
         )
 
-        async with _mocks(mocker, graph=graph) as mocks:
+        async with _mocks(mocker, ComponentCategory.BATTERY, graph=graph) as mocks:
             await self.init_component_data(mocks)
 
             requests_channel = Broadcast[Request](name="power_distributor requests")
@@ -881,7 +803,7 @@ class TestPowerDistributingActor:
 
     async def test_battery_soc_nan(self, mocker: MockerFixture) -> None:
         """Test if battery with SoC==NaN is not used."""
-        async with _mocks(mocker, grid_meter=False) as mocks:
+        async with _mocks(mocker, ComponentCategory.BATTERY, grid_meter=False) as mocks:
             await self.init_component_data(mocks, skip_batteries={9})
 
             mocks.streamer.start_streaming(
@@ -933,7 +855,7 @@ class TestPowerDistributingActor:
 
     async def test_battery_capacity_nan(self, mocker: MockerFixture) -> None:
         """Test battery with capacity set to NaN is not used."""
-        async with _mocks(mocker, grid_meter=False) as mocks:
+        async with _mocks(mocker, ComponentCategory.BATTERY, grid_meter=False) as mocks:
             await self.init_component_data(mocks, skip_batteries={9})
 
             mocks.streamer.start_streaming(
@@ -986,7 +908,7 @@ class TestPowerDistributingActor:
 
     async def test_battery_power_bounds_nan(self, mocker: MockerFixture) -> None:
         """Test battery with power bounds set to NaN is not used."""
-        async with _mocks(mocker, grid_meter=False) as mocks:
+        async with _mocks(mocker, ComponentCategory.BATTERY, grid_meter=False) as mocks:
             await self.init_component_data(
                 mocks, skip_batteries={9}, skip_inverters={8, 18}
             )
@@ -1060,7 +982,7 @@ class TestPowerDistributingActor:
         self, mocker: MockerFixture
     ) -> None:
         """Test if power distribution raises error if any battery id is invalid."""
-        async with _mocks(mocker, grid_meter=False) as mocks:
+        async with _mocks(mocker, ComponentCategory.BATTERY, grid_meter=False) as mocks:
             await self.init_component_data(mocks)
 
             requests_channel = Broadcast[Request](name="power_distributor requests")
@@ -1101,7 +1023,7 @@ class TestPowerDistributingActor:
         self, mocker: MockerFixture
     ) -> None:
         """Test if power distribution works with single user works."""
-        async with _mocks(mocker, grid_meter=False) as mocks:
+        async with _mocks(mocker, ComponentCategory.BATTERY, grid_meter=False) as mocks:
             await self.init_component_data(mocks)
 
             requests_channel = Broadcast[Request](name="power_distributor")
@@ -1146,7 +1068,7 @@ class TestPowerDistributingActor:
         self, mocker: MockerFixture
     ) -> None:
         """Test if power distribution works with single user works."""
-        async with _mocks(mocker, grid_meter=False) as mocks:
+        async with _mocks(mocker, ComponentCategory.BATTERY, grid_meter=False) as mocks:
             await self.init_component_data(mocks)
 
             requests_channel = Broadcast[Request](name="power_distributor requests")
@@ -1191,7 +1113,7 @@ class TestPowerDistributingActor:
         self, mocker: MockerFixture
     ) -> None:
         """Test if power distribution works with single user works."""
-        async with _mocks(mocker, grid_meter=False) as mocks:
+        async with _mocks(mocker, ComponentCategory.BATTERY, grid_meter=False) as mocks:
             await self.init_component_data(mocks)
 
             requests_channel = Broadcast[Request](name="power_distributor requests")
@@ -1234,7 +1156,7 @@ class TestPowerDistributingActor:
 
     async def test_not_all_batteries_are_working(self, mocker: MockerFixture) -> None:
         """Test if power distribution works if not all batteries are working."""
-        async with _mocks(mocker, grid_meter=False) as mocks:
+        async with _mocks(mocker, ComponentCategory.BATTERY, grid_meter=False) as mocks:
             await self.init_component_data(mocks)
 
             batteries = {9, 19}
@@ -1278,7 +1200,7 @@ class TestPowerDistributingActor:
 
     async def test_partial_failure_result(self, mocker: MockerFixture) -> None:
         """Test power results when the microgrid failed to set power for one of the batteries."""
-        async with _mocks(mocker, grid_meter=False) as mocks:
+        async with _mocks(mocker, ComponentCategory.BATTERY, grid_meter=False) as mocks:
             await self.init_component_data(mocks)
 
             batteries = {9, 19, 29}
