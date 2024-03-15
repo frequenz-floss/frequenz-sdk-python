@@ -37,7 +37,7 @@ from frequenz.sdk.actor.power_distributing._component_status import (
 )
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
-from ..utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
+from ....utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
 
 
 def battery_data(  # pylint: disable=too-many-arguments
