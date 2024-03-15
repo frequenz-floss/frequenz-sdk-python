@@ -18,7 +18,7 @@ from frequenz.channels import Receiver, Sender
 from frequenz.client.microgrid import ComponentCategory
 
 from ...actor._actor import Actor
-from ._component_managers import BatteryManager, ComponentManager
+from ._component_managers import BatteryManager, ComponentManager, EVChargerManager
 from ._component_status import ComponentPoolStatus
 from .request import Request
 from .result import Result
@@ -87,6 +87,10 @@ class PowerDistributingActor(Actor):
         self._component_manager: ComponentManager
         if component_category == ComponentCategory.BATTERY:
             self._component_manager = BatteryManager(
+                component_pool_status_sender, results_sender
+            )
+        elif component_category == ComponentCategory.EV_CHARGER:
+            self._component_manager = EVChargerManager(
                 component_pool_status_sender, results_sender
             )
         else:
