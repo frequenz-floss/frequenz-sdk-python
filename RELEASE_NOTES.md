@@ -14,6 +14,8 @@
 
 - The `maxsize` parameter in calls to `BatteryPool.{soc/capacity/temperature}.new_receiver()` methods have now been renamed to `limit`, to be consistent with the channels repository.
 
+- Support for per-component interaction in `EVChargerPool` has been removed.
+
 ## New Features
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->
