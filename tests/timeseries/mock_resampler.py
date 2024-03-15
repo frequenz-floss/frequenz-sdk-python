@@ -197,6 +197,8 @@ class MockResampler:
         self._request_handler_task = task
 
     def _handle_task_done(self, task: asyncio.Task[None]) -> None:
+        if task.cancelled():
+            return
         if exc := task.exception():
             raise SystemExit(f"Task {task.get_name()!r} failed: {exc}") from exc
 
