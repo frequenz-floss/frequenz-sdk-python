@@ -23,3 +23,7 @@
 ## Bug Fixes
 
 - A bug was fixed where the grid fuse was not created properly and would end up with a `max_current` with type `float` instead of `Current`.
+
+- `BatteryPool.propose_discharge` now converts power values to the passive-sign convention.  Earlier it was not doing this and that was causing it to charge instead of discharge.
+
+- Fix a bug that was causing the power managing actor to crash and restart when cleaning up old proposals.
