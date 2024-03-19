@@ -252,6 +252,14 @@ class Proposal:
 
         return self.priority == other.priority and self.source_id == other.source_id
 
+    def __hash__(self) -> int:
+        """Get the hash of the proposal.
+
+        Returns:
+            The hash of the proposal.
+        """
+        return hash((self.priority, self.source_id))
+
 
 class Algorithm(enum.Enum):
     """The available algorithms for the power manager."""
