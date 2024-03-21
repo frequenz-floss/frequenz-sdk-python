@@ -111,6 +111,7 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
+                wait_for_data_sec=0.0,
             ) as distributor:
                 assert isinstance(distributor._component_manager, BatteryManager)
                 assert distributor._component_manager._bat_invs_map == {
@@ -141,6 +142,7 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
+                wait_for_data_sec=0.0,
             ) as distributor:
                 assert isinstance(distributor._component_manager, BatteryManager)
                 assert distributor._component_manager._bat_invs_map == {
