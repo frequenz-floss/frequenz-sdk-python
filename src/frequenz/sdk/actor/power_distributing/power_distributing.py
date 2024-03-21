@@ -56,7 +56,7 @@ class PowerDistributingActor(Actor):
         requests_receiver: Receiver[Request],
         results_sender: Sender[Result],
         component_pool_status_sender: Sender[ComponentPoolStatus],
-        wait_for_data_sec: float = 2,
+        wait_for_data_sec: float,
         *,
         name: str | None = None,
     ) -> None:
