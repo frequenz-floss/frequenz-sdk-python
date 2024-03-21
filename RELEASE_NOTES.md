@@ -16,6 +16,8 @@
 
 - Support for per-component interaction in `EVChargerPool` has been removed.
 
+- New `propose_power` and `power_status` methods have been added to the `EVChargerPool` similar to the `BatteryPool`.  These method interface with the `PowerManager` and `PowerDistributor`, which currently uses a first-come-first-serve algorithm to distribute power to EVs.
+
 ## New Features
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->
