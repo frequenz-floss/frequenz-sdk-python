@@ -215,8 +215,10 @@ class BatteryPool:
         Raises:
             ValueError: If the given power is negative.
         """
-        if power and power < Power.zero():
-            raise ValueError("Discharge power must be positive.")
+        if power:
+            if power < Power.zero():
+                raise ValueError("Discharge power must be positive.")
+            power = -power
         await self._battery_pool._power_manager_requests_sender.send(
             _power_managing.Proposal(
                 source_id=self._source_id,

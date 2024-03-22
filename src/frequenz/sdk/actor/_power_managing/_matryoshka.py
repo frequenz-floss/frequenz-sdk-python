@@ -29,7 +29,6 @@ from ... import timeseries
 from ...timeseries import Power
 from . import _bounds
 from ._base_classes import BaseAlgorithm, Proposal, _Report
-from ._sorted_set import SortedSet
 
 if typing.TYPE_CHECKING:
     from ...timeseries._base_types import SystemBounds
@@ -44,12 +43,12 @@ class Matryoshka(BaseAlgorithm):
     def __init__(self, max_proposal_age: timedelta) -> None:
         """Create a new instance of the matryoshka algorithm."""
         self._max_proposal_age_sec = max_proposal_age.total_seconds()
-        self._component_buckets: dict[frozenset[int], SortedSet[Proposal]] = {}
+        self._component_buckets: dict[frozenset[int], set[Proposal]] = {}
         self._target_power: dict[frozenset[int], Power] = {}
 
     def _calc_target_power(
         self,
-        proposals: SortedSet[Proposal],
+        proposals: set[Proposal],
         system_bounds: SystemBounds,
     ) -> Power:
         """Calculate the target power for the given components.
@@ -83,7 +82,7 @@ class Matryoshka(BaseAlgorithm):
             exclusion_bounds = system_bounds.exclusion_bounds
 
         target_power = Power.zero()
-        for next_proposal in reversed(proposals):
+        for next_proposal in sorted(proposals, reverse=True):
             if upper_bound < lower_bound:
                 break
             if next_proposal.preferred_power:
@@ -183,9 +182,10 @@ class Matryoshka(BaseAlgorithm):
             return None
 
         if proposal is not None:
-            self._component_buckets.setdefault(component_ids, SortedSet()).insert(
-                proposal
-            )
+            bucket = self._component_buckets.setdefault(component_ids, set())
+            if proposal in bucket:
+                bucket.remove(proposal)
+            bucket.add(proposal)
 
         # If there has not been any proposal for the given components, don't calculate a
         # target power and just return `None`.
@@ -243,7 +243,9 @@ class Matryoshka(BaseAlgorithm):
         ):
             exclusion_bounds = system_bounds.exclusion_bounds
 
-        for next_proposal in reversed(self._component_buckets.get(component_ids, [])):
+        for next_proposal in sorted(
+            self._component_buckets.get(component_ids, []), reverse=True
+        ):
             if next_proposal.priority <= priority:
                 break
             proposal_lower = next_proposal.bounds.lower or lower_bound
@@ -286,4 +288,4 @@ class Matryoshka(BaseAlgorithm):
                 if (loop_time - proposal.creation_time) > self._max_proposal_age_sec:
                     to_delete.append(proposal)
             for proposal in to_delete:
-                bucket.delete(proposal)
+                bucket.remove(proposal)

@@ -231,6 +231,35 @@ class Proposal:
             self.priority == other.priority and self.source_id < other.source_id
         )
 
+    def __eq__(self, other: object) -> bool:
+        """Check if two proposals are equal.
+
+        Equality is determined by the priority and source ID of the proposals, so
+        two proposals are equal if they have the same priority and source ID, even
+        if they have different power values or creation times.
+
+        This is so that there is only one active proposal for each actor in the bucket,
+        and older proposals are replaced by newer ones.
+
+        Args:
+            other: The other proposal to compare to.
+
+        Returns:
+            Whether the two proposals are equal.
+        """
+        if not isinstance(other, Proposal):
+            return NotImplemented
+
+        return self.priority == other.priority and self.source_id == other.source_id
+
+    def __hash__(self) -> int:
+        """Get the hash of the proposal.
+
+        Returns:
+            The hash of the proposal.
+        """
+        return hash((self.priority, self.source_id))
+
 
 class Algorithm(enum.Enum):
     """The available algorithms for the power manager."""
