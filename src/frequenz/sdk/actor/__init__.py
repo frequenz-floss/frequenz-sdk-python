@@ -70,7 +70,7 @@ Actors are not started when they are created. There are 3 main ways to start an 
 ### The `run()` Function
 
 The [`run()`][frequenz.sdk.actor.run] function can start many actors at once and waits
-for them to finish. If any of the actors are stopped with errors, the errors will be
+for them to finish. If any of the actors is stopped with errors, the errors will be
 logged.
 
 ???+ example
@@ -85,13 +85,13 @@ logged.
     await run(MyActor()) # (1)!
     ```
 
-    1. This line will block until the actor is stopped.
+    1. This line will block until the actor completes its execution or is manually stopped.
 
 ### Async Context Manager
 
 When an actor is used as an [async context manager], it is started when the
 `async with` block is entered and stopped automatically when the block is exited
-(even if an exception is raised).
+(even if an unhandled exception is raised).
 
 ???+ example
 
@@ -116,7 +116,7 @@ When an actor is used as an [async context manager], it is started when the
 
 When using the [`start()`][frequenz.sdk.actor.Actor.start] method, the actor is
 started in the background and the method returns immediately. The actor will
-continue to run until it is **manually** stopped.
+continue to run until it is **manually** stopped or until it completes its execution.
 
 ???+ example
 
@@ -203,8 +203,8 @@ composed easily.
         logs.
     5. We call [`Actor.__init__()`][frequenz.sdk.actor.Actor.__init__] to make sure the
         actor is properly initialized.
-    6. We store the `input` argument in a *private* instance variable to use it later.
-    7. We store the `output` argument in a *private* instance variable to use it later.
+    6. We store the `input` argument in a *private* attribute to use it later.
+    7. We store the `output` argument in a *private* attribute to use it later.
 
 ### The `_run()` Method
 
@@ -216,6 +216,8 @@ Normally an actor should run forever (or until it is
 in the `_run()` method, typically receiving messages from one or more channels
 ([receivers][frequenz.channels.Receiver]), processing them and sending the results to
 other channels ([senders][frequenz.channels.Sender]).
+However, it is worth noting that an actor can also be designed for a one-time execution
+or a limited number of runs, terminating upon completion.
 
 ???+ example "Example echo actor"
 
@@ -383,7 +385,7 @@ async def main() -> None:  # (2)!
 
     async with (  # (5)!
         Actor1(input_channel.new_receiver(), middle_channel.new_sender(), "actor1"),
-        Actor2(middle_channel.new_receiver(), output_channel.new_sender(), "actor1"),
+        Actor2(middle_channel.new_receiver(), output_channel.new_sender(), "actor2"),
     ):
         await input_sender.send("Hello")  # (6)!
         msg = await output_receiver.receive()  # (7)!
@@ -397,7 +399,7 @@ if __name__ == "__main__":  # (3)!
 1. We define 2 actors: `Actor1` and `Actor2` that will just forward a message
    from an input channel to an output channel, adding some text.
 
-2. We define an async `main()` function with the main logic of our [asyncio][] program.
+2. We define an async `main()` function within the main logic of our [asyncio][] program.
 
 3. We start the `main()` function in the async loop using [`asyncio.run()`][asyncio.run].
 
@@ -525,8 +527,8 @@ if __name__ == "__main__":  # (7)!
     them to another channel.
 
 2. We implement the [`_run()`][_run] method that will receive messages from the two
-    channels using and send them to the output channel. The `run()` method will stop if
-    a `False` message is received.
+    channels using [`select()`][frequenz.channels.util.select] and send them to the
+    output channel. The `run()` method will stop if a `False` message is received.
 
 3. We create the channels that will be used with the actor.
 
@@ -556,8 +558,7 @@ if __name__ == "__main__":  # (7)!
     message, so `"Received from receiver_1: True"` will be printed and `True` will be
     sent to the `output` channel.
 
-12. Since `selected.value` is `True`, the loop will continue, going back to the and the
-    the loop will continue, going back to the
+12. Since `selected.value` is `True`, the loop will continue, going back to the
     [`select()`][frequenz.channels.util.select] function.
 
 13. The [`selected_from()`][frequenz.channels.util.selected_from] function will return

@@ -73,13 +73,15 @@ class Actor(BackgroundService, abc.ABC):
             await asyncio.sleep(delay)
 
     async def _run_loop(self) -> None:
-        """Run this actor's task in a loop until `_restart_limit` is reached.
+        """Run the actor's task continuously, managing restarts, cancellation, and termination.
+
+        This method handles the execution of the actor's task, including
+        restarts for unhandled exceptions, cancellation, or normal termination.
 
         Raises:
-            asyncio.CancelledError: If this actor's `_run()` gets cancelled.
-            Exception: If this actor's `_run()` raises any other `Exception` and reached
-                the maximum number of restarts.
-            BaseException: If this actor's `_run()` raises any other `BaseException`.
+            asyncio.CancelledError: If the actor's `_run()` method is cancelled.
+            Exception: If the actor's `_run()` method raises any other exception.
+            BaseException: If the actor's `_run()` method raises any base exception.
         """
         _logger.info("Actor %s: Started.", self)
         n_restarts = 0
