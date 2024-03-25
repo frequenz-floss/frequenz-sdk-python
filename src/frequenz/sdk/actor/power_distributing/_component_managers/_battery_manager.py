@@ -129,7 +129,15 @@ class BatteryManager(ComponentManager):
         component_pool_status_sender: Sender[ComponentPoolStatus],
         results_sender: Sender[Result],
     ):
-        """Initialize the battery data manager."""
+        """Initialize the battery data manager.
+
+        Args:
+            component_pool_status_sender: Channel sender to send the status of the
+                battery pool to.  This status is used by the battery pool metric
+                streams, to dynamically adjust the values based on the health of the
+                individual batteries.
+            results_sender: Channel sender to send the power distribution results to.
+        """
         self._results_sender = results_sender
         self._batteries = connection_manager.get().component_graph.components(
             component_categories={ComponentCategory.BATTERY}
