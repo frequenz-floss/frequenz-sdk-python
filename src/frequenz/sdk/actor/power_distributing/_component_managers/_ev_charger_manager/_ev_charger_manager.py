@@ -96,6 +96,7 @@ class EVChargerManager(ComponentManager):
         await self._component_pool_status_tracker.stop()
 
     def _get_ev_charger_ids(self) -> collections.abc.Set[int]:
+        """Return the IDs of all EV chargers present in the component graph."""
         return {
             evc.component_id
             for evc in microgrid.connection_manager.get().component_graph.components(
@@ -104,6 +105,14 @@ class EVChargerManager(ComponentManager):
         }
 
     def _allocate_new_ev(self, component_id: int) -> dict[int, Power]:
+        """Allocate power to a newly connected EV charger.
+
+        Args:
+            component_id: ID of the EV charger to allocate power to.
+
+        Returns:
+            A dictionary containing updated power allocations for the EV chargers.
+        """
         available_power = (
             self._target_power - self._evc_states.get_total_allocated_power()
         )
@@ -125,6 +134,14 @@ class EVChargerManager(ComponentManager):
         return {}
 
     def _act_on_new_data(self, ev_data: EVChargerData) -> dict[int, Power]:
+        """Act on new data from an EV charger.
+
+        Args:
+            ev_data: New data from the EV charger.
+
+        Returns:
+            A dictionary containing updated power allocations for the EV chargers.
+        """
         component_id = ev_data.component_id
         ev_connected = ev_data.is_ev_connected()
         ev_previously_connected = self._evc_states.get(
@@ -189,6 +206,7 @@ class EVChargerManager(ComponentManager):
         return {component_id: target_power}
 
     async def _run_forever(self) -> None:
+        """Run the EV charger manager forever."""
         while True:
             try:
                 await self._run()
@@ -197,6 +215,7 @@ class EVChargerManager(ComponentManager):
                 await asyncio.sleep(1.0)
 
     async def _run(self) -> None:  # pylint: disable=too-many-locals
+        """Run the main event loop of the EV charger manager."""
         api = microgrid.connection_manager.get().api_client
         ev_charger_data_rx = merge(
             *[await api.ev_charger_data(evc_id) for evc_id in self._ev_charger_ids]
@@ -283,6 +302,18 @@ class EVChargerManager(ComponentManager):
         target_power_changes: dict[int, Power],
         api_request_timeout: timedelta,
     ) -> Result:
+        """Send the EV charger power changes to the microgrid API.
+
+        Args:
+            api: The microgrid API client to use for setting the power.
+            target_power_changes: A dictionary containing the new power allocations for
+                the EV chargers.
+            api_request_timeout: The timeout for the API request.
+
+        Returns:
+            Power distribution result, corresponding to the result of the API
+                request.
+        """
         tasks: dict[int, asyncio.Task[None]] = {}
         for component_id, power in target_power_changes.items():
             tasks[component_id] = asyncio.create_task(
