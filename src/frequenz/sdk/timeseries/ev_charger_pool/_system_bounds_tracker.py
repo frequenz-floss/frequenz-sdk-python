@@ -51,6 +51,7 @@ class EVCSystemBoundsTracker(BackgroundService):
         self._tasks.add(asyncio.create_task(self._run_forever()))
 
     async def _send_bounds(self) -> None:
+        """Calculate and send the aggregate system bounds if they have changed."""
         if not self._latest_component_data:
             return
         inclusion_bounds = Bounds(
@@ -122,15 +123,15 @@ class EVCSystemBoundsTracker(BackgroundService):
         async for selected in select(status_rx, ev_data_rx):
             if selected_from(selected, status_rx):
                 self._component_pool_status = selected.message
-                to_pop = []
+                to_remove = []
                 for comp_id in self._latest_component_data:
                     if (
                         comp_id not in self._component_pool_status.working
                         and comp_id not in self._component_pool_status.uncertain
                     ):
-                        to_pop.append(comp_id)
-                for comp_id in to_pop:
-                    self._latest_component_data.pop(comp_id, None)
+                        to_remove.append(comp_id)
+                for comp_id in to_remove:
+                    del self._latest_component_data[comp_id]
             elif selected_from(selected, ev_data_rx):
                 data = selected.message
                 comp_id = data.component_id
