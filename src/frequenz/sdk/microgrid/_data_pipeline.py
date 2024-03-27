@@ -10,6 +10,7 @@ ResamplingActor.
 
 from __future__ import annotations
 
+import logging
 import sys
 import typing
 from collections import abc
@@ -43,6 +44,8 @@ if typing.TYPE_CHECKING:
     )
     from ..timeseries.logical_meter import LogicalMeter
     from ..timeseries.producer import Producer
+
+_logger = logging.getLogger(__name__)
 
 
 _REQUEST_RECV_BUFFER_SIZE = 500
@@ -111,6 +114,13 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         ] = {}
         self._frequency_instance: GridFrequency | None = None
         self._voltage_instance: VoltageStreamer | None = None
+
+        self._known_pool_keys: set[str] = set()
+        """A set of keys for corresponding to created EVChargerPool instances.
+
+        This is used to warn the user if they try to create a new EVChargerPool instance
+        for the same set of component IDs, and with the same priority.
+        """
 
     def frequency(self) -> GridFrequency:
         """Return the grid frequency measuring point."""
@@ -199,6 +209,21 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         if ev_charger_ids is not None:
             ref_store_key = frozenset(ev_charger_ids)
 
+        pool_key = f"{ref_store_key}-{priority}"
+        if pool_key in self._known_pool_keys:
+            _logger.warning(
+                "An EVChargerPool instance was already created for ev_charger_ids=%s "
+                "and priority=%s using `microgrid.ev_charger_pool(...)`."
+                "\n  Hint: If the multiple instances are created from the same actor, "
+                "consider reusing the same instance."
+                "\n  Hint: If the instances are created from different actors, "
+                "consider using different priorities to distinguish them.",
+                ev_charger_ids,
+                priority,
+            )
+        else:
+            self._known_pool_keys.add(pool_key)
+
         if ref_store_key not in self._ev_charger_pool_reference_stores:
             self._ev_charger_pool_reference_stores[ref_store_key] = (
                 EVChargerPoolReferenceStore(
@@ -264,6 +289,21 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         ref_store_key: frozenset[int] = frozenset()
         if battery_ids is not None:
             ref_store_key = frozenset(battery_ids)
+
+        pool_key = f"{ref_store_key}-{priority}"
+        if pool_key in self._known_pool_keys:
+            _logger.warning(
+                "A BatteryPool instance was already created for battery_ids=%s and "
+                "priority=%s using `microgrid.battery_pool(...)`."
+                "\n  Hint: If the multiple instances are created from the same actor, "
+                "consider reusing the same instance."
+                "\n  Hint: If the instances are created from different actors, "
+                "consider using different priorities to distinguish them.",
+                battery_ids,
+                priority,
+            )
+        else:
+            self._known_pool_keys.add(pool_key)
 
         if ref_store_key not in self._battery_pool_reference_stores:
             self._battery_pool_reference_stores[ref_store_key] = (
