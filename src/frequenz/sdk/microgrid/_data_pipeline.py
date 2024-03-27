@@ -103,8 +103,12 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._consumer: Consumer | None = None
         self._producer: Producer | None = None
         self._grid: Grid | None = None
-        self._ev_charger_pools: dict[frozenset[int], EVChargerPoolReferenceStore] = {}
-        self._battery_pools: dict[frozenset[int], BatteryPoolReferenceStore] = {}
+        self._ev_charger_pool_reference_stores: dict[
+            frozenset[int], EVChargerPoolReferenceStore
+        ] = {}
+        self._battery_pool_reference_stores: dict[
+            frozenset[int], BatteryPoolReferenceStore
+        ] = {}
         self._frequency_instance: GridFrequency | None = None
         self._voltage_instance: VoltageStreamer | None = None
 
@@ -195,8 +199,8 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         if ev_charger_ids is not None:
             key = frozenset(ev_charger_ids)
 
-        if key not in self._ev_charger_pools:
-            self._ev_charger_pools[key] = EVChargerPoolReferenceStore(
+        if key not in self._ev_charger_pool_reference_stores:
+            self._ev_charger_pool_reference_stores[key] = EVChargerPoolReferenceStore(
                 channel_registry=self._channel_registry,
                 resampler_subscription_sender=self._resampling_request_sender(),
                 status_receiver=self._ev_power_wrapper.status_channel.new_receiver(
@@ -210,7 +214,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 ),
                 component_ids=ev_charger_ids,
             )
-        return EVChargerPool(self._ev_charger_pools[key], name, priority)
+        return EVChargerPool(
+            self._ev_charger_pool_reference_stores[key], name, priority
+        )
 
     def grid(self) -> Grid:
         """Return the grid measuring point."""
@@ -257,12 +263,12 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         if battery_ids is not None:
             key = frozenset(battery_ids)
 
-        if key not in self._battery_pools:
-            self._battery_pools[key] = BatteryPoolReferenceStore(
+        if key not in self._battery_pool_reference_stores:
+            self._battery_pool_reference_stores[key] = BatteryPoolReferenceStore(
                 channel_registry=self._channel_registry,
                 resampler_subscription_sender=self._resampling_request_sender(),
-                batteries_status_receiver=self._battery_power_wrapper.status_channel.new_receiver(
-                    limit=1
+                batteries_status_receiver=(
+                    self._battery_power_wrapper.status_channel.new_receiver(limit=1)
                 ),
                 power_manager_requests_sender=(
                     self._battery_power_wrapper.proposal_channel.new_sender()
@@ -274,7 +280,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 batteries_id=battery_ids,
             )
 
-        return BatteryPool(self._battery_pools[key], name, priority)
+        return BatteryPool(self._battery_pool_reference_stores[key], name, priority)
 
     def _data_sourcing_request_sender(self) -> Sender[ComponentMetricRequest]:
         """Return a Sender for sending requests to the data sourcing actor.
@@ -331,7 +337,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         if self._resampling_actor:
             await self._resampling_actor.actor.stop()
         await self._battery_power_wrapper.stop()
-        for pool in self._battery_pools.values():
+        for pool in self._battery_pool_reference_stores.values():
             await pool.stop()
 
 
