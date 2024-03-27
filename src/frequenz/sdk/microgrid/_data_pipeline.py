@@ -445,6 +445,15 @@ def ev_charger_pool(
         When specifying priority, bigger values indicate higher priority. The default
         priority is the lowest possible value.
 
+        It is recommended to reuse the same instance of the `EVChargerPool` within the
+        same actor, unless they are managing different sets of EV chargers.
+
+        In deployments with multiple actors managing the same set of EV chargers, it is
+        recommended to use different priorities to distinguish between them.  If not,
+        a random prioritization will be imposed on them to resolve conflicts, which may
+        lead to unexpected behavior like longer duration to converge on the desired
+        power.
+
     Args:
         ev_charger_ids: Optional set of IDs of EV Chargers to be managed by the
             EVChargerPool.  If not specified, all EV Chargers available in the
@@ -472,6 +481,15 @@ def battery_pool(
     !!! note
         When specifying priority, bigger values indicate higher priority. The default
         priority is the lowest possible value.
+
+        It is recommended to reuse the same instance of the `BatteryPool` within the
+        same actor, unless they are managing different sets of batteries.
+
+        In deployments with multiple actors managing the same set of batteries, it is
+        recommended to use different priorities to distinguish between them.  If not,
+        a random prioritization will be imposed on them to resolve conflicts, which may
+        lead to unexpected behavior like longer duration to converge on the desired
+        power.
 
     Args:
         battery_ids: Optional set of IDs of batteries to be managed by the `BatteryPool`.
