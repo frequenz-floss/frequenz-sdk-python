@@ -195,27 +195,29 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             self._ev_power_wrapper.start()
 
         # We use frozenset to make a hashable key from the input set.
-        key: frozenset[int] = frozenset()
+        ref_store_key: frozenset[int] = frozenset()
         if ev_charger_ids is not None:
-            key = frozenset(ev_charger_ids)
+            ref_store_key = frozenset(ev_charger_ids)
 
-        if key not in self._ev_charger_pool_reference_stores:
-            self._ev_charger_pool_reference_stores[key] = EVChargerPoolReferenceStore(
-                channel_registry=self._channel_registry,
-                resampler_subscription_sender=self._resampling_request_sender(),
-                status_receiver=self._ev_power_wrapper.status_channel.new_receiver(
-                    limit=1
-                ),
-                power_manager_requests_sender=(
-                    self._ev_power_wrapper.proposal_channel.new_sender()
-                ),
-                power_manager_bounds_subs_sender=(
-                    self._ev_power_wrapper.bounds_subscription_channel.new_sender()
-                ),
-                component_ids=ev_charger_ids,
+        if ref_store_key not in self._ev_charger_pool_reference_stores:
+            self._ev_charger_pool_reference_stores[ref_store_key] = (
+                EVChargerPoolReferenceStore(
+                    channel_registry=self._channel_registry,
+                    resampler_subscription_sender=self._resampling_request_sender(),
+                    status_receiver=self._ev_power_wrapper.status_channel.new_receiver(
+                        limit=1
+                    ),
+                    power_manager_requests_sender=(
+                        self._ev_power_wrapper.proposal_channel.new_sender()
+                    ),
+                    power_manager_bounds_subs_sender=(
+                        self._ev_power_wrapper.bounds_subscription_channel.new_sender()
+                    ),
+                    component_ids=ev_charger_ids,
+                )
             )
         return EVChargerPool(
-            self._ev_charger_pool_reference_stores[key], name, priority
+            self._ev_charger_pool_reference_stores[ref_store_key], name, priority
         )
 
     def grid(self) -> Grid:
@@ -259,28 +261,32 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             self._battery_power_wrapper.start()
 
         # We use frozenset to make a hashable key from the input set.
-        key: frozenset[int] = frozenset()
+        ref_store_key: frozenset[int] = frozenset()
         if battery_ids is not None:
-            key = frozenset(battery_ids)
+            ref_store_key = frozenset(battery_ids)
 
-        if key not in self._battery_pool_reference_stores:
-            self._battery_pool_reference_stores[key] = BatteryPoolReferenceStore(
-                channel_registry=self._channel_registry,
-                resampler_subscription_sender=self._resampling_request_sender(),
-                batteries_status_receiver=(
-                    self._battery_power_wrapper.status_channel.new_receiver(limit=1)
-                ),
-                power_manager_requests_sender=(
-                    self._battery_power_wrapper.proposal_channel.new_sender()
-                ),
-                power_manager_bounds_subscription_sender=(
-                    self._battery_power_wrapper.bounds_subscription_channel.new_sender()
-                ),
-                min_update_interval=self._resampler_config.resampling_period,
-                batteries_id=battery_ids,
+        if ref_store_key not in self._battery_pool_reference_stores:
+            self._battery_pool_reference_stores[ref_store_key] = (
+                BatteryPoolReferenceStore(
+                    channel_registry=self._channel_registry,
+                    resampler_subscription_sender=self._resampling_request_sender(),
+                    batteries_status_receiver=(
+                        self._battery_power_wrapper.status_channel.new_receiver(limit=1)
+                    ),
+                    power_manager_requests_sender=(
+                        self._battery_power_wrapper.proposal_channel.new_sender()
+                    ),
+                    power_manager_bounds_subscription_sender=(
+                        self._battery_power_wrapper.bounds_subscription_channel.new_sender()
+                    ),
+                    min_update_interval=self._resampler_config.resampling_period,
+                    batteries_id=battery_ids,
+                )
             )
 
-        return BatteryPool(self._battery_pool_reference_stores[key], name, priority)
+        return BatteryPool(
+            self._battery_pool_reference_stores[ref_store_key], name, priority
+        )
 
     def _data_sourcing_request_sender(self) -> Sender[ComponentMetricRequest]:
         """Return a Sender for sending requests to the data sourcing actor.
