@@ -21,7 +21,14 @@ _logger = logging.getLogger(__name__)
 
 
 class EVCSystemBoundsTracker(BackgroundService):
-    """Track the system bounds for the EV chargers."""
+    """Track the system bounds for the EV chargers.
+
+    System bounds are the aggregate bounds for the EV chargers in the pool that are
+    working and have an EV attached to them.  They are calculated from the individual
+    bounds received from the microgrid API.
+
+    The system bounds are sent to the `bounds_sender` whenever they change.
+    """
 
     def __init__(
         self,
