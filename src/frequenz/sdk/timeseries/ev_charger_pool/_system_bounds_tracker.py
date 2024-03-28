@@ -36,7 +36,7 @@ class EVCSystemBoundsTracker(BackgroundService):
         status_receiver: Receiver[ComponentPoolStatus],
         bounds_sender: Sender[SystemBounds],
     ):
-        """Initialize the system bounds tracker.
+        """Initialize this instance.
 
         Args:
             component_ids: The ids of the components to track.

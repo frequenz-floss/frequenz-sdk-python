@@ -129,7 +129,7 @@ class BatteryManager(ComponentManager):
         component_pool_status_sender: Sender[ComponentPoolStatus],
         results_sender: Sender[Result],
     ):
-        """Initialize the battery data manager.
+        """Initialize this instance.
 
         Args:
             component_pool_status_sender: Channel sender to send the status of the

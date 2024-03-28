@@ -75,7 +75,7 @@ class EvcStates:
     _states: dict[int, EvcState]
 
     def __init__(self) -> None:
-        """Initialize the EvcStates object."""
+        """Initialize this instance."""
         self._states = {}
 
     def get_ev_total_used_power(self) -> Power:

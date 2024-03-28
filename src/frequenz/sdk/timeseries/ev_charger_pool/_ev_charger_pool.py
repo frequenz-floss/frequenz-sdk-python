@@ -229,5 +229,5 @@ class EVChargerPool:
 
     @property
     def _system_power_bounds(self) -> ReceiverFetcher[SystemBounds]:
-        """Return a receiver for the system power bounds."""
+        """Return a receiver fetcher for the system power bounds."""
         return self._ev_charger_pool.bounds_channel
