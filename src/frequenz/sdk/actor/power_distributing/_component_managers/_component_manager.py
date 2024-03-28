@@ -20,12 +20,14 @@ class ComponentManager(abc.ABC):
     def __init__(
         self,
         component_pool_status_sender: Sender[ComponentPoolStatus],
+        results_sender: Sender[Result],
     ):
         """Initialize the component data manager.
 
         Args:
             component_pool_status_sender: Channel for sending information about which
                 components are expected to be working.
+            results_sender: Channel for sending the results of power distribution.
         """
 
     @abc.abstractmethod
@@ -37,7 +39,7 @@ class ComponentManager(abc.ABC):
         """Start the component data manager."""
 
     @abc.abstractmethod
-    async def distribute_power(self, request: Request) -> Result:
+    async def distribute_power(self, request: Request) -> None:
         """Distribute the requested power to the components.
 
         Args:

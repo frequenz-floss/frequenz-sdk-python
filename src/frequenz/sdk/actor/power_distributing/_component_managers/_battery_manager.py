@@ -127,8 +127,18 @@ class BatteryManager(ComponentManager):
     def __init__(
         self,
         component_pool_status_sender: Sender[ComponentPoolStatus],
+        results_sender: Sender[Result],
     ):
-        """Initialize the battery data manager."""
+        """Initialize this instance.
+
+        Args:
+            component_pool_status_sender: Channel sender to send the status of the
+                battery pool to.  This status is used by the battery pool metric
+                streams, to dynamically adjust the values based on the health of the
+                individual batteries.
+            results_sender: Channel sender to send the power distribution results to.
+        """
+        self._results_sender = results_sender
         self._batteries = connection_manager.get().component_graph.components(
             component_categories={ComponentCategory.BATTERY}
         )
@@ -181,20 +191,18 @@ class BatteryManager(ComponentManager):
         await self._component_pool_status_tracker.stop()
 
     @override
-    async def distribute_power(self, request: Request) -> Result:
+    async def distribute_power(self, request: Request) -> None:
         """Distribute the requested power to the components.
 
         Args:
             request: Request to get the distribution for.
-
-        Returns:
-            Result of the distribution.
         """
         distribution_result = await self._get_distribution(request)
         if not isinstance(distribution_result, DistributionResult):
-            return distribution_result
-        result = await self._distribute_power(request, distribution_result)
-        return result
+            result = distribution_result
+        else:
+            result = await self._distribute_power(request, distribution_result)
+        await self._results_sender.send(result)
 
     async def _get_distribution(self, request: Request) -> DistributionResult | Result:
         """Get the distribution of the batteries.

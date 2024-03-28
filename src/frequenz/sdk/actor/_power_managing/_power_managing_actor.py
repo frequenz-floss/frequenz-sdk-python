@@ -133,17 +133,22 @@ class PowerManagingActor(Actor):
             microgrid,
         )
 
-        if self._component_category is not ComponentCategory.BATTERY:
+        bounds_receiver: Receiver[SystemBounds]
+        # pylint: disable=protected-access
+        if self._component_category is ComponentCategory.BATTERY:
+            battery_pool = microgrid.battery_pool(component_ids)
+            bounds_receiver = battery_pool._system_power_bounds.new_receiver()
+        elif self._component_category is ComponentCategory.EV_CHARGER:
+            ev_charger_pool = microgrid.ev_charger_pool(component_ids)
+            bounds_receiver = ev_charger_pool._system_power_bounds.new_receiver()
+        # pylint: enable=protected-access
+        else:
             err = (
                 "PowerManagingActor: Unsupported component category: "
                 f"{self._component_category}"
             )
             _logger.error(err)
             raise NotImplementedError(err)
-        battery_pool = microgrid.battery_pool(component_ids)
-        # pylint: disable=protected-access
-        bounds_receiver = battery_pool._system_power_bounds.new_receiver()
-        # pylint: enable=protected-access
 
         self._system_bounds[component_ids] = SystemBounds(
             timestamp=datetime.now(tz=timezone.utc),

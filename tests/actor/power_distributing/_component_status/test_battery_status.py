@@ -1,5 +1,6 @@
 # License: MIT
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
+
 """Tests for BatteryStatusTracker."""
 
 # pylint: disable=too-many-lines
@@ -38,6 +39,7 @@ from frequenz.sdk.actor.power_distributing._component_status import (
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
 from ....utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
+from ....utils.receive_timeout import Timeout, receive_timeout
 
 
 def battery_data(  # pylint: disable=too-many-arguments
@@ -121,26 +123,6 @@ class Message(Generic[T]):
 
 BATTERY_ID = 9
 INVERTER_ID = 8
-
-
-class _Timeout:
-    """Sentinel for timeout."""
-
-
-async def recv_timeout(recv: Receiver[T], timeout: float = 0.1) -> T | type[_Timeout]:
-    """Receive message from receiver with timeout.
-
-    Args:
-        recv: Receiver to receive message from.
-        timeout: Timeout in seconds.
-
-    Returns:
-        Received message or _Timeout if timeout is reached.
-    """
-    try:
-        return await asyncio.wait_for(recv.receive(), timeout=timeout)
-    except asyncio.TimeoutError:
-        return _Timeout
 
 
 # pylint: disable=protected-access, unused-argument
@@ -952,7 +934,7 @@ class TestBatteryStatusRecovery:
         # --- battery warning error (keeps working) ---
         await self._send_healthy_inverter(mock_microgrid)
         await self._send_warning_error_battery(mock_microgrid)
-        assert await recv_timeout(status_receiver, timeout=0.1) is _Timeout
+        assert await receive_timeout(status_receiver, timeout=0.1) is Timeout
 
         await self._send_healthy_battery(mock_microgrid)
         await self._send_healthy_inverter(mock_microgrid)
@@ -971,7 +953,7 @@ class TestBatteryStatusRecovery:
         # --- inverter warning error (keeps working) ---
         await self._send_healthy_battery(mock_microgrid)
         await self._send_warning_error_inverter(mock_microgrid)
-        assert await recv_timeout(status_receiver, timeout=0.1) is _Timeout
+        assert await receive_timeout(status_receiver, timeout=0.1) is Timeout
 
         await self._send_healthy_battery(mock_microgrid)
         await self._send_healthy_inverter(mock_microgrid)
@@ -1023,11 +1005,11 @@ class TestBatteryStatusRecovery:
         # --- stale battery data ---
         await self._send_healthy_inverter(mock_microgrid)
         await self._send_healthy_battery(mock_microgrid, timestamp)
-        assert await recv_timeout(status_receiver) is _Timeout
+        assert await receive_timeout(status_receiver) is Timeout
 
         await self._send_healthy_inverter(mock_microgrid)
         await self._send_healthy_battery(mock_microgrid, timestamp)
-        assert await recv_timeout(status_receiver, 0.3) == ComponentStatus(
+        assert await receive_timeout(status_receiver, 0.3) == ComponentStatus(
             BATTERY_ID, ComponentStatusEnum.NOT_WORKING
         )
 
@@ -1039,11 +1021,11 @@ class TestBatteryStatusRecovery:
         # --- stale inverter data ---
         await self._send_healthy_battery(mock_microgrid)
         await self._send_healthy_inverter(mock_microgrid, timestamp)
-        assert await recv_timeout(status_receiver) is _Timeout
+        assert await receive_timeout(status_receiver) is Timeout
 
         await self._send_healthy_battery(mock_microgrid)
         await self._send_healthy_inverter(mock_microgrid, timestamp)
-        assert await recv_timeout(status_receiver, 0.3) == ComponentStatus(
+        assert await receive_timeout(status_receiver, 0.3) == ComponentStatus(
             BATTERY_ID, ComponentStatusEnum.NOT_WORKING
         )
 

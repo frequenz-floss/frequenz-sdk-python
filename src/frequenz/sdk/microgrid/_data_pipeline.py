@@ -38,6 +38,9 @@ if typing.TYPE_CHECKING:
     )
     from ..timeseries.consumer import Consumer
     from ..timeseries.ev_charger_pool import EVChargerPool
+    from ..timeseries.ev_charger_pool._ev_charger_pool_reference_store import (
+        EVChargerPoolReferenceStore,
+    )
     from ..timeseries.logical_meter import LogicalMeter
     from ..timeseries.producer import Producer
 
@@ -92,12 +95,15 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._battery_power_wrapper = PowerWrapper(
             ComponentCategory.BATTERY, self._channel_registry
         )
+        self._ev_power_wrapper = PowerWrapper(
+            ComponentCategory.EV_CHARGER, self._channel_registry
+        )
 
         self._logical_meter: LogicalMeter | None = None
         self._consumer: Consumer | None = None
         self._producer: Producer | None = None
         self._grid: Grid | None = None
-        self._ev_charger_pools: dict[frozenset[int], EVChargerPool] = {}
+        self._ev_charger_pools: dict[frozenset[int], EVChargerPoolReferenceStore] = {}
         self._battery_pools: dict[frozenset[int], BatteryPoolReferenceStore] = {}
         self._frequency_instance: GridFrequency | None = None
         self._voltage_instance: VoltageStreamer | None = None
@@ -158,6 +164,8 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
     def ev_charger_pool(
         self,
         ev_charger_ids: abc.Set[int] | None = None,
+        name: str | None = None,
+        priority: int = -sys.maxsize - 1,
     ) -> EVChargerPool:
         """Return the corresponding EVChargerPool instance for the given ids.
 
@@ -167,11 +175,20 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         Args:
             ev_charger_ids: Optional set of IDs of EV Chargers to be managed by the
                 EVChargerPool.
+            name: An optional name used to identify this instance of the pool or a
+                corresponding actor in the logs.
+            priority: The priority of the actor making the call.
 
         Returns:
             An EVChargerPool instance.
         """
         from ..timeseries.ev_charger_pool import EVChargerPool
+        from ..timeseries.ev_charger_pool._ev_charger_pool_reference_store import (
+            EVChargerPoolReferenceStore,
+        )
+
+        if not self._ev_power_wrapper.started:
+            self._ev_power_wrapper.start()
 
         # We use frozenset to make a hashable key from the input set.
         key: frozenset[int] = frozenset()
@@ -179,12 +196,21 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             key = frozenset(ev_charger_ids)
 
         if key not in self._ev_charger_pools:
-            self._ev_charger_pools[key] = EVChargerPool(
+            self._ev_charger_pools[key] = EVChargerPoolReferenceStore(
                 channel_registry=self._channel_registry,
                 resampler_subscription_sender=self._resampling_request_sender(),
+                status_receiver=self._ev_power_wrapper.status_channel.new_receiver(
+                    limit=1
+                ),
+                power_manager_requests_sender=(
+                    self._ev_power_wrapper.proposal_channel.new_sender()
+                ),
+                power_manager_bounds_subs_sender=(
+                    self._ev_power_wrapper.bounds_subscription_channel.new_sender()
+                ),
                 component_ids=ev_charger_ids,
             )
-        return self._ev_charger_pools[key]
+        return EVChargerPool(self._ev_charger_pools[key], name, priority)
 
     def grid(self) -> Grid:
         """Return the grid measuring point."""
@@ -353,21 +379,32 @@ def producer() -> Producer:
     return _get().producer()
 
 
-def ev_charger_pool(ev_charger_ids: abc.Set[int] | None = None) -> EVChargerPool:
-    """Return the corresponding EVChargerPool instance for the given ids.
+def ev_charger_pool(
+    ev_charger_ids: abc.Set[int] | None = None,
+    name: str | None = None,
+    priority: int = -sys.maxsize - 1,
+) -> EVChargerPool:
+    """Return a new `EVChargerPool` instance for the given parameters.
 
-    If an EVChargerPool instance for the given ids doesn't exist, a new one is
-    created and returned.
+    The priority value is used to resolve conflicts when multiple actors are trying to
+    propose different power values for the same set of EV chargers.
+
+    !!! note
+        When specifying priority, bigger values indicate higher priority. The default
+        priority is the lowest possible value.
 
     Args:
         ev_charger_ids: Optional set of IDs of EV Chargers to be managed by the
             EVChargerPool.  If not specified, all EV Chargers available in the
             component graph are used.
+        name: An optional name used to identify this instance of the pool or a
+            corresponding actor in the logs.
+        priority: The priority of the actor making the call.
 
     Returns:
-        An EVChargerPool instance.
+        An `EVChargerPool` instance.
     """
-    return _get().ev_charger_pool(ev_charger_ids)
+    return _get().ev_charger_pool(ev_charger_ids, name, priority)
 
 
 def battery_pool(
