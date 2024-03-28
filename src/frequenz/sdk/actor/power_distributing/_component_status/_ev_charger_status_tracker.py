@@ -52,7 +52,7 @@ class EVChargerStatusTracker(ComponentStatusTracker, BackgroundService):
         status_sender: Sender[ComponentStatus],
         set_power_result_receiver: Receiver[SetPowerResult],
     ) -> None:
-        """Create an `EVChargerStatusTracker` instance.
+        """Initialize this instance.
 
         Args:
             component_id: ID of the EV charger to monitor the status of.
