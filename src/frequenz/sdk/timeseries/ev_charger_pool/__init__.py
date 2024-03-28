@@ -4,10 +4,10 @@
 """Interactions with EV Chargers."""
 
 from ._ev_charger_pool import EVChargerPool, EVChargerPoolError
-from ._set_current_bounds import ComponentCurrentLimit
+from ._result_types import EVChargerPoolReport
 
 __all__ = [
-    "ComponentCurrentLimit",
     "EVChargerPool",
     "EVChargerPoolError",
+    "EVChargerPoolReport",
 ]

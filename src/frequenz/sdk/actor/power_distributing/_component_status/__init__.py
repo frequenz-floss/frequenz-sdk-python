@@ -11,6 +11,7 @@ from ._component_status import (
     ComponentStatusTracker,
     SetPowerResult,
 )
+from ._ev_charger_status_tracker import EVChargerStatusTracker
 
 __all__ = [
     "BatteryStatusTracker",
@@ -18,5 +19,6 @@ __all__ = [
     "ComponentStatus",
     "ComponentStatusEnum",
     "ComponentStatusTracker",
+    "EVChargerStatusTracker",
     "SetPowerResult",
 ]
