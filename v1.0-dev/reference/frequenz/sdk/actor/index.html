@@ -2933,7 +2933,7 @@ the traditional actor programming model but also has some unique features:</p>
 </div>
 <h5 id="frequenz.sdk.actor--the-run-function">The <code>run()</code> Function<a class="headerlink" href="#frequenz.sdk.actor--the-run-function" title="Permanent link">¤</a></h5>
 <p>The <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.run"><code>run()</code></a> function can start many actors at once and waits
-for them to finish. If any of the actors are stopped with errors, the errors will be
+for them to finish. If any of the actors is stopped with errors, the errors will be
 logged.</p>
 <details class="example" open="open">
 <summary>Example</summary>
@@ -2946,13 +2946,13 @@ logged.</p>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="k">await</span> <span class="n">run</span><span class="p">(</span><span class="n">MyActor</span><span class="p">())</span> <span class="c1"># (1)!</span>
 </span></code></pre></div>
 <ol>
-<li>This line will block until the actor is stopped.</li>
+<li>This line will block until the actor completes its execution or is manually stopped.</li>
 </ol>
 </details>
 <h5 id="frequenz.sdk.actor--async-context-manager">Async Context Manager<a class="headerlink" href="#frequenz.sdk.actor--async-context-manager" title="Permanent link">¤</a></h5>
 <p>When an actor is used as an <a href="https://docs.python.org/3/reference/datamodel.html#async-context-managers">async context manager</a>, it is started when the
 <code>async with</code> block is entered and stopped automatically when the block is exited
-(even if an exception is raised).</p>
+(even if an unhandled exception is raised).</p>
 <details class="example" open="open">
 <summary>Example</summary>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span> <span class="nn">frequenz.sdk.actor</span> <span class="kn">import</span> <span class="n">Actor</span>
@@ -2975,7 +2975,7 @@ logged.</p>
 <h5 id="frequenz.sdk.actor--the-start-method">The <code>start()</code> Method<a class="headerlink" href="#frequenz.sdk.actor--the-start-method" title="Permanent link">¤</a></h5>
 <p>When using the <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor.start"><code>start()</code></a> method, the actor is
 started in the background and the method returns immediately. The actor will
-continue to run until it is <strong>manually</strong> stopped.</p>
+continue to run until it is <strong>manually</strong> stopped or until it completes its execution.</p>
 <details class="example" open="open">
 <summary>Example</summary>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span> <span class="nn">frequenz.sdk.actor</span> <span class="kn">import</span> <span class="n">Actor</span>
@@ -3059,8 +3059,8 @@ composed easily.</p>
     logs.</li>
 <li>We call <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor.__init__"><code>Actor.__init__()</code></a> to make sure the
     actor is properly initialized.</li>
-<li>We store the <code>input</code> argument in a <em>private</em> instance variable to use it later.</li>
-<li>We store the <code>output</code> argument in a <em>private</em> instance variable to use it later.</li>
+<li>We store the <code>input</code> argument in a <em>private</em> attribute to use it later.</li>
+<li>We store the <code>output</code> argument in a <em>private</em> attribute to use it later.</li>
 </ol>
 </details>
 <h5 id="frequenz.sdk.actor--the-_run-method">The <code>_run()</code> Method<a class="headerlink" href="#frequenz.sdk.actor--the-_run-method" title="Permanent link">¤</a></h5>
@@ -3070,7 +3070,9 @@ composed easily.</p>
 <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor.stop">stopped</a>), so it is very common to have an infinite loop
 in the <code>_run()</code> method, typically receiving messages from one or more channels
 (<a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels.Receiver">receivers</a>), processing them and sending the results to
-other channels (<a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels.Sender">senders</a>).</p>
+other channels (<a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels.Sender">senders</a>).
+However, it is worth noting that an actor can also be designed for a one-time execution
+or a limited number of runs, terminating upon completion.</p>
 <details class="example" open="open">
 <summary>Example echo actor</summary>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span> <span class="nn">frequenz.channels</span> <span class="kn">import</span> <span class="n">Receiver</span><span class="p">,</span> <span class="n">Sender</span>
@@ -3223,7 +3225,7 @@ annotations are numbered according to the order of execution.</p>
 </span><span id="__span-6-46"><a id="__codelineno-6-46" name="__codelineno-6-46" href="#__codelineno-6-46"></a>
 </span><span id="__span-6-47"><a id="__codelineno-6-47" name="__codelineno-6-47" href="#__codelineno-6-47"></a>    <span class="k">async</span> <span class="k">with</span> <span class="p">(</span>  <span class="c1"># (5)!</span>
 </span><span id="__span-6-48"><a id="__codelineno-6-48" name="__codelineno-6-48" href="#__codelineno-6-48"></a>        <span class="n">Actor1</span><span class="p">(</span><span class="n">input_channel</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">(),</span> <span class="n">middle_channel</span><span class="o">.</span><span class="n">new_sender</span><span class="p">(),</span> <span class="s2">&quot;actor1&quot;</span><span class="p">),</span>
-</span><span id="__span-6-49"><a id="__codelineno-6-49" name="__codelineno-6-49" href="#__codelineno-6-49"></a>        <span class="n">Actor2</span><span class="p">(</span><span class="n">middle_channel</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">(),</span> <span class="n">output_channel</span><span class="o">.</span><span class="n">new_sender</span><span class="p">(),</span> <span class="s2">&quot;actor1&quot;</span><span class="p">),</span>
+</span><span id="__span-6-49"><a id="__codelineno-6-49" name="__codelineno-6-49" href="#__codelineno-6-49"></a>        <span class="n">Actor2</span><span class="p">(</span><span class="n">middle_channel</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">(),</span> <span class="n">output_channel</span><span class="o">.</span><span class="n">new_sender</span><span class="p">(),</span> <span class="s2">&quot;actor2&quot;</span><span class="p">),</span>
 </span><span id="__span-6-50"><a id="__codelineno-6-50" name="__codelineno-6-50" href="#__codelineno-6-50"></a>    <span class="p">):</span>
 </span><span id="__span-6-51"><a id="__codelineno-6-51" name="__codelineno-6-51" href="#__codelineno-6-51"></a>        <span class="k">await</span> <span class="n">input_sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;Hello&quot;</span><span class="p">)</span>  <span class="c1"># (6)!</span>
 </span><span id="__span-6-52"><a id="__codelineno-6-52" name="__codelineno-6-52" href="#__codelineno-6-52"></a>        <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="n">output_receiver</span><span class="o">.</span><span class="n">receive</span><span class="p">()</span>  <span class="c1"># (7)!</span>
@@ -3239,7 +3241,7 @@ annotations are numbered according to the order of execution.</p>
    from an input channel to an output channel, adding some text.</p>
 </li>
 <li>
-<p>We define an async <code>main()</code> function with the main logic of our <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/asyncio.html#module-asyncio">asyncio</a> program.</p>
+<p>We define an async <code>main()</code> function within the main logic of our <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/asyncio.html#module-asyncio">asyncio</a> program.</p>
 </li>
 <li>
 <p>We start the <code>main()</code> function in the async loop using <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/asyncio-runner.html#asyncio.run"><code>asyncio.run()</code></a>.</p>
@@ -3374,8 +3376,8 @@ is a better fit for this example.</p>
 </li>
 <li>
 <p>We implement the <a href="#frequenz.sdk.actor--the-_run-method"><code>_run()</code></a> method that will receive messages from the two
-    channels using and send them to the output channel. The <code>run()</code> method will stop if
-    a <code>False</code> message is received.</p>
+    channels using <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/util/#frequenz.channels.util.select"><code>select()</code></a> and send them to the
+    output channel. The <code>run()</code> method will stop if a <code>False</code> message is received.</p>
 </li>
 <li>
 <p>We create the channels that will be used with the actor.</p>
@@ -3415,8 +3417,7 @@ is a better fit for this example.</p>
     sent to the <code>output</code> channel.</p>
 </li>
 <li>
-<p>Since <code>selected.value</code> is <code>True</code>, the loop will continue, going back to the and the
-    the loop will continue, going back to the
+<p>Since <code>selected.value</code> is <code>True</code>, the loop will continue, going back to the
     <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/util/#frequenz.channels.util.select"><code>select()</code></a> function.</p>
 </li>
 <li>
@@ -3589,7 +3590,9 @@ comprehensive guide on how to use and implement actors properly.</p>
 <span class="normal"><a href="#__codelineno-0-110">110</a></span>
 <span class="normal"><a href="#__codelineno-0-111">111</a></span>
 <span class="normal"><a href="#__codelineno-0-112">112</a></span>
-<span class="normal"><a href="#__codelineno-0-113">113</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16"></a><span class="k">class</span> <span class="nc">Actor</span><span class="p">(</span><span class="n">BackgroundService</span><span class="p">,</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-113">113</a></span>
+<span class="normal"><a href="#__codelineno-0-114">114</a></span>
+<span class="normal"><a href="#__codelineno-0-115">115</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16"></a><span class="k">class</span> <span class="nc">Actor</span><span class="p">(</span><span class="n">BackgroundService</span><span class="p">,</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
 </span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A primitive unit of computation that runs autonomously.</span>
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18"></a>
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19"></a><span class="sd">    To implement an actor, subclasses must implement the</span>
@@ -3649,44 +3652,46 @@ comprehensive guide on how to use and implement actors properly.</p>
 </span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73"></a>            <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
 </span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74"></a>
 </span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75"></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">_run_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Run this actor&#39;s task in a loop until `_restart_limit` is reached.</span>
+</span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the actor&#39;s task continuously, managing restarts, cancellation, and termination.</span>
 </span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77"></a>
-</span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78"></a><span class="sd">        Raises:</span>
-</span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79"></a><span class="sd">            asyncio.CancelledError: If this actor&#39;s `_run()` gets cancelled.</span>
-</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80"></a><span class="sd">            Exception: If this actor&#39;s `_run()` raises any other `Exception` and reached</span>
-</span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81"></a><span class="sd">                the maximum number of restarts.</span>
-</span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82"></a><span class="sd">            BaseException: If this actor&#39;s `_run()` raises any other `BaseException`.</span>
-</span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83"></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84"></a>        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Started.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
-</span><span id="__span-0-85"><a id="__codelineno-0-85" name="__codelineno-0-85"></a>        <span class="n">n_restarts</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="__span-0-86"><a id="__codelineno-0-86" name="__codelineno-0-86"></a>        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-</span><span id="__span-0-87"><a id="__codelineno-0-87" name="__codelineno-0-87"></a>            <span class="k">try</span><span class="p">:</span>
-</span><span id="__span-0-88"><a id="__codelineno-0-88" name="__codelineno-0-88"></a>                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delay_if_restart</span><span class="p">(</span><span class="n">n_restarts</span><span class="p">)</span>
-</span><span id="__span-0-89"><a id="__codelineno-0-89" name="__codelineno-0-89"></a>                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span>
-</span><span id="__span-0-90"><a id="__codelineno-0-90" name="__codelineno-0-90"></a>                <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: _run() returned without error.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
-</span><span id="__span-0-91"><a id="__codelineno-0-91" name="__codelineno-0-91"></a>            <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">CancelledError</span><span class="p">:</span>
-</span><span id="__span-0-92"><a id="__codelineno-0-92" name="__codelineno-0-92"></a>                <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Cancelled.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
-</span><span id="__span-0-93"><a id="__codelineno-0-93" name="__codelineno-0-93"></a>                <span class="k">raise</span>
-</span><span id="__span-0-94"><a id="__codelineno-0-94" name="__codelineno-0-94"></a>            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-except</span>
-</span><span id="__span-0-95"><a id="__codelineno-0-95" name="__codelineno-0-95"></a>                <span class="n">_logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Raised an unhandled exception.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
-</span><span id="__span-0-96"><a id="__codelineno-0-96" name="__codelineno-0-96"></a>                <span class="n">limit_str</span> <span class="o">=</span> <span class="s2">&quot;∞&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_restart_limit</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_restart_limit</span>
-</span><span id="__span-0-97"><a id="__codelineno-0-97" name="__codelineno-0-97"></a>                <span class="n">limit_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">n_restarts</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">limit_str</span><span class="si">}</span><span class="s2">)&quot;</span>
-</span><span id="__span-0-98"><a id="__codelineno-0-98" name="__codelineno-0-98"></a>                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_restart_limit</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">n_restarts</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_restart_limit</span><span class="p">:</span>
-</span><span id="__span-0-99"><a id="__codelineno-0-99" name="__codelineno-0-99"></a>                    <span class="n">n_restarts</span> <span class="o">+=</span> <span class="mi">1</span>
-</span><span id="__span-0-100"><a id="__codelineno-0-100" name="__codelineno-0-100"></a>                    <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Restarting </span><span class="si">%s</span><span class="s2">...&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span> <span class="n">limit_str</span><span class="p">)</span>
-</span><span id="__span-0-101"><a id="__codelineno-0-101" name="__codelineno-0-101"></a>                    <span class="k">continue</span>
-</span><span id="__span-0-102"><a id="__codelineno-0-102" name="__codelineno-0-102"></a>                <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-</span><span id="__span-0-103"><a id="__codelineno-0-103" name="__codelineno-0-103"></a>                    <span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Maximum restarts attempted </span><span class="si">%s</span><span class="s2">, bailing out...&quot;</span><span class="p">,</span>
-</span><span id="__span-0-104"><a id="__codelineno-0-104" name="__codelineno-0-104"></a>                    <span class="bp">self</span><span class="p">,</span>
-</span><span id="__span-0-105"><a id="__codelineno-0-105" name="__codelineno-0-105"></a>                    <span class="n">limit_str</span><span class="p">,</span>
-</span><span id="__span-0-106"><a id="__codelineno-0-106" name="__codelineno-0-106"></a>                <span class="p">)</span>
-</span><span id="__span-0-107"><a id="__codelineno-0-107" name="__codelineno-0-107"></a>                <span class="k">raise</span>
-</span><span id="__span-0-108"><a id="__codelineno-0-108" name="__codelineno-0-108"></a>            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-except</span>
-</span><span id="__span-0-109"><a id="__codelineno-0-109" name="__codelineno-0-109"></a>                <span class="n">_logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Raised a BaseException.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
-</span><span id="__span-0-110"><a id="__codelineno-0-110" name="__codelineno-0-110"></a>                <span class="k">raise</span>
-</span><span id="__span-0-111"><a id="__codelineno-0-111" name="__codelineno-0-111"></a>            <span class="k">break</span>
-</span><span id="__span-0-112"><a id="__codelineno-0-112" name="__codelineno-0-112"></a>
-</span><span id="__span-0-113"><a id="__codelineno-0-113" name="__codelineno-0-113"></a>        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Stopped.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+</span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78"></a><span class="sd">        This method handles the execution of the actor&#39;s task, including</span>
+</span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79"></a><span class="sd">        restarts for unhandled exceptions, cancellation, or normal termination.</span>
+</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80"></a>
+</span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81"></a><span class="sd">        Raises:</span>
+</span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82"></a><span class="sd">            asyncio.CancelledError: If the actor&#39;s `_run()` method is cancelled.</span>
+</span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83"></a><span class="sd">            Exception: If the actor&#39;s `_run()` method raises any other exception.</span>
+</span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84"></a><span class="sd">            BaseException: If the actor&#39;s `_run()` method raises any base exception.</span>
+</span><span id="__span-0-85"><a id="__codelineno-0-85" name="__codelineno-0-85"></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="__span-0-86"><a id="__codelineno-0-86" name="__codelineno-0-86"></a>        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Started.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+</span><span id="__span-0-87"><a id="__codelineno-0-87" name="__codelineno-0-87"></a>        <span class="n">n_restarts</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="__span-0-88"><a id="__codelineno-0-88" name="__codelineno-0-88"></a>        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+</span><span id="__span-0-89"><a id="__codelineno-0-89" name="__codelineno-0-89"></a>            <span class="k">try</span><span class="p">:</span>
+</span><span id="__span-0-90"><a id="__codelineno-0-90" name="__codelineno-0-90"></a>                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delay_if_restart</span><span class="p">(</span><span class="n">n_restarts</span><span class="p">)</span>
+</span><span id="__span-0-91"><a id="__codelineno-0-91" name="__codelineno-0-91"></a>                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span>
+</span><span id="__span-0-92"><a id="__codelineno-0-92" name="__codelineno-0-92"></a>                <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: _run() returned without error.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+</span><span id="__span-0-93"><a id="__codelineno-0-93" name="__codelineno-0-93"></a>            <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">CancelledError</span><span class="p">:</span>
+</span><span id="__span-0-94"><a id="__codelineno-0-94" name="__codelineno-0-94"></a>                <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Cancelled.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+</span><span id="__span-0-95"><a id="__codelineno-0-95" name="__codelineno-0-95"></a>                <span class="k">raise</span>
+</span><span id="__span-0-96"><a id="__codelineno-0-96" name="__codelineno-0-96"></a>            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-except</span>
+</span><span id="__span-0-97"><a id="__codelineno-0-97" name="__codelineno-0-97"></a>                <span class="n">_logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Raised an unhandled exception.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+</span><span id="__span-0-98"><a id="__codelineno-0-98" name="__codelineno-0-98"></a>                <span class="n">limit_str</span> <span class="o">=</span> <span class="s2">&quot;∞&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_restart_limit</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_restart_limit</span>
+</span><span id="__span-0-99"><a id="__codelineno-0-99" name="__codelineno-0-99"></a>                <span class="n">limit_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">n_restarts</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">limit_str</span><span class="si">}</span><span class="s2">)&quot;</span>
+</span><span id="__span-0-100"><a id="__codelineno-0-100" name="__codelineno-0-100"></a>                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_restart_limit</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">n_restarts</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_restart_limit</span><span class="p">:</span>
+</span><span id="__span-0-101"><a id="__codelineno-0-101" name="__codelineno-0-101"></a>                    <span class="n">n_restarts</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="__span-0-102"><a id="__codelineno-0-102" name="__codelineno-0-102"></a>                    <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Restarting </span><span class="si">%s</span><span class="s2">...&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span> <span class="n">limit_str</span><span class="p">)</span>
+</span><span id="__span-0-103"><a id="__codelineno-0-103" name="__codelineno-0-103"></a>                    <span class="k">continue</span>
+</span><span id="__span-0-104"><a id="__codelineno-0-104" name="__codelineno-0-104"></a>                <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+</span><span id="__span-0-105"><a id="__codelineno-0-105" name="__codelineno-0-105"></a>                    <span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Maximum restarts attempted </span><span class="si">%s</span><span class="s2">, bailing out...&quot;</span><span class="p">,</span>
+</span><span id="__span-0-106"><a id="__codelineno-0-106" name="__codelineno-0-106"></a>                    <span class="bp">self</span><span class="p">,</span>
+</span><span id="__span-0-107"><a id="__codelineno-0-107" name="__codelineno-0-107"></a>                    <span class="n">limit_str</span><span class="p">,</span>
+</span><span id="__span-0-108"><a id="__codelineno-0-108" name="__codelineno-0-108"></a>                <span class="p">)</span>
+</span><span id="__span-0-109"><a id="__codelineno-0-109" name="__codelineno-0-109"></a>                <span class="k">raise</span>
+</span><span id="__span-0-110"><a id="__codelineno-0-110" name="__codelineno-0-110"></a>            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-except</span>
+</span><span id="__span-0-111"><a id="__codelineno-0-111" name="__codelineno-0-111"></a>                <span class="n">_logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Raised a BaseException.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+</span><span id="__span-0-112"><a id="__codelineno-0-112" name="__codelineno-0-112"></a>                <span class="k">raise</span>
+</span><span id="__span-0-113"><a id="__codelineno-0-113" name="__codelineno-0-113"></a>            <span class="k">break</span>
+</span><span id="__span-0-114"><a id="__codelineno-0-114" name="__codelineno-0-114"></a>
+</span><span id="__span-0-115"><a id="__codelineno-0-115" name="__codelineno-0-115"></a>        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Stopped.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
 
