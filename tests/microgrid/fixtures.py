@@ -68,6 +68,12 @@ class _Mocks:
                 streamer,
                 dp._battery_power_wrapper.status_channel.new_sender(),
             )
+        if component_category == ComponentCategory.EV_CHARGER:
+            return cls(
+                mockgrid,
+                streamer,
+                dp._ev_power_wrapper.status_channel.new_sender(),
+            )
         raise ValueError(f"Unsupported component category: {component_category}")
 
     async def stop(self) -> None:

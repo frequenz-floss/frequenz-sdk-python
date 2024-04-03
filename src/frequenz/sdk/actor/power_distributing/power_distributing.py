@@ -18,7 +18,7 @@ from frequenz.channels import Receiver, Sender
 from frequenz.client.microgrid import ComponentCategory
 
 from ...actor._actor import Actor
-from ._component_managers import BatteryManager, ComponentManager
+from ._component_managers import BatteryManager, ComponentManager, EVChargerManager
 from ._component_status import ComponentPoolStatus
 from .request import Request
 from .result import Result
@@ -56,7 +56,7 @@ class PowerDistributingActor(Actor):
         requests_receiver: Receiver[Request],
         results_sender: Sender[Result],
         component_pool_status_sender: Sender[ComponentPoolStatus],
-        wait_for_data_sec: float = 2,
+        wait_for_data_sec: float,
         *,
         name: str | None = None,
     ) -> None:
@@ -86,7 +86,13 @@ class PowerDistributingActor(Actor):
 
         self._component_manager: ComponentManager
         if component_category == ComponentCategory.BATTERY:
-            self._component_manager = BatteryManager(component_pool_status_sender)
+            self._component_manager = BatteryManager(
+                component_pool_status_sender, results_sender
+            )
+        elif component_category == ComponentCategory.EV_CHARGER:
+            self._component_manager = EVChargerManager(
+                component_pool_status_sender, results_sender
+            )
         else:
             raise ValueError(
                 f"PowerDistributor doesn't support controlling: {component_category}"
@@ -107,8 +113,7 @@ class PowerDistributingActor(Actor):
         await asyncio.sleep(self._wait_for_data_sec)
 
         async for request in self._requests_receiver:
-            result = await self._component_manager.distribute_power(request)
-            await self._result_sender.send(result)
+            await self._component_manager.distribute_power(request)
 
     async def stop(self, msg: str | None = None) -> None:
         """Stop this actor.
