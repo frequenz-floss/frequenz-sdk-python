@@ -2585,7 +2585,7 @@ flow of power.</p>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component_graph.ComponentGraph.components" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">components</span><span class="p">(</span>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">components</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">component_ids</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#set">set</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">component_categories</span><span class="p">:</span> <span class="p">(</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#set">set</a></span><span class="p">[</span><span class="n"><span title="frequenz.client.microgrid.ComponentCategory">ComponentCategory</span></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
@@ -2728,7 +2728,7 @@ the provided <code>component_ids</code> and <code>component_categories</code> va
   </span>
 
 <a href="#frequenz.sdk.microgrid.component_graph.ComponentGraph.connections" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">connections</span><span class="p">(</span>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">connections</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">start</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#set">set</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">end</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#set">set</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#set">set</a></span><span class="p">[</span><span class="n"><span title="frequenz.client.microgrid.Connection">Connection</span></span><span class="p">]</span>
@@ -2872,7 +2872,7 @@ the provided <code>start</code>/<code>end</code> choices.</p>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component_graph.ComponentGraph.dfs" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">dfs</span><span class="p">(</span>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">dfs</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">current_node</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">,</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">visited</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#set">set</a></span><span class="p">[</span><span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">],</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">condition</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable">Callable</a></span><span class="p">[[</span><span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">],</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span><span class="p">],</span>
@@ -3042,7 +3042,7 @@ once a component fulfills the condition.</p>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component_graph.ComponentGraph.find_first_descendant_component" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">find_first_descendant_component</span><span class="p">(</span>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">find_first_descendant_component</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">*</span><span class="p">,</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">root_category</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.ComponentCategory">ComponentCategory</span></span><span class="p">,</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">descendant_categories</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Iterable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable">Iterable</a></span><span class="p">[</span><span class="n"><span title="frequenz.client.microgrid.ComponentCategory">ComponentCategory</span></span><span class="p">]</span>
@@ -3219,7 +3219,7 @@ first descendant component in.</p>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component_graph.ComponentGraph.is_battery_chain" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">is_battery_chain</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">is_battery_chain</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
 </span></code></pre></div>
 
   <div class="doc doc-contents ">
@@ -3327,7 +3327,7 @@ inverter.</p>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component_graph.ComponentGraph.is_battery_inverter" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">is_battery_inverter</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">is_battery_inverter</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
 </span></code></pre></div>
 
   <div class="doc doc-contents ">
@@ -3427,7 +3427,7 @@ inverter.</p>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component_graph.ComponentGraph.is_battery_meter" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">is_battery_meter</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">is_battery_meter</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
 </span></code></pre></div>
 
   <div class="doc doc-contents ">
@@ -3535,7 +3535,7 @@ predecessors.</p>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component_graph.ComponentGraph.is_chp" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">is_chp</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">is_chp</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
 </span></code></pre></div>
 
   <div class="doc doc-contents ">
@@ -3635,7 +3635,7 @@ predecessors.</p>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component_graph.ComponentGraph.is_chp_chain" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">is_chp_chain</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">is_chp_chain</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
 </span></code></pre></div>
 
   <div class="doc doc-contents ">
@@ -3740,7 +3740,7 @@ predecessors.</p>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component_graph.ComponentGraph.is_chp_meter" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">is_chp_meter</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">is_chp_meter</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
 </span></code></pre></div>
 
   <div class="doc doc-contents ">
@@ -3845,7 +3845,7 @@ predecessors.</p>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component_graph.ComponentGraph.is_ev_charger" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">is_ev_charger</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">is_ev_charger</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
 </span></code></pre></div>
 
   <div class="doc doc-contents ">
@@ -3945,7 +3945,7 @@ predecessors.</p>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component_graph.ComponentGraph.is_ev_charger_chain" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">is_ev_charger_chain</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">is_ev_charger_chain</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
 </span></code></pre></div>
 
   <div class="doc doc-contents ">
@@ -4053,7 +4053,7 @@ EV charger.</p>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component_graph.ComponentGraph.is_ev_charger_meter" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">is_ev_charger_meter</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">is_ev_charger_meter</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
 </span></code></pre></div>
 
   <div class="doc doc-contents ">
@@ -4161,7 +4161,7 @@ successors.</p>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component_graph.ComponentGraph.is_pv_chain" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">is_pv_chain</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">is_pv_chain</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
 </span></code></pre></div>
 
   <div class="doc doc-contents ">
@@ -4266,7 +4266,7 @@ successors.</p>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component_graph.ComponentGraph.is_pv_inverter" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">is_pv_inverter</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">is_pv_inverter</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
 </span></code></pre></div>
 
   <div class="doc doc-contents ">
@@ -4366,7 +4366,7 @@ successors.</p>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component_graph.ComponentGraph.is_pv_meter" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">is_pv_meter</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">is_pv_meter</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
 </span></code></pre></div>
 
   <div class="doc doc-contents ">
@@ -4474,7 +4474,7 @@ successors.</p>
   </span>
 
 <a href="#frequenz.sdk.microgrid.component_graph.ComponentGraph.predecessors" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">predecessors</span><span class="p">(</span><span class="n">component_id</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#set">set</a></span><span class="p">[</span><span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">]</span>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">predecessors</span><span class="p">(</span><span class="n">component_id</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#set">set</a></span><span class="p">[</span><span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">]</span>
 </span></code></pre></div>
 
   <div class="doc doc-contents ">
@@ -4614,7 +4614,7 @@ i.e. for which there is a connection from each of these components to
   </span>
 
 <a href="#frequenz.sdk.microgrid.component_graph.ComponentGraph.successors" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">successors</span><span class="p">(</span><span class="n">component_id</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#set">set</a></span><span class="p">[</span><span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">]</span>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">successors</span><span class="p">(</span><span class="n">component_id</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#set">set</a></span><span class="p">[</span><span class="n"><span title="frequenz.client.microgrid.Component">Component</span></span><span class="p">]</span>
 </span></code></pre></div>
 
   <div class="doc doc-contents ">
