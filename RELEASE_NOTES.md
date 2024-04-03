@@ -20,7 +20,7 @@
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+- Warning messages are logged when multiple instances of `*Pool`s are created for the same set of batteries, with the same priority values.
 
 ## Bug Fixes
 
