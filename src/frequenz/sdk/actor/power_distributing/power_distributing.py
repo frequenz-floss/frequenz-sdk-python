@@ -15,10 +15,15 @@ Purpose of this actor is to keep SoC level of each component at the equal level.
 import asyncio
 
 from frequenz.channels import Receiver, Sender
-from frequenz.client.microgrid import ComponentCategory, ComponentType
+from frequenz.client.microgrid import ComponentCategory, ComponentType, InverterType
 
 from ...actor._actor import Actor
-from ._component_managers import BatteryManager, ComponentManager, EVChargerManager
+from ._component_managers import (
+    BatteryManager,
+    ComponentManager,
+    EVChargerManager,
+    PVManager,
+)
 from ._component_status import ComponentPoolStatus
 from .request import Request
 from .result import Result
@@ -100,6 +105,13 @@ class PowerDistributingActor(Actor):
             )
         elif component_category == ComponentCategory.EV_CHARGER:
             self._component_manager = EVChargerManager(
+                component_pool_status_sender, results_sender
+            )
+        elif (
+            component_category == ComponentCategory.INVERTER
+            and component_type == InverterType.SOLAR
+        ):
+            self._component_manager = PVManager(
                 component_pool_status_sender, results_sender
             )
         else:
