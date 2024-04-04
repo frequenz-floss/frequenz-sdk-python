@@ -92,6 +92,7 @@ class EVChargerManager(ComponentManager):
     @override
     async def stop(self) -> None:
         """Stop the ev charger manager."""
+        await self._voltage_cache.stop()
         await self._component_pool_status_tracker.stop()
 
     def _get_ev_charger_ids(self) -> collections.abc.Set[int]:

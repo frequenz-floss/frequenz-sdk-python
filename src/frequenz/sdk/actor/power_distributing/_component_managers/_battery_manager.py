@@ -188,6 +188,10 @@ class BatteryManager(ComponentManager):
     @override
     async def stop(self) -> None:
         """Stop the battery data manager."""
+        for bat_cache in self._battery_caches.values():
+            await bat_cache.stop()
+        for inv_cache in self._inverter_caches.values():
+            await inv_cache.stop()
         await self._component_pool_status_tracker.stop()
 
     @override
