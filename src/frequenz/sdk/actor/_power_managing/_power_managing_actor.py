@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 
 from frequenz.channels import Receiver, Sender, select, selected_from
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
-from frequenz.client.microgrid import ComponentCategory
+from frequenz.client.microgrid import ComponentCategory, ComponentType
 from typing_extensions import override
 
 from ...timeseries._base_types import SystemBounds
@@ -33,6 +33,7 @@ class PowerManagingActor(Actor):
     def __init__(  # pylint: disable=too-many-arguments
         self,
         component_category: ComponentCategory,
+        component_type: ComponentType | None,
         proposals_receiver: Receiver[Proposal],
         bounds_subscription_receiver: Receiver[ReportRequest],
         power_distributing_requests_sender: Sender[power_distributing.Request],
@@ -47,6 +48,13 @@ class PowerManagingActor(Actor):
         Args:
             component_category: The category of the component this power manager
                 instance is going to support.
+            component_type: The type of the component of the given category that this
+                actor is responsible for.  This is used only when the component category
+                is not enough to uniquely identify the component.  For example, when the
+                category is `ComponentCategory.INVERTER`, the type is needed to identify
+                the inverter as a solar inverter or a battery inverter.  This can be
+                `None` when the component category is enough to uniquely identify the
+                component.
             proposals_receiver: The receiver for proposals.
             bounds_subscription_receiver: The receiver for bounds subscriptions.
             power_distributing_requests_sender: The sender for power distribution
@@ -65,6 +73,7 @@ class PowerManagingActor(Actor):
             )
 
         self._component_category = component_category
+        self._component_type = component_type
         self._bounds_subscription_receiver = bounds_subscription_receiver
         self._power_distributing_requests_sender = power_distributing_requests_sender
         self._power_distributing_results_receiver = power_distributing_results_receiver

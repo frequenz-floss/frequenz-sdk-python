@@ -13,7 +13,7 @@ from frequenz.channels import Broadcast
 # pylint seems to think this is a cyclic import, but it is not.
 #
 # pylint: disable=cyclic-import
-from frequenz.client.microgrid import ComponentCategory
+from frequenz.client.microgrid import ComponentCategory, ComponentType
 
 # A number of imports had to be done inside functions where they are used, to break
 # import cycles.
@@ -37,16 +37,27 @@ class PowerWrapper:
     """Wrapper around the power managing and power distributing actors."""
 
     def __init__(
-        self, component_category: ComponentCategory, channel_registry: ChannelRegistry
+        self,
+        component_category: ComponentCategory,
+        component_type: ComponentType | None,
+        channel_registry: ChannelRegistry,
     ):
         """Initialize the power control.
 
         Args:
             component_category: The category of the components that actors started by
                 this instance of the PowerWrapper will be responsible for.
+            component_type: The type of the component of the given category that this
+                actor is responsible for.  This is used only when the component category
+                is not enough to uniquely identify the component.  For example, when the
+                category is `ComponentCategory.INVERTER`, the type is needed to identify
+                the inverter as a solar inverter or a battery inverter.  This can be
+                `None` when the component category is enough to uniquely identify the
+                component.
             channel_registry: A channel registry for use in the actors.
         """
         self._component_category = component_category
+        self._component_type = component_type
         self._channel_registry = channel_registry
 
         self.status_channel: Broadcast[ComponentPoolStatus] = Broadcast(
@@ -95,6 +106,7 @@ class PowerWrapper:
 
         self._power_managing_actor = PowerManagingActor(
             component_category=self._component_category,
+            component_type=self._component_type,
             proposals_receiver=self.proposal_channel.new_receiver(),
             bounds_subscription_receiver=(
                 self.bounds_subscription_channel.new_receiver()
@@ -134,6 +146,7 @@ class PowerWrapper:
         # will not be available in the high level interface.
         self._power_distributing_actor = PowerDistributingActor(
             component_category=self._component_category,
+            component_type=self._component_type,
             requests_receiver=self._power_distribution_requests_channel.new_receiver(),
             results_sender=self._power_distribution_results_channel.new_sender(),
             component_pool_status_sender=self.status_channel.new_sender(),
