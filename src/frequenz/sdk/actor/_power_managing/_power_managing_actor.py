@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 
 from frequenz.channels import Receiver, Sender, select, selected_from
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
-from frequenz.client.microgrid import ComponentCategory, ComponentType
+from frequenz.client.microgrid import ComponentCategory, ComponentType, InverterType
 from typing_extensions import override
 
 from ...timeseries._base_types import SystemBounds
@@ -150,6 +150,12 @@ class PowerManagingActor(Actor):
         elif self._component_category is ComponentCategory.EV_CHARGER:
             ev_charger_pool = microgrid.ev_charger_pool(component_ids)
             bounds_receiver = ev_charger_pool._system_power_bounds.new_receiver()
+        elif (
+            self._component_category is ComponentCategory.INVERTER
+            and self._component_type is InverterType.SOLAR
+        ):
+            pv_pool = microgrid.pv_pool(component_ids)
+            bounds_receiver = pv_pool._system_power_bounds.new_receiver()
         # pylint: enable=protected-access
         else:
             err = (
