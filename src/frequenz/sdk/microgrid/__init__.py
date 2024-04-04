@@ -124,6 +124,7 @@ from ._data_pipeline import (
     grid,
     logical_meter,
     producer,
+    pv_pool,
     voltage,
 )
 
@@ -149,5 +150,6 @@ __all__ = [
     "frequency",
     "logical_meter",
     "producer",
+    "pv_pool",
     "voltage",
 ]
