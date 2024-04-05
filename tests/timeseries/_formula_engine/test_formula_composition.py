@@ -36,9 +36,7 @@ class TestFormulaComposition:
             stack.push_async_callback(logical_meter.stop)
 
             battery_pool = microgrid.battery_pool()
-            stack.push_async_callback(
-                battery_pool._battery_pool.stop  # pylint: disable=protected-access
-            )
+            stack.push_async_callback(battery_pool.stop)
 
             pv_pool = microgrid.pv_pool()
             stack.push_async_callback(pv_pool.stop)
@@ -116,9 +114,7 @@ class TestFormulaComposition:
         count = 0
         async with mockgrid, AsyncExitStack() as stack:
             battery_pool = microgrid.battery_pool()
-            stack.push_async_callback(
-                battery_pool._battery_pool.stop  # pylint: disable=protected-access
-            )
+            stack.push_async_callback(battery_pool.stop)
 
             pv_pool = microgrid.pv_pool()
             stack.push_async_callback(pv_pool.stop)
@@ -160,9 +156,7 @@ class TestFormulaComposition:
         count = 0
         async with mockgrid, AsyncExitStack() as stack:
             battery_pool = microgrid.battery_pool()
-            stack.push_async_callback(
-                battery_pool._battery_pool.stop  # pylint: disable=protected-access
-            )
+            stack.push_async_callback(battery_pool.stop)
 
             pv_pool = microgrid.pv_pool()
             stack.push_async_callback(pv_pool.stop)

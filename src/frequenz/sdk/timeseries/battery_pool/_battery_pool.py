@@ -429,3 +429,7 @@ class BatteryPool:
             )
 
         return self._battery_pool._active_methods[method_name]
+
+    async def stop(self) -> None:
+        """Stop all tasks and channels owned by the BatteryPool."""
+        await self._battery_pool.stop()
