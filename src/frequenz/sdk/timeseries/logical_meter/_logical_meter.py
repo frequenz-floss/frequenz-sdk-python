@@ -13,7 +13,7 @@ from ...actor import ChannelRegistry, ComponentMetricRequest
 from .._quantities import Power, Quantity
 from ..formula_engine import FormulaEngine
 from ..formula_engine._formula_engine_pool import FormulaEnginePool
-from ..formula_engine._formula_generators import CHPPowerFormula, PVPowerFormula
+from ..formula_engine._formula_generators import CHPPowerFormula
 
 
 class LogicalMeter:
@@ -42,17 +42,18 @@ class LogicalMeter:
         )
 
         logical_meter = microgrid.logical_meter()
+        pv_pool = microgrid.pv_pool()
         grid = microgrid.grid()
 
         # Get a receiver for a builtin formula
-        pv_power_recv = logical_meter.pv_power.new_receiver()
+        pv_power_recv = pv_pool.power.new_receiver()
         async for pv_power_sample in pv_power_recv:
             print(pv_power_sample)
 
         # or compose formulas to create a new formula
         net_power_recv = (
             (
-                grid.power - logical_meter.pv_power
+                grid.power - pv_pool.power
             )
             .build("net_power")
             .new_receiver()
@@ -122,28 +123,6 @@ class LogicalMeter:
         return self._formula_pool.from_string(
             formula, component_metric_id, nones_are_zeros=nones_are_zeros
         )
-
-    @property
-    def pv_power(self) -> FormulaEngine[Power]:
-        """Fetch the PV power in the microgrid.
-
-        This formula produces values that are in the Passive Sign Convention (PSC).
-
-        If a formula engine to calculate PV power is not already running, it will be
-        started.
-
-        A receiver from the formula engine can be created using the `new_receiver`
-        method.
-
-        Returns:
-            A FormulaEngine that will calculate and stream PV total power.
-        """
-        engine = self._formula_pool.from_power_formula_generator(
-            "pv_power",
-            PVPowerFormula,
-        )
-        assert isinstance(engine, FormulaEngine)
-        return engine
 
     @property
     def chp_power(self) -> FormulaEngine[Power]:

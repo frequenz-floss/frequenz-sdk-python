@@ -14,6 +14,8 @@ from ...actor import _power_managing
 from ...timeseries import Bounds
 from .._base_types import SystemBounds
 from .._quantities import Power
+from ..formula_engine import FormulaEngine
+from ..formula_engine._formula_generators import FormulaGeneratorConfig, PVPowerFormula
 from ._pv_pool_reference_store import PVPoolReferenceStore
 from ._result_types import PVPoolReport
 
@@ -132,6 +134,32 @@ class PVPool:
         return self._pv_pool_ref.component_ids
 
     @property
+    def power(self) -> FormulaEngine[Power]:
+        """Fetch the total power for the EV Chargers in the pool.
+
+        This formula produces values that are in the Passive Sign Convention (PSC).
+
+        If a formula engine to calculate EV Charger power is not already running, it
+        will be started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream the total power of all EV
+                Chargers.
+        """
+        engine = self._pv_pool_ref.formula_pool.from_power_formula_generator(
+            "pv_power",
+            PVPowerFormula,
+            FormulaGeneratorConfig(
+                component_ids=self._pv_pool_ref.component_ids,
+            ),
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
     def power_status(self) -> ReceiverFetcher[PVPoolReport]:
         """Get a receiver to receive new power status reports when they change.
 
@@ -162,6 +190,10 @@ class PVPool:
         # More details on why the cast is needed here:
         # https://github.com/frequenz-floss/frequenz-sdk-python/issues/823
         return typing.cast(ReceiverFetcher[PVPoolReport], channel)
+
+    async def stop(self) -> None:
+        """Stop all tasks and channels owned by the PVPool."""
+        await self._pv_pool_ref.stop()
 
     @property
     def _system_power_bounds(self) -> ReceiverFetcher[SystemBounds]:

@@ -44,11 +44,11 @@ class TestLogicalMeter:  # pylint: disable=too-many-public-methods
         mockgrid.add_solar_inverters(2)
 
         async with mockgrid, AsyncExitStack() as stack:
-            logical_meter = microgrid.logical_meter()
-            stack.push_async_callback(logical_meter.stop)
-            pv_power_receiver = logical_meter.pv_power.new_receiver()
+            pv_pool = microgrid.pv_pool()
+            stack.push_async_callback(pv_pool.stop)
+            pv_power_receiver = pv_pool.power.new_receiver()
 
-            await mockgrid.mock_resampler.send_meter_power([-1.0, -2.0])
+            await mockgrid.mock_resampler.send_pv_inverter_power([-1.0, -2.0])
             assert (await pv_power_receiver.receive()).value == Power.from_watts(-3.0)
 
     async def test_pv_power_no_meter(self, mocker: MockerFixture) -> None:
@@ -57,9 +57,9 @@ class TestLogicalMeter:  # pylint: disable=too-many-public-methods
         mockgrid.add_solar_inverters(2, no_meter=True)
 
         async with mockgrid, AsyncExitStack() as stack:
-            logical_meter = microgrid.logical_meter()
-            stack.push_async_callback(logical_meter.stop)
-            pv_power_receiver = logical_meter.pv_power.new_receiver()
+            pv_pool = microgrid.pv_pool()
+            stack.push_async_callback(pv_pool.stop)
+            pv_power_receiver = pv_pool.power.new_receiver()
 
             await mockgrid.mock_resampler.send_pv_inverter_power([-1.0, -2.0])
             assert (await pv_power_receiver.receive()).value == Power.from_watts(-3.0)
@@ -70,9 +70,9 @@ class TestLogicalMeter:  # pylint: disable=too-many-public-methods
             MockMicrogrid(grid_meter=True, mocker=mocker) as mockgrid,
             AsyncExitStack() as stack,
         ):
-            logical_meter = microgrid.logical_meter()
-            stack.push_async_callback(logical_meter.stop)
-            pv_power_receiver = logical_meter.pv_power.new_receiver()
+            pv_pool = microgrid.pv_pool()
+            stack.push_async_callback(pv_pool.stop)
+            pv_power_receiver = pv_pool.power.new_receiver()
 
             await mockgrid.mock_resampler.send_non_existing_component_value()
             assert (await pv_power_receiver.receive()).value == Power.zero()
