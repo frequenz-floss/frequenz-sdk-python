@@ -163,8 +163,6 @@ class TestEVChargerPoolControl:
                 0.05,
             )
 
-        await asyncio.sleep(1)
-
     def _assert_report(  # pylint: disable=too-many-arguments
         self,
         report: EVChargerPoolReport,
