@@ -77,7 +77,9 @@ class EVChargerManager(ComponentManager):
     @override
     async def start(self) -> None:
         """Start the ev charger data manager."""
-        self._task = asyncio.create_task(self._run_forever())
+        # Need to start a task only if there are EV chargers in the component graph.
+        if self._ev_charger_ids:
+            self._task = asyncio.create_task(self._run_forever())
 
     @override
     async def distribute_power(self, request: Request) -> None:
@@ -86,7 +88,8 @@ class EVChargerManager(ComponentManager):
         Args:
             request: Request to get the distribution for.
         """
-        await self._target_power_tx.send(request)
+        if self._ev_charger_ids:
+            await self._target_power_tx.send(request)
 
     @override
     async def stop(self) -> None:
