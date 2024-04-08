@@ -10,7 +10,6 @@ from datetime import datetime, timedelta, timezone
 
 import grpc
 from frequenz.channels import Broadcast, Sender, merge, select, selected_from
-from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.microgrid import ApiClient, ComponentCategory, EVChargerData
 from typing_extensions import override
 
@@ -30,7 +29,6 @@ from ._states import EvcState, EvcStates
 _logger = logging.getLogger(__name__)
 
 _DEFAULT_API_REQUEST_TIMEOUT = timedelta(seconds=5.0)
-_TGT_POWER_RESEND_INTERVAL = timedelta(seconds=5.0)
 
 
 class EVChargerManager(ComponentManager):
@@ -223,10 +221,8 @@ class EVChargerManager(ComponentManager):
         )
         target_power_rx = self._target_power_channel.new_receiver()
         api_request_timeout = _DEFAULT_API_REQUEST_TIMEOUT
-        resend_timer = Timer(_TGT_POWER_RESEND_INTERVAL, SkipMissedAndDrift())
         latest_target_powers: dict[int, Power] = {}
-        async for selected in select(ev_charger_data_rx, target_power_rx, resend_timer):
-            resending = False
+        async for selected in select(ev_charger_data_rx, target_power_rx):
             target_power_changes = {}
             now = datetime.now(tz=timezone.utc)
 
@@ -277,21 +273,14 @@ class EVChargerManager(ComponentManager):
                     diff_power = allocated_power - self._target_power
                     target_power_changes = self._deallocate_unused_power(diff_power)
 
-            elif selected_from(selected, resend_timer):
-                target_power_changes = latest_target_powers
-                resending = True
-
             if target_power_changes:
                 _logger.debug("Setting power to EV chargers: %s", target_power_changes)
             else:
                 continue
-            if not resending:
-                for component_id, power in target_power_changes.items():
-                    self._evc_states.get(component_id).update_last_allocation(
-                        power, now
-                    )
+            for component_id, power in target_power_changes.items():
+                self._evc_states.get(component_id).update_last_allocation(power, now)
 
-                latest_target_powers.update(target_power_changes)
+            latest_target_powers.update(target_power_changes)
             result = await self._set_api_power(
                 api, target_power_changes, api_request_timeout
             )
