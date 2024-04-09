@@ -74,15 +74,30 @@ In locations without a consumer, this method streams zero values.
 
 ## Producers: PV Arrays, CHP
 
-The total {{glossary("pv", "PV")}} power production in a microgrid can be streamed
-through [`pv_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.pv_power] , and
-similarly the total CHP production in a site can be streamed through
-[`chp_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.chp_power].  And total
-producer power is available through
-[`producer_power`][frequenz.sdk.timeseries.producer.Producer.power].
+The total CHP production in a site can be streamed through
+[`chp_power`][frequenz.sdk.timeseries.logical_meter.LogicalMeter.chp_power].  PV Power
+is available through the PV pool described below.  And total producer power is available
+through [`microgrid.producer().power`][frequenz.sdk.timeseries.producer.Producer.power].
 
 As is the case with the other methods, if PV Arrays or CHPs are not available in a
 microgrid, the corresponding methods stream zero values.
+
+## PV Arrays
+
+The total PV power production is available through
+[`pv_pool`][frequenz.sdk.microgrid.pv_pool]'s
+[`power`][frequenz.sdk.timeseries.pv_pool.PVPool.power].  The PV pool by default uses
+all PV inverters available at a location, but PV pool instances can be created for
+subsets of PV inverters if necessary, by specifying the inverter ids.
+
+The `pv_pool` also provides available power bounds through the
+[`power_status`][frequenz.sdk.timeseries.pv_pool.PVPool.power_status] method.
+
+The `pv_pool` also provides a control method
+[`propose_power`][frequenz.sdk.timeseries.pv_pool.PVPool.propose_power], which accepts
+values in the {{glossary("psc", "Passive Sign Convention")}} and supports only
+production.
+
 
 ## Batteries
 
