@@ -115,7 +115,14 @@ class EVChargerPool:
                 actors with a higher priority.  If None, the power bounds will be set to
                 the maximum power of the batteries in the pool.  This is currently and
                 experimental feature.
+
+        Raises:
+            EVChargerPoolError: If a discharge power for EV chargers is requested.
         """
+        if power is not None and power < Power.zero():
+            raise EVChargerPoolError(
+                "Discharging from EV chargers is currently not supported."
+            )
         await self._ev_charger_pool.power_manager_requests_sender.send(
             _power_managing.Proposal(
                 source_id=self._source_id,
