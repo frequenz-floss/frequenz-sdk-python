@@ -127,6 +127,16 @@ The [`ev_charger_pool`][frequenz.sdk.microgrid.ev_charger_pool] offers a
 [`power`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power] method that
 streams the total power measured for all the {{glossary("ev-charger", "EV Chargers")}}
 at a site.
+
+The `ev_charger_pool` also provides available power bounds through the
+[`power_status`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power_status]
+method.
+
+
+The `ev_charger_pool` also provides a control method
+[`propose_power`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.propose_power],
+which accepts values in the {{glossary("psc", "Passive Sign Convention")}} and supports
+only charging.
 """  # noqa: D205, D400
 
 from ..actor import ResamplerConfig
