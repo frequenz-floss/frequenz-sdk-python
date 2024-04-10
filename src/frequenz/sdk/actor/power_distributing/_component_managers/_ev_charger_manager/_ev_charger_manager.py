@@ -395,8 +395,7 @@ class EVChargerManager(ComponentManager):
             ev_to_deallocate = evc.last_allocation - evc.power
             if ev_to_deallocate <= Power.zero():
                 continue
-            if ev_to_deallocate >= to_deallocate - deallocated_power:
-                ev_to_deallocate = to_deallocate - deallocated_power
+            ev_to_deallocate = min(ev_to_deallocate, to_deallocate - deallocated_power)
             tgt_power = evc.last_allocation - ev_to_deallocate
             if tgt_power < min_power:
                 tgt_power = Power.zero()
