@@ -68,6 +68,9 @@ class PVInverterStatusTracker(ComponentStatusTracker, BackgroundService):
             status_sender: Sender to send the status of the PV inverter.
             set_power_result_receiver: Receiver for the power assignment result.
         """
+        BackgroundService.__init__(
+            self, name=f"PVInverterStatusTracker({component_id})"
+        )
         self._component_id = component_id
         self._max_data_age = max_data_age
         self._status_sender = status_sender
@@ -77,10 +80,6 @@ class PVInverterStatusTracker(ComponentStatusTracker, BackgroundService):
         self._blocking_status = BlockingStatus(
             min_duration=timedelta(seconds=1.0),
             max_duration=max_blocking_duration,
-        )
-
-        BackgroundService.__init__(
-            self, name=f"PVInverterStatusTracker({component_id})"
         )
 
     @override
