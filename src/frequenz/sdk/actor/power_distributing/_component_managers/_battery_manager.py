@@ -672,13 +672,12 @@ class BatteryManager(ComponentManager):
                     battery_ids,
                     request_timeout.total_seconds(),
                 )
-            except Exception as e:  # pylint: disable=broad-except
+            except Exception:  # pylint: disable=broad-except
                 failed_power += distribution[inverter_id]
                 failed_batteries = failed_batteries.union(battery_ids)
-                _logger.warning(
-                    "Unknown error while setting power to battery %s: %s",
+                _logger.exception(
+                    "Unknown error while setting power to batteries: %s",
                     battery_ids,
-                    e,
                 )
 
         return failed_power, failed_batteries

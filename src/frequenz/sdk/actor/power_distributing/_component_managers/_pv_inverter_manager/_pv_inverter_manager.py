@@ -191,21 +191,20 @@ class PVManager(ComponentManager):
                 succeeded_components.add(component_id)
 
             match task.exception():
-                case asyncio.CancelledError:
+                case asyncio.CancelledError():
                     _logger.warning(
-                        "Timeout while setting power to EV charger %s", component_id
+                        "Timeout while setting power to PV inverter %s", component_id
                     )
-                case grpc.aio.AioRpcError as err:
+                case grpc.aio.AioRpcError() as err:
                     _logger.warning(
-                        "Error while setting power to EV charger %s: %s",
+                        "Error while setting power to PV inverter %s: %s",
                         component_id,
                         err,
                     )
-                case e if e is not None:
-                    _logger.warning(
-                        "Unknown error while setting power to EV charger %s: %s",
+                case Exception():
+                    _logger.exception(
+                        "Unknown error while setting power to PV inverter: %s",
                         component_id,
-                        e,
                     )
         if failed_components:
             await self._results_sender.send(
