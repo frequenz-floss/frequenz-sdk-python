@@ -98,13 +98,15 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._resampling_actor: _ActorInfo | None = None
 
         self._battery_power_wrapper = PowerWrapper(
-            ComponentCategory.BATTERY, None, self._channel_registry
+            self._channel_registry, component_category=ComponentCategory.BATTERY
         )
         self._ev_power_wrapper = PowerWrapper(
-            ComponentCategory.EV_CHARGER, None, self._channel_registry
+            self._channel_registry, component_category=ComponentCategory.EV_CHARGER
         )
         self._pv_power_wrapper = PowerWrapper(
-            ComponentCategory.INVERTER, InverterType.SOLAR, self._channel_registry
+            self._channel_registry,
+            component_category=ComponentCategory.INVERTER,
+            component_type=InverterType.SOLAR,
         )
 
         self._logical_meter: LogicalMeter | None = None

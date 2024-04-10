@@ -32,13 +32,14 @@ class PowerManagingActor(Actor):
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        component_category: ComponentCategory,
-        component_type: ComponentType | None,
         proposals_receiver: Receiver[Proposal],
         bounds_subscription_receiver: Receiver[ReportRequest],
         power_distributing_requests_sender: Sender[power_distributing.Request],
         power_distributing_results_receiver: Receiver[power_distributing.Result],
         channel_registry: ChannelRegistry,
+        *,
+        component_category: ComponentCategory,
+        component_type: ComponentType | None = None,
         # arguments to actors need to serializable, so we pass an enum for the algorithm
         # instead of an instance of the algorithm.
         algorithm: Algorithm = Algorithm.MATRYOSHKA,
@@ -46,6 +47,13 @@ class PowerManagingActor(Actor):
         """Create a new instance of the power manager.
 
         Args:
+            proposals_receiver: The receiver for proposals.
+            bounds_subscription_receiver: The receiver for bounds subscriptions.
+            power_distributing_requests_sender: The sender for power distribution
+                requests.
+            power_distributing_results_receiver: The receiver for power distribution
+                results.
+            channel_registry: The channel registry.
             component_category: The category of the component this power manager
                 instance is going to support.
             component_type: The type of the component of the given category that this
@@ -55,13 +63,6 @@ class PowerManagingActor(Actor):
                 the inverter as a solar inverter or a battery inverter.  This can be
                 `None` when the component category is enough to uniquely identify the
                 component.
-            proposals_receiver: The receiver for proposals.
-            bounds_subscription_receiver: The receiver for bounds subscriptions.
-            power_distributing_requests_sender: The sender for power distribution
-                requests.
-            power_distributing_results_receiver: The receiver for power distribution
-                results.
-            channel_registry: The channel registry.
             algorithm: The power management algorithm to use.
 
         Raises:

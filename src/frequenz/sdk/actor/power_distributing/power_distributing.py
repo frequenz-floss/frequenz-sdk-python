@@ -57,18 +57,25 @@ class PowerDistributingActor(Actor):
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        component_category: ComponentCategory,
-        component_type: ComponentType | None,
         requests_receiver: Receiver[Request],
         results_sender: Sender[Result],
         component_pool_status_sender: Sender[ComponentPoolStatus],
         wait_for_data_sec: float,
         *,
+        component_category: ComponentCategory,
+        component_type: ComponentType | None = None,
         name: str | None = None,
     ) -> None:
         """Create class instance.
 
         Args:
+            requests_receiver: Receiver for receiving power requests from the power
+                manager.
+            results_sender: Sender for sending results to the power manager.
+            component_pool_status_sender: Channel for sending information about which
+                components are expected to be working.
+            wait_for_data_sec: How long actor should wait before processing first
+                request. It is a time needed to collect first components data.
             component_category: The category of the components that this actor is
                 responsible for.
             component_type: The type of the component of the given category that this
@@ -78,13 +85,6 @@ class PowerDistributingActor(Actor):
                 the inverter as a solar inverter or a battery inverter.  This can be
                 `None` when the component category is enough to uniquely identify the
                 component.
-            requests_receiver: Receiver for receiving power requests from the power
-                manager.
-            results_sender: Sender for sending results to the power manager.
-            component_pool_status_sender: Channel for sending information about which
-                components are expected to be working.
-            wait_for_data_sec: How long actor should wait before processing first
-                request. It is a time needed to collect first components data.
             name: The name of the actor. If `None`, `str(id(self))` will be used. This
                 is used mostly for debugging purposes.
 

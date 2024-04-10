@@ -38,13 +38,15 @@ class PowerWrapper:
 
     def __init__(
         self,
-        component_category: ComponentCategory,
-        component_type: ComponentType | None,
         channel_registry: ChannelRegistry,
+        *,
+        component_category: ComponentCategory,
+        component_type: ComponentType | None = None,
     ):
         """Initialize the power control.
 
         Args:
+            channel_registry: A channel registry for use in the actors.
             component_category: The category of the components that actors started by
                 this instance of the PowerWrapper will be responsible for.
             component_type: The type of the component of the given category that this
@@ -54,7 +56,6 @@ class PowerWrapper:
                 the inverter as a solar inverter or a battery inverter.  This can be
                 `None` when the component category is enough to uniquely identify the
                 component.
-            channel_registry: A channel registry for use in the actors.
         """
         self._component_category = component_category
         self._component_type = component_type
