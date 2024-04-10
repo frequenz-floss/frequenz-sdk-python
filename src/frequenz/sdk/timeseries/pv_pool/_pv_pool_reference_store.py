@@ -42,7 +42,7 @@ class PVPoolReferenceStore:
         power_manager_bounds_subs_sender: Sender[ReportRequest],
         component_ids: abc.Set[int] | None = None,
     ):
-        """Create an instance of the class.
+        """Initialize this instance.
 
         Args:
             channel_registry: A channel registry instance shared with the resampling
