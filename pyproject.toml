@@ -192,8 +192,6 @@ module = [
   # The available stubs packages are outdated or incomplete (WIP/experimental):
   # https://github.com/frequenz-floss/frequenz-sdk-python/issues/430
   "networkx",
-  "sybil",
-  "sybil.*",
 ]
 ignore_missing_imports = true
 
