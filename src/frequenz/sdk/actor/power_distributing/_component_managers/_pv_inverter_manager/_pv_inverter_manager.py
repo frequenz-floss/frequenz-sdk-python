@@ -159,7 +159,7 @@ class PVManager(ComponentManager):
         )
         await self._set_api_power(request, allocations, remaining_power)
 
-    async def _set_api_power(
+    async def _set_api_power(  # pylint: disable=too-many-locals
         self, request: Request, allocations: dict[int, Power], remaining_power: Power
     ) -> None:
         api_client = connection_manager.get().api_client
@@ -200,6 +200,12 @@ class PVManager(ComponentManager):
                         "Error while setting power to EV charger %s: %s",
                         component_id,
                         err,
+                    )
+                case e if e is not None:
+                    _logger.warning(
+                        "Unknown error while setting power to EV charger %s: %s",
+                        component_id,
+                        e,
                     )
         if failed_components:
             await self._results_sender.send(

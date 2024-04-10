@@ -341,6 +341,12 @@ class EVChargerManager(ComponentManager):
                         component_id,
                         err,
                     )
+                case e if e is not None:
+                    _logger.warning(
+                        "Unknown error while setting power to EV charger %s: %s",
+                        component_id,
+                        e,
+                    )
         if failed_components:
             return PartialFailure(
                 failed_components=failed_components,
