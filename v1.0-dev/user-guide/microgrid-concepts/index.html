@@ -629,6 +629,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--pv-arrays" class="md-nav__link">
+    <span class="md-ellipsis">
+      PV Arrays
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#frequenz.sdk.microgrid--batteries" class="md-nav__link">
     <span class="md-ellipsis">
       Batteries
@@ -1238,6 +1247,10 @@
       
         
       
+        
+          
+        
+      
     
     
     
@@ -1425,6 +1438,27 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/frequenz/sdk/timeseries/pv_pool/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    pv_pool
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1539,6 +1573,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--pv-arrays" class="md-nav__link">
+    <span class="md-ellipsis">
+      PV Arrays
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#frequenz.sdk.microgrid--batteries" class="md-nav__link">
     <span class="md-ellipsis">
       Batteries
@@ -1643,14 +1686,24 @@ values.</p>
 is available through <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/consumer/#frequenz.sdk.timeseries.consumer.Consumer.power"><code>consumer_power</code></a></p>
 <p>In locations without a consumer, this method streams zero values.</p>
 <h3 id="frequenz.sdk.microgrid--producers-pv-arrays-chp">Producers: PV Arrays, CHP<a class="headerlink" href="#frequenz.sdk.microgrid--producers-pv-arrays-chp" title="Permanent link">¤</a></h3>
-<p>The total <a href="../glossary/#pv">PV</a> power production in a microgrid can be streamed
-through <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter.pv_power"><code>pv_power</code></a> , and
-similarly the total CHP production in a site can be streamed through
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter.chp_power"><code>chp_power</code></a>.  And total
-producer power is available through
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/producer/#frequenz.sdk.timeseries.producer.Producer.power"><code>producer_power</code></a>.</p>
+<p>The total CHP production in a site can be streamed through
+<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter.chp_power"><code>chp_power</code></a>.  PV Power
+is available through the PV pool described below.  And total producer power is available
+through <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/producer/#frequenz.sdk.timeseries.producer.Producer.power"><code>microgrid.producer().power</code></a>.</p>
 <p>As is the case with the other methods, if PV Arrays or CHPs are not available in a
 microgrid, the corresponding methods stream zero values.</p>
+<h3 id="frequenz.sdk.microgrid--pv-arrays">PV Arrays<a class="headerlink" href="#frequenz.sdk.microgrid--pv-arrays" title="Permanent link">¤</a></h3>
+<p>The total PV power production is available through
+<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.pv_pool"><code>pv_pool</code></a>'s
+<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/pv_pool/#frequenz.sdk.timeseries.pv_pool.PVPool.power"><code>power</code></a>.  The PV pool by default uses
+all PV inverters available at a location, but PV pool instances can be created for
+subsets of PV inverters if necessary, by specifying the inverter ids.</p>
+<p>The <code>pv_pool</code> also provides available power bounds through the
+<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/pv_pool/#frequenz.sdk.timeseries.pv_pool.PVPool.power_status"><code>power_status</code></a> method.</p>
+<p>The <code>pv_pool</code> also provides a control method
+<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/pv_pool/#frequenz.sdk.timeseries.pv_pool.PVPool.propose_power"><code>propose_power</code></a>, which accepts
+values in the <a href="../glossary/#psc">Passive Sign Convention</a> and supports only
+production.</p>
 <h3 id="frequenz.sdk.microgrid--batteries">Batteries<a class="headerlink" href="#frequenz.sdk.microgrid--batteries" title="Permanent link">¤</a></h3>
 <p>The total Battery power is available through
 <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.battery_pool"><code>battery_pool</code></a>'s
@@ -1674,6 +1727,13 @@ charging and discharging), or through
 <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power"><code>power</code></a> method that
 streams the total power measured for all the <a href="../glossary/#ev-charger">EV Chargers</a>
 at a site.</p>
+<p>The <code>ev_charger_pool</code> also provides available power bounds through the
+<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power_status"><code>power_status</code></a>
+method.</p>
+<p>The <code>ev_charger_pool</code> also provides a control method
+<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.propose_power"><code>propose_power</code></a>,
+which accepts values in the <a href="../glossary/#psc">Passive Sign Convention</a> and supports
+only charging.</p>
 
   
 
