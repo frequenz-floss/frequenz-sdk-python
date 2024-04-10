@@ -40,11 +40,6 @@ from ._result_types import BatteryPoolReport
 class BatteryPool:
     """An interface for interaction with pools of batteries.
 
-    !!! note
-        `BatteryPool` instances are not meant to be created directly by users.  Use the
-        [`microgrid.battery_pool`][frequenz.sdk.microgrid.battery_pool] method for
-        creating `BatteryPool` instances.
-
     Provides:
       - properties for fetching reporting streams of instantaneous
         [power][frequenz.sdk.timeseries.battery_pool.BatteryPool.power],

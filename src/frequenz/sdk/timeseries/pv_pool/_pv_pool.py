@@ -27,11 +27,6 @@ class PVPoolError(Exception):
 class PVPool:
     """An interface for interaction with pools of PV inverters.
 
-    !!! note
-        `PVPool` instances are not meant to be created directly by users. Use the
-        [`microgrid.pv_pool`][frequenz.sdk.microgrid.pv_pool] method for creating
-        `PVPool` instances.
-
     Provides:
       - Aggregate [`power`][frequenz.sdk.timeseries.pv_pool.PVPool.power]
         measurements of the PV inverters in the pool.
