@@ -15,10 +15,15 @@ Purpose of this actor is to keep SoC level of each component at the equal level.
 import asyncio
 
 from frequenz.channels import Receiver, Sender
-from frequenz.client.microgrid import ComponentCategory
+from frequenz.client.microgrid import ComponentCategory, ComponentType, InverterType
 
 from ...actor._actor import Actor
-from ._component_managers import BatteryManager, ComponentManager, EVChargerManager
+from ._component_managers import (
+    BatteryManager,
+    ComponentManager,
+    EVChargerManager,
+    PVManager,
+)
 from ._component_status import ComponentPoolStatus
 from .request import Request
 from .result import Result
@@ -52,19 +57,18 @@ class PowerDistributingActor(Actor):
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        component_category: ComponentCategory,
         requests_receiver: Receiver[Request],
         results_sender: Sender[Result],
         component_pool_status_sender: Sender[ComponentPoolStatus],
         wait_for_data_sec: float,
         *,
+        component_category: ComponentCategory,
+        component_type: ComponentType | None = None,
         name: str | None = None,
     ) -> None:
         """Create class instance.
 
         Args:
-            component_category: The category of the components that this actor is
-                responsible for.
             requests_receiver: Receiver for receiving power requests from the power
                 manager.
             results_sender: Sender for sending results to the power manager.
@@ -72,6 +76,15 @@ class PowerDistributingActor(Actor):
                 components are expected to be working.
             wait_for_data_sec: How long actor should wait before processing first
                 request. It is a time needed to collect first components data.
+            component_category: The category of the components that this actor is
+                responsible for.
+            component_type: The type of the component of the given category that this
+                actor is responsible for.  This is used only when the component category
+                is not enough to uniquely identify the component.  For example, when the
+                category is `ComponentCategory.INVERTER`, the type is needed to identify
+                the inverter as a solar inverter or a battery inverter.  This can be
+                `None` when the component category is enough to uniquely identify the
+                component.
             name: The name of the actor. If `None`, `str(id(self))` will be used. This
                 is used mostly for debugging purposes.
 
@@ -80,6 +93,7 @@ class PowerDistributingActor(Actor):
         """
         super().__init__(name=name)
         self._component_category = component_category
+        self._component_type = component_type
         self._requests_receiver = requests_receiver
         self._result_sender = results_sender
         self._wait_for_data_sec = wait_for_data_sec
@@ -91,6 +105,13 @@ class PowerDistributingActor(Actor):
             )
         elif component_category == ComponentCategory.EV_CHARGER:
             self._component_manager = EVChargerManager(
+                component_pool_status_sender, results_sender
+            )
+        elif (
+            component_category == ComponentCategory.INVERTER
+            and component_type == InverterType.SOLAR
+        ):
+            self._component_manager = PVManager(
                 component_pool_status_sender, results_sender
             )
         else:

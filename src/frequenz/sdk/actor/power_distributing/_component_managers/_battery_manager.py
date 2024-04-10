@@ -188,6 +188,10 @@ class BatteryManager(ComponentManager):
     @override
     async def stop(self) -> None:
         """Stop the battery data manager."""
+        for bat_cache in self._battery_caches.values():
+            await bat_cache.stop()
+        for inv_cache in self._inverter_caches.values():
+            await inv_cache.stop()
         await self._component_pool_status_tracker.stop()
 
     @override
@@ -667,6 +671,13 @@ class BatteryManager(ComponentManager):
                     "Battery %s didn't respond in %f sec. Mark it as broken.",
                     battery_ids,
                     request_timeout.total_seconds(),
+                )
+            except Exception:  # pylint: disable=broad-except
+                failed_power += distribution[inverter_id]
+                failed_batteries = failed_batteries.union(battery_ids)
+                _logger.exception(
+                    "Unknown error while setting power to batteries: %s",
+                    battery_ids,
                 )
 
         return failed_power, failed_batteries

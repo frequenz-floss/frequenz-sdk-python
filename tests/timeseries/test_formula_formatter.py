@@ -123,15 +123,16 @@ class TestFormulaFormatter:
             logical_meter = microgrid.logical_meter()
             stack.push_async_callback(logical_meter.stop)
 
+            pv_pool = microgrid.pv_pool()
+            stack.push_async_callback(pv_pool.stop)
+
             grid = microgrid.grid()
             stack.push_async_callback(grid.stop)
 
             assert str(grid.power) == "#36 + #7 + #47 + #17 + #57 + #27"
 
-            composed_formula = (grid.power - logical_meter.pv_power).build(
-                "grid_minus_pv"
-            )
+            composed_formula = (grid.power - pv_pool.power).build("grid_minus_pv")
             assert (
                 str(composed_formula)
-                == "[grid-power](#36 + #7 + #47 + #17 + #57 + #27) - [pv-power](#57 + #47)"
+                == "[grid-power](#36 + #7 + #47 + #17 + #57 + #27) - [pv-power](#48 + #58)"
             )

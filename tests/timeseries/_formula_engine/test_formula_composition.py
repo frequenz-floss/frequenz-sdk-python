@@ -36,9 +36,10 @@ class TestFormulaComposition:
             stack.push_async_callback(logical_meter.stop)
 
             battery_pool = microgrid.battery_pool()
-            stack.push_async_callback(
-                battery_pool._battery_pool.stop  # pylint: disable=protected-access
-            )
+            stack.push_async_callback(battery_pool.stop)
+
+            pv_pool = microgrid.pv_pool()
+            stack.push_async_callback(pv_pool.stop)
 
             grid = microgrid.grid()
             stack.push_async_callback(grid.stop)
@@ -51,9 +52,9 @@ class TestFormulaComposition:
             )
             grid_power_recv = grid.power.new_receiver()
             battery_power_recv = battery_pool.power.new_receiver()
-            pv_power_recv = logical_meter.pv_power.new_receiver()
+            pv_power_recv = pv_pool.power.new_receiver()
 
-            engine = (logical_meter.pv_power + battery_pool.power).build("inv_power")
+            engine = (pv_pool.power + battery_pool.power).build("inv_power")
             stack.push_async_callback(engine._stop)  # pylint: disable=protected-access
 
             inv_calc_recv = engine.new_receiver()
@@ -62,6 +63,7 @@ class TestFormulaComposition:
             await mockgrid.mock_resampler.send_meter_power(
                 [100.0, 10.0, 12.0, 14.0, -100.0, -200.0]
             )
+            await mockgrid.mock_resampler.send_pv_inverter_power([-100.0, -200.0])
 
             grid_pow = await grid_power_recv.receive()
             pv_pow = await pv_power_recv.receive()
@@ -112,16 +114,17 @@ class TestFormulaComposition:
         count = 0
         async with mockgrid, AsyncExitStack() as stack:
             battery_pool = microgrid.battery_pool()
-            stack.push_async_callback(
-                battery_pool._battery_pool.stop  # pylint: disable=protected-access
-            )
+            stack.push_async_callback(battery_pool.stop)
+
+            pv_pool = microgrid.pv_pool()
+            stack.push_async_callback(pv_pool.stop)
 
             logical_meter = microgrid.logical_meter()
             stack.push_async_callback(logical_meter.stop)
 
             battery_power_recv = battery_pool.power.new_receiver()
-            pv_power_recv = logical_meter.pv_power.new_receiver()
-            engine = (logical_meter.pv_power + battery_pool.power).build("inv_power")
+            pv_power_recv = pv_pool.power.new_receiver()
+            engine = (pv_pool.power + battery_pool.power).build("inv_power")
             stack.push_async_callback(engine._stop)  # pylint: disable=protected-access
 
             inv_calc_recv = engine.new_receiver()
@@ -153,21 +156,23 @@ class TestFormulaComposition:
         count = 0
         async with mockgrid, AsyncExitStack() as stack:
             battery_pool = microgrid.battery_pool()
-            stack.push_async_callback(
-                battery_pool._battery_pool.stop  # pylint: disable=protected-access
-            )
+            stack.push_async_callback(battery_pool.stop)
+
+            pv_pool = microgrid.pv_pool()
+            stack.push_async_callback(pv_pool.stop)
+
             logical_meter = microgrid.logical_meter()
             stack.push_async_callback(logical_meter.stop)
 
             battery_power_recv = battery_pool.power.new_receiver()
-            pv_power_recv = logical_meter.pv_power.new_receiver()
-            engine = (logical_meter.pv_power + battery_pool.power).build("inv_power")
+            pv_power_recv = pv_pool.power.new_receiver()
+            engine = (pv_pool.power + battery_pool.power).build("inv_power")
             stack.push_async_callback(engine._stop)  # pylint: disable=protected-access
 
             inv_calc_recv = engine.new_receiver()
 
             for _ in range(10):
-                await mockgrid.mock_resampler.send_meter_power(
+                await mockgrid.mock_resampler.send_pv_inverter_power(
                     [12.0 + count, 14.0 + count]
                 )
                 await mockgrid.mock_resampler.send_non_existing_component_value()

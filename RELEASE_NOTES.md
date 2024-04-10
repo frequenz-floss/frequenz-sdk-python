@@ -18,9 +18,13 @@
 
 - New `propose_power` and `power_status` methods have been added to the `EVChargerPool` similar to the `BatteryPool`.  These method interface with the `PowerManager` and `PowerDistributor`, which currently uses a first-come-first-serve algorithm to distribute power to EVs.
 
+- PV Power is now available from `microgrid.pv_pool().power`, and no longer from `microgrid.logical_meter().pv_power`.
+
 ## New Features
 
 - Warning messages are logged when multiple instances of `*Pool`s are created for the same set of batteries, with the same priority values.
+
+- A PV Pool, with `propose_power`, `power_status` and `power` methods similar to Battery and EV Pools.
 
 ## Bug Fixes
 

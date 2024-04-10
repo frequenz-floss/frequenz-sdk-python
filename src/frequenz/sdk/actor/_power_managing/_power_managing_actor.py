@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 
 from frequenz.channels import Receiver, Sender, select, selected_from
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
-from frequenz.client.microgrid import ComponentCategory
+from frequenz.client.microgrid import ComponentCategory, ComponentType, InverterType
 from typing_extensions import override
 
 from ...timeseries._base_types import SystemBounds
@@ -32,12 +32,14 @@ class PowerManagingActor(Actor):
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        component_category: ComponentCategory,
         proposals_receiver: Receiver[Proposal],
         bounds_subscription_receiver: Receiver[ReportRequest],
         power_distributing_requests_sender: Sender[power_distributing.Request],
         power_distributing_results_receiver: Receiver[power_distributing.Result],
         channel_registry: ChannelRegistry,
+        *,
+        component_category: ComponentCategory,
+        component_type: ComponentType | None = None,
         # arguments to actors need to serializable, so we pass an enum for the algorithm
         # instead of an instance of the algorithm.
         algorithm: Algorithm = Algorithm.MATRYOSHKA,
@@ -45,8 +47,6 @@ class PowerManagingActor(Actor):
         """Create a new instance of the power manager.
 
         Args:
-            component_category: The category of the component this power manager
-                instance is going to support.
             proposals_receiver: The receiver for proposals.
             bounds_subscription_receiver: The receiver for bounds subscriptions.
             power_distributing_requests_sender: The sender for power distribution
@@ -54,6 +54,15 @@ class PowerManagingActor(Actor):
             power_distributing_results_receiver: The receiver for power distribution
                 results.
             channel_registry: The channel registry.
+            component_category: The category of the component this power manager
+                instance is going to support.
+            component_type: The type of the component of the given category that this
+                actor is responsible for.  This is used only when the component category
+                is not enough to uniquely identify the component.  For example, when the
+                category is `ComponentCategory.INVERTER`, the type is needed to identify
+                the inverter as a solar inverter or a battery inverter.  This can be
+                `None` when the component category is enough to uniquely identify the
+                component.
             algorithm: The power management algorithm to use.
 
         Raises:
@@ -65,6 +74,7 @@ class PowerManagingActor(Actor):
             )
 
         self._component_category = component_category
+        self._component_type = component_type
         self._bounds_subscription_receiver = bounds_subscription_receiver
         self._power_distributing_requests_sender = power_distributing_requests_sender
         self._power_distributing_results_receiver = power_distributing_results_receiver
@@ -141,6 +151,12 @@ class PowerManagingActor(Actor):
         elif self._component_category is ComponentCategory.EV_CHARGER:
             ev_charger_pool = microgrid.ev_charger_pool(component_ids)
             bounds_receiver = ev_charger_pool._system_power_bounds.new_receiver()
+        elif (
+            self._component_category is ComponentCategory.INVERTER
+            and self._component_type is InverterType.SOLAR
+        ):
+            pv_pool = microgrid.pv_pool(component_ids)
+            bounds_receiver = pv_pool._system_power_bounds.new_receiver()
         # pylint: enable=protected-access
         else:
             err = (

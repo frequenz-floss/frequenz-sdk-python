@@ -32,11 +32,6 @@ class EVChargerPoolError(Exception):
 class EVChargerPool:
     """An interface for interaction with pools of EV Chargers.
 
-    !!! note
-        `EVChargerPool` instances are not meant to be created directly by users. Use the
-        [`microgrid.ev_charger_pool`][frequenz.sdk.microgrid.ev_charger_pool] method for
-        creating `EVChargerPool` instances.
-
     Provides:
       - Aggregate [`power`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power]
         and 3-phase

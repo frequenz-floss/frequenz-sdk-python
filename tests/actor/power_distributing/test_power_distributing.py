@@ -108,6 +108,7 @@ class TestPowerDistributingActor:
             )
             async with PowerDistributingActor(
                 component_category=ComponentCategory.BATTERY,
+                component_type=None,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -139,6 +140,7 @@ class TestPowerDistributingActor:
             )
             async with PowerDistributingActor(
                 component_category=ComponentCategory.BATTERY,
+                component_type=None,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -204,6 +206,7 @@ class TestPowerDistributingActor:
         battery_status_channel = Broadcast[ComponentPoolStatus](name="battery_status")
         async with PowerDistributingActor(
             component_category=ComponentCategory.BATTERY,
+            component_type=None,
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
             component_pool_status_sender=battery_status_channel.new_sender(),
@@ -264,6 +267,7 @@ class TestPowerDistributingActor:
             )
             async with PowerDistributingActor(
                 component_category=ComponentCategory.BATTERY,
+                component_type=None,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -366,6 +370,7 @@ class TestPowerDistributingActor:
 
             async with PowerDistributingActor(
                 component_category=ComponentCategory.BATTERY,
+                component_type=None,
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
@@ -445,6 +450,7 @@ class TestPowerDistributingActor:
 
             async with PowerDistributingActor(
                 component_category=ComponentCategory.BATTERY,
+                component_type=None,
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
@@ -500,6 +506,7 @@ class TestPowerDistributingActor:
 
             async with PowerDistributingActor(
                 component_category=ComponentCategory.BATTERY,
+                component_type=None,
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
@@ -551,6 +558,7 @@ class TestPowerDistributingActor:
 
             async with PowerDistributingActor(
                 component_category=ComponentCategory.BATTERY,
+                component_type=None,
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
@@ -636,6 +644,7 @@ class TestPowerDistributingActor:
 
             async with PowerDistributingActor(
                 component_category=ComponentCategory.BATTERY,
+                component_type=None,
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
@@ -722,6 +731,7 @@ class TestPowerDistributingActor:
 
             async with PowerDistributingActor(
                 component_category=ComponentCategory.BATTERY,
+                component_type=None,
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
@@ -787,6 +797,7 @@ class TestPowerDistributingActor:
 
             async with PowerDistributingActor(
                 component_category=ComponentCategory.BATTERY,
+                component_type=None,
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
@@ -844,6 +855,7 @@ class TestPowerDistributingActor:
             )
             async with PowerDistributingActor(
                 component_category=ComponentCategory.BATTERY,
+                component_type=None,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -898,6 +910,7 @@ class TestPowerDistributingActor:
             )
             async with PowerDistributingActor(
                 component_category=ComponentCategory.BATTERY,
+                component_type=None,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -971,6 +984,7 @@ class TestPowerDistributingActor:
             )
             async with PowerDistributingActor(
                 component_category=ComponentCategory.BATTERY,
+                component_type=None,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -1016,6 +1030,7 @@ class TestPowerDistributingActor:
             )
             async with PowerDistributingActor(
                 component_category=ComponentCategory.BATTERY,
+                component_type=None,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -1060,6 +1075,7 @@ class TestPowerDistributingActor:
             )
             async with PowerDistributingActor(
                 component_category=ComponentCategory.BATTERY,
+                component_type=None,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -1106,6 +1122,7 @@ class TestPowerDistributingActor:
             )
             async with PowerDistributingActor(
                 component_category=ComponentCategory.BATTERY,
+                component_type=None,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -1152,6 +1169,7 @@ class TestPowerDistributingActor:
             )
             async with PowerDistributingActor(
                 component_category=ComponentCategory.BATTERY,
+                component_type=None,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -1191,6 +1209,7 @@ class TestPowerDistributingActor:
             )
             async with PowerDistributingActor(
                 component_category=ComponentCategory.BATTERY,
+                component_type=None,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
@@ -1244,6 +1263,7 @@ class TestPowerDistributingActor:
             )
             async with PowerDistributingActor(
                 component_category=ComponentCategory.BATTERY,
+                component_type=None,
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),

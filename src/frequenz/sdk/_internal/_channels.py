@@ -9,6 +9,8 @@ import typing
 
 from frequenz.channels import Receiver
 
+from ._asyncio import cancel_and_await
+
 T_co = typing.TypeVar("T_co", covariant=True)
 
 
@@ -72,3 +74,7 @@ class LatestValueCache(typing.Generic[T_co]):
     async def _run(self) -> None:
         async for value in self._receiver:
             self._latest_value = value
+
+    async def stop(self) -> None:
+        """Stop the cache."""
+        await cancel_and_await(self._task)

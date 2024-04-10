@@ -38,11 +38,15 @@ class PVPowerFormula(FormulaGenerator[Power]):
         )
 
         component_graph = connection_manager.get().component_graph
-        pv_components = component_graph.dfs(
-            self._get_grid_component(),
-            set(),
-            component_graph.is_pv_chain,
-        )
+        component_ids = self._config.component_ids
+        if component_ids:
+            pv_components = component_graph.components(set(component_ids))
+        else:
+            pv_components = component_graph.dfs(
+                self._get_grid_component(),
+                set(),
+                component_graph.is_pv_chain,
+            )
 
         if not pv_components:
             _logger.warning(

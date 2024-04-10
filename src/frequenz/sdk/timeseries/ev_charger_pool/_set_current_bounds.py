@@ -10,7 +10,7 @@ from datetime import timedelta
 
 from frequenz.channels import Broadcast, Sender, select, selected_from
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
-from frequenz.client.microgrid import ComponentCategory
+from frequenz.client.microgrid import ComponentCategory, MeterData
 
 from ..._internal._asyncio import cancel_and_await
 from ..._internal._channels import LatestValueCache
@@ -55,6 +55,7 @@ class BoundsSetter:
         )
         self._bounds_rx = self._bounds_chan.new_receiver()
         self._bounds_tx = self._bounds_chan.new_sender()
+        self._meter_data_cache: LatestValueCache[MeterData] | None = None
 
     async def set(self, component_id: int, max_amps: float) -> None:
         """Send the given current limit to the microgrid for the given component id.
@@ -75,6 +76,8 @@ class BoundsSetter:
 
     async def stop(self) -> None:
         """Stop the BoundsSetter."""
+        if self._meter_data_cache is not None:
+            await self._meter_data_cache.stop()
         await self._bounds_chan.close()
         await cancel_and_await(self._task)
 
@@ -96,7 +99,7 @@ class BoundsSetter:
             _logger.error(err)
             raise RuntimeError(err)
 
-        meter_data = LatestValueCache(
+        self._meter_data_cache = LatestValueCache(
             await api_client.meter_data(next(iter(meters)).component_id)
         )
         latest_bound: dict[int, ComponentCurrentLimit] = {}
@@ -107,7 +110,7 @@ class BoundsSetter:
         )
 
         async for selected in select(bound_chan, timer):
-            meter = meter_data.get()
+            meter = self._meter_data_cache.get()
             if meter is None:
                 raise ValueError("Meter channel closed.")
 
