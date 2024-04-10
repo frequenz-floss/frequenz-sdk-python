@@ -152,6 +152,8 @@ disable = [
   # it is a type-check, for which we already have mypy.
   "unsubscriptable-object",
   # Checked by flake8
+  "redefined-outer-name",
+  "unused-import",
   "line-too-long",
   "redefined-outer-name",
   "unnecessary-lambda-assignment",
