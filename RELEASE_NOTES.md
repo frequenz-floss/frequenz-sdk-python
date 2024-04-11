@@ -2,7 +2,9 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
+The most notable features for this release is the addition of the `PVPool` (exposed via `microgrid.pv_pool()`), which can be used to manage PV arrays as a single entity and the `EVChargerPool` (`microgrid.ev_charger_pool()`) learning to manage power for the whole pool (before it could only be used to control chargers individually).
+
+Another notable change is the microgrid API client being moved to its own [repository](https://github.com/frequenz-floss/frequenz-client-microgrid-python/).
 
 ## Upgrading
 
@@ -14,17 +16,19 @@
 
 - The `maxsize` parameter in calls to `BatteryPool.{soc/capacity/temperature}.new_receiver()` methods have now been renamed to `limit`, to be consistent with the channels repository.
 
-- Support for per-component interaction in `EVChargerPool` has been removed.
+- Support for per-component interaction in `EVChargerPool` has been removed. Please use the new `propose_power()` method to manage power for the whole pool. If you still need to manage power of chargers individually, you can create one pool per charger.
 
-- New `propose_power` and `power_status` methods have been added to the `EVChargerPool` similar to the `BatteryPool`.  These method interface with the `PowerManager` and `PowerDistributor`, which currently uses a first-come-first-serve algorithm to distribute power to EVs.
-
-- PV Power is now available from `microgrid.pv_pool().power`, and no longer from `microgrid.logical_meter().pv_power`.
+- PV power is now available from `microgrid.pv_pool().power`, and no longer from `microgrid.logical_meter().pv_power`.
 
 ## New Features
 
-- Warning messages are logged when multiple instances of `*Pool`s are created for the same set of batteries, with the same priority values.
+- `EVChargerPool`/`microgrid.ev_charger_pool()`: New `propose_power` and `power_status` methods have been added, similar to the `BatteryPool`.  These method interface with the `PowerManager` and `PowerDistributor`, which currently uses a first-come-first-serve algorithm to distribute power to EVs.
 
-- A PV Pool, with `propose_power`, `power_status` and `power` methods similar to Battery and EV Pools.
+- A PV pool (`PVPool`/`microgrid.pv_pool()`) was added, with `propose_power`, `power_status` and `power` methods similar to Battery and EV pools.
+
+## Enhancements
+
+- Warning messages are logged when multiple instances of `*Pool`s are created for the same set of batteries, with the same priority values.
 
 ## Bug Fixes
 
