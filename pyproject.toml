@@ -31,7 +31,7 @@ dependencies = [
   # changing the version
   # (plugins.mkdocstrings.handlers.python.import)
   "frequenz-channels >= 1.0.0-rc1, < 2.0.0",
-  "frequenz-client-microgrid >= 0.2.0, < 0.3.0",
+  "frequenz-client-microgrid >= 0.3.0, < 0.4.0",
   "google-api-python-client >= 2.71, < 3",
   "grpcio >= 1.54.2, < 2",
   "grpcio-tools >= 1.54.2, < 2",
