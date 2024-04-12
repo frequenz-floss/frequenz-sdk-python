@@ -26,6 +26,8 @@ Another notable change is the microgrid API client being moved to its own [repos
 
 - A PV pool (`PVPool`/`microgrid.pv_pool()`) was added, with `propose_power`, `power_status` and `power` methods similar to Battery and EV pools.
 
+- The microgrid API client now exposes the reactive power for inverters, meters and EV chargers.
+
 ## Enhancements
 
 - Warning messages are logged when multiple instances of `*Pool`s are created for the same set of batteries, with the same priority values.
