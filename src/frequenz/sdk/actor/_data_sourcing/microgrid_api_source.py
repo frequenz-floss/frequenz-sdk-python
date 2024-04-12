@@ -38,6 +38,16 @@ _MeterDataMethods: dict[ComponentMetricId, Callable[[MeterData], float]] = {
     ComponentMetricId.VOLTAGE_PHASE_2: lambda msg: msg.voltage_per_phase[1],
     ComponentMetricId.VOLTAGE_PHASE_3: lambda msg: msg.voltage_per_phase[2],
     ComponentMetricId.FREQUENCY: lambda msg: msg.frequency,
+    ComponentMetricId.REACTIVE_POWER: lambda msg: msg.reactive_power,
+    ComponentMetricId.REACTIVE_POWER_PHASE_1: lambda msg: msg.reactive_power_per_phase[
+        0
+    ],
+    ComponentMetricId.REACTIVE_POWER_PHASE_2: lambda msg: msg.reactive_power_per_phase[
+        1
+    ],
+    ComponentMetricId.REACTIVE_POWER_PHASE_3: lambda msg: msg.reactive_power_per_phase[
+        2
+    ],
 }
 
 _BatteryDataMethods: dict[ComponentMetricId, Callable[[BatteryData], float]] = {
@@ -84,6 +94,16 @@ _InverterDataMethods: dict[ComponentMetricId, Callable[[InverterData], float]] =
     ComponentMetricId.VOLTAGE_PHASE_2: lambda msg: msg.voltage_per_phase[1],
     ComponentMetricId.VOLTAGE_PHASE_3: lambda msg: msg.voltage_per_phase[2],
     ComponentMetricId.FREQUENCY: lambda msg: msg.frequency,
+    ComponentMetricId.REACTIVE_POWER: lambda msg: msg.reactive_power,
+    ComponentMetricId.REACTIVE_POWER_PHASE_1: lambda msg: msg.reactive_power_per_phase[
+        0
+    ],
+    ComponentMetricId.REACTIVE_POWER_PHASE_2: lambda msg: msg.reactive_power_per_phase[
+        1
+    ],
+    ComponentMetricId.REACTIVE_POWER_PHASE_3: lambda msg: msg.reactive_power_per_phase[
+        2
+    ],
 }
 
 _EVChargerDataMethods: dict[ComponentMetricId, Callable[[EVChargerData], float]] = {
@@ -98,6 +118,16 @@ _EVChargerDataMethods: dict[ComponentMetricId, Callable[[EVChargerData], float]]
     ComponentMetricId.VOLTAGE_PHASE_2: lambda msg: msg.voltage_per_phase[1],
     ComponentMetricId.VOLTAGE_PHASE_3: lambda msg: msg.voltage_per_phase[2],
     ComponentMetricId.FREQUENCY: lambda msg: msg.frequency,
+    ComponentMetricId.REACTIVE_POWER: lambda msg: msg.reactive_power,
+    ComponentMetricId.REACTIVE_POWER_PHASE_1: lambda msg: msg.reactive_power_per_phase[
+        0
+    ],
+    ComponentMetricId.REACTIVE_POWER_PHASE_2: lambda msg: msg.reactive_power_per_phase[
+        1
+    ],
+    ComponentMetricId.REACTIVE_POWER_PHASE_3: lambda msg: msg.reactive_power_per_phase[
+        2
+    ],
 }
 
 

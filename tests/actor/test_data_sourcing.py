@@ -65,6 +65,14 @@ class TestDataSourcingActor:
             ).new_receiver()
             await req_sender.send(active_power_request)
 
+            reactive_power_request = ComponentMetricRequest(
+                "test-namespace", 4, ComponentMetricId.REACTIVE_POWER, None
+            )
+            reactive_power_recv = registry.get_or_create(
+                Sample[Quantity], reactive_power_request.get_channel_name()
+            ).new_receiver()
+            await req_sender.send(reactive_power_request)
+
             soc_request = ComponentMetricRequest(
                 "test-namespace", 9, ComponentMetricId.SOC, None
             )
