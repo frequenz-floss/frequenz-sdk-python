@@ -111,6 +111,12 @@ class InverterDataWrapper(InverterData):
         active_power_exclusion_lower_bound: float = math.nan,
         active_power_inclusion_upper_bound: float = math.nan,
         active_power_exclusion_upper_bound: float = math.nan,
+        reactive_power: float = math.nan,
+        reactive_power_per_phase: tuple[float, float, float] = (
+            math.nan,
+            math.nan,
+            math.nan,
+        ),
         frequency: float = 50.0,
         _component_state: inverter_pb.ComponentState.ValueType = (
             inverter_pb.ComponentState.COMPONENT_STATE_UNSPECIFIED
@@ -133,6 +139,8 @@ class InverterDataWrapper(InverterData):
             active_power_exclusion_lower_bound=active_power_exclusion_lower_bound,
             active_power_inclusion_upper_bound=active_power_inclusion_upper_bound,
             active_power_exclusion_upper_bound=active_power_exclusion_upper_bound,
+            reactive_power=reactive_power,
+            reactive_power_per_phase=reactive_power_per_phase,
             _component_state=_component_state,
             frequency=frequency,
             _errors=_errors if _errors else [],
@@ -157,7 +165,7 @@ class InverterDataWrapper(InverterData):
 class EvChargerDataWrapper(EVChargerData):
     """Wrapper for the EvChargerData with default arguments."""
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(  # pylint: disable=too-many-arguments,too-many-locals
         self,
         component_id: int,
         timestamp: datetime,
@@ -173,6 +181,12 @@ class EvChargerDataWrapper(EVChargerData):
         active_power_exclusion_lower_bound: float = math.nan,
         active_power_inclusion_upper_bound: float = math.nan,
         active_power_exclusion_upper_bound: float = math.nan,
+        reactive_power: float = math.nan,
+        reactive_power_per_phase: tuple[float, float, float] = (
+            math.nan,
+            math.nan,
+            math.nan,
+        ),
         frequency: float = 50.0,
         cable_state: EVChargerCableState = EVChargerCableState.UNSPECIFIED,
         component_state: EVChargerComponentState = EVChargerComponentState.UNSPECIFIED,
@@ -193,6 +207,8 @@ class EvChargerDataWrapper(EVChargerData):
             active_power_exclusion_lower_bound=active_power_exclusion_lower_bound,
             active_power_inclusion_upper_bound=active_power_inclusion_upper_bound,
             active_power_exclusion_upper_bound=active_power_exclusion_upper_bound,
+            reactive_power=reactive_power,
+            reactive_power_per_phase=reactive_power_per_phase,
             frequency=frequency,
             cable_state=cable_state,
             component_state=component_state,
@@ -227,6 +243,12 @@ class MeterDataWrapper(MeterData):
             math.nan,
             math.nan,
         ),
+        reactive_power: float = math.nan,
+        reactive_power_per_phase: tuple[float, float, float] = (
+            math.nan,
+            math.nan,
+            math.nan,
+        ),
         current_per_phase: tuple[float, float, float] = (math.nan, math.nan, math.nan),
         voltage_per_phase: tuple[float, float, float] = (math.nan, math.nan, math.nan),
         frequency: float = math.nan,
@@ -241,6 +263,8 @@ class MeterDataWrapper(MeterData):
             timestamp=timestamp,
             active_power=active_power,
             active_power_per_phase=active_power_per_phase,
+            reactive_power=reactive_power,
+            reactive_power_per_phase=reactive_power_per_phase,
             current_per_phase=current_per_phase,
             voltage_per_phase=voltage_per_phase,
             frequency=frequency,
