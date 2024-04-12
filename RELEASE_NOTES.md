@@ -30,6 +30,8 @@ Another notable change is the microgrid API client being moved to its own [repos
 
 - Warning messages are logged when multiple instances of `*Pool`s are created for the same set of batteries, with the same priority values.
 
+- A warning message will now be logged if no relevant samples are found in a component for resampling.
+
 ## Bug Fixes
 
 - A bug was fixed where the grid fuse was not created properly and would end up with a `max_current` with type `float` instead of `Current`.
