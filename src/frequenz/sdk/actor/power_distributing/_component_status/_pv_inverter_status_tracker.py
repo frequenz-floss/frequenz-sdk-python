@@ -193,7 +193,7 @@ class PVInverterStatusTracker(ComponentStatusTracker, BackgroundService):
 
             if new_status != self._last_status:
                 _logger.info(
-                    "EV charger %s status changed from %s to %s",
+                    "PV inverter %s status changed from %s to %s",
                     self._component_id,
                     self._last_status,
                     new_status,

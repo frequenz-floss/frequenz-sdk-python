@@ -130,19 +130,19 @@ class PVPool:
 
     @property
     def power(self) -> FormulaEngine[Power]:
-        """Fetch the total power for the EV Chargers in the pool.
+        """Fetch the total power for the PV Inverters in the pool.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
-        If a formula engine to calculate EV Charger power is not already running, it
+        If a formula engine to calculate PV Inverter power is not already running, it
         will be started.
 
         A receiver from the formula engine can be created using the `new_receiver`
         method.
 
         Returns:
-            A FormulaEngine that will calculate and stream the total power of all EV
-                Chargers.
+            A FormulaEngine that will calculate and stream the total power of all PV
+                Inverters.
         """
         engine = self._pv_pool_ref.formula_pool.from_power_formula_generator(
             "pv_power",

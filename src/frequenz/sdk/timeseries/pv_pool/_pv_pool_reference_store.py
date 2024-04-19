@@ -98,6 +98,6 @@ class PVPoolReferenceStore:
         self.bounds_tracker.start()
 
     async def stop(self) -> None:
-        """Stop all tasks and channels owned by the EVChargerPool."""
+        """Stop all tasks and channels owned by the PVInverterPool."""
         await self.formula_pool.stop()
         await self.bounds_tracker.stop()
