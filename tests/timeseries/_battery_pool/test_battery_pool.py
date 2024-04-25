@@ -588,7 +588,7 @@ async def test_battery_pool_power_incomplete_bat_request(mocker: MockerFixture) 
     with pytest.raises(FormulaGenerationError):
         # Request only two of the three batteries behind the inverters
         battery_pool = microgrid.battery_pool(
-            battery_ids=set([bats[1].component_id, bats[0].component_id])
+            component_ids=set([bats[1].component_id, bats[0].component_id])
         )
         power_receiver = battery_pool.power.new_receiver()
         await mockgrid.mock_resampler.send_bat_inverter_power([2.0])

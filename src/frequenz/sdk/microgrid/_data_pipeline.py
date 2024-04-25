@@ -185,7 +185,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
     def ev_charger_pool(
         self,
-        ev_charger_ids: abc.Set[int] | None = None,
+        component_ids: abc.Set[int] | None = None,
         name: str | None = None,
         priority: int = -sys.maxsize - 1,
     ) -> EVChargerPool:
@@ -195,7 +195,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         created and returned.
 
         Args:
-            ev_charger_ids: Optional set of IDs of EV Chargers to be managed by the
+            component_ids: Optional set of IDs of EV Chargers to be managed by the
                 EVChargerPool.
             name: An optional name used to identify this instance of the pool or a
                 corresponding actor in the logs.
@@ -214,8 +214,8 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         # We use frozenset to make a hashable key from the input set.
         ref_store_key: frozenset[int] = frozenset()
-        if ev_charger_ids is not None:
-            ref_store_key = frozenset(ev_charger_ids)
+        if component_ids is not None:
+            ref_store_key = frozenset(component_ids)
 
         pool_key = f"{ref_store_key}-{priority}"
         if pool_key in self._known_pool_keys:
@@ -226,7 +226,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 "consider reusing the same instance."
                 "\n  Hint: If the instances are created from different actors, "
                 "consider using different priorities to distinguish them.",
-                ev_charger_ids,
+                component_ids,
                 priority,
             )
         else:
@@ -246,7 +246,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                     power_manager_bounds_subs_sender=(
                         self._ev_power_wrapper.bounds_subscription_channel.new_sender()
                     ),
-                    component_ids=ev_charger_ids,
+                    component_ids=component_ids,
                 )
             )
         return EVChargerPool(
@@ -255,7 +255,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
     def pv_pool(
         self,
-        pv_inverter_ids: abc.Set[int] | None = None,
+        component_ids: abc.Set[int] | None = None,
         name: str | None = None,
         priority: int = -sys.maxsize - 1,
     ) -> PVPool:
@@ -265,7 +265,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         exist, a new one is created and used for creating the `PVPool`.
 
         Args:
-            pv_inverter_ids: Optional set of IDs of PV inverters to be managed by the
+            component_ids: Optional set of IDs of PV inverters to be managed by the
                 `PVPool`.
             name: An optional name used to identify this instance of the pool or a
                 corresponding actor in the logs.
@@ -282,8 +282,8 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         # We use frozenset to make a hashable key from the input set.
         ref_store_key: frozenset[int] = frozenset()
-        if pv_inverter_ids is not None:
-            ref_store_key = frozenset(pv_inverter_ids)
+        if component_ids is not None:
+            ref_store_key = frozenset(component_ids)
 
         pool_key = f"{ref_store_key}-{priority}"
         if pool_key in self._known_pool_keys:
@@ -294,7 +294,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 "consider reusing the same instance."
                 "\n  Hint: If the instances are created from different actors, "
                 "consider using different priorities to distinguish them.",
-                pv_inverter_ids,
+                component_ids,
                 priority,
             )
         else:
@@ -313,7 +313,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 power_manager_bounds_subs_sender=(
                     self._pv_power_wrapper.bounds_subscription_channel.new_sender()
                 ),
-                component_ids=pv_inverter_ids,
+                component_ids=component_ids,
             )
 
         return PVPool(self._pv_pool_reference_stores[ref_store_key], name, priority)
@@ -331,17 +331,17 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
     def battery_pool(
         self,
-        battery_ids: abc.Set[int] | None = None,
+        component_ids: abc.Set[int] | None = None,
         name: str | None = None,
         priority: int = -sys.maxsize - 1,
     ) -> BatteryPool:
         """Return a new `BatteryPool` instance for the given ids.
 
-        If a `BatteryPoolReferenceStore` instance for the given battery ids doesn't exist,
-        a new one is created and used for creating the `BatteryPool`.
+        If a `BatteryPoolReferenceStore` instance for the given battery ids doesn't
+        exist, a new one is created and used for creating the `BatteryPool`.
 
         Args:
-            battery_ids: Optional set of IDs of batteries to be managed by the
+            component_ids: Optional set of IDs of batteries to be managed by the
                 `BatteryPool`.
             name: An optional name used to identify this instance of the pool or a
                 corresponding actor in the logs.
@@ -360,8 +360,8 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         # We use frozenset to make a hashable key from the input set.
         ref_store_key: frozenset[int] = frozenset()
-        if battery_ids is not None:
-            ref_store_key = frozenset(battery_ids)
+        if component_ids is not None:
+            ref_store_key = frozenset(component_ids)
 
         pool_key = f"{ref_store_key}-{priority}"
         if pool_key in self._known_pool_keys:
@@ -372,7 +372,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 "consider reusing the same instance."
                 "\n  Hint: If the instances are created from different actors, "
                 "consider using different priorities to distinguish them.",
-                battery_ids,
+                component_ids,
                 priority,
             )
         else:
@@ -393,7 +393,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                         self._battery_power_wrapper.bounds_subscription_channel.new_sender()
                     ),
                     min_update_interval=self._resampler_config.resampling_period,
-                    batteries_id=battery_ids,
+                    batteries_id=component_ids,
                 )
             )
 
@@ -505,7 +505,7 @@ def producer() -> Producer:
 
 
 def ev_charger_pool(
-    ev_charger_ids: abc.Set[int] | None = None,
+    component_ids: abc.Set[int] | None = None,
     name: str | None = None,
     priority: int = -sys.maxsize - 1,
 ) -> EVChargerPool:
@@ -528,7 +528,7 @@ def ev_charger_pool(
         power.
 
     Args:
-        ev_charger_ids: Optional set of IDs of EV Chargers to be managed by the
+        component_ids: Optional set of IDs of EV Chargers to be managed by the
             EVChargerPool.  If not specified, all EV Chargers available in the
             component graph are used.
         name: An optional name used to identify this instance of the pool or a
@@ -538,11 +538,11 @@ def ev_charger_pool(
     Returns:
         An `EVChargerPool` instance.
     """
-    return _get().ev_charger_pool(ev_charger_ids, name, priority)
+    return _get().ev_charger_pool(component_ids, name, priority)
 
 
 def battery_pool(
-    battery_ids: abc.Set[int] | None = None,
+    component_ids: abc.Set[int] | None = None,
     name: str | None = None,
     priority: int = -sys.maxsize - 1,
 ) -> BatteryPool:
@@ -565,8 +565,9 @@ def battery_pool(
         power.
 
     Args:
-        battery_ids: Optional set of IDs of batteries to be managed by the `BatteryPool`.
-            If not specified, all batteries available in the component graph are used.
+        component_ids: Optional set of IDs of batteries to be managed by the
+            `BatteryPool`.  If not specified, all batteries available in the component
+            graph are used.
         name: An optional name used to identify this instance of the pool or a
             corresponding actor in the logs.
         priority: The priority of the actor making the call.
@@ -574,11 +575,11 @@ def battery_pool(
     Returns:
         A `BatteryPool` instance.
     """
-    return _get().battery_pool(battery_ids, name, priority)
+    return _get().battery_pool(component_ids, name, priority)
 
 
 def pv_pool(
-    pv_inverter_ids: abc.Set[int] | None = None,
+    component_ids: abc.Set[int] | None = None,
     name: str | None = None,
     priority: int = -sys.maxsize - 1,
 ) -> PVPool:
@@ -601,7 +602,7 @@ def pv_pool(
         power.
 
     Args:
-        pv_inverter_ids: Optional set of IDs of PV inverters to be managed by the
+        component_ids: Optional set of IDs of PV inverters to be managed by the
             `PVPool`. If not specified, all PV inverters available in the component
             graph are used.
         name: An optional name used to identify this instance of the pool or a
@@ -611,7 +612,7 @@ def pv_pool(
     Returns:
         A `PVPool` instance.
     """
-    return _get().pv_pool(pv_inverter_ids, name, priority)
+    return _get().pv_pool(component_ids, name, priority)
 
 
 def grid() -> Grid:
