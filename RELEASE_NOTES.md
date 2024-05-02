@@ -6,7 +6,9 @@
 
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
+- Calls to `microgrid.*_pool` methods now always need to specified a priority value, corresponding to the requirements/priority of the actor making the call.
+
+- The `microgrid.*_pool` methods would only accept keyword arguments from now on.
 
 ## New Features
 
