@@ -30,6 +30,11 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      # Upgrade to time-machine 2.13.0+ breaks our tests. See:
+      # https://github.com/frequenz-floss/frequenz-sdk-python/issues/832
+      - dependency-name: "time-machine"
+        versions: [">=2.13.0"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
