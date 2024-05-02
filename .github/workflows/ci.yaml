@@ -159,7 +159,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /tmp/pip-cache
-          key: nox-${{ matrix.nox-session }}-${{ matrix.arch }}-${{ matrix.os }}-${{ matrix.python }}-${{ hashFiles('**/pyproject.toml') }}
+          key: nox-${{ matrix.nox-session }}-${{ matrix.arch }}-${{ matrix.os }}-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}
 
       # This ensures that the docker container has access to the pip cache.
       # Changing the user in the docker-run step causes it to fail due to
