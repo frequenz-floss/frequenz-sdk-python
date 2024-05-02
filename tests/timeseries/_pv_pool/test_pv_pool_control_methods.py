@@ -131,7 +131,7 @@ class TestPVPoolControl:
             if check(report):
                 break
 
-    async def test_setting_power(
+    async def test_setting_power(  # pylint: disable=too-many-statements
         self,
         mocks: _Mocks,
         mocker: MockerFixture,
@@ -259,4 +259,25 @@ class TestPVPoolControl:
             mocker.call(inv_ids[1], -20000.0),
             mocker.call(inv_ids[2], -30000.0),
             mocker.call(inv_ids[3], -30000.0),
+        ]
+
+        # Setting 0 power should set all inverters to 0
+        set_power.reset_mock()
+        await pv_pool.propose_power(Power.zero())
+        await self._recv_reports_until(
+            bounds_rx,
+            lambda x: x.target_power is not None and x.target_power.as_watts() == 0.0,
+        )
+        self._assert_report(
+            await bounds_rx.receive(), power=0.0, lower=-100000.0, upper=0.0
+        )
+        await asyncio.sleep(0.0)
+
+        assert set_power.call_count == 4
+        inv_ids = mocks.microgrid.pv_inverter_ids
+        assert sorted(set_power.call_args_list, key=lambda x: x.args[0]) == [
+            mocker.call(inv_ids[0], 0.0),
+            mocker.call(inv_ids[1], 0.0),
+            mocker.call(inv_ids[2], 0.0),
+            mocker.call(inv_ids[3], 0.0),
         ]
