@@ -136,7 +136,8 @@ class PVManager(ComponentManager):
             if remaining_power > Power.zero() or is_close_to_zero(
                 remaining_power.as_watts()
             ):
-                break
+                allocations[inv_id] = Power.zero()
+                continue
             distribution = remaining_power / float(num_components - idx)
             inv_data = self._component_data_caches[inv_id]
             if not inv_data.has_value():
