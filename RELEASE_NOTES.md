@@ -1,5 +1,5 @@
 # Frequenz Python SDK Release Notes
 
-## Summary
+## Bug Fixes
 
-This release only fixes a `pylint` check failure that was preventing the release to be uploaded to PyPI.
+- Fix getting reactive power from meters, inverters and EV chargers.
