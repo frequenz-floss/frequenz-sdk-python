@@ -49,7 +49,7 @@ async def mocks(mocker: MockerFixture) -> typing.AsyncIterator[_Mocks]:
     yield _Mocks(
         mockgrid,
         streamer,
-        dp._ev_power_wrapper.status_channel.new_sender(),
+        dp._pv_power_wrapper.status_channel.new_sender(),
     )
 
 
