@@ -184,6 +184,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
     def ev_charger_pool(
         self,
+        *,
         priority: int,
         component_ids: abc.Set[int] | None = None,
         name: str | None = None,
@@ -254,6 +255,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
     def pv_pool(
         self,
+        *,
         priority: int,
         component_ids: abc.Set[int] | None = None,
         name: str | None = None,
@@ -330,6 +332,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
     def battery_pool(
         self,
+        *,
         priority: int,
         component_ids: abc.Set[int] | None = None,
         name: str | None = None,
@@ -504,6 +507,7 @@ def producer() -> Producer:
 
 
 def ev_charger_pool(
+    *,
     priority: int,
     component_ids: abc.Set[int] | None = None,
     name: str | None = None,
@@ -537,10 +541,13 @@ def ev_charger_pool(
     Returns:
         An `EVChargerPool` instance.
     """
-    return _get().ev_charger_pool(priority, component_ids, name)
+    return _get().ev_charger_pool(
+        priority=priority, component_ids=component_ids, name=name
+    )
 
 
 def battery_pool(
+    *,
     priority: int,
     component_ids: abc.Set[int] | None = None,
     name: str | None = None,
@@ -574,10 +581,13 @@ def battery_pool(
     Returns:
         A `BatteryPool` instance.
     """
-    return _get().battery_pool(priority, component_ids, name)
+    return _get().battery_pool(
+        priority=priority, component_ids=component_ids, name=name
+    )
 
 
 def pv_pool(
+    *,
     priority: int,
     component_ids: abc.Set[int] | None = None,
     name: str | None = None,
@@ -611,7 +621,7 @@ def pv_pool(
     Returns:
         A `PVPool` instance.
     """
-    return _get().pv_pool(priority, component_ids, name)
+    return _get().pv_pool(priority=priority, component_ids=component_ids, name=name)
 
 
 def grid() -> Grid:
