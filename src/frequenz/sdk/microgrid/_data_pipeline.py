@@ -11,7 +11,6 @@ ResamplingActor.
 from __future__ import annotations
 
 import logging
-import sys
 import typing
 from collections import abc
 from dataclasses import dataclass
@@ -185,9 +184,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
     def ev_charger_pool(
         self,
+        priority: int,
         component_ids: abc.Set[int] | None = None,
         name: str | None = None,
-        priority: int = -sys.maxsize - 1,
     ) -> EVChargerPool:
         """Return the corresponding EVChargerPool instance for the given ids.
 
@@ -195,11 +194,11 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         created and returned.
 
         Args:
+            priority: The priority of the actor making the call.
             component_ids: Optional set of IDs of EV Chargers to be managed by the
                 EVChargerPool.
             name: An optional name used to identify this instance of the pool or a
                 corresponding actor in the logs.
-            priority: The priority of the actor making the call.
 
         Returns:
             An EVChargerPool instance.
@@ -255,9 +254,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
     def pv_pool(
         self,
+        priority: int,
         component_ids: abc.Set[int] | None = None,
         name: str | None = None,
-        priority: int = -sys.maxsize - 1,
     ) -> PVPool:
         """Return a new `PVPool` instance for the given ids.
 
@@ -265,11 +264,11 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         exist, a new one is created and used for creating the `PVPool`.
 
         Args:
+            priority: The priority of the actor making the call.
             component_ids: Optional set of IDs of PV inverters to be managed by the
                 `PVPool`.
             name: An optional name used to identify this instance of the pool or a
                 corresponding actor in the logs.
-            priority: The priority of the actor making the call.
 
         Returns:
             A `PVPool` instance.
@@ -331,9 +330,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
     def battery_pool(
         self,
+        priority: int,
         component_ids: abc.Set[int] | None = None,
         name: str | None = None,
-        priority: int = -sys.maxsize - 1,
     ) -> BatteryPool:
         """Return a new `BatteryPool` instance for the given ids.
 
@@ -341,11 +340,11 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         exist, a new one is created and used for creating the `BatteryPool`.
 
         Args:
+            priority: The priority of the actor making the call.
             component_ids: Optional set of IDs of batteries to be managed by the
                 `BatteryPool`.
             name: An optional name used to identify this instance of the pool or a
                 corresponding actor in the logs.
-            priority: The priority of the actor making the call.
 
         Returns:
             A `BatteryPool` instance.
@@ -505,9 +504,9 @@ def producer() -> Producer:
 
 
 def ev_charger_pool(
+    priority: int,
     component_ids: abc.Set[int] | None = None,
     name: str | None = None,
-    priority: int = -sys.maxsize - 1,
 ) -> EVChargerPool:
     """Return a new `EVChargerPool` instance for the given parameters.
 
@@ -528,23 +527,23 @@ def ev_charger_pool(
         power.
 
     Args:
+        priority: The priority of the actor making the call.
         component_ids: Optional set of IDs of EV Chargers to be managed by the
             EVChargerPool.  If not specified, all EV Chargers available in the
             component graph are used.
         name: An optional name used to identify this instance of the pool or a
             corresponding actor in the logs.
-        priority: The priority of the actor making the call.
 
     Returns:
         An `EVChargerPool` instance.
     """
-    return _get().ev_charger_pool(component_ids, name, priority)
+    return _get().ev_charger_pool(priority, component_ids, name)
 
 
 def battery_pool(
+    priority: int,
     component_ids: abc.Set[int] | None = None,
     name: str | None = None,
-    priority: int = -sys.maxsize - 1,
 ) -> BatteryPool:
     """Return a new `BatteryPool` instance for the given parameters.
 
@@ -565,23 +564,23 @@ def battery_pool(
         power.
 
     Args:
+        priority: The priority of the actor making the call.
         component_ids: Optional set of IDs of batteries to be managed by the
             `BatteryPool`.  If not specified, all batteries available in the component
             graph are used.
         name: An optional name used to identify this instance of the pool or a
             corresponding actor in the logs.
-        priority: The priority of the actor making the call.
 
     Returns:
         A `BatteryPool` instance.
     """
-    return _get().battery_pool(component_ids, name, priority)
+    return _get().battery_pool(priority, component_ids, name)
 
 
 def pv_pool(
+    priority: int,
     component_ids: abc.Set[int] | None = None,
     name: str | None = None,
-    priority: int = -sys.maxsize - 1,
 ) -> PVPool:
     """Return a new `PVPool` instance for the given parameters.
 
@@ -602,17 +601,17 @@ def pv_pool(
         power.
 
     Args:
+        priority: The priority of the actor making the call.
         component_ids: Optional set of IDs of PV inverters to be managed by the
             `PVPool`. If not specified, all PV inverters available in the component
             graph are used.
         name: An optional name used to identify this instance of the pool or a
             corresponding actor in the logs.
-        priority: The priority of the actor making the call.
 
     Returns:
         A `PVPool` instance.
     """
-    return _get().pv_pool(component_ids, name, priority)
+    return _get().pv_pool(priority, component_ids, name)
 
 
 def grid() -> Grid:
