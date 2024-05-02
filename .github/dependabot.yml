@@ -35,6 +35,11 @@ updates:
       # https://github.com/frequenz-floss/frequenz-sdk-python/issues/832
       - dependency-name: "time-machine"
         versions: [">=2.13.0"]
+      # Upgrading to 0.16.0+ needs a lot of changes in the code. See:
+      # https://github.com/frequenz-floss/frequenz-sdk-python/issues/844
+      - dependency-name: "frequenz-api-microgrid"
+        versions: [">=0.16.0"]
+
 
   - package-ecosystem: "github-actions"
     directory: "/"
