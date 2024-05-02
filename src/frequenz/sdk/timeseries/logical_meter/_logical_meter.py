@@ -42,7 +42,7 @@ class LogicalMeter:
         )
 
         logical_meter = microgrid.logical_meter()
-        pv_pool = microgrid.pv_pool()
+        pv_pool = microgrid.pv_pool(priority=5)
         grid = microgrid.grid()
 
         # Get a receiver for a builtin formula

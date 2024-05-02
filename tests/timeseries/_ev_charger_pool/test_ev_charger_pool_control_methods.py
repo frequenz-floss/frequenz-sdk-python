@@ -214,7 +214,7 @@ class TestEVChargerPoolControl:
 
         await self._init_ev_chargers(mocks)
         await self._patch_data_pipeline(mocker)
-        ev_charger_pool = microgrid.ev_charger_pool()
+        ev_charger_pool = microgrid.ev_charger_pool(priority=5)
         await self._patch_ev_pool_status(mocks, mocker)
         await self._patch_power_distributing_actor(mocker)
 

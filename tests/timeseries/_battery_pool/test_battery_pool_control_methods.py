@@ -188,7 +188,7 @@ class TestBatteryPoolControl:
         await self._init_data_for_batteries(mocks)
         await self._init_data_for_inverters(mocks)
 
-        battery_pool = microgrid.battery_pool()
+        battery_pool = microgrid.battery_pool(priority=5)
 
         bounds_rx = battery_pool.power_status.new_receiver()
 
@@ -283,9 +283,13 @@ class TestBatteryPoolControl:
         await self._init_data_for_batteries(mocks)
         await self._init_data_for_inverters(mocks)
 
-        battery_pool_1 = microgrid.battery_pool(set(mocks.microgrid.battery_ids[:2]))
+        battery_pool_1 = microgrid.battery_pool(
+            priority=5, component_ids=set(mocks.microgrid.battery_ids[:2])
+        )
         bounds_1_rx = battery_pool_1.power_status.new_receiver()
-        battery_pool_2 = microgrid.battery_pool(set(mocks.microgrid.battery_ids[2:]))
+        battery_pool_2 = microgrid.battery_pool(
+            priority=5, component_ids=set(mocks.microgrid.battery_ids[2:])
+        )
         bounds_2_rx = battery_pool_2.power_status.new_receiver()
 
         self._assert_report(
@@ -389,7 +393,7 @@ class TestBatteryPoolControl:
         await self._init_data_for_batteries(mocks, exclusion_bounds=(-100.0, 100.0))
         await self._init_data_for_inverters(mocks)
 
-        battery_pool = microgrid.battery_pool()
+        battery_pool = microgrid.battery_pool(priority=5)
         bounds_rx = battery_pool.power_status.new_receiver()
 
         self._assert_report(
