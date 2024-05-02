@@ -12,6 +12,10 @@
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->
 
+## Enhancements
+
+- A warning message will now be logged if no relevant samples are found in a component for resampling.
+
 ## Bug Fixes
 
 <!-- Here goes notable bug fixes that are worth a special mention or explanation -->
