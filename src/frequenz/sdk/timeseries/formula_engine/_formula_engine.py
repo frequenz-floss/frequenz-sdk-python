@@ -253,7 +253,7 @@ class FormulaEngine(
     ```python
     from frequenz.sdk import microgrid
 
-    battery_pool = microgrid.battery_pool()
+    battery_pool = microgrid.battery_pool(priority=5)
 
     async for power in battery_pool.power.new_receiver():
         print(f"{power=}")
@@ -277,8 +277,8 @@ class FormulaEngine(
     from frequenz.sdk import microgrid
 
     logical_meter = microgrid.logical_meter()
-    battery_pool = microgrid.battery_pool()
-    ev_charger_pool = microgrid.ev_charger_pool()
+    battery_pool = microgrid.battery_pool(priority=5)
+    ev_charger_pool = microgrid.ev_charger_pool(priority=5)
     grid = microgrid.grid()
 
     # apply operations on formula engines to create a formula engine that would
@@ -459,7 +459,7 @@ class FormulaEngine3Phase(
     ```python
     from frequenz.sdk import microgrid
 
-    ev_charger_pool = microgrid.ev_charger_pool()
+    ev_charger_pool = microgrid.ev_charger_pool(priority=5)
 
     async for sample in ev_charger_pool.current.new_receiver():
         print(f"Current: {sample}")
@@ -474,7 +474,7 @@ class FormulaEngine3Phase(
     from frequenz.sdk import microgrid
 
     logical_meter = microgrid.logical_meter()
-    ev_charger_pool = microgrid.ev_charger_pool()
+    ev_charger_pool = microgrid.ev_charger_pool(priority=5)
     grid = microgrid.grid()
 
     # Calculate grid consumption current that's not used by the EV chargers

@@ -50,7 +50,7 @@ async def send_requests(batteries: set[int], request_num: int) -> list[Result]:
     Returns:
         List of the results from the PowerDistributingActor.
     """
-    battery_pool = microgrid.battery_pool(batteries)
+    battery_pool = microgrid.battery_pool(priority=5, component_ids=batteries)
     results_rx = battery_pool.power_status.new_receiver()
     result: list[Any] = []
     for _ in range(request_num):

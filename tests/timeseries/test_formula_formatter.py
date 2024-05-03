@@ -123,7 +123,7 @@ class TestFormulaFormatter:
             logical_meter = microgrid.logical_meter()
             stack.push_async_callback(logical_meter.stop)
 
-            pv_pool = microgrid.pv_pool()
+            pv_pool = microgrid.pv_pool(priority=5)
             stack.push_async_callback(pv_pool.stop)
 
             grid = microgrid.grid()
