@@ -16,4 +16,4 @@
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+- When the PowerDistributor receives a zero power request for PV inverters, it now correctly sets zero power to the inverters, and no longer crashes.
