@@ -518,8 +518,7 @@ def ev_charger_pool(
     propose different power values for the same set of EV chargers.
 
     !!! note
-        When specifying priority, bigger values indicate higher priority. The default
-        priority is the lowest possible value.
+        When specifying priority, bigger values indicate higher priority.
 
         It is recommended to reuse the same instance of the `EVChargerPool` within the
         same actor, unless they are managing different sets of EV chargers.
@@ -558,8 +557,7 @@ def battery_pool(
     propose different power values for the same set of batteries.
 
     !!! note
-        When specifying priority, bigger values indicate higher priority. The default
-        priority is the lowest possible value.
+        When specifying priority, bigger values indicate higher priority.
 
         It is recommended to reuse the same instance of the `BatteryPool` within the
         same actor, unless they are managing different sets of batteries.
@@ -598,8 +596,7 @@ def pv_pool(
     propose different power values for the same set of PV inverters.
 
     !!! note
-        When specifying priority, bigger values indicate higher priority. The default
-        priority is the lowest possible value.
+        When specifying priority, bigger values indicate higher priority.
 
         It is recommended to reuse the same instance of the `PVPool` within the same
         actor, unless they are managing different sets of PV inverters.
