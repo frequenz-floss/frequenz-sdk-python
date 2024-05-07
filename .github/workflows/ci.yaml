@@ -241,7 +241,15 @@ jobs:
   test-installation:
     name: Test package installation in different architectures
     needs: ["build"]
-    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-20.04
+        python:
+          - "3.11"
+          - "3.12"
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Fetch sources
         uses: actions/checkout@v4
@@ -258,7 +266,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: .github/containers/test-installation/Dockerfile
+          file: .github/containers/test-installation/python-${{ matrix.python }}.Dockerfile
           platforms: linux/amd64,linux/arm64
           tags: localhost/test-installation
           push: false
