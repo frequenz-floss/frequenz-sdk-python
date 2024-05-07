@@ -33,6 +33,7 @@ jobs:
           - ubuntu-20.04
         python:
           - "3.11"
+          - "3.12"
         nox-session:
           # To speed things up a bit we use the special ci_checks_max session
           # that uses the same venv to run multiple linting sessions
@@ -109,6 +110,7 @@ jobs:
           - ubuntu-20.04
         python:
           - "3.11"
+          - "3.12"
         nox-session:
           - "pytest_min"
           - "pytest_max"
