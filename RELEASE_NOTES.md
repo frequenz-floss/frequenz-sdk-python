@@ -6,6 +6,8 @@
 
 ## Upgrading
 
+- The `frequenz-client-microgrid` dependency was bumped to v0.4.0. If you are using the client directly in your code, you will need to upgrade too.
+
 - Calls to `microgrid.*_pool` methods now always need to specified a priority value, corresponding to the requirements/priority of the actor making the call.
 
 - The `microgrid.*_pool` methods would only accept keyword arguments from now on.
