@@ -34,7 +34,7 @@ class PVPool:
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        pv_pool_ref: PVPoolReferenceStore,
+        pool_ref_store: PVPoolReferenceStore,
         name: str | None,
         priority: int,
     ) -> None:
@@ -46,11 +46,11 @@ class PVPool:
             `PVPool` instances.
 
         Args:
-            pv_pool_ref: The reference store for the PV pool.
+            pool_ref_store: The reference store for the PV pool.
             name: The name of the PV pool.
             priority: The priority of the PV pool.
         """
-        self._pv_pool_ref = pv_pool_ref
+        self._pool_ref_store = pool_ref_store
         unique_id = uuid.uuid4()
         self._source_id = str(unique_id) if name is None else f"{name}-{unique_id}"
         self._priority = priority
@@ -107,12 +107,12 @@ class PVPool:
         """
         if power is not None and power > Power.zero():
             raise PVPoolError("Charge powers for PV inverters is not supported.")
-        await self._pv_pool_ref.power_manager_requests_sender.send(
+        await self._pool_ref_store.power_manager_requests_sender.send(
             _power_managing.Proposal(
                 source_id=self._source_id,
                 preferred_power=power,
                 bounds=bounds,
-                component_ids=self._pv_pool_ref.component_ids,
+                component_ids=self._pool_ref_store.component_ids,
                 priority=self._priority,
                 creation_time=asyncio.get_running_loop().time(),
                 request_timeout=request_timeout,
@@ -126,7 +126,7 @@ class PVPool:
         Returns:
             Set of managed component IDs.
         """
-        return self._pv_pool_ref.component_ids
+        return self._pool_ref_store.component_ids
 
     @property
     def power(self) -> FormulaEngine[Power]:
@@ -144,11 +144,11 @@ class PVPool:
             A FormulaEngine that will calculate and stream the total power of all PV
                 Inverters.
         """
-        engine = self._pv_pool_ref.formula_pool.from_power_formula_generator(
+        engine = self._pool_ref_store.formula_pool.from_power_formula_generator(
             "pv_power",
             PVPowerFormula,
             FormulaGeneratorConfig(
-                component_ids=self._pv_pool_ref.component_ids,
+                component_ids=self._pool_ref_store.component_ids,
             ),
         )
         assert isinstance(engine, FormulaEngine)
@@ -169,14 +169,14 @@ class PVPool:
         sub = _power_managing.ReportRequest(
             source_id=self._source_id,
             priority=self._priority,
-            component_ids=self._pv_pool_ref.component_ids,
+            component_ids=self._pool_ref_store.component_ids,
         )
-        self._pv_pool_ref.power_bounds_subs[sub.get_channel_name()] = (
+        self._pool_ref_store.power_bounds_subs[sub.get_channel_name()] = (
             asyncio.create_task(
-                self._pv_pool_ref.power_manager_bounds_subs_sender.send(sub)
+                self._pool_ref_store.power_manager_bounds_subs_sender.send(sub)
             )
         )
-        channel = self._pv_pool_ref.channel_registry.get_or_create(
+        channel = self._pool_ref_store.channel_registry.get_or_create(
             _power_managing._Report,  # pylint: disable=protected-access
             sub.get_channel_name(),
         )
@@ -188,9 +188,9 @@ class PVPool:
 
     async def stop(self) -> None:
         """Stop all tasks and channels owned by the PVPool."""
-        await self._pv_pool_ref.stop()
+        await self._pool_ref_store.stop()
 
     @property
     def _system_power_bounds(self) -> ReceiverFetcher[SystemBounds]:
         """Return a receiver fetcher for the system power bounds."""
-        return self._pv_pool_ref.bounds_channel
+        return self._pool_ref_store.bounds_channel

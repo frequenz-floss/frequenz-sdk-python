@@ -175,7 +175,7 @@ async def setup_all_batteries(mocker: MockerFixture) -> AsyncIterator[SetupArgs]
     await asyncio.gather(
         *[
             dp._stop(),
-            battery_pool._battery_pool.stop(),
+            battery_pool._pool_ref_store.stop(),
             streamer.stop(),
         ]
     )
@@ -232,7 +232,7 @@ async def setup_batteries_pool(mocker: MockerFixture) -> AsyncIterator[SetupArgs
     await asyncio.gather(
         *[
             dp._stop(),
-            battery_pool._battery_pool.stop(),
+            battery_pool._pool_ref_store.stop(),
             streamer.stop(),
         ]
     )
