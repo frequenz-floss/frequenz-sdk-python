@@ -39,8 +39,7 @@ class VoltageStreamer:
         from frequenz.sdk.timeseries import ResamplerConfig
 
         await microgrid.initialize(
-            "127.0.0.1",
-            50051,
+            "grpc://127.0.0.1:50051",
             ResamplerConfig(resampling_period=timedelta(seconds=1))
         )
 

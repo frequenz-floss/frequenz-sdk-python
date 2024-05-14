@@ -140,7 +140,8 @@ async def run() -> None:
     # pylint: disable=protected-access
 
     await microgrid.initialize(
-        HOST, PORT, ResamplerConfig(resampling_period=timedelta(seconds=1.0))
+        "grpc://microgrid.sandbox.api.frequenz.io:62060",
+        ResamplerConfig(resampling_period=timedelta(seconds=1.0)),
     )
 
     all_batteries: set[Component] = connection_manager.get().component_graph.components(

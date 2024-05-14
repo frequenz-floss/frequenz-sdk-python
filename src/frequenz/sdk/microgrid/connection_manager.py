@@ -11,14 +11,9 @@ component graph.
 import logging
 from abc import ABC, abstractmethod
 
-import grpc.aio as grpcaio
 from frequenz.client.microgrid import ApiClient, Location, Metadata
 
 from .component_graph import ComponentGraph, _MicrogridComponentGraph
-
-# Not public default host and port
-_DEFAULT_MICROGRID_HOST = "[::1]"
-_DEFAULT_MICROGRID_PORT = 443
 
 _logger = logging.getLogger(__name__)
 
@@ -26,34 +21,23 @@ _logger = logging.getLogger(__name__)
 class ConnectionManager(ABC):
     """Creates and stores core features."""
 
-    def __init__(self, host: str, port: int) -> None:
+    def __init__(self, server_url: str) -> None:
         """Create object instance.
 
         Args:
-            host: server host
-            port: server port
+            server_url: The location of the microgrid API server in the form of a URL.
+                The following format is expected: `grpc://hostname{:port}{?ssl=ssl}`,
+                where the port should be an int between `0` and `65535` (defaulting to
+                `9090`) and ssl should be a boolean (defaulting to false). For example:
+                `grpc://localhost:1090?ssl=true`.
         """
         super().__init__()
-        self._host: str = host
-        self._port: int = port
+        self._server_url = server_url
 
     @property
-    def host(self) -> str:
-        """Get host of the currently connected server.
-
-        Returns:
-            host
-        """
-        return self._host
-
-    @property
-    def port(self) -> int:
-        """Get port of the currently connected server.
-
-        Returns:
-            port
-        """
-        return self._port
+    def server_url(self) -> str:
+        """The location of the microgrid API server in the form of a URL."""
+        return self._server_url
 
     @property
     @abstractmethod
@@ -91,9 +75,8 @@ class ConnectionManager(ABC):
             the location of the microgrid if available, None otherwise.
         """
 
-    async def _update_api(self, host: str, port: int) -> None:
-        self._host = host
-        self._port = port
+    async def _update_api(self, server_url: str) -> None:
+        self._server_url = server_url
 
     @abstractmethod
     async def _initialize(self) -> None:
@@ -103,19 +86,18 @@ class ConnectionManager(ABC):
 class _InsecureConnectionManager(ConnectionManager):
     """Microgrid Api with insecure channel implementation."""
 
-    def __init__(
-        self, host: str = _DEFAULT_MICROGRID_HOST, port: int = _DEFAULT_MICROGRID_PORT
-    ) -> None:
+    def __init__(self, server_url: str) -> None:
         """Create and stores core features.
 
         Args:
-            host: host. Defaults to _DEFAULT_MICROGRID_HOST.
-            port: port. Defaults to _DEFAULT_MICROGRID_PORT.
+            server_url: The location of the microgrid API server in the form of a URL.
+                The following format is expected: `grpc://hostname{:port}{?ssl=ssl}`,
+                where the port should be an int between `0` and `65535` (defaulting to
+                `9090`) and ssl should be a boolean (defaulting to false). For example:
+                `grpc://localhost:1090?ssl=true`.
         """
-        super().__init__(host, port)
-        target = f"{host}:{port}"
-        grpc_channel = grpcaio.insecure_channel(target)
-        self._api = ApiClient(grpc_channel, target)
+        super().__init__(server_url)
+        self._api = ApiClient(server_url)
         # To create graph from the api we need await.
         # So create empty graph here, and update it in `run` method.
         self._graph = _MicrogridComponentGraph()
@@ -159,18 +141,20 @@ class _InsecureConnectionManager(ConnectionManager):
         """
         return self._graph
 
-    async def _update_api(self, host: str, port: int) -> None:
+    async def _update_api(self, server_url: str) -> None:
         """Update api with new host and port.
 
         Args:
-            host: new host
-            port: new port
+            server_url: The new location of the microgrid API server in the form of a
+                URL. The following format is expected:
+                `grpc://hostname{:port}{?ssl=ssl}`, where the port should be an int
+                between `0` and `65535` (defaulting to `9090`) and ssl should be
+                a boolean (defaulting to false). For example:
+                `grpc://localhost:1090?ssl=true`.
         """
-        await super()._update_api(host, port)  # pylint: disable=protected-access
+        await super()._update_api(server_url)  # pylint: disable=protected-access
 
-        target = f"{host}:{port}"
-        grpc_channel = grpcaio.insecure_channel(target)
-        self._api = ApiClient(grpc_channel, target)
+        self._api = ApiClient(server_url)
         self._metadata = await self._api.metadata()
         await self._graph.refresh_from_api(self._api)
 
@@ -183,12 +167,15 @@ _CONNECTION_MANAGER: ConnectionManager | None = None
 """The ConnectionManager singleton instance."""
 
 
-async def initialize(host: str, port: int) -> None:
+async def initialize(server_url: str) -> None:
     """Initialize the MicrogridApi. This function should be called only once.
 
     Args:
-        host: Microgrid host
-        port: Microgrid port
+        server_url: The location of the microgrid API server in the form of a URL.
+            The following format is expected: `grpc://hostname{:port}{?ssl=ssl}`,
+            where the port should be an int between `0` and `65535` (defaulting to
+            `9090`) and ssl should be a boolean (defaulting to false). For example:
+            `grpc://localhost:1090?ssl=true`.
 
     Raises:
         AssertionError: If method was called more then once.
@@ -200,9 +187,9 @@ async def initialize(host: str, port: int) -> None:
     if _CONNECTION_MANAGER is not None:
         raise AssertionError("MicrogridApi was already initialized.")
 
-    _logger.info("Connecting to microgrid at %s:%s", host, port)
+    _logger.info("Connecting to microgrid at %s", server_url)
 
-    microgrid_api = _InsecureConnectionManager(host, port)
+    microgrid_api = _InsecureConnectionManager(server_url)
     await microgrid_api._initialize()  # pylint: disable=protected-access
 
     # Check again that _MICROGRID_API is None in case somebody had the great idea of

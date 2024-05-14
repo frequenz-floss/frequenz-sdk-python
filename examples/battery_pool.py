@@ -23,8 +23,7 @@ async def main() -> None:
         level=logging.DEBUG, format="%(asctime)s %(name)s %(levelname)s:%(message)s"
     )
     await microgrid.initialize(
-        host=HOST,
-        port=PORT,
+        "grpc://microgrid.sandbox.api.frequenz.io:62060",
         resampler_config=ResamplerConfig(resampling_period=timedelta(seconds=1.0)),
     )
 
