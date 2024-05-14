@@ -182,6 +182,17 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             )
         return self._producer
 
+    def grid(self) -> Grid:
+        """Return the grid measuring point."""
+        if self._grid is None:
+            initialize_grid(
+                channel_registry=self._channel_registry,
+                resampler_subscription_sender=self._resampling_request_sender(),
+            )
+            self._grid = get_grid()
+
+        return self._grid
+
     def ev_charger_pool(
         self,
         *,
@@ -318,17 +329,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             )
 
         return PVPool(self._pv_pool_reference_stores[ref_store_key], name, priority)
-
-    def grid(self) -> Grid:
-        """Return the grid measuring point."""
-        if self._grid is None:
-            initialize_grid(
-                channel_registry=self._channel_registry,
-                resampler_subscription_sender=self._resampling_request_sender(),
-            )
-            self._grid = get_grid()
-
-        return self._grid
 
     def battery_pool(
         self,
