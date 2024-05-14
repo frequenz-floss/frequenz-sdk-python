@@ -41,6 +41,7 @@ class EVChargerPool:
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
+        *,
         pool_ref_store: EVChargerPoolReferenceStore,
         name: str | None,
         priority: int,

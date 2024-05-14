@@ -34,6 +34,7 @@ class PVPool:
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
+        *,
         pool_ref_store: PVPoolReferenceStore,
         name: str | None,
         priority: int,

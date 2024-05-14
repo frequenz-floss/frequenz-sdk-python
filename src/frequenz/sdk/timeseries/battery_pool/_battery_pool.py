@@ -55,6 +55,7 @@ class BatteryPool:
 
     def __init__(
         self,
+        *,
         pool_ref_store: BatteryPoolReferenceStore,
         name: str | None,
         priority: int,

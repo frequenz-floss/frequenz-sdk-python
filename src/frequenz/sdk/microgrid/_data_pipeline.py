@@ -261,7 +261,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 )
             )
         return EVChargerPool(
-            self._ev_charger_pool_reference_stores[ref_store_key], name, priority
+            pool_ref_store=self._ev_charger_pool_reference_stores[ref_store_key],
+            name=name,
+            priority=priority,
         )
 
     def pv_pool(
@@ -328,7 +330,11 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 component_ids=component_ids,
             )
 
-        return PVPool(self._pv_pool_reference_stores[ref_store_key], name, priority)
+        return PVPool(
+            pool_ref_store=self._pv_pool_reference_stores[ref_store_key],
+            name=name,
+            priority=priority,
+        )
 
     def battery_pool(
         self,
@@ -400,7 +406,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             )
 
         return BatteryPool(
-            self._battery_pool_reference_stores[ref_store_key], name, priority
+            pool_ref_store=self._battery_pool_reference_stores[ref_store_key],
+            name=name,
+            priority=priority,
         )
 
     def _data_sourcing_request_sender(self) -> Sender[ComponentMetricRequest]:
