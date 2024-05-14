@@ -9,12 +9,8 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock
 
 import pytest
-
-# pylint: disable=no-name-in-module
-from frequenz.api.microgrid.inverter_pb2 import ComponentState
-
-# pylint: enable=no-name-in-module
 from frequenz.channels import Receiver
+from frequenz.client.microgrid import InverterComponentState
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
@@ -70,7 +66,7 @@ class TestPVPoolControl:
                 InverterDataWrapper(
                     comp_id,
                     now,
-                    _component_state=ComponentState.COMPONENT_STATE_IDLE,
+                    component_state=InverterComponentState.IDLE,
                     active_power=0.0,
                     active_power_inclusion_lower_bound=-10000.0 * (idx + 1),
                     active_power_inclusion_upper_bound=0.0,
@@ -85,10 +81,10 @@ class TestPVPoolControl:
                 InverterDataWrapper(
                     comp_id,
                     now,
-                    _component_state=(
-                        ComponentState.COMPONENT_STATE_ERROR
+                    component_state=(
+                        InverterComponentState.ERROR
                         if comp_id in fail_ids
-                        else ComponentState.COMPONENT_STATE_IDLE
+                        else InverterComponentState.IDLE
                     ),
                     active_power=0.0,
                     active_power_inclusion_lower_bound=-10000.0 * (idx + 1),

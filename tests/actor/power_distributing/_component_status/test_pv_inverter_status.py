@@ -7,13 +7,8 @@
 import asyncio
 from datetime import datetime, timedelta, timezone
 
-# pylint: disable=no-name-in-module
-from frequenz.api.microgrid.inverter_pb2 import (
-    ComponentState as PbInverterComponentState,
-)
-
-# pylint: enable=no-name-in-module
 from frequenz.channels import Broadcast
+from frequenz.client.microgrid import InverterComponentState
 from pytest_mock import MockerFixture
 
 from frequenz.sdk._internal._asyncio import cancel_and_await
@@ -65,7 +60,7 @@ class TestPVInverterStatusTracker:
                     _PV_INVERTER_ID,
                     datetime.now(tz=timezone.utc),
                     active_power=0.0,
-                    _component_state=PbInverterComponentState.COMPONENT_STATE_IDLE,
+                    component_state=InverterComponentState.IDLE,
                 )
             )
             assert await receive_timeout(status_receiver) == ComponentStatus(
@@ -78,7 +73,7 @@ class TestPVInverterStatusTracker:
                     _PV_INVERTER_ID,
                     datetime.now(tz=timezone.utc),
                     active_power=0.0,
-                    _component_state=PbInverterComponentState.COMPONENT_STATE_DISCHARGING,
+                    component_state=InverterComponentState.DISCHARGING,
                 )
             )
             assert await receive_timeout(status_receiver) is Timeout
@@ -89,7 +84,7 @@ class TestPVInverterStatusTracker:
                     _PV_INVERTER_ID,
                     datetime.now(tz=timezone.utc),
                     active_power=0.0,
-                    _component_state=PbInverterComponentState.COMPONENT_STATE_ERROR,
+                    component_state=InverterComponentState.ERROR,
                 )
             )
             assert await receive_timeout(status_receiver) == ComponentStatus(
@@ -102,7 +97,7 @@ class TestPVInverterStatusTracker:
                     _PV_INVERTER_ID,
                     datetime.now(tz=timezone.utc),
                     active_power=0.0,
-                    _component_state=PbInverterComponentState.COMPONENT_STATE_IDLE,
+                    component_state=InverterComponentState.IDLE,
                 )
             )
             assert await receive_timeout(status_receiver) == ComponentStatus(
@@ -121,7 +116,7 @@ class TestPVInverterStatusTracker:
                     _PV_INVERTER_ID,
                     datetime.now(tz=timezone.utc),
                     active_power=0.0,
-                    _component_state=PbInverterComponentState.COMPONENT_STATE_IDLE,
+                    component_state=InverterComponentState.IDLE,
                 )
             )
             assert await receive_timeout(status_receiver) == ComponentStatus(
@@ -136,7 +131,7 @@ class TestPVInverterStatusTracker:
                             _PV_INVERTER_ID,
                             datetime.now(tz=timezone.utc),
                             active_power=0.0,
-                            _component_state=PbInverterComponentState.COMPONENT_STATE_IDLE,
+                            component_state=InverterComponentState.IDLE,
                         )
                     )
                     await asyncio.sleep(0.1)

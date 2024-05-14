@@ -3,9 +3,8 @@
 
 """Tests for the DataSourcingActor."""
 
-from frequenz.api.common import components_pb2 as components_pb
 from frequenz.channels import Broadcast
-from frequenz.client.microgrid import ComponentMetricId
+from frequenz.client.microgrid import ComponentCategory, ComponentMetricId
 
 from frequenz.sdk.actor import (
     ChannelRegistry,
@@ -25,15 +24,11 @@ async def test_data_sourcing_actor() -> None:
     server = mock_api.MockGrpcServer(servicer, port=57899)
     await server.start()
 
-    servicer.add_component(1, components_pb.ComponentCategory.COMPONENT_CATEGORY_GRID)
-    servicer.add_component(4, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER)
-    servicer.add_component(7, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER)
-    servicer.add_component(
-        8, components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER
-    )
-    servicer.add_component(
-        9, components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY
-    )
+    servicer.add_component(1, ComponentCategory.GRID)
+    servicer.add_component(4, ComponentCategory.METER)
+    servicer.add_component(7, ComponentCategory.METER)
+    servicer.add_component(8, ComponentCategory.INVERTER)
+    servicer.add_component(9, ComponentCategory.BATTERY)
 
     servicer.add_connection(1, 4)
     servicer.add_connection(1, 7)
