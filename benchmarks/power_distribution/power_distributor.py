@@ -30,7 +30,7 @@ from frequenz.sdk.microgrid import connection_manager
 from frequenz.sdk.timeseries._quantities import Power
 
 HOST = "microgrid.sandbox.api.frequenz.io"
-PORT = 61060
+PORT = 62060
 
 
 # TODO: this send_requests function uses the battery pool to # pylint: disable=fixme
