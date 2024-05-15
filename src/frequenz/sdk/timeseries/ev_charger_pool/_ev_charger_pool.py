@@ -41,7 +41,8 @@ class EVChargerPool:
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        ev_charger_pool_ref: EVChargerPoolReferenceStore,
+        *,
+        pool_ref_store: EVChargerPoolReferenceStore,
         name: str | None,
         priority: int,
     ) -> None:
@@ -53,12 +54,12 @@ class EVChargerPool:
             method for creating `EVChargerPool` instances.
 
         Args:
-            ev_charger_pool_ref: The EV charger pool reference store instance.
+            pool_ref_store: The EV charger pool reference store instance.
             name: An optional name used to identify this instance of the pool or a
                 corresponding actor in the logs.
             priority: The priority of the actor using this wrapper.
         """
-        self._ev_charger_pool = ev_charger_pool_ref
+        self._pool_ref_store = pool_ref_store
         unique_id = str(uuid.uuid4())
         self._source_id = unique_id if name is None else f"{name}-{unique_id}"
         self._priority = priority
@@ -118,12 +119,12 @@ class EVChargerPool:
             raise EVChargerPoolError(
                 "Discharging from EV chargers is currently not supported."
             )
-        await self._ev_charger_pool.power_manager_requests_sender.send(
+        await self._pool_ref_store.power_manager_requests_sender.send(
             _power_managing.Proposal(
                 source_id=self._source_id,
                 preferred_power=power,
                 bounds=bounds,
-                component_ids=self._ev_charger_pool.component_ids,
+                component_ids=self._pool_ref_store.component_ids,
                 priority=self._priority,
                 creation_time=asyncio.get_running_loop().time(),
                 request_timeout=request_timeout,
@@ -137,7 +138,7 @@ class EVChargerPool:
         Returns:
             Set of managed component IDs.
         """
-        return self._ev_charger_pool.component_ids
+        return self._pool_ref_store.component_ids
 
     @property
     def current(self) -> FormulaEngine3Phase[Current]:
@@ -156,11 +157,11 @@ class EVChargerPool:
                 Chargers.
         """
         engine = (
-            self._ev_charger_pool.formula_pool.from_3_phase_current_formula_generator(
+            self._pool_ref_store.formula_pool.from_3_phase_current_formula_generator(
                 "ev_charger_total_current",
                 EVChargerCurrentFormula,
                 FormulaGeneratorConfig(
-                    component_ids=self._ev_charger_pool.component_ids
+                    component_ids=self._pool_ref_store.component_ids
                 ),
             )
         )
@@ -183,11 +184,11 @@ class EVChargerPool:
             A FormulaEngine that will calculate and stream the total power of all EV
                 Chargers.
         """
-        engine = self._ev_charger_pool.formula_pool.from_power_formula_generator(
+        engine = self._pool_ref_store.formula_pool.from_power_formula_generator(
             "ev_charger_power",
             EVChargerPowerFormula,
             FormulaGeneratorConfig(
-                component_ids=self._ev_charger_pool.component_ids,
+                component_ids=self._pool_ref_store.component_ids,
             ),
         )
         assert isinstance(engine, FormulaEngine)
@@ -208,14 +209,14 @@ class EVChargerPool:
         sub = _power_managing.ReportRequest(
             source_id=self._source_id,
             priority=self._priority,
-            component_ids=self._ev_charger_pool.component_ids,
+            component_ids=self._pool_ref_store.component_ids,
         )
-        self._ev_charger_pool.power_bounds_subs[sub.get_channel_name()] = (
+        self._pool_ref_store.power_bounds_subs[sub.get_channel_name()] = (
             asyncio.create_task(
-                self._ev_charger_pool.power_manager_bounds_subs_sender.send(sub)
+                self._pool_ref_store.power_manager_bounds_subs_sender.send(sub)
             )
         )
-        channel = self._ev_charger_pool.channel_registry.get_or_create(
+        channel = self._pool_ref_store.channel_registry.get_or_create(
             _power_managing._Report,  # pylint: disable=protected-access
             sub.get_channel_name(),
         )
@@ -227,9 +228,9 @@ class EVChargerPool:
 
     async def stop(self) -> None:
         """Stop all tasks and channels owned by the EVChargerPool."""
-        await self._ev_charger_pool.stop()
+        await self._pool_ref_store.stop()
 
     @property
     def _system_power_bounds(self) -> ReceiverFetcher[SystemBounds]:
         """Return a receiver fetcher for the system power bounds."""
-        return self._ev_charger_pool.bounds_channel
+        return self._pool_ref_store.bounds_channel

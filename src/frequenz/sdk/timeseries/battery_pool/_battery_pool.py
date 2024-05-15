@@ -55,7 +55,8 @@ class BatteryPool:
 
     def __init__(
         self,
-        battery_pool_ref: BatteryPoolReferenceStore,
+        *,
+        pool_ref_store: BatteryPoolReferenceStore,
         name: str | None,
         priority: int,
     ):
@@ -67,12 +68,12 @@ class BatteryPool:
             for creating `BatteryPool` instances.
 
         Args:
-            battery_pool_ref: The battery pool reference store instance.
+            pool_ref_store: The battery pool reference store instance.
             name: An optional name used to identify this instance of the pool or a
                 corresponding actor in the logs.
             priority: The priority of the actor using this wrapper.
         """
-        self._battery_pool = battery_pool_ref
+        self._pool_ref_store = pool_ref_store
         unique_id = str(uuid.uuid4())
         self._source_id = unique_id if name is None else f"{name}-{unique_id}"
         self._priority = priority
@@ -120,12 +121,12 @@ class BatteryPool:
                 to the maximum power of the batteries in the pool.  This is currently
                 and experimental feature.
         """
-        await self._battery_pool._power_manager_requests_sender.send(
+        await self._pool_ref_store._power_manager_requests_sender.send(
             _power_managing.Proposal(
                 source_id=self._source_id,
                 preferred_power=power,
                 bounds=bounds,
-                component_ids=self._battery_pool._batteries,
+                component_ids=self._pool_ref_store._batteries,
                 priority=self._priority,
                 creation_time=asyncio.get_running_loop().time(),
                 request_timeout=request_timeout,
@@ -166,12 +167,12 @@ class BatteryPool:
         """
         if power and power < Power.zero():
             raise ValueError("Charge power must be positive.")
-        await self._battery_pool._power_manager_requests_sender.send(
+        await self._pool_ref_store._power_manager_requests_sender.send(
             _power_managing.Proposal(
                 source_id=self._source_id,
                 preferred_power=power,
                 bounds=timeseries.Bounds(None, None),
-                component_ids=self._battery_pool._batteries,
+                component_ids=self._pool_ref_store._batteries,
                 priority=self._priority,
                 creation_time=asyncio.get_running_loop().time(),
                 request_timeout=request_timeout,
@@ -214,12 +215,12 @@ class BatteryPool:
             if power < Power.zero():
                 raise ValueError("Discharge power must be positive.")
             power = -power
-        await self._battery_pool._power_manager_requests_sender.send(
+        await self._pool_ref_store._power_manager_requests_sender.send(
             _power_managing.Proposal(
                 source_id=self._source_id,
                 preferred_power=power,
                 bounds=timeseries.Bounds(None, None),
-                component_ids=self._battery_pool._batteries,
+                component_ids=self._pool_ref_store._batteries,
                 priority=self._priority,
                 creation_time=asyncio.get_running_loop().time(),
                 request_timeout=request_timeout,
@@ -233,7 +234,7 @@ class BatteryPool:
         Returns:
             Ids of the batteries in the pool
         """
-        return self._battery_pool._batteries
+        return self._pool_ref_store._batteries
 
     @property
     def power(self) -> FormulaEngine[Power]:
@@ -251,11 +252,11 @@ class BatteryPool:
             A FormulaEngine that will calculate and stream the total power of all
                 batteries in the pool.
         """
-        engine = self._battery_pool._formula_pool.from_power_formula_generator(
+        engine = self._pool_ref_store._formula_pool.from_power_formula_generator(
             "battery_pool_power",
             BatteryPowerFormula,
             FormulaGeneratorConfig(
-                component_ids=self._battery_pool._batteries,
+                component_ids=self._pool_ref_store._batteries,
             ),
         )
         assert isinstance(engine, FormulaEngine)
@@ -298,15 +299,15 @@ class BatteryPool:
         """
         method_name = SendOnUpdate.name() + "_" + SoCCalculator.name()
 
-        if method_name not in self._battery_pool._active_methods:
-            calculator = SoCCalculator(self._battery_pool._batteries)
-            self._battery_pool._active_methods[method_name] = SendOnUpdate(
+        if method_name not in self._pool_ref_store._active_methods:
+            calculator = SoCCalculator(self._pool_ref_store._batteries)
+            self._pool_ref_store._active_methods[method_name] = SendOnUpdate(
                 metric_calculator=calculator,
-                working_batteries=self._battery_pool._working_batteries,
-                min_update_interval=self._battery_pool._min_update_interval,
+                working_batteries=self._pool_ref_store._working_batteries,
+                min_update_interval=self._pool_ref_store._min_update_interval,
             )
 
-        return self._battery_pool._active_methods[method_name]
+        return self._pool_ref_store._active_methods[method_name]
 
     @property
     def temperature(self) -> ReceiverFetcher[Sample[Temperature]]:
@@ -317,14 +318,14 @@ class BatteryPool:
                 of all batteries in the pool.
         """
         method_name = SendOnUpdate.name() + "_" + TemperatureCalculator.name()
-        if method_name not in self._battery_pool._active_methods:
-            calculator = TemperatureCalculator(self._battery_pool._batteries)
-            self._battery_pool._active_methods[method_name] = SendOnUpdate(
+        if method_name not in self._pool_ref_store._active_methods:
+            calculator = TemperatureCalculator(self._pool_ref_store._batteries)
+            self._pool_ref_store._active_methods[method_name] = SendOnUpdate(
                 metric_calculator=calculator,
-                working_batteries=self._battery_pool._working_batteries,
-                min_update_interval=self._battery_pool._min_update_interval,
+                working_batteries=self._pool_ref_store._working_batteries,
+                min_update_interval=self._pool_ref_store._min_update_interval,
             )
-        return self._battery_pool._active_methods[method_name]
+        return self._pool_ref_store._active_methods[method_name]
 
     @property
     def capacity(self) -> ReceiverFetcher[Sample[Energy]]:
@@ -355,15 +356,15 @@ class BatteryPool:
         """
         method_name = SendOnUpdate.name() + "_" + CapacityCalculator.name()
 
-        if method_name not in self._battery_pool._active_methods:
-            calculator = CapacityCalculator(self._battery_pool._batteries)
-            self._battery_pool._active_methods[method_name] = SendOnUpdate(
+        if method_name not in self._pool_ref_store._active_methods:
+            calculator = CapacityCalculator(self._pool_ref_store._batteries)
+            self._pool_ref_store._active_methods[method_name] = SendOnUpdate(
                 metric_calculator=calculator,
-                working_batteries=self._battery_pool._working_batteries,
-                min_update_interval=self._battery_pool._min_update_interval,
+                working_batteries=self._pool_ref_store._working_batteries,
+                min_update_interval=self._pool_ref_store._min_update_interval,
             )
 
-        return self._battery_pool._active_methods[method_name]
+        return self._pool_ref_store._active_methods[method_name]
 
     @property
     def power_status(self) -> ReceiverFetcher[BatteryPoolReport]:
@@ -380,14 +381,14 @@ class BatteryPool:
         sub = _power_managing.ReportRequest(
             source_id=self._source_id,
             priority=self._priority,
-            component_ids=self._battery_pool._batteries,
+            component_ids=self._pool_ref_store._batteries,
         )
-        self._battery_pool._power_bounds_subs[sub.get_channel_name()] = (
+        self._pool_ref_store._power_bounds_subs[sub.get_channel_name()] = (
             asyncio.create_task(
-                self._battery_pool._power_manager_bounds_subscription_sender.send(sub)
+                self._pool_ref_store._power_manager_bounds_subscription_sender.send(sub)
             )
         )
-        channel = self._battery_pool._channel_registry.get_or_create(
+        channel = self._pool_ref_store._channel_registry.get_or_create(
             _power_managing._Report, sub.get_channel_name()
         )
         channel.resend_latest = True
@@ -415,16 +416,16 @@ class BatteryPool:
         """
         method_name = SendOnUpdate.name() + "_" + PowerBoundsCalculator.name()
 
-        if method_name not in self._battery_pool._active_methods:
-            calculator = PowerBoundsCalculator(self._battery_pool._batteries)
-            self._battery_pool._active_methods[method_name] = SendOnUpdate(
+        if method_name not in self._pool_ref_store._active_methods:
+            calculator = PowerBoundsCalculator(self._pool_ref_store._batteries)
+            self._pool_ref_store._active_methods[method_name] = SendOnUpdate(
                 metric_calculator=calculator,
-                working_batteries=self._battery_pool._working_batteries,
-                min_update_interval=self._battery_pool._min_update_interval,
+                working_batteries=self._pool_ref_store._working_batteries,
+                min_update_interval=self._pool_ref_store._min_update_interval,
             )
 
-        return self._battery_pool._active_methods[method_name]
+        return self._pool_ref_store._active_methods[method_name]
 
     async def stop(self) -> None:
         """Stop all tasks and channels owned by the BatteryPool."""
-        await self._battery_pool.stop()
+        await self._pool_ref_store.stop()

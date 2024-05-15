@@ -182,6 +182,17 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             )
         return self._producer
 
+    def grid(self) -> Grid:
+        """Return the grid measuring point."""
+        if self._grid is None:
+            initialize_grid(
+                channel_registry=self._channel_registry,
+                resampler_subscription_sender=self._resampling_request_sender(),
+            )
+            self._grid = get_grid()
+
+        return self._grid
+
     def ev_charger_pool(
         self,
         *,
@@ -250,7 +261,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 )
             )
         return EVChargerPool(
-            self._ev_charger_pool_reference_stores[ref_store_key], name, priority
+            pool_ref_store=self._ev_charger_pool_reference_stores[ref_store_key],
+            name=name,
+            priority=priority,
         )
 
     def pv_pool(
@@ -317,18 +330,11 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 component_ids=component_ids,
             )
 
-        return PVPool(self._pv_pool_reference_stores[ref_store_key], name, priority)
-
-    def grid(self) -> Grid:
-        """Return the grid measuring point."""
-        if self._grid is None:
-            initialize_grid(
-                channel_registry=self._channel_registry,
-                resampler_subscription_sender=self._resampling_request_sender(),
-            )
-            self._grid = get_grid()
-
-        return self._grid
+        return PVPool(
+            pool_ref_store=self._pv_pool_reference_stores[ref_store_key],
+            name=name,
+            priority=priority,
+        )
 
     def battery_pool(
         self,
@@ -400,7 +406,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             )
 
         return BatteryPool(
-            self._battery_pool_reference_stores[ref_store_key], name, priority
+            pool_ref_store=self._battery_pool_reference_stores[ref_store_key],
+            name=name,
+            priority=priority,
         )
 
     def _data_sourcing_request_sender(self) -> Sender[ComponentMetricRequest]:
@@ -518,8 +526,7 @@ def ev_charger_pool(
     propose different power values for the same set of EV chargers.
 
     !!! note
-        When specifying priority, bigger values indicate higher priority. The default
-        priority is the lowest possible value.
+        When specifying priority, bigger values indicate higher priority.
 
         It is recommended to reuse the same instance of the `EVChargerPool` within the
         same actor, unless they are managing different sets of EV chargers.
@@ -558,8 +565,7 @@ def battery_pool(
     propose different power values for the same set of batteries.
 
     !!! note
-        When specifying priority, bigger values indicate higher priority. The default
-        priority is the lowest possible value.
+        When specifying priority, bigger values indicate higher priority.
 
         It is recommended to reuse the same instance of the `BatteryPool` within the
         same actor, unless they are managing different sets of batteries.
@@ -598,8 +604,7 @@ def pv_pool(
     propose different power values for the same set of PV inverters.
 
     !!! note
-        When specifying priority, bigger values indicate higher priority. The default
-        priority is the lowest possible value.
+        When specifying priority, bigger values indicate higher priority.
 
         It is recommended to reuse the same instance of the `PVPool` within the same
         actor, unless they are managing different sets of PV inverters.
