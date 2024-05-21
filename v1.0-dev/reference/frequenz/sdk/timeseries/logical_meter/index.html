@@ -1727,16 +1727,16 @@
 
 
 <h2 id="frequenz.sdk.timeseries.logical_meter" class="doc doc-heading">
-          <span class="doc doc-object-name doc-module-name">frequenz.sdk.timeseries.logical_meter</span>
+            <span class="doc doc-object-name doc-module-name">frequenz.sdk.timeseries.logical_meter</span>
 
 
 <a href="#frequenz.sdk.timeseries.logical_meter" class="headerlink" title="Permanent link">¤</a></h2>
 
-  <div class="doc doc-contents first">
-  
+    <div class="doc doc-contents first">
+
       <p>A logical meter for calculating high level metrics for a microgrid.</p>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -1752,15 +1752,15 @@
 
 
 <h4 id="frequenz.sdk.timeseries.logical_meter.LogicalMeter" class="doc doc-heading">
-          <span class="doc doc-object-name doc-class-name">frequenz.sdk.timeseries.logical_meter.LogicalMeter</span>
+            <span class="doc doc-object-name doc-class-name">frequenz.sdk.timeseries.logical_meter.LogicalMeter</span>
 
 
 <a href="#frequenz.sdk.timeseries.logical_meter.LogicalMeter" class="headerlink" title="Permanent link">¤</a></h4>
 
 
-  <div class="doc doc-contents ">
+    <div class="doc doc-contents ">
 
-  
+
       <p>A logical meter for calculating high level metrics in a microgrid.</p>
 <p>LogicalMeter provides methods for fetching power values from different points in the
 microgrid.  These methods return <code>FormulaReceiver</code> objects, which can be used like
@@ -1771,6 +1771,7 @@ normal <code>Receiver</code>s, but can also be composed to form higher-order for
 <a class="autorefs autorefs-internal" href="../../microgrid/#frequenz.sdk.microgrid.logical_meter"><code>microgrid.logical_meter</code></a> method for
 creating <code>LogicalMeter</code> instances.</p>
 </div>
+
 
 <details class="example" open>
   <summary>Example</summary>
@@ -1806,9 +1807,9 @@ creating <code>LogicalMeter</code> instances.</p>
 </span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">net_power_sample</span><span class="p">)</span>
 </span></code></pre></div>
 </details>
-            <details class="quote">
-              <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-19"> 19</a></span>
+              <details class="quote">
+                <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-19"> 19</a></span>
 <span class="normal"><a href="#__codelineno-0-20"> 20</a></span>
 <span class="normal"><a href="#__codelineno-0-21"> 21</a></span>
 <span class="normal"><a href="#__codelineno-0-22"> 22</a></span>
@@ -2074,9 +2075,9 @@ creating <code>LogicalMeter</code> instances.</p>
 </span><span id="__span-0-150"><a id="__codelineno-0-150" name="__codelineno-0-150"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop all formula engines.&quot;&quot;&quot;</span>
 </span><span id="__span-0-151"><a id="__codelineno-0-151" name="__codelineno-0-151"></a>        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 </span></code></pre></div></td></tr></table></div>
-            </details>
+              </details>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -2091,9 +2092,9 @@ creating <code>LogicalMeter</code> instances.</p>
 
 
 <h6 id="frequenz.sdk.timeseries.logical_meter.LogicalMeter.chp_power" class="doc doc-heading">
-          <span class="doc doc-object-name doc-attribute-name">chp_power</span>
+            <span class="doc doc-object-name doc-attribute-name">chp_power</span>
 
-  
+
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
@@ -2102,8 +2103,8 @@ creating <code>LogicalMeter</code> instances.</p>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">chp_power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine" href="../../../../../user-guide/formula-engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../#frequenz.sdk.timeseries.Power">Power</a></span><span class="p">]</span>
 </span></code></pre></div>
 
-  <div class="doc doc-contents ">
-  
+    <div class="doc doc-contents ">
+
       <p>Fetch the CHP power production in the microgrid.</p>
 <p>This formula produces values that are in the Passive Sign Convention (PSC).</p>
 <p>If a formula engine to calculate CHP power production is not already running, it
@@ -2112,42 +2113,39 @@ will be started.</p>
 method.</p>
 
 
-
-  <table>
-    <thead>
-      <tr>
-        <th><span class="doc-section-title">RETURNS</span></th>
-        <th><span>DESCRIPTION</span></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr class="doc-section-item">
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine" href="../../../../../user-guide/formula-engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../#frequenz.sdk.timeseries.Power">Power</a>]</code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <div class="doc-md-description">
-              <p>A FormulaEngine that will calculate and stream CHP power production.</p>
-            </div>
-          </td>
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
         </tr>
-    </tbody>
-  </table>
-  </div>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine" href="../../../../../user-guide/formula-engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../#frequenz.sdk.timeseries.Power">Power</a>]</code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>A FormulaEngine that will calculate and stream CHP power production.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    </div>
 
 </div>
 
 <h5 id="frequenz.sdk.timeseries.logical_meter.LogicalMeter-functions">Functions<a href="#frequenz.sdk.timeseries.logical_meter.LogicalMeter-functions" class="headerlink" title="Permanent link">¤</a></h5>
 
-
 <div class="doc doc-object doc-function">
 
 
-
 <h6 id="frequenz.sdk.timeseries.logical_meter.LogicalMeter.__init__" class="doc doc-heading">
-          <span class="doc doc-object-name doc-function-name">__init__</span>
+            <span class="doc doc-object-name doc-function-name">__init__</span>
 
 
 <a href="#frequenz.sdk.timeseries.logical_meter.LogicalMeter.__init__" class="headerlink" title="Permanent link">¤</a></h6>
@@ -2159,8 +2157,8 @@ method.</p>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </span></code></pre></div>
 
-  <div class="doc doc-contents ">
-  
+    <div class="doc doc-contents ">
+
       <p>Create a <code>LogicalMeter</code> instance.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -2170,51 +2168,50 @@ for creating <code>LogicalMeter</code> instances.</p>
 </div>
 
 
-
-  <table>
-    <thead>
-      <tr>
-        <th><span class="doc-section-title">PARAMETER</span></th>
-        <th><span>DESCRIPTION</span></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr class="doc-section-item">
-          <td><code>channel_registry</code></td>
-          <td class="doc-param-details">
-            <div class="doc-md-description">
-              <p>A channel registry instance shared with the resampling
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code>channel_registry</code></td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>A channel registry instance shared with the resampling
 actor.</p>
-            </div>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor.ChannelRegistry" href="../../actor/#frequenz.sdk.actor.ChannelRegistry">ChannelRegistry</a></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr class="doc-section-item">
-          <td><code>resampler_subscription_sender</code></td>
-          <td class="doc-param-details">
-            <div class="doc-md-description">
-              <p>A sender for sending metric requests to the
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor.ChannelRegistry" href="../../actor/#frequenz.sdk.actor.ChannelRegistry">ChannelRegistry</a></code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>resampler_subscription_sender</code></td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>A sender for sending metric requests to the
 resampling actor.</p>
-            </div>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" title="frequenz.channels.Sender" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels.Sender">Sender</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.actor.ComponentMetricRequest" href="../../actor/#frequenz.sdk.actor.ComponentMetricRequest">ComponentMetricRequest</a>]</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><a class="autorefs autorefs-external" title="frequenz.channels.Sender" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels.Sender">Sender</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.actor.ComponentMetricRequest" href="../../actor/#frequenz.sdk.actor.ComponentMetricRequest">ComponentMetricRequest</a>]</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
-          <details class="quote">
-            <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-            <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-66">66</a></span>
+            <details class="quote">
+              <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-66">66</a></span>
 <span class="normal"><a href="#__codelineno-0-67">67</a></span>
 <span class="normal"><a href="#__codelineno-0-68">68</a></span>
 <span class="normal"><a href="#__codelineno-0-69">69</a></span>
@@ -2276,18 +2273,16 @@ resampling actor.</p>
 </span><span id="__span-0-95"><a id="__codelineno-0-95" name="__codelineno-0-95"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_resampler_subscription_sender</span><span class="p">,</span>
 </span><span id="__span-0-96"><a id="__codelineno-0-96" name="__codelineno-0-96"></a>    <span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
-          </details>
-  </div>
+            </details>
+    </div>
 
 </div>
-
 
 <div class="doc doc-object doc-function">
 
 
-
 <h6 id="frequenz.sdk.timeseries.logical_meter.LogicalMeter.start_formula" class="doc doc-heading">
-          <span class="doc doc-object-name doc-function-name">start_formula</span>
+            <span class="doc doc-object-name doc-function-name">start_formula</span>
 
 
 <a href="#frequenz.sdk.timeseries.logical_meter.LogicalMeter.start_formula" class="headerlink" title="Permanent link">¤</a></h6>
@@ -2299,8 +2294,8 @@ resampling actor.</p>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine" href="../../../../../user-guide/formula-engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Quantity" href="../#frequenz.sdk.timeseries.Quantity">Quantity</a></span><span class="p">]</span>
 </span></code></pre></div>
 
-  <div class="doc doc-contents ">
-  
+    <div class="doc doc-contents ">
+
       <p>Start execution of the given formula.</p>
 <p>Formulas can have Component IDs that are preceeded by a pound symbol("#"), and
 these operators: +, -, *, /, (, ).</p>
@@ -2308,94 +2303,92 @@ these operators: +, -, *, /, (, ).</p>
 two components with ids 20 and 5.</p>
 
 
-
-  <table>
-    <thead>
-      <tr>
-        <th><span class="doc-section-title">PARAMETER</span></th>
-        <th><span>DESCRIPTION</span></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr class="doc-section-item">
-          <td><code>formula</code></td>
-          <td class="doc-param-details">
-            <div class="doc-md-description">
-              <p>formula to execute.</p>
-            </div>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
-                </span>
-            </p>
-          </td>
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
         </tr>
-        <tr class="doc-section-item">
-          <td><code>component_metric_id</code></td>
-          <td class="doc-param-details">
-            <div class="doc-md-description">
-              <p>The metric ID to use when fetching receivers from the
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code>formula</code></td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>formula to execute.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>component_metric_id</code></td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>The metric ID to use when fetching receivers from the
 resampling actor.</p>
-            </div>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><span title="frequenz.client.microgrid.ComponentMetricId">ComponentMetricId</span></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr class="doc-section-item">
-          <td><code>nones_are_zeros</code></td>
-          <td class="doc-param-details">
-            <div class="doc-md-description">
-              <p>Whether to treat None values from the stream as 0s.  If
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="frequenz.client.microgrid.ComponentMetricId">ComponentMetricId</span></code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>nones_are_zeros</code></td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>Whether to treat None values from the stream as 0s.  If
 False, the returned value will be a None.</p>
-            </div>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>False</code>
-                </span>
-            </p>
-          </td>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>
+                  </span>
+                  <span class="doc-param-default">
+                    <b>DEFAULT:</b>
+                      <code>False</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
         </tr>
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine" href="../../../../../user-guide/formula-engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Quantity" href="../#frequenz.sdk.timeseries.Quantity">Quantity</a>]</code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>A FormulaEngine that applies the formula and streams values.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
-
-
-  <table>
-    <thead>
-      <tr>
-        <th><span class="doc-section-title">RETURNS</span></th>
-        <th><span>DESCRIPTION</span></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr class="doc-section-item">
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine" href="../../../../../user-guide/formula-engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Quantity" href="../#frequenz.sdk.timeseries.Quantity">Quantity</a>]</code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <div class="doc-md-description">
-              <p>A FormulaEngine that applies the formula and streams values.</p>
-            </div>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-          <details class="quote">
-            <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-            <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-98"> 98</a></span>
+            <details class="quote">
+              <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-98"> 98</a></span>
 <span class="normal"><a href="#__codelineno-0-99"> 99</a></span>
 <span class="normal"><a href="#__codelineno-0-100">100</a></span>
 <span class="normal"><a href="#__codelineno-0-101">101</a></span>
@@ -2451,20 +2444,18 @@ False, the returned value will be a None.</p>
 </span><span id="__span-0-124"><a id="__codelineno-0-124" name="__codelineno-0-124"></a>        <span class="n">formula</span><span class="p">,</span> <span class="n">component_metric_id</span><span class="p">,</span> <span class="n">nones_are_zeros</span><span class="o">=</span><span class="n">nones_are_zeros</span>
 </span><span id="__span-0-125"><a id="__codelineno-0-125" name="__codelineno-0-125"></a>    <span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
-          </details>
-  </div>
+            </details>
+    </div>
 
 </div>
-
 
 <div class="doc doc-object doc-function">
 
 
-
 <h6 id="frequenz.sdk.timeseries.logical_meter.LogicalMeter.stop" class="doc doc-heading">
-          <span class="doc doc-object-name doc-function-name">stop</span>
+            <span class="doc doc-object-name doc-function-name">stop</span>
 
-  
+
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
@@ -2473,20 +2464,20 @@ False, the returned value will be a None.</p>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">stop</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </span></code></pre></div>
 
-  <div class="doc doc-contents ">
-  
+    <div class="doc doc-contents ">
+
       <p>Stop all formula engines.</p>
 
-          <details class="quote">
-            <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
-            <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-149">149</a></span>
+            <details class="quote">
+              <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-149">149</a></span>
 <span class="normal"><a href="#__codelineno-0-150">150</a></span>
 <span class="normal"><a href="#__codelineno-0-151">151</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-149"><a id="__codelineno-0-149" name="__codelineno-0-149"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="__span-0-150"><a id="__codelineno-0-150" name="__codelineno-0-150"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Stop all formula engines.&quot;&quot;&quot;</span>
 </span><span id="__span-0-151"><a id="__codelineno-0-151" name="__codelineno-0-151"></a>    <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 </span></code></pre></div></td></tr></table></div>
-          </details>
-  </div>
+            </details>
+    </div>
 
 </div>
 
@@ -2494,8 +2485,7 @@ False, the returned value will be a None.</p>
 
   </div>
 
-  </div>
-
+    </div>
 
 </div>
 
@@ -2504,7 +2494,7 @@ False, the returned value will be a None.</p>
 
   </div>
 
-  </div>
+    </div>
 
 </div>
 

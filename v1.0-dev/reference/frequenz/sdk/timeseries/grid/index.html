@@ -1793,18 +1793,18 @@
 
 
 <h2 id="frequenz.sdk.timeseries.grid" class="doc doc-heading">
-          <span class="doc doc-object-name doc-module-name">frequenz.sdk.timeseries.grid</span>
+            <span class="doc doc-object-name doc-module-name">frequenz.sdk.timeseries.grid</span>
 
 
 <a href="#frequenz.sdk.timeseries.grid" class="headerlink" title="Permanent link">¤</a></h2>
 
-  <div class="doc doc-contents first">
-  
+    <div class="doc doc-contents first">
+
       <p>Grid connection point.</p>
 <p>This module provides the <code>Grid</code> type, which represents a grid connection point
 in a microgrid.</p>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -1820,9 +1820,9 @@ in a microgrid.</p>
 
 
 <h4 id="frequenz.sdk.timeseries.grid.Grid" class="doc doc-heading">
-          <span class="doc doc-object-name doc-class-name">frequenz.sdk.timeseries.grid.Grid</span>
+            <span class="doc doc-object-name doc-class-name">frequenz.sdk.timeseries.grid.Grid</span>
 
-  
+
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
   </span>
@@ -1830,9 +1830,9 @@ in a microgrid.</p>
 <a href="#frequenz.sdk.timeseries.grid.Grid" class="headerlink" title="Permanent link">¤</a></h4>
 
 
-  <div class="doc doc-contents ">
+    <div class="doc doc-contents ">
 
-  
+
       <p>A grid connection point.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1840,6 +1840,7 @@ in a microgrid.</p>
 Use the <a class="autorefs autorefs-internal" href="../../microgrid/#frequenz.sdk.microgrid.grid"><code>microgrid.grid</code></a> method for
 creating or getting the <code>Grid</code> instance.</p>
 </div>
+
 
 <details class="example" open>
   <summary>Example</summary>
@@ -1862,9 +1863,9 @@ creating or getting the <code>Grid</code> instance.</p>
 </span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">grid_power_sample</span><span class="p">)</span>
 </span></code></pre></div>
 </details>
-            <details class="quote">
-              <summary>Source code in <code>frequenz/sdk/timeseries/grid.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-37"> 37</a></span>
+              <details class="quote">
+                <summary>Source code in <code>frequenz/sdk/timeseries/grid.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-37"> 37</a></span>
 <span class="normal"><a href="#__codelineno-0-38"> 38</a></span>
 <span class="normal"><a href="#__codelineno-0-39"> 39</a></span>
 <span class="normal"><a href="#__codelineno-0-40"> 40</a></span>
@@ -2080,9 +2081,9 @@ creating or getting the <code>Grid</code> instance.</p>
 </span><span id="__span-0-143"><a id="__codelineno-0-143" name="__codelineno-0-143"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop all formula engines.&quot;&quot;&quot;</span>
 </span><span id="__span-0-144"><a id="__codelineno-0-144" name="__codelineno-0-144"></a>        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 </span></code></pre></div></td></tr></table></div>
-            </details>
+              </details>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -2097,9 +2098,9 @@ creating or getting the <code>Grid</code> instance.</p>
 
 
 <h6 id="frequenz.sdk.timeseries.grid.Grid.current" class="doc doc-heading">
-          <span class="doc doc-object-name doc-attribute-name">current</span>
+            <span class="doc doc-object-name doc-attribute-name">current</span>
 
-  
+
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
@@ -2108,8 +2109,8 @@ creating or getting the <code>Grid</code> instance.</p>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">current</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase" href="../../../../../user-guide/formula-engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Current" href="../#frequenz.sdk.timeseries.Current">Current</a></span><span class="p">]</span>
 </span></code></pre></div>
 
-  <div class="doc doc-contents ">
-  
+    <div class="doc doc-contents ">
+
       <p>Fetch the grid current for the microgrid.</p>
 <p>This formula produces values that are in the Passive Sign Convention (PSC).</p>
 <p>If a formula engine to calculate grid current is not already running, it will be
@@ -2118,30 +2119,29 @@ started.</p>
 method.</p>
 
 
-
-  <table>
-    <thead>
-      <tr>
-        <th><span class="doc-section-title">RETURNS</span></th>
-        <th><span>DESCRIPTION</span></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr class="doc-section-item">
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase" href="../../../../../user-guide/formula-engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Current" href="../#frequenz.sdk.timeseries.Current">Current</a>]</code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <div class="doc-md-description">
-              <p>A FormulaEngine that will calculate and stream grid current.</p>
-            </div>
-          </td>
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
         </tr>
-    </tbody>
-  </table>
-  </div>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase" href="../../../../../user-guide/formula-engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Current" href="../#frequenz.sdk.timeseries.Current">Current</a>]</code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>A FormulaEngine that will calculate and stream grid current.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    </div>
 
 </div>
 
@@ -2150,9 +2150,9 @@ method.</p>
 
 
 <h6 id="frequenz.sdk.timeseries.grid.Grid.fuse" class="doc doc-heading">
-          <span class="doc doc-object-name doc-attribute-name">fuse</span>
+            <span class="doc doc-object-name doc-attribute-name">fuse</span>
 
-  
+
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
@@ -2161,14 +2161,14 @@ method.</p>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">fuse</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._fuse.Fuse" href="../#frequenz.sdk.timeseries.Fuse">Fuse</a></span> <span class="o">|</span> <span class="kc">None</span>
 </span></code></pre></div>
 
-  <div class="doc doc-contents ">
-  
+    <div class="doc doc-contents ">
+
       <p>The fuse protecting the grid connection point.</p>
 <p>The rated current of the fuse is set to zero in case of an islanded
 microgrid.
 And the fuse is set to <code>None</code> when the grid connection component metadata
 lacks information about the fuse.</p>
-  </div>
+    </div>
 
 </div>
 
@@ -2177,9 +2177,9 @@ lacks information about the fuse.</p>
 
 
 <h6 id="frequenz.sdk.timeseries.grid.Grid.power" class="doc doc-heading">
-          <span class="doc doc-object-name doc-attribute-name">power</span>
+            <span class="doc doc-object-name doc-attribute-name">power</span>
 
-  
+
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
@@ -2188,8 +2188,8 @@ lacks information about the fuse.</p>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine" href="../../../../../user-guide/formula-engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../#frequenz.sdk.timeseries.Power">Power</a></span><span class="p">]</span>
 </span></code></pre></div>
 
-  <div class="doc doc-contents ">
-  
+    <div class="doc doc-contents ">
+
       <p>Fetch the grid power for the microgrid.</p>
 <p>This formula produces values that are in the Passive Sign Convention (PSC).</p>
 <p>If a formula engine to calculate grid power is not already running, it will be
@@ -2198,44 +2198,41 @@ started.</p>
 method.</p>
 
 
-
-  <table>
-    <thead>
-      <tr>
-        <th><span class="doc-section-title">RETURNS</span></th>
-        <th><span>DESCRIPTION</span></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr class="doc-section-item">
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine" href="../../../../../user-guide/formula-engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../#frequenz.sdk.timeseries.Power">Power</a>]</code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <div class="doc-md-description">
-              <p>A FormulaEngine that will calculate and stream grid power.</p>
-            </div>
-          </td>
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
         </tr>
-    </tbody>
-  </table>
-  </div>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine" href="../../../../../user-guide/formula-engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../#frequenz.sdk.timeseries.Power">Power</a>]</code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>A FormulaEngine that will calculate and stream grid power.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    </div>
 
 </div>
 
 <h5 id="frequenz.sdk.timeseries.grid.Grid-functions">Functions<a href="#frequenz.sdk.timeseries.grid.Grid-functions" class="headerlink" title="Permanent link">¤</a></h5>
 
-
 <div class="doc doc-object doc-function">
 
 
-
 <h6 id="frequenz.sdk.timeseries.grid.Grid.stop" class="doc doc-heading">
-          <span class="doc doc-object-name doc-function-name">stop</span>
+            <span class="doc doc-object-name doc-function-name">stop</span>
 
-  
+
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
@@ -2244,20 +2241,20 @@ method.</p>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">stop</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </span></code></pre></div>
 
-  <div class="doc doc-contents ">
-  
+    <div class="doc doc-contents ">
+
       <p>Stop all formula engines.</p>
 
-          <details class="quote">
-            <summary>Source code in <code>frequenz/sdk/timeseries/grid.py</code></summary>
-            <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-142">142</a></span>
+            <details class="quote">
+              <summary>Source code in <code>frequenz/sdk/timeseries/grid.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-142">142</a></span>
 <span class="normal"><a href="#__codelineno-0-143">143</a></span>
 <span class="normal"><a href="#__codelineno-0-144">144</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-142"><a id="__codelineno-0-142" name="__codelineno-0-142"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="__span-0-143"><a id="__codelineno-0-143" name="__codelineno-0-143"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Stop all formula engines.&quot;&quot;&quot;</span>
 </span><span id="__span-0-144"><a id="__codelineno-0-144" name="__codelineno-0-144"></a>    <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_pool</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 </span></code></pre></div></td></tr></table></div>
-          </details>
-  </div>
+            </details>
+    </div>
 
 </div>
 
@@ -2265,27 +2262,24 @@ method.</p>
 
   </div>
 
-  </div>
-
+    </div>
 
 </div>
 <h3 id="frequenz.sdk.timeseries.grid-functions">Functions<a href="#frequenz.sdk.timeseries.grid-functions" class="headerlink" title="Permanent link">¤</a></h3>
 
-
 <div class="doc doc-object doc-function">
 
 
-
 <h4 id="frequenz.sdk.timeseries.grid.get" class="doc doc-heading">
-          <span class="doc doc-object-name doc-function-name">frequenz.sdk.timeseries.grid.get</span>
+            <span class="doc doc-object-name doc-function-name">frequenz.sdk.timeseries.grid.get</span>
 
 
 <a href="#frequenz.sdk.timeseries.grid.get" class="headerlink" title="Permanent link">¤</a></h4>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.grid.Grid" href="#frequenz.sdk.timeseries.grid.Grid">Grid</a></span>
 </span></code></pre></div>
 
-  <div class="doc doc-contents ">
-  
+    <div class="doc doc-contents ">
+
       <p>Get the grid connection.</p>
 <p>Note that the rated current of the fuse is set to zero in case of an
 islanded microgrid.
@@ -2293,33 +2287,32 @@ And the fuse is set to <code>None</code> when the grid connection component meta
 lacks information about the fuse.</p>
 
 
-
-  <table>
-    <thead>
-      <tr>
-        <th><span class="doc-section-title">RETURNS</span></th>
-        <th><span>DESCRIPTION</span></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr class="doc-section-item">
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.grid.Grid" href="#frequenz.sdk.timeseries.grid.Grid">Grid</a></code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <div class="doc-md-description">
-              <p>The grid connection.</p>
-            </div>
-          </td>
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
         </tr>
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.grid.Grid" href="#frequenz.sdk.timeseries.grid.Grid">Grid</a></code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>The grid connection.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
-          <details class="quote">
-            <summary>Source code in <code>frequenz/sdk/timeseries/grid.py</code></summary>
-            <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-216">216</a></span>
+            <details class="quote">
+              <summary>Source code in <code>frequenz/sdk/timeseries/grid.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-216">216</a></span>
 <span class="normal"><a href="#__codelineno-0-217">217</a></span>
 <span class="normal"><a href="#__codelineno-0-218">218</a></span>
 <span class="normal"><a href="#__codelineno-0-219">219</a></span>
@@ -2345,18 +2338,16 @@ lacks information about the fuse.</p>
 </span><span id="__span-0-227"><a id="__codelineno-0-227" name="__codelineno-0-227"></a>    <span class="k">assert</span> <span class="n">_GRID</span><span class="p">,</span> <span class="s2">&quot;Grid is not initialized&quot;</span>
 </span><span id="__span-0-228"><a id="__codelineno-0-228" name="__codelineno-0-228"></a>    <span class="k">return</span> <span class="n">_GRID</span>
 </span></code></pre></div></td></tr></table></div>
-          </details>
-  </div>
+            </details>
+    </div>
 
 </div>
-
 
 <div class="doc doc-object doc-function">
 
 
-
 <h4 id="frequenz.sdk.timeseries.grid.initialize" class="doc doc-heading">
-          <span class="doc doc-object-name doc-function-name">frequenz.sdk.timeseries.grid.initialize</span>
+            <span class="doc doc-object-name doc-function-name">frequenz.sdk.timeseries.grid.initialize</span>
 
 
 <a href="#frequenz.sdk.timeseries.grid.initialize" class="headerlink" title="Permanent link">¤</a></h4>
@@ -2368,82 +2359,80 @@ lacks information about the fuse.</p>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </span></code></pre></div>
 
-  <div class="doc doc-contents ">
-  
+    <div class="doc doc-contents ">
+
       <p>Initialize the grid connection.</p>
 
 
-
-  <table>
-    <thead>
-      <tr>
-        <th><span class="doc-section-title">PARAMETER</span></th>
-        <th><span>DESCRIPTION</span></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr class="doc-section-item">
-          <td><code>channel_registry</code></td>
-          <td class="doc-param-details">
-            <div class="doc-md-description">
-              <p>The channel registry instance shared with the
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code>channel_registry</code></td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>The channel registry instance shared with the
 resampling actor.</p>
-            </div>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor.ChannelRegistry" href="../../actor/#frequenz.sdk.actor.ChannelRegistry">ChannelRegistry</a></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr class="doc-section-item">
-          <td><code>resampler_subscription_sender</code></td>
-          <td class="doc-param-details">
-            <div class="doc-md-description">
-              <p>The sender for sending metric requests
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor.ChannelRegistry" href="../../actor/#frequenz.sdk.actor.ChannelRegistry">ChannelRegistry</a></code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>resampler_subscription_sender</code></td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>The sender for sending metric requests
 to the resampling actor.</p>
-            </div>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" title="frequenz.channels.Sender" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels.Sender">Sender</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.actor.ComponentMetricRequest" href="../../actor/#frequenz.sdk.actor.ComponentMetricRequest">ComponentMetricRequest</a>]</code>
-                </span>
-            </p>
-          </td>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><a class="autorefs autorefs-external" title="frequenz.channels.Sender" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels.Sender">Sender</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.actor.ComponentMetricRequest" href="../../actor/#frequenz.sdk.actor.ComponentMetricRequest">ComponentMetricRequest</a>]</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RAISES</span></th>
+          <th><span>DESCRIPTION</span></th>
         </tr>
-    </tbody>
-  </table>
-
-
-
-  <table>
-    <thead>
-      <tr>
-        <th><span class="doc-section-title">RAISES</span></th>
-        <th><span>DESCRIPTION</span></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr class="doc-section-item">
-          <td>
-            <span class="doc-raises-annotation">
-                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError">RuntimeError</a></code>
-            </span>
-          </td>
-          <td class="doc-raises-details">
-            <div class="doc-md-description">
-              <p>If there is more than 1 grid connection point in the
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+              <span class="doc-raises-annotation">
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError">RuntimeError</a></code>
+              </span>
+            </td>
+            <td class="doc-raises-details">
+              <div class="doc-md-description">
+                <p>If there is more than 1 grid connection point in the
 microgrid, or if the grid connection point is not initialized.</p>
-            </div>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
-          <details class="quote">
-            <summary>Source code in <code>frequenz/sdk/timeseries/grid.py</code></summary>
-            <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-150">150</a></span>
+            <details class="quote">
+              <summary>Source code in <code>frequenz/sdk/timeseries/grid.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-150">150</a></span>
 <span class="normal"><a href="#__codelineno-0-151">151</a></span>
 <span class="normal"><a href="#__codelineno-0-152">152</a></span>
 <span class="normal"><a href="#__codelineno-0-153">153</a></span>
@@ -2571,8 +2560,8 @@ microgrid, or if the grid connection point is not initialized.</p>
 </span><span id="__span-0-212"><a id="__codelineno-0-212" name="__codelineno-0-212"></a>
 </span><span id="__span-0-213"><a id="__codelineno-0-213" name="__codelineno-0-213"></a>    <span class="n">_GRID</span> <span class="o">=</span> <span class="n">Grid</span><span class="p">(</span><span class="n">fuse</span><span class="p">,</span> <span class="n">formula_pool</span><span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
-          </details>
-  </div>
+            </details>
+    </div>
 
 </div>
 
@@ -2580,7 +2569,7 @@ microgrid, or if the grid connection point is not initialized.</p>
 
   </div>
 
-  </div>
+    </div>
 
 </div>
 
