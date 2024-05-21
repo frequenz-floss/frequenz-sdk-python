@@ -274,8 +274,10 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: .github/containers/test-installation/python-${{ matrix.python }}.Dockerfile
+          file: .github/containers/test-installation/Dockerfile
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            PYTHON_VERSION=${{ matrix.python }}
           tags: localhost/test-installation
           push: false
 
