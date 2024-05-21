@@ -89,10 +89,14 @@ jobs:
     # The job name should match the name of the `nox` job.
     name: Test with nox
     needs: ["nox"]
+    # We skip this job only if nox was also skipped
+    if: always() && needs.nox.result != 'skipped'
     runs-on: ubuntu-20.04
+    env:
+      DEPS_RESULT: ${{ needs.nox.result }}
     steps:
-      - name: Return true
-        run: "true"
+      - name: Check matrix job result
+        run: test "$DEPS_RESULT" = "success"
 
   nox-cross-arch:
     name: Cross-arch tests with nox
@@ -202,10 +206,14 @@ jobs:
     # The job name should match the name of the `nox-cross-arch` job.
     name: Cross-arch tests with nox
     needs: ["nox-cross-arch"]
+    # We skip this job only if nox-cross-arch was also skipped
+    if: always() && needs.nox-cross-arch.result != 'skipped'
     runs-on: ubuntu-20.04
+    env:
+      DEPS_RESULT: ${{ needs.nox-cross-arch.result }}
     steps:
-      - name: Return true
-        run: "true"
+      - name: Check matrix job result
+        run: test "$DEPS_RESULT" = "success"
 
   build:
     name: Build distribution packages
@@ -279,10 +287,14 @@ jobs:
     # The job name should match the name of the `test-installation` job.
     name: Test package installation in different architectures
     needs: ["test-installation"]
+    # We skip this job only if test-installation was also skipped
+    if: always() && needs.test-installation.result != 'skipped'
     runs-on: ubuntu-20.04
+    env:
+      DEPS_RESULT: ${{ needs.test-installation.result }}
     steps:
-      - name: Return true
-        run: "true"
+      - name: Check matrix job result
+        run: test "$DEPS_RESULT" = "success"
 
   test-docs:
     name: Test documentation website generation
