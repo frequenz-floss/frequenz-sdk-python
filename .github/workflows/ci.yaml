@@ -146,8 +146,10 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .github/containers/nox-cross-arch
-          file: .github/containers/nox-cross-arch/${{ matrix.arch }}-${{ matrix.os }}-python-${{ matrix.python }}.Dockerfile
+          file: .github/containers/nox-cross-arch/${{ matrix.arch }}-${{ matrix.os }}-python.Dockerfile
           platforms: linux/${{ matrix.arch }}
+          build-args: |
+            PYTHON_VERSION=${{ matrix.python }}
           tags: localhost/nox-cross-arch:latest
           push: false
           load: true

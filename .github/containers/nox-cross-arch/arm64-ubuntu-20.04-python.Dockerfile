@@ -5,9 +5,11 @@
 
 FROM docker.io/library/ubuntu:20.04
 
+ARG PYTHON_VERSION="3.11"
+
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install Python 3.11 and curl to install pip later
+# Install Python and curl to install pip later
 RUN apt-get update -y && \
     apt-get install --no-install-recommends -y \
         software-properties-common && \
@@ -16,16 +18,16 @@ RUN apt-get update -y && \
         ca-certificates \
         curl \
         git \
-        python3.11 \
-        python3.11-distutils && \
+        python${PYTHON_VERSION} \
+        python${PYTHON_VERSION}-distutils && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Install pip
-RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
+RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python${PYTHON_VERSION}
 
 RUN update-alternatives --install \
-        /usr/local/bin/python python /usr/bin/python3.11 1 && \
+        /usr/local/bin/python python /usr/bin/python${PYTHON_VERSION} 1 && \
     python -m pip install --upgrade --no-cache-dir pip
 
 COPY entrypoint.bash /usr/bin/entrypoint.bash
