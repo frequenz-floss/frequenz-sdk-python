@@ -12,7 +12,7 @@ A development kit to interact with the Frequenz development platform.
 
 The following platforms are officially supported (test):
 
-- **Python:** 3.11
+- **Python:** 3.11, 3.12
 - **Operating System:** Ubuntu Linux 20.04
 - **Architectures:** amd64, arm64
 

@@ -33,6 +33,7 @@ jobs:
           - ubuntu-20.04
         python:
           - "3.11"
+          - "3.12"
         nox-session:
           # To speed things up a bit we use the special ci_checks_max session
           # that uses the same venv to run multiple linting sessions
@@ -88,10 +89,14 @@ jobs:
     # The job name should match the name of the `nox` job.
     name: Test with nox
     needs: ["nox"]
+    # We skip this job only if nox was also skipped
+    if: always() && needs.nox.result != 'skipped'
     runs-on: ubuntu-20.04
+    env:
+      DEPS_RESULT: ${{ needs.nox.result }}
     steps:
-      - name: Return true
-        run: "true"
+      - name: Check matrix job result
+        run: test "$DEPS_RESULT" = "success"
 
   nox-cross-arch:
     name: Cross-arch tests with nox
@@ -109,6 +114,7 @@ jobs:
           - ubuntu-20.04
         python:
           - "3.11"
+          - "3.12"
         nox-session:
           - "pytest_min"
           - "pytest_max"
@@ -140,8 +146,10 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .github/containers/nox-cross-arch
-          file: .github/containers/nox-cross-arch/${{ matrix.arch }}-${{ matrix.os }}-python-${{ matrix.python }}.Dockerfile
+          file: .github/containers/nox-cross-arch/${{ matrix.arch }}-${{ matrix.os }}-python.Dockerfile
           platforms: linux/${{ matrix.arch }}
+          build-args: |
+            PYTHON_VERSION=${{ matrix.python }}
           tags: localhost/nox-cross-arch:latest
           push: false
           load: true
@@ -200,10 +208,14 @@ jobs:
     # The job name should match the name of the `nox-cross-arch` job.
     name: Cross-arch tests with nox
     needs: ["nox-cross-arch"]
+    # We skip this job only if nox-cross-arch was also skipped
+    if: always() && needs.nox-cross-arch.result != 'skipped'
     runs-on: ubuntu-20.04
+    env:
+      DEPS_RESULT: ${{ needs.nox-cross-arch.result }}
     steps:
-      - name: Return true
-        run: "true"
+      - name: Check matrix job result
+        run: test "$DEPS_RESULT" = "success"
 
   build:
     name: Build distribution packages
@@ -239,7 +251,15 @@ jobs:
   test-installation:
     name: Test package installation in different architectures
     needs: ["build"]
-    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-20.04
+        python:
+          - "3.11"
+          - "3.12"
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Fetch sources
         uses: actions/checkout@v4
@@ -258,8 +278,27 @@ jobs:
           context: .
           file: .github/containers/test-installation/Dockerfile
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            PYTHON_VERSION=${{ matrix.python }}
           tags: localhost/test-installation
           push: false
+
+  # This job runs if all the `test-installation` matrix jobs ran and succeeded.
+  # It is only used to have a single job that we can require in branch
+  # protection rules, so we don't have to update the protection rules each time
+  # we add or remove a job from the matrix.
+  test-installation-all:
+    # The job name should match the name of the `test-installation` job.
+    name: Test package installation in different architectures
+    needs: ["test-installation"]
+    # We skip this job only if test-installation was also skipped
+    if: always() && needs.test-installation.result != 'skipped'
+    runs-on: ubuntu-20.04
+    env:
+      DEPS_RESULT: ${{ needs.test-installation.result }}
+    steps:
+      - name: Check matrix job result
+        run: test "$DEPS_RESULT" = "success"
 
   test-docs:
     name: Test documentation website generation
