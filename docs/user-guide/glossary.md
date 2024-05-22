@@ -61,6 +61,10 @@ components](#component-category) together. It can be connected to the public
 [grid](#grid), or be completely isolated, in which case it is known as an
 island.
 
+Components can be grouped into [assets](#Assets) and [devices](#Devices).
+Assets are core components like generators or storage systems that are crucial from a business perspective,
+whereas devices are the supporting infrastructure essential for the functionality of these assets.
+
 ### Component Category
 
 The category [components](#component) of a [microgrid](#microgrid) belong to.
@@ -73,6 +77,8 @@ Examples of categories are meters, inverters or batteries.
 A category can be further divided into types.
 For instance, PV inverters and battery inverters are types under the inverter category.
 
+
+### Assets
 
 #### Battery
 
@@ -91,15 +97,6 @@ Under normal circumstances this is expected to correspond to the [gross consumpt
 In [Passive-sign convention](#passive-sign-convention) consumer power is usually positive, but negative values can occur in
 exotic site topologies (e.g. unidentified generators) and or due to sudden short-term effects.
 
-#### Converter
-
-Generally refers to [DC-to-DC converter](#dc-to-dc-converter).
-
-#### DC-to-DC Converter
-
-An electronic circuit or electromechanical device that converts a source of
-[DC](#dc) from one voltage level to another.
-
 #### EV Charger
 
 A station for charging [EVs](#ev).
@@ -113,6 +110,30 @@ A device that converts water into hydrogen and oxygen.
 A point where the local [microgrid](#microgrid) is connected to the public
 electricity grid.
 
+#### PV Array
+
+A collection of [PV](#pv) panels.
+
+#### Solar Panel
+
+A panel with [PV](#pv) cells that generates [DC](#dc) electricity from
+sunlight.
+
+#### Wind Turbine
+
+A device that converts the wind's kinetic energy into electrical energy.
+
+### Devices
+
+#### Converter
+
+Generally refers to [DC-to-DC converter](#dc-to-dc-converter).
+
+#### DC-to-DC Converter
+
+An electronic circuit or electromechanical device that converts a source of
+[DC](#dc) from one voltage level to another.
+
 #### Inverter
 
 A device or circuitry that converts [DC](#dc) electricity to [AC](#ac)
@@ -122,10 +143,6 @@ electricity.
 
 A device for measuring electrical [metrics](#metrics) (for example current,
 voltage, etc.).
-
-#### PV Array
-
-A collection of [PV](#pv) panels.
 
 #### Pre-charge module
 
@@ -149,15 +166,6 @@ They are generally placed in front of another [component](#component), e.g., an
 
 A device for [measuring](#measurement] ambient [metrics](#metric) (for example
 temperature, humidity, etc.).
-
-#### Solar Panel
-
-A panel with [PV](#pv) cells that generates [DC](#dc) electricity from
-sunlight.
-
-#### Wind Turbine
-
-A device that converts the wind's kinetic energy into electrical energy.
 
 ### Component
 
