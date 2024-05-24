@@ -293,6 +293,21 @@ class BaseAlgorithm(abc.ABC):
                 didn't change.
         """
 
+    @abc.abstractmethod
+    def get_target_power(
+        self,
+        component_ids: frozenset[int],
+    ) -> Power | None:
+        """Get the target power for the given components.
+
+        Args:
+            component_ids: The component IDs to get the target power for.
+
+        Returns:
+            The target power for the given components, or `None` if there is no target
+                power.
+        """
+
     # The arguments for this method are tightly coupled to the `Matryoshka` algorithm.
     # It can be loosened up when more algorithms are added.
     @abc.abstractmethod
