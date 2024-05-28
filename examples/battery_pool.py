@@ -14,7 +14,7 @@ from frequenz.sdk import microgrid
 from frequenz.sdk.actor import ResamplerConfig
 
 HOST = "microgrid.sandbox.api.frequenz.io"  # it should be the host name.
-PORT = 61060
+PORT = 62060
 
 
 async def main() -> None:

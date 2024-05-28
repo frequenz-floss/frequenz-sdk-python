@@ -30,7 +30,7 @@ from frequenz.sdk.microgrid import connection_manager
 from frequenz.sdk.timeseries._quantities import Power
 
 HOST = "microgrid.sandbox.api.frequenz.io"
-PORT = 61060
+PORT = 62060
 
 
 # TODO: this send_requests function uses the battery pool to # pylint: disable=fixme
@@ -55,7 +55,7 @@ async def send_requests(batteries: set[int], request_num: int) -> list[Result]:
     result: list[Any] = []
     for _ in range(request_num):
         await battery_pool.propose_power(
-            Power(float(random.randrange(100000, 1000000)))
+            Power.from_watts(float(random.randrange(100000, 1000000)))
         )
         try:
             output = await asyncio.wait_for(results_rx.receive(), timeout=3)

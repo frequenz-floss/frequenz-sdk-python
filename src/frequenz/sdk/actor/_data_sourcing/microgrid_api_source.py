@@ -383,48 +383,62 @@ class MicrogridApiSource:
         Args:
             comp_id: Id of the requested component.
             category: The category of the component.
+
+        Raises:
+            Exception: if an error occurs while handling the data stream.
         """
-        stream_senders = []
-        if comp_id in self._req_streaming_metrics:
-            await self._check_requested_component_and_metrics(
-                comp_id, category, self._req_streaming_metrics[comp_id]
+        try:
+            stream_senders = []
+            if comp_id in self._req_streaming_metrics:
+                await self._check_requested_component_and_metrics(
+                    comp_id, category, self._req_streaming_metrics[comp_id]
+                )
+                stream_senders = self._get_metric_senders(
+                    category, self._req_streaming_metrics[comp_id]
+                )
+            api_data_receiver: Receiver[Any] = self.comp_data_receivers[comp_id]
+
+            senders_done: asyncio.Event = asyncio.Event()
+            pending_messages = 0
+
+            def process_msg(data: Any) -> None:
+                tasks = []
+                for extractor, senders in stream_senders:
+                    for sender in senders:
+                        tasks.append(
+                            sender.send(
+                                Sample(data.timestamp, Quantity(extractor(data)))
+                            )
+                        )
+                asyncio.gather(*tasks)
+                nonlocal pending_messages
+                pending_messages -= 1
+                if pending_messages == 0:
+                    senders_done.set()
+
+            async for data in api_data_receiver:
+                pending_messages += 1
+                senders_done.clear()
+                process_msg(data)
+
+            while pending_messages > 0:
+                await senders_done.wait()
+
+            await asyncio.gather(
+                *[
+                    self._registry.close_and_remove(r.get_channel_name())
+                    for requests in self._req_streaming_metrics[comp_id].values()
+                    for r in requests
+                ]
             )
-            stream_senders = self._get_metric_senders(
-                category, self._req_streaming_metrics[comp_id]
+        except Exception:
+            _logger.exception(
+                "Unexpected error while handling data stream for component %d (%s), "
+                "component data is not being streamed anymore",
+                comp_id,
+                category.name,
             )
-        api_data_receiver: Receiver[Any] = self.comp_data_receivers[comp_id]
-
-        senders_done: asyncio.Event = asyncio.Event()
-        pending_messages = 0
-
-        def process_msg(data: Any) -> None:
-            tasks = []
-            for extractor, senders in stream_senders:
-                for sender in senders:
-                    tasks.append(
-                        sender.send(Sample(data.timestamp, Quantity(extractor(data))))
-                    )
-            asyncio.gather(*tasks)
-            nonlocal pending_messages
-            pending_messages -= 1
-            if pending_messages == 0:
-                senders_done.set()
-
-        async for data in api_data_receiver:
-            pending_messages += 1
-            senders_done.clear()
-            process_msg(data)
-
-        while pending_messages > 0:
-            await senders_done.wait()
-
-        await asyncio.gather(
-            *[
-                self._registry.close_and_remove(r.get_channel_name())
-                for requests in self._req_streaming_metrics[comp_id].values()
-                for r in requests
-            ]
-        )
+            raise
 
     async def _update_streams(
         self,
