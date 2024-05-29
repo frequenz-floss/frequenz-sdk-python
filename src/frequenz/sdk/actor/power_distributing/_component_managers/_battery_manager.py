@@ -652,39 +652,37 @@ class BatteryManager(ComponentManager):
 
         for inverter_id, aws in tasks.items():
             battery_ids = self._inv_bats_map[inverter_id]
+            failed = True
             try:
                 aws.result()
+                failed = False
             except OperationOutOfRange as err:
-                failed_power += distribution[inverter_id]
-                failed_batteries = failed_batteries.union(battery_ids)
                 _logger.debug(
                     "Set power for battery %s failed due to out of range error: %s",
                     battery_ids,
                     err,
                 )
             except ClientError as err:
-                failed_power += distribution[inverter_id]
-                failed_batteries = failed_batteries.union(battery_ids)
                 _logger.warning(
                     "Set power for battery %s failed, mark it as broken. Error: %s",
                     battery_ids,
                     err,
                 )
             except asyncio.exceptions.CancelledError:
-                failed_power += distribution[inverter_id]
-                failed_batteries = failed_batteries.union(battery_ids)
                 _logger.warning(
                     "Battery %s didn't respond in %f sec. Mark it as broken.",
                     battery_ids,
                     request_timeout.total_seconds(),
                 )
             except Exception:  # pylint: disable=broad-except
-                failed_power += distribution[inverter_id]
-                failed_batteries = failed_batteries.union(battery_ids)
                 _logger.exception(
                     "Unknown error while setting power to batteries: %s",
                     battery_ids,
                 )
+
+            if failed:
+                failed_power += distribution[inverter_id]
+                failed_batteries.update(battery_ids)
 
         return failed_power, failed_batteries
 
