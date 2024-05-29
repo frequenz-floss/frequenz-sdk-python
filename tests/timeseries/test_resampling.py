@@ -253,7 +253,6 @@ async def test_calculate_window_end_trivial_cases(
     # pylint: disable=protected-access
     none_result = resampler_none._calculate_window_end()
     assert resampler_now._calculate_window_end() == none_result
-    # pylint: disable=protected-access
     assert none_result[0] == now + resampling_period
 
 

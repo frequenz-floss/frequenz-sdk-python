@@ -92,7 +92,7 @@ class BatteryDataWrapper(BatteryData):
 class InverterDataWrapper(InverterData):
     """Wrapper for the InverterData with default arguments."""
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(  # pylint: disable=too-many-arguments,too-many-locals
         self,
         component_id: int,
         timestamp: datetime,

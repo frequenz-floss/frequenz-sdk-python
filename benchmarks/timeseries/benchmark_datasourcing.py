@@ -49,12 +49,12 @@ def enable_mock_client(client: MockMicrogridClient) -> None:
     Args:
         client: the mock microgrid client to enable.
     """
-    # pylint: disable=protected-access
-    microgrid.connection_manager._CONNECTION_MANAGER = client.mock_microgrid
+    microgrid.connection_manager._CONNECTION_MANAGER = (  # pylint: disable=protected-access
+        client.mock_microgrid
+    )
 
 
-# pylint: disable=too-many-locals
-async def benchmark_data_sourcing(
+async def benchmark_data_sourcing(  # pylint: disable=too-many-locals
     num_ev_chargers: int, num_msgs_per_battery: int
 ) -> None:
     """Benchmark the data sourcing actor.

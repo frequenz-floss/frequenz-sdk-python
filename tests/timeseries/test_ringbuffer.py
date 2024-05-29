@@ -166,7 +166,6 @@ def test_timestamp_ringbuffer_missing_parameter(
     """Test ordered ring buffer."""
     buffer.update(Sample(datetime(2, 2, 2, 0, 0, tzinfo=timezone.utc), Quantity(0)))
 
-    # pylint: disable=protected-access
     assert buffer.normalize_timestamp(buffer.gaps[0].start) == buffer.gaps[0].start
 
     # Expecting one gap now, made of all the previous entries of the one just
@@ -175,7 +174,6 @@ def test_timestamp_ringbuffer_missing_parameter(
     assert buffer.gaps[0].end == datetime(2, 2, 2, tzinfo=timezone.utc)
 
     # Add entry so that a second gap appears
-    # pylint: disable=protected-access
     assert buffer.normalize_timestamp(
         datetime(2, 2, 2, 0, 7, 31, tzinfo=timezone.utc)
     ) == datetime(2, 2, 2, 0, 10, tzinfo=timezone.utc)
@@ -333,11 +331,9 @@ def test_timestamp_ringbuffer_missing_parameter_smoke(
         expected_gaps = list(
             map(
                 lambda x: Gap(
-                    # pylint: disable=protected-access
                     start=buffer.normalize_timestamp(
                         datetime.fromtimestamp(200 + x[0] * resolution, tz=timezone.utc)
                     ),
-                    # pylint: disable=protected-access
                     end=buffer.normalize_timestamp(
                         datetime.fromtimestamp(200 + x[1] * resolution, tz=timezone.utc)
                     ),

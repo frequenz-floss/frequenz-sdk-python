@@ -1037,11 +1037,12 @@ def _correct_graph_errors(graph: _MicrogridComponentGraph) -> None:
     # This is an expected case from the API: that no explicit
     # grid endpoint will be provided, but that components connected
     # to the grid endpoint will have node 0 as their predecessor.
+    # pylint: disable=protected-access
     if (
-        graph._graph.has_node(0)  # pylint: disable=protected-access
-        and graph._graph.in_degree(0) == 0  # pylint: disable=protected-access
-        and graph._graph.out_degree(0) > 0  # pylint: disable=protected-access
-        and "type" not in graph._graph.nodes[0]  # pylint: disable=protected-access
+        graph._graph.has_node(0)
+        and graph._graph.in_degree(0) == 0
+        and graph._graph.out_degree(0) > 0
+        and "type" not in graph._graph.nodes[0]
     ):
-        # pylint: disable=protected-access
         graph._graph.add_node(0, **asdict(Component(0, ComponentCategory.GRID)))
+    # pylint: enable=protected-access

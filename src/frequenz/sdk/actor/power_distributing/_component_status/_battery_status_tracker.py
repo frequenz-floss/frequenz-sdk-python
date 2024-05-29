@@ -398,6 +398,7 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
                     state.name,
                 )
             return False
+        # pylint: enable=protected-access
         return True
 
     def _is_battery_state_correct(self, msg: BatteryData) -> bool:
@@ -422,7 +423,6 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
             return False
 
         # Component state is not exposed to the user.
-        # pylint: disable=protected-access
         relay_state = msg.relay_state
         if relay_state not in BatteryStatusTracker._battery_valid_relay:
             if self._last_status == ComponentStatusEnum.WORKING:
@@ -433,6 +433,7 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
                 )
             return False
         return True
+        # pylint: enable=protected-access
 
     def _is_timestamp_outdated(self, timestamp: datetime) -> bool:
         """Return if timestamp is to old.
