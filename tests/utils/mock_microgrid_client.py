@@ -18,7 +18,6 @@ from frequenz.client.microgrid import (
     Location,
     MeterData,
 )
-from google.protobuf.empty_pb2 import Empty  # pylint: disable=no-name-in-module
 from pytest_mock import MockerFixture
 
 from frequenz.sdk._internal._constants import RECEIVER_MAX_SIZE
@@ -282,7 +281,7 @@ class MockMicrogridClient:
         )
 
         # Can be override in the future
-        api.set_power = AsyncMock(return_value=Empty)
+        api.set_power = AsyncMock(return_value=None)
         return api
 
     def _get_battery_receiver(
