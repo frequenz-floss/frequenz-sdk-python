@@ -12,7 +12,7 @@
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+- Calls to `microgrid.*_pool` methods now accept an optional `in_shifting_group` parameter.  Power requests sent to `*_pool` instances that have the `in_shifting_group` flag set, will get resolved separately, and their target power will be added to the target power calculated from regular actors, if any, which would, in effect, shift the zero for the regular actors by the target power from the shifting group.
 
 ## Bug Fixes
 
