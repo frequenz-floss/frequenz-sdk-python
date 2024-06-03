@@ -132,7 +132,8 @@ class PVManager(ComponentManager):
         num_components = len(working_components)
         for idx, inv_id in enumerate(working_components):
             # Request powers are negative for PV inverters.  When remaining power is
-            # greater than 0.0, we can stop allocating further.
+            # greater than or equal to 0.0, we can stop allocating further, and set 0
+            # power for all inverters for which no allocations were made.
             if remaining_power > Power.zero() or is_close_to_zero(
                 remaining_power.as_watts()
             ):
