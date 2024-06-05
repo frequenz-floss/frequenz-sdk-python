@@ -137,6 +137,56 @@ The `ev_charger_pool` also provides a control method
 [`propose_power`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.propose_power],
 which accepts values in the {{glossary("psc", "Passive Sign Convention")}} and supports
 only charging.
+
+# Component pools
+
+The SDK provides a unified interface for interacting with sets of Batteries, EV
+chargers and PV arrays, through their corresponding `Pool`s.
+
+| pool type     | constructor                                                         |
+|---------------|---------------------------------------------------------------------|
+| BatteryPool   | [microgrid.battery_pool][frequenz.sdk.microgrid.battery_pool]       |
+| EVChargerPool | [microgrid.ev_charger_pool][frequenz.sdk.microgrid.ev_charger_pool] |
+| PVPool        | [microgrid.pv_pool][frequenz.sdk.microgrid.pv_pool]                 |
+
+All of them provide support for streaming aggregated data and for setting the
+power values of the components.
+
+## Streaming component data
+
+All pools have a `power` property, which is a
+[`FormulaEngine`][frequenz.sdk.timeseries.formula_engine.FormulaEngine] that can
+
+- provide a stream of resampled power values, which correspond to the sum of the
+power measured from all the components in the pool together.
+
+- be composed with other power streams to for composite formulas.
+
+In addition, the battery pool has some additional properties that can be used as
+streams for metrics specific to batteries:
+[`soc`][frequenz.sdk.timeseries.battery_pool.BatteryPool.soc],
+[`capacity`][frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity] and
+[`temperature`][frequenz.sdk.timeseries.battery_pool.BatteryPool.temperature].
+
+## Setting power
+
+All pools provide a `propose_power` method for setting power for the pool.  This
+would then be distributed to the individual components in the pool, using an
+algorithm that's suitable for the category of the components.  For example, when
+controlling batteries, power could be distributed based on the `SoC` of the
+individual batteries, to keep the batteries in balance.
+
+### Resolving conflicting power proposals
+
+When there are multiple actors trying to control the same set of batteries, a
+target power is calculated based on the priorities of the actors making the
+requests.  Actors need to specify their priorities as parameters when creating
+the `*Pool` instances using the constructors mentioned above.
+
+The algorithm used for resolving power conflicts based on actor priority can be
+found in the documentation for any of the
+[`propose_power`][frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power]
+methods.
 """  # noqa: D205, D400
 
 from ..actor import ResamplerConfig
