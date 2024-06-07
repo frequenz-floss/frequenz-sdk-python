@@ -489,3 +489,171 @@ class TestBatteryPoolControl:
                 result, power_distributing.Success
             ),
         )
+
+    async def test_case_5(  # pylint: disable=too-many-statements
+        self,
+        mocks: Mocks,
+        mocker: MockerFixture,
+    ) -> None:
+        """Test case 5.
+
+        - four battery pools with same batteries, but different priorities.
+        - two battery pools are in the shifting group, two are not.
+        - all batteries are working.
+        """
+        set_power = typing.cast(
+            AsyncMock, microgrid.connection_manager.get().api_client.set_power
+        )
+
+        await self._patch_battery_pool_status(mocks, mocker)
+        await self._init_data_for_batteries(mocks)
+        await self._init_data_for_inverters(mocks)
+
+        battery_pool_4 = microgrid.battery_pool(priority=4, in_shifting_group=True)
+        bounds_4_rx = battery_pool_4.power_status.new_receiver()
+        battery_pool_3 = microgrid.battery_pool(priority=3, in_shifting_group=True)
+        bounds_3_rx = battery_pool_3.power_status.new_receiver()
+        battery_pool_2 = microgrid.battery_pool(priority=2)
+        bounds_2_rx = battery_pool_2.power_status.new_receiver()
+        battery_pool_1 = microgrid.battery_pool(priority=1)
+        bounds_1_rx = battery_pool_1.power_status.new_receiver()
+
+        self._assert_report(
+            await bounds_4_rx.receive(), power=None, lower=-4000.0, upper=4000.0
+        )
+        self._assert_report(
+            await bounds_3_rx.receive(), power=None, lower=-4000.0, upper=4000.0
+        )
+        self._assert_report(
+            await bounds_2_rx.receive(), power=None, lower=-4000.0, upper=4000.0
+        )
+        self._assert_report(
+            await bounds_1_rx.receive(), power=None, lower=-4000.0, upper=4000.0
+        )
+
+        # The target power of non-shifting battery pools should only be visible to other
+        # non-shifting battery pools, and vice-versa.
+        await battery_pool_2.propose_power(
+            Power.from_watts(200.0),
+            bounds=timeseries.Bounds(
+                Power.from_watts(-1000.0), Power.from_watts(1500.0)
+            ),
+        )
+        self._assert_report(
+            await bounds_4_rx.receive(), power=None, lower=-4000.0, upper=4000.0
+        )
+        self._assert_report(
+            await bounds_3_rx.receive(), power=None, lower=-4000.0, upper=4000.0
+        )
+        self._assert_report(
+            await bounds_2_rx.receive(), power=200.0, lower=-4000.0, upper=4000.0
+        )
+        self._assert_report(
+            await bounds_1_rx.receive(), power=200.0, lower=-1000.0, upper=1500.0
+        )
+
+        assert set_power.call_count == 4
+        assert sorted(set_power.call_args_list) == [
+            mocker.call(inv_id, 50.0) for inv_id in mocks.microgrid.battery_inverter_ids
+        ]
+        set_power.reset_mock()
+
+        # Set a power to the second non-shifting battery pool.  This should also have
+        # no effect on the shifting battery pools.
+        await battery_pool_1.propose_power(
+            Power.from_watts(720.0),
+        )
+        self._assert_report(
+            await bounds_4_rx.receive(), power=None, lower=-4000.0, upper=4000.0
+        )
+        self._assert_report(
+            await bounds_3_rx.receive(), power=None, lower=-4000.0, upper=4000.0
+        )
+        self._assert_report(
+            await bounds_2_rx.receive(), power=720.0, lower=-4000.0, upper=4000.0
+        )
+        self._assert_report(
+            await bounds_1_rx.receive(), power=720.0, lower=-1000.0, upper=1500.0
+        )
+
+        for _ in range(5):
+            await bounds_1_rx.receive()
+            await bounds_2_rx.receive()
+            await bounds_3_rx.receive()
+            bounds = await bounds_4_rx.receive()
+            if bounds.distribution_result is None or not isinstance(
+                bounds.distribution_result, power_distributing.Success
+            ):
+                continue
+            if bounds.distribution_result.succeeded_power == Power.from_watts(720.0):
+                break
+
+        assert set_power.call_count == 4
+        assert sorted(set_power.call_args_list) == [
+            mocker.call(inv_id, 720.0 / 4)
+            for inv_id in mocks.microgrid.battery_inverter_ids
+        ]
+        set_power.reset_mock()
+
+        # Setting power to a shifting battery pool should shift the bounds seen by the
+        # non-shifting battery pools.  It would also shift the final target power sent
+        # in the batteries.
+        await battery_pool_3.propose_power(
+            Power.from_watts(-1000.0),
+        )
+
+        self._assert_report(
+            await bounds_4_rx.receive(), power=-1000.0, lower=-4000.0, upper=4000.0
+        )
+        self._assert_report(
+            await bounds_3_rx.receive(), power=-1000.0, lower=-4000.0, upper=4000.0
+        )
+        self._assert_report(
+            await bounds_2_rx.receive(), power=720.0, lower=-3000.0, upper=5000.0
+        )
+        self._assert_report(
+            await bounds_1_rx.receive(), power=720.0, lower=-1000.0, upper=1500.0
+        )
+
+        for _ in range(5):
+            await bounds_1_rx.receive()
+            await bounds_2_rx.receive()
+            await bounds_3_rx.receive()
+            bounds = await bounds_4_rx.receive()
+            if bounds.distribution_result is None or not isinstance(
+                bounds.distribution_result, power_distributing.Success
+            ):
+                continue
+            if bounds.distribution_result.succeeded_power == Power.from_watts(-280.0):
+                break
+
+        assert set_power.call_count == 4
+        assert sorted(set_power.call_args_list) == [
+            mocker.call(inv_id, -280.0 / 4)
+            for inv_id in mocks.microgrid.battery_inverter_ids
+        ]
+        set_power.reset_mock()
+
+        # Creating a new non-shifting battery pool that's higher priority than the
+        # shifting battery pools should still be shifted by the target power of the
+        # shifting battery pools.
+        battery_pool_5 = microgrid.battery_pool(priority=5)
+        bounds_5_rx = battery_pool_5.power_status.new_receiver()
+
+        await battery_pool_5.propose_power(None)
+
+        self._assert_report(
+            await bounds_5_rx.receive(), power=720.0, lower=-3000.0, upper=5000.0
+        )
+        self._assert_report(
+            await bounds_4_rx.receive(), power=-1000.0, lower=-4000.0, upper=4000.0
+        )
+        self._assert_report(
+            await bounds_3_rx.receive(), power=-1000.0, lower=-4000.0, upper=4000.0
+        )
+        self._assert_report(
+            await bounds_2_rx.receive(), power=720.0, lower=-3000.0, upper=5000.0
+        )
+        self._assert_report(
+            await bounds_1_rx.receive(), power=720.0, lower=-1000.0, upper=1500.0
+        )
