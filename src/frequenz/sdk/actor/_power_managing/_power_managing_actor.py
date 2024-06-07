@@ -129,7 +129,7 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
             status = self._non_shifting_group.get_status(
                 component_ids,
                 priority,
-                self._calculate_remaining_bounds(
+                self._calculate_shifted_bounds(
                     bounds,
                     self._shifting_group.get_target_power(component_ids),
                 ),
@@ -208,13 +208,13 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
             self._bounds_tracker(component_ids, bounds_receiver)
         )
 
-    def _calculate_remaining_bounds(
+    def _calculate_shifted_bounds(
         self, bounds: SystemBounds, target_power: Power | None
     ) -> SystemBounds:
-        """Calculate the remaining bounds after a target power is applied.
+        """Calculate the shifted bounds corresponding to shifting group's target power.
 
-        This is the values that can be added to the target power and still remain within
-        the actual system bounds.
+        Any value regular actors choose within these bounds can be shifted by the
+        shifting power and still remain within the actual system bounds.
 
           | system bounds |     shifting |    shifted |
           |               | target power |     bounds |
@@ -277,7 +277,7 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
                 tgt_power_no_shift = self._non_shifting_group.calculate_target_power(
                     component_ids,
                     None,
-                    self._calculate_remaining_bounds(
+                    self._calculate_shifted_bounds(
                         self._system_bounds[component_ids], tgt_power_shift
                     ),
                     must_send,
@@ -292,7 +292,7 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
                 tgt_power_shift = self._shifting_group.calculate_target_power(
                     component_ids,
                     None,
-                    self._calculate_remaining_bounds(
+                    self._calculate_shifted_bounds(
                         self._system_bounds[component_ids], tgt_power_no_shift
                     ),
                     must_send,
@@ -307,7 +307,7 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
             tgt_power_shift = self._shifting_group.calculate_target_power(
                 component_ids,
                 None,
-                self._calculate_remaining_bounds(
+                self._calculate_shifted_bounds(
                     self._system_bounds[component_ids], tgt_power_no_shift
                 ),
                 must_send,
