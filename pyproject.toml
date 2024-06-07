@@ -31,12 +31,8 @@ dependencies = [
   # (plugins.mkdocstrings.handlers.python.import)
   "frequenz-client-microgrid >= 0.4.0, < 0.5.0",
   "frequenz-channels >= 1.0.0-rc1, < 2.0.0",
-  "google-api-python-client >= 2.71, < 3",
-  "grpcio >= 1.60.1, < 2",
-  "grpcio-tools >= 1.60.1, < 2",
   "networkx >= 2.8, < 4",
   "numpy >= 1.26.4, < 2",
-  "protobuf >= 4.21.6, < 6",
   "pydantic >= 2.3, < 3",
   "timezonefinder >= 6.2.0, < 7",
   "tqdm >= 4.38.0, < 5",
@@ -72,7 +68,6 @@ dev-mkdocs = [
 ]
 dev-mypy = [
   "mypy == 1.10.0",
-  "grpc-stubs == 1.24.12",               # This dependency introduces breaking changes in patch releases
   "types-Markdown == 3.6.0.20240316",
   "types-protobuf == 5.26.0.20240422",
   "types-setuptools == 70.0.0.20240524",
@@ -187,8 +182,6 @@ strict = true
 module = [
   "async_solipsism",
   "async_solipsism.*",
-  "grpc.aio",
-  "grpc.aio.*",
   "mkdocs_macros.*",
   # The available stubs packages are outdated or incomplete (WIP/experimental):
   # https://github.com/frequenz-floss/frequenz-sdk-python/issues/430

@@ -116,10 +116,8 @@ plugins:
             - https://docs.python.org/3/objects.inv
             - https://frequenz-floss.github.io/frequenz-channels-python/v0.16/objects.inv
             - https://frequenz-floss.github.io/frequenz-client-microgrid-python/v0.4/objects.inv
-            - https://grpc.github.io/grpc/python/objects.inv
             - https://networkx.org/documentation/stable/objects.inv
             - https://numpy.org/doc/stable/objects.inv
-            - https://protobuf.readthedocs.io/en/latest/objects.inv
             - https://typing-extensions.readthedocs.io/en/stable/objects.inv
             - https://watchfiles.helpmanual.io/objects.inv
   # Note this plugin must be loaded after mkdocstrings to be able to use macros
