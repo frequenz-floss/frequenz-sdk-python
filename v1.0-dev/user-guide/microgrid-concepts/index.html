@@ -656,6 +656,63 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--component-pools" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component pools
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Component pools">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--streaming-component-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Streaming component data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--setting-power" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setting power
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setting power">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--resolving-conflicting-power-proposals" class="md-nav__link">
+    <span class="md-ellipsis">
+      Resolving conflicting power proposals
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--shifting-the-target-power-by-an-offset" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shifting the target power by an offset
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1602,6 +1659,63 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--component-pools" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component pools
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Component pools">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--streaming-component-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Streaming component data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--setting-power" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setting power
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setting power">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--resolving-conflicting-power-proposals" class="md-nav__link">
+    <span class="md-ellipsis">
+      Resolving conflicting power proposals
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--shifting-the-target-power-by-an-offset" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shifting the target power by an offset
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1737,6 +1851,129 @@ method.</p>
 <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.propose_power"><code>propose_power</code></a>,
 which accepts values in the <a href="../glossary/#psc">Passive Sign Convention</a> and supports
 only charging.</p>
+<h2 id="frequenz.sdk.microgrid--component-pools">Component pools<a class="headerlink" href="#frequenz.sdk.microgrid--component-pools" title="Permanent link">¤</a></h2>
+<p>The SDK provides a unified interface for interacting with sets of Batteries, EV
+chargers and PV arrays, through their corresponding <code>Pool</code>s.</p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.battery_pool">Battery pool</a></li>
+<li><a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.ev_charger_pool">EV charger pool</a></li>
+<li><a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.pv_pool">PV pool</a></li>
+</ul>
+<p>All of them provide support for streaming aggregated data and for setting the
+power values of the components.</p>
+<h3 id="frequenz.sdk.microgrid--streaming-component-data">Streaming component data<a class="headerlink" href="#frequenz.sdk.microgrid--streaming-component-data" title="Permanent link">¤</a></h3>
+<p>All pools have a <code>power</code> property, which is a
+<a class="autorefs autorefs-internal" href="../formula-engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine"><code>FormulaEngine</code></a> that can</p>
+<ul>
+<li>
+<p>provide a stream of resampled power values, which correspond to the sum of the
+power measured from all the components in the pool together.</p>
+</li>
+<li>
+<p>be composed with other power streams to for composite formulas.</p>
+</li>
+</ul>
+<p>In addition, the battery pool has some additional properties that can be used as
+streams for metrics specific to batteries:
+<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.soc"><code>soc</code></a>,
+<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity"><code>capacity</code></a> and
+<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.temperature"><code>temperature</code></a>.</p>
+<h3 id="frequenz.sdk.microgrid--setting-power">Setting power<a class="headerlink" href="#frequenz.sdk.microgrid--setting-power" title="Permanent link">¤</a></h3>
+<p>All pools provide a <code>propose_power</code> method for setting power for the pool.  This
+would then be distributed to the individual components in the pool, using an
+algorithm that's suitable for the category of the components.  For example, when
+controlling batteries, power could be distributed based on the <code>SoC</code> of the
+individual batteries, to keep the batteries in balance.</p>
+<h4 id="frequenz.sdk.microgrid--resolving-conflicting-power-proposals">Resolving conflicting power proposals<a class="headerlink" href="#frequenz.sdk.microgrid--resolving-conflicting-power-proposals" title="Permanent link">¤</a></h4>
+<p>When there are multiple actors trying to control the same set of batteries, a
+target power is calculated based on the priorities of the actors making the
+requests.  Actors need to specify their priorities as parameters when creating
+the <code>*Pool</code> instances using the constructors mentioned above.</p>
+<p>The algorithm used for resolving power conflicts based on actor priority can be
+found in the documentation for any of the
+<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power"><code>propose_power</code></a>
+methods.</p>
+<h4 id="frequenz.sdk.microgrid--shifting-the-target-power-by-an-offset">Shifting the target power by an offset<a class="headerlink" href="#frequenz.sdk.microgrid--shifting-the-target-power-by-an-offset" title="Permanent link">¤</a></h4>
+<p>There are cases where the target power needs to be shifted by a certain amount, for
+example, to make adjustments to the operating point.  This can be done by designating
+some actors to be part of the <code>shifting_group</code>.</p>
+<p>When creating a <code>*Pool</code> instance using the above-mentioned constructors, an optional
+<code>in_shifting_group</code> parameter can be passed to specify that this actor is special, and
+the target power of the regular actors will be shifted by the target power of all
+shifting actors together.</p>
+<p>In a location with 2 regular actors and 1 shifting actor, here's how things
+would play out:</p>
+<ol>
+<li>When only non-shifting actors have made proposals, the power bounds available
+   from the batteries are available to them exactly.</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>actor priority</th>
+<th>in shifting group?</th>
+<th>proposed power/bounds</th>
+<th>available bounds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3</td>
+<td>No</td>
+<td>1000, -4000..2500</td>
+<td>-3000..3000</td>
+</tr>
+<tr>
+<td>2</td>
+<td>No</td>
+<td>2500</td>
+<td>-3000..2500</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Yes</td>
+<td>None</td>
+<td>-3000..3000</td>
+</tr>
+</tbody>
+</table>
+<p>Power actually distributed to the batteries: 2500W</p>
+<ol>
+<li>When the shifting actor has made proposals, the bounds available to the
+   regular actors gets shifted, and the final power that actually gets
+   distributed to the batteries is also shifted.</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>actor priority</th>
+<th>in shifting group?</th>
+<th>proposed power/bounds</th>
+<th>available bounds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3</td>
+<td>No</td>
+<td>1000, -4000..2500</td>
+<td>-2000..4000</td>
+</tr>
+<tr>
+<td>2</td>
+<td>No</td>
+<td>2500</td>
+<td>-2000..2500</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Yes</td>
+<td>-1000</td>
+<td>-3000..3000</td>
+</tr>
+</tbody>
+</table>
+<p>Power actually distributed to the batteries: 1500W</p>
 
 
 
