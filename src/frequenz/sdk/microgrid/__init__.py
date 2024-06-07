@@ -143,11 +143,9 @@ only charging.
 The SDK provides a unified interface for interacting with sets of Batteries, EV
 chargers and PV arrays, through their corresponding `Pool`s.
 
-| pool type     | constructor                                                         |
-|---------------|---------------------------------------------------------------------|
-| BatteryPool   | [microgrid.battery_pool][frequenz.sdk.microgrid.battery_pool]       |
-| EVChargerPool | [microgrid.ev_charger_pool][frequenz.sdk.microgrid.ev_charger_pool] |
-| PVPool        | [microgrid.pv_pool][frequenz.sdk.microgrid.pv_pool]                 |
+* [Battery pool][frequenz.sdk.microgrid.battery_pool]
+* [EV charger pool][frequenz.sdk.microgrid.ev_charger_pool]
+* [PV pool][frequenz.sdk.microgrid.pv_pool]
 
 All of them provide support for streaming aggregated data and for setting the
 power values of the components.
