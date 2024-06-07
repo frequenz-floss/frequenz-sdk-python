@@ -119,7 +119,6 @@ plugins:
             - https://networkx.org/documentation/stable/objects.inv
             - https://numpy.org/doc/stable/objects.inv
             - https://typing-extensions.readthedocs.io/en/stable/objects.inv
-            - https://watchfiles.helpmanual.io/objects.inv
   # Note this plugin must be loaded after mkdocstrings to be able to use macros
   # inside docstrings. See the comment in `docs/_scripts/macros.py` for more
   # details
