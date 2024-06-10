@@ -92,6 +92,10 @@ class LatestValueCache(typing.Generic[T_co]):
         """Stop the cache."""
         await cancel_and_await(self._task)
 
+    def __del__(self) -> None:
+        """Stop the cache when it is deleted."""
+        self._task.cancel()
+
     def __repr__(self) -> str:
         """Return a string representation of the cache."""
         return (
