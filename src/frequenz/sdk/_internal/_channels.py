@@ -32,6 +32,10 @@ class ReceiverFetcher(typing.Generic[T_co], typing.Protocol):
 class _Sentinel:
     """A sentinel to denote that no value has been received yet."""
 
+    def __str__(self) -> str:
+        """Return a string representation of this sentinel."""
+        return "<no value received yet>"
+
 
 class LatestValueCache(typing.Generic[T_co]):
     """A cache that stores the latest value in a receiver."""
@@ -91,3 +95,14 @@ class LatestValueCache(typing.Generic[T_co]):
     async def stop(self) -> None:
         """Stop the cache."""
         await cancel_and_await(self._task)
+
+    def __repr__(self) -> str:
+        """Return a string representation of this cache."""
+        return (
+            f"<LatestValueCache latest_value={self._latest_value!r}, "
+            f"receiver={self._receiver!r}, unique_id={self._unique_id!r}>"
+        )
+
+    def __str__(self) -> str:
+        """Return the last value seen by this cache."""
+        return str(self._latest_value)
