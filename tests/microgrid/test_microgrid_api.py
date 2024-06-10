@@ -104,7 +104,7 @@ class TestMicrogridApi:
             ),
         )
 
-    @mock.patch("grpc.aio.insecure_channel")
+    @mock.patch("grpclib.client.Channel")
     async def test_connection_manager(
         self,
         _insecure_channel_mock: MagicMock,
@@ -134,8 +134,12 @@ class TestMicrogridApi:
                 connection_manager.get()
 
             tasks = [
-                asyncio.create_task(connection_manager.initialize("127.0.0.1", 10001)),
-                asyncio.create_task(connection_manager.initialize("127.0.0.1", 10001)),
+                asyncio.create_task(
+                    connection_manager.initialize("grpc://127.0.0.1:10001")
+                ),
+                asyncio.create_task(
+                    connection_manager.initialize("grpc://127.0.0.1:10001")
+                ),
             ]
             initialize_task = asyncio.wait(tasks, return_when=ALL_COMPLETED)
 
@@ -169,7 +173,7 @@ class TestMicrogridApi:
 
             # It should not be possible to initialize method once again
             with pytest.raises(AssertionError):
-                await connection_manager.initialize("127.0.0.1", 10001)
+                await connection_manager.initialize("grpc://127.0.0.1:10001")
 
             api2 = connection_manager.get()
 
@@ -181,7 +185,7 @@ class TestMicrogridApi:
             assert api.microgrid_id == metadata.microgrid_id
             assert api.location == metadata.location
 
-    @mock.patch("grpc.aio.insecure_channel")
+    @mock.patch("grpclib.client.Channel")
     async def test_connection_manager_another_method(
         self,
         _insecure_channel_mock: MagicMock,

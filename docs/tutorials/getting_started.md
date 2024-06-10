@@ -44,13 +44,11 @@ microgrid.
 ```python
 async def run() -> None:
     # This points to the default Frequenz microgrid sandbox
-    microgrid_host = "microgrid.sandbox.api.frequenz.io"
-    microgrid_port = 62060
+    server_url = "grpc://microgrid.sandbox.api.frequenz.io:62060",
 
     # Initialize the microgrid
     await microgrid.initialize(
-        microgrid_host,
-        microgrid_port,
+        server_url,
         ResamplerConfig(resampling_period=timedelta(seconds=1)),
     )
 
@@ -106,13 +104,11 @@ from frequenz.sdk.actor import ResamplerConfig
 
 async def run() -> None:
     # This points to the default Frequenz microgrid sandbox
-    microgrid_host = "microgrid.sandbox.api.frequenz.io"
-    microgrid_port = 62060
+    server_url = "grpc://microgrid.sandbox.api.frequenz.io:62060",
 
     # Initialize the microgrid
     await microgrid.initialize(
-        microgrid_host,
-        microgrid_port,
+        server_url,
         ResamplerConfig(resampling_period=timedelta(seconds=1)),
     )
 

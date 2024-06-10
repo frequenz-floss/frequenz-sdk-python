@@ -5,17 +5,17 @@
 
 # pylint: disable=too-many-lines,use-implicit-booleaness-not-comparison
 # pylint: disable=invalid-name,missing-function-docstring,too-many-statements
-# pylint: disable=too-many-lines,protected-access,no-member
+# pylint: disable=too-many-lines,protected-access
 
 from dataclasses import asdict
+from unittest import mock
 
-import frequenz.api.common.components_pb2 as components_pb
-import grpc
 import pytest
 from frequenz.client.microgrid import (
     ApiClient,
     Component,
     ComponentCategory,
+    ComponentMetadata,
     Connection,
     Fuse,
     GridMetadata,
@@ -23,8 +23,6 @@ from frequenz.client.microgrid import (
 )
 
 import frequenz.sdk.microgrid.component_graph as gr
-
-from .mock_api import MockGrpcServer, MockMicrogridServicer
 
 
 def _check_predecessors_and_successors(graph: gr.ComponentGraph) -> None:
@@ -856,16 +854,13 @@ class Test_MicrogridComponentGraph:
         with pytest.raises(gr.InvalidGraphError):
             graph.validate()
 
-        servicer = MockMicrogridServicer()
-        server = MockGrpcServer(servicer, port=58765)
-        await server.start()
-
-        target = "[::]:58765"
-        client = ApiClient(grpc.aio.insecure_channel(target), target)
+        client = mock.MagicMock(name="client", spec=ApiClient)
+        client.components = mock.AsyncMock(name="client.components()", return_value=[])
+        client.connections = mock.AsyncMock(
+            name="client.connections()", return_value=[]
+        )
 
         # both components and connections must be non-empty
-        servicer.set_components([])
-        servicer.set_connections([])
         with pytest.raises(gr.InvalidGraphError):
             await graph.refresh_from_api(client)
         assert graph.components() == set()
@@ -873,10 +868,7 @@ class Test_MicrogridComponentGraph:
         with pytest.raises(gr.InvalidGraphError):
             graph.validate()
 
-        servicer.set_components(
-            [(1, components_pb.ComponentCategory.COMPONENT_CATEGORY_GRID)]
-        )
-        servicer.set_connections([])
+        client.components.return_value = [Component(1, ComponentCategory.GRID)]
         with pytest.raises(gr.InvalidGraphError):
             await graph.refresh_from_api(client)
         assert graph.components() == set()
@@ -884,8 +876,8 @@ class Test_MicrogridComponentGraph:
         with pytest.raises(gr.InvalidGraphError):
             graph.validate()
 
-        servicer.set_components([])
-        servicer.set_connections([(1, 2)])
+        client.components.return_value = []
+        client.connections.return_value = [Connection(1, 2)]
         with pytest.raises(gr.InvalidGraphError):
             await graph.refresh_from_api(client)
         assert graph.components() == set()
@@ -896,17 +888,20 @@ class Test_MicrogridComponentGraph:
         # if both are provided, valid graph data must be present
 
         # valid graph with meter, and EV charger
-        servicer.set_components(
-            [
-                (101, components_pb.ComponentCategory.COMPONENT_CATEGORY_GRID),
-                (111, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER),
-                (131, components_pb.ComponentCategory.COMPONENT_CATEGORY_EV_CHARGER),
-            ]
-        )
-        servicer.set_connections([(101, 111), (111, 131)])
+        client.components.return_value = [
+            Component(
+                101,
+                ComponentCategory.GRID,
+                metadata=ComponentMetadata(fuse=Fuse(max_current=0.0)),
+            ),
+            Component(111, ComponentCategory.METER),
+            Component(131, ComponentCategory.EV_CHARGER),
+        ]
+        client.connections.return_value = [
+            Connection(101, 111),
+            Connection(111, 131),
+        ]
         await graph.refresh_from_api(client)
-
-        grid_fuse = Fuse(max_current=0.0)
 
         # Note: we need to add GriMetadata as a dict here, because that's what
         # the ComponentGraph does too, and we need to be able to compare the
@@ -916,7 +911,7 @@ class Test_MicrogridComponentGraph:
                 101,
                 ComponentCategory.GRID,
                 None,
-                asdict(GridMetadata(fuse=grid_fuse)),  # type: ignore
+                asdict(GridMetadata(fuse=Fuse(max_current=0.0))),  # type: ignore
             ),
             Component(111, ComponentCategory.METER),
             Component(131, ComponentCategory.EV_CHARGER),
@@ -931,16 +926,23 @@ class Test_MicrogridComponentGraph:
 
         # if valid graph data is provided, then the existing graph
         # contents will be overwritten
-        servicer.set_components(
-            [
-                (707, components_pb.ComponentCategory.COMPONENT_CATEGORY_GRID),
-                (717, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER),
-                (727, components_pb.ComponentCategory.COMPONENT_CATEGORY_INVERTER),
-                (737, components_pb.ComponentCategory.COMPONENT_CATEGORY_BATTERY),
-                (747, components_pb.ComponentCategory.COMPONENT_CATEGORY_METER),
-            ]
-        )
-        servicer.set_connections([(707, 717), (717, 727), (727, 737), (717, 747)])
+        client.components.return_value = [
+            Component(
+                707,
+                ComponentCategory.GRID,
+                metadata=ComponentMetadata(fuse=Fuse(max_current=0.0)),
+            ),
+            Component(717, ComponentCategory.METER),
+            Component(727, ComponentCategory.INVERTER, type=InverterType.NONE),
+            Component(737, ComponentCategory.BATTERY),
+            Component(747, ComponentCategory.METER),
+        ]
+        client.connections.return_value = [
+            Connection(707, 717),
+            Connection(717, 727),
+            Connection(727, 737),
+            Connection(717, 747),
+        ]
         await graph.refresh_from_api(client)
 
         expected = {
@@ -948,7 +950,7 @@ class Test_MicrogridComponentGraph:
                 707,
                 ComponentCategory.GRID,
                 None,
-                asdict(GridMetadata(fuse=grid_fuse)),  # type: ignore
+                asdict(GridMetadata(fuse=Fuse(max_current=0.0))),  # type: ignore
             ),
             Component(717, ComponentCategory.METER),
             Component(727, ComponentCategory.INVERTER, InverterType.NONE),
@@ -965,8 +967,6 @@ class Test_MicrogridComponentGraph:
             Connection(727, 737),
         }
         graph.validate()
-
-        assert await server.graceful_shutdown()
 
     def test_validate(self) -> None:
         """Test the validate method."""
@@ -1255,7 +1255,7 @@ class Test_MicrogridComponentGraph:
         with pytest.raises(
             gr.InvalidGraphError,
             match=r"Grid endpoint 1 has graph predecessors: \[Component"
-            r"\(component_id=99, category=<ComponentCategory.METER: 2>, "
+            r"\(component_id=99, category=<ComponentCategory.METER.*>, "
             r"type=None, metadata=None\)\]",
         ):
             graph._validate_grid_endpoint()

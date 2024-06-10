@@ -16,18 +16,19 @@ import math
 from dataclasses import dataclass, replace
 from datetime import datetime
 
-import frequenz.api.microgrid.battery_pb2 as battery_pb
-import frequenz.api.microgrid.inverter_pb2 as inverter_pb
 from frequenz.client.microgrid import (
+    BatteryComponentState,
     BatteryData,
+    BatteryError,
+    BatteryRelayState,
     EVChargerCableState,
     EVChargerComponentState,
     EVChargerData,
+    InverterComponentState,
     InverterData,
+    InverterError,
     MeterData,
 )
-
-# pylint: disable=no-member
 
 
 class BatteryDataWrapper(BatteryData):
@@ -46,13 +47,9 @@ class BatteryDataWrapper(BatteryData):
         power_inclusion_upper_bound: float = math.nan,
         power_exclusion_upper_bound: float = math.nan,
         temperature: float = math.nan,
-        _relay_state: battery_pb.RelayState.ValueType = (
-            battery_pb.RelayState.RELAY_STATE_UNSPECIFIED
-        ),
-        _component_state: battery_pb.ComponentState.ValueType = (
-            battery_pb.ComponentState.COMPONENT_STATE_UNSPECIFIED
-        ),
-        _errors: list[battery_pb.Error] | None = None,
+        relay_state: BatteryRelayState = (BatteryRelayState.UNSPECIFIED),
+        component_state: BatteryComponentState = (BatteryComponentState.UNSPECIFIED),
+        errors: list[BatteryError] | None = None,
     ) -> None:
         """Initialize the BatteryDataWrapper.
 
@@ -71,9 +68,9 @@ class BatteryDataWrapper(BatteryData):
             power_inclusion_upper_bound=power_inclusion_upper_bound,
             power_exclusion_upper_bound=power_exclusion_upper_bound,
             temperature=temperature,
-            _relay_state=_relay_state,
-            _component_state=_component_state,
-            _errors=_errors if _errors else [],
+            relay_state=relay_state,
+            component_state=component_state,
+            errors=errors or [],
         )
 
     def copy_with_new_timestamp(self, new_timestamp: datetime) -> BatteryDataWrapper:
@@ -95,7 +92,7 @@ class BatteryDataWrapper(BatteryData):
 class InverterDataWrapper(InverterData):
     """Wrapper for the InverterData with default arguments."""
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(  # pylint: disable=too-many-arguments,too-many-locals
         self,
         component_id: int,
         timestamp: datetime,
@@ -118,10 +115,8 @@ class InverterDataWrapper(InverterData):
             math.nan,
         ),
         frequency: float = 50.0,
-        _component_state: inverter_pb.ComponentState.ValueType = (
-            inverter_pb.ComponentState.COMPONENT_STATE_UNSPECIFIED
-        ),
-        _errors: list[inverter_pb.Error] | None = None,
+        component_state: InverterComponentState = InverterComponentState.UNSPECIFIED,
+        errors: list[InverterError] | None = None,
     ) -> None:
         """Initialize the InverterDataWrapper.
 
@@ -141,9 +136,9 @@ class InverterDataWrapper(InverterData):
             active_power_exclusion_upper_bound=active_power_exclusion_upper_bound,
             reactive_power=reactive_power,
             reactive_power_per_phase=reactive_power_per_phase,
-            _component_state=_component_state,
+            component_state=component_state,
             frequency=frequency,
-            _errors=_errors if _errors else [],
+            errors=errors or [],
         )
 
     def copy_with_new_timestamp(self, new_timestamp: datetime) -> InverterDataWrapper:

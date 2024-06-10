@@ -10,9 +10,14 @@ import math
 import typing
 from datetime import timedelta
 
-import grpc
 from frequenz.channels import Receiver, Sender
-from frequenz.client.microgrid import BatteryData, ComponentCategory, InverterData
+from frequenz.client.microgrid import (
+    BatteryData,
+    ClientError,
+    ComponentCategory,
+    InverterData,
+    OperationOutOfRange,
+)
 from typing_extensions import override
 
 from .... import microgrid
@@ -647,38 +652,37 @@ class BatteryManager(ComponentManager):
 
         for inverter_id, aws in tasks.items():
             battery_ids = self._inv_bats_map[inverter_id]
+            failed = True
             try:
                 aws.result()
-            except grpc.aio.AioRpcError as err:
-                failed_power += distribution[inverter_id]
-                failed_batteries = failed_batteries.union(battery_ids)
-                if err.code() == grpc.StatusCode.OUT_OF_RANGE:
-                    _logger.debug(
-                        "Set power for battery %s failed, error %s",
-                        battery_ids,
-                        str(err),
-                    )
-                else:
-                    _logger.warning(
-                        "Set power for battery %s failed, error %s. Mark it as broken.",
-                        battery_ids,
-                        str(err),
-                    )
+                failed = False
+            except OperationOutOfRange as err:
+                _logger.debug(
+                    "Set power for battery %s failed due to out of range error: %s",
+                    battery_ids,
+                    err,
+                )
+            except ClientError as err:
+                _logger.warning(
+                    "Set power for battery %s failed, mark it as broken. Error: %s",
+                    battery_ids,
+                    err,
+                )
             except asyncio.exceptions.CancelledError:
-                failed_power += distribution[inverter_id]
-                failed_batteries = failed_batteries.union(battery_ids)
                 _logger.warning(
                     "Battery %s didn't respond in %f sec. Mark it as broken.",
                     battery_ids,
                     request_timeout.total_seconds(),
                 )
             except Exception:  # pylint: disable=broad-except
-                failed_power += distribution[inverter_id]
-                failed_batteries = failed_batteries.union(battery_ids)
                 _logger.exception(
                     "Unknown error while setting power to batteries: %s",
                     battery_ids,
                 )
+
+            if failed:
+                failed_power += distribution[inverter_id]
+                failed_batteries.update(battery_ids)
 
         return failed_power, failed_batteries
 

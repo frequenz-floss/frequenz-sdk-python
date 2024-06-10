@@ -45,7 +45,6 @@ def load_dump_test(dumped: rb.OrderedRingBuffer[Any], path: str) -> None:
     rb.dump(dumped, path)
 
     # Load old data
-    # pylint: disable=protected-access
     loaded = rb.load(path)
     assert loaded is not None
 
@@ -53,15 +52,10 @@ def load_dump_test(dumped: rb.OrderedRingBuffer[Any], path: str) -> None:
 
     # pylint: disable=protected-access
     assert dumped._timestamp_oldest == loaded._timestamp_oldest
-    # pylint: disable=protected-access
     assert dumped._timestamp_newest == loaded._timestamp_newest
-    # pylint: disable=protected-access
     assert len(dumped._gaps) == len(loaded._gaps)
-    # pylint: disable=protected-access
     assert dumped._gaps == loaded._gaps
-    # pylint: disable=protected-access
     assert dumped._sampling_period == loaded._sampling_period
-    # pylint: disable=protected-access
     assert dumped._time_index_alignment == loaded._time_index_alignment
 
 

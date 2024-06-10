@@ -239,15 +239,18 @@ from ._data_pipeline import (
 )
 
 
-async def initialize(host: str, port: int, resampler_config: ResamplerConfig) -> None:
+async def initialize(server_url: str, resampler_config: ResamplerConfig) -> None:
     """Initialize the microgrid connection manager and the data pipeline.
 
     Args:
-        host: Host to connect to, to reach the microgrid API.
-        port: port to connect to.
+        server_url: The location of the microgrid API server in the form of a URL.
+            The following format is expected: `grpc://hostname{:port}{?ssl=ssl}`,
+            where the port should be an int between `0` and `65535` (defaulting to
+            `9090`) and ssl should be a boolean (defaulting to false). For example:
+            `grpc://localhost:1090?ssl=true`.
         resampler_config: Configuration for the resampling actor.
     """
-    await connection_manager.initialize(host, port)
+    await connection_manager.initialize(server_url)
     await _data_pipeline.initialize(resampler_config)
 
 

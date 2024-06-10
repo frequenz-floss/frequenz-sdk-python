@@ -6,8 +6,6 @@ import pathlib
 
 import pytest
 from frequenz.channels import Broadcast
-
-# pylint: disable = no-name-in-module
 from pydantic import BaseModel
 
 from frequenz.sdk.actor import ConfigManagingActor
