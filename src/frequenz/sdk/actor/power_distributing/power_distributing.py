@@ -16,6 +16,7 @@ import asyncio
 
 from frequenz.channels import Receiver, Sender
 from frequenz.client.microgrid import ComponentCategory, ComponentType, InverterType
+from typing_extensions import override
 
 from ...actor._actor import Actor
 from ._component_managers import (
@@ -119,6 +120,7 @@ class PowerDistributingActor(Actor):
                 f"PowerDistributor doesn't support controlling: {component_category}"
             )
 
+    @override
     async def _run(self) -> None:  # pylint: disable=too-many-locals
         """Run actor main function.
 
@@ -136,6 +138,7 @@ class PowerDistributingActor(Actor):
         async for request in self._requests_receiver:
             await self._component_manager.distribute_power(request)
 
+    @override
     async def stop(self, msg: str | None = None) -> None:
         """Stop this actor.
 
