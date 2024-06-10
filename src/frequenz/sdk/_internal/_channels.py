@@ -36,15 +36,28 @@ class _Sentinel:
 class LatestValueCache(typing.Generic[T_co]):
     """A cache that stores the latest value in a receiver."""
 
-    def __init__(self, receiver: Receiver[T_co]) -> None:
+    def __init__(
+        self, receiver: Receiver[T_co], *, unique_id: str | None = None
+    ) -> None:
         """Create a new cache.
 
         Args:
             receiver: The receiver to cache.
+            unique_id: A string to help uniquely identify this instance. If not
+                provided, a unique identifier will be generated from the object's
+                [`id()`][]. It is used mostly for debugging purposes.
         """
         self._receiver = receiver
+        self._unique_id: str = hex(id(self)) if unique_id is None else unique_id
         self._latest_value: T_co | _Sentinel = _Sentinel()
-        self._task = asyncio.create_task(self._run())
+        self._task = asyncio.create_task(
+            self._run(), name=f"LatestValueCache«{self._unique_id}»"
+        )
+
+    @property
+    def unique_id(self) -> str:
+        """The unique identifier of this instance."""
+        return self._unique_id
 
     def get(self) -> T_co:
         """Return the latest value that has been received.
