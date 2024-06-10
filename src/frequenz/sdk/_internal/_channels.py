@@ -91,3 +91,14 @@ class LatestValueCache(typing.Generic[T_co]):
     async def stop(self) -> None:
         """Stop the cache."""
         await cancel_and_await(self._task)
+
+    def __repr__(self) -> str:
+        """Return a string representation of the cache."""
+        return (
+            f"<LatestValueCache latest_value={self._latest_value!r}, "
+            f"receiver={self._receiver!r}, unique_id={self._unique_id!r}>"
+        )
+
+    def __str__(self) -> str:
+        """Return a string representation of the cache."""
+        return str(self._latest_value)
