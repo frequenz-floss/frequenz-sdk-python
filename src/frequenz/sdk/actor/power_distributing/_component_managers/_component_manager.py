@@ -39,6 +39,14 @@ class ComponentManager(abc.ABC):
         """Start the component data manager."""
 
     @abc.abstractmethod
+    async def wait_for_data(self) -> None:
+        """Wait until this manager receiver data for all components it manages.
+
+        Before this happens, the manager could misbehave, as it would not have all the
+        data it needs to make the appropriate decisions.
+        """
+
+    @abc.abstractmethod
     async def distribute_power(self, request: Request) -> None:
         """Distribute the requested power to the components.
 

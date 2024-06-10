@@ -83,6 +83,17 @@ class PVManager(ComponentManager):
         }
 
     @override
+    async def wait_for_data(self) -> None:
+        """Wait until this manager receiver data for all components it manages.
+
+        Before this happens, the manager could misbehave, as it would not have all the
+        data it needs to make the appropriate decisions.
+        """
+        await asyncio.gather(
+            *[cache.wait_for_value() for cache in self._component_data_caches.values()],
+        )
+
+    @override
     async def stop(self) -> None:
         """Stop the PV inverter manager."""
         await asyncio.gather(

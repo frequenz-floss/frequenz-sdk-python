@@ -191,6 +191,20 @@ class BatteryManager(ComponentManager):
         await self._create_channels()
 
     @override
+    async def wait_for_data(self) -> None:
+        """Wait until this manager receiver data for all components it manages.
+
+        Before this happens, the manager could misbehave, as it would not have all the
+        data it needs to make the appropriate decisions.
+        """
+        await asyncio.gather(
+            *[
+                *[cache.wait_for_value() for cache in self._battery_caches.values()],
+                *[cache.wait_for_value() for cache in self._inverter_caches.values()],
+            ]
+        )
+
+    @override
     async def stop(self) -> None:
         """Stop the battery data manager."""
         for bat_cache in self._battery_caches.values():

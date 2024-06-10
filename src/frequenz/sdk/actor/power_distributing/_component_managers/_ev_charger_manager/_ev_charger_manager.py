@@ -85,6 +85,14 @@ class EVChargerManager(ComponentManager):
             self._task = asyncio.create_task(self._run_forever())
 
     @override
+    async def wait_for_data(self) -> None:
+        """Wait until this manager receiver data for all components it manages.
+
+        Before this happens, the manager could misbehave, as it would not have all the
+        data it needs to make the appropriate decisions.
+        """
+
+    @override
     async def distribute_power(self, request: Request) -> None:
         """Distribute the requested power to the ev chargers.
 
