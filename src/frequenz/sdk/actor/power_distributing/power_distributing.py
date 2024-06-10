@@ -13,6 +13,7 @@ Purpose of this actor is to keep SoC level of each component at the equal level.
 
 
 import asyncio
+import logging
 
 from frequenz.channels import Receiver, Sender
 from frequenz.client.microgrid import ComponentCategory, ComponentType, InverterType
@@ -28,6 +29,8 @@ from ._component_managers import (
 from ._component_status import ComponentPoolStatus
 from .request import Request
 from .result import Result
+
+_logger = logging.getLogger(__name__)
 
 
 class PowerDistributingActor(Actor):
@@ -132,8 +135,15 @@ class PowerDistributingActor(Actor):
         """
         await self._component_manager.start()
 
-        # Wait few seconds to get data from the channels created above.
-        await asyncio.sleep(self._wait_for_data_sec)
+        try:
+            async with asyncio.timeout(self._wait_for_data_sec):
+                await self._component_manager.wait_for_data()
+        except asyncio.TimeoutError:
+            _logger.warning(
+                "%s timeout while waiting for data after %s seconds",
+                self,
+                self._wait_for_data_sec,
+            )
 
         async for request in self._requests_receiver:
             await self._component_manager.distribute_power(request)
