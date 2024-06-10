@@ -315,13 +315,19 @@ class BatteryManager(ComponentManager):
     async def _create_channels(self) -> None:
         """Create channels to get data of components in microgrid."""
         api = connection_manager.get().api_client
+        manager_id = f"{type(self).__name__}»{hex(id(self))}»"
         for battery_id, inverter_ids in self._bat_invs_map.items():
             bat_recv: Receiver[BatteryData] = await api.battery_data(battery_id)
-            self._battery_caches[battery_id] = LatestValueCache(bat_recv)
+            self._battery_caches[battery_id] = LatestValueCache(
+                bat_recv,
+                unique_id=f"{manager_id}:battery«{battery_id}»",
+            )
 
             for inverter_id in inverter_ids:
                 inv_recv: Receiver[InverterData] = await api.inverter_data(inverter_id)
-                self._inverter_caches[inverter_id] = LatestValueCache(inv_recv)
+                self._inverter_caches[inverter_id] = LatestValueCache(
+                    inv_recv, unique_id=f"{manager_id}:inverter«{inverter_id}»"
+                )
 
     def _get_bounds(
         self,
