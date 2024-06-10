@@ -53,6 +53,7 @@ class LatestValueCache(typing.Generic[T_co]):
         self._task = asyncio.create_task(
             self._run(), name=f"LatestValueCache«{self._unique_id}»"
         )
+        self._value_received_event = asyncio.Event()
 
     @property
     def unique_id(self) -> str:
@@ -84,9 +85,18 @@ class LatestValueCache(typing.Generic[T_co]):
         """
         return not isinstance(self._latest_value, _Sentinel)
 
+    async def wait_for_value(self) -> None:
+        """Wait for a value to be received."""
+        if self.has_value():
+            return
+        await self._value_received_event.wait()
+
     async def _run(self) -> None:
         async for value in self._receiver:
+            had_value = self.has_value()
             self._latest_value = value
+            if not had_value:
+                self._value_received_event.set()
 
     async def stop(self) -> None:
         """Stop the cache."""
