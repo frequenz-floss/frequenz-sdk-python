@@ -8,7 +8,7 @@ import functools
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Generic, Protocol, Self, TypeVar, overload, runtime_checkable
+from typing import Any, Generic, Protocol, Self, TypeVar, cast, overload
 
 from ._quantities import Power, QuantityT
 
@@ -134,10 +134,8 @@ class Sample3Phase(Generic[QuantityT]):
         )
 
 
-@runtime_checkable
 class Comparable(Protocol):
-    """
-    A protocol that requires the implementation of comparison methods.
+    """A protocol that requires the implementation of comparison methods.
 
     This protocol is used to ensure that types can be compared using
     the less than or equal to (`<=`) and greater than or equal to (`>=`)
@@ -145,29 +143,13 @@ class Comparable(Protocol):
     """
 
     def __le__(self, other: Any, /) -> bool:
-        """
-        Return True if self is less than or equal to other, otherwise False.
-
-        Args:
-            other: The value to compare with.
-
-        Returns:
-            bool: True if self is less than or equal to other, otherwise False.
-        """
+        """Return whether this instance is less than or equal to `other`."""
 
     def __ge__(self, other: Any, /) -> bool:
-        """
-        Return True if self is greater than or equal to other, otherwise False.
-
-        Args:
-            other: The value to compare with.
-
-        Returns:
-            bool: True if self is greater than or equal to other, otherwise False.
-        """
+        """Return whether this instance is greater than or equal to `other`."""
 
 
-_T = TypeVar("_T")
+_T = TypeVar("_T", bound=Comparable | None)
 
 
 @dataclass(frozen=True)
@@ -190,18 +172,14 @@ class Bounds(Generic[_T]):
         Returns:
             bool: True if value is within the range, otherwise False.
         """
-        if item is None:
-            return False
-
-        assert isinstance(item, Comparable)
-
-        if self.lower is not None and self.upper is not None:
-            return self.lower <= item <= self.upper
-        if self.lower is not None:
-            return self.lower <= item
-        if self.upper is not None:
+        if self.lower is None and self.upper is None:
+            return True
+        if self.lower is None:
             return item <= self.upper
-        return False
+        if self.upper is None:
+            return self.lower <= item
+
+        return cast(Comparable, self.lower) <= item <= cast(Comparable, self.upper)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -238,9 +216,7 @@ class SystemBounds:
         Returns:
             bool: True if value is within the range, otherwise False.
         """
-        if not self.inclusion_bounds:
-            return False
-        if item not in self.inclusion_bounds:
+        if not self.inclusion_bounds or item not in self.inclusion_bounds:
             return False
         if self.exclusion_bounds and item in self.exclusion_bounds:
             return False
