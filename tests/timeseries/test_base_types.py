@@ -1,7 +1,7 @@
 # License: MIT
-# Copyright © 2023 Frequenz Energy-as-a-Service GmbH
+# Copyright © 2024 Frequenz Energy-as-a-Service GmbH
 
-"""Tests for battery pool."""
+"""Tests for timeseries base types."""
 
 
 from datetime import datetime
@@ -11,8 +11,7 @@ from frequenz.sdk.timeseries._quantities import Power
 
 
 def test_bounds_contains() -> None:
-    """
-    Test the `__contains__` method of the `Bounds` class.
+    """Test the `__contains__` method of the `Bounds` class.
 
     This method checks if a value is within the defined bounds.
     """
@@ -33,10 +32,6 @@ def test_bounds_contains() -> None:
     assert Power.from_watts(50) in bounds_no_upper  # within lower bound
     assert Power.from_watts(10) in bounds_no_upper  # at lower bound
     assert Power.from_watts(9) not in bounds_no_upper  # below lower bound
-
-    # test succeeds, mypy 'Unsupported operand types for in ("Power" and "Bounds[None]")'
-    # bounds_none = Bounds(lower=None, upper=None)
-    # assert Power.from_watts(15) not in bounds_none
 
 
 def test_system_bounds_contains() -> None:
