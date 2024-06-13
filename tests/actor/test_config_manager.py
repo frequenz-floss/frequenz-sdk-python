@@ -3,16 +3,15 @@
 
 """Test for ConfigManager."""
 import pathlib
+from typing import Any
 
 import pytest
 from frequenz.channels import Broadcast
-from pydantic import BaseModel
 
 from frequenz.sdk.actor import ConfigManagingActor
-from frequenz.sdk.config import Config
 
 
-class Item(BaseModel):
+class Item:
     """Test item."""
 
     item_id: int
@@ -76,7 +75,7 @@ class TestActorConfigManager:
         - the initial content of the content file is correct
         - the config file modifications are picked up and the new content is correct
         """
-        config_channel: Broadcast[Config] = Broadcast(
+        config_channel: Broadcast[dict[str, Any]] = Broadcast(
             name="Config Channel", resend_latest=True
         )
         config_receiver = config_channel.new_receiver()

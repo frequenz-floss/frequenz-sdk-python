@@ -13,7 +13,6 @@ from frequenz.channels import Sender
 from frequenz.channels.file_watcher import EventType, FileWatcher
 
 from ..actor._actor import Actor
-from ..config import Config
 
 _logger = logging.getLogger(__name__)
 
@@ -33,7 +32,7 @@ class ConfigManagingActor(Actor):
     def __init__(
         self,
         config_path: pathlib.Path | str,
-        output: Sender[Config],
+        output: Sender[dict[str, Any]],
         event_types: abc.Set[EventType] = frozenset(EventType),
         *,
         name: str | None = None,
@@ -42,7 +41,7 @@ class ConfigManagingActor(Actor):
 
         Args:
             config_path: The path to the TOML file with the configuration.
-            output: The sender to send the config to.
+            output: The sender to send the configuration to.
             event_types: The set of event types to monitor.
             name: The name of the actor. If `None`, `str(id(self))` will
                 be used. This is used mostly for debugging purposes.
@@ -59,7 +58,7 @@ class ConfigManagingActor(Actor):
         self._file_watcher: FileWatcher = FileWatcher(
             paths=[self._config_path.parent], event_types=event_types
         )
-        self._output: Sender[Config] = output
+        self._output: Sender[dict[str, Any]] = output
 
     def _read_config(self) -> dict[str, Any]:
         """Read the contents of the configuration file.
@@ -79,8 +78,7 @@ class ConfigManagingActor(Actor):
 
     async def send_config(self) -> None:
         """Send the configuration to the output sender."""
-        conf_vars = self._read_config()
-        config = Config(conf_vars)
+        config = self._read_config()
         await self._output.send(config)
 
     async def _run(self) -> None:
