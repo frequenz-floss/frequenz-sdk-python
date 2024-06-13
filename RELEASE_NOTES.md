@@ -20,6 +20,7 @@
 
    This applies to the `ConnectionManager` as well, which also now doesn't expose the `host` and `port` attributes, only the `server_url`. If you need to extract the host or port from the `server_url`, you can use the standard Python `urllib.parse.urlparse()` function.
 
+- The `Config` class was removed and the `ConfigManagingActor` now sends a plain dictionary rather than a `Config` object.
 
 ## New Features
 
