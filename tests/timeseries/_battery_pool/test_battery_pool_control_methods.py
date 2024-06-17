@@ -514,9 +514,9 @@ class TestBatteryPoolControl:
         await self._init_data_for_batteries(mocks)
         await self._init_data_for_inverters(mocks)
 
-        battery_pool_4 = microgrid.battery_pool(priority=4, in_shifting_group=True)
+        battery_pool_4 = microgrid.battery_pool(priority=4, set_operating_point=True)
         bounds_4_rx = battery_pool_4.power_status.new_receiver()
-        battery_pool_3 = microgrid.battery_pool(priority=3, in_shifting_group=True)
+        battery_pool_3 = microgrid.battery_pool(priority=3, set_operating_point=True)
         bounds_3_rx = battery_pool_3.power_status.new_receiver()
         battery_pool_2 = microgrid.battery_pool(priority=2)
         bounds_2_rx = battery_pool_2.power_status.new_receiver()
