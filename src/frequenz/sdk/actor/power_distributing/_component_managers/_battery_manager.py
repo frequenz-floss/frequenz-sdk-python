@@ -446,9 +446,9 @@ class BatteryManager(ComponentManager):
         # This should be handled by BatteryStatus. BatteryStatus should not return
         # this batteries as working.
         if not all(
-            self._battery_caches[bat_id].has_value for bat_id in battery_ids
+            self._battery_caches[bat_id].has_value() for bat_id in battery_ids
         ) or not all(
-            self._inverter_caches[inv_id].has_value for inv_id in inverter_ids
+            self._inverter_caches[inv_id].has_value() for inv_id in inverter_ids
         ):
             _logger.error(
                 "Battery %s or inverter %s send no data, yet. They should be not used.",
