@@ -52,13 +52,6 @@ async def mocks(mocker: MockerFixture) -> typing.AsyncIterator[_Mocks]:
 class TestPVPoolControl:
     """Test control methods for the PVPool."""
 
-    async def _patch_data_pipeline(self, mocker: MockerFixture) -> None:
-        mocker.patch(
-            "frequenz.sdk.microgrid._data_pipeline._DATA_PIPELINE._pv_power_wrapper"
-            "._pd_wait_for_data_sec",
-            0.1,
-        )
-
     async def _init_pv_inverters(self, mocks: _Mocks) -> None:
         now = datetime.now(tz=timezone.utc)
         for idx, comp_id in enumerate(mocks.microgrid.pv_inverter_ids):
@@ -138,7 +131,6 @@ class TestPVPoolControl:
         )
 
         await self._init_pv_inverters(mocks)
-        await self._patch_data_pipeline(mocker)
         pv_pool = microgrid.pv_pool(priority=5)
         bounds_rx = pv_pool.power_status.new_receiver()
         await self._recv_reports_until(

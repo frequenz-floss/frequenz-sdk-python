@@ -96,13 +96,6 @@ class TestEVChargerPoolControl:
             ComponentPoolStatus(working=set(mocks.microgrid.evc_ids), uncertain=set())
         )
 
-    async def _patch_data_pipeline(self, mocker: MockerFixture) -> None:
-        mocker.patch(
-            "frequenz.sdk.microgrid._data_pipeline._DATA_PIPELINE._ev_power_wrapper"
-            "._pd_wait_for_data_sec",
-            0.1,
-        )
-
     async def _patch_power_distributing_actor(
         self,
         mocker: MockerFixture,
@@ -213,7 +206,6 @@ class TestEVChargerPoolControl:
         )
 
         await self._init_ev_chargers(mocks)
-        await self._patch_data_pipeline(mocker)
         ev_charger_pool = microgrid.ev_charger_pool(priority=5)
         await self._patch_ev_pool_status(mocks, mocker)
         await self._patch_power_distributing_actor(mocker)
