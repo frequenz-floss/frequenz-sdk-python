@@ -30,8 +30,6 @@ if typing.TYPE_CHECKING:
 
 _logger = logging.getLogger(__name__)
 
-_POWER_DISTRIBUTING_ACTOR_WAIT_FOR_DATA_SEC = 2.0
-
 
 class PowerWrapper:
     """Wrapper around the power managing and power distributing actors."""
@@ -80,7 +78,6 @@ class PowerWrapper:
 
         self._power_distributing_actor: PowerDistributingActor | None = None
         self._power_managing_actor: _power_managing.PowerManagingActor | None = None
-        self._pd_wait_for_data_sec: float = _POWER_DISTRIBUTING_ACTOR_WAIT_FOR_DATA_SEC
 
     def _start_power_managing_actor(self) -> None:
         """Start the power managing actor if it is not already running."""
@@ -151,7 +148,6 @@ class PowerWrapper:
             requests_receiver=self._power_distribution_requests_channel.new_receiver(),
             results_sender=self._power_distribution_results_channel.new_sender(),
             component_pool_status_sender=self.status_channel.new_sender(),
-            wait_for_data_sec=self._pd_wait_for_data_sec,
         )
         self._power_distributing_actor.start()
 
