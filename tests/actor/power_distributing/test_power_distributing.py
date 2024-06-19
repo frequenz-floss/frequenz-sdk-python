@@ -112,7 +112,6 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
-                wait_for_data_sec=0.0,
             ) as distributor:
                 assert isinstance(distributor._component_manager, BatteryManager)
                 assert distributor._component_manager._bat_invs_map == {
@@ -144,7 +143,6 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
-                wait_for_data_sec=0.0,
             ) as distributor:
                 assert isinstance(distributor._component_manager, BatteryManager)
                 assert distributor._component_manager._bat_invs_map == {
@@ -210,8 +208,9 @@ class TestPowerDistributingActor:
             requests_receiver=requests_channel.new_receiver(),
             results_sender=results_channel.new_sender(),
             component_pool_status_sender=battery_status_channel.new_sender(),
-            wait_for_data_sec=0.1,
         ):
+            await asyncio.sleep(0.1)  # wait for actor to collect data
+
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
 
@@ -271,8 +270,9 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
-                wait_for_data_sec=0.1,
             ):
+                await asyncio.sleep(0.1)  # wait for actor to collect data
+
                 # zero power requests should pass through despite the exclusion bounds.
                 request = Request(
                     power=Power.zero(),
@@ -374,8 +374,9 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
-                wait_for_data_sec=0.1,
             ):
+                await asyncio.sleep(0.1)  # wait for actor to collect data
+
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
@@ -454,7 +455,6 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
-                wait_for_data_sec=0.1,
             ):
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
@@ -510,8 +510,9 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
-                wait_for_data_sec=0.1,
             ):
+                await asyncio.sleep(0.1)  # wait for actor to collect data
+
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
@@ -562,8 +563,9 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
-                wait_for_data_sec=0.1,
             ):
+                await asyncio.sleep(0.1)  # wait for actor to collect data
+
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
@@ -648,8 +650,9 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
-                wait_for_data_sec=0.1,
             ):
+                await asyncio.sleep(0.1)  # wait for actor to collect data
+
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
@@ -735,8 +738,9 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
-                wait_for_data_sec=0.1,
             ):
+                await asyncio.sleep(0.1)  # wait for actor to collect data
+
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
@@ -801,7 +805,6 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
-                wait_for_data_sec=0.1,
             ):
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
@@ -859,8 +862,9 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
-                wait_for_data_sec=0.1,
             ):
+                await asyncio.sleep(0.1)  # wait for actor to collect data
+
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
@@ -914,8 +918,9 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
-                wait_for_data_sec=0.1,
             ):
+                await asyncio.sleep(0.1)  # wait for actor to collect data
+
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
@@ -988,8 +993,9 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
-                wait_for_data_sec=0.1,
             ):
+                await asyncio.sleep(0.1)  # wait for actor to collect data
+
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
@@ -1034,7 +1040,6 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
-                wait_for_data_sec=0.1,
             ):
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
@@ -1079,8 +1084,9 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
-                wait_for_data_sec=0.1,
             ):
+                await asyncio.sleep(0.1)  # wait for actor to collect data
+
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
@@ -1126,8 +1132,9 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
-                wait_for_data_sec=0.1,
             ):
+                await asyncio.sleep(0.1)  # wait for actor to collect data
+
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
@@ -1173,8 +1180,9 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
-                wait_for_data_sec=0.1,
             ):
+                await asyncio.sleep(0.1)  # wait for actor to collect data
+
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
@@ -1213,8 +1221,9 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
-                wait_for_data_sec=0.1,
             ):
+                await asyncio.sleep(0.1)  # wait for actor to collect data
+
                 request = Request(
                     power=Power.from_kilowatts(1.2),
                     component_ids=batteries,
@@ -1267,8 +1276,9 @@ class TestPowerDistributingActor:
                 requests_receiver=requests_channel.new_receiver(),
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
-                wait_for_data_sec=0.1,
             ):
+                await asyncio.sleep(0.1)  # wait for actor to collect data
+
                 request = Request(
                     power=Power.from_kilowatts(1.70),
                     component_ids=batteries,
