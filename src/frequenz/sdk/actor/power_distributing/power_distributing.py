@@ -12,8 +12,6 @@ Purpose of this actor is to keep SoC level of each component at the equal level.
 """
 
 
-import asyncio
-
 from frequenz.channels import Receiver, Sender
 from frequenz.client.microgrid import ComponentCategory, ComponentType, InverterType
 
@@ -60,7 +58,6 @@ class PowerDistributingActor(Actor):
         requests_receiver: Receiver[Request],
         results_sender: Sender[Result],
         component_pool_status_sender: Sender[ComponentPoolStatus],
-        wait_for_data_sec: float,
         *,
         component_category: ComponentCategory,
         component_type: ComponentType | None = None,
@@ -74,8 +71,6 @@ class PowerDistributingActor(Actor):
             results_sender: Sender for sending results to the power manager.
             component_pool_status_sender: Channel for sending information about which
                 components are expected to be working.
-            wait_for_data_sec: How long actor should wait before processing first
-                request. It is a time needed to collect first components data.
             component_category: The category of the components that this actor is
                 responsible for.
             component_type: The type of the component of the given category that this
@@ -96,7 +91,6 @@ class PowerDistributingActor(Actor):
         self._component_type = component_type
         self._requests_receiver = requests_receiver
         self._result_sender = results_sender
-        self._wait_for_data_sec = wait_for_data_sec
 
         self._component_manager: ComponentManager
         if component_category == ComponentCategory.BATTERY:
@@ -129,9 +123,6 @@ class PowerDistributingActor(Actor):
         as broken for some time.
         """
         await self._component_manager.start()
-
-        # Wait few seconds to get data from the channels created above.
-        await asyncio.sleep(self._wait_for_data_sec)
 
         async for request in self._requests_receiver:
             await self._component_manager.distribute_power(request)

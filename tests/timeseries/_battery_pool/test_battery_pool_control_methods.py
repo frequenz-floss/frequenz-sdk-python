@@ -89,6 +89,11 @@ class TestBatteryPoolControl:
         If `battery_ids` is not None, the mock will always return `battery_ids`.
         Otherwise, it will return the requested batteries.
         """
+        mocker.patch.object(
+            timeseries.battery_pool._methods,  # pylint: disable=protected-access
+            "WAIT_FOR_COMPONENT_DATA_SEC",
+            0.1,
+        )
         if battery_ids:
             mock = MagicMock(spec=ComponentPoolStatusTracker)
             mock.get_working_components.return_value = battery_ids
