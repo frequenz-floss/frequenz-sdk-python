@@ -695,9 +695,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.microgrid--shifting-the-target-power-by-an-offset" class="md-nav__link">
+  <a href="#frequenz.sdk.microgrid--shifting-the-target-power-by-an-operating-point-power" class="md-nav__link">
     <span class="md-ellipsis">
-      Shifting the target power by an offset
+      Shifting the target power by an Operating Point power
     </span>
   </a>
   
@@ -1673,9 +1673,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.microgrid--shifting-the-target-power-by-an-offset" class="md-nav__link">
+  <a href="#frequenz.sdk.microgrid--shifting-the-target-power-by-an-operating-point-power" class="md-nav__link">
     <span class="md-ellipsis">
-      Shifting the target power by an offset
+      Shifting the target power by an Operating Point power
     </span>
   </a>
   
@@ -1868,25 +1868,24 @@ the <code>*Pool</code> instances using the constructors mentioned above.</p>
 found in the documentation for any of the
 <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power"><code>propose_power</code></a>
 methods.</p>
-<h4 id="frequenz.sdk.microgrid--shifting-the-target-power-by-an-offset">Shifting the target power by an offset<a class="headerlink" href="#frequenz.sdk.microgrid--shifting-the-target-power-by-an-offset" title="Permanent link">¤</a></h4>
-<p>There are cases where the target power needs to be shifted by a certain amount, for
-example, to make adjustments to the operating point.  This can be done by designating
-some actors to be part of the <code>shifting_group</code>.</p>
+<h4 id="frequenz.sdk.microgrid--shifting-the-target-power-by-an-operating-point-power">Shifting the target power by an Operating Point power<a class="headerlink" href="#frequenz.sdk.microgrid--shifting-the-target-power-by-an-operating-point-power" title="Permanent link">¤</a></h4>
+<p>There are cases where the target power needs to be shifted by an operating point.  This
+can be done by designating some actors to be able to set only the operating point power.</p>
 <p>When creating a <code>*Pool</code> instance using the above-mentioned constructors, an optional
-<code>in_shifting_group</code> parameter can be passed to specify that this actor is special, and
-the target power of the regular actors will be shifted by the target power of all
-shifting actors together.</p>
-<p>In a location with 2 regular actors and 1 shifting actor, here's how things
+<code>set_operating_point</code> parameter can be passed to specify that this actor is special, and
+the target power of the regular actors will be shifted by the target power of all actors
+with <code>set_operating_point</code> together.</p>
+<p>In a location with 2 regular actors and 1 <code>set_operating_point</code> actor, here's how things
 would play out:</p>
 <ol>
-<li>When only non-shifting actors have made proposals, the power bounds available
-   from the batteries are available to them exactly.</li>
+<li>When only regular actors have made proposals, the power bounds available from the
+   batteries are available to them exactly.</li>
 </ol>
 <table>
 <thead>
 <tr>
 <th>actor priority</th>
-<th>in shifting group?</th>
+<th>in op group?</th>
 <th>proposed power/bounds</th>
 <th>available bounds</th>
 </tr>
@@ -1914,15 +1913,15 @@ would play out:</p>
 </table>
 <p>Power actually distributed to the batteries: 2500W</p>
 <ol>
-<li>When the shifting actor has made proposals, the bounds available to the
-   regular actors gets shifted, and the final power that actually gets
-   distributed to the batteries is also shifted.</li>
+<li>When the <code>set_operating_point</code> actor has made proposals, the bounds available to the
+   regular actors gets shifted, and the final power that actually gets distributed to
+   the batteries is also shifted.</li>
 </ol>
 <table>
 <thead>
 <tr>
 <th>actor priority</th>
-<th>in shifting group?</th>
+<th>in op group?</th>
 <th>proposed power/bounds</th>
 <th>available bounds</th>
 </tr>
