@@ -99,8 +99,10 @@ class BoundsSetter:
             _logger.error(err)
             raise RuntimeError(err)
 
+        meter_id = next(iter(meters)).component_id
         self._meter_data_cache = LatestValueCache(
-            await api_client.meter_data(next(iter(meters)).component_id)
+            await api_client.meter_data(meter_id),
+            unique_id=f"{type(self).__name__}«{hex(id(self))}»:meter«{meter_id}»",
         )
         latest_bound: dict[int, ComponentCurrentLimit] = {}
 

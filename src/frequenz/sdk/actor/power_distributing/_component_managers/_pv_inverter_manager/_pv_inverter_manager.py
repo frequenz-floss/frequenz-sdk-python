@@ -76,7 +76,8 @@ class PVManager(ComponentManager):
         """Start the PV inverter manager."""
         self._component_data_caches = {
             inv_id: LatestValueCache(
-                await connection_manager.get().api_client.inverter_data(inv_id)
+                await connection_manager.get().api_client.inverter_data(inv_id),
+                unique_id=f"{type(self).__name__}«{hex(id(self))}»:inverter«{inv_id}»",
             )
             for inv_id in self._pv_inverter_ids
         }

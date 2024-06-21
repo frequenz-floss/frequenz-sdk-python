@@ -32,19 +32,36 @@ class ReceiverFetcher(typing.Generic[T_co], typing.Protocol):
 class _Sentinel:
     """A sentinel to denote that no value has been received yet."""
 
+    def __str__(self) -> str:
+        """Return a string representation of this sentinel."""
+        return "<no value received yet>"
+
 
 class LatestValueCache(typing.Generic[T_co]):
     """A cache that stores the latest value in a receiver."""
 
-    def __init__(self, receiver: Receiver[T_co]) -> None:
+    def __init__(
+        self, receiver: Receiver[T_co], *, unique_id: str | None = None
+    ) -> None:
         """Create a new cache.
 
         Args:
             receiver: The receiver to cache.
+            unique_id: A string to help uniquely identify this instance. If not
+                provided, a unique identifier will be generated from the object's
+                [`id()`][]. It is used mostly for debugging purposes.
         """
         self._receiver = receiver
+        self._unique_id: str = hex(id(self)) if unique_id is None else unique_id
         self._latest_value: T_co | _Sentinel = _Sentinel()
-        self._task = asyncio.create_task(self._run())
+        self._task = asyncio.create_task(
+            self._run(), name=f"LatestValueCache«{self._unique_id}»"
+        )
+
+    @property
+    def unique_id(self) -> str:
+        """The unique identifier of this instance."""
+        return self._unique_id
 
     def get(self) -> T_co:
         """Return the latest value that has been received.
@@ -78,3 +95,14 @@ class LatestValueCache(typing.Generic[T_co]):
     async def stop(self) -> None:
         """Stop the cache."""
         await cancel_and_await(self._task)
+
+    def __repr__(self) -> str:
+        """Return a string representation of this cache."""
+        return (
+            f"<LatestValueCache latest_value={self._latest_value!r}, "
+            f"receiver={self._receiver!r}, unique_id={self._unique_id!r}>"
+        )
+
+    def __str__(self) -> str:
+        """Return the last value seen by this cache."""
+        return str(self._latest_value)
