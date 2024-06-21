@@ -1,1 +1,26 @@
-[{"version":"v1.0-dev","title":"v1.0-dev (bfc8de2)","aliases":["v1-dev","latest-dev"]},{"version":"v1.0-pre","title":"v1.0.0-rc601","aliases":["latest-pre","v1-pre","latest"]},{"version":"v0.25","title":"v0.25.2","aliases":["v0"]}]
+[
+  {
+    "version": "v1.0-pre",
+    "title": "v1.0.0-rc601",
+    "aliases": [
+      "latest-pre",
+      "v1-pre",
+      "latest"
+    ]
+  },
+  {
+    "version": "v1.0-dev",
+    "title": "v1.0-dev (4c71140)",
+    "aliases": [
+      "v1-dev",
+      "latest-dev"
+    ]
+  },
+  {
+    "version": "v0.25",
+    "title": "v0.25.2",
+    "aliases": [
+      "v0"
+    ]
+  }
+]
