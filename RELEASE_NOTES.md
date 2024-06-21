@@ -1,9 +1,5 @@
 # Frequenz Python SDK Release Notes
 
-## Summary
-
-<!-- Here goes a general summary of what this release is about -->
-
 ## Upgrading
 
 - The `frequenz-client-microgrid` dependency was bumped to v0.4.0. If you are using the client directly in your code, you will need to upgrade too.
