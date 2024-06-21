@@ -33,8 +33,8 @@ class ReportRequest:
     priority: int
     """The priority of the actor ."""
 
-    in_shifting_group: bool
-    """Whether the proposal gets sent to the shifting group of the power manager."""
+    set_operating_point: bool
+    """Whether this proposal sets the operating point power or the normal power."""
 
     def get_channel_name(self) -> str:
         """Get the channel name for the report request.
@@ -219,8 +219,8 @@ class Proposal:
     request_timeout: datetime.timedelta = datetime.timedelta(seconds=5.0)
     """The maximum amount of time to wait for the request to be fulfilled."""
 
-    in_shifting_group: bool
-    """Whether the proposal gets sent to the shifting group of the power manager."""
+    set_operating_point: bool
+    """Whether this proposal sets the operating point power or the normal power."""
 
     def __lt__(self, other: Proposal) -> bool:
         """Compare two proposals by their priority.

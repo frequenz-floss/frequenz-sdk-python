@@ -85,18 +85,18 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
 
         self._system_bounds: dict[frozenset[int], SystemBounds] = {}
         self._bound_tracker_tasks: dict[frozenset[int], asyncio.Task[None]] = {}
-        self._non_shifting_subscriptions: dict[
+        self._set_power_subscriptions: dict[
             frozenset[int], dict[int, Sender[_Report]]
         ] = {}
-        self._shifting_subscriptions: dict[
+        self._set_op_power_subscriptions: dict[
             frozenset[int], dict[int, Sender[_Report]]
         ] = {}
         self._distribution_results: dict[frozenset[int], power_distributing.Result] = {}
 
-        self._non_shifting_group: BaseAlgorithm = Matryoshka(
+        self._set_power_group: BaseAlgorithm = Matryoshka(
             max_proposal_age=timedelta(seconds=60.0)
         )
-        self._shifting_group: BaseAlgorithm = Matryoshka(
+        self._set_op_power_group: BaseAlgorithm = Matryoshka(
             max_proposal_age=timedelta(seconds=60.0)
         )
 
@@ -113,25 +113,25 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
         if bounds is None:
             _logger.warning("PowerManagingActor: No bounds for %s", component_ids)
             return
-        for priority, sender in self._shifting_subscriptions.get(
+        for priority, sender in self._set_op_power_subscriptions.get(
             component_ids, {}
         ).items():
-            status = self._shifting_group.get_status(
+            status = self._set_op_power_group.get_status(
                 component_ids,
                 priority,
                 bounds,
                 self._distribution_results.get(component_ids),
             )
             await sender.send(status)
-        for priority, sender in self._non_shifting_subscriptions.get(
+        for priority, sender in self._set_power_subscriptions.get(
             component_ids, {}
         ).items():
-            status = self._non_shifting_group.get_status(
+            status = self._set_power_group.get_status(
                 component_ids,
                 priority,
                 self._calculate_shifted_bounds(
                     bounds,
-                    self._shifting_group.get_target_power(component_ids),
+                    self._set_op_power_group.get_target_power(component_ids),
                 ),
                 self._distribution_results.get(component_ids),
             )
@@ -209,34 +209,34 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
         )
 
     def _calculate_shifted_bounds(
-        self, bounds: SystemBounds, target_power: Power | None
+        self, bounds: SystemBounds, op_power: Power | None
     ) -> SystemBounds:
-        """Calculate the shifted bounds corresponding to shifting group's target power.
+        """Calculate the shifted bounds shifted by the operating point power.
 
         Any value regular actors choose within these bounds can be shifted by the
-        shifting power and still remain within the actual system bounds.
+        operating point power and still remain within the actual system bounds.
 
-          | system bounds |     shifting |    shifted |
-          |               | target power |     bounds |
-          |---------------+--------------+------------|
-          | -100 to 100   |           70 | -170 to 30 |
-          | -100 to 100   |          -50 | -50 to 150 |
+          | system bounds |   operating |    shifted |
+          |               | point power |     bounds |
+          |---------------+-------------+------------|
+          | -100 to 100   |          70 | -170 to 30 |
+          | -100 to 100   |         -50 | -50 to 150 |
 
         Args:
             bounds: The bounds to calculate the remaining bounds from.
-            target_power: The target power to apply.
+            op_power: The operating point power to shift by.
 
         Returns:
             The remaining bounds.
         """
-        if target_power is None:
+        if op_power is None:
             return bounds
 
         inclusion_bounds: Bounds[Power] | None = None
         if bounds.inclusion_bounds is not None:
             inclusion_bounds = Bounds(
-                bounds.inclusion_bounds.lower - target_power,
-                bounds.inclusion_bounds.upper - target_power,
+                bounds.inclusion_bounds.lower - op_power,
+                bounds.inclusion_bounds.upper - op_power,
             )
         return SystemBounds(
             timestamp=bounds.timestamp,
@@ -252,8 +252,7 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
     ) -> Power | None:
         """Calculate the target power for a set of components.
 
-        This is the power from the non-shifting group, shifted by the power from the
-        shifting group.
+        This is the target power, shifted by the operating point power.
 
         Args:
             component_ids: The component IDs for which to calculate the target power.
@@ -267,14 +266,14 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
         tgt_power_shift: Power | None = None
         tgt_power_no_shift: Power | None = None
         if proposal is not None:
-            if proposal.in_shifting_group:
-                tgt_power_shift = self._shifting_group.calculate_target_power(
+            if proposal.set_operating_point:
+                tgt_power_shift = self._set_op_power_group.calculate_target_power(
                     component_ids,
                     proposal,
                     self._system_bounds[component_ids],
                     must_send,
                 )
-                tgt_power_no_shift = self._non_shifting_group.calculate_target_power(
+                tgt_power_no_shift = self._set_power_group.calculate_target_power(
                     component_ids,
                     None,
                     self._calculate_shifted_bounds(
@@ -283,13 +282,13 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
                     must_send,
                 )
             else:
-                tgt_power_no_shift = self._non_shifting_group.calculate_target_power(
+                tgt_power_no_shift = self._set_power_group.calculate_target_power(
                     component_ids,
                     proposal,
                     self._system_bounds[component_ids],
                     must_send,
                 )
-                tgt_power_shift = self._shifting_group.calculate_target_power(
+                tgt_power_shift = self._set_op_power_group.calculate_target_power(
                     component_ids,
                     None,
                     self._calculate_shifted_bounds(
@@ -298,13 +297,13 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
                     must_send,
                 )
         else:
-            tgt_power_no_shift = self._non_shifting_group.calculate_target_power(
+            tgt_power_no_shift = self._set_power_group.calculate_target_power(
                 component_ids,
                 None,
                 self._system_bounds[component_ids],
                 must_send,
             )
-            tgt_power_shift = self._shifting_group.calculate_target_power(
+            tgt_power_shift = self._set_op_power_group.calculate_target_power(
                 component_ids,
                 None,
                 self._calculate_shifted_bounds(
@@ -378,12 +377,12 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
                 sub = selected.message
                 component_ids = sub.component_ids
                 priority = sub.priority
-                in_shifting_group = sub.in_shifting_group
+                set_operating_point = sub.set_operating_point
 
                 subs_set = (
-                    self._shifting_subscriptions
-                    if in_shifting_group
-                    else self._non_shifting_subscriptions
+                    self._set_op_power_subscriptions
+                    if set_operating_point
+                    else self._set_power_subscriptions
                 )
 
                 if component_ids not in subs_set:
@@ -427,7 +426,9 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
                 await self._send_reports(frozenset(result.request.component_ids))
 
             elif selected_from(selected, drop_old_proposals_timer):
-                self._non_shifting_group.drop_old_proposals(
+                self._set_power_group.drop_old_proposals(
                     asyncio.get_event_loop().time()
                 )
-                self._shifting_group.drop_old_proposals(asyncio.get_event_loop().time())
+                self._set_op_power_group.drop_old_proposals(
+                    asyncio.get_event_loop().time()
+                )

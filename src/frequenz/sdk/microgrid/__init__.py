@@ -186,40 +186,39 @@ found in the documentation for any of the
 [`propose_power`][frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power]
 methods.
 
-### Shifting the target power by an offset
+### Shifting the target power by an Operating Point power
 
-There are cases where the target power needs to be shifted by a certain amount, for
-example, to make adjustments to the operating point.  This can be done by designating
-some actors to be part of the `shifting_group`.
+There are cases where the target power needs to be shifted by an operating point.  This
+can be done by designating some actors to be able to set only the operating point power.
 
 When creating a `*Pool` instance using the above-mentioned constructors, an optional
-`in_shifting_group` parameter can be passed to specify that this actor is special, and
-the target power of the regular actors will be shifted by the target power of all
-shifting actors together.
+`set_operating_point` parameter can be passed to specify that this actor is special, and
+the target power of the regular actors will be shifted by the target power of all actors
+with `set_operating_point` together.
 
-In a location with 2 regular actors and 1 shifting actor, here's how things
+In a location with 2 regular actors and 1 `set_operating_point` actor, here's how things
 would play out:
 
-1. When only non-shifting actors have made proposals, the power bounds available
-   from the batteries are available to them exactly.
+1. When only regular actors have made proposals, the power bounds available from the
+   batteries are available to them exactly.
 
-   | actor priority | in shifting group? | proposed power/bounds | available bounds |
-   |----------------|--------------------|-----------------------|------------------|
-   | 3              | No                 | 1000, -4000..2500     | -3000..3000      |
-   | 2              | No                 | 2500                  | -3000..2500      |
-   | 1              | Yes                | None                  | -3000..3000      |
+   | actor priority | in op group? | proposed power/bounds | available bounds |
+   |----------------|--------------|-----------------------|------------------|
+   | 3              | No           | 1000, -4000..2500     | -3000..3000      |
+   | 2              | No           | 2500                  | -3000..2500      |
+   | 1              | Yes          | None                  | -3000..3000      |
 
    Power actually distributed to the batteries: 2500W
 
-2. When the shifting actor has made proposals, the bounds available to the
-   regular actors gets shifted, and the final power that actually gets
-   distributed to the batteries is also shifted.
+2. When the `set_operating_point` actor has made proposals, the bounds available to the
+   regular actors gets shifted, and the final power that actually gets distributed to
+   the batteries is also shifted.
 
-   | actor priority | in shifting group? | proposed power/bounds | available bounds |
-   |----------------|--------------------|-----------------------|------------------|
-   | 3              | No                 | 1000, -4000..2500     | -2000..4000      |
-   | 2              | No                 | 2500                  | -2000..2500      |
-   | 1              | Yes                | -1000                 | -3000..3000      |
+   | actor priority | in op group? | proposed power/bounds | available bounds |
+   |----------------|--------------|-----------------------|------------------|
+   | 3              | No           | 1000, -4000..2500     | -2000..4000      |
+   | 2              | No           | 2500                  | -2000..2500      |
+   | 1              | Yes          | -1000                 | -3000..3000      |
 
    Power actually distributed to the batteries: 1500W
 """  # noqa: D205, D400

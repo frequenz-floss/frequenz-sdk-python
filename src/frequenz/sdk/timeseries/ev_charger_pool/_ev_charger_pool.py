@@ -45,7 +45,7 @@ class EVChargerPool:
         pool_ref_store: EVChargerPoolReferenceStore,
         name: str | None,
         priority: int,
-        in_shifting_group: bool,
+        set_operating_point: bool,
     ) -> None:
         """Create an `EVChargerPool` instance.
 
@@ -59,14 +59,14 @@ class EVChargerPool:
             name: An optional name used to identify this instance of the pool or a
                 corresponding actor in the logs.
             priority: The priority of the actor using this wrapper.
-            in_shifting_group: Whether the power requests get sent to the shifting group
-                in the PowerManager or not.
+            set_operating_point: Whether this instance sets the operating point power or
+                the normal power for the components.
         """
         self._pool_ref_store = pool_ref_store
         unique_id = str(uuid.uuid4())
         self._source_id = unique_id if name is None else f"{name}-{unique_id}"
         self._priority = priority
-        self._in_shifting_group = in_shifting_group
+        self._set_operating_point = set_operating_point
 
     async def propose_power(
         self,
@@ -132,7 +132,7 @@ class EVChargerPool:
                 priority=self._priority,
                 creation_time=asyncio.get_running_loop().time(),
                 request_timeout=request_timeout,
-                in_shifting_group=self._in_shifting_group,
+                set_operating_point=self._set_operating_point,
             )
         )
 
@@ -215,7 +215,7 @@ class EVChargerPool:
             source_id=self._source_id,
             priority=self._priority,
             component_ids=self._pool_ref_store.component_ids,
-            in_shifting_group=self._in_shifting_group,
+            set_operating_point=self._set_operating_point,
         )
         self._pool_ref_store.power_bounds_subs[sub.get_channel_name()] = (
             asyncio.create_task(
