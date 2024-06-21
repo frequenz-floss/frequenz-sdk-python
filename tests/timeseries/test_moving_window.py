@@ -4,7 +4,7 @@
 """Tests for the moving window."""
 
 import asyncio
-from collections.abc import Iterator, Sequence
+from collections.abc import Sequence
 from datetime import datetime, timedelta, timezone
 
 import async_solipsism
@@ -19,13 +19,10 @@ from frequenz.sdk.timeseries._quantities import Quantity
 from frequenz.sdk.timeseries._resampling import ResamplerConfig
 
 
-# Setting 'autouse' has no effect as this method replaces the event loop for all tests in the file.
-@pytest.fixture()
-def event_loop() -> Iterator[async_solipsism.EventLoop]:
-    """Replace the loop with one that doesn't interact with the outside world."""
-    loop = async_solipsism.EventLoop()
-    yield loop
-    loop.close()
+@pytest.fixture(autouse=True)
+def event_loop_policy() -> async_solipsism.EventLoopPolicy:
+    """Return an event loop policy that uses the async solipsism event loop."""
+    return async_solipsism.EventLoopPolicy()
 
 
 async def push_logical_meter_data(
