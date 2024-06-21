@@ -4,7 +4,6 @@
 """Basic tests for the DataPipeline."""
 
 import asyncio
-from collections.abc import Iterator
 from datetime import timedelta
 
 import async_solipsism
@@ -24,12 +23,10 @@ from frequenz.sdk.timeseries._resampling import ResamplerConfig
 from ..utils.mock_microgrid_client import MockMicrogridClient
 
 
-@pytest.fixture
-def event_loop() -> Iterator[async_solipsism.EventLoop]:
-    """Replace the loop with one that doesn't interact with the outside world."""
-    loop = async_solipsism.EventLoop()
-    yield loop
-    loop.close()
+@pytest.fixture(autouse=True)
+def event_loop_policy() -> async_solipsism.EventLoopPolicy:
+    """Return an event loop policy that uses the async solipsism event loop."""
+    return async_solipsism.EventLoopPolicy()
 
 
 # loop time is advanced but not the system time

@@ -10,7 +10,7 @@ import asyncio
 import dataclasses
 import logging
 import math
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import AsyncIterator
 from dataclasses import dataclass, is_dataclass, replace
 from datetime import datetime, timedelta, timezone
 from typing import Any, Generic, TypeVar
@@ -58,18 +58,11 @@ from ...utils.mock_microgrid_client import MockMicrogridClient
 
 _logger = logging.getLogger(__name__)
 
-# pylint doesn't understand fixtures. It thinks it is redefined name.
-# pylint: disable=redefined-outer-name
 
-# pylint: disable=too-many-lines
-
-
-@pytest.fixture()
-def event_loop() -> Iterator[async_solipsism.EventLoop]:
-    """Replace the loop with one that doesn't interact with the outside world."""
-    loop = async_solipsism.EventLoop()
-    yield loop
-    loop.close()
+@pytest.fixture(autouse=True)
+def event_loop_policy() -> async_solipsism.EventLoopPolicy:
+    """Return an event loop policy that uses the async solipsism event loop."""
+    return async_solipsism.EventLoopPolicy()
 
 
 def get_components(

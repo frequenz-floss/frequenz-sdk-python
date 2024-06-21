@@ -6,7 +6,7 @@
 
 import asyncio
 import logging
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import AsyncIterator
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock
 
@@ -33,17 +33,14 @@ from frequenz.sdk.timeseries._resampling import (
 
 from ..utils import a_sequence
 
-# We relax some pylint checks as for tests they don't make a lot of sense.
-# pylint: disable=too-many-lines,disable=too-many-locals,redefined-outer-name
+# We relax some pylint checks as for tests they don't make a lot of sense for this test.
+# pylint: disable=too-many-lines,disable=too-many-locals
 
 
-# Setting 'autouse' has no effect as this method replaces the event loop for all tests in the file.
-@pytest.fixture()
-def event_loop() -> Iterator[async_solipsism.EventLoop]:
-    """Replace the loop with one that doesn't interact with the outside world."""
-    loop = async_solipsism.EventLoop()
-    yield loop
-    loop.close()
+@pytest.fixture(autouse=True)
+def event_loop_policy() -> async_solipsism.EventLoopPolicy:
+    """Return an event loop policy that uses the async solipsism event loop."""
+    return async_solipsism.EventLoopPolicy()
 
 
 @pytest.fixture

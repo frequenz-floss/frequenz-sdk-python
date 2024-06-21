@@ -5,7 +5,6 @@
 
 import asyncio
 import time
-from collections.abc import Iterator
 
 import async_solipsism
 import pytest
@@ -14,13 +13,10 @@ import time_machine
 from frequenz.sdk.actor import Actor, run
 
 
-# Setting 'autouse' has no effect as this method replaces the event loop for all tests in the file.
-@pytest.fixture()
-def event_loop() -> Iterator[async_solipsism.EventLoop]:
-    """Replace the loop with one that doesn't interact with the outside world."""
-    loop = async_solipsism.EventLoop()
-    yield loop
-    loop.close()
+@pytest.fixture(autouse=True)
+def event_loop_policy() -> async_solipsism.EventLoopPolicy:
+    """Return an event loop policy that uses the async solipsism event loop."""
+    return async_solipsism.EventLoopPolicy()
 
 
 class FaultyActor(Actor):
