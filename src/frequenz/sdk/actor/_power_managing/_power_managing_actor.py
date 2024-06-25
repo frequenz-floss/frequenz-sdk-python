@@ -184,7 +184,7 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
             self._component_category is ComponentCategory.INVERTER
             and self._component_type is InverterType.SOLAR
         ):
-            pv_pool = microgrid.pv_pool(
+            pv_pool = microgrid.new_pv_pool(
                 priority=-sys.maxsize - 1, component_ids=component_ids
             )
             bounds_receiver = pv_pool._system_power_bounds.new_receiver()

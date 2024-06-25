@@ -85,7 +85,7 @@ microgrid, the corresponding methods stream zero values.
 ## PV Arrays
 
 The total PV power production is available through
-[`pv_pool`][frequenz.sdk.microgrid.pv_pool]'s
+[`pv_pool`][frequenz.sdk.microgrid.new_pv_pool]'s
 [`power`][frequenz.sdk.timeseries.pv_pool.PVPool.power].  The PV pool by default uses
 all PV inverters available at a location, but PV pool instances can be created for
 subsets of PV inverters if necessary, by specifying the inverter ids.
@@ -143,9 +143,9 @@ only charging.
 The SDK provides a unified interface for interacting with sets of Batteries, EV
 chargers and PV arrays, through their corresponding `Pool`s.
 
-* [PV pool][frequenz.sdk.microgrid.pv_pool]
 * [Battery pool][frequenz.sdk.microgrid.new_battery_pool]
 * [EV charger pool][frequenz.sdk.microgrid.new_ev_charger_pool]
+* [PV pool][frequenz.sdk.microgrid.new_pv_pool]
 
 All of them provide support for streaming aggregated data and for setting the
 power values of the components.
@@ -232,8 +232,8 @@ from ._data_pipeline import (
     logical_meter,
     new_battery_pool,
     new_ev_charger_pool,
+    new_pv_pool,
     producer,
-    pv_pool,
     voltage,
 )
 
@@ -261,7 +261,7 @@ __all__ = [
     "logical_meter",
     "new_battery_pool",
     "new_ev_charger_pool",
+    "new_pv_pool",
     "producer",
-    "pv_pool",
     "voltage",
 ]

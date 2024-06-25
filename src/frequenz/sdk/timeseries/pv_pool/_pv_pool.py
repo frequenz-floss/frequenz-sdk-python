@@ -44,8 +44,8 @@ class PVPool:
 
         !!! note
             `PVPool` instances are not meant to be created directly by users. Use the
-            [`microgrid.pv_pool`][frequenz.sdk.microgrid.pv_pool] method for creating
-            `PVPool` instances.
+            [`microgrid.new_pv_pool`][frequenz.sdk.microgrid.new_pv_pool] method for
+            creating `PVPool` instances.
 
         Args:
             pool_ref_store: The reference store for the PV pool.

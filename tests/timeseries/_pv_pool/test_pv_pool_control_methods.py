@@ -131,7 +131,7 @@ class TestPVPoolControl:
         )
 
         await self._init_pv_inverters(mocks)
-        pv_pool = microgrid.pv_pool(priority=5)
+        pv_pool = microgrid.new_pv_pool(priority=5)
         bounds_rx = pv_pool.power_status.new_receiver()
         await self._recv_reports_until(
             bounds_rx,
