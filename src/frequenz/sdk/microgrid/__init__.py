@@ -123,7 +123,7 @@ charging and discharging), or through
 
 ## EV Chargers
 
-The [`ev_charger_pool`][frequenz.sdk.microgrid.ev_charger_pool] offers a
+The [`ev_charger_pool`][frequenz.sdk.microgrid.new_ev_charger_pool] offers a
 [`power`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power] method that
 streams the total power measured for all the {{glossary("ev-charger", "EV Chargers")}}
 at a site.
@@ -143,9 +143,9 @@ only charging.
 The SDK provides a unified interface for interacting with sets of Batteries, EV
 chargers and PV arrays, through their corresponding `Pool`s.
 
-* [EV charger pool][frequenz.sdk.microgrid.ev_charger_pool]
 * [PV pool][frequenz.sdk.microgrid.pv_pool]
 * [Battery pool][frequenz.sdk.microgrid.new_battery_pool]
+* [EV charger pool][frequenz.sdk.microgrid.new_ev_charger_pool]
 
 All of them provide support for streaming aggregated data and for setting the
 power values of the components.
@@ -227,11 +227,11 @@ from ..actor import ResamplerConfig
 from . import _data_pipeline, connection_manager
 from ._data_pipeline import (
     consumer,
-    ev_charger_pool,
     frequency,
     grid,
     logical_meter,
     new_battery_pool,
+    new_ev_charger_pool,
     producer,
     pv_pool,
     voltage,
@@ -256,11 +256,11 @@ async def initialize(server_url: str, resampler_config: ResamplerConfig) -> None
 __all__ = [
     "initialize",
     "consumer",
-    "ev_charger_pool",
     "grid",
     "frequency",
     "logical_meter",
     "new_battery_pool",
+    "new_ev_charger_pool",
     "producer",
     "pv_pool",
     "voltage",

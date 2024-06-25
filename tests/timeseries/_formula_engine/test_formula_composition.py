@@ -395,7 +395,7 @@ class TestFormulaComposition:
             logical_meter = microgrid.logical_meter()
             stack.push_async_callback(logical_meter.stop)
 
-            ev_pool = microgrid.ev_charger_pool(priority=5)
+            ev_pool = microgrid.new_ev_charger_pool(priority=5)
             stack.push_async_callback(ev_pool.stop)
 
             grid = microgrid.grid()

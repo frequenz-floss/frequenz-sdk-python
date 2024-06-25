@@ -193,7 +193,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         return self._grid
 
-    def ev_charger_pool(
+    def new_ev_charger_pool(
         self,
         *,
         priority: int,
@@ -526,7 +526,7 @@ def producer() -> Producer:
     return _get().producer()
 
 
-def ev_charger_pool(
+def new_ev_charger_pool(
     *,
     priority: int,
     component_ids: abc.Set[int] | None = None,
@@ -563,7 +563,7 @@ def ev_charger_pool(
     Returns:
         An `EVChargerPool` instance.
     """
-    return _get().ev_charger_pool(
+    return _get().new_ev_charger_pool(
         priority=priority,
         component_ids=component_ids,
         name=name,

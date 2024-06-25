@@ -50,8 +50,10 @@ class EVChargerPool:
         """Create an `EVChargerPool` instance.
 
         !!! note
+
             `EVChargerPool` instances are not meant to be created directly by users. Use
-            the [`microgrid.ev_charger_pool`][frequenz.sdk.microgrid.ev_charger_pool]
+            the
+            [`microgrid.new_ev_charger_pool`][frequenz.sdk.microgrid.new_ev_charger_pool]
             method for creating `EVChargerPool` instances.
 
         Args:
