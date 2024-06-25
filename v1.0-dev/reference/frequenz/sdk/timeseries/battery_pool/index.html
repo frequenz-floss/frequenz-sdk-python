@@ -2471,8 +2471,8 @@
 </span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65"></a>
 </span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66"></a><span class="sd">        !!! note</span>
 </span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67"></a><span class="sd">            `BatteryPool` instances are not meant to be created directly by users.  Use</span>
-</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68"></a><span class="sd">            the [`microgrid.battery_pool`][frequenz.sdk.microgrid.battery_pool] method</span>
-</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69"></a><span class="sd">            for creating `BatteryPool` instances.</span>
+</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68"></a><span class="sd">            the [`microgrid.new_battery_pool`][frequenz.sdk.microgrid.new_battery_pool]</span>
+</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69"></a><span class="sd">            method for creating `BatteryPool` instances.</span>
 </span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70"></a>
 </span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71"></a><span class="sd">        Args:</span>
 </span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72"></a><span class="sd">            pool_ref_store: The battery pool reference store instance.</span>
@@ -3212,8 +3212,8 @@ of all batteries in the pool.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><code>BatteryPool</code> instances are not meant to be created directly by users.  Use
-the <a class="autorefs autorefs-internal" href="../../microgrid/#frequenz.sdk.microgrid.battery_pool"><code>microgrid.battery_pool</code></a> method
-for creating <code>BatteryPool</code> instances.</p>
+the <a class="autorefs autorefs-internal" href="../../microgrid/#frequenz.sdk.microgrid.new_battery_pool"><code>microgrid.new_battery_pool</code></a>
+method for creating <code>BatteryPool</code> instances.</p>
 </div>
 
 
@@ -3327,8 +3327,8 @@ the normal power for the components.</p>
 </span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65"></a>
 </span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66"></a><span class="sd">    !!! note</span>
 </span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67"></a><span class="sd">        `BatteryPool` instances are not meant to be created directly by users.  Use</span>
-</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68"></a><span class="sd">        the [`microgrid.battery_pool`][frequenz.sdk.microgrid.battery_pool] method</span>
-</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69"></a><span class="sd">        for creating `BatteryPool` instances.</span>
+</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68"></a><span class="sd">        the [`microgrid.new_battery_pool`][frequenz.sdk.microgrid.new_battery_pool]</span>
+</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69"></a><span class="sd">        method for creating `BatteryPool` instances.</span>
 </span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70"></a>
 </span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71"></a><span class="sd">    Args:</span>
 </span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72"></a><span class="sd">        pool_ref_store: The battery pool reference store instance.</span>
@@ -4177,7 +4177,7 @@ and experimental feature.</p>
 </span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66"></a><span class="sd">            ```python</span>
 </span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67"></a><span class="sd">            from frequenz.sdk import microgrid</span>
 </span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68"></a>
-</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69"></a><span class="sd">            power_status_rx = microgrid.battery_pool(</span>
+</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69"></a><span class="sd">            power_status_rx = microgrid.new_battery_pool(</span>
 </span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70"></a><span class="sd">                priority=5,</span>
 </span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71"></a><span class="sd">            ).power_status.new_receiver()</span>
 </span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72"></a><span class="sd">            power_status = await power_status_rx.receive()</span>
@@ -4335,7 +4335,7 @@ two possible power values, both of which fall within the available bounds.</p>
   <summary>Example</summary>
   <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">frequenz.sdk</span> <span class="kn">import</span> <span class="n">microgrid</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">power_status_rx</span> <span class="o">=</span> <span class="n">microgrid</span><span class="o">.</span><span class="n">battery_pool</span><span class="p">(</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">power_status_rx</span> <span class="o">=</span> <span class="n">microgrid</span><span class="o">.</span><span class="n">new_battery_pool</span><span class="p">(</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">priority</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">)</span><span class="o">.</span><span class="n">power_status</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">()</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">power_status</span> <span class="o">=</span> <span class="k">await</span> <span class="n">power_status_rx</span><span class="o">.</span><span class="n">receive</span><span class="p">()</span>
@@ -4484,7 +4484,7 @@ the available bounds for the actor.</p>
 </span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66"></a><span class="sd">        ```python</span>
 </span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67"></a><span class="sd">        from frequenz.sdk import microgrid</span>
 </span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68"></a>
-</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69"></a><span class="sd">        power_status_rx = microgrid.battery_pool(</span>
+</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69"></a><span class="sd">        power_status_rx = microgrid.new_battery_pool(</span>
 </span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70"></a><span class="sd">            priority=5,</span>
 </span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71"></a><span class="sd">        ).power_status.new_receiver()</span>
 </span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72"></a><span class="sd">        power_status = await power_status_rx.receive()</span>
