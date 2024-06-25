@@ -6,7 +6,10 @@
 
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
+- The `frequenz.sdk.microgrid.*_pool` methods has been renamed to `new_*_pool`, to make it explicit that they create new instances of the pool classes.
+  + `battery_pool` -> `new_battery_pool`
+  + `ev_charger_pool` -> `new_ev_charger_pool`
+  + `pv_pool` -> `new_pv_pool`
 
 ## New Features
 
