@@ -193,7 +193,7 @@ class TestBatteryPoolControl:
         await self._init_data_for_batteries(mocks)
         await self._init_data_for_inverters(mocks)
 
-        battery_pool = microgrid.battery_pool(priority=5)
+        battery_pool = microgrid.new_battery_pool(priority=5)
 
         bounds_rx = battery_pool.power_status.new_receiver()
 
@@ -288,11 +288,11 @@ class TestBatteryPoolControl:
         await self._init_data_for_batteries(mocks)
         await self._init_data_for_inverters(mocks)
 
-        battery_pool_1 = microgrid.battery_pool(
+        battery_pool_1 = microgrid.new_battery_pool(
             priority=5, component_ids=set(mocks.microgrid.battery_ids[:2])
         )
         bounds_1_rx = battery_pool_1.power_status.new_receiver()
-        battery_pool_2 = microgrid.battery_pool(
+        battery_pool_2 = microgrid.new_battery_pool(
             priority=5, component_ids=set(mocks.microgrid.battery_ids[2:])
         )
         bounds_2_rx = battery_pool_2.power_status.new_receiver()
@@ -339,9 +339,9 @@ class TestBatteryPoolControl:
         await self._init_data_for_batteries(mocks)
         await self._init_data_for_inverters(mocks)
 
-        battery_pool_1 = microgrid.battery_pool(priority=2)
+        battery_pool_1 = microgrid.new_battery_pool(priority=2)
         bounds_1_rx = battery_pool_1.power_status.new_receiver()
-        battery_pool_2 = microgrid.battery_pool(priority=1)
+        battery_pool_2 = microgrid.new_battery_pool(priority=1)
         bounds_2_rx = battery_pool_2.power_status.new_receiver()
 
         self._assert_report(
@@ -398,7 +398,7 @@ class TestBatteryPoolControl:
         await self._init_data_for_batteries(mocks, exclusion_bounds=(-100.0, 100.0))
         await self._init_data_for_inverters(mocks)
 
-        battery_pool = microgrid.battery_pool(priority=5)
+        battery_pool = microgrid.new_battery_pool(priority=5)
         bounds_rx = battery_pool.power_status.new_receiver()
 
         self._assert_report(
@@ -514,13 +514,17 @@ class TestBatteryPoolControl:
         await self._init_data_for_batteries(mocks)
         await self._init_data_for_inverters(mocks)
 
-        battery_pool_4 = microgrid.battery_pool(priority=4, set_operating_point=True)
+        battery_pool_4 = microgrid.new_battery_pool(
+            priority=4, set_operating_point=True
+        )
         bounds_4_rx = battery_pool_4.power_status.new_receiver()
-        battery_pool_3 = microgrid.battery_pool(priority=3, set_operating_point=True)
+        battery_pool_3 = microgrid.new_battery_pool(
+            priority=3, set_operating_point=True
+        )
         bounds_3_rx = battery_pool_3.power_status.new_receiver()
-        battery_pool_2 = microgrid.battery_pool(priority=2)
+        battery_pool_2 = microgrid.new_battery_pool(priority=2)
         bounds_2_rx = battery_pool_2.power_status.new_receiver()
-        battery_pool_1 = microgrid.battery_pool(priority=1)
+        battery_pool_1 = microgrid.new_battery_pool(priority=1)
         bounds_1_rx = battery_pool_1.power_status.new_receiver()
 
         self._assert_report(
@@ -642,7 +646,7 @@ class TestBatteryPoolControl:
         # Creating a new non-shifting battery pool that's higher priority than the
         # shifting battery pools should still be shifted by the target power of the
         # shifting battery pools.
-        battery_pool_5 = microgrid.battery_pool(priority=5)
+        battery_pool_5 = microgrid.new_battery_pool(priority=5)
         bounds_5_rx = battery_pool_5.power_status.new_receiver()
 
         await battery_pool_5.propose_power(None)

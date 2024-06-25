@@ -23,7 +23,7 @@ class TestEVChargerPool:
         mockgrid.add_ev_chargers(3)
 
         async with mockgrid:
-            ev_pool = microgrid.ev_charger_pool(priority=5)
+            ev_pool = microgrid.new_ev_charger_pool(priority=5)
             power_receiver = ev_pool.power.new_receiver()
 
             await mockgrid.mock_resampler.send_evc_power([2.0, 4.0, 10.0])

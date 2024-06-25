@@ -30,7 +30,7 @@ async def main() -> None:
         resampler_config=ResamplerConfig(resampling_period=timedelta(seconds=1.0)),
     )
 
-    battery_pool = microgrid.battery_pool(priority=5)
+    battery_pool = microgrid.new_battery_pool(priority=5)
     receivers = [
         battery_pool.soc.new_receiver(limit=1),
         battery_pool.capacity.new_receiver(limit=1),

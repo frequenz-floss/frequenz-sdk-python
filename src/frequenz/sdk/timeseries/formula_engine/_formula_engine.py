@@ -253,7 +253,7 @@ class FormulaEngine(
     ```python
     from frequenz.sdk import microgrid
 
-    battery_pool = microgrid.battery_pool(priority=5)
+    battery_pool = microgrid.new_battery_pool(priority=5)
 
     async for power in battery_pool.power.new_receiver():
         print(f"{power=}")
@@ -266,8 +266,8 @@ class FormulaEngine(
 
     For example, if you're interested in a particular composite metric that can be
     calculated by subtracting
-    [`battery_pool().power`][frequenz.sdk.timeseries.battery_pool.BatteryPool.power] and
-    [`ev_charger_pool().power`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool]
+    [`new_battery_pool().power`][frequenz.sdk.timeseries.battery_pool.BatteryPool.power] and
+    [`new_ev_charger_pool().power`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool]
     from the
     [`grid().power`][frequenz.sdk.timeseries.grid.Grid.power],
     we can build a `FormulaEngine` that provides a stream of this calculated metric as
@@ -277,8 +277,8 @@ class FormulaEngine(
     from frequenz.sdk import microgrid
 
     logical_meter = microgrid.logical_meter()
-    battery_pool = microgrid.battery_pool(priority=5)
-    ev_charger_pool = microgrid.ev_charger_pool(priority=5)
+    battery_pool = microgrid.new_battery_pool(priority=5)
+    ev_charger_pool = microgrid.new_ev_charger_pool(priority=5)
     grid = microgrid.grid()
 
     # apply operations on formula engines to create a formula engine that would
@@ -459,7 +459,7 @@ class FormulaEngine3Phase(
     ```python
     from frequenz.sdk import microgrid
 
-    ev_charger_pool = microgrid.ev_charger_pool(priority=5)
+    ev_charger_pool = microgrid.new_ev_charger_pool(priority=5)
 
     async for sample in ev_charger_pool.current.new_receiver():
         print(f"Current: {sample}")
@@ -474,7 +474,7 @@ class FormulaEngine3Phase(
     from frequenz.sdk import microgrid
 
     logical_meter = microgrid.logical_meter()
-    ev_charger_pool = microgrid.ev_charger_pool(priority=5)
+    ev_charger_pool = microgrid.new_ev_charger_pool(priority=5)
     grid = microgrid.grid()
 
     # Calculate grid consumption current that's not used by the EV chargers

@@ -44,7 +44,7 @@ class TestLogicalMeter:  # pylint: disable=too-many-public-methods
         mockgrid.add_solar_inverters(2)
 
         async with mockgrid, AsyncExitStack() as stack:
-            pv_pool = microgrid.pv_pool(priority=5)
+            pv_pool = microgrid.new_pv_pool(priority=5)
             stack.push_async_callback(pv_pool.stop)
             pv_power_receiver = pv_pool.power.new_receiver()
 
@@ -57,7 +57,7 @@ class TestLogicalMeter:  # pylint: disable=too-many-public-methods
         mockgrid.add_solar_inverters(2, no_meter=True)
 
         async with mockgrid, AsyncExitStack() as stack:
-            pv_pool = microgrid.pv_pool(priority=5)
+            pv_pool = microgrid.new_pv_pool(priority=5)
             stack.push_async_callback(pv_pool.stop)
             pv_power_receiver = pv_pool.power.new_receiver()
 
@@ -70,7 +70,7 @@ class TestLogicalMeter:  # pylint: disable=too-many-public-methods
             MockMicrogrid(grid_meter=True, mocker=mocker) as mockgrid,
             AsyncExitStack() as stack,
         ):
-            pv_pool = microgrid.pv_pool(priority=5)
+            pv_pool = microgrid.new_pv_pool(priority=5)
             stack.push_async_callback(pv_pool.stop)
             pv_power_receiver = pv_pool.power.new_receiver()
 
