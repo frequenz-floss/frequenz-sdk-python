@@ -35,7 +35,7 @@ class TestFormulaComposition:
             logical_meter = microgrid.logical_meter()
             stack.push_async_callback(logical_meter.stop)
 
-            battery_pool = microgrid.battery_pool(priority=5)
+            battery_pool = microgrid.new_battery_pool(priority=5)
             stack.push_async_callback(battery_pool.stop)
 
             pv_pool = microgrid.pv_pool(priority=5)
@@ -113,7 +113,7 @@ class TestFormulaComposition:
 
         count = 0
         async with mockgrid, AsyncExitStack() as stack:
-            battery_pool = microgrid.battery_pool(priority=5)
+            battery_pool = microgrid.new_battery_pool(priority=5)
             stack.push_async_callback(battery_pool.stop)
 
             pv_pool = microgrid.pv_pool(priority=5)
@@ -155,7 +155,7 @@ class TestFormulaComposition:
 
         count = 0
         async with mockgrid, AsyncExitStack() as stack:
-            battery_pool = microgrid.battery_pool(priority=5)
+            battery_pool = microgrid.new_battery_pool(priority=5)
             stack.push_async_callback(battery_pool.stop)
 
             pv_pool = microgrid.pv_pool(priority=5)

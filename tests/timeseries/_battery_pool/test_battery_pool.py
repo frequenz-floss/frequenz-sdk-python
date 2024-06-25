@@ -151,7 +151,7 @@ async def setup_all_batteries(mocker: MockerFixture) -> AsyncIterator[SetupArgs]
     # the scope of this tests. This tests should cover BatteryPool only.
     # We use our own battery status channel, where we easily control set of working
     # batteries.
-    battery_pool = microgrid.battery_pool(priority=5)
+    battery_pool = microgrid.new_battery_pool(priority=5)
 
     dp = microgrid._data_pipeline._DATA_PIPELINE
     assert dp is not None
@@ -205,7 +205,7 @@ async def setup_batteries_pool(mocker: MockerFixture) -> AsyncIterator[SetupArgs
     # batteries.
     all_batteries = list(get_components(mock_microgrid, ComponentCategory.BATTERY))
 
-    battery_pool = microgrid.battery_pool(
+    battery_pool = microgrid.new_battery_pool(
         priority=5, component_ids=set(all_batteries[:2])
     )
 
@@ -543,7 +543,7 @@ async def test_batter_pool_power_no_batteries(mocker: MockerFixture) -> None:
         )
     )
     await mockgrid.start(mocker)
-    battery_pool = microgrid.battery_pool(priority=5)
+    battery_pool = microgrid.new_battery_pool(priority=5)
     power_receiver = battery_pool.power.new_receiver()
 
     await mockgrid.mock_resampler.send_non_existing_component_value()
@@ -560,7 +560,7 @@ async def test_battery_pool_power_with_no_inverters(mocker: MockerFixture) -> No
     await mockgrid.start(mocker)
 
     with pytest.raises(RuntimeError):
-        microgrid.battery_pool(priority=5)
+        microgrid.new_battery_pool(priority=5)
 
 
 async def test_battery_pool_power_incomplete_bat_request(mocker: MockerFixture) -> None:
@@ -582,7 +582,7 @@ async def test_battery_pool_power_incomplete_bat_request(mocker: MockerFixture) 
 
     with pytest.raises(FormulaGenerationError):
         # Request only two of the three batteries behind the inverters
-        battery_pool = microgrid.battery_pool(
+        battery_pool = microgrid.new_battery_pool(
             priority=5, component_ids=set([bats[1].component_id, bats[0].component_id])
         )
         power_receiver = battery_pool.power.new_receiver()
@@ -592,7 +592,7 @@ async def test_battery_pool_power_incomplete_bat_request(mocker: MockerFixture) 
 
 async def _test_battery_pool_power(mockgrid: MockMicrogrid) -> None:
     async with mockgrid:
-        battery_pool = microgrid.battery_pool(priority=5)
+        battery_pool = microgrid.new_battery_pool(priority=5)
         power_receiver = battery_pool.power.new_receiver()
 
         await mockgrid.mock_resampler.send_bat_inverter_power([2.0, 3.0])

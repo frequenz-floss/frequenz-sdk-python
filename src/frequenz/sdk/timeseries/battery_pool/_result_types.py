@@ -66,7 +66,7 @@ class BatteryPoolReport(Report):
             ```python
             from frequenz.sdk import microgrid
 
-            power_status_rx = microgrid.battery_pool(
+            power_status_rx = microgrid.new_battery_pool(
                 priority=5,
             ).power_status.new_receiver()
             power_status = await power_status_rx.receive()

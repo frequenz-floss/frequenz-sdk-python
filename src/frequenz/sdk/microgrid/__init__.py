@@ -101,8 +101,8 @@ production.
 
 ## Batteries
 
-The total Battery power is available through
-[`battery_pool`][frequenz.sdk.microgrid.battery_pool]'s
+The total Battery power is available through the
+[`battery_pool`][frequenz.sdk.microgrid.new_battery_pool]'s
 [`power`][frequenz.sdk.timeseries.battery_pool.BatteryPool.power].  The battery pool by
 default uses all batteries available at a location, but battery pool instances can be
 created for subsets of batteries if necessary, by specifying the battery ids.
@@ -143,9 +143,9 @@ only charging.
 The SDK provides a unified interface for interacting with sets of Batteries, EV
 chargers and PV arrays, through their corresponding `Pool`s.
 
-* [Battery pool][frequenz.sdk.microgrid.battery_pool]
 * [EV charger pool][frequenz.sdk.microgrid.ev_charger_pool]
 * [PV pool][frequenz.sdk.microgrid.pv_pool]
+* [Battery pool][frequenz.sdk.microgrid.new_battery_pool]
 
 All of them provide support for streaming aggregated data and for setting the
 power values of the components.
@@ -226,12 +226,12 @@ would play out:
 from ..actor import ResamplerConfig
 from . import _data_pipeline, connection_manager
 from ._data_pipeline import (
-    battery_pool,
     consumer,
     ev_charger_pool,
     frequency,
     grid,
     logical_meter,
+    new_battery_pool,
     producer,
     pv_pool,
     voltage,
@@ -256,11 +256,11 @@ async def initialize(server_url: str, resampler_config: ResamplerConfig) -> None
 __all__ = [
     "initialize",
     "consumer",
-    "battery_pool",
     "ev_charger_pool",
     "grid",
     "frequency",
     "logical_meter",
+    "new_battery_pool",
     "producer",
     "pv_pool",
     "voltage",

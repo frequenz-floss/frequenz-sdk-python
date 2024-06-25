@@ -68,7 +68,7 @@ async def test_actors_started(
     )
     mock_client.initialize(mocker)
 
-    datapipeline.battery_pool(priority=5)
+    datapipeline.new_battery_pool(priority=5)
 
     assert datapipeline._battery_power_wrapper._power_distributing_actor is not None
     await asyncio.sleep(1)

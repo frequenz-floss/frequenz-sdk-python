@@ -344,7 +344,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             set_operating_point=set_operating_point,
         )
 
-    def battery_pool(
+    def new_battery_pool(
         self,
         *,
         priority: int,
@@ -571,7 +571,7 @@ def ev_charger_pool(
     )
 
 
-def battery_pool(
+def new_battery_pool(
     *,
     priority: int,
     component_ids: abc.Set[int] | None = None,
@@ -608,7 +608,7 @@ def battery_pool(
     Returns:
         A `BatteryPool` instance.
     """
-    return _get().battery_pool(
+    return _get().new_battery_pool(
         priority=priority,
         component_ids=component_ids,
         name=name,

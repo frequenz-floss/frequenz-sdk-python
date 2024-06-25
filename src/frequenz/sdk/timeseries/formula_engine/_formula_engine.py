@@ -253,7 +253,7 @@ class FormulaEngine(
     ```python
     from frequenz.sdk import microgrid
 
-    battery_pool = microgrid.battery_pool(priority=5)
+    battery_pool = microgrid.new_battery_pool(priority=5)
 
     async for power in battery_pool.power.new_receiver():
         print(f"{power=}")
@@ -277,8 +277,8 @@ class FormulaEngine(
     from frequenz.sdk import microgrid
 
     logical_meter = microgrid.logical_meter()
-    battery_pool = microgrid.battery_pool(priority=5)
     ev_charger_pool = microgrid.ev_charger_pool(priority=5)
+    battery_pool = microgrid.new_battery_pool(priority=5)
     grid = microgrid.grid()
 
     # apply operations on formula engines to create a formula engine that would

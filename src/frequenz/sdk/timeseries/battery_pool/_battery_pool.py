@@ -65,8 +65,8 @@ class BatteryPool:
 
         !!! note
             `BatteryPool` instances are not meant to be created directly by users.  Use
-            the [`microgrid.battery_pool`][frequenz.sdk.microgrid.battery_pool] method
-            for creating `BatteryPool` instances.
+            the [`microgrid.new_battery_pool`][frequenz.sdk.microgrid.new_battery_pool]
+            method for creating `BatteryPool` instances.
 
         Args:
             pool_ref_store: The battery pool reference store instance.

@@ -171,7 +171,7 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
         bounds_receiver: Receiver[SystemBounds]
         # pylint: disable=protected-access
         if self._component_category is ComponentCategory.BATTERY:
-            battery_pool = microgrid.battery_pool(
+            battery_pool = microgrid.new_battery_pool(
                 priority=-sys.maxsize - 1, component_ids=component_ids
             )
             bounds_receiver = battery_pool._system_power_bounds.new_receiver()
