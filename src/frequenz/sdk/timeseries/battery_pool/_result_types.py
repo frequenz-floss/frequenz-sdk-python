@@ -4,16 +4,16 @@
 """Types for exposing battery pool reports."""
 
 import abc
+import typing
 
 from ...actor import power_distributing
-from ...actor._power_managing._base_classes import Report
 from .._base_types import Bounds
 from .._quantities import Power
 
 
 # This class is used to expose the generic reports from the PowerManager with specific
 # documentation for the battery pool.
-class BatteryPoolReport(Report):
+class BatteryPoolReport(typing.Protocol):
     """A status report for a battery pool."""
 
     target_power: Power | None
