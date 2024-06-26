@@ -99,8 +99,8 @@ class Grid:
         return engine
 
     @property
-    def _power_3_phase(self) -> FormulaEngine3Phase[Power]:
-        """Fetch the grid 3-phase power for the microgrid.
+    def _power_per_phase(self) -> FormulaEngine3Phase[Power]:
+        """Fetch the per-phase grid power for the microgrid.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
@@ -117,8 +117,8 @@ class Grid:
         return engine
 
     @property
-    def current(self) -> FormulaEngine3Phase[Current]:
-        """Fetch the grid current for the microgrid.
+    def current_per_phase(self) -> FormulaEngine3Phase[Current]:
+        """Fetch the per-phase grid current for the microgrid.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 

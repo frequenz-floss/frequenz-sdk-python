@@ -461,7 +461,7 @@ class FormulaEngine3Phase(
 
     ev_charger_pool = microgrid.new_ev_charger_pool(priority=5)
 
-    async for sample in ev_charger_pool.current.new_receiver():
+    async for sample in ev_charger_pool.current_per_phase.new_receiver():
         print(f"Current: {sample}")
     ```
 
@@ -478,7 +478,9 @@ class FormulaEngine3Phase(
     grid = microgrid.grid()
 
     # Calculate grid consumption current that's not used by the EV chargers
-    other_current = (grid.current - ev_charger_pool.current).build("other_current")
+    other_current = (grid.current_per_phase - ev_charger_pool.current).build(
+        "other_current"
+    )
 
     async for sample in other_current.new_receiver():
         print(f"Other current: {sample}")

@@ -200,8 +200,8 @@ async def test_grid_power_3_phase_side_meter(mocker: MockerFixture) -> None:
         assert grid, "Grid is not initialized"
         stack.push_async_callback(grid.stop)
 
-        grid_power_3_phase_recv = (
-            grid._power_3_phase.new_receiver()  # pylint: disable=protected-access
+        grid_power_per_phase_recv = (
+            grid._power_per_phase.new_receiver()  # pylint: disable=protected-access
         )
 
         for count in range(10):
@@ -216,7 +216,7 @@ async def test_grid_power_3_phase_side_meter(mocker: MockerFixture) -> None:
                 [watts_phases, watts_phases]
             )
 
-            val = await grid_power_3_phase_recv.receive()
+            val = await grid_power_per_phase_recv.receive()
             assert val is not None
             assert val.value_p1 and val.value_p2 and val.value_p3
             assert val.value_p1.as_watts() == watts_phases[0]
@@ -234,8 +234,8 @@ async def test_grid_power_3_phase_none_values(mocker: MockerFixture) -> None:
         assert grid, "Grid is not initialized"
         stack.push_async_callback(grid.stop)
 
-        grid_power_3_phase_recv = (
-            grid._power_3_phase.new_receiver()  # pylint: disable=protected-access
+        grid_power_per_phase_recv = (
+            grid._power_per_phase.new_receiver()  # pylint: disable=protected-access
         )
 
         for count in range(10):
@@ -250,7 +250,7 @@ async def test_grid_power_3_phase_none_values(mocker: MockerFixture) -> None:
                 [watts_phases, [None, None, None], [None, 219.8, 220.2]]
             )
 
-            val = await grid_power_3_phase_recv.receive()
+            val = await grid_power_per_phase_recv.receive()
             assert val is not None
             assert val.value_p1 and val.value_p2 and val.value_p3
             assert val.value_p1.as_watts() == watts_phases[0]
