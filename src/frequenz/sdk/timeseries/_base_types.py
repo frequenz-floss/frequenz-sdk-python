@@ -8,7 +8,7 @@ import functools
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Generic, Self, TypeVar, overload
+from typing import Any, Generic, Protocol, Self, TypeVar, cast, overload
 
 from ._quantities import Power, QuantityT
 
@@ -134,7 +134,22 @@ class Sample3Phase(Generic[QuantityT]):
         )
 
 
-_T = TypeVar("_T")
+class Comparable(Protocol):
+    """A protocol that requires the implementation of comparison methods.
+
+    This protocol is used to ensure that types can be compared using
+    the less than or equal to (`<=`) and greater than or equal to (`>=`)
+    operators.
+    """
+
+    def __le__(self, other: Any, /) -> bool:
+        """Return whether this instance is less than or equal to `other`."""
+
+    def __ge__(self, other: Any, /) -> bool:
+        """Return whether this instance is greater than or equal to `other`."""
+
+
+_T = TypeVar("_T", bound=Comparable | None)
 
 
 @dataclass(frozen=True)
@@ -146,6 +161,25 @@ class Bounds(Generic[_T]):
 
     upper: _T
     """Upper bound."""
+
+    def __contains__(self, item: _T) -> bool:
+        """
+        Check if the value is within the range of the container.
+
+        Args:
+            item: The value to check.
+
+        Returns:
+            bool: True if value is within the range, otherwise False.
+        """
+        if self.lower is None and self.upper is None:
+            return True
+        if self.lower is None:
+            return item <= self.upper
+        if self.upper is None:
+            return self.lower <= item
+
+        return cast(Comparable, self.lower) <= item <= cast(Comparable, self.upper)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -171,3 +205,19 @@ class SystemBounds:
     This is the range within which power requests are NOT allowed by the pool.
     If present, they will be a subset of the inclusion bounds.
     """
+
+    def __contains__(self, item: Power) -> bool:
+        """
+        Check if the value is within the range of the container.
+
+        Args:
+            item: The value to check.
+
+        Returns:
+            bool: True if value is within the range, otherwise False.
+        """
+        if not self.inclusion_bounds or item not in self.inclusion_bounds:
+            return False
+        if self.exclusion_bounds and item in self.exclusion_bounds:
+            return False
+        return True

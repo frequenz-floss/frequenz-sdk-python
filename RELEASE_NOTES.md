@@ -15,6 +15,8 @@
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->
 
+- Classes Bounds and SystemBounds now work with the `in` operator
+
 ## Bug Fixes
 
 - Fixed a typing issue that occurs in some cases when composing formulas with constants.
