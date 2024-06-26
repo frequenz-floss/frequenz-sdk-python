@@ -12,7 +12,6 @@ import asyncio
 import uuid
 from collections import abc
 from datetime import timedelta
-from typing import cast
 
 from ... import timeseries
 from ..._internal._channels import ReceiverFetcher
@@ -401,9 +400,7 @@ class BatteryPool:
         )
         channel.resend_latest = True
 
-        # More details on why the cast is needed here:
-        # https://github.com/frequenz-floss/frequenz-sdk-python/issues/823
-        return cast(ReceiverFetcher[BatteryPoolReport], channel)
+        return channel
 
     @property
     def _system_power_bounds(self) -> ReceiverFetcher[SystemBounds]:
