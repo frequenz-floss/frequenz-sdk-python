@@ -315,7 +315,7 @@ class BatteryManager(ComponentManager):
     async def _create_channels(self) -> None:
         """Create channels to get data of components in microgrid."""
         api = connection_manager.get().api_client
-        manager_id = f"{type(self).__name__}»{hex(id(self))}»"
+        manager_id = f"{type(self).__name__}«{hex(id(self))}»"
         for battery_id, inverter_ids in self._bat_invs_map.items():
             bat_recv: Receiver[BatteryData] = await api.battery_data(battery_id)
             self._battery_caches[battery_id] = LatestValueCache(
