@@ -234,7 +234,7 @@ from ._data_pipeline import (
     new_ev_charger_pool,
     new_pv_pool,
     producer,
-    voltage,
+    voltage_per_phase,
 )
 
 
@@ -263,5 +263,5 @@ __all__ = [
     "new_ev_charger_pool",
     "new_pv_pool",
     "producer",
-    "voltage",
+    "voltage_per_phase",
 ]

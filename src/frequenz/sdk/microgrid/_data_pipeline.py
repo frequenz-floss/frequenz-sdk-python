@@ -139,8 +139,8 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         return self._frequency_instance
 
-    def voltage(self) -> VoltageStreamer:
-        """Return the 3-phase voltage measuring point."""
+    def voltage_per_phase(self) -> VoltageStreamer:
+        """Return the per-phase voltage measuring point."""
         if not self._voltage_instance:
             self._voltage_instance = VoltageStreamer(
                 self._resampling_request_sender(),
@@ -506,9 +506,9 @@ def frequency() -> GridFrequency:
     return _get().frequency()
 
 
-def voltage() -> VoltageStreamer:
-    """Return the 3-phase voltage measuring point."""
-    return _get().voltage()
+def voltage_per_phase() -> VoltageStreamer:
+    """Return the per-phase voltage measuring point."""
+    return _get().voltage_per_phase()
 
 
 def logical_meter() -> LogicalMeter:

@@ -55,7 +55,7 @@ class EVChargerManager(ComponentManager):
         self._ev_charger_ids = self._get_ev_charger_ids()
         self._evc_states = EvcStates()
         self._voltage_cache: LatestValueCache[Sample3Phase[Voltage]] = LatestValueCache(
-            microgrid.voltage().new_receiver(),
+            microgrid.voltage_per_phase().new_receiver(),
             unique_id=f"{type(self).__name__}«{hex(id(self))}»:voltage_cache",
         )
         self._config = EVDistributionConfig(component_ids=self._ev_charger_ids)

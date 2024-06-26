@@ -22,7 +22,7 @@ async def test_voltage_1(mocker: MockerFixture) -> None:
     mockgrid.add_batteries(1, no_meter=False)
 
     async with mockgrid:
-        voltage = microgrid.voltage()
+        voltage = microgrid.voltage_per_phase()
         voltage_recv = voltage.new_receiver()
 
         assert voltage._task is not None
@@ -56,7 +56,7 @@ async def test_voltage_2(mocker: MockerFixture) -> None:
     mockgrid.add_batteries(1, no_meter=True)
 
     async with mockgrid:
-        voltage = microgrid.voltage()
+        voltage = microgrid.voltage_per_phase()
         voltage_recv = voltage.new_receiver()
 
         assert voltage._task is not None
@@ -89,7 +89,7 @@ async def test_voltage_3(mocker: MockerFixture) -> None:
     mockgrid.add_batteries(2, no_meter=False)
 
     async with mockgrid:
-        voltage = microgrid.voltage()
+        voltage = microgrid.voltage_per_phase()
         voltage_recv = voltage.new_receiver()
 
         assert voltage._task is not None
