@@ -12,7 +12,7 @@ from frequenz.client.microgrid import ComponentMetricId
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
-from frequenz.sdk.timeseries._quantities import Power
+from frequenz.sdk.timeseries import Power, Sample
 
 from ..mock_microgrid import MockMicrogrid
 from .utils import get_resampled_stream
@@ -303,7 +303,10 @@ class TestFormulaComposition:
             max_pow = await engine_max_rx.receive()
             assert max_pow and max_pow.value and max_pow.value.isclose(Power.zero())
 
-    async def test_formula_composition_constant(self, mocker: MockerFixture) -> None:
+    async def test_formula_composition_constant(  # pylint: disable=too-many-locals
+        self,
+        mocker: MockerFixture,
+    ) -> None:
         """Test the composition of formulas with constant values."""
         async with (
             MockMicrogrid(grid_meter=True, mocker=mocker) as mockgrid,
@@ -334,10 +337,21 @@ class TestFormulaComposition:
                 engine_div._stop  # pylint: disable=protected-access
             )
 
+            engine_composite = (
+                (
+                    (grid.power + Power.from_watts(50.0)) / 2.0
+                    + grid.power
+                    - Power.from_watts(20.0)
+                )
+                * 2.0
+            ).build("grid_power_composite")
+
             await mockgrid.mock_resampler.send_meter_power([100.0])
 
             # Test addition
-            grid_power_addition = await engine_add.new_receiver().receive()
+            grid_power_addition: Sample[Power] = (
+                await engine_add.new_receiver().receive()
+            )
             assert grid_power_addition.value is not None
             assert math.isclose(
                 grid_power_addition.value.as_watts(),
@@ -345,7 +359,9 @@ class TestFormulaComposition:
             )
 
             # Test subtraction
-            grid_power_subtraction = await engine_sub.new_receiver().receive()
+            grid_power_subtraction: Sample[Power] = (
+                await engine_sub.new_receiver().receive()
+            )
             assert grid_power_subtraction.value is not None
             assert math.isclose(
                 grid_power_subtraction.value.as_watts(),
@@ -353,7 +369,9 @@ class TestFormulaComposition:
             )
 
             # Test multiplication
-            grid_power_multiplication = await engine_mul.new_receiver().receive()
+            grid_power_multiplication: Sample[Power] = (
+                await engine_mul.new_receiver().receive()
+            )
             assert grid_power_multiplication.value is not None
             assert math.isclose(
                 grid_power_multiplication.value.as_watts(),
@@ -361,12 +379,21 @@ class TestFormulaComposition:
             )
 
             # Test division
-            grid_power_division = await engine_div.new_receiver().receive()
+            grid_power_division: Sample[Power] = (
+                await engine_div.new_receiver().receive()
+            )
             assert grid_power_division.value is not None
             assert math.isclose(
                 grid_power_division.value.as_watts(),
                 50.0,
             )
+
+            # Test composite formula
+            grid_power_composite: Sample[Power] = (
+                await engine_composite.new_receiver().receive()
+            )
+            assert grid_power_composite.value is not None
+            assert math.isclose(grid_power_composite.value.as_watts(), 310.0)
 
             # Test multiplication with a Quantity
             with pytest.raises(RuntimeError):

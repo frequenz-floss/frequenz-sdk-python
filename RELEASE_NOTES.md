@@ -17,4 +17,4 @@
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+- Fixed a typing issue that occurs in some cases when composing formulas with constants.
