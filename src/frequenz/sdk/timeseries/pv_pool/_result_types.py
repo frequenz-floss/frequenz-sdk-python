@@ -13,14 +13,16 @@ from .._quantities import Power
 class PVPoolReport(typing.Protocol):
     """A status report for a PV pool."""
 
-    target_power: Power | None
-    """The currently set power for the PV inverters."""
+    @property
+    def target_power(self) -> Power | None:
+        """The currently set power for the PV inverters."""
 
-    distribution_result: power_distributing.Result | None
-    """The result of the last power distribution.
+    @property
+    def distribution_result(self) -> power_distributing.Result | None:
+        """The result of the last power distribution.
 
-    This is `None` if no power distribution has been performed yet.
-    """
+        This is `None` if no power distribution has been performed yet.
+        """
 
     @property
     def bounds(self) -> Bounds[Power] | None:

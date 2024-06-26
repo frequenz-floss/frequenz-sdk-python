@@ -4,7 +4,6 @@
 """Interactions with pools of PV inverters."""
 
 import asyncio
-import typing
 import uuid
 from collections import abc
 from datetime import timedelta
@@ -189,9 +188,7 @@ class PVPool:
         )
         channel.resend_latest = True
 
-        # More details on why the cast is needed here:
-        # https://github.com/frequenz-floss/frequenz-sdk-python/issues/823
-        return typing.cast(ReceiverFetcher[PVPoolReport], channel)
+        return channel
 
     async def stop(self) -> None:
         """Stop all tasks and channels owned by the PVPool."""

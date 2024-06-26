@@ -5,7 +5,6 @@
 
 
 import asyncio
-import typing
 import uuid
 from collections import abc
 from datetime import timedelta
@@ -230,9 +229,7 @@ class EVChargerPool:
         )
         channel.resend_latest = True
 
-        # More details on why the cast is needed here:
-        # https://github.com/frequenz-floss/frequenz-sdk-python/issues/823
-        return typing.cast(ReceiverFetcher[EVChargerPoolReport], channel)
+        return channel
 
     async def stop(self) -> None:
         """Stop all tasks and channels owned by the EVChargerPool."""
