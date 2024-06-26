@@ -206,8 +206,9 @@ async def test_restart_on_unhandled_exception(
         restart_limit: The restart limit to use.
         caplog: The log capture fixture.
     """
-    caplog.set_level("DEBUG", logger="frequenz.sdk.actor._actor")
-    caplog.set_level("DEBUG", logger="frequenz.sdk.actor._run_utils")
+    relevant_loggers = {"frequenz.sdk.actor._actor", "frequenz.sdk.actor._run_utils"}
+    for logger in relevant_loggers:
+        caplog.set_level("DEBUG", logger=logger)
 
     channel: Broadcast[int] = Broadcast(name="channel")
 
@@ -270,9 +271,14 @@ async def test_restart_on_unhandled_exception(
             (*RUN_INFO, "All 1 actor(s) finished."),
         ]
     )
-    print("expected_log:", expected_log)
     print("caplog.record_tuples:", caplog.record_tuples)
-    assert caplog.record_tuples == expected_log
+    # This is an ugly hack. There seem to be some issues with asyncio and caplog, maybe
+    # pytest-asyncio, that reports some pending tasks from an unrelated test when tested
+    # inside QEMU (suggesting also some timing issue when things run very slow).
+    filtered_logs = [r for r in caplog.record_tuples if r[0] in relevant_loggers]
+    print("filtered_logs:", filtered_logs)
+    print("expected_log:", expected_log)
+    assert filtered_logs == expected_log
 
 
 async def test_does_not_restart_on_normal_exit(
