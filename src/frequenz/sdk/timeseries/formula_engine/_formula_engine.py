@@ -478,7 +478,7 @@ class FormulaEngine3Phase(
     grid = microgrid.grid()
 
     # Calculate grid consumption current that's not used by the EV chargers
-    other_current = (grid.current_per_phase - ev_charger_pool.current).build(
+    other_current = (grid.current_per_phase - ev_charger_pool.current_per_phase).build(
         "other_current"
     )
 

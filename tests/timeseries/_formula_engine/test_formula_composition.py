@@ -429,9 +429,11 @@ class TestFormulaComposition:
             stack.push_async_callback(grid.stop)
 
             grid_current_recv = grid.current_per_phase.new_receiver()
-            ev_current_recv = ev_pool.current.new_receiver()
+            ev_current_recv = ev_pool.current_per_phase.new_receiver()
 
-            engine = (grid.current_per_phase - ev_pool.current).build("net_current")
+            engine = (grid.current_per_phase - ev_pool.current_per_phase).build(
+                "net_current"
+            )
             stack.push_async_callback(engine._stop)  # pylint: disable=protected-access
             net_current_recv = engine.new_receiver()
 
