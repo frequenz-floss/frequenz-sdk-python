@@ -18,3 +18,4 @@
 ## Bug Fixes
 
 - Fixed a typing issue that occurs in some cases when composing formulas with constants.
+- Fixed a bug where sending tasks in the data sourcing actor might have not been properly awaited.
