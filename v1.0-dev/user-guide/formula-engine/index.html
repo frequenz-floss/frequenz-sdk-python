@@ -1711,9 +1711,9 @@ is similar to a
 <a class="autorefs autorefs-internal" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine"><code>FormulaEngine</code></a>, except that
 they stream <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/#frequenz.sdk.timeseries.Sample3Phase">3-phase samples</a>.  All the
 current formulas (like
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/grid/#frequenz.sdk.timeseries.grid.Grid.current"><code>Grid.current</code></a>,
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.current"><code>EVChargerPool.current</code></a>,
-etc.) are implemented as 3-phase formulas.</p>
+<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/grid/#frequenz.sdk.timeseries.grid.Grid.current_per_phase"><code>Grid.current_per_phase</code></a>,
+<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.current_per_phase"><code>EVChargerPool.current_per_phase</code></a>,
+etc.) are implemented as per-phase formulas.</p>
 <h5 id="frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase--streaming-interface">Streaming Interface<a class="headerlink" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase--streaming-interface" title="Permanent link">¤</a></h5>
 <p>The
 <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/formula_engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase.new_receiver"><code>FormulaEngine3Phase.new_receiver()</code></a>
@@ -1725,7 +1725,7 @@ calculated by the formula engine.</p>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">ev_charger_pool</span> <span class="o">=</span> <span class="n">microgrid</span><span class="o">.</span><span class="n">new_ev_charger_pool</span><span class="p">(</span><span class="n">priority</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">async</span> <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">ev_charger_pool</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">():</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">async</span> <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">ev_charger_pool</span><span class="o">.</span><span class="n">current_per_phase</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">():</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current: </span><span class="si">{</span><span class="n">sample</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span></code></pre></div>
 <h5 id="frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase--composition">Composition<a class="headerlink" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase--composition" title="Permanent link">¤</a></h5>
@@ -1738,10 +1738,12 @@ instances.</p>
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">grid</span> <span class="o">=</span> <span class="n">microgrid</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
 </span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
 </span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Calculate grid consumption current that&#39;s not used by the EV chargers</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">other_current</span> <span class="o">=</span> <span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">current</span> <span class="o">-</span> <span class="n">ev_charger_pool</span><span class="o">.</span><span class="n">current</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="s2">&quot;other_current&quot;</span><span class="p">)</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="k">async</span> <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">other_current</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">():</span>
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Other current: </span><span class="si">{</span><span class="n">sample</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">other_current</span> <span class="o">=</span> <span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">current_per_phase</span> <span class="o">-</span> <span class="n">ev_charger_pool</span><span class="o">.</span><span class="n">current_per_phase</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">(</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="s2">&quot;other_current&quot;</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="p">)</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="k">async</span> <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">other_current</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">():</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Other current: </span><span class="si">{</span><span class="n">sample</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span></code></pre></div>
 
 

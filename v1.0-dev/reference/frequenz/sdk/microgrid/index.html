@@ -1650,9 +1650,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.microgrid.voltage" class="md-nav__link">
+  <a href="#frequenz.sdk.microgrid.voltage_per_phase" class="md-nav__link">
     <span class="md-ellipsis">
-      voltage
+      voltage_per_phase
     </span>
   </a>
   
@@ -2888,25 +2888,25 @@ normal power for the components.</p>
 <div class="doc doc-object doc-function">
 
 
-<h4 id="frequenz.sdk.microgrid.voltage" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">frequenz.sdk.microgrid.voltage</span>
+<h4 id="frequenz.sdk.microgrid.voltage_per_phase" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">frequenz.sdk.microgrid.voltage_per_phase</span>
 
 
-<a href="#frequenz.sdk.microgrid.voltage" class="headerlink" title="Permanent link">¤</a></h4>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">voltage</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n"><span title="frequenz.sdk.timeseries._voltage_streamer.VoltageStreamer">VoltageStreamer</span></span>
+<a href="#frequenz.sdk.microgrid.voltage_per_phase" class="headerlink" title="Permanent link">¤</a></h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">voltage_per_phase</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n"><span title="frequenz.sdk.timeseries._voltage_streamer.VoltageStreamer">VoltageStreamer</span></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
 
-      <p>Return the 3-phase voltage measuring point.</p>
+      <p>Return the per-phase voltage measuring point.</p>
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/microgrid/_data_pipeline.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-509">509</a></span>
 <span class="normal"><a href="#__codelineno-0-510">510</a></span>
-<span class="normal"><a href="#__codelineno-0-511">511</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-509"><a id="__codelineno-0-509" name="__codelineno-0-509"></a><span class="k">def</span> <span class="nf">voltage</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">VoltageStreamer</span><span class="p">:</span>
-</span><span id="__span-0-510"><a id="__codelineno-0-510" name="__codelineno-0-510"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the 3-phase voltage measuring point.&quot;&quot;&quot;</span>
-</span><span id="__span-0-511"><a id="__codelineno-0-511" name="__codelineno-0-511"></a>    <span class="k">return</span> <span class="n">_get</span><span class="p">()</span><span class="o">.</span><span class="n">voltage</span><span class="p">()</span>
+<span class="normal"><a href="#__codelineno-0-511">511</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-509"><a id="__codelineno-0-509" name="__codelineno-0-509"></a><span class="k">def</span> <span class="nf">voltage_per_phase</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">VoltageStreamer</span><span class="p">:</span>
+</span><span id="__span-0-510"><a id="__codelineno-0-510" name="__codelineno-0-510"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the per-phase voltage measuring point.&quot;&quot;&quot;</span>
+</span><span id="__span-0-511"><a id="__codelineno-0-511" name="__codelineno-0-511"></a>    <span class="k">return</span> <span class="n">_get</span><span class="p">()</span><span class="o">.</span><span class="n">voltage_per_phase</span><span class="p">()</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
