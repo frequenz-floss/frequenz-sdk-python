@@ -33,8 +33,8 @@ class EVChargerPool:
 
     Provides:
       - Aggregate [`power`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power]
-        and 3-phase
-        [`current`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.current]
+        and
+        [`current_per_phase`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.current_per_phase]
         measurements of the EV Chargers in the pool.
     """
 
@@ -147,7 +147,7 @@ class EVChargerPool:
         return self._pool_ref_store.component_ids
 
     @property
-    def current(self) -> FormulaEngine3Phase[Current]:
+    def current_per_phase(self) -> FormulaEngine3Phase[Current]:
         """Fetch the total current for the EV Chargers in the pool.
 
         This formula produces values that are in the Passive Sign Convention (PSC).

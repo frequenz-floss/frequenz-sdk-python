@@ -11,6 +11,12 @@
   + `ev_charger_pool` -> `new_ev_charger_pool`
   + `pv_pool` -> `new_pv_pool`
 
+- The following component metric streams have been renamed to clarify that they stream per-phase values:
+  + `frequenz.sdk.microgrid.`
+    * `voltage` -> `voltage_per_phase`
+    * `grid.current` -> `grid.current_per_phase`
+    * `ev_charger_pool.current` -> `ev_charger_pool.current_per_phase`
+
 ## New Features
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->

@@ -443,9 +443,9 @@ class FormulaEngine3Phase(
     [`FormulaEngine`][frequenz.sdk.timeseries.formula_engine.FormulaEngine], except that
     they stream [3-phase samples][frequenz.sdk.timeseries.Sample3Phase].  All the
     current formulas (like
-    [`Grid.current`][frequenz.sdk.timeseries.grid.Grid.current],
-    [`EVChargerPool.current`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.current],
-    etc.) are implemented as 3-phase formulas.
+    [`Grid.current_per_phase`][frequenz.sdk.timeseries.grid.Grid.current_per_phase],
+    [`EVChargerPool.current_per_phase`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.current_per_phase],
+    etc.) are implemented as per-phase formulas.
 
     ### Streaming Interface
 
@@ -461,7 +461,7 @@ class FormulaEngine3Phase(
 
     ev_charger_pool = microgrid.new_ev_charger_pool(priority=5)
 
-    async for sample in ev_charger_pool.current.new_receiver():
+    async for sample in ev_charger_pool.current_per_phase.new_receiver():
         print(f"Current: {sample}")
     ```
 
@@ -478,7 +478,9 @@ class FormulaEngine3Phase(
     grid = microgrid.grid()
 
     # Calculate grid consumption current that's not used by the EV chargers
-    other_current = (grid.current - ev_charger_pool.current).build("other_current")
+    other_current = (grid.current_per_phase - ev_charger_pool.current_per_phase).build(
+        "other_current"
+    )
 
     async for sample in other_current.new_receiver():
         print(f"Other current: {sample}")

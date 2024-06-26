@@ -44,7 +44,7 @@ class VoltageStreamer:
         )
 
         # Get a receiver for the phase-to-neutral voltage.
-        voltage_recv = microgrid.voltage().new_receiver()
+        voltage_recv = microgrid.voltage_per_phase().new_receiver()
 
         async for voltage_sample in voltage_recv:
             print(voltage_sample)
