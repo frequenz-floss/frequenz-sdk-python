@@ -443,9 +443,9 @@ class FormulaEngine3Phase(
     [`FormulaEngine`][frequenz.sdk.timeseries.formula_engine.FormulaEngine], except that
     they stream [3-phase samples][frequenz.sdk.timeseries.Sample3Phase].  All the
     current formulas (like
-    [`Grid.current`][frequenz.sdk.timeseries.grid.Grid.current],
-    [`EVChargerPool.current`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.current],
-    etc.) are implemented as 3-phase formulas.
+    [`Grid.current_per_phase`][frequenz.sdk.timeseries.grid.Grid.current_per_phase],
+    [`EVChargerPool.current_per_phase`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.current_per_phase],
+    etc.) are implemented as per-phase formulas.
 
     ### Streaming Interface
 

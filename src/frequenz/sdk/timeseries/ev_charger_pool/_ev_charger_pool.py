@@ -33,8 +33,8 @@ class EVChargerPool:
 
     Provides:
       - Aggregate [`power`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power]
-        and 3-phase
-        [`current`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.current]
+        and
+        [`current_per_phase`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.current_per_phase]
         measurements of the EV Chargers in the pool.
     """
 
