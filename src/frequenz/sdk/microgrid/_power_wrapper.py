@@ -16,6 +16,8 @@ from frequenz.channels import Broadcast
 # pylint: disable=cyclic-import
 from frequenz.client.microgrid import ComponentCategory, ComponentType
 
+from .._internal._channels import ReceiverFetcher
+
 # A number of imports had to be done inside functions where they are used, to break
 # import cycles.
 #
@@ -178,3 +180,7 @@ class PowerWrapper:
             await self._power_distributing_actor.stop()
         if self._power_managing_actor:
             await self._power_managing_actor.stop()
+
+    def distribution_results_fetcher(self) -> ReceiverFetcher[Result]:
+        """Return a fetcher for the power distribution results."""
+        return self._power_distribution_results_channel
