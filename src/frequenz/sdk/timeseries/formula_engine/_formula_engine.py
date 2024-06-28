@@ -276,7 +276,6 @@ class FormulaEngine(
     ```python
     from frequenz.sdk import microgrid
 
-    logical_meter = microgrid.logical_meter()
     battery_pool = microgrid.new_battery_pool(priority=5)
     ev_charger_pool = microgrid.new_ev_charger_pool(priority=5)
     grid = microgrid.grid()
@@ -473,7 +472,6 @@ class FormulaEngine3Phase(
     ```python
     from frequenz.sdk import microgrid
 
-    logical_meter = microgrid.logical_meter()
     ev_charger_pool = microgrid.new_ev_charger_pool(priority=5)
     grid = microgrid.grid()
 

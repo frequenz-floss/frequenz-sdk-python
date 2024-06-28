@@ -33,32 +33,23 @@ class LogicalMeter:
         from datetime import timedelta
 
         from frequenz.sdk import microgrid
-        from frequenz.sdk.timeseries import ResamplerConfig
+        from frequenz.sdk.actor import ResamplerConfig
+        from frequenz.client.microgrid import ComponentMetricId
+
 
         await microgrid.initialize(
-            "grpc://127.0.0.1:50051",
-            ResamplerConfig(resampling_period=timedelta(seconds=1))
+            "grpc://microgrid.sandbox.api.frequenz.io:62060",
+            ResamplerConfig(resampling_period=timedelta(seconds=1)),
         )
 
-        logical_meter = microgrid.logical_meter()
-        pv_pool = microgrid.new_pv_pool(priority=5)
-        grid = microgrid.grid()
-
-        # Get a receiver for a builtin formula
-        pv_power_recv = pv_pool.power.new_receiver()
-        async for pv_power_sample in pv_power_recv:
-            print(pv_power_sample)
-
-        # or compose formulas to create a new formula
-        net_power_recv = (
-            (
-                grid.power - pv_pool.power
-            )
-            .build("net_power")
+        logical_meter = (
+            microgrid.logical_meter()
+            .start_formula("#1001 + #1002", ComponentMetricId.ACTIVE_POWER)
             .new_receiver()
         )
-        async for net_power_sample in net_power_recv:
-            print(net_power_sample)
+
+        async for power in logical_meter:
+            print(power.value)
         ```
     """
 
