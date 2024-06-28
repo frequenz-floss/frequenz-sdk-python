@@ -38,3 +38,4 @@
 - Updated the logical meter documentation to reflect the latest changes.
 - Fixed a bug in the code examples in the getting-started tutorial.
 - Fixed a bug in `ConfigManagingActor` that was not properly comparing the event path to the config file path when the config file is a relative path.
+- Re-expose `ComponentMetricId` to the docs.

@@ -8,6 +8,8 @@ from datetime import datetime
 
 from frequenz.client.microgrid import ComponentMetricId
 
+__all__ = ["ComponentMetricRequest", "ComponentMetricId"]
+
 
 @dataclass
 class ComponentMetricRequest:
