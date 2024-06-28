@@ -93,7 +93,6 @@ class MovingWindow(BackgroundService):
     Example: Create a polars data frame from a `MovingWindow`
 
         ```python
-        import polars as pl
         from datetime import datetime, timedelta, timezone
 
         async def send_mock_data(sender: Sender[Sample]) -> None:
@@ -118,10 +117,12 @@ class MovingWindow(BackgroundService):
                 # wait for one full day until the buffer is filled
                 await asyncio.sleep(60*60*24)
 
-                # create a polars series with one full day of data
                 time_start = datetime(2023, 1, 1, tzinfo=timezone.utc)
                 time_end = datetime(2023, 1, 2, tzinfo=timezone.utc)
-                series = pl.Series("Jan_1", window[time_start:time_end])
+
+                # You can now create a polars series with one full day of data by
+                # passing the window slice, like:
+                # series = pl.Series("Jan_1", window[time_start:time_end])
 
         asyncio.run(run())
         ```
