@@ -13,8 +13,8 @@ import uuid
 from collections import abc
 
 from ... import timeseries
-from ..._internal._channels import ReceiverFetcher
-from ...actor import _power_managing
+from ..._internal._channels import ReceiverFetcher, ReceiverFetcherWith
+from ...actor import _power_managing, power_distributing
 from ...timeseries import Energy, Percentage, Power, Sample, Temperature
 from .._base_types import SystemBounds
 from ..formula_engine import FormulaEngine
@@ -383,6 +383,21 @@ class BatteryPool:
         channel.resend_latest = True
 
         return channel
+
+    @property
+    def power_distribution_results(self) -> ReceiverFetcher[power_distributing.Result]:
+        """Get a receiver to receive power distribution results.
+
+        Returns:
+            A receiver that will stream power distribution results for the pool's set of
+            batteries.
+        """
+        return ReceiverFetcherWith(
+            self._pool_ref_store._power_dist_results_fetcher,
+            lambda recv: recv.filter(
+                lambda x: x.request.component_ids == self._pool_ref_store._batteries
+            ),
+        )
 
     @property
     def _system_power_bounds(self) -> ReceiverFetcher[SystemBounds]:
