@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Check for a release notes update
         if: github.event_name == 'pull_request'
-        uses: brettcannon/check-for-changed-files@4170644959a21843b31f1181f2a1761d65ef4791 # v1.2.0
+        uses: brettcannon/check-for-changed-files@871d7b8b5917a4f6f06662e2262e8ffc51dff6d1 # v1.2.1
         with:
           file-pattern: "RELEASE_NOTES.md"
           prereq-pattern: "src/**"
