@@ -34,7 +34,6 @@ class BoundsTester:
                 if exclusion_bounds is not None
                 else None
             ),
-            distribution_result=None,
         )
 
     def case(

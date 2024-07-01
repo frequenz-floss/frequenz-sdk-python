@@ -16,7 +16,6 @@ from . import _bounds
 
 if typing.TYPE_CHECKING:
     from ...timeseries._base_types import SystemBounds
-    from .. import power_distributing
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -51,12 +50,6 @@ class _Report:
 
     target_power: Power | None
     """The currently set power for the components."""
-
-    distribution_result: power_distributing.Result | None
-    """The result of the last power distribution.
-
-    This is `None` if no power distribution has been performed yet.
-    """
 
     _inclusion_bounds: timeseries.Bounds[Power] | None
     """The available inclusion bounds for the components, for the actor's priority.
@@ -266,7 +259,6 @@ class BaseAlgorithm(abc.ABC):
         component_ids: frozenset[int],
         priority: int,
         system_bounds: SystemBounds,
-        distribution_result: power_distributing.Result | None,
     ) -> _Report:
         """Get the bounds for a set of components, for the given priority.
 
@@ -274,7 +266,6 @@ class BaseAlgorithm(abc.ABC):
             component_ids: The IDs of the components to get the bounds for.
             priority: The priority of the actor for which the bounds are requested.
             system_bounds: The system bounds for the components.
-            distribution_result: The result of the last power distribution.
 
         Returns:
             The bounds for the components.

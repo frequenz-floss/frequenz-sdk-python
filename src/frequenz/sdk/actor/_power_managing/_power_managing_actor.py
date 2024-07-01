@@ -91,7 +91,6 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
         self._set_op_power_subscriptions: dict[
             frozenset[int], dict[int, Sender[_Report]]
         ] = {}
-        self._distribution_results: dict[frozenset[int], power_distributing.Result] = {}
 
         self._set_power_group: BaseAlgorithm = Matryoshka(
             max_proposal_age=timedelta(seconds=60.0)
@@ -120,7 +119,6 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
                 component_ids,
                 priority,
                 bounds,
-                self._distribution_results.get(component_ids),
             )
             await sender.send(status)
         for priority, sender in self._set_power_subscriptions.get(
@@ -133,7 +131,6 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
                     bounds,
                     self._set_op_power_group.get_target_power(component_ids),
                 ),
-                self._distribution_results.get(component_ids),
             )
             await sender.send(status)
 
@@ -403,9 +400,6 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
                 )
 
                 result = selected.message
-                self._distribution_results[frozenset(result.request.component_ids)] = (
-                    result
-                )
                 if not isinstance(result, power_distributing.Success):
                     _logger.warning(
                         "PowerManagingActor: PowerDistributing failed: %s", result
