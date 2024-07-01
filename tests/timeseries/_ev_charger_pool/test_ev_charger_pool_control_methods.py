@@ -163,6 +163,7 @@ class TestEVChargerPoolControl:
         power: float | None,
         lower: float,
         upper: float,
+        dist_result: power_distributing.Result | None = None,
         expected_result_pred: (
             typing.Callable[[power_distributing.Result], bool] | None
         ) = None,
@@ -174,8 +175,8 @@ class TestEVChargerPoolControl:
         assert report.bounds.lower == Power.from_watts(lower)
         assert report.bounds.upper == Power.from_watts(upper)
         if expected_result_pred is not None:
-            assert report.distribution_result is not None
-            assert expected_result_pred(report.distribution_result)
+            assert dist_result is not None
+            assert expected_result_pred(dist_result)
 
     async def _get_bounds_receiver(
         self, ev_charger_pool: EVChargerPool
