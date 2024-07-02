@@ -7,8 +7,8 @@ import asyncio
 import uuid
 from collections import abc
 
-from ..._internal._channels import ReceiverFetcher
-from ...actor import _power_managing
+from ..._internal._channels import MappingReceiverFetcher, ReceiverFetcher
+from ...actor import _power_managing, power_distributing
 from ...timeseries import Bounds
 from .._base_types import SystemBounds
 from .._quantities import Power
@@ -185,6 +185,21 @@ class PVPool:
         channel.resend_latest = True
 
         return channel
+
+    @property
+    def power_distribution_results(self) -> ReceiverFetcher[power_distributing.Result]:
+        """Get a receiver to receive power distribution results.
+
+        Returns:
+            A receiver that will stream power distribution results for the pool's set of
+            PV inverters.
+        """
+        return MappingReceiverFetcher(
+            self._pool_ref_store.power_distribution_results_fetcher,
+            lambda recv: recv.filter(
+                lambda x: x.request.component_ids == self._pool_ref_store.component_ids
+            ),
+        )
 
     async def stop(self) -> None:
         """Stop all tasks and channels owned by the PVPool."""

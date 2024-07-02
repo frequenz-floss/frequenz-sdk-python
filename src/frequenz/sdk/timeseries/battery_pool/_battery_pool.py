@@ -13,7 +13,7 @@ import uuid
 from collections import abc
 
 from ... import timeseries
-from ..._internal._channels import ReceiverFetcher, ReceiverFetcherWith
+from ..._internal._channels import MappingReceiverFetcher, ReceiverFetcher
 from ...actor import _power_managing, power_distributing
 from ...timeseries import Energy, Percentage, Power, Sample, Temperature
 from .._base_types import SystemBounds
@@ -392,7 +392,7 @@ class BatteryPool:
             A receiver that will stream power distribution results for the pool's set of
             batteries.
         """
-        return ReceiverFetcherWith(
+        return MappingReceiverFetcher(
             self._pool_ref_store._power_dist_results_fetcher,
             lambda recv: recv.filter(
                 lambda x: x.request.component_ids == self._pool_ref_store._batteries
