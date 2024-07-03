@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import typing
+from datetime import timedelta
 
 from frequenz.channels import Broadcast
 
@@ -38,6 +39,7 @@ class PowerWrapper:
         self,
         channel_registry: ChannelRegistry,
         *,
+        api_power_request_timeout: timedelta,
         component_category: ComponentCategory,
         component_type: ComponentType | None = None,
     ):
@@ -45,6 +47,8 @@ class PowerWrapper:
 
         Args:
             channel_registry: A channel registry for use in the actors.
+            api_power_request_timeout: Timeout to use when making power requests to
+                the microgrid API.
             component_category: The category of the components that actors started by
                 this instance of the PowerWrapper will be responsible for.
             component_type: The type of the component of the given category that this
@@ -58,6 +62,7 @@ class PowerWrapper:
         self._component_category = component_category
         self._component_type = component_type
         self._channel_registry = channel_registry
+        self._api_power_request_timeout = api_power_request_timeout
 
         self.status_channel: Broadcast[ComponentPoolStatus] = Broadcast(
             name="Component Status Channel", resend_latest=True
@@ -145,6 +150,7 @@ class PowerWrapper:
         self._power_distributing_actor = PowerDistributingActor(
             component_category=self._component_category,
             component_type=self._component_type,
+            api_power_request_timeout=self._api_power_request_timeout,
             requests_receiver=self._power_distribution_requests_channel.new_receiver(),
             results_sender=self._power_distribution_results_channel.new_sender(),
             component_pool_status_sender=self.status_channel.new_sender(),

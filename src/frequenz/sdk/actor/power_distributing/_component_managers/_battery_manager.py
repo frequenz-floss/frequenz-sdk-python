@@ -125,7 +125,7 @@ def _get_battery_inverter_mappings(
     return mapping
 
 
-class BatteryManager(ComponentManager):
+class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-attributes
     """Class to manage the data streams for batteries."""
 
     @override
@@ -133,6 +133,7 @@ class BatteryManager(ComponentManager):
         self,
         component_pool_status_sender: Sender[ComponentPoolStatus],
         results_sender: Sender[Result],
+        api_power_request_timeout: timedelta,
     ):
         """Initialize this instance.
 
@@ -142,8 +143,11 @@ class BatteryManager(ComponentManager):
                 streams, to dynamically adjust the values based on the health of the
                 individual batteries.
             results_sender: Channel sender to send the power distribution results to.
+            api_power_request_timeout: Timeout to use when making power requests to
+                the microgrid API.
         """
         self._results_sender = results_sender
+        self._api_power_request_timeout = api_power_request_timeout
         self._batteries = connection_manager.get().component_graph.components(
             component_categories={ComponentCategory.BATTERY}
         )
@@ -277,7 +281,7 @@ class BatteryManager(ComponentManager):
         )
 
         failed_power, failed_batteries = await self._set_distributed_power(
-            distribution, request.request_timeout
+            distribution, self._api_power_request_timeout
         )
 
         response: Success | PartialFailure
