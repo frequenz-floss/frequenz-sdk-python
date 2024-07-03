@@ -19,9 +19,7 @@
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
-
-- Classes Bounds and SystemBounds now work with the `in` operator
+- Classes `Bounds` and `SystemBounds` now implement the `__contains__` method, allowing the use of the `in` operator to check whether a value falls within the bounds or not.
 
 ## Bug Fixes
 
