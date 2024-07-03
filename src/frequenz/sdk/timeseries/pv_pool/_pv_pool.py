@@ -6,7 +6,6 @@
 import asyncio
 import uuid
 from collections import abc
-from datetime import timedelta
 
 from ..._internal._channels import ReceiverFetcher
 from ...actor import _power_managing
@@ -63,7 +62,6 @@ class PVPool:
         self,
         power: Power | None,
         *,
-        request_timeout: timedelta = timedelta(seconds=5.0),
         bounds: Bounds[Power | None] = Bounds(None, None),
     ) -> None:
         """Send a proposal to the power manager for the pool's set of PV inverters.
@@ -99,7 +97,6 @@ class PVPool:
                 this proposal will not have any effect on the target power, unless
                 bounds are specified.  If both are `None`, it is equivalent to not
                 having a proposal or withdrawing a previous one.
-            request_timeout: The timeout for the request.
             bounds: The power bounds for the proposal.  These bounds will apply to
                 actors with a lower priority, and can be overridden by bounds from
                 actors with a higher priority.  If None, the power bounds will be set to
@@ -119,7 +116,6 @@ class PVPool:
                 component_ids=self._pool_ref_store.component_ids,
                 priority=self._priority,
                 creation_time=asyncio.get_running_loop().time(),
-                request_timeout=request_timeout,
                 set_operating_point=self._set_operating_point,
             )
         )

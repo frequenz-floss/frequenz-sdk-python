@@ -197,7 +197,6 @@ class TestPowerDistributingActor:
         request = Request(
             power=Power.from_kilowatts(1.2),
             component_ids={9, 19},
-            request_timeout=SAFETY_TIMEOUT,
         )
 
         await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
@@ -281,7 +280,6 @@ class TestPowerDistributingActor:
                 request = Request(
                     power=Power.zero(),
                     component_ids={9, 19},
-                    request_timeout=SAFETY_TIMEOUT,
                 )
 
                 await requests_channel.new_sender().send(request)
@@ -306,7 +304,6 @@ class TestPowerDistributingActor:
                 request = Request(
                     power=Power.from_watts(300.0),
                     component_ids={9, 19},
-                    request_timeout=SAFETY_TIMEOUT,
                 )
 
                 await requests_channel.new_sender().send(request)
@@ -363,7 +360,6 @@ class TestPowerDistributingActor:
                     bat_component1.component_id,
                     bat_component2.component_id,
                 },
-                request_timeout=SAFETY_TIMEOUT,
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
@@ -446,7 +442,6 @@ class TestPowerDistributingActor:
             request = Request(
                 power=Power.from_watts(1200.0),
                 component_ids=set(battery.component_id for battery in bat_components),
-                request_timeout=SAFETY_TIMEOUT,
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
@@ -502,7 +497,6 @@ class TestPowerDistributingActor:
             request = Request(
                 power=Power.from_watts(1200.0),
                 component_ids={bat_component.component_id},
-                request_timeout=SAFETY_TIMEOUT,
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
@@ -556,7 +550,6 @@ class TestPowerDistributingActor:
             request = Request(
                 power=Power.from_watts(1700.0),
                 component_ids={batteries[0].component_id, batteries[1].component_id},
-                request_timeout=SAFETY_TIMEOUT,
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
@@ -644,7 +637,6 @@ class TestPowerDistributingActor:
             request = Request(
                 power=Power.from_watts(300.0),
                 component_ids={batteries[0].component_id, batteries[1].component_id},
-                request_timeout=SAFETY_TIMEOUT,
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
@@ -733,7 +725,6 @@ class TestPowerDistributingActor:
             request = Request(
                 power=Power.from_watts(300.0),
                 component_ids={batteries[0].component_id, batteries[1].component_id},
-                request_timeout=SAFETY_TIMEOUT,
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
@@ -801,7 +792,6 @@ class TestPowerDistributingActor:
             request = Request(
                 power=Power.from_watts(600.0),
                 component_ids={batteries[0].component_id},
-                request_timeout=SAFETY_TIMEOUT,
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
@@ -860,7 +850,6 @@ class TestPowerDistributingActor:
             request = Request(
                 power=Power.from_kilowatts(1.2),
                 component_ids={9, 19},
-                request_timeout=SAFETY_TIMEOUT,
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
@@ -916,7 +905,6 @@ class TestPowerDistributingActor:
             request = Request(
                 power=Power.from_kilowatts(1.2),
                 component_ids={9, 19},
-                request_timeout=SAFETY_TIMEOUT,
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
@@ -992,7 +980,6 @@ class TestPowerDistributingActor:
             request = Request(
                 power=Power.from_kilowatts(1.2),
                 component_ids={9, 19},
-                request_timeout=SAFETY_TIMEOUT,
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
@@ -1040,7 +1027,6 @@ class TestPowerDistributingActor:
             request = Request(
                 power=Power.from_kilowatts(1.2),
                 component_ids={9, 100},
-                request_timeout=SAFETY_TIMEOUT,
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
@@ -1084,7 +1070,6 @@ class TestPowerDistributingActor:
             request = Request(
                 power=Power.from_kilowatts(1.2),
                 component_ids={9, 19},
-                request_timeout=SAFETY_TIMEOUT,
                 adjust_power=False,
             )
 
@@ -1133,7 +1118,6 @@ class TestPowerDistributingActor:
             request = Request(
                 power=-Power.from_kilowatts(1.2),
                 component_ids={9, 19},
-                request_timeout=SAFETY_TIMEOUT,
                 adjust_power=False,
             )
 
@@ -1182,7 +1166,6 @@ class TestPowerDistributingActor:
             request = Request(
                 power=Power.from_kilowatts(1.0),
                 component_ids={9, 19},
-                request_timeout=SAFETY_TIMEOUT,
                 adjust_power=False,
             )
 
@@ -1246,7 +1229,6 @@ class TestPowerDistributingActor:
                 request = Request(
                     power=Power.from_kilowatts(1.2),
                     component_ids=batteries,
-                    request_timeout=SAFETY_TIMEOUT,
                 )
 
                 await requests_channel.new_sender().send(request)
@@ -1302,7 +1284,6 @@ class TestPowerDistributingActor:
                 request = Request(
                     power=Power.from_kilowatts(1.70),
                     component_ids=batteries,
-                    request_timeout=SAFETY_TIMEOUT,
                 )
 
                 await requests_channel.new_sender().send(request)

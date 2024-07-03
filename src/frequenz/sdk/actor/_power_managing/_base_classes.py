@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import abc
 import dataclasses
-import datetime
 import enum
 import typing
 
@@ -163,9 +162,6 @@ class Proposal:
 
     This is used by the power manager to determine the age of the proposal.
     """
-
-    request_timeout: datetime.timedelta = datetime.timedelta(seconds=5.0)
-    """The maximum amount of time to wait for the request to be fulfilled."""
 
     set_operating_point: bool
     """Whether this proposal sets the operating point power or the normal power."""

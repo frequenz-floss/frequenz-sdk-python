@@ -330,15 +330,11 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
             proposal,
             must_send,
         )
-        request_timeout = (
-            proposal.request_timeout if proposal else timedelta(seconds=5.0)
-        )
         if target_power is not None:
             await self._power_distributing_requests_sender.send(
                 power_distributing.Request(
                     power=target_power,
                     component_ids=component_ids,
-                    request_timeout=request_timeout,
                     adjust_power=True,
                 )
             )
