@@ -17,6 +17,8 @@
     * `grid.current` -> `grid.current_per_phase`
     * `ev_charger_pool.current` -> `ev_charger_pool.current_per_phase`
 
+* Passing a `request_timeout` in calls to `*_pool.propose_power` is no longer supported.  It may be specified at application startup, through the new optional `api_power_request_timeout` parameter in the `microgrid.initialize()` method.
+
 ## New Features
 
 - Classes `Bounds` and `SystemBounds` now implement the `__contains__` method, allowing the use of the `in` operator to check whether a value falls within the bounds or not.
