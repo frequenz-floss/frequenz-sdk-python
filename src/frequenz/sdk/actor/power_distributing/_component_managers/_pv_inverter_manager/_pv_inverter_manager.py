@@ -38,6 +38,7 @@ class PVManager(ComponentManager):
         self,
         component_pool_status_sender: Sender[ComponentPoolStatus],
         results_sender: Sender[Result],
+        api_power_request_timeout: timedelta,
     ) -> None:
         """Initialize this instance.
 
@@ -45,8 +46,11 @@ class PVManager(ComponentManager):
             component_pool_status_sender: Channel for sending information about which
                 components are expected to be working.
             results_sender: Channel for sending results of power distribution.
+            api_power_request_timeout: Timeout to use when making power requests to
+                the microgrid API.
         """
         self._results_sender = results_sender
+        self._api_power_request_timeout = api_power_request_timeout
         self._pv_inverter_ids = self._get_pv_inverter_ids()
 
         self._component_pool_status_tracker = (
@@ -177,7 +181,7 @@ class PVManager(ComponentManager):
             )
         _, pending = await asyncio.wait(
             tasks.values(),
-            timeout=request.request_timeout.total_seconds(),
+            timeout=self._api_power_request_timeout.total_seconds(),
             return_when=asyncio.ALL_COMPLETED,
         )
         # collect the timed out tasks and cancel them while keeping the

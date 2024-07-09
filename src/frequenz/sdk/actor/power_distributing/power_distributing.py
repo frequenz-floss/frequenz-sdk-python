@@ -12,6 +12,8 @@ Purpose of this actor is to keep SoC level of each component at the equal level.
 """
 
 
+from datetime import timedelta
+
 from frequenz.channels import Receiver, Sender
 from frequenz.client.microgrid import ComponentCategory, ComponentType, InverterType
 from typing_extensions import override
@@ -60,6 +62,7 @@ class PowerDistributingActor(Actor):
         results_sender: Sender[Result],
         component_pool_status_sender: Sender[ComponentPoolStatus],
         *,
+        api_power_request_timeout: timedelta,
         component_category: ComponentCategory,
         component_type: ComponentType | None = None,
         name: str | None = None,
@@ -72,6 +75,8 @@ class PowerDistributingActor(Actor):
             results_sender: Sender for sending results to the power manager.
             component_pool_status_sender: Channel for sending information about which
                 components are expected to be working.
+            api_power_request_timeout: Timeout to use when making power requests to
+                the microgrid API.
             component_category: The category of the components that this actor is
                 responsible for.
             component_type: The type of the component of the given category that this
@@ -92,22 +97,23 @@ class PowerDistributingActor(Actor):
         self._component_type = component_type
         self._requests_receiver = requests_receiver
         self._result_sender = results_sender
+        self._api_power_request_timeout = api_power_request_timeout
 
         self._component_manager: ComponentManager
         if component_category == ComponentCategory.BATTERY:
             self._component_manager = BatteryManager(
-                component_pool_status_sender, results_sender
+                component_pool_status_sender, results_sender, api_power_request_timeout
             )
         elif component_category == ComponentCategory.EV_CHARGER:
             self._component_manager = EVChargerManager(
-                component_pool_status_sender, results_sender
+                component_pool_status_sender, results_sender, api_power_request_timeout
             )
         elif (
             component_category == ComponentCategory.INVERTER
             and component_type == InverterType.SOLAR
         ):
             self._component_manager = PVManager(
-                component_pool_status_sender, results_sender
+                component_pool_status_sender, results_sender, api_power_request_timeout
             )
         else:
             raise ValueError(

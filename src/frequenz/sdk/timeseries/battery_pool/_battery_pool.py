@@ -11,7 +11,6 @@ their individual priorities with each request.
 import asyncio
 import uuid
 from collections import abc
-from datetime import timedelta
 
 from ... import timeseries
 from ..._internal._channels import ReceiverFetcher
@@ -85,7 +84,6 @@ class BatteryPool:
         self,
         power: Power | None,
         *,
-        request_timeout: timedelta = timedelta(seconds=5.0),
         bounds: timeseries.Bounds[Power | None] = timeseries.Bounds(None, None),
     ) -> None:
         """Send a proposal to the power manager for the pool's set of batteries.
@@ -117,7 +115,6 @@ class BatteryPool:
                 proposal will not have any effect on the target power, unless bounds are
                 specified.  If both are `None`, it is equivalent to not having a
                 proposal or withdrawing a previous one.
-            request_timeout: The timeout for the request.
             bounds: The power bounds for the proposal.  These bounds will apply to
                 actors with a lower priority, and can be overridden by bounds from
                 actors with a higher priority.  If None, the power bounds will be set
@@ -132,17 +129,11 @@ class BatteryPool:
                 component_ids=self._pool_ref_store._batteries,
                 priority=self._priority,
                 creation_time=asyncio.get_running_loop().time(),
-                request_timeout=request_timeout,
                 set_operating_point=self._set_operating_point,
             )
         )
 
-    async def propose_charge(
-        self,
-        power: Power | None,
-        *,
-        request_timeout: timedelta = timedelta(seconds=5.0),
-    ) -> None:
+    async def propose_charge(self, power: Power | None) -> None:
         """Set the given charge power for the batteries in the pool.
 
         Power values need to be positive values, indicating charge power.
@@ -164,7 +155,6 @@ class BatteryPool:
             power: The unsigned charge power to propose for the batteries in the pool.
                 If None, the proposed power of higher priority actors will take
                 precedence as the target power.
-            request_timeout: The timeout for the request.
 
         Raises:
             ValueError: If the given power is negative.
@@ -179,17 +169,11 @@ class BatteryPool:
                 component_ids=self._pool_ref_store._batteries,
                 priority=self._priority,
                 creation_time=asyncio.get_running_loop().time(),
-                request_timeout=request_timeout,
                 set_operating_point=self._set_operating_point,
             )
         )
 
-    async def propose_discharge(
-        self,
-        power: Power | None,
-        *,
-        request_timeout: timedelta = timedelta(seconds=5.0),
-    ) -> None:
+    async def propose_discharge(self, power: Power | None) -> None:
         """Set the given discharge power for the batteries in the pool.
 
         Power values need to be positive values, indicating discharge power.
@@ -211,7 +195,6 @@ class BatteryPool:
             power: The unsigned discharge power to propose for the batteries in the
                 pool.  If None, the proposed power of higher priority actors will take
                 precedence as the target power.
-            request_timeout: The timeout for the request.
 
         Raises:
             ValueError: If the given power is negative.
@@ -228,7 +211,6 @@ class BatteryPool:
                 component_ids=self._pool_ref_store._batteries,
                 priority=self._priority,
                 creation_time=asyncio.get_running_loop().time(),
-                request_timeout=request_timeout,
                 set_operating_point=self._set_operating_point,
             )
         )

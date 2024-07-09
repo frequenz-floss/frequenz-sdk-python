@@ -230,9 +230,7 @@ class TestBatteryPoolControl:
                 await asyncio.sleep(1000.0)
 
         set_power.side_effect = side_effect
-        await battery_pool.propose_power(
-            Power.from_watts(100.0), request_timeout=timedelta(seconds=0.1)
-        )
+        await battery_pool.propose_power(Power.from_watts(100.0))
         self._assert_report(
             await bounds_rx.receive(),
             power=100.0,

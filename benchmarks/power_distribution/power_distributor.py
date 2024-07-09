@@ -120,6 +120,7 @@ async def run_test(  # pylint: disable=too-many-locals
         requests_receiver=power_request_channel.new_receiver(),
         results_sender=power_result_channel.new_sender(),
         component_pool_status_sender=battery_status_channel.new_sender(),
+        api_power_request_timeout=timedelta(seconds=5.0),
     ):
         tasks: list[Coroutine[Any, Any, list[Result]]] = []
         tasks.append(send_requests(batteries, num_requests))

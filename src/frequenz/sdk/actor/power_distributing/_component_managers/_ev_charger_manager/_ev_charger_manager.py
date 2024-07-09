@@ -32,8 +32,6 @@ from ._states import EvcState, EvcStates
 
 _logger = logging.getLogger(__name__)
 
-_DEFAULT_API_REQUEST_TIMEOUT = timedelta(seconds=5.0)
-
 
 class EVChargerManager(ComponentManager):
     """Manage ev chargers for the power distributor."""
@@ -43,6 +41,7 @@ class EVChargerManager(ComponentManager):
         self,
         component_pool_status_sender: Sender[ComponentPoolStatus],
         results_sender: Sender[Result],
+        api_power_request_timeout: timedelta,
     ):
         """Initialize the ev charger data manager.
 
@@ -50,8 +49,11 @@ class EVChargerManager(ComponentManager):
             component_pool_status_sender: Channel for sending information about which
                 components are expected to be working.
             results_sender: Channel for sending results of power distribution.
+            api_power_request_timeout: Timeout to use when making power requests to
+                the microgrid API.
         """
         self._results_sender = results_sender
+        self._api_power_request_timeout = api_power_request_timeout
         self._ev_charger_ids = self._get_ev_charger_ids()
         self._evc_states = EvcStates()
         self._voltage_cache: LatestValueCache[Sample3Phase[Voltage]] = LatestValueCache(
@@ -226,7 +228,6 @@ class EVChargerManager(ComponentManager):
             *[await api.ev_charger_data(evc_id) for evc_id in self._ev_charger_ids]
         )
         target_power_rx = self._target_power_channel.new_receiver()
-        api_request_timeout = _DEFAULT_API_REQUEST_TIMEOUT
         latest_target_powers: dict[int, Power] = {}
         async for selected in select(ev_charger_data_rx, target_power_rx):
             target_power_changes = {}
@@ -260,7 +261,6 @@ class EVChargerManager(ComponentManager):
 
             elif selected_from(selected, target_power_rx):
                 self._latest_request = selected.message
-                api_request_timeout = selected.message.request_timeout
                 self._target_power = selected.message.power
                 _logger.debug("New target power: %s", self._target_power)
                 used_power = self._evc_states.get_ev_total_used_power()
@@ -288,7 +288,7 @@ class EVChargerManager(ComponentManager):
 
             latest_target_powers.update(target_power_changes)
             result = await self._set_api_power(
-                api, target_power_changes, api_request_timeout
+                api, target_power_changes, self._api_power_request_timeout
             )
             await self._results_sender.send(result)
 

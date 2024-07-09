@@ -14,6 +14,7 @@ import logging
 import typing
 from collections import abc
 from dataclasses import dataclass
+from datetime import timedelta
 
 from frequenz.channels import Broadcast, Sender
 from frequenz.client.microgrid import ComponentCategory, InverterType
@@ -79,11 +80,14 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
     def __init__(
         self,
         resampler_config: ResamplerConfig,
+        api_power_request_timeout: timedelta = timedelta(seconds=5.0),
     ) -> None:
         """Create a `DataPipeline` instance.
 
         Args:
             resampler_config: Config to pass on to the resampler.
+            api_power_request_timeout: Timeout to use when making power requests to
+                the microgrid API.
         """
         from ..actor import ChannelRegistry
 
@@ -97,13 +101,18 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._resampling_actor: _ActorInfo | None = None
 
         self._battery_power_wrapper = PowerWrapper(
-            self._channel_registry, component_category=ComponentCategory.BATTERY
+            self._channel_registry,
+            api_power_request_timeout=api_power_request_timeout,
+            component_category=ComponentCategory.BATTERY,
         )
         self._ev_power_wrapper = PowerWrapper(
-            self._channel_registry, component_category=ComponentCategory.EV_CHARGER
+            self._channel_registry,
+            api_power_request_timeout=api_power_request_timeout,
+            component_category=ComponentCategory.EV_CHARGER,
         )
         self._pv_power_wrapper = PowerWrapper(
             self._channel_registry,
+            api_power_request_timeout=api_power_request_timeout,
             component_category=ComponentCategory.INVERTER,
             component_type=InverterType.SOLAR,
         )
@@ -485,11 +494,18 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 _DATA_PIPELINE: _DataPipeline | None = None
 
 
-async def initialize(resampler_config: ResamplerConfig) -> None:
+async def initialize(
+    resampler_config: ResamplerConfig,
+    api_power_request_timeout: timedelta = timedelta(seconds=5.0),
+) -> None:
     """Initialize a `DataPipeline` instance.
 
     Args:
         resampler_config: Config to pass on to the resampler.
+        api_power_request_timeout: Timeout to use when making power requests to
+            the microgrid API.  When requests to components timeout, they will
+            be marked as blocked for a short duration, during which time they
+            will be unavailable from the corresponding component pools.
 
     Raises:
         RuntimeError: if the DataPipeline is already initialized.
@@ -498,7 +514,7 @@ async def initialize(resampler_config: ResamplerConfig) -> None:
 
     if _DATA_PIPELINE is not None:
         raise RuntimeError("DataPipeline is already initialized.")
-    _DATA_PIPELINE = _DataPipeline(resampler_config)
+    _DATA_PIPELINE = _DataPipeline(resampler_config, api_power_request_timeout)
 
 
 def frequency() -> GridFrequency:
