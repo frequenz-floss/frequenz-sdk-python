@@ -19,6 +19,8 @@
 
 * Passing a `request_timeout` in calls to `*_pool.propose_power` is no longer supported.  It may be specified at application startup, through the new optional `api_power_request_timeout` parameter in the `microgrid.initialize()` method.
 
+- Power distribution results are no longer available through the `power_status` streams in the `*Pool`s.    They can now be accessed as a stream from a separate property `power_distribution_results`, which is available from all the `*Pool`s.
+
 ## New Features
 
 - Classes `Bounds` and `SystemBounds` now implement the `__contains__` method, allowing the use of the `in` operator to check whether a value falls within the bounds or not.
