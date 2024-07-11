@@ -10,7 +10,7 @@ import math
 import typing
 from datetime import timedelta
 
-from frequenz.channels import Receiver, Sender
+from frequenz.channels import LatestValueCache, Receiver, Sender
 from frequenz.client.microgrid import (
     BatteryData,
     ClientError,
@@ -21,7 +21,6 @@ from frequenz.client.microgrid import (
 from typing_extensions import override
 
 from .... import microgrid
-from ...._internal._channels import LatestValueCache
 from ...._internal._math import is_close_to_zero
 from ....microgrid import connection_manager
 from ....timeseries._quantities import Power

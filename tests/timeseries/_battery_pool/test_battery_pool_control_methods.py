@@ -10,11 +10,10 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from frequenz.channels import Sender
+from frequenz.channels import LatestValueCache, Sender
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid, timeseries
-from frequenz.sdk._internal._channels import LatestValueCache
 from frequenz.sdk.actor import ResamplerConfig, power_distributing
 from frequenz.sdk.actor.power_distributing import ComponentPoolStatus
 from frequenz.sdk.actor.power_distributing._component_pool_status_tracker import (
