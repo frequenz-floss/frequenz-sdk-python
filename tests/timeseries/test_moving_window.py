@@ -13,10 +13,13 @@ import pytest
 import time_machine
 from frequenz.channels import Broadcast, Sender
 
-from frequenz.sdk.timeseries import UNIX_EPOCH, Sample
-from frequenz.sdk.timeseries._moving_window import MovingWindow
-from frequenz.sdk.timeseries._quantities import Quantity
-from frequenz.sdk.timeseries._resampling import ResamplerConfig
+from frequenz.sdk.timeseries import (
+    UNIX_EPOCH,
+    MovingWindow,
+    Quantity,
+    ResamplerConfig,
+    Sample,
+)
 
 
 @pytest.fixture(autouse=True)
