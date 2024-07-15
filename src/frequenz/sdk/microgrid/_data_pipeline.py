@@ -269,6 +269,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                     power_manager_bounds_subs_sender=(
                         self._ev_power_wrapper.bounds_subscription_channel.new_sender()
                     ),
+                    power_distribution_results_fetcher=(
+                        self._ev_power_wrapper.distribution_results_fetcher()
+                    ),
                     component_ids=component_ids,
                 )
             )
@@ -342,6 +345,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 ),
                 power_manager_bounds_subs_sender=(
                     self._pv_power_wrapper.bounds_subscription_channel.new_sender()
+                ),
+                power_distribution_results_fetcher=(
+                    self._pv_power_wrapper.distribution_results_fetcher()
                 ),
                 component_ids=component_ids,
             )
@@ -419,6 +425,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                     ),
                     power_manager_bounds_subscription_sender=(
                         self._battery_power_wrapper.bounds_subscription_channel.new_sender()
+                    ),
+                    power_distribution_results_fetcher=(
+                        self._battery_power_wrapper.distribution_results_fetcher()
                     ),
                     min_update_interval=self._resampler_config.resampling_period,
                     batteries_id=component_ids,

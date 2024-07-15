@@ -14,6 +14,7 @@ from frequenz.channels import Sender
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid, timeseries
+from frequenz.sdk._internal._channels import LatestValueCache
 from frequenz.sdk.actor import ResamplerConfig, power_distributing
 from frequenz.sdk.actor.power_distributing import ComponentPoolStatus
 from frequenz.sdk.actor.power_distributing._component_pool_status_tracker import (
@@ -161,6 +162,7 @@ class TestBatteryPoolControl:
         power: float | None,
         lower: float,
         upper: float,
+        dist_result: power_distributing.Result | None = None,
         expected_result_pred: (
             typing.Callable[[power_distributing.Result], bool] | None
         ) = None,
@@ -172,8 +174,8 @@ class TestBatteryPoolControl:
         assert report.bounds.lower == Power.from_watts(lower)
         assert report.bounds.upper == Power.from_watts(upper)
         if expected_result_pred is not None:
-            assert report.distribution_result is not None
-            assert expected_result_pred(report.distribution_result)
+            assert dist_result is not None
+            assert expected_result_pred(dist_result)
 
     async def test_case_1(
         self,
@@ -196,6 +198,9 @@ class TestBatteryPoolControl:
         battery_pool = microgrid.new_battery_pool(priority=5)
 
         bounds_rx = battery_pool.power_status.new_receiver()
+        latest_dist_result = LatestValueCache(
+            battery_pool.power_distribution_results.new_receiver()
+        )
 
         self._assert_report(
             await bounds_rx.receive(), power=None, lower=-4000.0, upper=4000.0
@@ -217,6 +222,7 @@ class TestBatteryPoolControl:
             power=1000.0,
             lower=-4000.0,
             upper=4000.0,
+            dist_result=latest_dist_result.get(),
             expected_result_pred=lambda result: isinstance(
                 result, power_distributing.Success
             ),
@@ -236,6 +242,7 @@ class TestBatteryPoolControl:
             power=100.0,
             lower=-4000.0,
             upper=4000.0,
+            dist_result=latest_dist_result.get(),
             expected_result_pred=lambda result: isinstance(
                 result, power_distributing.Success
             ),
@@ -250,6 +257,7 @@ class TestBatteryPoolControl:
             power=100.0,
             lower=-4000.0,
             upper=4000.0,
+            dist_result=latest_dist_result.get(),
             expected_result_pred=lambda result: isinstance(
                 result, power_distributing.PartialFailure
             )
@@ -267,6 +275,7 @@ class TestBatteryPoolControl:
             power=100.0,
             lower=-4000.0,
             upper=4000.0,
+            dist_result=latest_dist_result.get(),
             expected_result_pred=lambda result: isinstance(
                 result, power_distributing.Success
             ),
@@ -294,6 +303,9 @@ class TestBatteryPoolControl:
             priority=5, component_ids=set(mocks.microgrid.battery_ids[2:])
         )
         bounds_2_rx = battery_pool_2.power_status.new_receiver()
+        latest_dist_result_2 = LatestValueCache(
+            battery_pool_2.power_distribution_results.new_receiver()
+        )
 
         self._assert_report(
             await bounds_1_rx.receive(), power=None, lower=-2000.0, upper=2000.0
@@ -313,8 +325,9 @@ class TestBatteryPoolControl:
         set_power.reset_mock()
 
         await battery_pool_2.propose_power(Power.from_watts(1000.0))
+
         bounds = await bounds_2_rx.receive()
-        if bounds.distribution_result is None:
+        if not latest_dist_result_2.has_value():
             bounds = await bounds_2_rx.receive()
         self._assert_report(bounds, power=1000.0, lower=-2000.0, upper=2000.0)
         assert set_power.call_count == 2
@@ -341,6 +354,9 @@ class TestBatteryPoolControl:
         bounds_1_rx = battery_pool_1.power_status.new_receiver()
         battery_pool_2 = microgrid.new_battery_pool(priority=1)
         bounds_2_rx = battery_pool_2.power_status.new_receiver()
+        latest_dist_result_2 = LatestValueCache(
+            battery_pool_2.power_distribution_results.new_receiver()
+        )
 
         self._assert_report(
             await bounds_1_rx.receive(), power=None, lower=-4000.0, upper=4000.0
@@ -374,7 +390,7 @@ class TestBatteryPoolControl:
             await bounds_1_rx.receive(), power=0.0, lower=-4000.0, upper=4000.0
         )
         bounds = await bounds_2_rx.receive()
-        if bounds.distribution_result is None:
+        if not latest_dist_result_2.has_value():
             bounds = await bounds_2_rx.receive()
         self._assert_report(bounds, power=0.0, lower=-1000.0, upper=0.0)
 
@@ -398,6 +414,9 @@ class TestBatteryPoolControl:
 
         battery_pool = microgrid.new_battery_pool(priority=5)
         bounds_rx = battery_pool.power_status.new_receiver()
+        latest_dist_result = LatestValueCache(
+            battery_pool.power_distribution_results.new_receiver()
+        )
 
         self._assert_report(
             await bounds_rx.receive(), power=None, lower=-4000.0, upper=4000.0
@@ -418,6 +437,7 @@ class TestBatteryPoolControl:
             power=1000.0,
             lower=-4000.0,
             upper=4000.0,
+            dist_result=latest_dist_result.get(),
             expected_result_pred=lambda result: isinstance(
                 result, power_distributing.Success
             ),
@@ -442,6 +462,7 @@ class TestBatteryPoolControl:
             power=400.0,
             lower=-4000.0,
             upper=4000.0,
+            dist_result=latest_dist_result.get(),
             expected_result_pred=lambda result: isinstance(
                 result, power_distributing.Success
             ),
@@ -464,6 +485,7 @@ class TestBatteryPoolControl:
             power=0.0,
             lower=-4000.0,
             upper=4000.0,
+            dist_result=latest_dist_result.get(),
             expected_result_pred=lambda result: isinstance(
                 result, power_distributing.Success
             ),
@@ -488,12 +510,13 @@ class TestBatteryPoolControl:
             power=-400.0,
             lower=-4000.0,
             upper=4000.0,
+            dist_result=latest_dist_result.get(),
             expected_result_pred=lambda result: isinstance(
                 result, power_distributing.Success
             ),
         )
 
-    async def test_case_5(  # pylint: disable=too-many-statements
+    async def test_case_5(  # pylint: disable=too-many-statements,too-many-locals
         self,
         mocks: Mocks,
         mocker: MockerFixture,
@@ -524,6 +547,10 @@ class TestBatteryPoolControl:
         bounds_2_rx = battery_pool_2.power_status.new_receiver()
         battery_pool_1 = microgrid.new_battery_pool(priority=1)
         bounds_1_rx = battery_pool_1.power_status.new_receiver()
+
+        latest_dist_result_4 = LatestValueCache(
+            battery_pool_4.power_distribution_results.new_receiver()
+        )
 
         self._assert_report(
             await bounds_4_rx.receive(), power=None, lower=-4000.0, upper=4000.0
@@ -587,12 +614,13 @@ class TestBatteryPoolControl:
             await bounds_1_rx.receive()
             await bounds_2_rx.receive()
             await bounds_3_rx.receive()
-            bounds = await bounds_4_rx.receive()
-            if bounds.distribution_result is None or not isinstance(
-                bounds.distribution_result, power_distributing.Success
+            await bounds_4_rx.receive()
+            dist_result = latest_dist_result_4.get()
+            if dist_result is None or not isinstance(
+                dist_result, power_distributing.Success
             ):
                 continue
-            if bounds.distribution_result.succeeded_power == Power.from_watts(720.0):
+            if dist_result.succeeded_power == Power.from_watts(720.0):
                 break
 
         assert set_power.call_count == 4
@@ -626,12 +654,13 @@ class TestBatteryPoolControl:
             await bounds_1_rx.receive()
             await bounds_2_rx.receive()
             await bounds_3_rx.receive()
-            bounds = await bounds_4_rx.receive()
-            if bounds.distribution_result is None or not isinstance(
-                bounds.distribution_result, power_distributing.Success
+            await bounds_4_rx.receive()
+            dist_result = latest_dist_result_4.get()
+            if dist_result is None or not isinstance(
+                dist_result, power_distributing.Success
             ):
                 continue
-            if bounds.distribution_result.succeeded_power == Power.from_watts(-280.0):
+            if dist_result.succeeded_power == Power.from_watts(-280.0):
                 break
 
         assert set_power.call_count == 4

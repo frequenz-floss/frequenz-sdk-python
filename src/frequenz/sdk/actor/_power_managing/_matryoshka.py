@@ -32,7 +32,6 @@ from ._base_classes import BaseAlgorithm, Proposal, _Report
 
 if typing.TYPE_CHECKING:
     from ...timeseries._base_types import SystemBounds
-    from .. import power_distributing
 
 _logger = logging.getLogger(__name__)
 
@@ -225,7 +224,6 @@ class Matryoshka(BaseAlgorithm):
         component_ids: frozenset[int],
         priority: int,
         system_bounds: SystemBounds,
-        distribution_result: power_distributing.Result | None,
     ) -> _Report:
         """Get the bounds for the algorithm.
 
@@ -233,7 +231,6 @@ class Matryoshka(BaseAlgorithm):
             component_ids: The IDs of the components to get the bounds for.
             priority: The priority of the actor for which the bounds are requested.
             system_bounds: The system bounds for the components.
-            distribution_result: The result of the last power distribution.
 
         Returns:
             The target power and the available bounds for the given components, for
@@ -245,7 +242,6 @@ class Matryoshka(BaseAlgorithm):
                 target_power=target_power,
                 _inclusion_bounds=None,
                 _exclusion_bounds=system_bounds.exclusion_bounds,
-                distribution_result=distribution_result,
             )
 
         lower_bound = system_bounds.inclusion_bounds.lower
@@ -284,7 +280,6 @@ class Matryoshka(BaseAlgorithm):
                 lower=lower_bound, upper=upper_bound
             ),
             _exclusion_bounds=system_bounds.exclusion_bounds,
-            distribution_result=distribution_result,
         )
 
     @override

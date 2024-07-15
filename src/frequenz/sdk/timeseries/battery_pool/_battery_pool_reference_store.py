@@ -14,9 +14,11 @@ from frequenz.channels import Receiver, Sender
 from frequenz.client.microgrid import ComponentCategory
 
 from ..._internal._asyncio import cancel_and_await
+from ..._internal._channels import ReceiverFetcher
 from ...actor._channel_registry import ChannelRegistry
 from ...actor._data_sourcing._component_metric_request import ComponentMetricRequest
 from ...actor._power_managing._base_classes import Proposal, ReportRequest
+from ...actor.power_distributing import Result
 from ...actor.power_distributing._component_status import ComponentPoolStatus
 from ...microgrid import connection_manager
 from ..formula_engine._formula_engine_pool import FormulaEnginePool
@@ -43,6 +45,7 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
         batteries_status_receiver: Receiver[ComponentPoolStatus],
         power_manager_requests_sender: Sender[Proposal],
         power_manager_bounds_subscription_sender: Sender[ReportRequest],
+        power_distribution_results_fetcher: ReceiverFetcher[Result],
         min_update_interval: timedelta,
         batteries_id: Set[int] | None = None,
     ) -> None:
@@ -63,6 +66,8 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
                 requests to the power managing actor.
             power_manager_bounds_subscription_sender: A Channel sender for sending
                 power bounds requests to the power managing actor.
+            power_distribution_results_fetcher: A ReceiverFetcher for the results from
+                the power distributing actor.
             min_update_interval: Some metrics in BatteryPool are send only when they
                 change. For these metrics min_update_interval is the minimum time
                 interval between the following messages.
@@ -105,6 +110,9 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
         self._namespace: str = f"battery-pool-{self._batteries}-{uuid.uuid4()}"
         self._power_distributing_namespace: str = f"power-distributor-{self._namespace}"
         self._channel_registry: ChannelRegistry = channel_registry
+        self._power_dist_results_fetcher: ReceiverFetcher[Result] = (
+            power_distribution_results_fetcher
+        )
         self._formula_pool: FormulaEnginePool = FormulaEnginePool(
             self._namespace,
             self._channel_registry,

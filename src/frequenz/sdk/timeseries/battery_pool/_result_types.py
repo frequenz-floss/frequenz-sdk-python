@@ -6,7 +6,6 @@
 import abc
 import typing
 
-from ...actor import power_distributing
 from .._base_types import Bounds
 from .._quantities import Power
 
@@ -19,13 +18,6 @@ class BatteryPoolReport(typing.Protocol):
     @property
     def target_power(self) -> Power | None:
         """The currently set power for the batteries."""
-
-    @property
-    def distribution_result(self) -> power_distributing.Result | None:
-        """The result of the last power distribution.
-
-        This is `None` if no power distribution has been performed yet.
-        """
 
     @property
     def bounds(self) -> Bounds[Power] | None:

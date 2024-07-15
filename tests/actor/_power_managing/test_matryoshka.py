@@ -70,7 +70,7 @@ class StatefulTester:
     ) -> None:
         """Test the status report."""
         report = self.algorithm.get_status(
-            self._batteries, priority, self._system_bounds, None
+            self._batteries, priority, self._system_bounds
         )
         if expected_power is None:
             assert report.target_power is None
