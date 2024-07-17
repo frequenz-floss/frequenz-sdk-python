@@ -8,12 +8,11 @@ import logging
 from dataclasses import dataclass
 from datetime import timedelta
 
-from frequenz.channels import Broadcast, Sender, select, selected_from
+from frequenz.channels import Broadcast, LatestValueCache, Sender, select, selected_from
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.microgrid import ComponentCategory, MeterData
 
 from ..._internal._asyncio import cancel_and_await
-from ..._internal._channels import LatestValueCache
 from ...microgrid import connection_manager
 
 _logger = logging.getLogger(__name__)

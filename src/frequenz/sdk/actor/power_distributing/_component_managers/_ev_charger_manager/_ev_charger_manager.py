@@ -8,7 +8,14 @@ import collections.abc
 import logging
 from datetime import datetime, timedelta, timezone
 
-from frequenz.channels import Broadcast, Sender, merge, select, selected_from
+from frequenz.channels import (
+    Broadcast,
+    LatestValueCache,
+    Sender,
+    merge,
+    select,
+    selected_from,
+)
 from frequenz.client.microgrid import (
     ApiClient,
     ClientError,
@@ -19,7 +26,6 @@ from typing_extensions import override
 
 from frequenz.sdk import microgrid
 
-from ....._internal._channels import LatestValueCache
 from ....._internal._math import is_close_to_zero
 from .....timeseries import Power, Sample3Phase, Voltage
 from ..._component_pool_status_tracker import ComponentPoolStatusTracker

@@ -8,7 +8,7 @@ import collections.abc
 import logging
 from datetime import timedelta
 
-from frequenz.channels import Broadcast, Sender
+from frequenz.channels import Broadcast, LatestValueCache, Sender
 from frequenz.client.microgrid import (
     ClientError,
     ComponentCategory,
@@ -17,7 +17,6 @@ from frequenz.client.microgrid import (
 )
 from typing_extensions import override
 
-from ....._internal._channels import LatestValueCache
 from ....._internal._math import is_close_to_zero
 from .....microgrid import connection_manager
 from .....timeseries import Power
