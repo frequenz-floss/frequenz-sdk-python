@@ -30,3 +30,4 @@
 - Fixed a typing issue that occurs in some cases when composing formulas with constants.
 - Fixed a bug where sending tasks in the data sourcing actor might have not been properly awaited.
 - Updated the logical meter documentation to reflect the latest changes.
+- Fixed a bug in the code examples in the getting-started tutorial.
