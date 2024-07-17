@@ -44,7 +44,7 @@ microgrid.
 ```python
 async def run() -> None:
     # This points to the default Frequenz microgrid sandbox
-    server_url = "grpc://microgrid.sandbox.api.frequenz.io:62060",
+    server_url = "grpc://microgrid.sandbox.api.frequenz.io:62060"
 
     # Initialize the microgrid
     await microgrid.initialize(
@@ -104,7 +104,7 @@ from frequenz.sdk.actor import ResamplerConfig
 
 async def run() -> None:
     # This points to the default Frequenz microgrid sandbox
-    server_url = "grpc://microgrid.sandbox.api.frequenz.io:62060",
+    server_url = "grpc://microgrid.sandbox.api.frequenz.io:62060"
 
     # Initialize the microgrid
     await microgrid.initialize(
