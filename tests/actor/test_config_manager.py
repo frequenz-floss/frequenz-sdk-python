@@ -2,6 +2,7 @@
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
 """Test for ConfigManager."""
+import os
 import pathlib
 from typing import Any
 
@@ -50,17 +51,6 @@ class TestActorConfigManager:
     def config_file(self, tmp_path: pathlib.Path) -> pathlib.Path:
         """Create a test config file."""
         file_path = tmp_path / TestActorConfigManager.conf_path
-        file_path.parent.mkdir()
-        file_path.touch()
-        file_path.write_text(TestActorConfigManager.conf_content)
-        return file_path
-
-    @pytest.fixture()
-    def real_config_file(
-        self, tmp_path: pathlib.Path = pathlib.Path("/tmp/")
-    ) -> pathlib.Path:
-        """Create a test config file."""
-        file_path = tmp_path / TestActorConfigManager.conf_path
         if not file_path.exists():
             file_path.parent.mkdir()
             file_path.touch()
@@ -97,4 +87,27 @@ class TestActorConfigManager:
             assert config.get("var1") == "0"
             assert config.get("var2") == str(number)
             assert config.get("var3") is None
+            assert config_file.read_text() == create_content(number=number)
+
+    async def test_update_relative_path(self, config_file: pathlib.Path) -> None:
+        """Test ConfigManagingActor with a relative path."""
+        config_channel: Broadcast[dict[str, Any]] = Broadcast(
+            name="Config Channel", resend_latest=True
+        )
+        config_receiver = config_channel.new_receiver()
+
+        current_dir = pathlib.Path.cwd()
+        relative_path = os.path.relpath(config_file, current_dir)
+
+        async with ConfigManagingActor(relative_path, config_channel.new_sender()):
+            config = await config_receiver.receive()
+            assert config is not None
+            assert config.get("var2") is None
+
+            number = 8
+            config_file.write_text(create_content(number=number))
+
+            config = await config_receiver.receive()
+            assert config is not None
+            assert config.get("var2") == str(number)
             assert config_file.read_text() == create_content(number=number)
