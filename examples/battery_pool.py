@@ -13,8 +13,7 @@ from frequenz.channels import merge
 from frequenz.sdk import microgrid
 from frequenz.sdk.actor import ResamplerConfig
 
-HOST = "microgrid.sandbox.api.frequenz.io"  # it should be the host name.
-PORT = 62060
+MICROGRID_API_URL = "grpc://microgrid.sandbox.api.frequenz.io:62060"
 
 
 async def main() -> None:
@@ -26,7 +25,7 @@ async def main() -> None:
     logging.getLogger("hpack.hpack").setLevel(logging.INFO)
 
     await microgrid.initialize(
-        "grpc://microgrid.sandbox.api.frequenz.io:62060",
+        MICROGRID_API_URL,
         resampler_config=ResamplerConfig(resampling_period=timedelta(seconds=1.0)),
     )
 
