@@ -25,7 +25,7 @@ async def main() -> None:
     logging.getLogger("hpack.hpack").setLevel(logging.INFO)
 
     await microgrid.initialize(
-        "grpc://microgrid.sandbox.api.frequenz.io:62060",
+        MICROGRID_API_URL,
         resampler_config=ResamplerConfig(resampling_period=timedelta(seconds=1.0)),
     )
 
