@@ -93,7 +93,7 @@ class ConfigManagingActor(Actor):
         async for event in self._file_watcher:
             # Since we are watching the whole parent directory, we need to make sure
             # we only react to events related to the configuration file.
-            if event.path != self._config_path:
+            if not event.path.samefile(self._config_path):
                 continue
 
             match event.type:
