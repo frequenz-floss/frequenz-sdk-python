@@ -31,4 +31,4 @@
 - Fixed a bug where sending tasks in the data sourcing actor might have not been properly awaited.
 - Updated the logical meter documentation to reflect the latest changes.
 - Fixed a bug in the code examples in the getting-started tutorial.
-- Fixed a bug in ConfigManagingActor that was not properly comparing the event path to the config file path when the config file is a relative path.
+- Fixed a bug in `ConfigManagingActor` that was not properly comparing the event path to the config file path when the config file is a relative path.
