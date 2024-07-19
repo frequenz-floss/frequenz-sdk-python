@@ -746,7 +746,7 @@ class _ResamplingHelper:
         # resort to some C (or similar) implementation.
         relevant_samples = list(itertools.islice(self._buffer, min_index, max_index))
         if not relevant_samples:
-            _logger.warning("No relevant samples found for component: %s", self._name)
+            _logger.warning("No relevant samples found for: %s", self._name)
         value = (
             conf.resampling_function(relevant_samples, conf, props)
             if relevant_samples
