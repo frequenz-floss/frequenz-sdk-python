@@ -46,6 +46,8 @@ class ComponentMetricRequest:
             A string denoting a channel name.
         """
         return (
-            f"component-stream::{self.component_id}::{self.metric_id.name}::"
-            f"{self.start_time}::{self.namespace}"
+            f"component_metric_request<namespace={self.namespace},"
+            f"component_id={self.component_id},"
+            f"metric_id={self.metric_id.name},"
+            f"start={self.start_time}>"
         )

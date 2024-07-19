@@ -25,6 +25,10 @@
 
 - Classes `Bounds` and `SystemBounds` now implement the `__contains__` method, allowing the use of the `in` operator to check whether a value falls within the bounds or not.
 
+## Enhancements
+
+- The resampler now shows an error message where it is easier to identify the component and metric when it can't find relevant data for the current resampling window.
+
 ## Bug Fixes
 
 - Fixed a typing issue that occurs in some cases when composing formulas with constants.
