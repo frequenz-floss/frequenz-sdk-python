@@ -32,7 +32,7 @@ class ConfigManagingActor(Actor):
     def __init__(
         self,
         config_path: pathlib.Path | str,
-        output: Sender[dict[str, Any]],
+        output: Sender[abc.Mapping[str, Any]],
         event_types: abc.Set[EventType] = frozenset(EventType),
         *,
         name: str | None = None,
@@ -58,9 +58,9 @@ class ConfigManagingActor(Actor):
         self._file_watcher: FileWatcher = FileWatcher(
             paths=[self._config_path.parent], event_types=event_types
         )
-        self._output: Sender[dict[str, Any]] = output
+        self._output: Sender[abc.Mapping[str, Any]] = output
 
-    def _read_config(self) -> dict[str, Any]:
+    def _read_config(self) -> abc.Mapping[str, Any]:
         """Read the contents of the configuration file.
 
         Returns:
