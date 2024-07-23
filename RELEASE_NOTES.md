@@ -21,6 +21,8 @@
 
 - Power distribution results are no longer available through the `power_status` streams in the `*Pool`s.    They can now be accessed as a stream from a separate property `power_distribution_results`, which is available from all the `*Pool`s.
 
+- The `ConfigManagingActor` now uses `collections.abc.Mapping` as the output sender type. This change indicates that the broadcasted configuration is intended to be read-only.
+
 ## New Features
 
 - Classes `Bounds` and `SystemBounds` now implement the `__contains__` method, allowing the use of the `in` operator to check whether a value falls within the bounds or not.

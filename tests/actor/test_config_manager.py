@@ -4,6 +4,7 @@
 """Test for ConfigManager."""
 import os
 import pathlib
+from collections.abc import Mapping
 from typing import Any
 
 import pytest
@@ -65,7 +66,7 @@ class TestActorConfigManager:
         - the initial content of the content file is correct
         - the config file modifications are picked up and the new content is correct
         """
-        config_channel: Broadcast[dict[str, Any]] = Broadcast(
+        config_channel: Broadcast[Mapping[str, Any]] = Broadcast(
             name="Config Channel", resend_latest=True
         )
         config_receiver = config_channel.new_receiver()
@@ -91,7 +92,7 @@ class TestActorConfigManager:
 
     async def test_update_relative_path(self, config_file: pathlib.Path) -> None:
         """Test ConfigManagingActor with a relative path."""
-        config_channel: Broadcast[dict[str, Any]] = Broadcast(
+        config_channel: Broadcast[Mapping[str, Any]] = Broadcast(
             name="Config Channel", resend_latest=True
         )
         config_receiver = config_channel.new_receiver()
