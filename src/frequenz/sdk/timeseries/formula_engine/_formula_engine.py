@@ -12,7 +12,7 @@ import logging
 from abc import ABC
 from collections import deque
 from collections.abc import Callable
-from typing import Generic, Self, Union
+from typing import Any, Generic, Self, TypeVar
 
 from frequenz.channels import Broadcast, Receiver
 
@@ -53,20 +53,6 @@ _operator_precedence = {
     ")": 9,
 }
 """The dictionary of operator precedence for the shunting yard algorithm."""
-
-
-# The `FormulaEngine*` and `HigherOrderFormulaBuilder*` classes are generic, but
-# `TypeVar`s can't be defined on generic types, so we need to use `# type: ignore` to
-# avoid mypy errors, and they get treated as `FormulaEngine[Any]`, etc.
-#
-# This is not ideal, but it's the best we can do until mypy supports generic types with
-# `TypeVar`s.
-_CompositionType = Union[
-    "FormulaEngine",  # type: ignore[type-arg]
-    "HigherOrderFormulaBuilder",  # type: ignore[type-arg]
-    "FormulaEngine3Phase",  # type: ignore[type-arg]
-    "HigherOrderFormulaBuilder3Phase",  # type: ignore[type-arg]
-]
 
 
 class FormulaEngine(Generic[QuantityT]):
@@ -868,12 +854,17 @@ class FormulaBuilder(Generic[QuantityT]):
         return FormulaEngine(self, create_method=self._create_method)
 
 
-class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
+FormulaEngineT = TypeVar(
+    "FormulaEngineT", bound=(FormulaEngine[Any] | FormulaEngine3Phase[Any])
+)
+
+
+class _BaseHOFormulaBuilder(ABC, Generic[FormulaEngineT, QuantityT]):
     """Provides a way to build formulas from the outputs of other formulas."""
 
     def __init__(
         self,
-        engine: FormulaEngine[QuantityT] | FormulaEngine3Phase[QuantityT],
+        engine: FormulaEngineT,
         create_method: Callable[[float], QuantityT],
     ) -> None:
         """Create a `GenericHigherOrderFormulaBuilder` instance.
@@ -898,7 +889,11 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         self._steps.append((TokenType.COMPONENT_METRIC, engine))
         self._create_method: Callable[[float], QuantityT] = create_method
 
-    def _push(self, oper: str, other: _CompositionType | QuantityT | float) -> Self:
+    def _push(
+        self,
+        oper: str,
+        other: Self | FormulaEngineT | QuantityT | float,
+    ) -> Self:
         self._steps.appendleft((TokenType.OPER, "("))
         self._steps.append((TokenType.OPER, ")"))
         self._steps.append((TokenType.OPER, oper))
@@ -927,7 +922,10 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
             raise RuntimeError(f"Can't build a formula from: {other}")
         return self
 
-    def __add__(self, other: _CompositionType | QuantityT) -> Self:
+    def __add__(
+        self,
+        other: Self | FormulaEngineT | QuantityT,
+    ) -> Self:
         """Return a formula builder that adds (data in) `other` to `self`.
 
         Args:
@@ -942,7 +940,7 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
 
     def __sub__(
         self,
-        other: _CompositionType | QuantityT,
+        other: Self | FormulaEngineT | QuantityT,
     ) -> Self:
         """Return a formula builder that subtracts (data in) `other` from `self`.
 
@@ -958,7 +956,7 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
 
     def __mul__(
         self,
-        other: _CompositionType | float,
+        other: Self | FormulaEngineT | float,
     ) -> Self:
         """Return a formula builder that multiplies (data in) `self` with `other`.
 
@@ -974,7 +972,7 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
 
     def __truediv__(
         self,
-        other: _CompositionType | float,
+        other: Self | FormulaEngineT | float,
     ) -> Self:
         """Return a formula builder that divides (data in) `self` by `other`.
 
@@ -988,7 +986,10 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         """
         return self._push("/", other)
 
-    def max(self, other: _CompositionType | QuantityT) -> Self:
+    def max(
+        self,
+        other: Self | FormulaEngineT | QuantityT,
+    ) -> Self:
         """Return a formula builder that calculates the maximum of `self` and `other`.
 
         Args:
@@ -1001,7 +1002,10 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         """
         return self._push("max", other)
 
-    def min(self, other: _CompositionType | QuantityT) -> Self:
+    def min(
+        self,
+        other: Self | FormulaEngineT | QuantityT,
+    ) -> Self:
         """Return a formula builder that calculates the minimum of `self` and `other`.
 
         Args:
@@ -1049,7 +1053,9 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         return self
 
 
-class HigherOrderFormulaBuilder(Generic[QuantityT], _BaseHOFormulaBuilder[QuantityT]):
+class HigherOrderFormulaBuilder(
+    Generic[QuantityT], _BaseHOFormulaBuilder[FormulaEngine[QuantityT], QuantityT]
+):
     """A specialization of the _BaseHOFormulaBuilder for `FormulaReceiver`."""
 
     def build(
@@ -1086,7 +1092,7 @@ class HigherOrderFormulaBuilder(Generic[QuantityT], _BaseHOFormulaBuilder[Quanti
 
 
 class HigherOrderFormulaBuilder3Phase(
-    Generic[QuantityT], _BaseHOFormulaBuilder[QuantityT]
+    Generic[QuantityT], _BaseHOFormulaBuilder[FormulaEngine3Phase[QuantityT], QuantityT]
 ):
     """A specialization of the _BaseHOFormulaBuilder for `FormulaReceiver3Phase`."""
 
