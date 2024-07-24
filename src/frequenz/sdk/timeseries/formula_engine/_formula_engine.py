@@ -644,7 +644,19 @@ class FormulaEngine3Phase(Generic[QuantityT]):
         if self._task is None:
             self._task = asyncio.create_task(self._run())
 
-        return self._channel.new_receiver(name=name, limit=max_size)
+        recv = self._channel.new_receiver(name=name, limit=max_size)
+
+        # This is a hack to ensure that the lifetime of the engine is tied to the
+        # lifetime of the receiver.  This is necessary because the engine is a task that
+        # runs forever, and in cases where higher order built for example with the below
+        # idiom, the user would hold no references to the engine and it could get
+        # garbage collected before the receiver.  This behaviour is explained in the
+        # `asyncio.create_task` docs here:
+        # https://docs.python.org/3/library/asyncio-task.html#asyncio.create_task
+        #
+        #     formula = (grid_power_engine + bat_power_engine).build().new_receiver()
+        recv._engine_reference = self  # type: ignore # pylint: disable=protected-access
+        return recv
 
 
 class FormulaBuilder(Generic[QuantityT]):
