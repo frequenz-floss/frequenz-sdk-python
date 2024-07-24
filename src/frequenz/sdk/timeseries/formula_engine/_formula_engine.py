@@ -555,13 +555,7 @@ class FormulaEngine(Generic[QuantityT]):
         return recv
 
 
-class FormulaEngine3Phase(
-    _ComposableFormulaEngine[
-        "FormulaEngine3Phase",  # type: ignore[type-arg]
-        "HigherOrderFormulaBuilder3Phase",  # type: ignore[type-arg]
-        QuantityT,
-    ]
-):
+class FormulaEngine3Phase(Generic[QuantityT]):
     """A
     [`FormulaEngine3Phase`][frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase]
     is similar to a
@@ -632,7 +626,7 @@ class FormulaEngine3Phase(
         """
         self._higher_order_builder = HigherOrderFormulaBuilder3Phase
         self._name: str = name
-        self._create_method = create_method
+        self._create_method: Callable[[float], QuantityT] = create_method
         self._channel: Broadcast[Sample3Phase[QuantityT]] = Broadcast(name=self._name)
         self._task: asyncio.Task[None] | None = None
         self._streams: tuple[
@@ -640,6 +634,142 @@ class FormulaEngine3Phase(
             FormulaEngine[QuantityT],
             FormulaEngine[QuantityT],
         ] = phase_streams
+
+    async def _stop(self) -> None:
+        """Stop a running formula engine."""
+        if self._task is None:
+            return
+        await cancel_and_await(self._task)
+
+    def __add__(
+        self,
+        other: (
+            FormulaEngine3Phase[QuantityT] | HigherOrderFormulaBuilder3Phase[QuantityT]
+        ),
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
+        """Return a formula builder that adds (data in) `other` to `self`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder3Phase(self, self._create_method) + other
+
+    def __sub__(
+        self: FormulaEngine3Phase[QuantityT],
+        other: (
+            FormulaEngine3Phase[QuantityT] | HigherOrderFormulaBuilder3Phase[QuantityT]
+        ),
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
+        """Return a formula builder that subtracts (data in) `other` from `self`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder3Phase(self, self._create_method) - other
+
+    def __mul__(
+        self: FormulaEngine3Phase[QuantityT],
+        other: (
+            FormulaEngine3Phase[QuantityT] | HigherOrderFormulaBuilder3Phase[QuantityT]
+        ),
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
+        """Return a formula builder that multiplies (data in) `self` with `other`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder3Phase(self, self._create_method) * other
+
+    def __truediv__(
+        self: FormulaEngine3Phase[QuantityT],
+        other: (
+            FormulaEngine3Phase[QuantityT] | HigherOrderFormulaBuilder3Phase[QuantityT]
+        ),
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
+        """Return a formula builder that divides (data in) `self` by `other`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder3Phase(self, self._create_method) / other
+
+    def max(
+        self: FormulaEngine3Phase[QuantityT],
+        other: (
+            FormulaEngine3Phase[QuantityT] | HigherOrderFormulaBuilder3Phase[QuantityT]
+        ),
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
+        """Return a formula engine that outputs the maximum of `self` and `other`.
+
+        Args:
+            other: A formula receiver, a formula builder or a QuantityT instance
+                corresponding to a sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder3Phase(self, self._create_method).max(other)
+
+    def min(
+        self: FormulaEngine3Phase[QuantityT],
+        other: (
+            FormulaEngine3Phase[QuantityT] | HigherOrderFormulaBuilder3Phase[QuantityT]
+        ),
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
+        """Return a formula engine that outputs the minimum of `self` and `other`.
+
+        Args:
+            other: A formula receiver, a formula builder or a QuantityT instance
+                corresponding to a sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder3Phase(self, self._create_method).min(other)
+
+    def consumption(
+        self: FormulaEngine3Phase[QuantityT],
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
+        """
+        Return a formula builder that applies the consumption operator on `self`.
+
+        The consumption operator returns either the identity if the power value is
+        positive or 0.
+        """
+        return HigherOrderFormulaBuilder3Phase(self, self._create_method).consumption()
+
+    def production(
+        self: FormulaEngine3Phase[QuantityT],
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
+        """
+        Return a formula builder that applies the production operator on `self`.
+
+        The production operator returns either the absolute value if the power value is
+        negative or 0.
+        """
+        return HigherOrderFormulaBuilder3Phase(self, self._create_method).production()
 
     async def _run(self) -> None:
         sender = self._channel.new_sender()
