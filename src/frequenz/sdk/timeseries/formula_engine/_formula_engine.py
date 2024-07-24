@@ -12,7 +12,7 @@ import logging
 from abc import ABC
 from collections import deque
 from collections.abc import Callable
-from typing import Generic, Union, overload
+from typing import Generic, Self, Union
 
 from frequenz.channels import Broadcast, Receiver
 
@@ -64,16 +64,6 @@ _operator_precedence = {
 _CompositionType = Union[
     "FormulaEngine",  # type: ignore[type-arg]
     "HigherOrderFormulaBuilder",  # type: ignore[type-arg]
-    "FormulaEngine3Phase",  # type: ignore[type-arg]
-    "HigherOrderFormulaBuilder3Phase",  # type: ignore[type-arg]
-]
-
-_CompositionType1Phase = Union[
-    "FormulaEngine",  # type: ignore[type-arg]
-    "HigherOrderFormulaBuilder",  # type: ignore[type-arg]
-]
-
-_CompositionType3Phase = Union[
     "FormulaEngine3Phase",  # type: ignore[type-arg]
     "HigherOrderFormulaBuilder3Phase",  # type: ignore[type-arg]
 ]
@@ -908,22 +898,7 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         self._steps.append((TokenType.COMPONENT_METRIC, engine))
         self._create_method: Callable[[float], QuantityT] = create_method
 
-    @overload
-    def _push(
-        self, oper: str, other: _CompositionType1Phase
-    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
-
-    @overload
-    def _push(
-        self, oper: str, other: _CompositionType3Phase | QuantityT | float
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
-
-    def _push(
-        self, oper: str, other: _CompositionType | QuantityT | float
-    ) -> (
-        HigherOrderFormulaBuilder[QuantityT]
-        | HigherOrderFormulaBuilder3Phase[QuantityT]
-    ):
+    def _push(self, oper: str, other: _CompositionType | QuantityT | float) -> Self:
         self._steps.appendleft((TokenType.OPER, "("))
         self._steps.append((TokenType.OPER, ")"))
         self._steps.append((TokenType.OPER, oper))
@@ -950,27 +925,9 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
             self._steps.append((TokenType.OPER, ")"))
         else:
             raise RuntimeError(f"Can't build a formula from: {other}")
-        assert isinstance(
-            self, (HigherOrderFormulaBuilder, HigherOrderFormulaBuilder3Phase)
-        )
         return self
 
-    @overload
-    def __add__(
-        self, other: _CompositionType1Phase | QuantityT
-    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
-
-    @overload
-    def __add__(
-        self, other: _CompositionType3Phase
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
-
-    def __add__(
-        self, other: _CompositionType | QuantityT
-    ) -> (
-        HigherOrderFormulaBuilder[QuantityT]
-        | HigherOrderFormulaBuilder3Phase[QuantityT]
-    ):
+    def __add__(self, other: _CompositionType | QuantityT) -> Self:
         """Return a formula builder that adds (data in) `other` to `self`.
 
         Args:
@@ -983,23 +940,10 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         """
         return self._push("+", other)
 
-    @overload
-    def __sub__(
-        self, other: _CompositionType1Phase | QuantityT
-    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
-
-    @overload
-    def __sub__(
-        self, other: _CompositionType3Phase
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
-
     def __sub__(
         self,
         other: _CompositionType | QuantityT,
-    ) -> (
-        HigherOrderFormulaBuilder[QuantityT]
-        | HigherOrderFormulaBuilder3Phase[QuantityT]
-    ):
+    ) -> Self:
         """Return a formula builder that subtracts (data in) `other` from `self`.
 
         Args:
@@ -1012,23 +956,10 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         """
         return self._push("-", other)
 
-    @overload
-    def __mul__(
-        self, other: _CompositionType1Phase | float
-    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
-
-    @overload
-    def __mul__(
-        self, other: _CompositionType3Phase
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
-
     def __mul__(
         self,
         other: _CompositionType | float,
-    ) -> (
-        HigherOrderFormulaBuilder[QuantityT]
-        | HigherOrderFormulaBuilder3Phase[QuantityT]
-    ):
+    ) -> Self:
         """Return a formula builder that multiplies (data in) `self` with `other`.
 
         Args:
@@ -1041,23 +972,10 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         """
         return self._push("*", other)
 
-    @overload
-    def __truediv__(
-        self, other: _CompositionType1Phase | float
-    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
-
-    @overload
-    def __truediv__(
-        self, other: _CompositionType3Phase
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
-
     def __truediv__(
         self,
         other: _CompositionType | float,
-    ) -> (
-        HigherOrderFormulaBuilder[QuantityT]
-        | HigherOrderFormulaBuilder3Phase[QuantityT]
-    ):
+    ) -> Self:
         """Return a formula builder that divides (data in) `self` by `other`.
 
         Args:
@@ -1070,22 +988,7 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         """
         return self._push("/", other)
 
-    @overload
-    def max(
-        self, other: _CompositionType1Phase | QuantityT
-    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
-
-    @overload
-    def max(
-        self, other: _CompositionType3Phase
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
-
-    def max(
-        self, other: _CompositionType | QuantityT
-    ) -> (
-        HigherOrderFormulaBuilder[QuantityT]
-        | HigherOrderFormulaBuilder3Phase[QuantityT]
-    ):
+    def max(self, other: _CompositionType | QuantityT) -> Self:
         """Return a formula builder that calculates the maximum of `self` and `other`.
 
         Args:
@@ -1098,22 +1001,7 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         """
         return self._push("max", other)
 
-    @overload
-    def min(
-        self, other: _CompositionType1Phase | QuantityT
-    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
-
-    @overload
-    def min(
-        self, other: _CompositionType3Phase
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
-
-    def min(
-        self, other: _CompositionType | QuantityT
-    ) -> (
-        HigherOrderFormulaBuilder[QuantityT]
-        | HigherOrderFormulaBuilder3Phase[QuantityT]
-    ):
+    def min(self, other: _CompositionType | QuantityT) -> Self:
         """Return a formula builder that calculates the minimum of `self` and `other`.
 
         Args:
@@ -1128,10 +1016,7 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
 
     def consumption(
         self,
-    ) -> (
-        HigherOrderFormulaBuilder[QuantityT]
-        | HigherOrderFormulaBuilder3Phase[QuantityT]
-    ):
+    ) -> Self:
         """Apply the Consumption Operator.
 
         The consumption operator returns either the identity if the power value is
@@ -1144,17 +1029,11 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         self._steps.appendleft((TokenType.OPER, "("))
         self._steps.append((TokenType.OPER, ")"))
         self._steps.append((TokenType.OPER, "consumption"))
-        assert isinstance(
-            self, (HigherOrderFormulaBuilder, HigherOrderFormulaBuilder3Phase)
-        )
         return self
 
     def production(
         self,
-    ) -> (
-        HigherOrderFormulaBuilder[QuantityT]
-        | HigherOrderFormulaBuilder3Phase[QuantityT]
-    ):
+    ) -> Self:
         """Apply the Production Operator.
 
         The production operator returns either the absolute value if the power value is
@@ -1167,9 +1046,6 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         self._steps.appendleft((TokenType.OPER, "("))
         self._steps.append((TokenType.OPER, ")"))
         self._steps.append((TokenType.OPER, "production"))
-        assert isinstance(
-            self, (HigherOrderFormulaBuilder, HigherOrderFormulaBuilder3Phase)
-        )
         return self
 
 
