@@ -7,9 +7,8 @@
 import uuid
 
 from frequenz.channels import Sender
-from frequenz.client.microgrid import ComponentMetricId
 
-from ...actor import ChannelRegistry, ComponentMetricRequest
+from ...actor import ChannelRegistry, ComponentMetricId, ComponentMetricRequest
 from .._quantities import Power, Quantity
 from ..formula_engine import FormulaEngine
 from ..formula_engine._formula_engine_pool import FormulaEnginePool

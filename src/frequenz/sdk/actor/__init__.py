@@ -598,7 +598,7 @@ from ._actor import Actor
 from ._background_service import BackgroundService
 from ._channel_registry import ChannelRegistry
 from ._config_managing import ConfigManagingActor
-from ._data_sourcing import ComponentMetricRequest, DataSourcingActor
+from ._data_sourcing import ComponentMetricId, ComponentMetricRequest, DataSourcingActor
 from ._resampling import ComponentMetricsResamplingActor
 from ._run_utils import run
 
@@ -606,6 +606,7 @@ __all__ = [
     "Actor",
     "BackgroundService",
     "ChannelRegistry",
+    "ComponentMetricId",
     "ComponentMetricRequest",
     "ComponentMetricsResamplingActor",
     "ConfigManagingActor",
