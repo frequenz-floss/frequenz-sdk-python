@@ -3,17 +3,17 @@
     "version": "v1.0-pre",
     "title": "v1.0.0-rc701",
     "aliases": [
-      "latest-pre",
+      "v1-pre",
       "latest",
-      "v1-pre"
+      "latest-pre"
     ]
   },
   {
     "version": "v1.0-dev",
-    "title": "v1.0-dev (99b25ec)",
+    "title": "v1.0-dev (58ba3e6)",
     "aliases": [
-      "latest-dev",
-      "v1-dev"
+      "v1-dev",
+      "latest-dev"
     ]
   },
   {
