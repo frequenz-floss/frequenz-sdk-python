@@ -12,7 +12,7 @@ import logging
 from abc import ABC
 from collections import deque
 from collections.abc import Callable
-from typing import Generic, TypeVar, Union, overload
+from typing import Any, Generic, Self, TypeVar
 
 from frequenz.channels import Broadcast, Receiver
 
@@ -55,179 +55,7 @@ _operator_precedence = {
 """The dictionary of operator precedence for the shunting yard algorithm."""
 
 
-# The `FormulaEngine*` and `HigherOrderFormulaBuilder*` classes are generic, but
-# `TypeVar`s can't be defined on generic types, so we need to use `# type: ignore` to
-# avoid mypy errors, and they get treated as `FormulaEngine[Any]`, etc.
-#
-# This is not ideal, but it's the best we can do until mypy supports generic types with
-# `TypeVar`s.
-_CompositionType = Union[
-    "FormulaEngine",  # type: ignore[type-arg]
-    "HigherOrderFormulaBuilder",  # type: ignore[type-arg]
-    "FormulaEngine3Phase",  # type: ignore[type-arg]
-    "HigherOrderFormulaBuilder3Phase",  # type: ignore[type-arg]
-]
-
-_CompositionType1Phase = Union[
-    "FormulaEngine",  # type: ignore[type-arg]
-    "HigherOrderFormulaBuilder",  # type: ignore[type-arg]
-]
-
-_CompositionType3Phase = Union[
-    "FormulaEngine3Phase",  # type: ignore[type-arg]
-    "HigherOrderFormulaBuilder3Phase",  # type: ignore[type-arg]
-]
-
-_GenericEngine = TypeVar(
-    "_GenericEngine",
-    "FormulaEngine",  # type: ignore
-    "FormulaEngine3Phase",  # type: ignore
-)
-
-_GenericHigherOrderBuilder = TypeVar(
-    "_GenericHigherOrderBuilder",
-    "HigherOrderFormulaBuilder",  # type: ignore
-    "HigherOrderFormulaBuilder3Phase",  # type: ignore
-)
-
-
-# This class has multiple generic type parameters that should also restrict each other,
-# but mypy doesn't support that, so we need to use `# type: ignore` in several places in
-# this, and subsequent classes, to avoid mypy errors.
-class _ComposableFormulaEngine(
-    ABC, Generic[_GenericEngine, _GenericHigherOrderBuilder, QuantityT]
-):
-    """A base class for formula engines."""
-
-    _create_method: Callable[[float], QuantityT]
-    _higher_order_builder: type[_GenericHigherOrderBuilder]
-    _task: asyncio.Task[None] | None = None
-
-    async def _stop(self) -> None:
-        """Stop a running formula engine."""
-        if self._task is None:
-            return
-        await cancel_and_await(self._task)
-
-    def __add__(
-        self,
-        other: _GenericEngine | _GenericHigherOrderBuilder | QuantityT,
-    ) -> _GenericHigherOrderBuilder:
-        """Return a formula builder that adds (data in) `other` to `self`.
-
-        Args:
-            other: A formula receiver, or a formula builder instance corresponding to a
-                sub-expression.
-
-        Returns:
-            A formula builder that can take further expressions, or can be built
-                into a formula engine.
-        """
-        return self._higher_order_builder(self, self._create_method) + other  # type: ignore
-
-    def __sub__(
-        self, other: _GenericEngine | _GenericHigherOrderBuilder | QuantityT
-    ) -> _GenericHigherOrderBuilder:
-        """Return a formula builder that subtracts (data in) `other` from `self`.
-
-        Args:
-            other: A formula receiver, or a formula builder instance corresponding to a
-                sub-expression.
-
-        Returns:
-            A formula builder that can take further expressions, or can be built
-                into a formula engine.
-        """
-        return self._higher_order_builder(self, self._create_method) - other  # type: ignore
-
-    def __mul__(
-        self, other: _GenericEngine | _GenericHigherOrderBuilder | float
-    ) -> _GenericHigherOrderBuilder:
-        """Return a formula builder that multiplies (data in) `self` with `other`.
-
-        Args:
-            other: A formula receiver, or a formula builder instance corresponding to a
-                sub-expression.
-
-        Returns:
-            A formula builder that can take further expressions, or can be built
-                into a formula engine.
-        """
-        return self._higher_order_builder(self, self._create_method) * other  # type: ignore
-
-    def __truediv__(
-        self, other: _GenericEngine | _GenericHigherOrderBuilder | float
-    ) -> _GenericHigherOrderBuilder:
-        """Return a formula builder that divides (data in) `self` by `other`.
-
-        Args:
-            other: A formula receiver, or a formula builder instance corresponding to a
-                sub-expression.
-
-        Returns:
-            A formula builder that can take further expressions, or can be built
-                into a formula engine.
-        """
-        return self._higher_order_builder(self, self._create_method) / other  # type: ignore
-
-    def max(
-        self, other: _GenericEngine | _GenericHigherOrderBuilder | QuantityT
-    ) -> _GenericHigherOrderBuilder:
-        """Return a formula engine that outputs the maximum of `self` and `other`.
-
-        Args:
-            other: A formula receiver, a formula builder or a QuantityT instance
-                corresponding to a sub-expression.
-
-        Returns:
-            A formula builder that can take further expressions, or can be built
-                into a formula engine.
-        """
-        return self._higher_order_builder(self, self._create_method).max(other)  # type: ignore
-
-    def min(
-        self, other: _GenericEngine | _GenericHigherOrderBuilder | QuantityT
-    ) -> _GenericHigherOrderBuilder:
-        """Return a formula engine that outputs the minimum of `self` and `other`.
-
-        Args:
-            other: A formula receiver, a formula builder or a QuantityT instance
-                corresponding to a sub-expression.
-
-
-        Returns:
-            A formula builder that can take further expressions, or can be built
-                into a formula engine.
-        """
-        return self._higher_order_builder(self, self._create_method).min(other)  # type: ignore
-
-    def consumption(self) -> _GenericHigherOrderBuilder:
-        """
-        Return a formula builder that applies the consumption operator on `self`.
-
-        The consumption operator returns either the identity if the power value is
-        positive or 0.
-        """
-        return self._higher_order_builder(self, self._create_method).consumption()  # type: ignore
-
-    def production(self) -> _GenericHigherOrderBuilder:
-        """
-        Return a formula builder that applies the production operator on `self`.
-
-        The production operator returns either the absolute value if the power value is
-        negative or 0.
-        """
-        return self._higher_order_builder(self, self._create_method).production()  # type: ignore
-
-
-class FormulaEngine(
-    Generic[QuantityT],
-    _ComposableFormulaEngine[
-        "FormulaEngine",  # type: ignore[type-arg]
-        "HigherOrderFormulaBuilder",  # type: ignore[type-arg]
-        QuantityT,
-    ],
-):
+class FormulaEngine(Generic[QuantityT]):
     """[`FormulaEngine`][frequenz.sdk.timeseries.formula_engine.FormulaEngine]s are a
     part of the SDK's data pipeline, and provide a way for the SDK to apply formulas on
     resampled data streams.
@@ -308,8 +136,15 @@ class FormulaEngine(
         self._higher_order_builder = HigherOrderFormulaBuilder
         self._name: str = builder.name
         self._builder: FormulaBuilder[QuantityT] = builder
-        self._create_method = create_method
+        self._create_method: Callable[[float], QuantityT] = create_method
         self._channel: Broadcast[Sample[QuantityT]] = Broadcast(name=self._name)
+        self._task: asyncio.Task[None] | None = None
+
+    async def _stop(self) -> None:
+        """Stop a running formula engine."""
+        if self._task is None:
+            return
+        await cancel_and_await(self._task)
 
     @classmethod
     def from_receiver(
@@ -365,6 +200,132 @@ class FormulaEngine(
         builder = FormulaBuilder(name, create_method)
         builder.push_metric(name, receiver, nones_are_zeros=nones_are_zeros)
         return cls(builder, create_method)
+
+    def __add__(
+        self,
+        other: (
+            FormulaEngine[QuantityT] | HigherOrderFormulaBuilder[QuantityT] | QuantityT
+        ),
+    ) -> HigherOrderFormulaBuilder[QuantityT]:
+        """Return a formula builder that adds (data in) `other` to `self`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder(self, self._create_method) + other
+
+    def __sub__(
+        self,
+        other: (
+            FormulaEngine[QuantityT] | HigherOrderFormulaBuilder[QuantityT] | QuantityT
+        ),
+    ) -> HigherOrderFormulaBuilder[QuantityT]:
+        """Return a formula builder that subtracts (data in) `other` from `self`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder(self, self._create_method) - other
+
+    def __mul__(
+        self,
+        other: FormulaEngine[QuantityT] | HigherOrderFormulaBuilder[QuantityT] | float,
+    ) -> HigherOrderFormulaBuilder[QuantityT]:
+        """Return a formula builder that multiplies (data in) `self` with `other`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder(self, self._create_method) * other
+
+    def __truediv__(
+        self,
+        other: FormulaEngine[QuantityT] | HigherOrderFormulaBuilder[QuantityT] | float,
+    ) -> HigherOrderFormulaBuilder[QuantityT]:
+        """Return a formula builder that divides (data in) `self` by `other`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder(self, self._create_method) / other
+
+    def max(
+        self,
+        other: (
+            FormulaEngine[QuantityT] | HigherOrderFormulaBuilder[QuantityT] | QuantityT
+        ),
+    ) -> HigherOrderFormulaBuilder[QuantityT]:
+        """Return a formula engine that outputs the maximum of `self` and `other`.
+
+        Args:
+            other: A formula receiver, a formula builder or a QuantityT instance
+                corresponding to a sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder(self, self._create_method).max(other)
+
+    def min(
+        self,
+        other: (
+            FormulaEngine[QuantityT] | HigherOrderFormulaBuilder[QuantityT] | QuantityT
+        ),
+    ) -> HigherOrderFormulaBuilder[QuantityT]:
+        """Return a formula engine that outputs the minimum of `self` and `other`.
+
+        Args:
+            other: A formula receiver, a formula builder or a QuantityT instance
+                corresponding to a sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder(self, self._create_method).min(other)
+
+    def consumption(
+        self,
+    ) -> HigherOrderFormulaBuilder[QuantityT]:
+        """
+        Return a formula builder that applies the consumption operator on `self`.
+
+        The consumption operator returns either the identity if the power value is
+        positive or 0.
+        """
+        return HigherOrderFormulaBuilder(self, self._create_method).consumption()
+
+    def production(
+        self,
+    ) -> HigherOrderFormulaBuilder[QuantityT]:
+        """
+        Return a formula builder that applies the production operator on `self`.
+
+        The production operator returns either the absolute value if the power value is
+        negative or 0.
+        """
+        return HigherOrderFormulaBuilder(self, self._create_method).production()
 
     async def _run(self) -> None:
         await self._builder.subscribe()
@@ -429,13 +390,7 @@ class FormulaEngine(
         return recv
 
 
-class FormulaEngine3Phase(
-    _ComposableFormulaEngine[
-        "FormulaEngine3Phase",  # type: ignore[type-arg]
-        "HigherOrderFormulaBuilder3Phase",  # type: ignore[type-arg]
-        QuantityT,
-    ]
-):
+class FormulaEngine3Phase(Generic[QuantityT]):
     """A
     [`FormulaEngine3Phase`][frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase]
     is similar to a
@@ -506,7 +461,7 @@ class FormulaEngine3Phase(
         """
         self._higher_order_builder = HigherOrderFormulaBuilder3Phase
         self._name: str = name
-        self._create_method = create_method
+        self._create_method: Callable[[float], QuantityT] = create_method
         self._channel: Broadcast[Sample3Phase[QuantityT]] = Broadcast(name=self._name)
         self._task: asyncio.Task[None] | None = None
         self._streams: tuple[
@@ -514,6 +469,142 @@ class FormulaEngine3Phase(
             FormulaEngine[QuantityT],
             FormulaEngine[QuantityT],
         ] = phase_streams
+
+    async def _stop(self) -> None:
+        """Stop a running formula engine."""
+        if self._task is None:
+            return
+        await cancel_and_await(self._task)
+
+    def __add__(
+        self,
+        other: (
+            FormulaEngine3Phase[QuantityT] | HigherOrderFormulaBuilder3Phase[QuantityT]
+        ),
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
+        """Return a formula builder that adds (data in) `other` to `self`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder3Phase(self, self._create_method) + other
+
+    def __sub__(
+        self: FormulaEngine3Phase[QuantityT],
+        other: (
+            FormulaEngine3Phase[QuantityT] | HigherOrderFormulaBuilder3Phase[QuantityT]
+        ),
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
+        """Return a formula builder that subtracts (data in) `other` from `self`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder3Phase(self, self._create_method) - other
+
+    def __mul__(
+        self: FormulaEngine3Phase[QuantityT],
+        other: (
+            FormulaEngine3Phase[QuantityT] | HigherOrderFormulaBuilder3Phase[QuantityT]
+        ),
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
+        """Return a formula builder that multiplies (data in) `self` with `other`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder3Phase(self, self._create_method) * other
+
+    def __truediv__(
+        self: FormulaEngine3Phase[QuantityT],
+        other: (
+            FormulaEngine3Phase[QuantityT] | HigherOrderFormulaBuilder3Phase[QuantityT]
+        ),
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
+        """Return a formula builder that divides (data in) `self` by `other`.
+
+        Args:
+            other: A formula receiver, or a formula builder instance corresponding to a
+                sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder3Phase(self, self._create_method) / other
+
+    def max(
+        self: FormulaEngine3Phase[QuantityT],
+        other: (
+            FormulaEngine3Phase[QuantityT] | HigherOrderFormulaBuilder3Phase[QuantityT]
+        ),
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
+        """Return a formula engine that outputs the maximum of `self` and `other`.
+
+        Args:
+            other: A formula receiver, a formula builder or a QuantityT instance
+                corresponding to a sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder3Phase(self, self._create_method).max(other)
+
+    def min(
+        self: FormulaEngine3Phase[QuantityT],
+        other: (
+            FormulaEngine3Phase[QuantityT] | HigherOrderFormulaBuilder3Phase[QuantityT]
+        ),
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
+        """Return a formula engine that outputs the minimum of `self` and `other`.
+
+        Args:
+            other: A formula receiver, a formula builder or a QuantityT instance
+                corresponding to a sub-expression.
+
+        Returns:
+            A formula builder that can take further expressions, or can be built
+                into a formula engine.
+        """
+        return HigherOrderFormulaBuilder3Phase(self, self._create_method).min(other)
+
+    def consumption(
+        self: FormulaEngine3Phase[QuantityT],
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
+        """
+        Return a formula builder that applies the consumption operator on `self`.
+
+        The consumption operator returns either the identity if the power value is
+        positive or 0.
+        """
+        return HigherOrderFormulaBuilder3Phase(self, self._create_method).consumption()
+
+    def production(
+        self: FormulaEngine3Phase[QuantityT],
+    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]:
+        """
+        Return a formula builder that applies the production operator on `self`.
+
+        The production operator returns either the absolute value if the power value is
+        negative or 0.
+        """
+        return HigherOrderFormulaBuilder3Phase(self, self._create_method).production()
 
     async def _run(self) -> None:
         sender = self._channel.new_sender()
@@ -553,7 +644,19 @@ class FormulaEngine3Phase(
         if self._task is None:
             self._task = asyncio.create_task(self._run())
 
-        return self._channel.new_receiver(name=name, limit=max_size)
+        recv = self._channel.new_receiver(name=name, limit=max_size)
+
+        # This is a hack to ensure that the lifetime of the engine is tied to the
+        # lifetime of the receiver.  This is necessary because the engine is a task that
+        # runs forever, and in cases where higher order built for example with the below
+        # idiom, the user would hold no references to the engine and it could get
+        # garbage collected before the receiver.  This behaviour is explained in the
+        # `asyncio.create_task` docs here:
+        # https://docs.python.org/3/library/asyncio-task.html#asyncio.create_task
+        #
+        #     formula = (grid_power_engine + bat_power_engine).build().new_receiver()
+        recv._engine_reference = self  # type: ignore # pylint: disable=protected-access
+        return recv
 
 
 class FormulaBuilder(Generic[QuantityT]):
@@ -763,12 +866,17 @@ class FormulaBuilder(Generic[QuantityT]):
         return FormulaEngine(self, create_method=self._create_method)
 
 
-class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
+FormulaEngineT = TypeVar(
+    "FormulaEngineT", bound=(FormulaEngine[Any] | FormulaEngine3Phase[Any])
+)
+
+
+class _BaseHOFormulaBuilder(ABC, Generic[FormulaEngineT, QuantityT]):
     """Provides a way to build formulas from the outputs of other formulas."""
 
     def __init__(
         self,
-        engine: FormulaEngine[QuantityT] | FormulaEngine3Phase[QuantityT],
+        engine: FormulaEngineT,
         create_method: Callable[[float], QuantityT],
     ) -> None:
         """Create a `GenericHigherOrderFormulaBuilder` instance.
@@ -793,22 +901,11 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         self._steps.append((TokenType.COMPONENT_METRIC, engine))
         self._create_method: Callable[[float], QuantityT] = create_method
 
-    @overload
     def _push(
-        self, oper: str, other: _CompositionType1Phase
-    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
-
-    @overload
-    def _push(
-        self, oper: str, other: _CompositionType3Phase | QuantityT | float
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
-
-    def _push(
-        self, oper: str, other: _CompositionType | QuantityT | float
-    ) -> (
-        HigherOrderFormulaBuilder[QuantityT]
-        | HigherOrderFormulaBuilder3Phase[QuantityT]
-    ):
+        self,
+        oper: str,
+        other: Self | FormulaEngineT | QuantityT | float,
+    ) -> Self:
         self._steps.appendleft((TokenType.OPER, "("))
         self._steps.append((TokenType.OPER, ")"))
         self._steps.append((TokenType.OPER, oper))
@@ -835,27 +932,12 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
             self._steps.append((TokenType.OPER, ")"))
         else:
             raise RuntimeError(f"Can't build a formula from: {other}")
-        assert isinstance(
-            self, (HigherOrderFormulaBuilder, HigherOrderFormulaBuilder3Phase)
-        )
         return self
 
-    @overload
     def __add__(
-        self, other: _CompositionType1Phase | QuantityT
-    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
-
-    @overload
-    def __add__(
-        self, other: _CompositionType3Phase
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
-
-    def __add__(
-        self, other: _CompositionType | QuantityT
-    ) -> (
-        HigherOrderFormulaBuilder[QuantityT]
-        | HigherOrderFormulaBuilder3Phase[QuantityT]
-    ):
+        self,
+        other: Self | FormulaEngineT | QuantityT,
+    ) -> Self:
         """Return a formula builder that adds (data in) `other` to `self`.
 
         Args:
@@ -868,23 +950,10 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         """
         return self._push("+", other)
 
-    @overload
-    def __sub__(
-        self, other: _CompositionType1Phase | QuantityT
-    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
-
-    @overload
-    def __sub__(
-        self, other: _CompositionType3Phase
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
-
     def __sub__(
         self,
-        other: _CompositionType | QuantityT,
-    ) -> (
-        HigherOrderFormulaBuilder[QuantityT]
-        | HigherOrderFormulaBuilder3Phase[QuantityT]
-    ):
+        other: Self | FormulaEngineT | QuantityT,
+    ) -> Self:
         """Return a formula builder that subtracts (data in) `other` from `self`.
 
         Args:
@@ -897,23 +966,10 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         """
         return self._push("-", other)
 
-    @overload
-    def __mul__(
-        self, other: _CompositionType1Phase | float
-    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
-
-    @overload
-    def __mul__(
-        self, other: _CompositionType3Phase
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
-
     def __mul__(
         self,
-        other: _CompositionType | float,
-    ) -> (
-        HigherOrderFormulaBuilder[QuantityT]
-        | HigherOrderFormulaBuilder3Phase[QuantityT]
-    ):
+        other: Self | FormulaEngineT | float,
+    ) -> Self:
         """Return a formula builder that multiplies (data in) `self` with `other`.
 
         Args:
@@ -926,23 +982,10 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         """
         return self._push("*", other)
 
-    @overload
-    def __truediv__(
-        self, other: _CompositionType1Phase | float
-    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
-
-    @overload
-    def __truediv__(
-        self, other: _CompositionType3Phase
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
-
     def __truediv__(
         self,
-        other: _CompositionType | float,
-    ) -> (
-        HigherOrderFormulaBuilder[QuantityT]
-        | HigherOrderFormulaBuilder3Phase[QuantityT]
-    ):
+        other: Self | FormulaEngineT | float,
+    ) -> Self:
         """Return a formula builder that divides (data in) `self` by `other`.
 
         Args:
@@ -955,22 +998,10 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         """
         return self._push("/", other)
 
-    @overload
     def max(
-        self, other: _CompositionType1Phase | QuantityT
-    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
-
-    @overload
-    def max(
-        self, other: _CompositionType3Phase
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
-
-    def max(
-        self, other: _CompositionType | QuantityT
-    ) -> (
-        HigherOrderFormulaBuilder[QuantityT]
-        | HigherOrderFormulaBuilder3Phase[QuantityT]
-    ):
+        self,
+        other: Self | FormulaEngineT | QuantityT,
+    ) -> Self:
         """Return a formula builder that calculates the maximum of `self` and `other`.
 
         Args:
@@ -983,22 +1014,10 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         """
         return self._push("max", other)
 
-    @overload
     def min(
-        self, other: _CompositionType1Phase | QuantityT
-    ) -> HigherOrderFormulaBuilder[QuantityT]: ...
-
-    @overload
-    def min(
-        self, other: _CompositionType3Phase
-    ) -> HigherOrderFormulaBuilder3Phase[QuantityT]: ...
-
-    def min(
-        self, other: _CompositionType | QuantityT
-    ) -> (
-        HigherOrderFormulaBuilder[QuantityT]
-        | HigherOrderFormulaBuilder3Phase[QuantityT]
-    ):
+        self,
+        other: Self | FormulaEngineT | QuantityT,
+    ) -> Self:
         """Return a formula builder that calculates the minimum of `self` and `other`.
 
         Args:
@@ -1013,10 +1032,7 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
 
     def consumption(
         self,
-    ) -> (
-        HigherOrderFormulaBuilder[QuantityT]
-        | HigherOrderFormulaBuilder3Phase[QuantityT]
-    ):
+    ) -> Self:
         """Apply the Consumption Operator.
 
         The consumption operator returns either the identity if the power value is
@@ -1029,17 +1045,11 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         self._steps.appendleft((TokenType.OPER, "("))
         self._steps.append((TokenType.OPER, ")"))
         self._steps.append((TokenType.OPER, "consumption"))
-        assert isinstance(
-            self, (HigherOrderFormulaBuilder, HigherOrderFormulaBuilder3Phase)
-        )
         return self
 
     def production(
         self,
-    ) -> (
-        HigherOrderFormulaBuilder[QuantityT]
-        | HigherOrderFormulaBuilder3Phase[QuantityT]
-    ):
+    ) -> Self:
         """Apply the Production Operator.
 
         The production operator returns either the absolute value if the power value is
@@ -1052,13 +1062,12 @@ class _BaseHOFormulaBuilder(ABC, Generic[QuantityT]):
         self._steps.appendleft((TokenType.OPER, "("))
         self._steps.append((TokenType.OPER, ")"))
         self._steps.append((TokenType.OPER, "production"))
-        assert isinstance(
-            self, (HigherOrderFormulaBuilder, HigherOrderFormulaBuilder3Phase)
-        )
         return self
 
 
-class HigherOrderFormulaBuilder(Generic[QuantityT], _BaseHOFormulaBuilder[QuantityT]):
+class HigherOrderFormulaBuilder(
+    Generic[QuantityT], _BaseHOFormulaBuilder[FormulaEngine[QuantityT], QuantityT]
+):
     """A specialization of the _BaseHOFormulaBuilder for `FormulaReceiver`."""
 
     def build(
@@ -1095,7 +1104,7 @@ class HigherOrderFormulaBuilder(Generic[QuantityT], _BaseHOFormulaBuilder[Quanti
 
 
 class HigherOrderFormulaBuilder3Phase(
-    Generic[QuantityT], _BaseHOFormulaBuilder[QuantityT]
+    Generic[QuantityT], _BaseHOFormulaBuilder[FormulaEngine3Phase[QuantityT], QuantityT]
 ):
     """A specialization of the _BaseHOFormulaBuilder for `FormulaReceiver3Phase`."""
 
