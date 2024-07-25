@@ -8,21 +8,16 @@ import typing
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock
 
+import async_solipsism
 import pytest
+import time_machine
 from frequenz.channels import Receiver
 from frequenz.client.microgrid import EVChargerCableState, EVChargerComponentState
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.actor import ResamplerConfig, power_distributing
-from frequenz.sdk.actor.power_distributing import (
-    ComponentPoolStatus,
-    PowerDistributingActor,
-)
-from frequenz.sdk.actor.power_distributing._component_managers import EVChargerManager
-from frequenz.sdk.actor.power_distributing._component_managers._ev_charger_manager._config import (
-    EVDistributionConfig,
-)
+from frequenz.sdk.actor.power_distributing import ComponentPoolStatus
 from frequenz.sdk.actor.power_distributing._component_pool_status_tracker import (
     ComponentPoolStatusTracker,
 )
@@ -36,6 +31,12 @@ from ...utils.component_data_wrapper import EvChargerDataWrapper, MeterDataWrapp
 from ..mock_microgrid import MockMicrogrid
 
 # pylint: disable=protected-access
+
+
+@pytest.fixture
+def event_loop_policy() -> async_solipsism.EventLoopPolicy:
+    """Event loop policy."""
+    return async_solipsism.EventLoopPolicy()
 
 
 @pytest.fixture
@@ -100,24 +101,6 @@ class TestEVChargerPoolControl:
         self,
         mocker: MockerFixture,
     ) -> None:
-        dp = typing.cast(_DataPipeline, microgrid._data_pipeline._DATA_PIPELINE)
-        pda = typing.cast(
-            PowerDistributingActor, dp._ev_power_wrapper._power_distributing_actor
-        )
-        cm = typing.cast(
-            EVChargerManager,
-            pda._component_manager,
-        )
-        mocker.patch(
-            "frequenz.sdk.microgrid._data_pipeline._DATA_PIPELINE._ev_power_wrapper"
-            "._power_distributing_actor._component_manager._config",
-            EVDistributionConfig(
-                component_ids=cm._config.component_ids,
-                initial_current=cm._config.initial_current,
-                min_current=cm._config.min_current,
-                increase_power_interval=timedelta(seconds=0.12),
-            ),
-        )
         mocker.patch(
             "frequenz.sdk.microgrid._data_pipeline._DATA_PIPELINE._ev_power_wrapper"
             "._power_distributing_actor._component_manager._voltage_cache.get",
@@ -202,10 +185,12 @@ class TestEVChargerPoolControl:
         mocker: MockerFixture,
     ) -> None:
         """Test setting power."""
+        traveller = time_machine.travel(datetime(2012, 12, 12))
+        mock_time = traveller.start()
+
         set_power = typing.cast(
             AsyncMock, microgrid.connection_manager.get().api_client.set_power
         )
-
         await self._init_ev_chargers(mocks)
         ev_charger_pool = microgrid.new_ev_charger_pool(priority=5)
         await self._patch_ev_pool_status(mocks, mocker)
@@ -228,6 +213,7 @@ class TestEVChargerPoolControl:
         self._assert_report(
             await bounds_rx.receive(), power=40000.0, lower=0.0, upper=44160.0
         )
+        mock_time.shift(timedelta(seconds=60))
         await asyncio.sleep(0.15)
 
         # Components are set initial power
@@ -237,6 +223,7 @@ class TestEVChargerPoolControl:
         # All available power is allocated. 3 chargers are set to 11040.0
         # and the last one is set to 6880.0
         set_power.reset_mock()
+        mock_time.shift(timedelta(seconds=60))
         await asyncio.sleep(0.15)
         assert set_power.call_count == 4
 
@@ -255,3 +242,5 @@ class TestEVChargerPoolControl:
         stopped_evs = [x.args for x in set_power.call_args_list if x.args[1] == 0.0]
         assert 1 == len(stopped_evs)
         assert stopped_evs[0][0] in [evc[0] for evc in evs_11040]
+
+        traveller.stop()
