@@ -9,6 +9,7 @@ import typing
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock
 
+import async_solipsism
 import pytest
 from frequenz.channels import LatestValueCache, Sender
 from pytest_mock import MockerFixture
@@ -25,6 +26,12 @@ from frequenz.sdk.timeseries.battery_pool import BatteryPoolReport
 from ...utils.component_data_streamer import MockComponentDataStreamer
 from ...utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
 from ..mock_microgrid import MockMicrogrid
+
+
+@pytest.fixture
+def event_loop_policy() -> async_solipsism.EventLoopPolicy:
+    """Event loop policy."""
+    return async_solipsism.EventLoopPolicy()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -89,11 +96,6 @@ class TestBatteryPoolControl:
         If `battery_ids` is not None, the mock will always return `battery_ids`.
         Otherwise, it will return the requested batteries.
         """
-        mocker.patch.object(
-            timeseries.battery_pool._methods,  # pylint: disable=protected-access
-            "WAIT_FOR_COMPONENT_DATA_SEC",
-            0.1,
-        )
         if battery_ids:
             mock = MagicMock(spec=ComponentPoolStatusTracker)
             mock.get_working_components.return_value = battery_ids

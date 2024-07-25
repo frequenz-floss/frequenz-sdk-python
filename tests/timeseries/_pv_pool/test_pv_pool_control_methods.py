@@ -8,6 +8,7 @@ import typing
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock
 
+import async_solipsism
 import pytest
 from frequenz.channels import Receiver
 from frequenz.client.microgrid import InverterComponentState
@@ -23,6 +24,12 @@ from ...microgrid.fixtures import _Mocks
 from ...utils.component_data_streamer import MockComponentDataStreamer
 from ...utils.component_data_wrapper import InverterDataWrapper
 from ..mock_microgrid import MockMicrogrid
+
+
+@pytest.fixture
+def event_loop_policy() -> async_solipsism.EventLoopPolicy:
+    """Event loop policy."""
+    return async_solipsism.EventLoopPolicy()
 
 
 @pytest.fixture
