@@ -28,11 +28,8 @@ from frequenz.client.microgrid import (
     MeterData,
 )
 
-from frequenz.sdk.actor import (
-    ChannelRegistry,
-    ComponentMetricRequest,
-    DataSourcingActor,
-)
+from frequenz.sdk._internal._channels import ChannelRegistry
+from frequenz.sdk.actor import ComponentMetricRequest, DataSourcingActor
 from frequenz.sdk.timeseries import Quantity, Sample
 
 T = TypeVar("T", bound=ComponentData)

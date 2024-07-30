@@ -6,7 +6,7 @@
 import pytest
 from frequenz.channels import ReceiverError, SenderError
 
-from frequenz.sdk.actor import ChannelRegistry
+from frequenz.sdk._internal._channels import ChannelRegistry
 
 
 async def test_channel_registry() -> None:

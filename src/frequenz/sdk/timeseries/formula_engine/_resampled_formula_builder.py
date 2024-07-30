@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 from frequenz.channels import Receiver, Sender
 from frequenz.client.microgrid import ComponentMetricId
 
+from ..._internal._channels import ChannelRegistry
 from .. import Sample
 from .._quantities import Quantity, QuantityT
 from ._formula_engine import FormulaBuilder, FormulaEngine
@@ -18,7 +19,7 @@ from ._tokenizer import Tokenizer, TokenType
 
 if TYPE_CHECKING:
     # Break circular import
-    from ...actor import ChannelRegistry, ComponentMetricRequest
+    from ...actor import ComponentMetricRequest
 
 
 class ResampledFormulaBuilder(FormulaBuilder[QuantityT]):

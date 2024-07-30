@@ -14,8 +14,7 @@ from frequenz.channels import Receiver, Sender
 from frequenz.client.microgrid import ComponentCategory
 
 from ..._internal._asyncio import cancel_and_await
-from ..._internal._channels import ReceiverFetcher
-from ...actor._channel_registry import ChannelRegistry
+from ..._internal._channels import ChannelRegistry, ReceiverFetcher
 from ...actor._data_sourcing._component_metric_request import ComponentMetricRequest
 from ...actor._power_managing._base_classes import Proposal, ReportRequest
 from ...actor.power_distributing import Result

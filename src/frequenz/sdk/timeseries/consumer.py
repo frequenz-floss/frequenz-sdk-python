@@ -7,7 +7,8 @@ import uuid
 
 from frequenz.channels import Sender
 
-from ..actor import ChannelRegistry, ComponentMetricRequest
+from .._internal._channels import ChannelRegistry
+from ..actor import ComponentMetricRequest
 from ._quantities import Power
 from .formula_engine import FormulaEngine
 from .formula_engine._formula_engine_pool import FormulaEnginePool

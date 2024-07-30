@@ -16,14 +16,14 @@ from frequenz.channels import Broadcast
 # pylint: disable=cyclic-import
 from frequenz.client.microgrid import ComponentCategory, ComponentType
 
-from .._internal._channels import ReceiverFetcher
+from .._internal._channels import ChannelRegistry, ReceiverFetcher
 
 # A number of imports had to be done inside functions where they are used, to break
 # import cycles.
 #
 # pylint: disable=import-outside-toplevel
 if typing.TYPE_CHECKING:
-    from ..actor import ChannelRegistry, _power_managing
+    from ..actor import _power_managing
     from ..actor.power_distributing import (  # noqa: F401 (imports used by string type hints)
         ComponentPoolStatus,
         PowerDistributingActor,

@@ -20,11 +20,8 @@ from frequenz.channels import Broadcast, Receiver, ReceiverStoppedError
 from frequenz.client.microgrid import ComponentMetricId
 
 from frequenz.sdk import microgrid
-from frequenz.sdk.actor import (
-    ChannelRegistry,
-    ComponentMetricRequest,
-    DataSourcingActor,
-)
+from frequenz.sdk._internal._channels import ChannelRegistry
+from frequenz.sdk.actor import ComponentMetricRequest, DataSourcingActor
 
 try:
     from tests.timeseries.mock_microgrid import MockMicrogrid

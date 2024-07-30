@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 from frequenz.channels import Sender
 from frequenz.client.microgrid._component import ComponentCategory
 
+from .._internal._channels import ChannelRegistry
 from ..microgrid import connection_manager
 from ._fuse import Fuse
 from ._quantities import Current, Power
@@ -29,7 +30,7 @@ from .formula_engine._formula_generators import (
 
 if TYPE_CHECKING:
     # Break circular import
-    from ..actor import ChannelRegistry, ComponentMetricRequest
+    from ..actor import ComponentMetricRequest
 
 _logger = logging.getLogger(__name__)
 

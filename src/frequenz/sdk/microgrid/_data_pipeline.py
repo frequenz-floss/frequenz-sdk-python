@@ -19,6 +19,7 @@ from datetime import timedelta
 from frequenz.channels import Broadcast, Sender
 from frequenz.client.microgrid import ComponentCategory, InverterType
 
+from .._internal._channels import ChannelRegistry
 from ..actor._actor import Actor
 from ..timeseries._grid_frequency import GridFrequency
 from ..timeseries._voltage_streamer import VoltageStreamer
@@ -89,8 +90,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             api_power_request_timeout: Timeout to use when making power requests to
                 the microgrid API.
         """
-        from ..actor import ChannelRegistry
-
         self._resampler_config: ResamplerConfig = resampler_config
 
         self._channel_registry: ChannelRegistry = ChannelRegistry(

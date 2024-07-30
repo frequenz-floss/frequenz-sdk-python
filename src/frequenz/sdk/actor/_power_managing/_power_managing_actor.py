@@ -16,10 +16,10 @@ from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.microgrid import ComponentCategory, ComponentType, InverterType
 from typing_extensions import override
 
+from ..._internal._channels import ChannelRegistry
 from ...timeseries import Power
 from ...timeseries._base_types import Bounds, SystemBounds
 from .._actor import Actor
-from .._channel_registry import ChannelRegistry
 from ._base_classes import Algorithm, BaseAlgorithm, Proposal, ReportRequest, _Report
 from ._matryoshka import Matryoshka
 

@@ -11,8 +11,8 @@ from collections import abc
 from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.client.microgrid import ComponentCategory, InverterType
 
-from ..._internal._channels import ReceiverFetcher
-from ...actor import ChannelRegistry, ComponentMetricRequest
+from ..._internal._channels import ChannelRegistry, ReceiverFetcher
+from ...actor import ComponentMetricRequest
 from ...actor._power_managing._base_classes import Proposal, ReportRequest
 from ...actor.power_distributing import ComponentPoolStatus, Result
 from ...microgrid import connection_manager

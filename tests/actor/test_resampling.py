@@ -12,8 +12,8 @@ import time_machine
 from frequenz.channels import Broadcast
 from frequenz.client.microgrid import ComponentMetricId
 
+from frequenz.sdk._internal._channels import ChannelRegistry
 from frequenz.sdk.actor import (
-    ChannelRegistry,
     ComponentMetricRequest,
     ComponentMetricsResamplingActor,
     ResamplerConfig,

@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from frequenz.channels import Sender
 from frequenz.client.microgrid import ComponentMetricId
 
+from ..._internal._channels import ChannelRegistry
 from .._quantities import Current, Power, Quantity
 from ._formula_generators._formula_generator import (
     FormulaGenerator,
@@ -19,7 +20,7 @@ from ._resampled_formula_builder import ResampledFormulaBuilder
 
 if TYPE_CHECKING:
     # Break circular import
-    from ...actor import ChannelRegistry, ComponentMetricRequest
+    from ...actor import ComponentMetricRequest
     from ..formula_engine import FormulaEngine, FormulaEngine3Phase
 
 
