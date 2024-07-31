@@ -2,4 +2,4 @@
 
 ## Bug Fixes
 
-- Fix getting reactive power from meters, inverters and EV chargers.
+- Fix PV power distribution excluding inverters that haven't sent any data since the application started.

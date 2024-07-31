@@ -113,11 +113,19 @@ class PVManager(ComponentManager):
             raise ValueError(
                 "Cannot distribute power to PV inverters without any inverters"
             )
-        working_components = list(
-            self._component_pool_status_tracker.get_working_components(
-                request.component_ids
-            )
-        )
+
+        working_components: list[int] = []
+        for inv_id in self._component_pool_status_tracker.get_working_components(
+            request.component_ids
+        ):
+            if self._component_data_caches[inv_id].has_value():
+                working_components.append(inv_id)
+            else:
+                _logger.warning(
+                    "Exclude inverter %s from distribution, because it didn't "
+                    "send any data since the application startup.",
+                    inv_id,
+                )
 
         # When sorting by lower bounds, which are negative for PV inverters, we have to
         # reverse the order, so that the inverters with the higher bounds i.e., the
@@ -130,13 +138,18 @@ class PVManager(ComponentManager):
         )
 
         num_components = len(working_components)
+        if num_components == 0:
+            _logger.error("No inverters available for power distribution. Aborting.")
+            return
+
         for idx, inv_id in enumerate(working_components):
             # Request powers are negative for PV inverters.  When remaining power is
             # greater than 0.0, we can stop allocating further.
             if remaining_power > Power.zero() or is_close_to_zero(
                 remaining_power.as_watts()
             ):
-                break
+                allocations[inv_id] = Power.zero()
+                continue
             distribution = remaining_power / float(num_components - idx)
             inv_data = self._component_data_caches[inv_id]
             if not inv_data.has_value():
