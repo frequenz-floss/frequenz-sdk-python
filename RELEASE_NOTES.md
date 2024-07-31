@@ -7,17 +7,17 @@
 ## Upgrading
 
 - The `frequenz.sdk.microgrid.*_pool` methods has been renamed to `new_*_pool`, to make it explicit that they create new instances of the pool classes.
-  + `battery_pool` -> `new_battery_pool`
-  + `ev_charger_pool` -> `new_ev_charger_pool`
-  + `pv_pool` -> `new_pv_pool`
+  - `battery_pool` -> `new_battery_pool`
+  - `ev_charger_pool` -> `new_ev_charger_pool`
+  - `pv_pool` -> `new_pv_pool`
 
 - The following component metric streams have been renamed to clarify that they stream per-phase values:
-  + `frequenz.sdk.microgrid.`
-    * `voltage` -> `voltage_per_phase`
-    * `grid.current` -> `grid.current_per_phase`
-    * `ev_charger_pool.current` -> `ev_charger_pool.current_per_phase`
+  - `frequenz.sdk.microgrid.`
+    - `voltage` -> `voltage_per_phase`
+    - `grid.current` -> `grid.current_per_phase`
+    - `ev_charger_pool.current` -> `ev_charger_pool.current_per_phase`
 
-* Passing a `request_timeout` in calls to `*_pool.propose_power` is no longer supported.  It may be specified at application startup, through the new optional `api_power_request_timeout` parameter in the `microgrid.initialize()` method.
+- Passing a `request_timeout` in calls to `*_pool.propose_power` is no longer supported.  It may be specified at application startup, through the new optional `api_power_request_timeout` parameter in the `microgrid.initialize()` method.
 
 - Power distribution results are no longer available through the `power_status` streams in the `*Pool`s.    They can now be accessed as a stream from a separate property `power_distribution_results`, which is available from all the `*Pool`s.
 
@@ -42,3 +42,4 @@
 - Fixed typing ambiguities when building composite formulas on streaming data.
 - Fixed a bug that was causing the `PowerDistributor` to exit if power requests to PV inverters or EV chargers timeout.
 - Fix handling of cancelled tasks in the data sourcing and resampling actor.
+- Fix PV power distribution excluding inverters that haven't sent any data since startup.
