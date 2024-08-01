@@ -47,7 +47,7 @@ class ProducerPowerFormula(FormulaGenerator[Power]):
         producer_components = component_graph.dfs(
             self._get_grid_component(),
             set(),
-            lambda component: component_graph.is_pv_chain(component)
+            lambda component: component_graph.is_pv_inverter(component)
             or component_graph.is_chp_chain(component),
         )
 

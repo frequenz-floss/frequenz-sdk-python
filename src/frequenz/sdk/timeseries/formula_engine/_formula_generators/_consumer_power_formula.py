@@ -53,7 +53,7 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
             successor.category == ComponentCategory.METER
             and not component_graph.is_battery_chain(successor)
             and not component_graph.is_chp_chain(successor)
-            and not component_graph.is_pv_chain(successor)
+            and not component_graph.is_pv_inverter(successor)
             and not component_graph.is_ev_charger_chain(successor)
             for successor in grid_successors
         ):
@@ -93,7 +93,7 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
             return (
                 component_graph.is_battery_chain(component)
                 or component_graph.is_chp_chain(component)
-                or component_graph.is_pv_chain(component)
+                or component_graph.is_pv_inverter(component)
                 or component_graph.is_ev_charger_chain(component)
             )
 
@@ -154,7 +154,7 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
                 in {ComponentCategory.METER, ComponentCategory.INVERTER}
                 and not component_graph.is_battery_chain(component)
                 and not component_graph.is_chp_chain(component)
-                and not component_graph.is_pv_chain(component)
+                and not component_graph.is_pv_inverter(component)
                 and not component_graph.is_ev_charger_chain(component)
             )
 

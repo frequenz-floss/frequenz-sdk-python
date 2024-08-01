@@ -45,7 +45,7 @@ class PVPowerFormula(FormulaGenerator[Power]):
             pv_components = component_graph.dfs(
                 self._get_grid_component(),
                 set(),
-                component_graph.is_pv_chain,
+                component_graph.is_pv_inverter,
             )
 
         if not pv_components:
