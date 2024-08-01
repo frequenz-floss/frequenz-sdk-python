@@ -58,7 +58,7 @@ class ComponentPoolStatusTracker:
         self._max_blocking_duration = max_blocking_duration
         self._component_status_sender = component_status_sender
         self._component_status_tracker_type = component_status_tracker_type
-
+        self._component_status_channels: list[Broadcast[ComponentStatus]] = []
         # At first no component is working, we will get notification when they start
         # working.
         self._current_status = ComponentPoolStatus(working=set(), uncertain=set())
@@ -94,6 +94,7 @@ class ComponentPoolStatusTracker:
             channel: Broadcast[ComponentStatus] = Broadcast(
                 name=f"component_{component_id}_status"
             )
+            self._component_status_channels.append(channel)
             tracker = self._component_status_tracker_type(
                 component_id=component_id,
                 max_data_age=self._max_data_age,
@@ -104,6 +105,14 @@ class ComponentPoolStatusTracker:
             self._component_status_trackers.append(tracker)
             status_receivers.append(channel.new_receiver())
         return merge(*status_receivers)
+
+    def get_component_status_receiver(self) -> Merger[ComponentStatus]:
+        """Get the receiver for the status of the tracked components.
+
+        Returns:
+            Receiver for the status of the tracked components.
+        """
+        return merge(*(chan.new_receiver() for chan in self._component_status_channels))
 
     async def _run(self) -> None:
         """Start tracking component status."""

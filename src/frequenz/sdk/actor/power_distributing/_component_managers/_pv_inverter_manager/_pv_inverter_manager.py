@@ -18,7 +18,11 @@ from ....._internal._math import is_close_to_zero
 from .....microgrid import connection_manager
 from .....timeseries import Power
 from ..._component_pool_status_tracker import ComponentPoolStatusTracker
-from ..._component_status import ComponentPoolStatus, PVInverterStatusTracker
+from ..._component_status import (
+    ComponentPoolStatus,
+    ComponentStatusEnum,
+    PVInverterStatusTracker,
+)
 from ...request import Request
 from ...result import PartialFailure, Result, Success
 from .._component_manager import ComponentManager
@@ -56,6 +60,12 @@ class PVManager(ComponentManager):
             if self._pv_inverter_ids
             else None
         )
+        self._component_status_rx = (
+            self._component_pool_status_tracker.get_component_status_receiver()
+            if self._component_pool_status_tracker
+            else None
+        )
+        self._set_to_zero_task = asyncio.create_task(self._set_to_zero_if_not_working())
         self._component_data_caches: dict[int, LatestValueCache[InverterData]] = {}
         self._target_power = Power.zero()
         self._target_power_channel = Broadcast[Request](name="target_power")
@@ -171,6 +181,15 @@ class PVManager(ComponentManager):
             allocations,
         )
         await self._set_api_power(request, allocations, remaining_power)
+
+    async def _set_to_zero_if_not_working(self) -> None:
+        if not self._component_status_rx:
+            return
+        async for status in self._component_status_rx:
+            if status.component_id in self._pv_inverter_ids:
+                if status.value == ComponentStatusEnum.NOT_WORKING:
+                    api_client = connection_manager.get().api_client
+                    await api_client.set_power(status.component_id, 0.0)
 
     async def _set_api_power(  # pylint: disable=too-many-locals
         self, request: Request, allocations: dict[int, Power], remaining_power: Power
