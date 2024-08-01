@@ -181,7 +181,7 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
 
             builder.push_component_metric(
                 component.component_id,
-                nones_are_zeros=component.category != ComponentCategory.METER,
+                nones_are_zeros=True,
             )
 
         return builder.build()
