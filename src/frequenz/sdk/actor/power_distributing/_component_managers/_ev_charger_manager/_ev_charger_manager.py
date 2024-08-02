@@ -334,29 +334,29 @@ class EVChargerManager(ComponentManager):
         succeeded_components: set[int] = set()
         failed_power = Power.zero()
         for component_id, task in tasks.items():
-            exc = task.exception()
-            if exc is not None:
-                failed_components.add(component_id)
-                failed_power += target_power_changes[component_id]
+            try:
+                task.result()
+            except asyncio.CancelledError:
+                _logger.warning(
+                    "Timeout while setting power to EV charger %s", component_id
+                )
+            except ClientError as exc:
+                _logger.warning(
+                    "Got a client error while setting power to EV charger %s: %s",
+                    component_id,
+                    exc,
+                )
+            except Exception:  # pylint: disable=broad-except
+                _logger.exception(
+                    "Unknown error while setting power to EV charger: %s", component_id
+                )
             else:
                 succeeded_components.add(component_id)
+                continue
 
-            match task.exception():
-                case asyncio.CancelledError():
-                    _logger.warning(
-                        "Timeout while setting power to EV charger %s", component_id
-                    )
-                case ClientError() as err:
-                    _logger.warning(
-                        "Got a client error while setting power to EV charger %s: %s",
-                        component_id,
-                        err,
-                    )
-                case Exception():
-                    _logger.exception(
-                        "Unknown error while setting power to EV charger: %s",
-                        component_id,
-                    )
+            failed_components.add(component_id)
+            failed_power += target_power_changes[component_id]
+
         if failed_components:
             return PartialFailure(
                 failed_components=failed_components,
