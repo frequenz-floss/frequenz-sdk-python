@@ -196,29 +196,30 @@ class PVManager(ComponentManager):
         succeeded_components: set[int] = set()
         failed_power = Power.zero()
         for component_id, task in tasks.items():
-            exc = task.exception()
-            if exc is not None:
-                failed_components.add(component_id)
-                failed_power += allocations[component_id]
+            try:
+                task.result()
+            except asyncio.CancelledError:
+                _logger.warning(
+                    "Timeout while setting power to PV inverter %s", component_id
+                )
+            except grpc.aio.AioRpcError as exc:
+                _logger.warning(
+                    "Error while setting power to PV inverter %s: %s",
+                    component_id,
+                    exc,
+                )
+            except Exception:  # pylint: disable=broad-except
+                _logger.exception(
+                    "Unknown error while setting power to PV inverter: %s",
+                    component_id,
+                )
             else:
                 succeeded_components.add(component_id)
+                continue
 
-            match task.exception():
-                case asyncio.CancelledError():
-                    _logger.warning(
-                        "Timeout while setting power to PV inverter %s", component_id
-                    )
-                case grpc.aio.AioRpcError() as err:
-                    _logger.warning(
-                        "Error while setting power to PV inverter %s: %s",
-                        component_id,
-                        err,
-                    )
-                case Exception():
-                    _logger.exception(
-                        "Unknown error while setting power to PV inverter: %s",
-                        component_id,
-                    )
+            failed_components.add(component_id)
+            failed_power += allocations[component_id]
+
         if failed_components:
             await self._results_sender.send(
                 PartialFailure(
