@@ -10,6 +10,8 @@ distributing the power between the components and sends the results back to it.
 """
 
 
+import asyncio
+import logging
 from datetime import timedelta
 
 from frequenz.channels import Receiver, Sender
@@ -26,6 +28,8 @@ from ._component_managers import (
 from ._component_status import ComponentPoolStatus
 from .request import Request
 from .result import Result
+
+_logger = logging.getLogger(__name__)
 
 
 class PowerDistributingActor(Actor):
@@ -97,6 +101,16 @@ class PowerDistributingActor(Actor):
         self._result_sender = results_sender
         self._api_power_request_timeout = api_power_request_timeout
 
+        self._processing_tasks: dict[frozenset[int], asyncio.Task[None]] = {}
+        """Track the power request tasks currently being processed."""
+
+        self._pending_requests: dict[frozenset[int], Request] = {}
+        """Track the power requests that are waiting to be processed.
+
+        Only one pending power request is kept for each set of components, the
+        latest request will overwrite the previous one.
+        """
+
         self._component_manager: ComponentManager
         if component_category == ComponentCategory.BATTERY:
             self._component_manager = BatteryManager(
@@ -135,7 +149,18 @@ class PowerDistributingActor(Actor):
         await self._component_manager.start()
 
         async for request in self._requests_receiver:
-            await self._component_manager.distribute_power(request)
+            req_id = frozenset(request.component_ids)
+
+            if req_id in self._processing_tasks:
+                if pending_request := self._pending_requests.get(req_id):
+                    _logger.warning(
+                        "Pending request: %s, overwritten with request: %s",
+                        pending_request,
+                        request,
+                    )
+                self._pending_requests[req_id] = request
+            else:
+                self._process_request(req_id, request)
 
     @override
     async def stop(self, msg: str | None = None) -> None:
@@ -146,3 +171,41 @@ class PowerDistributingActor(Actor):
         """
         await self._component_manager.stop()
         await super().stop(msg)
+
+    def _handle_task_completion(
+        self, req_id: frozenset[int], request: Request, task: asyncio.Task[None]
+    ) -> None:
+        """Handle the completion of a power request task.
+
+        Args:
+            req_id: The id to identify the power request.
+            request: The power request that has been processed.
+            task: The task that has completed.
+        """
+        try:
+            task.result()
+        except Exception:  # pylint: disable=broad-except
+            _logger.exception("Failed power request: %s", request)
+
+        if req_id in self._pending_requests:
+            self._process_request(req_id, self._pending_requests.pop(req_id))
+        elif req_id in self._processing_tasks:
+            del self._processing_tasks[req_id]
+        else:
+            _logger.error("Request id not found in processing tasks: %s", req_id)
+
+    def _process_request(self, req_id: frozenset[int], request: Request) -> None:
+        """Process a power request.
+
+        Args:
+            req_id: The id to identify the power request.
+            request: The power request to process.
+        """
+        task = asyncio.create_task(
+            self._component_manager.distribute_power(request),
+            name=f"{type(self).__name__}:{request}",
+        )
+        task.add_done_callback(
+            lambda t: self._handle_task_completion(req_id, request, t)
+        )
+        self._processing_tasks[req_id] = task
