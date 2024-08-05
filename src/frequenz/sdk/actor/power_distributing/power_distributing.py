@@ -1,14 +1,12 @@
 # License: MIT
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
-"""Actor to distribute power between batteries.
+"""Actor to distribute power between components.
 
-When charge/discharge method is called the power should be distributed so that
-the SoC in batteries stays at the same level. That way of distribution
-prevents using only one battery, increasing temperature, and maximize the total
-amount power to charge/discharge.
+The purpose of this actor is to distribute power between components in a microgrid.
 
-Purpose of this actor is to keep SoC level of each component at the equal level.
+The actor receives power requests from the power manager, process them by
+distributing the power between the components and sends the results back to it.
 """
 
 
@@ -32,28 +30,28 @@ from .result import Result
 
 class PowerDistributingActor(Actor):
     # pylint: disable=too-many-instance-attributes
-    """Actor to distribute the power between batteries in a microgrid.
+    """Actor to distribute the power between components in a microgrid.
 
-    The purpose of this tool is to keep an equal SoC level in all batteries.
-    The PowerDistributingActor can have many concurrent users which at this time
-    need to be known at construction time.
+    One instance of the actor can handle only one component category and type,
+    which needs to be specified at actor startup and it will setup the correct
+    component manager based on the given category and type.
 
-    For each user a bidirectional channel needs to be created through which
-    they can send and receive requests and responses.
-
-    It is recommended to wait for PowerDistributingActor output with timeout. Otherwise if
-    the processing function fails then the response will never come.
-    The timeout should be Result:request_timeout + time for processing the request.
+    Only one power request is processed at a time to prevent from sending
+    multiple requests for the same components to the microgrid API at the
+    same time.
 
     Edge cases:
-    * If there are 2 requests to be processed for the same subset of batteries, then
-    only the latest request will be processed. Older request will be ignored. User with
-    older request will get response with Result.Status.IGNORED.
+    * If a new power request is received while a power request with the same
+    set of components is being processed, the new request will be added to
+    the pending requests. Then the pending request will be processed after the
+    request with the same set of components being processed is done. Only one
+    pending request is kept for each set of components, the latest request will
+    overwrite the previous one if there is any.
 
-    * If there are 2 requests and their subset of batteries is different but they
-    overlap (they have at least one common battery), then then both batteries
-    will be processed. However it is not expected so the proper error log will be
-    printed.
+    * If there are 2 requests and their set of components is different but they
+    overlap (they have at least one common component), then both requests will
+    be processed concurrently. Though, the power manager will make sure this
+    doesn't happen as overlapping component IDs are not possible at the moment.
     """
 
     def __init__(  # pylint: disable=too-many-arguments
@@ -67,7 +65,7 @@ class PowerDistributingActor(Actor):
         component_type: ComponentType | None = None,
         name: str | None = None,
     ) -> None:
-        """Create class instance.
+        """Create actor instance.
 
         Args:
             requests_receiver: Receiver for receiving power requests from the power
@@ -121,13 +119,17 @@ class PowerDistributingActor(Actor):
             )
 
     @override
-    async def _run(self) -> None:  # pylint: disable=too-many-locals
-        """Run actor main function.
+    async def _run(self) -> None:
+        """Run this actor's logic.
 
-        It waits for new requests in task_queue and process it, and send
-        `set_power` request with distributed power.
-        The output of the `set_power` method is processed.
-        Every battery and inverter that failed or didn't respond in time will be marked
+        It waits for new power requests and process them. Only one power request
+        can be processed at a time to prevent from sending multiple requests for
+        the same components to the microgrid API at the same time.
+
+        A new power request will be ignored if a power request with the same
+        components is currently being processed.
+
+        Every component that failed or didn't respond in time will be marked
         as broken for some time.
         """
         await self._component_manager.start()
