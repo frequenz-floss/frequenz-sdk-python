@@ -43,3 +43,4 @@
 - Fixed a bug that was causing the `PowerDistributor` to exit if power requests to PV inverters or EV chargers timeout.
 - Fix handling of cancelled tasks in the data sourcing and resampling actor.
 - Fix PV power distribution excluding inverters that haven't sent any data since startup.
+- Prevent stacking of power requests to avoid delays in processing when the power requests frequency exceeds the processing time.
