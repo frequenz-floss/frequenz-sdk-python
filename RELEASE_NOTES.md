@@ -41,3 +41,4 @@
 - Re-expose `ComponentMetricId` to the docs.
 - Fixed typing ambiguities when building composite formulas on streaming data.
 - Fixed a bug that was causing the `PowerDistributor` to exit if power requests to PV inverters or EV chargers timeout.
+- Fix handling of cancelled tasks in the data sourcing and resampling actor.
