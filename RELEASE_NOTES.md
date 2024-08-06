@@ -40,3 +40,4 @@
 - Fixed a bug in `ConfigManagingActor` that was not properly comparing the event path to the config file path when the config file is a relative path.
 - Re-expose `ComponentMetricId` to the docs.
 - Fixed typing ambiguities when building composite formulas on streaming data.
+- Fixed a bug that was causing the `PowerDistributor` to exit if power requests to PV inverters or EV chargers timeout.
