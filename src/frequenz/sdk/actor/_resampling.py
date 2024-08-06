@@ -106,22 +106,23 @@ class ComponentMetricsResamplingActor(Actor):
 
         - One task to process incoming subscription requests to resample new metrics.
         - One task to run the resampler.
-
-        Raises:
-            RuntimeError: If there is some unexpected error while resampling or
-                handling requests.
         """
         tasks_to_cancel: set[asyncio.Task[None]] = set()
+        subscriptions_task: asyncio.Task[None] | None = None
+        resampling_task: asyncio.Task[None] | None = None
+
         try:
-            subscriptions_task = asyncio.create_task(
-                self._process_resampling_requests()
-            )
-            tasks_to_cancel.add(subscriptions_task)
-
             while True:
+                if subscriptions_task is None or subscriptions_task.done():
+                    subscriptions_task = asyncio.create_task(
+                        self._process_resampling_requests()
+                    )
+                    tasks_to_cancel.add(subscriptions_task)
 
-                resampling_task = asyncio.create_task(self._resampler.resample())
-                tasks_to_cancel.add(resampling_task)
+                if resampling_task is None or resampling_task.done():
+                    resampling_task = asyncio.create_task(self._resampler.resample())
+                    tasks_to_cancel.add(resampling_task)
+
                 done, _ = await asyncio.wait(
                     [resampling_task, subscriptions_task],
                     return_when=asyncio.FIRST_COMPLETED,
@@ -129,9 +130,17 @@ class ComponentMetricsResamplingActor(Actor):
 
                 if subscriptions_task in done:
                     tasks_to_cancel.remove(subscriptions_task)
-                    raise RuntimeError(
-                        "There was a problem with the subscriptions channel."
-                    )
+                    try:
+                        subscriptions_task.result()
+                    # pylint: disable-next=broad-except
+                    except (Exception, asyncio.CancelledError):
+                        _logger.exception(
+                            "The subscriptions task ended with an exception, restarting..."
+                        )
+                    else:
+                        _logger.error(
+                            "The subscriptions task ended unexpectedly, restarting..."
+                        )
 
                 if resampling_task in done:
                     tasks_to_cancel.remove(resampling_task)
@@ -164,7 +173,7 @@ class ComponentMetricsResamplingActor(Actor):
                         _logger.error(
                             "The resample() function ended without an exception, restarting..."
                         )
-                    # The resampling_task will be re-created if we reached this point
+
         finally:
             await asyncio.gather(*[cancel_and_await(t) for t in tasks_to_cancel])
 
