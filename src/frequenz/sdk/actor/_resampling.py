@@ -119,6 +119,7 @@ class ComponentMetricsResamplingActor(Actor):
             tasks_to_cancel.add(subscriptions_task)
 
             while True:
+
                 resampling_task = asyncio.create_task(self._resampler.resample())
                 tasks_to_cancel.add(resampling_task)
                 done, _ = await asyncio.wait(
@@ -134,29 +135,35 @@ class ComponentMetricsResamplingActor(Actor):
 
                 if resampling_task in done:
                     tasks_to_cancel.remove(resampling_task)
-                    # The resampler shouldn't end without an exception
-                    error = resampling_task.exception()
-                    assert (
-                        error is not None
-                    ), "The resample() function shouldn't exit normally."
-
-                    # We don't know what to do with something other than
-                    # ResamplingError, so propagate the exception if that is the
-                    # case.
-                    if not isinstance(error, ResamplingError):
-                        raise error
-                    for source, source_error in error.exceptions.items():
-                        _logger.error(
-                            "Error resampling source %s, removing source...", source
-                        )
-                        removed = self._resampler.remove_timeseries(source)
-                        if not removed:
-                            _logger.warning(
-                                "Got an exception from an unknown source: "
-                                "source=%r, exception=%r",
-                                source,
-                                source_error,
+                    # The resampler shouldn't be cancelled or end without an exception
+                    try:
+                        resampling_task.result()
+                    except ResamplingError as error:
+                        for source, source_error in error.exceptions.items():
+                            _logger.error(
+                                "Error resampling source %s, removing source...", source
                             )
+                            removed = self._resampler.remove_timeseries(source)
+                            if not removed:
+                                _logger.error(
+                                    "Got an exception from an unknown source: "
+                                    "source=%r, exception=%r",
+                                    source,
+                                    source_error,
+                                )
+                    # pylint: disable-next=broad-except
+                    except (Exception, asyncio.CancelledError):
+                        # We don't know what to do with something other than
+                        # ResamplingError, so we log it, restart, and hope for the best.
+                        _logger.exception(
+                            "The resample() function got an unexpected error, restarting..."
+                        )
+                    else:
+                        # The resample function should not end normally, so we log it,
+                        # restart, and hope for the best.
+                        _logger.error(
+                            "The resample() function ended without an exception, restarting..."
+                        )
                     # The resampling_task will be re-created if we reached this point
         finally:
             await asyncio.gather(*[cancel_and_await(t) for t in tasks_to_cancel])

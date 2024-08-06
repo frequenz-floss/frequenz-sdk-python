@@ -230,8 +230,12 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         self.init_mock_client(initialize_cb)
 
         def _done_callback(task: asyncio.Task[None]) -> None:
-            if exc := task.exception():
-                raise SystemExit(f"Streaming task {task.get_name()!r} failed: {exc}")
+            try:
+                task.result()
+            except (asyncio.CancelledError, Exception) as exc:
+                raise SystemExit(
+                    f"Streaming task {task.get_name()!r} failed: {exc}"
+                ) from exc
 
         for component_id, coro in self._streaming_coros:
             task = asyncio.create_task(coro, name=f"component-id:{component_id}")
