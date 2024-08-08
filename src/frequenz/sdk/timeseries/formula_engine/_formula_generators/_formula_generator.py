@@ -140,3 +140,110 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
         self,
     ) -> FormulaEngine[QuantityT] | FormulaEngine3Phase[QuantityT]:
         """Generate a formula engine, based on the component graph."""
+
+    def _get_metric_fallback_components(
+        self, components: set[Component]
+    ) -> dict[Component, set[Component]]:
+        """Get primary and fallback components within a given set of components.
+
+        When a meter is positioned before one or more components of the same type (e.g., inverters),
+        it is considered the primary component, and the components that follow are treated
+        as fallback components.
+        If the non-meter component has no meter in front of it, then it is the primary component
+        and has no fallbacks.
+
+        The method iterates through the provided components and assesses their roles as primary
+        or fallback components.
+        If a component:
+         * can act as a primary component (e.g., a meter), then it finds its
+        fallback components and pairs them together.
+         * can act as a fallback (e.g., an inverter or EV charger), then it finds
+        the primary component for it (usually a meter) and pairs them together.
+         * has no fallback (e.g., an inverter that has no meter attached), then it
+        returns an empty set for that component. This means that the component
+        is a primary component and has no fallbacks.
+
+        Args:
+            components: The components to be analyzed.
+
+        Returns:
+            A dictionary where:
+                * The keys are primary components.
+                * The values are sets of fallback components.
+        """
+        graph = connection_manager.get().component_graph
+        fallbacks: dict[Component, set[Component]] = {}
+        for component in components:
+            if component.category == ComponentCategory.METER:
+                fallbacks[component] = self._get_meter_fallback_components(component)
+            else:
+                predecessors = graph.predecessors(component.component_id)
+                if len(predecessors) == 1:
+                    predecessor = predecessors.pop()
+                    if self._is_primary_fallback_pair(predecessor, component):
+                        # predecessor is primary component and the component is one of the
+                        # fallbacks components.
+                        fallbacks.setdefault(predecessor, set()).add(component)
+                        continue
+
+                # This component is primary component with no fallbacks.
+                fallbacks[component] = set()
+        return fallbacks
+
+    def _get_meter_fallback_components(self, meter: Component) -> set[Component]:
+        """Get the fallback components for a given meter.
+
+        Args:
+            meter: The meter to find the fallback components for.
+
+        Returns:
+            A set of fallback components for the given meter.
+            An empty set is returned if the meter has no fallbacks.
+        """
+        assert meter.category == ComponentCategory.METER
+
+        graph = connection_manager.get().component_graph
+        successors = graph.successors(meter.component_id)
+
+        # All fallbacks has to be of the same type and category.
+        if (
+            all(graph.is_chp(c) for c in successors)
+            or all(graph.is_pv_inverter(c) for c in successors)
+            or all(graph.is_battery_inverter(c) for c in successors)
+            or all(graph.is_ev_charger(c) for c in successors)
+        ):
+            return successors
+        return set()
+
+    def _is_primary_fallback_pair(
+        self,
+        primary_candidate: Component,
+        fallback_candidate: Component,
+    ) -> bool:
+        """Determine if a given component can act as a primary-fallback pair.
+
+        This method checks:
+         * whether the `fallback_candidate` is of a type that can have the `primary_candidate`,
+         * if `primary_candidate` is the primary measuring point of the `fallback_candidate`.
+
+        Args:
+            primary_candidate: The component to be checked as a primary measuring device.
+            fallback_candidate: The component to be checked as a fallback measuring device.
+
+        Returns:
+            bool: True if the provided components are a primary-fallback pair, False otherwise.
+        """
+        graph = connection_manager.get().component_graph
+
+        # reassign to decrease the length of the line and make code readable
+        fallback = fallback_candidate
+        primary = primary_candidate
+
+        # fmt: off
+        return (
+            graph.is_pv_inverter(fallback) and graph.is_pv_meter(primary)
+            or graph.is_chp(fallback) and graph.is_chp_meter(primary)
+            or graph.is_ev_charger(fallback) and graph.is_ev_charger_meter(primary)
+            or graph.is_battery_inverter(fallback) and graph.is_battery_meter(primary)
+        )
+        # fmt: on
