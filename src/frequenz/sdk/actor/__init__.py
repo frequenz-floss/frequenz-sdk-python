@@ -599,15 +599,11 @@ Received message=False
 from ..timeseries._resampling import ResamplerConfig
 from ._actor import Actor
 from ._background_service import BackgroundService
-from ._data_sourcing import ComponentMetricId, ComponentMetricRequest, DataSourcingActor
 from ._run_utils import run
 
 __all__ = [
     "Actor",
     "BackgroundService",
-    "ComponentMetricId",
-    "ComponentMetricRequest",
-    "DataSourcingActor",
     "ResamplerConfig",
     "run",
 ]

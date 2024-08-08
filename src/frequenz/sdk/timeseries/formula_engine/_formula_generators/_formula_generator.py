@@ -10,20 +10,17 @@ from abc import ABC, abstractmethod
 from collections import abc
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Generic
+from typing import Generic
 
 from frequenz.channels import Sender
 from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
 
 from ...._internal._channels import ChannelRegistry
 from ....microgrid import connection_manager
+from ....microgrid._data_sourcing import ComponentMetricRequest
 from ..._quantities import QuantityT
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase
 from .._resampled_formula_builder import ResampledFormulaBuilder
-
-if TYPE_CHECKING:
-    # Break circular import
-    from ....actor import ComponentMetricRequest
 
 
 class FormulaGenerationError(Exception):

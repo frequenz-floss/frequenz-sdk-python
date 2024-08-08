@@ -29,7 +29,10 @@ from frequenz.client.microgrid import (
 )
 
 from frequenz.sdk._internal._channels import ChannelRegistry
-from frequenz.sdk.actor import ComponentMetricRequest, DataSourcingActor
+from frequenz.sdk.microgrid._data_sourcing import (
+    ComponentMetricRequest,
+    DataSourcingActor,
+)
 from frequenz.sdk.timeseries import Quantity, Sample
 
 T = TypeVar("T", bound=ComponentData)
@@ -54,7 +57,8 @@ def mock_connection_manager(mocker: pytest_mock.MockFixture) -> mock.Mock:
     mock_client.ev_charger_data = _new_ev_charger_data_mock(12, starting_value=-13.0)
     mock_conn_manager = mock.MagicMock(name="connection_manager")
     mocker.patch(
-        "frequenz.sdk.actor._data_sourcing.microgrid_api_source.connection_manager.get",
+        "frequenz.sdk.microgrid._data_sourcing"
+        ".microgrid_api_source.connection_manager.get",
         return_value=mock_conn_manager,
     )
     mock_conn_manager.api_client = mock_client

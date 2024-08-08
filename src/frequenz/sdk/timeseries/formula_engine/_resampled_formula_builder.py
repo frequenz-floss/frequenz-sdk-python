@@ -6,20 +6,16 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING
 
 from frequenz.channels import Receiver, Sender
 from frequenz.client.microgrid import ComponentMetricId
 
 from ..._internal._channels import ChannelRegistry
+from ...microgrid._data_sourcing import ComponentMetricRequest
 from .. import Sample
 from .._quantities import Quantity, QuantityT
 from ._formula_engine import FormulaBuilder, FormulaEngine
 from ._tokenizer import Tokenizer, TokenType
-
-if TYPE_CHECKING:
-    # Break circular import
-    from ...actor import ComponentMetricRequest
 
 
 class ResampledFormulaBuilder(FormulaBuilder[QuantityT]):
@@ -70,9 +66,6 @@ class ResampledFormulaBuilder(FormulaBuilder[QuantityT]):
         Returns:
             A receiver to stream resampled data for the given component id.
         """
-        # pylint: disable=import-outside-toplevel
-        from frequenz.sdk.actor import ComponentMetricRequest
-
         request = ComponentMetricRequest(self._namespace, component_id, metric_id, None)
         self._resampler_requests.append(request)
         resampled_channel = self._channel_registry.get_or_create(

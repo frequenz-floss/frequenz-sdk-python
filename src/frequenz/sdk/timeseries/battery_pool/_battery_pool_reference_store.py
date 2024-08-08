@@ -15,8 +15,8 @@ from frequenz.client.microgrid import ComponentCategory
 
 from ..._internal._asyncio import cancel_and_await
 from ..._internal._channels import ChannelRegistry, ReceiverFetcher
-from ...actor._data_sourcing._component_metric_request import ComponentMetricRequest
 from ...microgrid import connection_manager
+from ...microgrid._data_sourcing import ComponentMetricRequest
 from ...microgrid._power_distributing import Result
 from ...microgrid._power_distributing._component_status import ComponentPoolStatus
 from ...microgrid._power_managing._base_classes import Proposal, ReportRequest

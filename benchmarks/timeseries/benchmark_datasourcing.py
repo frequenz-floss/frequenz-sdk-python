@@ -21,7 +21,10 @@ from frequenz.client.microgrid import ComponentMetricId
 
 from frequenz.sdk import microgrid
 from frequenz.sdk._internal._channels import ChannelRegistry
-from frequenz.sdk.actor import ComponentMetricRequest, DataSourcingActor
+from frequenz.sdk.microgrid._data_sourcing import (
+    ComponentMetricRequest,
+    DataSourcingActor,
+)
 
 try:
     from tests.timeseries.mock_microgrid import MockMicrogrid
