@@ -20,10 +20,9 @@ from frequenz.client.microgrid import (
 )
 from typing_extensions import override
 
-from .... import microgrid
 from ...._internal._math import is_close_to_zero
-from ....microgrid import connection_manager
 from ....timeseries._quantities import Power
+from ... import connection_manager
 from .._component_pool_status_tracker import ComponentPoolStatusTracker
 from .._component_status import BatteryStatusTracker, ComponentPoolStatus
 from .._distribution_algorithm import (
@@ -617,7 +616,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             Tuple where first element is total failed power, and the second element
             set of batteries that failed.
         """
-        api = microgrid.connection_manager.get().api_client
+        api = connection_manager.get().api_client
 
         tasks = {
             inverter_id: asyncio.create_task(api.set_power(inverter_id, power))

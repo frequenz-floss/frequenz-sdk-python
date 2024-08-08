@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 import logging
-import typing
 from datetime import timedelta
 
 from frequenz.channels import Broadcast
@@ -17,19 +16,13 @@ from frequenz.channels import Broadcast
 from frequenz.client.microgrid import ComponentCategory, ComponentType
 
 from .._internal._channels import ChannelRegistry, ReceiverFetcher
-from . import _power_managing
-
-# A number of imports had to be done inside functions where they are used, to break
-# import cycles.
-#
-# pylint: disable=import-outside-toplevel
-if typing.TYPE_CHECKING:
-    from ..actor.power_distributing import (  # noqa: F401 (imports used by string type hints)
-        ComponentPoolStatus,
-        PowerDistributingActor,
-        Request,
-        Result,
-    )
+from . import _power_managing, connection_manager
+from ._power_distributing import (
+    ComponentPoolStatus,
+    PowerDistributingActor,
+    Request,
+    Result,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -91,9 +84,7 @@ class PowerWrapper:
         if self._power_managing_actor:
             return
 
-        from .. import microgrid
-
-        component_graph = microgrid.connection_manager.get().component_graph
+        component_graph = connection_manager.get().component_graph
         # Currently the power managing actor only supports batteries.  The below
         # constraint needs to be relaxed if the actor is extended to support other
         # components.
@@ -129,9 +120,7 @@ class PowerWrapper:
         if self._power_distributing_actor:
             return
 
-        from .. import microgrid
-
-        component_graph = microgrid.connection_manager.get().component_graph
+        component_graph = connection_manager.get().component_graph
         if not component_graph.components(
             component_categories={self._component_category}
         ):
@@ -141,8 +130,6 @@ class PowerWrapper:
                 self._component_category,
             )
             return
-
-        from ..actor.power_distributing import PowerDistributingActor
 
         # The PowerDistributingActor is started with only a single default user channel.
         # Until the PowerManager is implemented, support for multiple use-case actors

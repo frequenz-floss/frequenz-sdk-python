@@ -11,7 +11,7 @@ from frequenz.client.microgrid import EVChargerCableState, EVChargerComponentSta
 from pytest_mock import MockerFixture
 
 from frequenz.sdk._internal._asyncio import cancel_and_await
-from frequenz.sdk.actor.power_distributing._component_status import (
+from frequenz.sdk.microgrid._power_distributing._component_status import (
     ComponentStatus,
     ComponentStatusEnum,
     EVChargerStatusTracker,

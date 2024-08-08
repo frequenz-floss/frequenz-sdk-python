@@ -10,13 +10,13 @@ from datetime import datetime, timezone
 from frequenz.client.microgrid import BatteryData, InverterData
 from pytest import approx, raises
 
-from frequenz.sdk.actor.power_distributing._distribution_algorithm import (
+from frequenz.sdk.microgrid._power_distributing._distribution_algorithm import (
     AggregatedBatteryData,
     BatteryDistributionAlgorithm,
     DistributionResult,
     InvBatPair,
 )
-from frequenz.sdk.actor.power_distributing.result import PowerBounds
+from frequenz.sdk.microgrid._power_distributing.result import PowerBounds
 
 from ...utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
 

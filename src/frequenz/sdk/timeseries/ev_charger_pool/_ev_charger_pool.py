@@ -9,8 +9,7 @@ import uuid
 from collections import abc
 
 from ..._internal._channels import MappingReceiverFetcher, ReceiverFetcher
-from ...actor import power_distributing
-from ...microgrid import _power_managing
+from ...microgrid import _power_distributing, _power_managing
 from ...timeseries import Bounds
 from .._base_types import SystemBounds
 from .._quantities import Current, Power
@@ -229,7 +228,7 @@ class EVChargerPool:
         return channel
 
     @property
-    def power_distribution_results(self) -> ReceiverFetcher[power_distributing.Result]:
+    def power_distribution_results(self) -> ReceiverFetcher[_power_distributing.Result]:
         """Get a receiver to receive power distribution results.
 
         Returns:

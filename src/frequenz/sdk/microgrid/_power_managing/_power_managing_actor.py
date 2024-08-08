@@ -16,10 +16,10 @@ from frequenz.client.microgrid import ComponentCategory, ComponentType, Inverter
 from typing_extensions import override
 
 from ..._internal._channels import ChannelRegistry
-from ...actor import Actor, power_distributing
+from ...actor import Actor
 from ...timeseries import Power
 from ...timeseries._base_types import Bounds, SystemBounds
-from .. import _data_pipeline
+from .. import _data_pipeline, _power_distributing
 from ._base_classes import Algorithm, BaseAlgorithm, Proposal, ReportRequest, _Report
 from ._matryoshka import Matryoshka
 
@@ -33,8 +33,8 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
         self,
         proposals_receiver: Receiver[Proposal],
         bounds_subscription_receiver: Receiver[ReportRequest],
-        power_distributing_requests_sender: Sender[power_distributing.Request],
-        power_distributing_results_receiver: Receiver[power_distributing.Result],
+        power_distributing_requests_sender: Sender[_power_distributing.Request],
+        power_distributing_results_receiver: Receiver[_power_distributing.Result],
         channel_registry: ChannelRegistry,
         *,
         component_category: ComponentCategory,
@@ -319,7 +319,7 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
         )
         if target_power is not None:
             await self._power_distributing_requests_sender.send(
-                power_distributing.Request(
+                _power_distributing.Request(
                     power=target_power,
                     component_ids=component_ids,
                     adjust_power=True,
@@ -386,18 +386,18 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
 
             elif selected_from(selected, self._power_distributing_results_receiver):
                 result = selected.message
-                if not isinstance(result, power_distributing.Success):
+                if not isinstance(result, _power_distributing.Success):
                     _logger.warning(
                         "PowerManagingActor: PowerDistributing failed: %s", result
                     )
                 match result:
-                    case power_distributing.PartialFailure(request):
+                    case _power_distributing.PartialFailure(request):
                         if not last_result_partial_failure:
                             last_result_partial_failure = True
                             await self._send_updated_target_power(
                                 frozenset(request.component_ids), None, must_send=True
                             )
-                    case power_distributing.Success():
+                    case _power_distributing.Success():
                         last_result_partial_failure = False
                 await self._send_reports(frozenset(result.request.component_ids))
 

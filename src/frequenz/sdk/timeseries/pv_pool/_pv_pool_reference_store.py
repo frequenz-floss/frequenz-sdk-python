@@ -13,8 +13,8 @@ from frequenz.client.microgrid import ComponentCategory, InverterType
 
 from ..._internal._channels import ChannelRegistry, ReceiverFetcher
 from ...actor import ComponentMetricRequest
-from ...actor.power_distributing import ComponentPoolStatus, Result
 from ...microgrid import connection_manager
+from ...microgrid._power_distributing import ComponentPoolStatus, Result
 from ...microgrid._power_managing._base_classes import Proposal, ReportRequest
 from .._base_types import SystemBounds
 from ..formula_engine._formula_engine_pool import FormulaEnginePool

@@ -15,7 +15,8 @@ from frequenz.client.microgrid import InverterComponentState
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
-from frequenz.sdk.actor import ResamplerConfig, power_distributing
+from frequenz.sdk.actor import ResamplerConfig
+from frequenz.sdk.microgrid import _power_distributing
 from frequenz.sdk.microgrid._data_pipeline import _DataPipeline
 from frequenz.sdk.timeseries import Power
 from frequenz.sdk.timeseries.pv_pool import PVPoolReport
@@ -99,9 +100,9 @@ class TestPVPoolControl:
         power: float | None,
         lower: float,
         upper: float,
-        dist_result: power_distributing.Result | None = None,
+        dist_result: _power_distributing.Result | None = None,
         expected_result_pred: (
-            typing.Callable[[power_distributing.Result], bool] | None
+            typing.Callable[[_power_distributing.Result], bool] | None
         ) = None,
     ) -> None:
         assert report.target_power == (

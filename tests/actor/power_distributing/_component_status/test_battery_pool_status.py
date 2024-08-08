@@ -9,10 +9,10 @@ from frequenz.channels import Broadcast
 from frequenz.client.microgrid import ComponentCategory
 from pytest_mock import MockerFixture
 
-from frequenz.sdk.actor.power_distributing._component_pool_status_tracker import (
+from frequenz.sdk.microgrid._power_distributing._component_pool_status_tracker import (
     ComponentPoolStatusTracker,
 )
-from frequenz.sdk.actor.power_distributing._component_status import (
+from frequenz.sdk.microgrid._power_distributing._component_status import (
     BatteryStatusTracker,
     ComponentPoolStatus,
 )

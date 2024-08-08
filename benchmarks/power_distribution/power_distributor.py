@@ -16,7 +16,8 @@ from frequenz.client.microgrid import Component, ComponentCategory
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.actor import ResamplerConfig
-from frequenz.sdk.actor.power_distributing import (
+from frequenz.sdk.microgrid import connection_manager
+from frequenz.sdk.microgrid._power_distributing import (
     ComponentPoolStatus,
     Error,
     OutOfBounds,
@@ -26,7 +27,6 @@ from frequenz.sdk.actor.power_distributing import (
     Result,
     Success,
 )
-from frequenz.sdk.microgrid import connection_manager
 from frequenz.sdk.timeseries._quantities import Power
 
 HOST = "microgrid.sandbox.api.frequenz.io"

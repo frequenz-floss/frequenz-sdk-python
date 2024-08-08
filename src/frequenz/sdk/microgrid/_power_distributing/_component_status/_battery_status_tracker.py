@@ -35,8 +35,8 @@ from frequenz.client.microgrid import (
 )
 from typing_extensions import override
 
-from ....microgrid import connection_manager
-from ..._background_service import BackgroundService
+from ....actor._background_service import BackgroundService
+from ... import connection_manager
 from ._blocking_status import BlockingStatus
 from ._component_status import (
     ComponentStatus,

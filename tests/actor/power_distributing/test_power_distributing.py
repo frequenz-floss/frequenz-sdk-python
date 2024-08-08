@@ -16,18 +16,18 @@ from frequenz.channels import Broadcast
 from frequenz.client.microgrid import ComponentCategory
 from pytest_mock import MockerFixture
 
-from frequenz.sdk.actor.power_distributing import (
+from frequenz.sdk.microgrid._power_distributing import (
     ComponentPoolStatus,
     PowerDistributingActor,
     Request,
 )
-from frequenz.sdk.actor.power_distributing._component_managers._battery_manager import (
+from frequenz.sdk.microgrid._power_distributing._component_managers._battery_manager import (
     BatteryManager,
 )
-from frequenz.sdk.actor.power_distributing._component_pool_status_tracker import (
+from frequenz.sdk.microgrid._power_distributing._component_pool_status_tracker import (
     ComponentPoolStatusTracker,
 )
-from frequenz.sdk.actor.power_distributing.result import (
+from frequenz.sdk.microgrid._power_distributing.result import (
     Error,
     OutOfBounds,
     PartialFailure,
@@ -76,16 +76,16 @@ class TestPowerDistributingActor:
             mock = MagicMock(spec=ComponentPoolStatusTracker)
             mock.get_working_components.return_value = battery_ids
             mocker.patch(
-                "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-                ".ComponentPoolStatusTracker",
+                "frequenz.sdk.microgrid._power_distributing._component_managers"
+                "._battery_manager.ComponentPoolStatusTracker",
                 return_value=mock,
             )
         else:
             mock = MagicMock(spec=ComponentPoolStatusTracker)
             mock.get_working_components.side_effect = set
             mocker.patch(
-                "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-                ".ComponentPoolStatusTracker",
+                "frequenz.sdk.microgrid._power_distributing._component_managers"
+                "._battery_manager.ComponentPoolStatusTracker",
                 return_value=mock,
             )
         await mocks.component_status_sender.send(
@@ -1260,8 +1260,8 @@ class TestPowerDistributingActor:
             await self._patch_battery_pool_status(mocks, mocker, batteries)
 
             mocker.patch(
-                "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-                ".BatteryManager._parse_result",
+                "frequenz.sdk.microgrid._power_distributing._component_managers"
+                "._battery_manager.BatteryManager._parse_result",
                 return_value=(failed_power, failed_batteries),
             )
 
