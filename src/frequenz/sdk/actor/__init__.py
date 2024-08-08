@@ -49,6 +49,7 @@ the traditional actor programming model but also has some unique features:
 
 ## Lifecycle
 
+
 Actors are not started when they are created. There are 3 main ways to start an actor
 (from most to least recommended):
 
@@ -80,7 +81,9 @@ logged.
 
     class MyActor(Actor):
         async def _run(self) -> None:
-            print("Hello World!")
+            while True:
+                print("Hello World!")
+                await asyncio.sleep(1)
 
     await run(MyActor()) # (1)!
     ```
