@@ -14,7 +14,8 @@ from collections import abc
 
 from ... import timeseries
 from ..._internal._channels import MappingReceiverFetcher, ReceiverFetcher
-from ...actor import _power_managing, power_distributing
+from ...actor import power_distributing
+from ...microgrid import _power_managing
 from ...timeseries import Energy, Percentage, Power, Sample, Temperature
 from .._base_types import SystemBounds
 from ..formula_engine import FormulaEngine

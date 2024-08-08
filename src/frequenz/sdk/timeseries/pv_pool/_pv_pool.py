@@ -8,7 +8,8 @@ import uuid
 from collections import abc
 
 from ..._internal._channels import MappingReceiverFetcher, ReceiverFetcher
-from ...actor import _power_managing, power_distributing
+from ...actor import power_distributing
+from ...microgrid import _power_managing
 from ...timeseries import Bounds
 from .._base_types import SystemBounds
 from .._quantities import Power

@@ -7,8 +7,8 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 
 from frequenz.sdk import timeseries
-from frequenz.sdk.actor._power_managing import Proposal
-from frequenz.sdk.actor._power_managing._matryoshka import Matryoshka
+from frequenz.sdk.microgrid._power_managing import Proposal
+from frequenz.sdk.microgrid._power_managing._matryoshka import Matryoshka
 from frequenz.sdk.timeseries import Power, _base_types
 
 

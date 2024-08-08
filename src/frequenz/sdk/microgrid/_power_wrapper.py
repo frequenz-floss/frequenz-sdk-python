@@ -17,13 +17,13 @@ from frequenz.channels import Broadcast
 from frequenz.client.microgrid import ComponentCategory, ComponentType
 
 from .._internal._channels import ChannelRegistry, ReceiverFetcher
+from . import _power_managing
 
 # A number of imports had to be done inside functions where they are used, to break
 # import cycles.
 #
 # pylint: disable=import-outside-toplevel
 if typing.TYPE_CHECKING:
-    from ..actor import _power_managing
     from ..actor.power_distributing import (  # noqa: F401 (imports used by string type hints)
         ComponentPoolStatus,
         PowerDistributingActor,
@@ -107,9 +107,7 @@ class PowerWrapper:
             )
             return
 
-        from ..actor._power_managing._power_managing_actor import PowerManagingActor
-
-        self._power_managing_actor = PowerManagingActor(
+        self._power_managing_actor = _power_managing.PowerManagingActor(
             component_category=self._component_category,
             component_type=self._component_type,
             proposals_receiver=self.proposal_channel.new_receiver(),
