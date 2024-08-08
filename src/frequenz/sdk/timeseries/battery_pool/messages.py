@@ -6,6 +6,13 @@
 import abc
 import typing
 
+from ...microgrid._power_distributing import (
+    Error,
+    OutOfBounds,
+    PartialFailure,
+    Result,
+    Success,
+)
 from .._base_types import Bounds
 from .._quantities import Power
 
@@ -27,7 +34,7 @@ class BatteryPoolReport(typing.Protocol):
         priorities.
 
         There might be exclusion zones within these bounds. If necessary, the
-        [`adjust_to_bounds`][frequenz.sdk.timeseries.battery_pool.BatteryPoolReport.adjust_to_bounds]
+        [`adjust_to_bounds`][frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport.adjust_to_bounds]
         method may be used to check if a desired power value fits the bounds, or to get
         the closest possible power values that do fit the bounds.
         """
@@ -84,3 +91,13 @@ class BatteryPoolReport(typing.Protocol):
             A tuple of the closest power values to the desired power that fall within
                 the available bounds for the actor.
         """
+
+
+__all__ = [
+    "BatteryPoolReport",
+    "Error",
+    "OutOfBounds",
+    "PartialFailure",
+    "Result",
+    "Success",
+]

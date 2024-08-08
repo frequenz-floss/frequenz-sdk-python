@@ -4,7 +4,7 @@
 """Manage a pool of batteries."""
 
 from ._battery_pool import BatteryPool
-from ._result_types import BatteryPoolReport
+from .messages import BatteryPoolReport
 
 __all__ = [
     "BatteryPool",

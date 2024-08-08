@@ -22,7 +22,7 @@ from frequenz.sdk.microgrid._power_distributing._component_pool_status_tracker i
     ComponentPoolStatusTracker,
 )
 from frequenz.sdk.timeseries import Power
-from frequenz.sdk.timeseries.battery_pool import BatteryPoolReport
+from frequenz.sdk.timeseries.battery_pool.messages import BatteryPoolReport
 
 from ...utils.component_data_streamer import MockComponentDataStreamer
 from ...utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper

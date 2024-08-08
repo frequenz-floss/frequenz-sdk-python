@@ -30,7 +30,7 @@ from ._metric_calculator import (
     SoCCalculator,
     TemperatureCalculator,
 )
-from ._result_types import BatteryPoolReport
+from .messages import BatteryPoolReport
 
 # pylint: disable=protected-access
 
