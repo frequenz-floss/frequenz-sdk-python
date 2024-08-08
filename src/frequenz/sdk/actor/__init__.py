@@ -600,7 +600,6 @@ from ..timeseries._resampling import ResamplerConfig
 from ._actor import Actor
 from ._background_service import BackgroundService
 from ._data_sourcing import ComponentMetricId, ComponentMetricRequest, DataSourcingActor
-from ._resampling import ComponentMetricsResamplingActor
 from ._run_utils import run
 
 __all__ = [
@@ -608,7 +607,6 @@ __all__ = [
     "BackgroundService",
     "ComponentMetricId",
     "ComponentMetricRequest",
-    "ComponentMetricsResamplingActor",
     "DataSourcingActor",
     "ResamplerConfig",
     "run",

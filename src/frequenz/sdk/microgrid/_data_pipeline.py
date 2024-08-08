@@ -470,7 +470,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         Returns:
             A Sender for sending requests to the resampling actor.
         """
-        from ..actor import ComponentMetricsResamplingActor
+        from ._resampling import ComponentMetricsResamplingActor
 
         if self._resampling_actor is None:
             channel: Broadcast[ComponentMetricRequest] = Broadcast(
