@@ -413,11 +413,13 @@ class MicrogridApiSource:
             ) -> set[asyncio.Task[None]]:
                 done, pending = await asyncio.wait(sending_tasks, timeout=0)
                 for task in done:
-                    if error := task.exception():
-                        _logger.error(
+                    try:
+                        task.result()
+                    # pylint: disable-next=broad-except
+                    except (asyncio.CancelledError, Exception):
+                        _logger.exception(
                             "Error while processing message in task %s",
                             task.get_name(),
-                            exc_info=error,
                         )
                 return pending
 
