@@ -491,8 +491,11 @@ class OrderedRingBuffer(Generic[FloatArray]):
         # New missing entry that is not already in a gap?
         if record_as_missing:
             if not found_in_gaps:
+                # If there are no gaps and the new value is not subsequent to the
+                # newest value, we need to start the new gap after the newest value
+                start_gap = min(newest + self._sampling_period, timestamp)
                 self._gaps.append(
-                    Gap(start=timestamp, end=timestamp + self._sampling_period)
+                    Gap(start=start_gap, end=timestamp + self._sampling_period)
                 )
         elif len(self._gaps) > 0:
             if found_in_gaps:

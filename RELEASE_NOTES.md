@@ -2,4 +2,4 @@
 
 ## Bug Fixes
 
-- Fix PV power distribution excluding inverters that haven't sent any data since the application started.
+- Fixes a bug in the ring buffer in case the updated value is missing and creates a gap in time.
