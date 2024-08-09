@@ -277,12 +277,12 @@ def test_gaps() -> None:  # pylint: disable=too-many-statements
     assert buffer.count_covered() == 5
     assert len(buffer.gaps) == 0
 
-    # whole range gap suffers from sdk#646
+    # whole range gap
     buffer.update(Sample(dt(99), None))
-    assert buffer.oldest_timestamp == dt(95)  # bug: should be None
-    assert buffer.newest_timestamp == dt(99)  # bug: should be None
-    assert buffer.count_valid() == 4  # bug: should be 0 (whole range gap)
-    assert buffer.count_covered() == 5  # bug: should be 0
+    assert buffer.oldest_timestamp is None
+    assert buffer.newest_timestamp is None
+    assert buffer.count_valid() == 0
+    assert buffer.count_covered() == 0
     assert len(buffer.gaps) == 1
 
 
