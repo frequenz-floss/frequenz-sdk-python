@@ -153,7 +153,7 @@ class PowerDistributingActor(Actor):
 
             if req_id in self._processing_tasks:
                 if pending_request := self._pending_requests.get(req_id):
-                    _logger.warning(
+                    _logger.debug(
                         "Pending request: %s, overwritten with request: %s",
                         pending_request,
                         request,
