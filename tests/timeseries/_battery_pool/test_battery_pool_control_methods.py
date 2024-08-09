@@ -213,6 +213,7 @@ class TestBatteryPoolControl:
             await bounds_rx.receive(), power=1000.0, lower=-4000.0, upper=4000.0
         )
 
+        await asyncio.sleep(0.0)  # Wait for the power to be distributed.
         assert set_power.call_count == 4
         assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 250.0)
@@ -248,6 +249,7 @@ class TestBatteryPoolControl:
                 result, power_distributing.Success
             ),
         )
+        await asyncio.sleep(0.0)  # Wait for the power to be distributed.
         assert set_power.call_count == 4
         assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 25.0) for inv_id in mocks.microgrid.battery_inverter_ids
@@ -267,6 +269,7 @@ class TestBatteryPoolControl:
 
         # There should be an automatic retry.
         set_power.side_effect = None
+        await asyncio.sleep(0.0)  # Wait for the power to be distributed.
         assert set_power.call_count == 4
         assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 25.0) for inv_id in mocks.microgrid.battery_inverter_ids
@@ -318,6 +321,7 @@ class TestBatteryPoolControl:
         self._assert_report(
             await bounds_1_rx.receive(), power=1000.0, lower=-2000.0, upper=2000.0
         )
+        await asyncio.sleep(0.0)  # Wait for the power to be distributed.
         assert set_power.call_count == 2
         assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 500.0)
@@ -331,6 +335,7 @@ class TestBatteryPoolControl:
         if not latest_dist_result_2.has_value():
             bounds = await bounds_2_rx.receive()
         self._assert_report(bounds, power=1000.0, lower=-2000.0, upper=2000.0)
+        await asyncio.sleep(0.0)  # Wait for the power to be distributed.
         assert set_power.call_count == 2
         assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 500.0)
@@ -375,7 +380,7 @@ class TestBatteryPoolControl:
         self._assert_report(
             await bounds_2_rx.receive(), power=-1000.0, lower=-1000.0, upper=0.0
         )
-
+        await asyncio.sleep(0.0)  # Wait for the power to be distributed.
         assert set_power.call_count == 4
         assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, -250.0)
@@ -394,7 +399,7 @@ class TestBatteryPoolControl:
         if not latest_dist_result_2.has_value():
             bounds = await bounds_2_rx.receive()
         self._assert_report(bounds, power=0.0, lower=-1000.0, upper=0.0)
-
+        await asyncio.sleep(0.0)  # Wait for the power to be distributed.
         assert set_power.call_count == 4
         assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 0.0) for inv_id in mocks.microgrid.battery_inverter_ids
@@ -428,6 +433,7 @@ class TestBatteryPoolControl:
         self._assert_report(
             await bounds_rx.receive(), power=1000.0, lower=-4000.0, upper=4000.0
         )
+        await asyncio.sleep(0.0)  # Wait for the power to be distributed.
         assert set_power.call_count == 4
         assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 250.0)
@@ -453,6 +459,7 @@ class TestBatteryPoolControl:
         self._assert_report(
             await bounds_rx.receive(), power=400.0, lower=-4000.0, upper=4000.0
         )
+        await asyncio.sleep(0.0)  # Wait for the power to be distributed.
         assert set_power.call_count == 4
         assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 100.0)
@@ -477,6 +484,7 @@ class TestBatteryPoolControl:
         self._assert_report(
             await bounds_rx.receive(), power=0.0, lower=-4000.0, upper=4000.0
         )
+        await asyncio.sleep(0.0)  # Wait for the power to be distributed.
         assert set_power.call_count == 4
         assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 0.0) for inv_id in mocks.microgrid.battery_inverter_ids
@@ -501,6 +509,7 @@ class TestBatteryPoolControl:
         self._assert_report(
             await bounds_rx.receive(), power=-400.0, lower=-4000.0, upper=4000.0
         )
+        await asyncio.sleep(0.0)  # Wait for the power to be distributed.
         assert set_power.call_count == 4
         assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, -100.0)
@@ -586,7 +595,7 @@ class TestBatteryPoolControl:
         self._assert_report(
             await bounds_1_rx.receive(), power=200.0, lower=-1000.0, upper=1500.0
         )
-
+        await asyncio.sleep(0.0)  # Wait for the power to be distributed.
         assert set_power.call_count == 4
         assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 50.0) for inv_id in mocks.microgrid.battery_inverter_ids
@@ -624,6 +633,7 @@ class TestBatteryPoolControl:
             if dist_result.succeeded_power == Power.from_watts(720.0):
                 break
 
+        await asyncio.sleep(0.0)  # Wait for the power to be distributed.
         assert set_power.call_count == 4
         assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 720.0 / 4)
@@ -664,6 +674,7 @@ class TestBatteryPoolControl:
             if dist_result.succeeded_power == Power.from_watts(-280.0):
                 break
 
+        await asyncio.sleep(0.0)  # Wait for the power to be distributed.
         assert set_power.call_count == 4
         assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, -280.0 / 4)
