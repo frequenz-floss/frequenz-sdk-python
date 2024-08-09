@@ -15,6 +15,7 @@ from ...microgrid._data_sourcing import ComponentMetricRequest
 from .. import Sample
 from .._quantities import Quantity, QuantityT
 from ._formula_engine import FormulaBuilder, FormulaEngine
+from ._formula_steps import FallbackMetricFetcher
 from ._tokenizer import Tokenizer, TokenType
 
 
@@ -89,7 +90,11 @@ class ResampledFormulaBuilder(FormulaBuilder[QuantityT]):
             await self._resampler_subscription_sender.send(request)
 
     def push_component_metric(
-        self, component_id: int, *, nones_are_zeros: bool
+        self,
+        component_id: int,
+        *,
+        nones_are_zeros: bool,
+        fallback: FallbackMetricFetcher[QuantityT] | None = None,
     ) -> None:
         """Push a resampled component metric stream to the formula engine.
 
@@ -97,9 +102,17 @@ class ResampledFormulaBuilder(FormulaBuilder[QuantityT]):
             component_id: The component id for which to push a metric fetcher.
             nones_are_zeros: Whether to treat None values from the stream as 0s.  If
                 False, the returned value will be a None.
+            fallback: Metric fetcher to use if primary one start sending
+                invalid data (e.g. due to a component stop). If None the data from
+                primary metric fetcher will be returned.
         """
         receiver = self._get_resampled_receiver(component_id, self._metric_id)
-        self.push_metric(f"#{component_id}", receiver, nones_are_zeros=nones_are_zeros)
+        self.push_metric(
+            f"#{component_id}",
+            receiver,
+            nones_are_zeros=nones_are_zeros,
+            fallback=fallback,
+        )
 
     def from_string(
         self,

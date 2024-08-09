@@ -77,6 +77,11 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
         self._namespace: str = namespace
         self._config: FormulaGeneratorConfig = config
 
+    @property
+    def namespace(self) -> str:
+        """Get the namespace for the formula generator."""
+        return self._namespace
+
     def _get_builder(
         self,
         name: str,
@@ -173,6 +178,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
         """
         graph = connection_manager.get().component_graph
         fallbacks: dict[Component, set[Component]] = {}
+
         for component in components:
             if component.category == ComponentCategory.METER:
                 fallbacks[component] = self._get_meter_fallback_components(component)

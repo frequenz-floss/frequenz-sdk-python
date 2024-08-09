@@ -27,6 +27,7 @@ from ._formula_steps import (
     ConstantValue,
     Consumption,
     Divider,
+    FallbackMetricFetcher,
     FormulaStep,
     Maximizer,
     MetricFetcher,
@@ -747,6 +748,7 @@ class FormulaBuilder(Generic[QuantityT]):
         data_stream: Receiver[Sample[QuantityT]],
         *,
         nones_are_zeros: bool,
+        fallback: FallbackMetricFetcher[QuantityT] | None = None,
     ) -> None:
         """Push a metric receiver into the engine.
 
@@ -755,9 +757,18 @@ class FormulaBuilder(Generic[QuantityT]):
             data_stream: A receiver to fetch this metric from.
             nones_are_zeros: Whether to treat None values from the stream as 0s.  If
                 False, the returned value will be a None.
+            fallback: Metric fetcher to use if primary one start sending
+                invalid data (e.g. due to a component stop). If None, the data from
+                primary metric fetcher will be used.
         """
         fetcher = self._metric_fetchers.setdefault(
-            name, MetricFetcher(name, data_stream, nones_are_zeros=nones_are_zeros)
+            name,
+            MetricFetcher(
+                name,
+                data_stream,
+                nones_are_zeros=nones_are_zeros,
+                fallback=fallback,
+            ),
         )
         self._steps.append(fetcher)
 

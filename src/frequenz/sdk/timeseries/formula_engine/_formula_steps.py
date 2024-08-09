@@ -5,14 +5,17 @@
 
 from __future__ import annotations
 
+import logging
 import math
 from abc import ABC, abstractmethod
-from typing import Generic
+from typing import Any, Generic
 
-from frequenz.channels import Receiver
+from frequenz.channels import Receiver, ReceiverError
 
 from .. import Sample
 from .._quantities import QuantityT
+
+_logger = logging.getLogger(__name__)
 
 
 class FormulaStep(ABC):
@@ -343,6 +346,40 @@ class Clipper(FormulaStep):
         eval_stack.append(val)
 
 
+class FallbackMetricFetcher(Receiver[Sample[QuantityT]], Generic[QuantityT]):
+    """A fallback metric fetcher for formula engines.
+
+    Generates a metric value from the fallback components if the primary metric
+    is invalid.
+
+    This class starts running when the primary MetricFetcher starts receiving invalid data.
+    """
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Get the name of the fetcher."""
+
+    @property
+    @abstractmethod
+    def is_running(self) -> bool:
+        """Check whether the metric fetcher is running."""
+
+    @property
+    @abstractmethod
+    def latest_sample(self) -> Sample[QuantityT] | None:
+        """Get the latest fetched value.
+
+        Returns:
+            The latest fetched value. None if no value has been fetched
+            of fetcher is not running.
+        """
+
+    @abstractmethod
+    def start(self) -> None:
+        """Initialize the metric fetcher and start fetching samples."""
+
+
 class MetricFetcher(Generic[QuantityT], FormulaStep):
     """A formula step for fetching a value from a metric Receiver."""
 
@@ -352,6 +389,7 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
         stream: Receiver[Sample[QuantityT]],
         *,
         nones_are_zeros: bool,
+        fallback: FallbackMetricFetcher[QuantityT] | None = None,
     ) -> None:
         """Create a `MetricFetcher` instance.
 
@@ -359,11 +397,15 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
             name: The name of the metric.
             stream: A channel receiver from which to fetch samples.
             nones_are_zeros: Whether to treat None values from the stream as 0s.
+            fallback: Metric fetcher to use if primary one start sending
+                invalid data (e.g. due to a component stop). If None, the data from
+                primary metric fetcher will be used.
         """
         self._name = name
         self._stream: Receiver[Sample[QuantityT]] = stream
         self._next_value: Sample[QuantityT] | None = None
         self._nones_are_zeros = nones_are_zeros
+        self._fallback: FallbackMetricFetcher[QuantityT] | None = fallback
 
     @property
     def stream(self) -> Receiver[Sample[QuantityT]]:
@@ -382,6 +424,92 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
         """
         return str(self._stream.__doc__)
 
+    def _is_value_valid(self, value: QuantityT | None) -> bool:
+        return not (value is None or value.isnan() or value.isinf())
+
+    async def _synchronize_and_fetch_fallback(
+        self,
+        primary_fetcher_sample: Sample[QuantityT],
+        fallback_fetcher: FallbackMetricFetcher[QuantityT],
+    ) -> Sample[QuantityT] | None:
+        """Synchronize the fallback fetcher and return the fallback value.
+
+        Args:
+            primary_fetcher_sample: The sample fetched from the primary fetcher.
+            fallback_fetcher: The fallback metric fetcher.
+
+        Returns:
+            The value from the synchronized stream. Returns None if the primary
+            fetcher sample is older than the latest sample from the fallback
+            fetcher or if the fallback fetcher fails to fetch the next value.
+        """
+        # fallback_fetcher was not used, yet. We need to fetch first value.
+        if fallback_fetcher.latest_sample is None:
+            try:
+                fallback = await fallback_fetcher.receive()
+            except ReceiverError[Any] as err:
+                _logger.error(
+                    "Fallback metric fetcher %s failed to fetch next value: %s."
+                    "Using primary metric fetcher.",
+                    fallback_fetcher.name,
+                    err,
+                )
+                return None
+        else:
+            fallback = fallback_fetcher.latest_sample
+
+        if primary_fetcher_sample.timestamp < fallback.timestamp:
+            return None
+
+        # Synchronize the fallback fetcher with primary one
+        while primary_fetcher_sample.timestamp > fallback.timestamp:
+            try:
+                fallback = await fallback_fetcher.receive()
+            except ReceiverError[Any] as err:
+                _logger.error(
+                    "Fallback metric fetcher %s failed to fetch next value: %s."
+                    "Using primary metric fetcher.",
+                    fallback_fetcher.name,
+                    err,
+                )
+                return None
+
+        return fallback
+
+    async def fetch_next_with_fallback(
+        self, fallback_fetcher: FallbackMetricFetcher[QuantityT]
+    ) -> Sample[QuantityT]:
+        """Fetch the next value from the primary and fallback streams.
+
+        Return the value from the stream that returns a valid value.
+        If any stream raises an exception, then return the value from
+        the other stream.
+
+        Args:
+            fallback_fetcher: The fallback metric fetcher.
+
+        Returns:
+            The value fetched from either the primary or fallback stream.
+        """
+        try:
+            primary = await self._stream.receive()
+        except ReceiverError[Any] as err:
+            _logger.error(
+                "Primary metric fetcher %s failed to fetch next value: %s."
+                "Using fallback metric fetcher.",
+                self._name,
+                err,
+            )
+            return await fallback_fetcher.receive()
+
+        fallback = await self._synchronize_and_fetch_fallback(primary, fallback_fetcher)
+        if fallback is None:
+            return primary
+
+        if self._is_value_valid(primary.value):
+            return primary
+        return fallback
+
     async def fetch_next(self) -> Sample[QuantityT] | None:
         """Fetch the next value from the stream.
 
@@ -390,8 +518,34 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
         Returns:
             The fetched Sample.
         """
-        self._next_value = await self._stream.receive()
+        self._next_value = await self._fetch_next()
         return self._next_value
+
+    async def _fetch_next(self) -> Sample[QuantityT] | None:
+        if self._fallback is None:
+            return await self._stream.receive()
+
+        if self._fallback.is_running:
+            return await self.fetch_next_with_fallback(self._fallback)
+
+        next_value = None
+        try:
+            next_value = await self._stream.receive()
+        except ReceiverError[Any] as err:
+            _logger.error("Failed to fetch next value from %s: %s", self._name, err)
+        else:
+            if self._is_value_valid(next_value.value):
+                return next_value
+
+        _logger.warning(
+            "Primary metric %s is invalid. Running fallback metric fetcher: %s",
+            self._name,
+            self._fallback.name,
+        )
+        # start fallback formula but don't wait for it because it has to
+        # synchronize. Just return invalid value.
+        self._fallback.start()
+        return next_value
 
     @property
     def value(self) -> Sample[QuantityT] | None:
