@@ -49,6 +49,8 @@ class FormulaGeneratorConfig:
     component_ids: abc.Set[int] | None = None
     """The component IDs to use for generating the formula."""
 
+    allow_fallback: bool = True
+
 
 class FormulaGenerator(ABC, Generic[QuantityT]):
     """A class for generating formulas from the component graph."""
