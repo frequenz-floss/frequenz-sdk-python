@@ -79,7 +79,7 @@ ResamplingFunction = Callable[
 """Resampling function type.
 
 A resampling function produces a new sample based on a list of pre-existing
-samples. It can do "upsampling" when there data rate of the `input_samples`
+samples. It can do "upsampling" when the data rate of the `input_samples`
 period is smaller than the `resampling_period`, or "downsampling" if it is
 bigger.
 
@@ -142,7 +142,7 @@ class ResamplerConfig:
 
     Expressed in number of periods, where period is the `resampling_period`
     if we are downsampling (resampling period bigger than the input period) or
-    the input sampling period if we are upsampling (input period bigger than
+    the *input sampling period* if we are upsampling (input period bigger than
     the resampling period).
 
     It must be bigger than 1.0.
