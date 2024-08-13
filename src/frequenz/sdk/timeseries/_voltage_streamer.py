@@ -16,14 +16,13 @@ from typing import TYPE_CHECKING
 from frequenz.channels import Receiver, Sender
 from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
 
-from ..actor import ChannelRegistry
-from ..microgrid import connection_manager
+from .._internal._channels import ChannelRegistry
 from ..timeseries._base_types import Sample, Sample3Phase
 from ..timeseries._quantities import Quantity, Voltage
 
 if TYPE_CHECKING:
     # Imported here to avoid a circular import.
-    from ..actor import ComponentMetricRequest
+    from ..microgrid._data_sourcing import ComponentMetricRequest
 
 _logger = logging.getLogger(__name__)
 
@@ -74,6 +73,10 @@ class VoltageStreamer:
 
         self._channel_registry = channel_registry
         """The channel registry for the phase-to-neutral voltage streaming."""
+
+        from ..microgrid import (  # pylint: disable=import-outside-toplevel
+            connection_manager,
+        )
 
         if not source_component:
             component_graph = connection_manager.get().component_graph
@@ -131,7 +134,7 @@ class VoltageStreamer:
     async def _send_request(self) -> None:
         """Send the request to fetch each voltage phase and stream 3-phase voltage."""
         # Imported here to avoid a circular import.
-        from ..actor import (  # pylint: disable=import-outside-toplevel
+        from ..microgrid._data_sourcing import (  # pylint: disable=import-outside-toplevel
             ComponentMetricRequest,
         )
 

@@ -5,8 +5,8 @@
 
 from frequenz.channels import Receiver
 
-from .._actor import Actor
-from .._channel_registry import ChannelRegistry
+from ..._internal._channels import ChannelRegistry
+from ...actor import Actor
 from ._component_metric_request import ComponentMetricRequest
 from .microgrid_api_source import MicrogridApiSource
 

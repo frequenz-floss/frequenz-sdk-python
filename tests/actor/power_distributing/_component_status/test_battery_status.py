@@ -29,7 +29,7 @@ from frequenz.client.microgrid import (
 from pytest_mock import MockerFixture
 from time_machine import TimeMachineFixture
 
-from frequenz.sdk.actor.power_distributing._component_status import (
+from frequenz.sdk.microgrid._power_distributing._component_status import (
     BatteryStatusTracker,
     ComponentStatus,
     ComponentStatusEnum,

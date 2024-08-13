@@ -11,11 +11,11 @@ import logging
 from frequenz.channels import Receiver, Sender
 
 from .._internal._asyncio import cancel_and_await
+from .._internal._channels import ChannelRegistry
+from ..actor import Actor
 from ..timeseries import Sample
 from ..timeseries._quantities import Quantity
 from ..timeseries._resampling import Resampler, ResamplerConfig, ResamplingError
-from ._actor import Actor
-from ._channel_registry import ChannelRegistry
 from ._data_sourcing import ComponentMetricRequest
 
 _logger = logging.getLogger(__name__)

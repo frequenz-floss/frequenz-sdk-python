@@ -10,7 +10,7 @@ from typing import Any
 import pytest
 from frequenz.channels import Broadcast
 
-from frequenz.sdk.actor import ConfigManagingActor
+from frequenz.sdk.config import ConfigManagingActor
 
 
 class Item:

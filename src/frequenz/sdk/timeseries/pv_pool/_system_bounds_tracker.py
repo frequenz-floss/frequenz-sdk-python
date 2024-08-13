@@ -11,8 +11,8 @@ from frequenz.channels import Receiver, Sender, merge, select, selected_from
 from frequenz.client.microgrid import InverterData
 
 from ...actor import BackgroundService
-from ...actor.power_distributing._component_status import ComponentPoolStatus
 from ...microgrid import connection_manager
+from ...microgrid._power_distributing._component_status import ComponentPoolStatus
 from .._base_types import Bounds, SystemBounds
 from .._quantities import Power
 

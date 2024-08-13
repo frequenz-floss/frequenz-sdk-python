@@ -11,11 +11,11 @@ from collections import abc
 from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.client.microgrid import ComponentCategory, InverterType
 
-from ..._internal._channels import ReceiverFetcher
-from ...actor import ChannelRegistry, ComponentMetricRequest
-from ...actor._power_managing._base_classes import Proposal, ReportRequest
-from ...actor.power_distributing import ComponentPoolStatus, Result
+from ..._internal._channels import ChannelRegistry, ReceiverFetcher
 from ...microgrid import connection_manager
+from ...microgrid._data_sourcing import ComponentMetricRequest
+from ...microgrid._power_distributing import ComponentPoolStatus, Result
+from ...microgrid._power_managing._base_classes import Proposal, ReportRequest
 from .._base_types import SystemBounds
 from ..formula_engine._formula_engine_pool import FormulaEnginePool
 from ._system_bounds_tracker import PVSystemBoundsTracker

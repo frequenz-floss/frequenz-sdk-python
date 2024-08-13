@@ -23,6 +23,21 @@
 
 - The `ConfigManagingActor` now uses `collections.abc.Mapping` as the output sender type. This change indicates that the broadcasted configuration is intended to be read-only.
 
+- The `ConfigManagingActor` has moved from `frequenz.sdk.actor` to `frequenz.sdk.config`.
+
+- The following core actors are no longer part of the public API:
+  - `PowerDistributingActor`
+  - `ComponentMetricsResamplingActor`
+  - `DataSourcingActor`
+
+- The following two types which are used for communicating with the data sourcing and resampling actors are also no longer part of the public API:
+  - `ComponentMetricId`
+  - `ComponentMetricRequest`
+
+- The `ChannelRegistry` is no longer part of the public API.
+
+- The `Result` types for the power distribution results are now exposed through the `frequenz.sdk.microgrid.battery_pool` module.
+
 ## New Features
 
 - Classes `Bounds` and `SystemBounds` now implement the `__contains__` method, allowing the use of the `in` operator to check whether a value falls within the bounds or not.

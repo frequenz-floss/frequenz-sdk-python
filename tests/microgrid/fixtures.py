@@ -17,7 +17,7 @@ from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.actor import ResamplerConfig
-from frequenz.sdk.actor.power_distributing import ComponentPoolStatus
+from frequenz.sdk.microgrid._power_distributing import ComponentPoolStatus
 from frequenz.sdk.microgrid.component_graph import _MicrogridComponentGraph
 
 from ..timeseries.mock_microgrid import MockMicrogrid

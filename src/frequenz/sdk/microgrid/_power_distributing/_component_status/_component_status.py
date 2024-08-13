@@ -12,7 +12,7 @@ from datetime import timedelta
 
 from frequenz.channels import Receiver, Sender
 
-from ..._background_service import BackgroundService
+from ....actor._background_service import BackgroundService
 
 
 @dataclass

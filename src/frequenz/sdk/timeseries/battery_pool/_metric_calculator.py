@@ -15,13 +15,13 @@ from frequenz.client.microgrid import ComponentMetricId
 
 from ... import timeseries
 from ..._internal import _math
-from ...actor.power_distributing._component_managers._battery_manager import (
+from ...microgrid._power_distributing._component_managers._battery_manager import (
     _get_battery_inverter_mappings,
 )
-from ...actor.power_distributing._distribution_algorithm._battery_distribution_algorithm import (
+from ...microgrid._power_distributing._distribution_algorithm._battery_distribution_algorithm import (  # noqa: E501 # pylint: disable=line-too-long
     _aggregate_battery_power_bounds,
 )
-from ...actor.power_distributing.result import PowerBounds
+from ...microgrid._power_distributing.result import PowerBounds
 from .._base_types import Sample, SystemBounds
 from .._quantities import Energy, Percentage, Power, Temperature
 from ._component_metrics import ComponentMetricsData

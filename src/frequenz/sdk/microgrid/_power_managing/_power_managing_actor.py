@@ -8,7 +8,6 @@ from __future__ import annotations
 import asyncio
 import logging
 import sys
-import typing
 from datetime import datetime, timedelta, timezone
 
 from frequenz.channels import Receiver, Sender, select, selected_from
@@ -16,17 +15,15 @@ from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.microgrid import ComponentCategory, ComponentType, InverterType
 from typing_extensions import override
 
+from ..._internal._channels import ChannelRegistry
+from ...actor import Actor
 from ...timeseries import Power
 from ...timeseries._base_types import Bounds, SystemBounds
-from .._actor import Actor
-from .._channel_registry import ChannelRegistry
+from .. import _data_pipeline, _power_distributing
 from ._base_classes import Algorithm, BaseAlgorithm, Proposal, ReportRequest, _Report
 from ._matryoshka import Matryoshka
 
 _logger = logging.getLogger(__name__)
-
-if typing.TYPE_CHECKING:
-    from .. import power_distributing
 
 
 class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
@@ -36,8 +33,8 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
         self,
         proposals_receiver: Receiver[Proposal],
         bounds_subscription_receiver: Receiver[ReportRequest],
-        power_distributing_requests_sender: Sender[power_distributing.Request],
-        power_distributing_results_receiver: Receiver[power_distributing.Result],
+        power_distributing_requests_sender: Sender[_power_distributing.Request],
+        power_distributing_results_receiver: Receiver[_power_distributing.Result],
         channel_registry: ChannelRegistry,
         *,
         component_category: ComponentCategory,
@@ -160,20 +157,15 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
         Raises:
             NotImplementedError: When the pool type is not supported.
         """
-        # Pylint assumes that this import is cyclic, but it's not.
-        from ... import (  # pylint: disable=import-outside-toplevel,cyclic-import
-            microgrid,
-        )
-
         bounds_receiver: Receiver[SystemBounds]
         # pylint: disable=protected-access
         if self._component_category is ComponentCategory.BATTERY:
-            battery_pool = microgrid.new_battery_pool(
+            battery_pool = _data_pipeline.new_battery_pool(
                 priority=-sys.maxsize - 1, component_ids=component_ids
             )
             bounds_receiver = battery_pool._system_power_bounds.new_receiver()
         elif self._component_category is ComponentCategory.EV_CHARGER:
-            ev_charger_pool = microgrid.new_ev_charger_pool(
+            ev_charger_pool = _data_pipeline.new_ev_charger_pool(
                 priority=-sys.maxsize - 1, component_ids=component_ids
             )
             bounds_receiver = ev_charger_pool._system_power_bounds.new_receiver()
@@ -181,7 +173,7 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
             self._component_category is ComponentCategory.INVERTER
             and self._component_type is InverterType.SOLAR
         ):
-            pv_pool = microgrid.new_pv_pool(
+            pv_pool = _data_pipeline.new_pv_pool(
                 priority=-sys.maxsize - 1, component_ids=component_ids
             )
             bounds_receiver = pv_pool._system_power_bounds.new_receiver()
@@ -320,8 +312,6 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
         proposal: Proposal | None,
         must_send: bool = False,
     ) -> None:
-        from .. import power_distributing  # pylint: disable=import-outside-toplevel
-
         target_power = self._calculate_target_power(
             component_ids,
             proposal,
@@ -329,7 +319,7 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
         )
         if target_power is not None:
             await self._power_distributing_requests_sender.send(
-                power_distributing.Request(
+                _power_distributing.Request(
                     power=target_power,
                     component_ids=component_ids,
                     adjust_power=True,
@@ -395,23 +385,19 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
                     self._add_system_bounds_tracker(component_ids)
 
             elif selected_from(selected, self._power_distributing_results_receiver):
-                from .. import (  # pylint: disable=import-outside-toplevel
-                    power_distributing,
-                )
-
                 result = selected.message
-                if not isinstance(result, power_distributing.Success):
+                if not isinstance(result, _power_distributing.Success):
                     _logger.warning(
                         "PowerManagingActor: PowerDistributing failed: %s", result
                     )
                 match result:
-                    case power_distributing.PartialFailure(request):
+                    case _power_distributing.PartialFailure(request):
                         if not last_result_partial_failure:
                             last_result_partial_failure = True
                             await self._send_updated_target_power(
                                 frozenset(request.component_ids), None, must_send=True
                             )
-                    case power_distributing.Success():
+                    case _power_distributing.Success():
                         last_result_partial_failure = False
                 await self._send_reports(frozenset(result.request.component_ids))
 

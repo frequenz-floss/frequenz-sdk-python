@@ -16,13 +16,13 @@ from frequenz.client.microgrid import EVChargerCableState, EVChargerComponentSta
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
-from frequenz.sdk.actor import ResamplerConfig, power_distributing
-from frequenz.sdk.actor.power_distributing import ComponentPoolStatus
-from frequenz.sdk.actor.power_distributing._component_pool_status_tracker import (
+from frequenz.sdk.microgrid import _power_distributing
+from frequenz.sdk.microgrid._data_pipeline import _DataPipeline
+from frequenz.sdk.microgrid._power_distributing import ComponentPoolStatus
+from frequenz.sdk.microgrid._power_distributing._component_pool_status_tracker import (
     ComponentPoolStatusTracker,
 )
-from frequenz.sdk.microgrid._data_pipeline import _DataPipeline
-from frequenz.sdk.timeseries import Power, Sample3Phase, Voltage
+from frequenz.sdk.timeseries import Power, ResamplerConfig, Sample3Phase, Voltage
 from frequenz.sdk.timeseries.ev_charger_pool import EVChargerPool, EVChargerPoolReport
 
 from ...microgrid.fixtures import _Mocks
@@ -81,7 +81,7 @@ class TestEVChargerPoolControl:
             mock = MagicMock(spec=ComponentPoolStatusTracker)
             mock.get_working_components.return_value = component_ids
             mocker.patch(
-                "frequenz.sdk.actor.power_distributing._component_managers"
+                "frequenz.sdk.microgrid._power_distributing._component_managers"
                 "._ev_charger_manager._ev_charger_manager.ComponentPoolStatusTracker",
                 return_value=mock,
             )
@@ -89,7 +89,7 @@ class TestEVChargerPoolControl:
             mock = MagicMock(spec=ComponentPoolStatusTracker)
             mock.get_working_components.side_effect = set
             mocker.patch(
-                "frequenz.sdk.actor.power_distributing._component_managers"
+                "frequenz.sdk.microgrid._power_distributing._component_managers"
                 "._ev_charger_manager._ev_charger_manager.ComponentPoolStatusTracker",
                 return_value=mock,
             )
@@ -146,9 +146,9 @@ class TestEVChargerPoolControl:
         power: float | None,
         lower: float,
         upper: float,
-        dist_result: power_distributing.Result | None = None,
+        dist_result: _power_distributing.Result | None = None,
         expected_result_pred: (
-            typing.Callable[[power_distributing.Result], bool] | None
+            typing.Callable[[_power_distributing.Result], bool] | None
         ) = None,
     ) -> None:
         assert report.target_power == (

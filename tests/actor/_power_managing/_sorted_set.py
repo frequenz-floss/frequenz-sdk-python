@@ -3,7 +3,7 @@
 
 """Tests for the sorted set."""
 
-from frequenz.sdk.actor._power_managing import _sorted_set
+from frequenz.sdk.microgrid._power_managing import _sorted_set
 
 
 def test_sorted_set() -> None:

@@ -14,7 +14,7 @@ from collections import abc
 
 from ... import timeseries
 from ..._internal._channels import MappingReceiverFetcher, ReceiverFetcher
-from ...actor import _power_managing, power_distributing
+from ...microgrid import _power_distributing, _power_managing
 from ...timeseries import Energy, Percentage, Power, Sample, Temperature
 from .._base_types import SystemBounds
 from ..formula_engine import FormulaEngine
@@ -30,7 +30,7 @@ from ._metric_calculator import (
     SoCCalculator,
     TemperatureCalculator,
 )
-from ._result_types import BatteryPoolReport
+from .messages import BatteryPoolReport
 
 # pylint: disable=protected-access
 
@@ -385,7 +385,7 @@ class BatteryPool:
         return channel
 
     @property
-    def power_distribution_results(self) -> ReceiverFetcher[power_distributing.Result]:
+    def power_distribution_results(self) -> ReceiverFetcher[_power_distributing.Result]:
         """Get a receiver to receive power distribution results.
 
         Returns:

@@ -19,12 +19,15 @@ from datetime import timedelta
 from frequenz.channels import Broadcast, Sender
 from frequenz.client.microgrid import ComponentCategory, InverterType
 
+from .._internal._channels import ChannelRegistry
 from ..actor._actor import Actor
+from ..timeseries import ResamplerConfig
 from ..timeseries._grid_frequency import GridFrequency
 from ..timeseries._voltage_streamer import VoltageStreamer
 from ..timeseries.grid import Grid
 from ..timeseries.grid import get as get_grid
 from ..timeseries.grid import initialize as initialize_grid
+from ._data_sourcing import ComponentMetricRequest, DataSourcingActor
 from ._power_wrapper import PowerWrapper
 
 # A number of imports had to be done inside functions where they are used, to break
@@ -32,7 +35,6 @@ from ._power_wrapper import PowerWrapper
 #
 # pylint: disable=import-outside-toplevel
 if typing.TYPE_CHECKING:
-    from ..actor import ComponentMetricRequest, ResamplerConfig
     from ..timeseries.battery_pool import BatteryPool
     from ..timeseries.battery_pool._battery_pool_reference_store import (
         BatteryPoolReferenceStore,
@@ -89,8 +91,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             api_power_request_timeout: Timeout to use when making power requests to
                 the microgrid API.
         """
-        from ..actor import ChannelRegistry
-
         self._resampler_config: ResamplerConfig = resampler_config
 
         self._channel_registry: ChannelRegistry = ChannelRegistry(
@@ -449,8 +449,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         Returns:
             A Sender for sending requests to the data sourcing actor.
         """
-        from ..actor import DataSourcingActor
-
         if self._data_sourcing_actor is None:
             channel: Broadcast[ComponentMetricRequest] = Broadcast(
                 name="Data Pipeline: Data Sourcing Actor Request Channel"
@@ -471,7 +469,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         Returns:
             A Sender for sending requests to the resampling actor.
         """
-        from ..actor import ComponentMetricsResamplingActor
+        from ._resampling import ComponentMetricsResamplingActor
 
         if self._resampling_actor is None:
             channel: Broadcast[ComponentMetricRequest] = Broadcast(

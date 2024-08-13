@@ -15,13 +15,14 @@ from frequenz.channels import LatestValueCache, Sender
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid, timeseries
-from frequenz.sdk.actor import ResamplerConfig, power_distributing
-from frequenz.sdk.actor.power_distributing import ComponentPoolStatus
-from frequenz.sdk.actor.power_distributing._component_pool_status_tracker import (
+from frequenz.sdk.actor import ResamplerConfig
+from frequenz.sdk.microgrid import _power_distributing
+from frequenz.sdk.microgrid._power_distributing import ComponentPoolStatus
+from frequenz.sdk.microgrid._power_distributing._component_pool_status_tracker import (
     ComponentPoolStatusTracker,
 )
 from frequenz.sdk.timeseries import Power
-from frequenz.sdk.timeseries.battery_pool import BatteryPoolReport
+from frequenz.sdk.timeseries.battery_pool.messages import BatteryPoolReport
 
 from ...utils.component_data_streamer import MockComponentDataStreamer
 from ...utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
@@ -100,16 +101,16 @@ class TestBatteryPoolControl:
             mock = MagicMock(spec=ComponentPoolStatusTracker)
             mock.get_working_components.return_value = battery_ids
             mocker.patch(
-                "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-                ".ComponentPoolStatusTracker",
+                "frequenz.sdk.microgrid._power_distributing._component_managers"
+                "._battery_manager.ComponentPoolStatusTracker",
                 return_value=mock,
             )
         else:
             mock = MagicMock(spec=ComponentPoolStatusTracker)
             mock.get_working_components.side_effect = set
             mocker.patch(
-                "frequenz.sdk.actor.power_distributing._component_managers._battery_manager"
-                ".ComponentPoolStatusTracker",
+                "frequenz.sdk.microgrid._power_distributing._component_managers"
+                "._battery_manager.ComponentPoolStatusTracker",
                 return_value=mock,
             )
         await mocks.battery_status_sender.send(
@@ -163,9 +164,9 @@ class TestBatteryPoolControl:
         power: float | None,
         lower: float,
         upper: float,
-        dist_result: power_distributing.Result | None = None,
+        dist_result: _power_distributing.Result | None = None,
         expected_result_pred: (
-            typing.Callable[[power_distributing.Result], bool] | None
+            typing.Callable[[_power_distributing.Result], bool] | None
         ) = None,
     ) -> None:
         assert report.target_power == (
@@ -226,7 +227,7 @@ class TestBatteryPoolControl:
             upper=4000.0,
             dist_result=latest_dist_result.get(),
             expected_result_pred=lambda result: isinstance(
-                result, power_distributing.Success
+                result, _power_distributing.Success
             ),
         )
 
@@ -246,7 +247,7 @@ class TestBatteryPoolControl:
             upper=4000.0,
             dist_result=latest_dist_result.get(),
             expected_result_pred=lambda result: isinstance(
-                result, power_distributing.Success
+                result, _power_distributing.Success
             ),
         )
         await asyncio.sleep(0.0)  # Wait for the power to be distributed.
@@ -262,7 +263,7 @@ class TestBatteryPoolControl:
             upper=4000.0,
             dist_result=latest_dist_result.get(),
             expected_result_pred=lambda result: isinstance(
-                result, power_distributing.PartialFailure
+                result, _power_distributing.PartialFailure
             )
             and result.failed_components == {mocks.microgrid.battery_ids[0]},
         )
@@ -281,7 +282,7 @@ class TestBatteryPoolControl:
             upper=4000.0,
             dist_result=latest_dist_result.get(),
             expected_result_pred=lambda result: isinstance(
-                result, power_distributing.Success
+                result, _power_distributing.Success
             ),
         )
 
@@ -446,7 +447,7 @@ class TestBatteryPoolControl:
             upper=4000.0,
             dist_result=latest_dist_result.get(),
             expected_result_pred=lambda result: isinstance(
-                result, power_distributing.Success
+                result, _power_distributing.Success
             ),
         )
 
@@ -472,7 +473,7 @@ class TestBatteryPoolControl:
             upper=4000.0,
             dist_result=latest_dist_result.get(),
             expected_result_pred=lambda result: isinstance(
-                result, power_distributing.Success
+                result, _power_distributing.Success
             ),
         )
 
@@ -496,7 +497,7 @@ class TestBatteryPoolControl:
             upper=4000.0,
             dist_result=latest_dist_result.get(),
             expected_result_pred=lambda result: isinstance(
-                result, power_distributing.Success
+                result, _power_distributing.Success
             ),
         )
 
@@ -522,7 +523,7 @@ class TestBatteryPoolControl:
             upper=4000.0,
             dist_result=latest_dist_result.get(),
             expected_result_pred=lambda result: isinstance(
-                result, power_distributing.Success
+                result, _power_distributing.Success
             ),
         )
 
@@ -627,7 +628,7 @@ class TestBatteryPoolControl:
             await bounds_4_rx.receive()
             dist_result = latest_dist_result_4.get()
             if dist_result is None or not isinstance(
-                dist_result, power_distributing.Success
+                dist_result, _power_distributing.Success
             ):
                 continue
             if dist_result.succeeded_power == Power.from_watts(720.0):
@@ -668,7 +669,7 @@ class TestBatteryPoolControl:
             await bounds_4_rx.receive()
             dist_result = latest_dist_result_4.get()
             if dist_result is None or not isinstance(
-                dist_result, power_distributing.Success
+                dist_result, _power_distributing.Success
             ):
                 continue
             if dist_result.succeeded_power == Power.from_watts(-280.0):

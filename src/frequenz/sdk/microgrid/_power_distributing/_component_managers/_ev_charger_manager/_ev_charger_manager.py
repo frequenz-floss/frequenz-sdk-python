@@ -24,10 +24,9 @@ from frequenz.client.microgrid import (
 )
 from typing_extensions import override
 
-from frequenz.sdk import microgrid
-
 from ....._internal._math import is_close_to_zero
 from .....timeseries import Power, Sample3Phase, Voltage
+from .... import _data_pipeline, connection_manager
 from ..._component_pool_status_tracker import ComponentPoolStatusTracker
 from ..._component_status import ComponentPoolStatus, EVChargerStatusTracker
 from ...request import Request
@@ -63,7 +62,7 @@ class EVChargerManager(ComponentManager):
         self._ev_charger_ids = self._get_ev_charger_ids()
         self._evc_states = EvcStates()
         self._voltage_cache: LatestValueCache[Sample3Phase[Voltage]] = LatestValueCache(
-            microgrid.voltage_per_phase().new_receiver(),
+            _data_pipeline.voltage_per_phase().new_receiver(),
             unique_id=f"{type(self).__name__}«{hex(id(self))}»:voltage_cache",
         )
         self._config = EVDistributionConfig(component_ids=self._ev_charger_ids)
@@ -112,7 +111,7 @@ class EVChargerManager(ComponentManager):
         """Return the IDs of all EV chargers present in the component graph."""
         return {
             evc.component_id
-            for evc in microgrid.connection_manager.get().component_graph.components(
+            for evc in connection_manager.get().component_graph.components(
                 component_categories={ComponentCategory.EV_CHARGER}
             )
         }
@@ -229,7 +228,7 @@ class EVChargerManager(ComponentManager):
 
     async def _run(self) -> None:  # pylint: disable=too-many-locals
         """Run the main event loop of the EV charger manager."""
-        api = microgrid.connection_manager.get().api_client
+        api = connection_manager.get().api_client
         ev_charger_data_rx = merge(
             *[await api.ev_charger_data(evc_id) for evc_id in self._ev_charger_ids]
         )

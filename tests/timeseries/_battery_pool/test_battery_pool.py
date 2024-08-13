@@ -28,8 +28,8 @@ from frequenz.sdk._internal._constants import (
     WAIT_FOR_COMPONENT_DATA_SEC,
 )
 from frequenz.sdk.actor import ResamplerConfig
-from frequenz.sdk.actor.power_distributing import ComponentPoolStatus
-from frequenz.sdk.actor.power_distributing._component_managers._battery_manager import (
+from frequenz.sdk.microgrid._power_distributing import ComponentPoolStatus
+from frequenz.sdk.microgrid._power_distributing._component_managers._battery_manager import (
     _get_battery_inverter_mappings,
 )
 from frequenz.sdk.timeseries import (

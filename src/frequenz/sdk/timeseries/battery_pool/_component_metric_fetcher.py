@@ -24,11 +24,11 @@ from frequenz.client.microgrid import (
 
 from ..._internal._asyncio import AsyncConstructible
 from ..._internal._constants import MAX_BATTERY_DATA_AGE_SEC
-from ...actor._data_sourcing.microgrid_api_source import (
+from ...microgrid import connection_manager
+from ...microgrid._data_sourcing.microgrid_api_source import (
     _BatteryDataMethods,
     _InverterDataMethods,
 )
-from ...microgrid import connection_manager
 from ._component_metrics import ComponentMetricsData
 
 _logger = logging.getLogger(__name__)

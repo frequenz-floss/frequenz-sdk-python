@@ -7,19 +7,15 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING
 
 from frequenz.channels import Receiver, Sender
 from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
 
-from ..actor import ChannelRegistry
+from .._internal._channels import ChannelRegistry
 from ..microgrid import connection_manager
+from ..microgrid._data_sourcing import ComponentMetricRequest
 from ..timeseries._base_types import Sample
 from ..timeseries._quantities import Frequency, Quantity
-
-if TYPE_CHECKING:
-    # Imported here to avoid a circular import.
-    from ..actor import ComponentMetricRequest
 
 _logger = logging.getLogger(__name__)
 
@@ -33,10 +29,6 @@ def create_request(component_id: int) -> ComponentMetricRequest:
     Returns:
         A component metric request for grid frequency.
     """
-    # Imported here to avoid a circular import.
-    # pylint: disable=import-outside-toplevel
-    from ..actor import ComponentMetricRequest
-
     return ComponentMetricRequest(
         "grid-frequency", component_id, ComponentMetricId.FREQUENCY, None
     )

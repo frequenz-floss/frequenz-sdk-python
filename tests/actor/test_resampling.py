@@ -12,13 +12,10 @@ import time_machine
 from frequenz.channels import Broadcast
 from frequenz.client.microgrid import ComponentMetricId
 
-from frequenz.sdk.actor import (
-    ChannelRegistry,
-    ComponentMetricRequest,
-    ComponentMetricsResamplingActor,
-    ResamplerConfig,
-)
-from frequenz.sdk.timeseries import Sample
+from frequenz.sdk._internal._channels import ChannelRegistry
+from frequenz.sdk.microgrid._data_sourcing import ComponentMetricRequest
+from frequenz.sdk.microgrid._resampling import ComponentMetricsResamplingActor
+from frequenz.sdk.timeseries import ResamplerConfig, Sample
 from frequenz.sdk.timeseries._quantities import Quantity
 
 
