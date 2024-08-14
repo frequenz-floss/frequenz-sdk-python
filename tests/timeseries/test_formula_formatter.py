@@ -134,5 +134,5 @@ class TestFormulaFormatter:
             composed_formula = (grid.power - pv_pool.power).build("grid_minus_pv")
             assert (
                 str(composed_formula)
-                == "[grid-power](#36 + #7 + #47 + #17 + #57 + #27) - [pv-power](#48 + #58)"
+                == "[grid-power](#36 + #7 + #47 + #17 + #57 + #27) - [pv-power](#47 + #57)"
             )

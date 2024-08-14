@@ -151,7 +151,7 @@ class TestFormulaComposition:
     async def test_formula_composition_missing_bat(self, mocker: MockerFixture) -> None:
         """Test the composition of formulas with missing battery power data."""
         mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
-        mockgrid.add_solar_inverters(2)
+        mockgrid.add_solar_inverters(2, no_meter=True)
 
         count = 0
         async with mockgrid, AsyncExitStack() as stack:
