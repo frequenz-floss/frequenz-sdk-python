@@ -196,6 +196,10 @@ class MockResampler:
         task.add_done_callback(self._handle_task_done)
         self._request_handler_task = task
 
+    def next_ts(self) -> None:
+        """Increment the timestamp."""
+        self._next_ts = datetime.now()
+
     def _handle_task_done(self, task: asyncio.Task[None]) -> None:
         if task.cancelled():
             return
