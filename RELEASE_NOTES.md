@@ -10,7 +10,8 @@
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+- Fallback components are used in generated formulas. If primary components is unavailable, formula will generate metric from fallback components. Fallback formulas are implemented for:
+   - PVPowerFormula
 
 ## Bug Fixes
 
@@ -19,3 +20,4 @@
 - Allow setting `api_power_request_timeout` in `microgrid.initialize()`.
 
 - Fix an issue where in grid meters could be identified as {pv/ev/battery/chp} meters in some component graph configurations.
+
