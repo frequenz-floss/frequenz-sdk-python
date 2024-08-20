@@ -226,6 +226,7 @@ would play out:
 from datetime import timedelta
 
 from ..actor import ResamplerConfig
+from ..timeseries import Power
 from . import _data_pipeline, connection_manager
 from ._data_pipeline import (
     consumer,
@@ -244,6 +245,7 @@ async def initialize(
     server_url: str,
     resampler_config: ResamplerConfig,
     *,
+    pv_fallback_power: Power = Power.zero(),
     api_power_request_timeout: timedelta = timedelta(seconds=5.0),
 ) -> None:
     """Initialize the microgrid connection manager and the data pipeline.
@@ -255,6 +257,8 @@ async def initialize(
             `9090`) and ssl should be a boolean (defaulting to false). For example:
             `grpc://localhost:1090?ssl=true`.
         resampler_config: Configuration for the resampling actor.
+        pv_fallback_power: The power to assume for a PV inverter when it is not
+            reachable.
         api_power_request_timeout: Timeout to use when making power requests to
             the microgrid API.  When requests to components timeout, they will
             be marked as blocked for a short duration, during which time they
@@ -263,6 +267,7 @@ async def initialize(
     await connection_manager.initialize(server_url)
     await _data_pipeline.initialize(
         resampler_config,
+        pv_fallback_power=pv_fallback_power,
         api_power_request_timeout=api_power_request_timeout,
     )
 

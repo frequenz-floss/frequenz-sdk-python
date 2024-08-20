@@ -6,7 +6,7 @@
 import asyncio
 import collections.abc
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 from frequenz.channels import Broadcast, LatestValueCache, Sender
 from frequenz.client.microgrid import (
@@ -14,6 +14,7 @@ from frequenz.client.microgrid import (
     ComponentCategory,
     InverterData,
     InverterType,
+    MeterData,
 )
 from typing_extensions import override
 
@@ -27,6 +28,9 @@ from ...result import PartialFailure, Result, Success
 from .._component_manager import ComponentManager
 
 _logger = logging.getLogger(__name__)
+
+MAX_DATA_AGE = timedelta(seconds=10.0)
+MAX_BLOCKING_DURATION = timedelta(seconds=30.0)
 
 
 class PVManager(ComponentManager):
@@ -54,20 +58,24 @@ class PVManager(ComponentManager):
         self._results_sender = results_sender
         self._api_power_request_timeout = api_power_request_timeout
         self._pv_inverter_ids = self._get_pv_inverter_ids()
+        self._connected_meters = self._get_connected_meters(self._pv_inverter_ids)
         self._fallback_power = fallback_power
-
+        assert (
+            self._fallback_power <= Power.zero()
+        ), "Fallback power must be zero or negative for PV inverters."
         self._component_pool_status_tracker = (
             ComponentPoolStatusTracker(
                 component_ids=self._pv_inverter_ids,
                 component_status_sender=component_pool_status_sender,
-                max_data_age=timedelta(seconds=10.0),
-                max_blocking_duration=timedelta(seconds=30.0),
+                max_data_age=MAX_DATA_AGE,
+                max_blocking_duration=MAX_BLOCKING_DURATION,
                 component_status_tracker_type=PVInverterStatusTracker,
             )
             if self._pv_inverter_ids
             else None
         )
-        self._component_data_caches: dict[int, LatestValueCache[InverterData]] = {}
+        self._inverter_data_caches: dict[int, LatestValueCache[InverterData]] = {}
+        self._meter_data_caches: dict[int, LatestValueCache[MeterData]] = {}
         self._target_power = Power.zero()
         self._target_power_channel = Broadcast[Request](name="target_power")
         self._target_power_tx = self._target_power_channel.new_sender()
@@ -81,19 +89,30 @@ class PVManager(ComponentManager):
     @override
     async def start(self) -> None:
         """Start the PV inverter manager."""
-        self._component_data_caches = {
+        api_client = connection_manager.get().api_client
+        unique_id_prefix = f"{type(self).__name__}«{hex(id(self))}»"
+        self._inverter_data_caches = {
             inv_id: LatestValueCache(
-                await connection_manager.get().api_client.inverter_data(inv_id),
-                unique_id=f"{type(self).__name__}«{hex(id(self))}»:inverter«{inv_id}»",
+                await api_client.inverter_data(inv_id),
+                unique_id=f"{unique_id_prefix}:inverter«{inv_id}»",
             )
             for inv_id in self._pv_inverter_ids
         }
+        self._meter_data_caches.update(
+            {
+                meter_id: LatestValueCache(
+                    await api_client.meter_data(meter_id),
+                    unique_id=f"{unique_id_prefix}:meter«{meter_id}»",
+                )
+                for meter_id in self._connected_meters.values()
+            }
+        )
 
     @override
     async def stop(self) -> None:
         """Stop the PV inverter manager."""
         await asyncio.gather(
-            *[tracker.stop() for tracker in self._component_data_caches.values()]
+            *[tracker.stop() for tracker in self._inverter_data_caches.values()]
         )
         if self._component_pool_status_tracker:
             await self._component_pool_status_tracker.stop()
@@ -130,7 +149,7 @@ class PVManager(ComponentManager):
         for inv_id in self._component_pool_status_tracker.get_working_components(
             request.component_ids
         ):
-            if self._component_data_caches[inv_id].has_value():
+            if self._inverter_data_caches[inv_id].has_value():
                 working_components.append(inv_id)
             else:
                 _logger.warning(
@@ -143,7 +162,7 @@ class PVManager(ComponentManager):
         # reverse the order, so that the inverters with the higher bounds i.e., the
         # least absolute value are first.
         working_components.sort(
-            key=lambda inv_id: self._component_data_caches[inv_id]
+            key=lambda inv_id: self._inverter_data_caches[inv_id]
             .get()
             .active_power_inclusion_lower_bound,
             reverse=True,
@@ -153,6 +172,8 @@ class PVManager(ComponentManager):
         if num_components == 0:
             _logger.error("No PV inverters available for power distribution. Aborting.")
             return
+
+        remaining_power -= self._get_unreachable_inv_power(request, working_components)
 
         for idx, inv_id in enumerate(working_components):
             # Request powers are negative for PV inverters.  When remaining power is
@@ -164,7 +185,7 @@ class PVManager(ComponentManager):
                 allocations[inv_id] = Power.zero()
                 continue
             distribution = remaining_power / float(num_components - idx)
-            inv_data = self._component_data_caches[inv_id]
+            inv_data = self._inverter_data_caches[inv_id]
             if not inv_data.has_value():
                 allocations[inv_id] = Power.zero()
                 # Can't get device bounds, so can't use inverter.
@@ -263,3 +284,69 @@ class PVManager(ComponentManager):
             )
             if inv.type == InverterType.SOLAR
         }
+
+    def _get_connected_meters(
+        self, pv_inverter_ids: collections.abc.Set[int]
+    ) -> collections.abc.Mapping[int, int]:
+        """Return the connected meters for the given PV inverters.
+
+        Args:
+            pv_inverter_ids: The PV inverter ids to get the connected meters for.
+
+        Returns:
+            A dictionary mapping the PV inverter ids to the connected meter ids.
+        """
+        component_graph = connection_manager.get().component_graph
+        ret = {}
+        for inv_id in pv_inverter_ids:
+            predecessors = component_graph.predecessors(inv_id)
+            if len(predecessors) != 1:
+                continue
+
+            predecessor = predecessors.pop()
+            if predecessor.category != ComponentCategory.METER:
+                continue
+
+            if len(component_graph.successors(predecessor.component_id)) != 1:
+                continue
+
+            ret[inv_id] = predecessor.component_id
+        return ret
+
+    def _get_unreachable_inv_power(
+        self, request: Request, working_components: list[int]
+    ) -> Power:
+        """Return the power of the unreachable inverters in the request.
+
+        Args:
+            request: The request to get the unreachable inverters power for.
+            working_components: The working components in the request.
+
+        Returns:
+            The power of the unreachable inverters in the request.
+        """
+        unreachable_inv_ids = request.component_ids - set(working_components)
+        if not unreachable_inv_ids:
+            return Power.zero()
+        unreachable_power = Power.zero()
+        now = datetime.now(tz=timezone.utc)
+        for inv_id in unreachable_inv_ids:
+            if inv_id not in self._connected_meters:
+                unreachable_power += self._fallback_power
+                continue
+
+            meter_id = self._connected_meters[inv_id]
+            meter_cache = self._meter_data_caches[meter_id]
+            if not meter_cache.has_value():
+                unreachable_power += self._fallback_power
+                continue
+
+            meter_data = meter_cache.get()
+            if now - meter_data.timestamp > MAX_DATA_AGE:
+                unreachable_power += self._fallback_power
+                continue
+
+            unreachable_power = Power.from_watts(
+                unreachable_power.as_watts() + meter_data.active_power
+            )
+        return unreachable_power

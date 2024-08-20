@@ -21,7 +21,7 @@ from frequenz.client.microgrid import ComponentCategory, InverterType
 
 from .._internal._channels import ChannelRegistry
 from ..actor._actor import Actor
-from ..timeseries import ResamplerConfig
+from ..timeseries import Power, ResamplerConfig
 from ..timeseries._grid_frequency import GridFrequency
 from ..timeseries._voltage_streamer import VoltageStreamer
 from ..timeseries.grid import Grid
@@ -82,16 +82,20 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
     def __init__(
         self,
         resampler_config: ResamplerConfig,
+        pv_fallback_power: Power,
         api_power_request_timeout: timedelta = timedelta(seconds=5.0),
     ) -> None:
         """Create a `DataPipeline` instance.
 
         Args:
             resampler_config: Config to pass on to the resampler.
+            pv_fallback_power: The power to assume for a PV inverter when it is not
+                reachable.
             api_power_request_timeout: Timeout to use when making power requests to
                 the microgrid API.
         """
         self._resampler_config: ResamplerConfig = resampler_config
+        self._pv_fallback_power: Power = pv_fallback_power
 
         self._channel_registry: ChannelRegistry = ChannelRegistry(
             name="Data Pipeline Registry"
@@ -117,7 +121,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             api_power_request_timeout=api_power_request_timeout,
             component_category=ComponentCategory.INVERTER,
             component_type=InverterType.SOLAR,
-            fallback_power=Power.zero(),
+            fallback_power=pv_fallback_power,
         )
 
         self._logical_meter: LogicalMeter | None = None
@@ -506,12 +510,16 @@ _DATA_PIPELINE: _DataPipeline | None = None
 
 async def initialize(
     resampler_config: ResamplerConfig,
+    *,
+    pv_fallback_power: Power = Power.zero(),
     api_power_request_timeout: timedelta = timedelta(seconds=5.0),
 ) -> None:
     """Initialize a `DataPipeline` instance.
 
     Args:
         resampler_config: Config to pass on to the resampler.
+        pv_fallback_power: The power to assume for a PV inverter when it is not
+            reachable.
         api_power_request_timeout: Timeout to use when making power requests to
             the microgrid API.  When requests to components timeout, they will
             be marked as blocked for a short duration, during which time they
@@ -524,7 +532,9 @@ async def initialize(
 
     if _DATA_PIPELINE is not None:
         raise RuntimeError("DataPipeline is already initialized.")
-    _DATA_PIPELINE = _DataPipeline(resampler_config, api_power_request_timeout)
+    _DATA_PIPELINE = _DataPipeline(
+        resampler_config, pv_fallback_power, api_power_request_timeout
+    )
 
 
 def frequency() -> GridFrequency:
