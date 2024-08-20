@@ -145,11 +145,15 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             api_power_request_timeout: Timeout to use when making power requests to
                 the microgrid API.
             fallback_power: The power to assume a battery has if the battery is not
-                reachable.
+                reachable.  Non-zero values are not yet supported.
         """
         self._results_sender = results_sender
         self._api_power_request_timeout = api_power_request_timeout
         self._fallback_power = fallback_power
+
+        assert (
+            self._fallback_power == Power.zero()
+        ), "Non-zero fallback power is not supported for batteries."
 
         self._batteries = connection_manager.get().component_graph.components(
             component_categories={ComponentCategory.BATTERY}

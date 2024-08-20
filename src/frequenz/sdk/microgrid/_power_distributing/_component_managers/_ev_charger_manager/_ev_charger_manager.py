@@ -60,11 +60,15 @@ class EVChargerManager(  # pylint: disable=too-many-instance-attributes
             api_power_request_timeout: Timeout to use when making power requests to
                 the microgrid API.
             fallback_power: The power to assume for an EV charger when it is not
-                reachable.
+                reachable.  Non-zero values are not yet supported.
         """
         self._results_sender = results_sender
         self._api_power_request_timeout = api_power_request_timeout
         self._fallback_power = fallback_power
+
+        assert (
+            self._fallback_power == Power.zero()
+        ), "Non-zero fallback power is not supported for EV chargers."
 
         self._ev_charger_ids = self._get_ev_charger_ids()
         self._evc_states = EvcStates()
