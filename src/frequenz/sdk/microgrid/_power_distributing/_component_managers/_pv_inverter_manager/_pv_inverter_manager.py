@@ -38,6 +38,7 @@ class PVManager(ComponentManager):
         component_pool_status_sender: Sender[ComponentPoolStatus],
         results_sender: Sender[Result],
         api_power_request_timeout: timedelta,
+        fallback_power: Power,
     ) -> None:
         """Initialize this instance.
 
@@ -47,10 +48,13 @@ class PVManager(ComponentManager):
             results_sender: Channel for sending results of power distribution.
             api_power_request_timeout: Timeout to use when making power requests to
                 the microgrid API.
+            fallback_power: The power to assume for a PV inverter when it is not
+                reachable.
         """
         self._results_sender = results_sender
         self._api_power_request_timeout = api_power_request_timeout
         self._pv_inverter_ids = self._get_pv_inverter_ids()
+        self._fallback_power = fallback_power
 
         self._component_pool_status_tracker = (
             ComponentPoolStatusTracker(

@@ -8,6 +8,7 @@ import collections.abc
 
 from frequenz.channels import Sender
 
+from ....timeseries._quantities import Power
 from .._component_status import ComponentPoolStatus
 from ..request import Request
 from ..result import Result
@@ -21,6 +22,7 @@ class ComponentManager(abc.ABC):
         self,
         component_pool_status_sender: Sender[ComponentPoolStatus],
         results_sender: Sender[Result],
+        fallback_power: Power,
     ):
         """Initialize the component data manager.
 
@@ -28,6 +30,8 @@ class ComponentManager(abc.ABC):
             component_pool_status_sender: Channel for sending information about which
                 components are expected to be working.
             results_sender: Channel for sending the results of power distribution.
+            fallback_power: The power to assume for a component when it is not
+                reachable.
         """
 
     @abc.abstractmethod

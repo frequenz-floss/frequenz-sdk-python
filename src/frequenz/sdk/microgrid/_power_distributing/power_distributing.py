@@ -19,6 +19,7 @@ from frequenz.client.microgrid import ComponentCategory, ComponentType, Inverter
 from typing_extensions import override
 
 from ...actor._actor import Actor
+from ...timeseries import Power
 from ._component_managers import (
     BatteryManager,
     ComponentManager,
@@ -65,6 +66,7 @@ class PowerDistributingActor(Actor):
         component_pool_status_sender: Sender[ComponentPoolStatus],
         *,
         api_power_request_timeout: timedelta,
+        fallback_power: Power,
         component_category: ComponentCategory,
         component_type: ComponentType | None = None,
         name: str | None = None,
@@ -79,6 +81,8 @@ class PowerDistributingActor(Actor):
                 components are expected to be working.
             api_power_request_timeout: Timeout to use when making power requests to
                 the microgrid API.
+            fallback_power: The power to assume for a component of the given category
+                when it is not reachable.
             component_category: The category of the components that this actor is
                 responsible for.
             component_type: The type of the component of the given category that this
@@ -100,6 +104,7 @@ class PowerDistributingActor(Actor):
         self._requests_receiver = requests_receiver
         self._result_sender = results_sender
         self._api_power_request_timeout = api_power_request_timeout
+        self._fallback_power = fallback_power
 
         self._processing_tasks: dict[frozenset[int], asyncio.Task[None]] = {}
         """Track the power request tasks currently being processed."""
@@ -114,18 +119,27 @@ class PowerDistributingActor(Actor):
         self._component_manager: ComponentManager
         if component_category == ComponentCategory.BATTERY:
             self._component_manager = BatteryManager(
-                component_pool_status_sender, results_sender, api_power_request_timeout
+                component_pool_status_sender,
+                results_sender,
+                api_power_request_timeout,
+                fallback_power,
             )
         elif component_category == ComponentCategory.EV_CHARGER:
             self._component_manager = EVChargerManager(
-                component_pool_status_sender, results_sender, api_power_request_timeout
+                component_pool_status_sender,
+                results_sender,
+                api_power_request_timeout,
+                fallback_power,
             )
         elif (
             component_category == ComponentCategory.INVERTER
             and component_type == InverterType.SOLAR
         ):
             self._component_manager = PVManager(
-                component_pool_status_sender, results_sender, api_power_request_timeout
+                component_pool_status_sender,
+                results_sender,
+                api_power_request_timeout,
+                fallback_power,
             )
         else:
             raise ValueError(

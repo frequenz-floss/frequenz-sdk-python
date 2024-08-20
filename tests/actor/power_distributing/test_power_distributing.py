@@ -113,6 +113,7 @@ class TestPowerDistributingActor:
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 api_power_request_timeout=SAFETY_TIMEOUT,
+                fallback_power=Power.zero(),
             ) as distributor:
                 assert isinstance(distributor._component_manager, BatteryManager)
                 assert distributor._component_manager._bat_invs_map == {
@@ -145,6 +146,7 @@ class TestPowerDistributingActor:
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 api_power_request_timeout=SAFETY_TIMEOUT,
+                fallback_power=Power.zero(),
             ) as distributor:
                 assert isinstance(distributor._component_manager, BatteryManager)
                 assert distributor._component_manager._bat_invs_map == {
@@ -210,6 +212,7 @@ class TestPowerDistributingActor:
             results_sender=results_channel.new_sender(),
             component_pool_status_sender=battery_status_channel.new_sender(),
             api_power_request_timeout=SAFETY_TIMEOUT,
+            fallback_power=Power.zero(),
         ):
             await asyncio.sleep(0.1)  # wait for actor to collect data
 
@@ -273,6 +276,7 @@ class TestPowerDistributingActor:
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 api_power_request_timeout=SAFETY_TIMEOUT,
+                fallback_power=Power.zero(),
             ):
                 await asyncio.sleep(0.1)  # wait for actor to collect data
 
@@ -375,6 +379,7 @@ class TestPowerDistributingActor:
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
                 api_power_request_timeout=SAFETY_TIMEOUT,
+                fallback_power=Power.zero(),
             ):
                 await asyncio.sleep(0.1)  # wait for actor to collect data
 
@@ -456,6 +461,7 @@ class TestPowerDistributingActor:
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
                 api_power_request_timeout=SAFETY_TIMEOUT,
+                fallback_power=Power.zero(),
             ):
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
@@ -511,6 +517,7 @@ class TestPowerDistributingActor:
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
                 api_power_request_timeout=SAFETY_TIMEOUT,
+                fallback_power=Power.zero(),
             ):
                 await asyncio.sleep(0.1)  # wait for actor to collect data
 
@@ -564,6 +571,7 @@ class TestPowerDistributingActor:
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
                 api_power_request_timeout=SAFETY_TIMEOUT,
+                fallback_power=Power.zero(),
             ):
                 await asyncio.sleep(0.1)  # wait for actor to collect data
 
@@ -651,6 +659,7 @@ class TestPowerDistributingActor:
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
                 api_power_request_timeout=SAFETY_TIMEOUT,
+                fallback_power=Power.zero(),
             ):
                 await asyncio.sleep(0.1)  # wait for actor to collect data
 
@@ -739,6 +748,7 @@ class TestPowerDistributingActor:
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
                 api_power_request_timeout=SAFETY_TIMEOUT,
+                fallback_power=Power.zero(),
             ):
                 await asyncio.sleep(0.1)  # wait for actor to collect data
 
@@ -806,6 +816,7 @@ class TestPowerDistributingActor:
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 results_sender=results_channel.new_sender(),
                 api_power_request_timeout=SAFETY_TIMEOUT,
+                fallback_power=Power.zero(),
             ):
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
@@ -863,6 +874,7 @@ class TestPowerDistributingActor:
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 api_power_request_timeout=SAFETY_TIMEOUT,
+                fallback_power=Power.zero(),
             ):
                 await asyncio.sleep(0.1)  # wait for actor to collect data
 
@@ -919,6 +931,7 @@ class TestPowerDistributingActor:
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 api_power_request_timeout=SAFETY_TIMEOUT,
+                fallback_power=Power.zero(),
             ):
                 await asyncio.sleep(0.1)  # wait for actor to collect data
 
@@ -994,6 +1007,7 @@ class TestPowerDistributingActor:
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 api_power_request_timeout=SAFETY_TIMEOUT,
+                fallback_power=Power.zero(),
             ):
                 await asyncio.sleep(0.1)  # wait for actor to collect data
 
@@ -1041,6 +1055,7 @@ class TestPowerDistributingActor:
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 api_power_request_timeout=SAFETY_TIMEOUT,
+                fallback_power=Power.zero(),
             ):
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
@@ -1085,6 +1100,7 @@ class TestPowerDistributingActor:
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 api_power_request_timeout=SAFETY_TIMEOUT,
+                fallback_power=Power.zero(),
             ):
                 await asyncio.sleep(0.1)  # wait for actor to collect data
 
@@ -1133,6 +1149,7 @@ class TestPowerDistributingActor:
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 api_power_request_timeout=SAFETY_TIMEOUT,
+                fallback_power=Power.zero(),
             ):
                 await asyncio.sleep(0.1)  # wait for actor to collect data
 
@@ -1181,6 +1198,7 @@ class TestPowerDistributingActor:
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 api_power_request_timeout=SAFETY_TIMEOUT,
+                fallback_power=Power.zero(),
             ):
                 await asyncio.sleep(0.1)  # wait for actor to collect data
 
@@ -1223,6 +1241,7 @@ class TestPowerDistributingActor:
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 api_power_request_timeout=SAFETY_TIMEOUT,
+                fallback_power=Power.zero(),
             ):
                 await asyncio.sleep(0.1)  # wait for actor to collect data
 
@@ -1278,6 +1297,7 @@ class TestPowerDistributingActor:
                 results_sender=results_channel.new_sender(),
                 component_pool_status_sender=battery_status_channel.new_sender(),
                 api_power_request_timeout=SAFETY_TIMEOUT,
+                fallback_power=Power.zero(),
             ):
                 await asyncio.sleep(0.1)  # wait for actor to collect data
 

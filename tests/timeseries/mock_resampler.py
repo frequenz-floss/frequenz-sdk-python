@@ -16,7 +16,7 @@ from frequenz.sdk._internal._asyncio import cancel_and_await
 from frequenz.sdk.microgrid._data_pipeline import _DataPipeline
 from frequenz.sdk.microgrid._data_sourcing import ComponentMetricRequest
 from frequenz.sdk.timeseries import ResamplerConfig, Sample
-from frequenz.sdk.timeseries._quantities import Quantity
+from frequenz.sdk.timeseries._quantities import Power, Quantity
 from frequenz.sdk.timeseries.formula_engine._formula_generators._formula_generator import (
     NON_EXISTING_COMPONENT_ID,
 )
@@ -39,7 +39,9 @@ class MockResampler:
         namespaces: int,
     ) -> None:
         """Create a `MockDataPipeline` instance."""
-        self._data_pipeline = _DataPipeline(resampler_config)
+        self._data_pipeline = _DataPipeline(
+            resampler_config, pv_fallback_power=Power.zero()
+        )
 
         self._channel_registry = self._data_pipeline._channel_registry
         self._resampler_request_channel = Broadcast[ComponentMetricRequest](

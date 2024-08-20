@@ -132,6 +132,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         component_pool_status_sender: Sender[ComponentPoolStatus],
         results_sender: Sender[Result],
         api_power_request_timeout: timedelta,
+        fallback_power: Power,
     ):
         """Initialize this instance.
 
@@ -143,9 +144,13 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             results_sender: Channel sender to send the power distribution results to.
             api_power_request_timeout: Timeout to use when making power requests to
                 the microgrid API.
+            fallback_power: The power to assume a battery has if the battery is not
+                reachable.
         """
         self._results_sender = results_sender
         self._api_power_request_timeout = api_power_request_timeout
+        self._fallback_power = fallback_power
+
         self._batteries = connection_manager.get().component_graph.components(
             component_categories={ComponentCategory.BATTERY}
         )

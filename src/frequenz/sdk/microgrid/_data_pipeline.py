@@ -104,17 +104,20 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             self._channel_registry,
             api_power_request_timeout=api_power_request_timeout,
             component_category=ComponentCategory.BATTERY,
+            fallback_power=Power.zero(),
         )
         self._ev_power_wrapper = PowerWrapper(
             self._channel_registry,
             api_power_request_timeout=api_power_request_timeout,
             component_category=ComponentCategory.EV_CHARGER,
+            fallback_power=Power.zero(),
         )
         self._pv_power_wrapper = PowerWrapper(
             self._channel_registry,
             api_power_request_timeout=api_power_request_timeout,
             component_category=ComponentCategory.INVERTER,
             component_type=InverterType.SOLAR,
+            fallback_power=Power.zero(),
         )
 
         self._logical_meter: LogicalMeter | None = None

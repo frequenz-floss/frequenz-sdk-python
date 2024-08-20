@@ -16,6 +16,7 @@ from frequenz.channels import Broadcast
 from frequenz.client.microgrid import ComponentCategory, ComponentType
 
 from .._internal._channels import ChannelRegistry, ReceiverFetcher
+from ..timeseries import Power
 from . import _power_managing, connection_manager
 from ._power_distributing import (
     ComponentPoolStatus,
@@ -30,11 +31,12 @@ _logger = logging.getLogger(__name__)
 class PowerWrapper:
     """Wrapper around the power managing and power distributing actors."""
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         channel_registry: ChannelRegistry,
         *,
         api_power_request_timeout: timedelta,
+        fallback_power: Power,
         component_category: ComponentCategory,
         component_type: ComponentType | None = None,
     ):
@@ -44,6 +46,8 @@ class PowerWrapper:
             channel_registry: A channel registry for use in the actors.
             api_power_request_timeout: Timeout to use when making power requests to
                 the microgrid API.
+            fallback_power: The power to assume for a component when it is not
+                reachable.
             component_category: The category of the components that actors started by
                 this instance of the PowerWrapper will be responsible for.
             component_type: The type of the component of the given category that this
@@ -58,6 +62,7 @@ class PowerWrapper:
         self._component_type = component_type
         self._channel_registry = channel_registry
         self._api_power_request_timeout = api_power_request_timeout
+        self._fallback_power = fallback_power
 
         self.status_channel: Broadcast[ComponentPoolStatus] = Broadcast(
             name="Component Status Channel", resend_latest=True
@@ -141,6 +146,7 @@ class PowerWrapper:
             requests_receiver=self._power_distribution_requests_channel.new_receiver(),
             results_sender=self._power_distribution_results_channel.new_sender(),
             component_pool_status_sender=self.status_channel.new_sender(),
+            fallback_power=self._fallback_power,
         )
         self._power_distributing_actor.start()
 
