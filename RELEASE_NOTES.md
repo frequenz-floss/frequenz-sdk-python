@@ -59,3 +59,4 @@
 - Fix the handling of canceled tasks in the data sourcing and resampling actor.
 - Fix a bug in PV power distribution by excluding inverters that haven't sent any data since startup.
 - Prevent stacking of power requests to avoid delays in processing when the power request frequency exceeds the processing time.
+- Fixes a bug in the ring buffer in case the updated value is missing and creates a gap in time.
