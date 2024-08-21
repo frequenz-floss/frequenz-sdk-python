@@ -61,7 +61,7 @@ components](#component-category) together. It can be connected to the public
 [grid](#grid), or be completely isolated, in which case it is known as an
 island.
 
-Components can be grouped into [assets](#Assets) and [devices](#Devices).
+Components can be grouped into [assets](#assets) and [devices](#devices).
 Assets are core components like generators or storage systems that are crucial from a business perspective,
 whereas devices are the supporting infrastructure essential for the functionality of these assets.
 
@@ -188,8 +188,8 @@ microgrid are connected with each other.  Some of the ways in which the SDK uses
 the component graph are:
 
   - figure out how to calculate high level metrics like
-[`grid_power`][frequenz.sdk.timeseries.grid.Grid.power],
-[`consumer_power`][frequenz.sdk.timeseries.consumer.Consumer.power],
+[`grid().power`][frequenz.sdk.timeseries.grid.Grid.power],
+[`consumer().power`][frequenz.sdk.timeseries.consumer.Consumer.power],
 etc. for a microgrid, using the available components.
   - identify the available {{glossary("battery", "batteries")}} or
     {{glossary("EV charger", "EV chargers")}} at a site that can be controlled.
@@ -408,7 +408,8 @@ flowing into the component instead, this will be zero.
 
 In [microgrid](#microgrid) context sometimes used as the remaining difference
 between the [net consumption](#net-consumption) and the [battery](#battery)
-power, i.e. what we define as [grid power](#grid_power).
+power, i.e. what we define as
+[`grid().power`][frequenz.sdk.timeseries.grid.Grid.power].
 
 ### Residual Load
 
