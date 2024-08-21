@@ -2707,7 +2707,7 @@ article</a> for more details.</p>
 components</a> together. It can be connected to the public
 <a href="#grid">grid</a>, or be completely isolated, in which case it is known as an
 island.</p>
-<p>Components can be grouped into <a href="#Assets">assets</a> and <a href="#Devices">devices</a>.
+<p>Components can be grouped into <a href="#assets">assets</a> and <a href="#devices">devices</a>.
 Assets are core components like generators or storage systems that are crucial from a business perspective,
 whereas devices are the supporting infrastructure essential for the functionality of these assets.</p>
 <h3 id="component-category">Component Category<a class="headerlink" href="#component-category" title="Permanent link">¤</a></h3>
@@ -2785,8 +2785,8 @@ microgrid are connected with each other.  Some of the ways in which the SDK uses
 the component graph are:</p>
 <ul>
 <li>figure out how to calculate high level metrics like
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/grid/#frequenz.sdk.timeseries.grid.Grid.power"><code>grid_power</code></a>,
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/consumer/#frequenz.sdk.timeseries.consumer.Consumer.power"><code>consumer_power</code></a>,
+<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/grid/#frequenz.sdk.timeseries.grid.Grid.power"><code>grid().power</code></a>,
+<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/consumer/#frequenz.sdk.timeseries.consumer.Consumer.power"><code>consumer().power</code></a>,
 etc. for a microgrid, using the available components.</li>
 <li>identify the available <a href="./#battery">batteries</a> or
     <a href="./#ev-charger">EV chargers</a> at a site that can be controlled.</li>
@@ -2930,7 +2930,8 @@ flowing into the component instead, this will be zero.</p>
 <h3 id="residual-consumption">Residual Consumption<a class="headerlink" href="#residual-consumption" title="Permanent link">¤</a></h3>
 <p>In <a href="#microgrid">microgrid</a> context sometimes used as the remaining difference
 between the <a href="#net-consumption">net consumption</a> and the <a href="#battery">battery</a>
-power, i.e. what we define as <a href="#grid_power">grid power</a>.</p>
+power, i.e. what we define as
+<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/grid/#frequenz.sdk.timeseries.grid.Grid.power"><code>grid().power</code></a>.</p>
 <h3 id="residual-load">Residual Load<a class="headerlink" href="#residual-load" title="Permanent link">¤</a></h3>
 <p>Same as <a href="#residual-consumption">residual consumption</a>.</p>
 <h3 id="state-of-charge">State of Charge<a class="headerlink" href="#state-of-charge" title="Permanent link">¤</a></h3>
