@@ -13,6 +13,7 @@
 - Fallback components are used in generated formulas. If primary components is unavailable, formula will generate metric from fallback components. Fallback formulas are implemented for:
   - PVPowerFormula
   - ProducerPowerFormula
+  - BatteryPowerFormula
 
 ## Bug Fixes
 

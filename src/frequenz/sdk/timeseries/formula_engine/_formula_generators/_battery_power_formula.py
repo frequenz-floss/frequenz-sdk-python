@@ -3,18 +3,21 @@
 
 """Formula generator from component graph for Grid Power."""
 
+import itertools
 import logging
 
-from frequenz.client.microgrid import ComponentMetricId
+from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
 
 from ....microgrid import connection_manager
 from ..._quantities import Power
 from ...formula_engine import FormulaEngine
+from ._fallback_formula_metric_fetcher import FallbackFormulaMetricFetcher
 from ._formula_generator import (
     NON_EXISTING_COMPONENT_ID,
     ComponentNotFound,
     FormulaGenerationError,
     FormulaGenerator,
+    FormulaGeneratorConfig,
 )
 
 _logger = logging.getLogger(__name__)
@@ -48,8 +51,8 @@ class BatteryPowerFormula(FormulaGenerator[Power]):
         builder = self._get_builder(
             "battery-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
         )
-        component_ids = self._config.component_ids
-        if not component_ids:
+
+        if not self._config.component_ids:
             _logger.warning(
                 "No Battery component IDs specified. "
                 "Subscribing to the resampling actor with a non-existing "
@@ -63,41 +66,109 @@ class BatteryPowerFormula(FormulaGenerator[Power]):
             )
             return builder.build()
 
+        component_ids = set(self._config.component_ids)
         component_graph = connection_manager.get().component_graph
+        inv_bat_mapping: dict[Component, set[Component]] = {}
 
-        battery_inverters = frozenset(
-            frozenset(
+        for bat_id in component_ids:
+            inverters = set(
                 filter(
                     component_graph.is_battery_inverter,
                     component_graph.predecessors(bat_id),
                 )
             )
-            for bat_id in component_ids
-        )
-
-        if not all(battery_inverters):
-            raise ComponentNotFound(
-                "All batteries must have at least one inverter as a predecessor."
-            )
-
-        all_connected_batteries = set()
-        for inverters in battery_inverters:
-            for inverter in inverters:
-                all_connected_batteries.update(
-                    component_graph.successors(inverter.component_id)
+            if len(inverters) == 0:
+                raise ComponentNotFound(
+                    "All batteries must have at least one inverter as a predecessor."
+                    f"Battery ID {bat_id} has no inverter as a predecessor.",
                 )
 
-        if len(all_connected_batteries) != len(component_ids):
-            raise FormulaGenerationError(
-                "All batteries behind a set of inverters must be requested."
-            )
+            for inverter in inverters:
+                all_connected_batteries = component_graph.successors(
+                    inverter.component_id
+                )
+                battery_ids = set(
+                    map(lambda battery: battery.component_id, all_connected_batteries)
+                )
+                if not battery_ids.issubset(component_ids):
+                    raise FormulaGenerationError(
+                        f"Not all batteries behind inverter {inverter.component_id} "
+                        f"are requested. Missing: {battery_ids - component_ids}"
+                    )
 
-        # Iterate over the flattened list of inverters
-        for idx, comp in enumerate(
-            inverter for inverters in battery_inverters for inverter in inverters
-        ):
-            if idx > 0:
-                builder.push_oper("+")
-            builder.push_component_metric(comp.component_id, nones_are_zeros=True)
+                inv_bat_mapping[inverter] = all_connected_batteries
+
+        if self._config.allow_fallback:
+            fallbacks = self._get_fallback_formulas(inv_bat_mapping)
+
+            for idx, (primary_component, fallback_formula) in enumerate(
+                fallbacks.items()
+            ):
+                if idx > 0:
+                    builder.push_oper("+")
+
+                builder.push_component_metric(
+                    primary_component.component_id,
+                    nones_are_zeros=(
+                        primary_component.category != ComponentCategory.METER
+                    ),
+                    fallback=fallback_formula,
+                )
+        else:
+            for idx, comp in enumerate(inv_bat_mapping.keys()):
+                if idx > 0:
+                    builder.push_oper("+")
+                builder.push_component_metric(comp.component_id, nones_are_zeros=True)
 
         return builder.build()
+
+    def _get_fallback_formulas(
+        self, inv_bat_mapping: dict[Component, set[Component]]
+    ) -> dict[Component, FallbackFormulaMetricFetcher[Power] | None]:
+        """Find primary and fallback components and create fallback formulas.
+
+        The primary component is the one that will be used to calculate the battery power.
+        If it is not available, the fallback formula will be used instead.
+        Fallback formulas calculate the battery power using the fallback components.
+        Fallback formulas are wrapped in `FallbackFormulaMetricFetcher`.
+
+        Args:
+            inv_bat_mapping: A mapping from inverter to connected batteries.
+
+        Returns:
+            A dictionary mapping primary components to their FallbackFormulaMetricFetcher.
+        """
+        fallbacks = self._get_metric_fallback_components(set(inv_bat_mapping.keys()))
+
+        fallback_formulas: dict[
+            Component, FallbackFormulaMetricFetcher[Power] | None
+        ] = {}
+        for primary_component, fallback_components in fallbacks.items():
+            if len(fallback_components) == 0:
+                fallback_formulas[primary_component] = None
+                continue
+
+            battery_ids = set(
+                map(
+                    lambda battery: battery.component_id,
+                    itertools.chain.from_iterable(
+                        inv_bat_mapping[inv] for inv in fallback_components
+                    ),
+                )
+            )
+
+            generator = BatteryPowerFormula(
+                f"{self._namespace}_fallback_{battery_ids}",
+                self._channel_registry,
+                self._resampler_subscription_sender,
+                FormulaGeneratorConfig(
+                    component_ids=battery_ids,
+                    allow_fallback=False,
+                ),
+            )
+
+            fallback_formulas[primary_component] = FallbackFormulaMetricFetcher(
+                generator
+            )
+
+        return fallback_formulas

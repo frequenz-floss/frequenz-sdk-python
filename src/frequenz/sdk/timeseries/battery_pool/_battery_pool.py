@@ -245,6 +245,7 @@ class BatteryPool:
             BatteryPowerFormula,
             FormulaGeneratorConfig(
                 component_ids=self._pool_ref_store._batteries,
+                allow_fallback=True,
             ),
         )
         assert isinstance(engine, FormulaEngine)
