@@ -2,7 +2,7 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
+This release makes some breaking changes to the SDK's public interface aimed at improving clarity and correctness.  It also includes several bug fixes in core components like the resampler, the power distributor, and the moving window.
 
 ## Upgrading
 
