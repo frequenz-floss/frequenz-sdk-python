@@ -6,6 +6,7 @@
 # pylint: disable=too-many-lines
 
 
+from contextlib import AsyncExitStack
 import asyncio
 import dataclasses
 import logging
@@ -490,8 +491,24 @@ async def test_battery_pool_power(mocker: MockerFixture) -> None:
     """Test `BatteryPool.power` method."""
     mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
     mockgrid.add_batteries(2)
-    await mockgrid.start(mocker)
-    await _test_battery_pool_power(mockgrid)
+
+    async with mockgrid, AsyncExitStack() as stack:
+        battery_pool = microgrid.new_battery_pool(priority=5)
+        stack.push_async_callback(battery_pool.stop)
+        power_receiver = battery_pool.power.new_receiver()
+
+        # send meter power [grid_meter, battery1_meter, battery2_meter]
+        await mockgrid.mock_resampler.send_meter_power([100.0, 2.0, 3.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([20.0, 30.0])
+        assert (await power_receiver.receive()).value == Power.from_watts(5.0)
+
+        await mockgrid.mock_resampler.send_meter_power([100.0, -2.0, -5.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([-20.0, -50.0])
+        assert (await power_receiver.receive()).value == Power.from_watts(-7.0)
+
+        await mockgrid.mock_resampler.send_meter_power([100.0, 2.0, -5.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([20.0, -50.0])
+        assert (await power_receiver.receive()).value == Power.from_watts(-3.0)
 
 
 async def test_battery_pool_power_two_inverters_per_battery(
@@ -501,10 +518,29 @@ async def test_battery_pool_power_two_inverters_per_battery(
     gen = GraphGenerator()
     bat = gen.component(ComponentCategory.BATTERY)
     mockgrid = MockMicrogrid(
-        graph=gen.to_graph((ComponentCategory.METER, gen.battery_with_inverter(bat, 2)))
+        graph=gen.to_graph(
+            (ComponentCategory.METER, gen.battery_with_inverter(bat, 2))
+        ),
+        mocker=mocker,
     )
-    await mockgrid.start(mocker)
-    await _test_battery_pool_power(mockgrid)
+    async with mockgrid, AsyncExitStack() as stack:
+        battery_pool = microgrid.new_battery_pool(priority=5)
+        stack.push_async_callback(battery_pool.stop)
+        power_receiver = battery_pool.power.new_receiver()
+
+        # send meter power [grid_meter, battery1_meter]
+        # Fallback formula - use only meter power, inverter and batteries are not used.
+        await mockgrid.mock_resampler.send_meter_power([100.0, 3.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([20.0, 30.0])
+        assert (await power_receiver.receive()).value == Power.from_watts(3.0)
+
+        await mockgrid.mock_resampler.send_meter_power([100.0, -5.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([-20.0, -50.0])
+        assert (await power_receiver.receive()).value == Power.from_watts(-5.0)
+
+        await mockgrid.mock_resampler.send_meter_power([100.0, -5.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([20.0, -50.0])
+        assert (await power_receiver.receive()).value == Power.from_watts(-5.0)
 
 
 async def test_batter_pool_power_two_batteries_per_inverter(
@@ -515,21 +551,43 @@ async def test_batter_pool_power_two_batteries_per_inverter(
     mockgrid = MockMicrogrid(
         graph=gen.to_graph(
             [
-                ComponentCategory.METER,
                 (
-                    ComponentCategory.INVERTER,
-                    [ComponentCategory.BATTERY, ComponentCategory.BATTERY],
+                    ComponentCategory.METER,
+                    (
+                        ComponentCategory.INVERTER,
+                        [ComponentCategory.BATTERY, ComponentCategory.BATTERY],
+                    ),
                 ),
-                ComponentCategory.METER,
                 (
-                    ComponentCategory.INVERTER,
-                    [ComponentCategory.BATTERY, ComponentCategory.BATTERY],
+                    ComponentCategory.METER,
+                    (
+                        ComponentCategory.INVERTER,
+                        [ComponentCategory.BATTERY, ComponentCategory.BATTERY],
+                    ),
                 ),
             ]
-        )
+        ),
+        mocker=mocker,
     )
-    await mockgrid.start(mocker)
-    await _test_battery_pool_power(mockgrid)
+
+    async with mockgrid, AsyncExitStack() as stack:
+        battery_pool = microgrid.new_battery_pool(priority=5)
+        stack.push_async_callback(battery_pool.stop)
+        power_receiver = battery_pool.power.new_receiver()
+
+        # send meter power [battery1_meter, battery2_meter]
+        # Fallback formula - use only meter power, inverter and batteries are not used.
+        await mockgrid.mock_resampler.send_meter_power([100.0, 3.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([20.0, 30.0])
+        assert (await power_receiver.receive()).value == Power.from_watts(103.0)
+
+        await mockgrid.mock_resampler.send_meter_power([100.0, -5.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([-20.0, -50.0])
+        assert (await power_receiver.receive()).value == Power.from_watts(95.0)
+
+        await mockgrid.mock_resampler.send_meter_power([3.0, -5.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([20.0, -50.0])
+        assert (await power_receiver.receive()).value == Power.from_watts(-2.0)
 
 
 async def test_batter_pool_power_no_batteries(mocker: MockerFixture) -> None:
@@ -588,21 +646,6 @@ async def test_battery_pool_power_incomplete_bat_request(mocker: MockerFixture) 
         power_receiver = battery_pool.power.new_receiver()
         await mockgrid.mock_resampler.send_bat_inverter_power([2.0])
         assert (await power_receiver.receive()).value == Power.from_watts(2.0)
-
-
-async def _test_battery_pool_power(mockgrid: MockMicrogrid) -> None:
-    async with mockgrid:
-        battery_pool = microgrid.new_battery_pool(priority=5)
-        power_receiver = battery_pool.power.new_receiver()
-
-        await mockgrid.mock_resampler.send_bat_inverter_power([2.0, 3.0])
-        assert (await power_receiver.receive()).value == Power.from_watts(5.0)
-
-        await mockgrid.mock_resampler.send_bat_inverter_power([-2.0, -5.0])
-        assert (await power_receiver.receive()).value == Power.from_watts(-7.0)
-
-        await mockgrid.mock_resampler.send_bat_inverter_power([2.0, -5.0])
-        assert (await power_receiver.receive()).value == Power.from_watts(-3.0)
 
 
 async def run_capacity_test(  # pylint: disable=too-many-locals

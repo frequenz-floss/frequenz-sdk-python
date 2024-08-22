@@ -130,7 +130,7 @@ class TestFormulaComposition:
             inv_calc_recv = engine.new_receiver()
 
             for _ in range(10):
-                await mockgrid.mock_resampler.send_bat_inverter_power(
+                await mockgrid.mock_resampler.send_meter_power(
                     [10.0 + count, 12.0 + count, 14.0 + count]
                 )
                 await mockgrid.mock_resampler.send_non_existing_component_value()
