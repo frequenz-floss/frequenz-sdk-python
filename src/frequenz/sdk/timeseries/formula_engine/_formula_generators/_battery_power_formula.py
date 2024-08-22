@@ -92,8 +92,6 @@ class BatteryPowerFormula(FormulaGenerator[Power]):
                 "All batteries behind a set of inverters must be requested."
             )
 
-        builder.push_oper("(")
-        builder.push_oper("(")
         # Iterate over the flattened list of inverters
         for idx, comp in enumerate(
             inverter for inverters in battery_inverters for inverter in inverters
