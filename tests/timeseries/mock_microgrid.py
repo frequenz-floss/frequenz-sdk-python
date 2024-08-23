@@ -112,10 +112,12 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         def filter_comp(category: ComponentCategory) -> list[int]:
             if graph is None:
                 return []
-            return list(
-                map(
-                    lambda c: c.component_id,
-                    graph.components(component_categories={category}),
+            return sorted(
+                list(
+                    map(
+                        lambda c: c.component_id,
+                        graph.components(component_categories={category}),
+                    )
                 )
             )
 
@@ -123,13 +125,15 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             if graph is None:
                 return []
 
-            return [
-                c.component_id
-                for c in graph.components(
-                    component_categories={ComponentCategory.INVERTER}
-                )
-                if c.type == comp_type
-            ]
+            return sorted(
+                [
+                    c.component_id
+                    for c in graph.components(
+                        component_categories={ComponentCategory.INVERTER}
+                    )
+                    if c.type == comp_type
+                ]
+            )
 
         self.chp_ids: list[int] = filter_comp(ComponentCategory.CHP)
         self.battery_ids: list[int] = filter_comp(ComponentCategory.BATTERY)
