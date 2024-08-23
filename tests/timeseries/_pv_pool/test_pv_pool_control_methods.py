@@ -11,7 +11,11 @@ from unittest.mock import AsyncMock
 import async_solipsism
 import pytest
 from frequenz.channels import Receiver
-from frequenz.client.microgrid import InverterComponentState
+from frequenz.client.microgrid import (
+    ComponentCategory,
+    InverterComponentState,
+    InverterType,
+)
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
@@ -24,6 +28,7 @@ from frequenz.sdk.timeseries.pv_pool import PVPoolReport
 from ...microgrid.fixtures import _Mocks
 from ...utils.component_data_streamer import MockComponentDataStreamer
 from ...utils.component_data_wrapper import InverterDataWrapper
+from ...utils.graph_generator import GraphGenerator
 from ..mock_microgrid import MockMicrogrid
 
 
@@ -36,8 +41,22 @@ def event_loop_policy() -> async_solipsism.EventLoopPolicy:
 @pytest.fixture
 async def mocks(mocker: MockerFixture) -> typing.AsyncIterator[_Mocks]:
     """Create the mocks."""
-    mockgrid = MockMicrogrid(grid_meter=True)
-    mockgrid.add_solar_inverters(4)
+    gen = GraphGenerator()
+    pv_inv = [
+        gen.component(ComponentCategory.INVERTER, InverterType.SOLAR) for _ in range(4)
+    ]
+    mockgrid = MockMicrogrid(
+        graph=gen.to_graph(
+            (
+                ComponentCategory.METER,
+                [
+                    (ComponentCategory.METER, [pv_inv[0], pv_inv[1]]),
+                    (ComponentCategory.METER, pv_inv[2]),
+                    (ComponentCategory.METER, pv_inv[3]),
+                ],
+            )
+        )
+    )
     await mockgrid.start(mocker)
 
     # pylint: disable=protected-access
