@@ -465,6 +465,29 @@ class TestComponentGraph:
         result = graph.dfs(grid, set(), graph.is_pv_chain)
         assert result == pv_meters
 
+    def test_dfs_search_grid_meter_no_pv_meter(self) -> None:
+        """Test DFS searching PV components in a graph with a single grid meter."""
+        grid = Component(1, ComponentCategory.GRID)
+        pv_inverters = {
+            Component(3, ComponentCategory.INVERTER, InverterType.SOLAR),
+            Component(4, ComponentCategory.INVERTER, InverterType.SOLAR),
+        }
+
+        graph = gr._MicrogridComponentGraph(
+            components={
+                grid,
+                Component(2, ComponentCategory.METER),
+            }.union(pv_inverters),
+            connections={
+                Connection(1, 2),
+                Connection(2, 3),
+                Connection(2, 4),
+            },
+        )
+
+        result = graph.dfs(grid, set(), graph.is_pv_chain)
+        assert result == pv_inverters
+
     def test_dfs_search_no_grid_meter(self) -> None:
         """Test DFS searching PV components in a graph with no grid meter."""
         grid = Component(1, ComponentCategory.GRID)
@@ -1477,3 +1500,156 @@ class Test_MicrogridComponentGraph:
         assert set(graph.components()) == expected
 
         assert list(graph.connections()) == [Connection(0, 8)]
+
+
+class TestComponentTypeIdentification:
+    """Test the component type identification methods in the component graph."""
+
+    def test_no_comp_meters_pv(self) -> None:
+        """Test the case where there are no meters in the graph."""
+        grid = Component(1, ComponentCategory.GRID)
+        grid_meter = Component(2, ComponentCategory.METER)
+        pv_inv_1 = Component(3, ComponentCategory.INVERTER, InverterType.SOLAR)
+        pv_inv_2 = Component(4, ComponentCategory.INVERTER, InverterType.SOLAR)
+
+        graph = gr._MicrogridComponentGraph(
+            components={
+                grid,
+                grid_meter,
+                pv_inv_1,
+                pv_inv_2,
+            },
+            connections={
+                Connection(1, 2),
+                Connection(2, 3),
+                Connection(2, 4),
+            },
+        )
+
+        assert graph.is_grid_meter(grid_meter)
+        assert not graph.is_pv_meter(grid_meter)
+        assert not graph.is_pv_chain(grid_meter)
+
+        assert graph.is_pv_inverter(pv_inv_1) and graph.is_pv_chain(pv_inv_1)
+        assert graph.is_pv_inverter(pv_inv_2) and graph.is_pv_chain(pv_inv_2)
+
+    def test_no_comp_meters_mixed(self) -> None:
+        """Test the case where there are no meters in the graph."""
+        grid = Component(1, ComponentCategory.GRID)
+        grid_meter = Component(2, ComponentCategory.METER)
+        pv_inv = Component(3, ComponentCategory.INVERTER, InverterType.SOLAR)
+        battery_inv = Component(4, ComponentCategory.INVERTER, InverterType.BATTERY)
+        battery = Component(5, ComponentCategory.BATTERY)
+
+        graph = gr._MicrogridComponentGraph(
+            components={
+                grid,
+                grid_meter,
+                pv_inv,
+                battery_inv,
+                battery,
+            },
+            connections={
+                Connection(1, 2),
+                Connection(2, 3),
+                Connection(2, 4),
+                Connection(4, 5),
+            },
+        )
+
+        assert graph.is_grid_meter(grid_meter)
+        assert not graph.is_pv_meter(grid_meter)
+        assert not graph.is_pv_chain(grid_meter)
+
+        assert graph.is_pv_inverter(pv_inv) and graph.is_pv_chain(pv_inv)
+        assert not graph.is_battery_inverter(pv_inv) and not graph.is_battery_chain(
+            pv_inv
+        )
+
+        assert graph.is_battery_inverter(battery_inv) and graph.is_battery_chain(
+            battery_inv
+        )
+        assert not graph.is_pv_inverter(battery_inv) and not graph.is_pv_chain(
+            battery_inv
+        )
+
+    def test_with_meters(self) -> None:
+        """Test the case where there are meters in the graph."""
+        grid = Component(1, ComponentCategory.GRID)
+        grid_meter = Component(2, ComponentCategory.METER)
+        pv_meter = Component(3, ComponentCategory.METER)
+        pv_inv = Component(4, ComponentCategory.INVERTER, InverterType.SOLAR)
+        battery_meter = Component(5, ComponentCategory.METER)
+        battery_inv = Component(6, ComponentCategory.INVERTER, InverterType.BATTERY)
+        battery = Component(7, ComponentCategory.BATTERY)
+
+        graph = gr._MicrogridComponentGraph(
+            components={
+                grid,
+                grid_meter,
+                pv_meter,
+                pv_inv,
+                battery_meter,
+                battery_inv,
+                battery,
+            },
+            connections={
+                Connection(1, 2),
+                Connection(2, 3),
+                Connection(3, 4),
+                Connection(2, 5),
+                Connection(5, 6),
+                Connection(6, 7),
+            },
+        )
+
+        assert graph.is_grid_meter(grid_meter)
+        assert not graph.is_pv_meter(grid_meter)
+        assert not graph.is_pv_chain(grid_meter)
+
+        assert graph.is_pv_meter(pv_meter)
+        assert graph.is_pv_chain(pv_meter)
+        assert graph.is_pv_chain(pv_inv)
+        assert graph.is_pv_inverter(pv_inv)
+
+        assert graph.is_battery_meter(battery_meter)
+        assert graph.is_battery_chain(battery_meter)
+        assert graph.is_battery_chain(battery_inv)
+        assert graph.is_battery_inverter(battery_inv)
+
+    def test_without_grid_meters(self) -> None:
+        """Test the case where there are no grid meters in the graph."""
+        grid = Component(1, ComponentCategory.GRID)
+        ev_meter = Component(2, ComponentCategory.METER)
+        ev_charger = Component(3, ComponentCategory.EV_CHARGER)
+        chp_meter = Component(4, ComponentCategory.METER)
+        chp = Component(5, ComponentCategory.CHP)
+
+        graph = gr._MicrogridComponentGraph(
+            components={
+                grid,
+                ev_meter,
+                ev_charger,
+                chp_meter,
+                chp,
+            },
+            connections={
+                Connection(1, 2),
+                Connection(2, 3),
+                Connection(1, 4),
+                Connection(4, 5),
+            },
+        )
+
+        assert not graph.is_grid_meter(ev_meter)
+        assert not graph.is_grid_meter(chp_meter)
+
+        assert graph.is_ev_charger_meter(ev_meter)
+        assert graph.is_ev_charger(ev_charger)
+        assert graph.is_ev_charger_chain(ev_meter)
+        assert graph.is_ev_charger_chain(ev_charger)
+
+        assert graph.is_chp_meter(chp_meter)
+        assert graph.is_chp(chp)
+        assert graph.is_chp_chain(chp_meter)
+        assert graph.is_chp_chain(chp)
