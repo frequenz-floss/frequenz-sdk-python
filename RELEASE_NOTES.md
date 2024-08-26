@@ -16,4 +16,4 @@
 
 - Bump the `grpclib` dependency to pull a fix for using IPv6 addresses.
 
-- Allow setting `api_power_request_timeout` in `microgrid.initialize()`.  This was supposed to be possible since the last release, but wasn't until now.
+- Allow setting `api_power_request_timeout` in `microgrid.initialize()`.
