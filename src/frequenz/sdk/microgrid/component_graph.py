@@ -121,6 +121,20 @@ class ComponentGraph(ABC):
         """
 
     @abstractmethod
+    def is_grid_meter(self, component: Component) -> bool:
+        """Check if the specified component is a grid meter.
+
+        This is done by checking if the component is the only successor to the `Grid`
+        component.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is a grid meter.
+        """
+
+    @abstractmethod
     def is_pv_inverter(self, component: Component) -> bool:
         """Check if the specified component is a PV inverter.
 
@@ -567,6 +581,32 @@ class _MicrogridComponentGraph(
         self._validate_intermediary_components()
         self._validate_leaf_components()
 
+    def is_grid_meter(self, component: Component) -> bool:
+        """Check if the specified component is a grid meter.
+
+        This is done by checking if the component is the only successor to the `Grid`
+        component.
+
+        Args:
+            component: component to check.
+
+        Returns:
+            Whether the specified component is a grid meter.
+        """
+        if component.category != ComponentCategory.METER:
+            return False
+
+        predecessors = self.predecessors(component.component_id)
+        if len(predecessors) != 1:
+            return False
+
+        predecessor = next(iter(predecessors))
+        if predecessor.category != ComponentCategory.GRID:
+            return False
+
+        grid_successors = self.successors(predecessor.component_id)
+        return len(grid_successors) == 1
+
     def is_pv_inverter(self, component: Component) -> bool:
         """Check if the specified component is a PV inverter.
 
@@ -596,6 +636,7 @@ class _MicrogridComponentGraph(
         successors = self.successors(component.component_id)
         return (
             component.category == ComponentCategory.METER
+            and not self.is_grid_meter(component)
             and len(successors) > 0
             and all(
                 self.is_pv_inverter(successor)
@@ -643,6 +684,7 @@ class _MicrogridComponentGraph(
         successors = self.successors(component.component_id)
         return (
             component.category == ComponentCategory.METER
+            and not self.is_grid_meter(component)
             and len(successors) > 0
             and all(self.is_ev_charger(successor) for successor in successors)
         )
@@ -690,6 +732,7 @@ class _MicrogridComponentGraph(
         successors = self.successors(component.component_id)
         return (
             component.category == ComponentCategory.METER
+            and not self.is_grid_meter(component)
             and len(successors) > 0
             and all(self.is_battery_inverter(successor) for successor in successors)
         )
@@ -734,6 +777,7 @@ class _MicrogridComponentGraph(
         successors = self.successors(component.component_id)
         return (
             component.category == ComponentCategory.METER
+            and not self.is_grid_meter(component)
             and len(successors) > 0
             and all(self.is_chp(successor) for successor in successors)
         )
