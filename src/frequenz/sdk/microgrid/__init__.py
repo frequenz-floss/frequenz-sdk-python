@@ -223,6 +223,8 @@ would play out:
    Power actually distributed to the batteries: 1500W
 """  # noqa: D205, D400
 
+from datetime import timedelta
+
 from ..actor import ResamplerConfig
 from . import _data_pipeline, connection_manager
 from ._data_pipeline import (
@@ -238,7 +240,12 @@ from ._data_pipeline import (
 )
 
 
-async def initialize(server_url: str, resampler_config: ResamplerConfig) -> None:
+async def initialize(
+    server_url: str,
+    resampler_config: ResamplerConfig,
+    *,
+    api_power_request_timeout: timedelta = timedelta(seconds=5.0),
+) -> None:
     """Initialize the microgrid connection manager and the data pipeline.
 
     Args:
@@ -248,9 +255,16 @@ async def initialize(server_url: str, resampler_config: ResamplerConfig) -> None
             `9090`) and ssl should be a boolean (defaulting to false). For example:
             `grpc://localhost:1090?ssl=true`.
         resampler_config: Configuration for the resampling actor.
+        api_power_request_timeout: Timeout to use when making power requests to
+            the microgrid API.  When requests to components timeout, they will
+            be marked as blocked for a short duration, during which time they
+            will be unavailable from the corresponding component pools.
     """
     await connection_manager.initialize(server_url)
-    await _data_pipeline.initialize(resampler_config)
+    await _data_pipeline.initialize(
+        resampler_config,
+        api_power_request_timeout=api_power_request_timeout,
+    )
 
 
 __all__ = [
