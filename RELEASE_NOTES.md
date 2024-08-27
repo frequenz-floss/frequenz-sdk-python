@@ -14,6 +14,7 @@
   - PVPowerFormula
   - ProducerPowerFormula
   - BatteryPowerFormula
+  - ConsumerPowerFormula
 
 ## Bug Fixes
 
