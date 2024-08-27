@@ -11,6 +11,7 @@ from frequenz.client.microgrid import (
     ComponentCategory,
     ComponentType,
     Connection,
+    GridMetadata,
     InverterType,
 )
 
@@ -185,7 +186,7 @@ class GraphGenerator:
         Returns:
             a new grid component with default id.
         """
-        return Component(1, ComponentCategory.GRID)
+        return Component(1, ComponentCategory.GRID, None, GridMetadata(None))
 
     def to_graph(self, components: Any) -> _MicrogridComponentGraph:
         """Convert a list of components to a graph.
