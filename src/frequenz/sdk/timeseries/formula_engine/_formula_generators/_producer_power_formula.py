@@ -14,10 +14,10 @@ from .._formula_engine import FormulaEngine
 from ._fallback_formula_metric_fetcher import FallbackFormulaMetricFetcher
 from ._formula_generator import (
     NON_EXISTING_COMPONENT_ID,
-    ComponentNotFound,
     FormulaGenerator,
     FormulaGeneratorConfig,
 )
+from ._simple_power_formula import SimplePowerFormula
 
 _logger = logging.getLogger(__name__)
 
@@ -50,39 +50,27 @@ class ProducerPowerFormula(FormulaGenerator[Power]):
         )
 
         component_graph = connection_manager.get().component_graph
-        if self._config.component_ids is None:
-            # if in the future we support additional producers, we need to add them to the lambda
-            producer_components = component_graph.dfs(
-                self._get_grid_component(),
-                set(),
-                lambda component: component_graph.is_pv_chain(component)
-                or component_graph.is_chp_chain(component),
-            )
+        # if in the future we support additional producers, we need to add them to the lambda
+        producer_components = component_graph.dfs(
+            self._get_grid_component(),
+            set(),
+            lambda component: component_graph.is_pv_chain(component)
+            or component_graph.is_chp_chain(component),
+        )
 
-            if not producer_components:
-                _logger.warning(
-                    "Unable to find any producer components in the component graph. "
-                    "Subscribing to the resampling actor with a non-existing "
-                    "component id, so that `0` values are sent from the formula."
-                )
-                # If there are no producer components, we have to send 0 values at the same
-                # frequency as the other streams.  So we subscribe with a non-existing
-                # component id, just to get a `None` message at the resampling interval.
-                builder.push_component_metric(
-                    NON_EXISTING_COMPONENT_ID, nones_are_zeros=True
-                )
-                return builder.build()
-
-        else:
-            producer_components = component_graph.components(
-                component_ids=set(self._config.component_ids)
+        if not producer_components:
+            _logger.warning(
+                "Unable to find any producer components in the component graph. "
+                "Subscribing to the resampling actor with a non-existing "
+                "component id, so that `0` values are sent from the formula."
             )
-            if len(producer_components) != len(self._config.component_ids):
-                raise ComponentNotFound(
-                    "Unable to find all requested producer components."
-                    f"Requested {self._config.component_ids}, "
-                    f" found {producer_components}."
-                )
+            # If there are no producer components, we have to send 0 values at the same
+            # frequency as the other streams.  So we subscribe with a non-existing
+            # component id, just to get a `None` message at the resampling interval.
+            builder.push_component_metric(
+                NON_EXISTING_COMPONENT_ID, nones_are_zeros=True
+            )
+            return builder.build()
 
         is_not_meter: Callable[[Component], bool] = (
             lambda component: component.category != ComponentCategory.METER
@@ -143,7 +131,7 @@ class ProducerPowerFormula(FormulaGenerator[Power]):
                 continue
 
             fallback_ids = [c.component_id for c in fallback_components]
-            generator = ProducerPowerFormula(
+            generator = SimplePowerFormula(
                 f"{self._namespace}_fallback_{fallback_ids}",
                 self._channel_registry,
                 self._resampler_subscription_sender,
