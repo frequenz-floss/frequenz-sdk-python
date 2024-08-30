@@ -34,7 +34,6 @@ class FallbackFormulaMetricFetcher(FallbackMetricFetcher[QuantityT]):
         self._formula_generator: FormulaGenerator[QuantityT] = formula_generator
         self._formula_engine: FormulaEngine[QuantityT] | None = None
         self._receiver: Receiver[Sample[QuantityT]] | None = None
-        self._latest_sample: Sample[QuantityT] | None = None
 
     @property
     def name(self) -> str:
@@ -45,15 +44,6 @@ class FallbackFormulaMetricFetcher(FallbackMetricFetcher[QuantityT]):
     def is_running(self) -> bool:
         """Check whether the formula engine is running."""
         return self._receiver is not None
-
-    @property
-    def latest_sample(self) -> Sample[QuantityT] | None:
-        """Get the latest fetched sample.
-
-        Returns:
-            The latest fetched sample, or `None` if no sample has been fetched yet.
-        """
-        return self._latest_sample
 
     def start(self) -> None:
         """Initialize the formula engine and start fetching samples."""
@@ -87,5 +77,4 @@ class FallbackFormulaMetricFetcher(FallbackMetricFetcher[QuantityT]):
             self._receiver is not None
         ), f"Fallback metric fetcher: {self.name} was not started"
 
-        self._latest_sample = self._receiver.consume()
-        return self._latest_sample
+        return self._receiver.consume()

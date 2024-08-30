@@ -365,16 +365,6 @@ class FallbackMetricFetcher(Receiver[Sample[QuantityT]], Generic[QuantityT]):
     def is_running(self) -> bool:
         """Check whether the metric fetcher is running."""
 
-    @property
-    @abstractmethod
-    def latest_sample(self) -> Sample[QuantityT] | None:
-        """Get the latest fetched value.
-
-        Returns:
-            The latest fetched value. None if no value has been fetched
-            of fetcher is not running.
-        """
-
     @abstractmethod
     def start(self) -> None:
         """Initialize the metric fetcher and start fetching samples."""
@@ -406,6 +396,7 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
         self._next_value: Sample[QuantityT] | None = None
         self._nones_are_zeros = nones_are_zeros
         self._fallback: FallbackMetricFetcher[QuantityT] | None = fallback
+        self._latest_fallback_sample: Sample[QuantityT] | None = None
 
     @property
     def stream(self) -> Receiver[Sample[QuantityT]]:
@@ -444,9 +435,9 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
             fetcher or if the fallback fetcher fails to fetch the next value.
         """
         # fallback_fetcher was not used, yet. We need to fetch first value.
-        if fallback_fetcher.latest_sample is None:
+        if self._latest_fallback_sample is None:
             try:
-                fallback = await fallback_fetcher.receive()
+                self._latest_fallback_sample = await fallback_fetcher.receive()
             except ReceiverError[Any] as err:
                 _logger.error(
                     "Fallback metric fetcher %s failed to fetch next value: %s."
@@ -455,16 +446,14 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
                     err,
                 )
                 return None
-        else:
-            fallback = fallback_fetcher.latest_sample
 
-        if primary_fetcher_sample.timestamp < fallback.timestamp:
+        if primary_fetcher_sample.timestamp < self._latest_fallback_sample.timestamp:
             return None
 
         # Synchronize the fallback fetcher with primary one
-        while primary_fetcher_sample.timestamp > fallback.timestamp:
+        while primary_fetcher_sample.timestamp > self._latest_fallback_sample.timestamp:
             try:
-                fallback = await fallback_fetcher.receive()
+                self._latest_fallback_sample = await fallback_fetcher.receive()
             except ReceiverError[Any] as err:
                 _logger.error(
                     "Fallback metric fetcher %s failed to fetch next value: %s."
@@ -474,7 +463,7 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
                 )
                 return None
 
-        return fallback
+        return self._latest_fallback_sample
 
     async def fetch_next_with_fallback(
         self, fallback_fetcher: FallbackMetricFetcher[QuantityT]
