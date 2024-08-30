@@ -93,7 +93,7 @@ plugins:
   - literate-nav:
       nav_file: SUMMARY.md
   - mike:
-      alias_type: redirect
+      alias_type: symlink
       canonical_version: latest
   - mkdocstrings:
       default_handler: python
@@ -110,6 +110,7 @@ plugins:
             show_root_members_full_path: true
             show_signature_annotations: true
             show_source: true
+            show_symbol_type_toc: true
             signature_crossrefs: true
           import:
             # See https://mkdocstrings.github.io/python/usage/#import for details

@@ -17,6 +17,8 @@ jobs:
   check-release-notes:
     name: Check release notes are updated
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
     steps:
       - name: Check for a release notes update
         if: github.event_name == 'pull_request'
