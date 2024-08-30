@@ -18,7 +18,7 @@ from frequenz.channels import (
 )
 from frequenz.client.microgrid import (
     ApiClient,
-    ClientError,
+    ApiClientError,
     ComponentCategory,
     EVChargerData,
 )
@@ -339,7 +339,7 @@ class EVChargerManager(ComponentManager):
                 _logger.warning(
                     "Timeout while setting power to EV charger %s", component_id
                 )
-            except ClientError as exc:
+            except ApiClientError as exc:
                 _logger.warning(
                     "Got a client error while setting power to EV charger %s: %s",
                     component_id,

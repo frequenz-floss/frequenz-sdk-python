@@ -10,7 +10,7 @@ from datetime import timedelta
 
 from frequenz.channels import Broadcast, LatestValueCache, Sender
 from frequenz.client.microgrid import (
-    ClientError,
+    ApiClientError,
     ComponentCategory,
     InverterData,
     InverterType,
@@ -211,7 +211,7 @@ class PVManager(ComponentManager):
                 _logger.warning(
                     "Timeout while setting power to PV inverter %s", component_id
                 )
-            except ClientError as exc:
+            except ApiClientError as exc:
                 _logger.warning(
                     "Got a client error while setting power to PV inverter %s: %s",
                     component_id,

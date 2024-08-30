@@ -104,7 +104,7 @@ class TestMicrogridApi:
             ),
         )
 
-    @mock.patch("grpclib.client.Channel")
+    @mock.patch("grpc.aio.insecure_channel")
     async def test_connection_manager(
         self,
         _insecure_channel_mock: MagicMock,
@@ -185,7 +185,7 @@ class TestMicrogridApi:
             assert api.microgrid_id == metadata.microgrid_id
             assert api.location == metadata.location
 
-    @mock.patch("grpclib.client.Channel")
+    @mock.patch("grpc.aio.insecure_channel")
     async def test_connection_manager_another_method(
         self,
         _insecure_channel_mock: MagicMock,

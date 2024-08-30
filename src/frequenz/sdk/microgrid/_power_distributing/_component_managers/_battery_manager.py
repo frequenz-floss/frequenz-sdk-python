@@ -12,8 +12,8 @@ from datetime import timedelta
 
 from frequenz.channels import LatestValueCache, Receiver, Sender
 from frequenz.client.microgrid import (
+    ApiClientError,
     BatteryData,
-    ClientError,
     ComponentCategory,
     InverterData,
     OperationOutOfRange,
@@ -670,7 +670,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
                     battery_ids,
                     err,
                 )
-            except ClientError as err:
+            except ApiClientError as err:
                 _logger.warning(
                     "Set power for battery %s failed, mark it as broken. Error: %s",
                     battery_ids,

@@ -2,11 +2,11 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
+This release mainly introduces a new feature that allows fallback components to be used in generated formulas, but it also fixes a few bugs and gets rid of `betterproto`/`grpclib` and goes back to Google's implementation.
 
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
+- The `frequenz-client-microgrid` dependency was bumped to `0.5.0`. This can cause dependency issues if you are using other API clients and the `frequenz-client-base` dependencies don't match.
 
 ## New Features
 
@@ -18,8 +18,6 @@
   - GridPowerFormula
 
 ## Bug Fixes
-
-- Bump the `grpclib` dependency to pull a fix for using IPv6 addresses.
 
 - Allow setting `api_power_request_timeout` in `microgrid.initialize()`.
 

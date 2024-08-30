@@ -454,7 +454,7 @@ Actor2 forwarding: "Actor1 forwarding: 'Hello'"
 
 This example shows how to create an actor that receives messages from multiple
 [broadcast][frequenz.channels.Broadcast] channels using
-[`select()`][frequenz.channels.util.select].
+[`select()`][frequenz.channels.select].
 
 ```python title="select.py"
 import asyncio
@@ -530,7 +530,7 @@ if __name__ == "__main__":  # (7)!
     them to another channel.
 
 2. We implement the [`_run()`][_run] method that will receive messages from the two
-    channels using [`select()`][frequenz.channels.util.select] and send them to the
+    channels using [`select()`][frequenz.channels.select] and send them to the
     output channel. The `run()` method will stop if a `False` message is received.
 
 3. We create the channels that will be used with the actor.
@@ -551,20 +551,20 @@ if __name__ == "__main__":  # (7)!
 9. We start the actor and wait for it to finish using the
     [`run()`][frequenz.sdk.actor.run] function.
 
-10. The [`select()`][frequenz.channels.util.select] function will get the first message
+10. The [`select()`][frequenz.channels.select] function will get the first message
     available from the two channels. The order in which they will be handled is
     unknown, but in this example we assume that the first message will be from
     `input_channel_1` (`True`) and the second from `input_channel_1` (`False`).
 
-11. The [`selected_from()`][frequenz.channels.util.selected_from] function will return
+11. The [`selected_from()`][frequenz.channels.selected_from] function will return
     `True` for the `input_channel_1` receiver. `selected.value` holds the received
     message, so `"Received from receiver_1: True"` will be printed and `True` will be
     sent to the `output` channel.
 
 12. Since `selected.value` is `True`, the loop will continue, going back to the
-    [`select()`][frequenz.channels.util.select] function.
+    [`select()`][frequenz.channels.select] function.
 
-13. The [`selected_from()`][frequenz.channels.util.selected_from] function will return
+13. The [`selected_from()`][frequenz.channels.selected_from] function will return
     `False` for the `input_channel_1` receiver and `True` for the `input_channel_2`
     receiver. The message stored in `selected.value` will now be `False`, so
     `"Received from receiver_2: False"` will be printed and `False` will be sent to the
