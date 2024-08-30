@@ -5,7 +5,7 @@
 
 ARG PYTHON_VERSION="3.11"
 
-FROM --platform=${TARGETPLATFORM} python:${PYTHON_VERSION}-slim
+FROM python:${PYTHON_VERSION}-slim
 
 RUN apt-get update -y && \
     apt-get install --no-install-recommends -y \
