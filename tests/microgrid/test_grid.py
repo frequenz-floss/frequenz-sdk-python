@@ -6,11 +6,13 @@
 from contextlib import AsyncExitStack
 
 import frequenz.client.microgrid as client
+from frequenz.client.microgrid import ComponentCategory
 from pytest_mock import MockerFixture
 
 import frequenz.sdk.microgrid.component_graph as gr
 from frequenz.sdk import microgrid
 from frequenz.sdk.timeseries import Current, Fuse, Power, Quantity
+from tests.utils.graph_generator import GraphGenerator
 
 from ..timeseries._formula_engine.utils import equal_float_lists, get_resampled_stream
 from ..timeseries.mock_microgrid import MockMicrogrid
@@ -318,3 +320,156 @@ async def test_consumer_power_2_grid_meters(mocker: MockerFixture) -> None:
 
         await mockgrid.mock_resampler.send_meter_power([1.0, 2.0])
         assert (await grid_recv.receive()).value == Power.from_watts(3.0)
+
+
+async def test_grid_fallback_formula_without_grid_meter(mocker: MockerFixture) -> None:
+    """Test the grid power formula without a grid meter."""
+    gen = GraphGenerator()
+    mockgrid = MockMicrogrid(
+        graph=gen.to_graph(
+            (
+                [
+                    ComponentCategory.METER,  # Consumer meter
+                    (
+                        ComponentCategory.METER,  # meter with 2 inverters
+                        [
+                            (
+                                ComponentCategory.INVERTER,
+                                [ComponentCategory.BATTERY],
+                            ),
+                            (
+                                ComponentCategory.INVERTER,
+                                [ComponentCategory.BATTERY, ComponentCategory.BATTERY],
+                            ),
+                        ],
+                    ),
+                    (ComponentCategory.INVERTER, ComponentCategory.BATTERY),
+                ]
+            )
+        ),
+        mocker=mocker,
+    )
+
+    async with mockgrid, AsyncExitStack() as stack:
+        grid = microgrid.grid()
+        stack.push_async_callback(grid.stop)
+        consumer_power_receiver = grid.power.new_receiver()
+
+        # Note: GridPowerFormula has a "nones-are-zero" rule, that says:
+        # * if the meter value is None, it should be treated as None.
+        # * for other components None is treated as 0.
+
+        # fmt: off
+        expected_input_output: list[
+            tuple[list[float | None], list[float | None],  Power | None]
+        ] = [
+            # ([consumer_meter, bat1_meter], [bat1_1_inv, bat1_2_inv, bat2_inv], expected_power)
+            ([100, -200], [-300, -300, 50], Power.from_watts(-50)),
+            ([500, 100], [100, 1000, -200,], Power.from_watts(400)),
+            # Consumer meter is invalid - consumer meter has no fallback.
+            # Formula should return None as defined in nones-are-zero rule.
+            ([None, 100], [100, 1000, -200,], None),
+            ([None, -50], [100, 100, -200,], None),
+            ([500, 100], [100, 50, -200,], Power.from_watts(400)),
+            # bat1_inv is invalid.
+            # Return None and subscribe for fallback devices.
+            # Next call should return formula result with pv_inv value.
+            ([500, None], [100, 1000, -200,], None),
+            ([500, None], [100, -1000, -200,], Power.from_watts(-600)),
+            ([500, None], [-100, 200, 50], Power.from_watts(650)),
+            # Second Battery inverter is invalid. This component has no fallback.
+            # return 0 instead of None as defined in nones-are-zero rule.
+            ([2000, None], [-200, 1000, None], Power.from_watts(2800)),
+            ([2000, 1000], [-200, 1000, None], Power.from_watts(3000)),
+            # battery start working
+            ([2000, 10], [-200, 1000, 100], Power.from_watts(2110)),
+            ([2000, None], [-200, 1000, 100], Power.from_watts(2900)),
+        ]
+        # fmt: on
+
+        for idx, (
+            meter_power,
+            bat_inv_power,
+            expected_power,
+        ) in enumerate(expected_input_output):
+            await mockgrid.mock_resampler.send_meter_power(meter_power)
+            await mockgrid.mock_resampler.send_bat_inverter_power(bat_inv_power)
+            mockgrid.mock_resampler.next_ts()
+
+            result = await consumer_power_receiver.receive()
+            assert result.value == expected_power, (
+                f"Test case {idx} failed:"
+                + f" meter_power: {meter_power}"
+                + f" bat_inverter_power {bat_inv_power}"
+                + f" expected_power: {expected_power}"
+                + f" actual_power: {result.value}"
+            )
+
+
+async def test_grid_fallback_formula_with_grid_meter(mocker: MockerFixture) -> None:
+    """Test the grid power formula without a grid meter."""
+    gen = GraphGenerator()
+    mockgrid = MockMicrogrid(
+        graph=gen.to_graph(
+            (
+                ComponentCategory.METER,  # Grid meter
+                [
+                    (
+                        ComponentCategory.METER,  # meter with 2 inverters
+                        [
+                            (
+                                ComponentCategory.INVERTER,
+                                [ComponentCategory.BATTERY],
+                            ),
+                            (
+                                ComponentCategory.INVERTER,
+                                [ComponentCategory.BATTERY, ComponentCategory.BATTERY],
+                            ),
+                        ],
+                    ),
+                    (ComponentCategory.INVERTER, ComponentCategory.BATTERY),
+                ],
+            )
+        ),
+        mocker=mocker,
+    )
+
+    async with mockgrid, AsyncExitStack() as stack:
+        grid = microgrid.grid()
+        stack.push_async_callback(grid.stop)
+        consumer_power_receiver = grid.power.new_receiver()
+
+        # Note: GridPowerFormula has a "nones-are-zero" rule, that says:
+        # * if the meter value is None, it should be treated as None.
+        # * for other components None is treated as 0.
+
+        # fmt: off
+        expected_input_output: list[
+            tuple[list[float | None], list[float | None],  Power | None]
+        ] = [
+            # ([grid_meter, bat1_meter], [bat1_1_inv, bat1_2_inv, bat2_inv], expected_power)
+            ([100, -200], [-300, -300, 50], Power.from_watts(100)),
+            ([-100, 100], [100, 1000, -200,], Power.from_watts(-100)),
+            ([None, 100], [100, 1000, -200,], None),
+            ([None, -50], [100, 100, -200,], None),
+            ([500, 100], [100, 50, -200,], Power.from_watts(500)),
+        ]
+        # fmt: on
+
+        for idx, (
+            meter_power,
+            bat_inv_power,
+            expected_power,
+        ) in enumerate(expected_input_output):
+            await mockgrid.mock_resampler.send_meter_power(meter_power)
+            await mockgrid.mock_resampler.send_bat_inverter_power(bat_inv_power)
+            mockgrid.mock_resampler.next_ts()
+
+            result = await consumer_power_receiver.receive()
+            assert result.value == expected_power, (
+                f"Test case {idx} failed:"
+                + f" meter_power: {meter_power}"
+                + f" bat_inverter_power {bat_inv_power}"
+                + f" expected_power: {expected_power}"
+                + f" actual_power: {result.value}"
+            )

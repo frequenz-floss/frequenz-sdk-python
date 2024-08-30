@@ -130,7 +130,7 @@ class TestFormulaComposition:
             inv_calc_recv = engine.new_receiver()
 
             for _ in range(10):
-                await mockgrid.mock_resampler.send_bat_inverter_power(
+                await mockgrid.mock_resampler.send_meter_power(
                     [10.0 + count, 12.0 + count, 14.0 + count]
                 )
                 await mockgrid.mock_resampler.send_non_existing_component_value()
@@ -151,7 +151,7 @@ class TestFormulaComposition:
     async def test_formula_composition_missing_bat(self, mocker: MockerFixture) -> None:
         """Test the composition of formulas with missing battery power data."""
         mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
-        mockgrid.add_solar_inverters(2)
+        mockgrid.add_solar_inverters(2, no_meter=True)
 
         count = 0
         async with mockgrid, AsyncExitStack() as stack:

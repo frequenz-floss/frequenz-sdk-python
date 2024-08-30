@@ -112,10 +112,12 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         def filter_comp(category: ComponentCategory) -> list[int]:
             if graph is None:
                 return []
-            return list(
-                map(
-                    lambda c: c.component_id,
-                    graph.components(component_categories={category}),
+            return sorted(
+                list(
+                    map(
+                        lambda c: c.component_id,
+                        graph.components(component_categories={category}),
+                    )
                 )
             )
 
@@ -123,13 +125,15 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             if graph is None:
                 return []
 
-            return [
-                c.component_id
-                for c in graph.components(
-                    component_categories={ComponentCategory.INVERTER}
-                )
-                if c.type == comp_type
-            ]
+            return sorted(
+                [
+                    c.component_id
+                    for c in graph.components(
+                        component_categories={ComponentCategory.INVERTER}
+                    )
+                    if c.type == comp_type
+                ]
+            )
 
         self.chp_ids: list[int] = filter_comp(ComponentCategory.CHP)
         self.battery_ids: list[int] = filter_comp(ComponentCategory.BATTERY)
@@ -362,33 +366,30 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             no_meters: if True, do not add a meter for each CHP.
         """
         for _ in range(count):
-            meter_id = self._id_increment * 10 + self.meter_id_suffix
             chp_id = self._id_increment * 10 + self.chp_id_suffix
-            self._id_increment += 1
-
-            self.meter_ids.append(meter_id)
             self.chp_ids.append(chp_id)
-
-            if not no_meters:
-                self._components.add(
-                    Component(
-                        meter_id,
-                        ComponentCategory.METER,
-                    )
-                )
             self._components.add(
                 Component(
                     chp_id,
                     ComponentCategory.CHP,
                 )
             )
-
-            self._start_meter_streaming(meter_id)
             if no_meters:
                 self._connections.add(Connection(self._connect_to, chp_id))
             else:
+                meter_id = self._id_increment * 10 + self.meter_id_suffix
+                self.meter_ids.append(meter_id)
+                self._components.add(
+                    Component(
+                        meter_id,
+                        ComponentCategory.METER,
+                    )
+                )
+                self._start_meter_streaming(meter_id)
                 self._connections.add(Connection(self._connect_to, meter_id))
                 self._connections.add(Connection(meter_id, chp_id))
+
+            self._id_increment += 1
 
     def add_batteries(self, count: int, no_meter: bool = False) -> None:
         """Add batteries with connected inverters and meters to the microgrid.

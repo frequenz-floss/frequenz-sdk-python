@@ -61,7 +61,7 @@ class MockResampler:
                 self._input_channels_receivers[name] = [
                     self._channel_registry.get_or_create(
                         Sample[Quantity], name
-                    ).new_receiver()
+                    ).new_receiver(limit=1)
                     for _ in range(namespaces)
                 ]
             return senders
@@ -195,6 +195,10 @@ class MockResampler:
         task = asyncio.create_task(self._handle_resampling_requests())
         task.add_done_callback(self._handle_task_done)
         self._request_handler_task = task
+
+    def next_ts(self) -> None:
+        """Increment the timestamp."""
+        self._next_ts = datetime.now()
 
     def _handle_task_done(self, task: asyncio.Task[None]) -> None:
         if task.cancelled():

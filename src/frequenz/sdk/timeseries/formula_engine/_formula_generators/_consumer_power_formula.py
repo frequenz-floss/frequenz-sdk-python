@@ -11,11 +11,14 @@ from ....microgrid import connection_manager
 from ..._quantities import Power
 from .._formula_engine import FormulaEngine
 from .._resampled_formula_builder import ResampledFormulaBuilder
+from ._fallback_formula_metric_fetcher import FallbackFormulaMetricFetcher
 from ._formula_generator import (
     NON_EXISTING_COMPONENT_ID,
     ComponentNotFound,
     FormulaGenerator,
+    FormulaGeneratorConfig,
 )
+from ._simple_power_formula import SimplePowerFormula
 
 _logger = logging.getLogger(__name__)
 
@@ -26,6 +29,25 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
     The consumer power is calculated by summing up the power of all components that
     are not part of a battery, CHP, PV or EV charger chain.
     """
+
+    def _are_grid_meters(self, grid_successors: set[Component]) -> bool:
+        """Check if the grid successors are grid meters.
+
+        Args:
+            grid_successors: The successors of the grid component.
+
+        Returns:
+            True if the provided components are grid meters, False otherwise.
+        """
+        component_graph = connection_manager.get().component_graph
+        return all(
+            successor.category == ComponentCategory.METER
+            and not component_graph.is_battery_chain(successor)
+            and not component_graph.is_chp_chain(successor)
+            and not component_graph.is_pv_chain(successor)
+            and not component_graph.is_ev_charger_chain(successor)
+            for successor in grid_successors
+        )
 
     def generate(self) -> FormulaEngine[Power]:
         """Generate formula for calculating consumer power from the component graph.
@@ -48,15 +70,7 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
         if not grid_successors:
             raise ComponentNotFound("No components found in the component graph.")
 
-        component_graph = connection_manager.get().component_graph
-        if all(
-            successor.category == ComponentCategory.METER
-            and not component_graph.is_battery_chain(successor)
-            and not component_graph.is_chp_chain(successor)
-            and not component_graph.is_pv_chain(successor)
-            and not component_graph.is_ev_charger_chain(successor)
-            for successor in grid_successors
-        ):
+        if self._are_grid_meters(grid_successors):
             return self._gen_with_grid_meter(builder, grid_successors)
 
         return self._gen_without_grid_meter(builder, self._get_grid_component())
@@ -112,13 +126,30 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
                 grid_meter.component_id, nones_are_zeros=False
             )
 
-        # push all non consumer components and subtract them from the grid meters
-        for component in non_consumer_components:
-            builder.push_oper("-")
-            builder.push_component_metric(
-                component.component_id,
-                nones_are_zeros=component.category != ComponentCategory.METER,
-            )
+        if self._config.allow_fallback:
+            fallbacks = self._get_fallback_formulas(non_consumer_components)
+
+            for idx, (primary_component, fallback_formula) in enumerate(
+                fallbacks.items()
+            ):
+                builder.push_oper("-")
+
+                # should only be the case if the component is not a meter
+                builder.push_component_metric(
+                    primary_component.component_id,
+                    nones_are_zeros=(
+                        primary_component.category != ComponentCategory.METER
+                    ),
+                    fallback=fallback_formula,
+                )
+        else:
+            # push all non consumer components and subtract them from the grid meters
+            for component in non_consumer_components:
+                builder.push_oper("-")
+                builder.push_component_metric(
+                    component.component_id,
+                    nones_are_zeros=component.category != ComponentCategory.METER,
+                )
 
         return builder.build()
 
@@ -175,13 +206,76 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
             )
             return builder.build()
 
-        for idx, component in enumerate(consumer_components):
-            if idx > 0:
-                builder.push_oper("+")
+        if self._config.allow_fallback:
+            fallbacks = self._get_fallback_formulas(consumer_components)
 
-            builder.push_component_metric(
-                component.component_id,
-                nones_are_zeros=component.category != ComponentCategory.METER,
-            )
+            for idx, (primary_component, fallback_formula) in enumerate(
+                fallbacks.items()
+            ):
+                if idx > 0:
+                    builder.push_oper("+")
+
+                # should only be the case if the component is not a meter
+                builder.push_component_metric(
+                    primary_component.component_id,
+                    nones_are_zeros=(
+                        primary_component.category != ComponentCategory.METER
+                    ),
+                    fallback=fallback_formula,
+                )
+        else:
+            for idx, component in enumerate(consumer_components):
+                if idx > 0:
+                    builder.push_oper("+")
+
+                builder.push_component_metric(
+                    component.component_id,
+                    nones_are_zeros=component.category != ComponentCategory.METER,
+                )
 
         return builder.build()
+
+    def _get_fallback_formulas(
+        self, components: set[Component]
+    ) -> dict[Component, FallbackFormulaMetricFetcher[Power] | None]:
+        """Find primary and fallback components and create fallback formulas.
+
+        The primary component is the one that will be used to calculate the consumer power.
+        However, if it is not available, the fallback formula will be used instead.
+        Fallback formulas calculate the consumer power using the fallback components.
+        Fallback formulas are wrapped in `FallbackFormulaMetricFetcher` to allow
+        for lazy initialization.
+
+        Args:
+            components: The producer components.
+
+        Returns:
+            A dictionary mapping primary components to their FallbackFormulaMetricFetcher.
+        """
+        fallbacks = self._get_metric_fallback_components(components)
+
+        fallback_formulas: dict[
+            Component, FallbackFormulaMetricFetcher[Power] | None
+        ] = {}
+
+        for primary_component, fallback_components in fallbacks.items():
+            if len(fallback_components) == 0:
+                fallback_formulas[primary_component] = None
+                continue
+
+            fallback_ids = [c.component_id for c in fallback_components]
+            generator = SimplePowerFormula(
+                f"{self._namespace}_fallback_{fallback_ids}",
+                self._channel_registry,
+                self._resampler_subscription_sender,
+                FormulaGeneratorConfig(
+                    component_ids=set(fallback_ids),
+                    allow_fallback=False,
+                ),
+            )
+
+            fallback_formulas[primary_component] = FallbackFormulaMetricFetcher(
+                generator
+            )
+
+        return fallback_formulas

@@ -10,7 +10,12 @@
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+- Fallback components are used in generated formulas. If primary components is unavailable, formula will generate metric from fallback components. Fallback formulas are implemented for:
+  - PVPowerFormula
+  - ProducerPowerFormula
+  - BatteryPowerFormula
+  - ConsumerPowerFormula
+  - GridPowerFormula
 
 ## Bug Fixes
 
