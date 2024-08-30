@@ -19,8 +19,6 @@
 
 ## Bug Fixes
 
-- Bump the `grpclib` dependency to pull a fix for using IPv6 addresses.
-
 - Allow setting `api_power_request_timeout` in `microgrid.initialize()`.
 
 - Fix an issue where in grid meters could be identified as {pv/ev/battery/chp} meters in some component graph configurations.
