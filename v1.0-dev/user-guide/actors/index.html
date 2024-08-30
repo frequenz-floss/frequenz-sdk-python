@@ -1729,7 +1729,7 @@ the traditional actor programming model but also has some unique features:</p>
 <li>
 <p><strong>Message Passing:</strong> Like traditional actors, our <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a>
   class communicates through message passing. Even when no particular message passing
-  mechanism is enforced, the SDK actors use <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels"><code>frequenz.channels</code></a> for communication.</p>
+  mechanism is enforced, the SDK actors use <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels"><code>frequenz.channels</code></a> for communication.</p>
 </li>
 <li>
 <p><strong>Automatic Restart:</strong> If an unhandled exception occurs in an actor's logic
@@ -1851,7 +1851,7 @@ manually, especially in error conditions.</p>
 </div>
 <h3 id="frequenz.sdk.actor--communication">Communication<a class="headerlink" href="#frequenz.sdk.actor--communication" title="Permanent link">¤</a></h3>
 <p>The <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a> class doesn't impose any specific way to
-communicate between actors. However, <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels"><code>frequenz.channels</code></a> are always used as the
+communicate between actors. However, <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels"><code>frequenz.channels</code></a> are always used as the
 communication mechanism between actors in the SDK.</p>
 <h3 id="frequenz.sdk.actor--implementing-an-actor">Implementing an Actor<a class="headerlink" href="#frequenz.sdk.actor--implementing-an-actor" title="Permanent link">¤</a></h3>
 <p>To implement an actor, you must inherit from the <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a>
@@ -1910,8 +1910,8 @@ composed easily.</p>
 <p>Normally an actor should run forever (or until it is
 <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.stop">stopped</a>), so it is very common to have an infinite loop
 in the <code>_run()</code> method, typically receiving messages from one or more channels
-(<a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels.Receiver">receivers</a>), processing them and sending the results to
-other channels (<a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels.Sender">senders</a>).
+(<a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">receivers</a>), processing them and sending the results to
+other channels (<a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Sender">senders</a>).
 However, it is worth noting that an actor can also be designed for a one-time execution
 or a limited number of runs, terminating upon completion.</p>
 <details class="example" open="open">
@@ -2008,7 +2008,7 @@ tasks, so they are also automatically stopped when the actor is stopped.</p>
 </details>
 <h4 id="frequenz.sdk.actor--examples">Examples<a class="headerlink" href="#frequenz.sdk.actor--examples" title="Permanent link">¤</a></h4>
 <p>Here are a few simple but complete examples to demonstrate how to create actors and
-connect them using <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels">channels</a>.</p>
+connect them using <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels">channels</a>.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>The code examples are annotated with markers (like <span class="md-annotation"><span class="md-annotation__index" tabindex="-1"><span data-md-annotation-id="1"></span></span></span>), you
@@ -2017,7 +2017,7 @@ annotations are numbered according to the order of execution.</p>
 </div>
 <h5 id="frequenz.sdk.actor--composing-actors">Composing actors<a class="headerlink" href="#frequenz.sdk.actor--composing-actors" title="Permanent link">¤</a></h5>
 <p>This example shows how to create two actors and connect them using
-<a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels.Broadcast">broadcast</a> channels.</p>
+<a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Broadcast">broadcast</a> channels.</p>
 <div class="language-python highlight"><span class="filename">compose.py</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">import</span> <span class="nn">asyncio</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kn">from</span> <span class="nn">frequenz.channels</span> <span class="kn">import</span> <span class="n">Broadcast</span><span class="p">,</span> <span class="n">Receiver</span><span class="p">,</span> <span class="n">Sender</span>
@@ -2088,8 +2088,8 @@ annotations are numbered according to the order of execution.</p>
 <p>We start the <code>main()</code> function in the async loop using <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/asyncio-runner.html#asyncio.run"><code>asyncio.run()</code></a>.</p>
 </li>
 <li>
-<p>We create a bunch of <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels.Broadcast">broadcast</a>
-   <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels">channels</a> to connect our actors.</p>
+<p>We create a bunch of <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Broadcast">broadcast</a>
+   <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels">channels</a> to connect our actors.</p>
 <ul>
 <li><code>input_channel</code> is the input channel for <code>Actor1</code>.</li>
 <li><code>middle_channel</code> is the channel that connects <code>Actor1</code> and <code>Actor2</code>.</li>
@@ -2099,8 +2099,8 @@ annotations are numbered according to the order of execution.</p>
 <li>
 <p>We create two actors and use them as async context managers, <code>Actor1</code> and
     <code>Actor2</code>, and connect them by creating new
-    <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels.Sender">senders</a> and
-    <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels.Receiver">receivers</a> from the channels.</p>
+    <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Sender">senders</a> and
+    <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">receivers</a> from the channels.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>We don't use the <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.run"><code>run()</code></a> function here because we
@@ -2110,11 +2110,11 @@ is a better fit for this example.</p>
 </div>
 </li>
 <li>
-<p>We schedule the <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels.Sender.send">sending</a> of the message
+<p>We schedule the <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Sender.send">sending</a> of the message
    <code>Hello</code> to <code>Actor1</code> via <code>input_channel</code>.</p>
 </li>
 <li>
-<p>We <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels.Receiver.receive">receive</a> (await) the response from
+<p>We <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver.receive">receive</a> (await) the response from
    <code>Actor2</code> via <code>output_channel</code>. Between this and the previous steps the
    <code>async</code> calls in the actors will be executed.</p>
 </li>
@@ -2140,8 +2140,8 @@ is a better fit for this example.</p>
 </span></code></pre></div>
 <h5 id="frequenz.sdk.actor--receiving-from-multiple-channels">Receiving from multiple channels<a class="headerlink" href="#frequenz.sdk.actor--receiving-from-multiple-channels" title="Permanent link">¤</a></h5>
 <p>This example shows how to create an actor that receives messages from multiple
-<a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/#frequenz.channels.Broadcast">broadcast</a> channels using
-<a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/util/#frequenz.channels.util.select"><code>select()</code></a>.</p>
+<a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Broadcast">broadcast</a> channels using
+<a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.select"><code>select()</code></a>.</p>
 <div class="language-python highlight"><span class="filename">select.py</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">import</span> <span class="nn">asyncio</span>
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
 </span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="kn">from</span> <span class="nn">frequenz.channels</span> <span class="kn">import</span> <span class="n">Broadcast</span><span class="p">,</span> <span class="n">Receiver</span><span class="p">,</span> <span class="n">Sender</span>
@@ -2217,7 +2217,7 @@ is a better fit for this example.</p>
 </li>
 <li>
 <p>We implement the <a href="#frequenz.sdk.actor--the-_run-method"><code>_run()</code></a> method that will receive messages from the two
-    channels using <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/util/#frequenz.channels.util.select"><code>select()</code></a> and send them to the
+    channels using <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.select"><code>select()</code></a> and send them to the
     output channel. The <code>run()</code> method will stop if a <code>False</code> message is received.</p>
 </li>
 <li>
@@ -2246,23 +2246,23 @@ is a better fit for this example.</p>
     <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.run"><code>run()</code></a> function.</p>
 </li>
 <li>
-<p>The <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/util/#frequenz.channels.util.select"><code>select()</code></a> function will get the first message
+<p>The <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.select"><code>select()</code></a> function will get the first message
     available from the two channels. The order in which they will be handled is
     unknown, but in this example we assume that the first message will be from
     <code>input_channel_1</code> (<code>True</code>) and the second from <code>input_channel_1</code> (<code>False</code>).</p>
 </li>
 <li>
-<p>The <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/util/#frequenz.channels.util.selected_from"><code>selected_from()</code></a> function will return
+<p>The <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.selected_from"><code>selected_from()</code></a> function will return
     <code>True</code> for the <code>input_channel_1</code> receiver. <code>selected.value</code> holds the received
     message, so <code>"Received from receiver_1: True"</code> will be printed and <code>True</code> will be
     sent to the <code>output</code> channel.</p>
 </li>
 <li>
 <p>Since <code>selected.value</code> is <code>True</code>, the loop will continue, going back to the
-    <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/util/#frequenz.channels.util.select"><code>select()</code></a> function.</p>
+    <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.select"><code>select()</code></a> function.</p>
 </li>
 <li>
-<p>The <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v0.16/reference/frequenz/channels/util/#frequenz.channels.util.selected_from"><code>selected_from()</code></a> function will return
+<p>The <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.selected_from"><code>selected_from()</code></a> function will return
     <code>False</code> for the <code>input_channel_1</code> receiver and <code>True</code> for the <code>input_channel_2</code>
     receiver. The message stored in <code>selected.value</code> will now be <code>False</code>, so
     <code>"Received from receiver_2: False"</code> will be printed and <code>False</code> will be sent to the
