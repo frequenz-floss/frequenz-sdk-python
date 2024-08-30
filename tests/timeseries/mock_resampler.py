@@ -61,7 +61,7 @@ class MockResampler:
                 self._input_channels_receivers[name] = [
                     self._channel_registry.get_or_create(
                         Sample[Quantity], name
-                    ).new_receiver(limit=1)
+                    ).new_receiver()
                     for _ in range(namespaces)
                 ]
             return senders
