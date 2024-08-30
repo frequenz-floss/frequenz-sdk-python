@@ -2,7 +2,7 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
+This release mainly introduces a new feature that allows fallback components to be used in generated formulas, but it also fixes a few bugs and gets rid of `betterproto`/`grpclib` and goes back to Google's implementation.
 
 ## Upgrading
 
