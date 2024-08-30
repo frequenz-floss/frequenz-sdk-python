@@ -6,7 +6,7 @@
 
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
+- The `frequenz-client-microgrid` dependency was bumped to `0.5.0`. This can cause dependency issues if you are using other API clients and the `frequenz-client-base` dependencies don't match.
 
 ## New Features
 

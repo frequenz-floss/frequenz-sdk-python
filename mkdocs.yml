@@ -115,7 +115,7 @@ plugins:
             # See https://mkdocstrings.github.io/python/usage/#import for details
             - https://docs.python.org/3/objects.inv
             - https://frequenz-floss.github.io/frequenz-channels-python/v1.1/objects.inv
-            - https://frequenz-floss.github.io/frequenz-client-microgrid-python/v0.4/objects.inv
+            - https://frequenz-floss.github.io/frequenz-client-microgrid-python/v0.5/objects.inv
             - https://networkx.org/documentation/stable/objects.inv
             - https://numpy.org/doc/stable/objects.inv
             - https://typing-extensions.readthedocs.io/en/stable/objects.inv
