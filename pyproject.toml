@@ -58,9 +58,9 @@ dev-mkdocs = [
   "mkdocs-gen-files == 0.5.0",
   "mkdocs-literate-nav == 0.6.1",
   "mkdocs-macros-plugin == 1.0.5",
-  "mkdocs-material == 9.5.33",
+  "mkdocs-material == 9.5.34",
   "mkdocstrings[python] == 0.25.2",
-  "mkdocstrings-python == 1.10.8",
+  "mkdocstrings-python == 1.10.9",
   "frequenz-repo-config[lib] == 0.10.0",
 ]
 dev-mypy = [
@@ -73,7 +73,7 @@ dev-mypy = [
 ]
 dev-noxfile = ["nox == 2024.4.15", "frequenz-repo-config[lib] == 0.10.0"]
 dev-pylint = [
-  "pylint == 3.2.6",
+  "pylint == 3.2.7",
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
