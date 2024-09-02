@@ -2173,7 +2173,7 @@
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.Result" class="headerlink" title="Permanent link">¤</a></h4>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">Result</span> <span class="o">=</span> <span class="n"><autoref identifier="frequenz.sdk.microgrid._power_distributing.result.Success" optional hover>Success</autoref></span> <span class="o">|</span> <span class="n"><autoref identifier="frequenz.sdk.microgrid._power_distributing.result.PartialFailure" optional hover>PartialFailure</autoref></span> <span class="o">|</span> <span class="n"><autoref identifier="frequenz.sdk.microgrid._power_distributing.result.Error" optional hover>Error</autoref></span> <span class="o">|</span> <span class="n"><autoref identifier="frequenz.sdk.microgrid._power_distributing.result.OutOfBounds" optional hover>OutOfBounds</autoref></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">Result</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid._power_distributing.result.Success" href="#frequenz.sdk.timeseries.battery_pool.messages.Success">Success</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid._power_distributing.result.PartialFailure" href="#frequenz.sdk.timeseries.battery_pool.messages.PartialFailure">PartialFailure</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid._power_distributing.result.Error" href="#frequenz.sdk.timeseries.battery_pool.messages.Error">Error</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid._power_distributing.result.OutOfBounds" href="#frequenz.sdk.timeseries.battery_pool.messages.OutOfBounds">OutOfBounds</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2254,7 +2254,7 @@ for r in results:
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><autoref identifier="typing.Protocol" optional hover>Protocol</autoref></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="typing.Protocol" href="https://docs.python.org/3/library/typing.html#typing.Protocol">Protocol</a></code></p>
 
 
       <p>A status report for a battery pool.</p>
@@ -2430,7 +2430,7 @@ for r in results:
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport.bounds" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">bounds</span><span class="p">:</span> <span class="n"><autoref identifier="frequenz.sdk.timeseries._base_types.Bounds" optional hover>Bounds</autoref></span><span class="p">[</span><span class="n"><autoref identifier="frequenz.sdk.timeseries._quantities.Power" optional hover>Power</autoref></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">bounds</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._base_types.Bounds" href="../../#frequenz.sdk.timeseries.Bounds">Bounds</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../#frequenz.sdk.timeseries.Power">Power</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2459,7 +2459,7 @@ the closest possible power values that do fit the bounds.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport.target_power" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">target_power</span><span class="p">:</span> <span class="n"><autoref identifier="frequenz.sdk.timeseries._quantities.Power" optional hover>Power</autoref></span> <span class="o">|</span> <span class="kc">None</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">target_power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../#frequenz.sdk.timeseries.Power">Power</a></span> <span class="o">|</span> <span class="kc">None</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2484,8 +2484,8 @@ the closest possible power values that do fit the bounds.</p>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport.adjust_to_bounds" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">adjust_to_bounds</span><span class="p">(</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">power</span><span class="p">:</span> <span class="n"><autoref identifier="frequenz.sdk.timeseries._quantities.Power" optional hover>Power</autoref></span><span class="p">,</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><autoref identifier="tuple" optional>tuple</autoref></span><span class="p">[</span><span class="n"><autoref identifier="frequenz.sdk.timeseries._quantities.Power" optional hover>Power</autoref></span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n"><autoref identifier="frequenz.sdk.timeseries._quantities.Power" optional hover>Power</autoref></span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../#frequenz.sdk.timeseries.Power">Power</a></span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../#frequenz.sdk.timeseries.Power">Power</a></span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../#frequenz.sdk.timeseries.Power">Power</a></span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2549,7 +2549,7 @@ two possible power values, both of which fall within the available bounds.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><autoref identifier="frequenz.sdk.timeseries._quantities.Power" optional hover>Power</autoref></code>
+                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../#frequenz.sdk.timeseries.Power">Power</a></code>
                   </span>
               </p>
             </td>
@@ -2569,7 +2569,7 @@ two possible power values, both of which fall within the available bounds.</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><autoref identifier="tuple" optional>tuple</autoref>[<autoref identifier="frequenz.sdk.timeseries._quantities.Power" optional hover>Power</autoref> | None, <autoref identifier="frequenz.sdk.timeseries._quantities.Power" optional hover>Power</autoref> | None]</code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../#frequenz.sdk.timeseries.Power">Power</a> | None, <a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../#frequenz.sdk.timeseries.Power">Power</a> | None]</code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -2718,7 +2718,7 @@ the available bounds for the actor.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><autoref identifier="frequenz.sdk.microgrid._power_distributing.result._BaseResultMixin" optional hover>_BaseResultMixin</autoref></code></p>
+              Bases: <code><span title="frequenz.sdk.microgrid._power_distributing.result._BaseResultMixin">_BaseResultMixin</span></code></p>
 
 
       <p>Result returned when an error occurred and power was not set at all.</p>
@@ -2762,7 +2762,7 @@ the available bounds for the actor.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.Error.msg" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">msg</span><span class="p">:</span> <span class="n"><autoref identifier="str" optional>str</autoref></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">msg</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2785,7 +2785,7 @@ the available bounds for the actor.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.Error.request" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">request</span><span class="p">:</span> <span class="n"><autoref identifier="frequenz.sdk.microgrid._power_distributing.request.Request" optional hover>Request</autoref></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">request</span><span class="p">:</span> <span class="n"><span title="frequenz.sdk.microgrid._power_distributing.request.Request">Request</span></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2822,7 +2822,7 @@ the available bounds for the actor.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><autoref identifier="frequenz.sdk.microgrid._power_distributing.result._BaseResultMixin" optional hover>_BaseResultMixin</autoref></code></p>
+              Bases: <code><span title="frequenz.sdk.microgrid._power_distributing.result._BaseResultMixin">_BaseResultMixin</span></code></p>
 
 
       <p>Result returned when the power was not set because it was out of bounds.</p>
@@ -2884,7 +2884,7 @@ the available bounds for the actor.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.OutOfBounds.bounds" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">bounds</span><span class="p">:</span> <span class="n"><autoref identifier="frequenz.sdk.microgrid._power_distributing.result.PowerBounds" optional hover>PowerBounds</autoref></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">bounds</span><span class="p">:</span> <span class="n"><span title="frequenz.sdk.microgrid._power_distributing.result.PowerBounds">PowerBounds</span></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2909,7 +2909,7 @@ Otherwise it is upper bound.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.OutOfBounds.request" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">request</span><span class="p">:</span> <span class="n"><autoref identifier="frequenz.sdk.microgrid._power_distributing.request.Request" optional hover>Request</autoref></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">request</span><span class="p">:</span> <span class="n"><span title="frequenz.sdk.microgrid._power_distributing.request.Request">Request</span></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2946,7 +2946,7 @@ Otherwise it is upper bound.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><autoref identifier="frequenz.sdk.microgrid._power_distributing.result._BaseSuccessMixin" optional hover>_BaseSuccessMixin</autoref></code>, <code><autoref identifier="frequenz.sdk.microgrid._power_distributing.result._BaseResultMixin" optional hover>_BaseResultMixin</autoref></code></p>
+              Bases: <code><span title="frequenz.sdk.microgrid._power_distributing.result._BaseSuccessMixin">_BaseSuccessMixin</span></code>, <code><span title="frequenz.sdk.microgrid._power_distributing.result._BaseResultMixin">_BaseResultMixin</span></code></p>
 
 
       <p>Result returned when some of the components had an error setting the power.</p>
@@ -2996,7 +2996,7 @@ Otherwise it is upper bound.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.PartialFailure.excess_power" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">excess_power</span><span class="p">:</span> <span class="n"><autoref identifier="frequenz.sdk.timeseries._quantities.Power" optional hover>Power</autoref></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">excess_power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../#frequenz.sdk.timeseries.Power">Power</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3020,7 +3020,7 @@ Otherwise it is upper bound.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.PartialFailure.failed_components" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">failed_components</span><span class="p">:</span> <span class="n"><autoref identifier="collections.abc.Set" optional hover>Set</autoref></span><span class="p">[</span><span class="n"><autoref identifier="int" optional>int</autoref></span><span class="p">]</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">failed_components</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Set" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Set">Set</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3043,7 +3043,7 @@ Otherwise it is upper bound.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.PartialFailure.failed_power" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">failed_power</span><span class="p">:</span> <span class="n"><autoref identifier="frequenz.sdk.timeseries._quantities.Power" optional hover>Power</autoref></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">failed_power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../#frequenz.sdk.timeseries.Power">Power</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3066,7 +3066,7 @@ Otherwise it is upper bound.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.PartialFailure.request" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">request</span><span class="p">:</span> <span class="n"><autoref identifier="frequenz.sdk.microgrid._power_distributing.request.Request" optional hover>Request</autoref></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">request</span><span class="p">:</span> <span class="n"><span title="frequenz.sdk.microgrid._power_distributing.request.Request">Request</span></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3089,7 +3089,7 @@ Otherwise it is upper bound.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.PartialFailure.succeeded_components" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">succeeded_components</span><span class="p">:</span> <span class="n"><autoref identifier="collections.abc.Set" optional hover>Set</autoref></span><span class="p">[</span><span class="n"><autoref identifier="int" optional>int</autoref></span><span class="p">]</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">succeeded_components</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Set" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Set">Set</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3112,7 +3112,7 @@ Otherwise it is upper bound.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.PartialFailure.succeeded_power" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">succeeded_power</span><span class="p">:</span> <span class="n"><autoref identifier="frequenz.sdk.timeseries._quantities.Power" optional hover>Power</autoref></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">succeeded_power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../#frequenz.sdk.timeseries.Power">Power</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3149,7 +3149,7 @@ Otherwise it is upper bound.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><autoref identifier="frequenz.sdk.microgrid._power_distributing.result._BaseSuccessMixin" optional hover>_BaseSuccessMixin</autoref></code>, <code><autoref identifier="frequenz.sdk.microgrid._power_distributing.result._BaseResultMixin" optional hover>_BaseResultMixin</autoref></code></p>
+              Bases: <code><span title="frequenz.sdk.microgrid._power_distributing.result._BaseSuccessMixin">_BaseSuccessMixin</span></code>, <code><span title="frequenz.sdk.microgrid._power_distributing.result._BaseResultMixin">_BaseResultMixin</span></code></p>
 
 
       <p>Result returned when setting the power was successful for all components.</p>
@@ -3187,7 +3187,7 @@ Otherwise it is upper bound.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.Success.excess_power" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">excess_power</span><span class="p">:</span> <span class="n"><autoref identifier="frequenz.sdk.timeseries._quantities.Power" optional hover>Power</autoref></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">excess_power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../#frequenz.sdk.timeseries.Power">Power</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3211,7 +3211,7 @@ Otherwise it is upper bound.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.Success.request" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">request</span><span class="p">:</span> <span class="n"><autoref identifier="frequenz.sdk.microgrid._power_distributing.request.Request" optional hover>Request</autoref></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">request</span><span class="p">:</span> <span class="n"><span title="frequenz.sdk.microgrid._power_distributing.request.Request">Request</span></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3234,7 +3234,7 @@ Otherwise it is upper bound.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.Success.succeeded_components" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">succeeded_components</span><span class="p">:</span> <span class="n"><autoref identifier="collections.abc.Set" optional hover>Set</autoref></span><span class="p">[</span><span class="n"><autoref identifier="int" optional>int</autoref></span><span class="p">]</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">succeeded_components</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Set" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Set">Set</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3257,7 +3257,7 @@ Otherwise it is upper bound.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.Success.succeeded_power" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">succeeded_power</span><span class="p">:</span> <span class="n"><autoref identifier="frequenz.sdk.timeseries._quantities.Power" optional hover>Power</autoref></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">succeeded_power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._quantities.Power" href="../../#frequenz.sdk.timeseries.Power">Power</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
