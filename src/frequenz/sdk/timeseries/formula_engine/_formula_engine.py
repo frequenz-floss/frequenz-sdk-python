@@ -57,68 +57,39 @@ _operator_precedence = {
 
 
 class FormulaEngine(Generic[QuantityT]):
-    """[`FormulaEngine`][frequenz.sdk.timeseries.formula_engine.FormulaEngine]s are a
-    part of the SDK's data pipeline, and provide a way for the SDK to apply formulas on
-    resampled data streams.
+    """An engine to apply formulas on resampled data streams.
 
-    They are used in the SDK to calculate and stream metrics like
-    [`grid_power`][frequenz.sdk.timeseries.grid.Grid.power],
-    [`consumer_power`][frequenz.sdk.timeseries.consumer.Consumer.power],
-    etc., which are building blocks of the
-    [Frequenz SDK Microgrid Model][frequenz.sdk.microgrid--frequenz-sdk-microgrid-model].
+    Please refer to the [module documentation][frequenz.sdk.timeseries.formula_engine]
+    for more information on how formula engines are used throughout the SDK.
 
-    The SDK creates the formulas by analysing the configuration of components in the
-    {{glossary("Component Graph")}}.
+    Example: Streaming the power of a battery pool.
+        ```python
+        from frequenz.sdk import microgrid
 
-    ### Streaming Interface
+        battery_pool = microgrid.new_battery_pool(priority=5)
 
-    The
-    [`FormulaEngine.new_receiver()`][frequenz.sdk.timeseries.formula_engine.FormulaEngine.new_receiver]
-    method can be used to create a
-    [Receiver](https://frequenz-floss.github.io/frequenz-channels-python/latest/reference/frequenz/channels/#frequenz.channels.Receiver)
-    that streams the [Sample][frequenz.sdk.timeseries.Sample]s calculated by the formula
-    engine.
+        async for power in battery_pool.power.new_receiver():
+            print(f"{power=}")
+        ```
 
-    ```python
-    from frequenz.sdk import microgrid
+    Example: Composition of formula engines.
+        ```python
+        from frequenz.sdk import microgrid
 
-    battery_pool = microgrid.new_battery_pool(priority=5)
+        battery_pool = microgrid.new_battery_pool(priority=5)
+        ev_charger_pool = microgrid.new_ev_charger_pool(priority=5)
+        grid = microgrid.grid()
 
-    async for power in battery_pool.power.new_receiver():
-        print(f"{power=}")
-    ```
+        # apply operations on formula engines to create a formula engine that would
+        # apply these operations on the corresponding data streams.
+        net_power = (
+            grid.power - (battery_pool.power + ev_charger_pool.power)
+        ).build("net_power")
 
-    ### Composition
-
-    Composite `FormulaEngine`s can be built using arithmetic operations on
-    `FormulaEngine`s streaming the same type of data.
-
-    For example, if you're interested in a particular composite metric that can be
-    calculated by subtracting
-    [`new_battery_pool().power`][frequenz.sdk.timeseries.battery_pool.BatteryPool.power] and
-    [`new_ev_charger_pool().power`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool]
-    from the
-    [`grid().power`][frequenz.sdk.timeseries.grid.Grid.power],
-    we can build a `FormulaEngine` that provides a stream of this calculated metric as
-    follows:
-
-    ```python
-    from frequenz.sdk import microgrid
-
-    battery_pool = microgrid.new_battery_pool(priority=5)
-    ev_charger_pool = microgrid.new_ev_charger_pool(priority=5)
-    grid = microgrid.grid()
-
-    # apply operations on formula engines to create a formula engine that would
-    # apply these operations on the corresponding data streams.
-    net_power = (
-        grid.power - (battery_pool.power + ev_charger_pool.power)
-    ).build("net_power")
-
-    async for power in net_power.new_receiver():
-        print(f"{power=}")
-    ```
-    """  # noqa: D400, D205
+        async for power in net_power.new_receiver():
+            print(f"{power=}")
+        ```
+    """
 
     def __init__(
         self,
@@ -392,54 +363,37 @@ class FormulaEngine(Generic[QuantityT]):
 
 
 class FormulaEngine3Phase(Generic[QuantityT]):
-    """A
-    [`FormulaEngine3Phase`][frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase]
-    is similar to a
-    [`FormulaEngine`][frequenz.sdk.timeseries.formula_engine.FormulaEngine], except that
-    they stream [3-phase samples][frequenz.sdk.timeseries.Sample3Phase].  All the
-    current formulas (like
-    [`Grid.current_per_phase`][frequenz.sdk.timeseries.grid.Grid.current_per_phase],
-    [`EVChargerPool.current_per_phase`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.current_per_phase],
-    etc.) are implemented as per-phase formulas.
+    """An engine to apply formulas on 3-phase resampled data streams.
 
-    ### Streaming Interface
+    Please refer to the [module documentation][frequenz.sdk.timeseries.formula_engine]
+    for more information on how formula engines are used throughout the SDK.
 
-    The
-    [`FormulaEngine3Phase.new_receiver()`][frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase.new_receiver]
-    method can be used to create a
-    [Receiver](https://frequenz-floss.github.io/frequenz-channels-python/latest/reference/frequenz/channels/#frequenz.channels.Receiver)
-    that streams the [Sample3Phase][frequenz.sdk.timeseries.Sample3Phase] values
-    calculated by the formula engine.
+    Example: Streaming the current of an EV charger pool.
+        ```python
+        from frequenz.sdk import microgrid
 
-    ```python
-    from frequenz.sdk import microgrid
+        ev_charger_pool = microgrid.new_ev_charger_pool(priority=5)
 
-    ev_charger_pool = microgrid.new_ev_charger_pool(priority=5)
+        async for sample in ev_charger_pool.current_per_phase.new_receiver():
+            print(f"Current: {sample}")
+        ```
 
-    async for sample in ev_charger_pool.current_per_phase.new_receiver():
-        print(f"Current: {sample}")
-    ```
+    Example: Composition of formula engines.
+        ```python
+        from frequenz.sdk import microgrid
 
-    ### Composition
+        ev_charger_pool = microgrid.new_ev_charger_pool(priority=5)
+        grid = microgrid.grid()
 
-    `FormulaEngine3Phase` instances can be composed together, just like `FormulaEngine`
-    instances.
+        # Calculate grid consumption current that's not used by the EV chargers
+        other_current = (grid.current_per_phase - ev_charger_pool.current_per_phase).build(
+            "other_current"
+        )
 
-    ```python
-    from frequenz.sdk import microgrid
-
-    ev_charger_pool = microgrid.new_ev_charger_pool(priority=5)
-    grid = microgrid.grid()
-
-    # Calculate grid consumption current that's not used by the EV chargers
-    other_current = (grid.current_per_phase - ev_charger_pool.current_per_phase).build(
-        "other_current"
-    )
-
-    async for sample in other_current.new_receiver():
-        print(f"Other current: {sample}")
-    ```
-    """  # noqa: D205, D400
+        async for sample in other_current.new_receiver():
+            print(f"Other current: {sample}")
+        ```
+    """
 
     def __init__(
         self,

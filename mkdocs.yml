@@ -87,6 +87,8 @@ markdown_extensions:
       permalink: "¤"
 
 plugins:
+  - autorefs:
+      resolve_closest: true
   - gen-files:
       scripts:
         - docs/_scripts/mkdocstrings_autoapi.py
