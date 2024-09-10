@@ -52,13 +52,8 @@ class ConfigManagingActor(Actor):
             if isinstance(config_path, pathlib.Path)
             else pathlib.Path(config_path)
         )
-        # FileWatcher can't watch for non-existing files, so we need to watch for the
-        # parent directory instead just in case a configuration file doesn't exist yet
-        # or it is deleted and recreated again.
-        self._file_watcher: FileWatcher = FileWatcher(
-            paths=[self._config_path.parent], event_types=event_types
-        )
         self._output: Sender[abc.Mapping[str, Any]] = output
+        self._event_types: abc.Set[EventType] = event_types
 
     def _read_config(self) -> abc.Mapping[str, Any]:
         """Read the contents of the configuration file.
@@ -90,32 +85,42 @@ class ConfigManagingActor(Actor):
         """
         await self.send_config()
 
-        async for event in self._file_watcher:
-            # Since we are watching the whole parent directory, we need to make sure
-            # we only react to events related to the configuration file.
-            if not event.path.samefile(self._config_path):
-                continue
+        # FileWatcher can't watch for non-existing files, so we need to watch for the
+        # parent directory instead just in case a configuration file doesn't exist yet
+        # or it is deleted and recreated again.
+        file_watcher = FileWatcher(
+            paths=[self._config_path.parent], event_types=self._event_types
+        )
 
-            match event.type:
-                case EventType.CREATE:
-                    _logger.info(
-                        "%s: The configuration file %s was created, sending new config...",
-                        self,
-                        self._config_path,
-                    )
-                    await self.send_config()
-                case EventType.MODIFY:
-                    _logger.info(
-                        "%s: The configuration file %s was modified, sending update...",
-                        self,
-                        self._config_path,
-                    )
-                    await self.send_config()
-                case EventType.DELETE:
-                    _logger.info(
-                        "%s: The configuration file %s was deleted, ignoring...",
-                        self,
-                        self._config_path,
-                    )
-                case _:
-                    assert_never(event.type)
+        try:
+            async for event in file_watcher:
+                # Since we are watching the whole parent directory, we need to make sure
+                # we only react to events related to the configuration file.
+                if not event.path.samefile(self._config_path):
+                    continue
+
+                match event.type:
+                    case EventType.CREATE:
+                        _logger.info(
+                            "%s: The configuration file %s was created, sending new config...",
+                            self,
+                            self._config_path,
+                        )
+                        await self.send_config()
+                    case EventType.MODIFY:
+                        _logger.info(
+                            "%s: The configuration file %s was modified, sending update...",
+                            self,
+                            self._config_path,
+                        )
+                        await self.send_config()
+                    case EventType.DELETE:
+                        _logger.info(
+                            "%s: The configuration file %s was deleted, ignoring...",
+                            self,
+                            self._config_path,
+                        )
+                    case _:
+                        assert_never(event.type)
+        finally:
+            del file_watcher
