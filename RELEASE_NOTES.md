@@ -14,4 +14,4 @@
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+- `ConfigManagingActor`: Fixed an issue where the actor was unable to process events after being restarted.
