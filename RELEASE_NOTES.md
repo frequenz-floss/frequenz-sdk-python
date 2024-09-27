@@ -16,4 +16,4 @@
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+- Many long running async tasks including metric streamers in the BatteryPool now have automatic recovery in case of exceptions.
