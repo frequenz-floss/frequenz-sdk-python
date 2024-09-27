@@ -397,9 +397,17 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
             #
             # Therefore, the variables are named with a `_x100` suffix.
             usable_capacity_x100 = capacity * (soc_upper_bound - soc_lower_bound)
-            soc_scaled = (
-                (soc - soc_lower_bound) / (soc_upper_bound - soc_lower_bound) * 100.0
-            )
+            if math.isclose(soc_upper_bound, soc_lower_bound):
+                if soc < soc_lower_bound:
+                    soc_scaled = 0.0
+                else:
+                    soc_scaled = 100.0
+            else:
+                soc_scaled = (
+                    (soc - soc_lower_bound)
+                    / (soc_upper_bound - soc_lower_bound)
+                    * 100.0
+                )
             # we are clamping here because the SoC might be out of bounds
             soc_scaled = min(max(soc_scaled, 0.0), 100.0)
             timestamp = max(timestamp, metrics.timestamp)
