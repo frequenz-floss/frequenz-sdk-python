@@ -4,19 +4,17 @@
 """System bounds tracker for PV inverters."""
 
 import asyncio
-import logging
 from collections import abc
 
 from frequenz.channels import Receiver, Sender, merge, select, selected_from
 from frequenz.client.microgrid import InverterData
 
+from ..._internal._asyncio import run_forever
 from ...actor import BackgroundService
 from ...microgrid import connection_manager
 from ...microgrid._power_distributing._component_status import ComponentPoolStatus
 from .._base_types import Bounds, SystemBounds
 from .._quantities import Power
-
-_logger = logging.getLogger(__name__)
 
 
 class PVSystemBoundsTracker(BackgroundService):
@@ -54,7 +52,7 @@ class PVSystemBoundsTracker(BackgroundService):
 
     def start(self) -> None:
         """Start the PV inverter system bounds tracker."""
-        self._tasks.add(asyncio.create_task(self._run_forever()))
+        self._tasks.add(asyncio.create_task(run_forever(self._run)))
 
     async def _send_bounds(self) -> None:
         """Calculate and send the aggregate system bounds if they have changed."""
@@ -102,17 +100,6 @@ class PVSystemBoundsTracker(BackgroundService):
                 exclusion_bounds=exclusion_bounds,
             )
             await self._bounds_sender.send(self._last_sent_bounds)
-
-    async def _run_forever(self) -> None:
-        """Run the system bounds tracker."""
-        while True:
-            try:
-                await self._run()
-            except Exception:  # pylint: disable=broad-except
-                _logger.exception(
-                    "Restarting after exception in PVSystemBoundsTracker.run()"
-                )
-                await asyncio.sleep(1.0)
 
     async def _run(self) -> None:
         """Run the system bounds tracker."""

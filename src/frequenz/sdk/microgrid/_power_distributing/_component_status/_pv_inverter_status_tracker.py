@@ -12,6 +12,7 @@ from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.microgrid import InverterComponentState, InverterData
 from typing_extensions import override
 
+from ...._internal._asyncio import run_forever
 from ....actor._background_service import BackgroundService
 from ... import connection_manager
 from ._blocking_status import BlockingStatus
@@ -76,7 +77,7 @@ class PVInverterStatusTracker(ComponentStatusTracker, BackgroundService):
     @override
     def start(self) -> None:
         """Start the status tracker."""
-        self._tasks.add(asyncio.create_task(self._run_forever()))
+        self._tasks.add(asyncio.create_task(run_forever(self._run)))
 
     def _is_working(self, pv_data: InverterData) -> bool:
         """Return whether the given data indicates that the PV inverter is working."""
@@ -86,16 +87,6 @@ class PVInverterStatusTracker(ComponentStatusTracker, BackgroundService):
             InverterComponentState.IDLE,
             InverterComponentState.STANDBY,
         )
-
-    async def _run_forever(self) -> None:
-        while True:
-            try:
-                await self._run()
-            except Exception:  # pylint: disable=broad-except
-                _logger.exception(
-                    "Restarting after exception in PVInverterStatusTracker.run()"
-                )
-                await asyncio.sleep(1.0)
 
     def _is_stale(self, pv_data: InverterData) -> bool:
         """Return whether the given data is stale."""

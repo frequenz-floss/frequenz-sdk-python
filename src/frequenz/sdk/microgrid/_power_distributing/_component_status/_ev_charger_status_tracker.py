@@ -17,6 +17,7 @@ from frequenz.client.microgrid import (
 )
 from typing_extensions import override
 
+from ...._internal._asyncio import run_forever
 from ....actor._background_service import BackgroundService
 from ... import connection_manager
 from ._blocking_status import BlockingStatus
@@ -80,7 +81,7 @@ class EVChargerStatusTracker(ComponentStatusTracker, BackgroundService):
     @override
     def start(self) -> None:
         """Start the status tracker."""
-        self._tasks.add(asyncio.create_task(self._run_forever()))
+        self._tasks.add(asyncio.create_task(run_forever(self._run)))
 
     def _is_working(self, ev_data: EVChargerData) -> bool:
         """Return whether the given data indicates that the component is working."""
@@ -98,17 +99,6 @@ class EVChargerStatusTracker(ComponentStatusTracker, BackgroundService):
         now = datetime.now(tz=timezone.utc)
         stale = now - ev_data.timestamp > self._max_data_age
         return stale
-
-    async def _run_forever(self) -> None:
-        """Run the status tracker forever."""
-        while True:
-            try:
-                await self._run()
-            except Exception:  # pylint: disable=broad-except
-                _logger.exception(
-                    "Restarting after exception in EVChargerStatusTracker.run()"
-                )
-                await asyncio.sleep(1.0)
 
     def _handle_ev_data(self, ev_data: EVChargerData) -> ComponentStatusEnum:
         """Handle new EV charger data."""

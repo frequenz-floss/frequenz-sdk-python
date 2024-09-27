@@ -5,19 +5,17 @@
 
 
 import asyncio
-import logging
 from collections import abc
 
 from frequenz.channels import Receiver, Sender, merge, select, selected_from
 from frequenz.client.microgrid import EVChargerData
 
+from ..._internal._asyncio import run_forever
 from ...actor import BackgroundService
 from ...microgrid import connection_manager
 from ...microgrid._power_distributing._component_status import ComponentPoolStatus
 from .. import Power
 from .._base_types import Bounds, SystemBounds
-
-_logger = logging.getLogger(__name__)
 
 
 class EVCSystemBoundsTracker(BackgroundService):
@@ -55,7 +53,7 @@ class EVCSystemBoundsTracker(BackgroundService):
 
     def start(self) -> None:
         """Start the EV charger system bounds tracker."""
-        self._tasks.add(asyncio.create_task(self._run_forever()))
+        self._tasks.add(asyncio.create_task(run_forever(self._run)))
 
     async def _send_bounds(self) -> None:
         """Calculate and send the aggregate system bounds if they have changed."""
@@ -103,17 +101,6 @@ class EVCSystemBoundsTracker(BackgroundService):
                 exclusion_bounds=exclusion_bounds,
             )
             await self._bounds_sender.send(self._last_sent_bounds)
-
-    async def _run_forever(self) -> None:
-        """Run the status tracker forever."""
-        while True:
-            try:
-                await self._run()
-            except Exception:  # pylint: disable=broad-except
-                _logger.exception(
-                    "Restarting after exception in EVChargerSystemBoundsTracker.run()"
-                )
-                await asyncio.sleep(1.0)
 
     async def _run(self) -> None:
         """Run the system bounds tracker."""
