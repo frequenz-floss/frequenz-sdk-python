@@ -10,7 +10,9 @@
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+- `ConfigManagingActor`: The file polling mechanism is now forced by default. Two new parameters have been added:
+  - `force_polling`: Whether to force file polling to check for changes. Default is `True`.
+  - `polling_interval`: The interval to check for changes. Only relevant if polling is enabled. Default is 1 second.
 
 ## Bug Fixes
 

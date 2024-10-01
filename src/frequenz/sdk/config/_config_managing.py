@@ -7,6 +7,7 @@ import logging
 import pathlib
 import tomllib
 from collections import abc
+from datetime import timedelta
 from typing import Any, assert_never
 
 from frequenz.channels import Sender
@@ -29,6 +30,7 @@ class ConfigManagingActor(Actor):
     reading too.
     """
 
+    # pylint: disable-next=too-many-arguments
     def __init__(
         self,
         config_path: pathlib.Path | str,
@@ -36,6 +38,8 @@ class ConfigManagingActor(Actor):
         event_types: abc.Set[EventType] = frozenset(EventType),
         *,
         name: str | None = None,
+        force_polling: bool = True,
+        polling_interval: timedelta = timedelta(seconds=1),
     ) -> None:
         """Initialize this instance.
 
@@ -45,6 +49,9 @@ class ConfigManagingActor(Actor):
             event_types: The set of event types to monitor.
             name: The name of the actor. If `None`, `str(id(self))` will
                 be used. This is used mostly for debugging purposes.
+            force_polling: Whether to force file polling to check for changes.
+            polling_interval: The interval to poll for changes. Only relevant if
+                polling is enabled.
         """
         super().__init__(name=name)
         self._config_path: pathlib.Path = (
@@ -54,6 +61,8 @@ class ConfigManagingActor(Actor):
         )
         self._output: Sender[abc.Mapping[str, Any]] = output
         self._event_types: abc.Set[EventType] = event_types
+        self._force_polling: bool = force_polling
+        self._polling_interval: timedelta = polling_interval
 
     def _read_config(self) -> abc.Mapping[str, Any]:
         """Read the contents of the configuration file.
@@ -89,7 +98,10 @@ class ConfigManagingActor(Actor):
         # parent directory instead just in case a configuration file doesn't exist yet
         # or it is deleted and recreated again.
         file_watcher = FileWatcher(
-            paths=[self._config_path.parent], event_types=self._event_types
+            paths=[self._config_path.parent],
+            event_types=self._event_types,
+            force_polling=self._force_polling,
+            polling_interval=self._polling_interval,
         )
 
         try:
