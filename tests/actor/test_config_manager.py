@@ -71,7 +71,9 @@ class TestActorConfigManager:
         )
         config_receiver = config_channel.new_receiver()
 
-        async with ConfigManagingActor(config_file, config_channel.new_sender()):
+        async with ConfigManagingActor(
+            config_file, config_channel.new_sender(), force_polling=False
+        ):
             config = await config_receiver.receive()
             assert config is not None
             assert config.get("logging_lvl") == "DEBUG"
@@ -100,7 +102,9 @@ class TestActorConfigManager:
         current_dir = pathlib.Path.cwd()
         relative_path = os.path.relpath(config_file, current_dir)
 
-        async with ConfigManagingActor(relative_path, config_channel.new_sender()):
+        async with ConfigManagingActor(
+            relative_path, config_channel.new_sender(), force_polling=False
+        ):
             config = await config_receiver.receive()
             assert config is not None
             assert config.get("var2") is None

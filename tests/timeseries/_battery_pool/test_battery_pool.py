@@ -1306,7 +1306,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
 
     # One inverter stopped sending data, use one remaining inverter
     await streamer.stop_streaming(next(iter(bat_invs_map[batteries_in_pool[0]])))
-    await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.2)
+    await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.1)
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
     compare_messages(
         msg,
