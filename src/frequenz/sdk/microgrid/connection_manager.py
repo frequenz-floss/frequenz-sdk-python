@@ -155,8 +155,7 @@ class _InsecureConnectionManager(ConnectionManager):
         await super()._update_api(server_url)  # pylint: disable=protected-access
 
         self._api = ApiClient(server_url)
-        self._metadata = await self._api.metadata()
-        await self._graph.refresh_from_api(self._api)
+        await self._initialize()
 
     async def _initialize(self) -> None:
         self._metadata = await self._api.metadata()
