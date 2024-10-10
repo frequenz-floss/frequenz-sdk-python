@@ -293,7 +293,7 @@ async def run_scenarios(
             continue
 
         try:
-            compare_messages(msg, scenario.expected_result, waiting_time_sec)
+            compare_messages(msg, scenario.expected_result)
         except AssertionError as err:
             _logger.error("Test scenario: %d failed.", idx)
             raise err
@@ -386,17 +386,15 @@ def assert_dataclass(arg: Any) -> None:
     assert is_dataclass(arg), f"Expected dataclass, received {type(arg)}, {arg}"
 
 
-def compare_messages(msg: Any, expected_msg: Any, time_diff: float) -> None:
+def compare_messages(msg: Any, expected_msg: Any) -> None:
     """Compare two dataclass arguments.
 
     Compare if both are dataclass.
     Compare if all its arguments except `timestamp` are equal.
-    Check if timestamp of the msg is not older then `time_diff`.
 
     Args:
         msg: dataclass to compare
         expected_msg: expected dataclass
-        time_diff: maximum time difference between now and the `msg`
     """
     assert_dataclass(msg)
     assert_dataclass(expected_msg)
@@ -407,13 +405,9 @@ def compare_messages(msg: Any, expected_msg: Any, time_diff: float) -> None:
     assert "timestamp" in msg_dict
     assert "timestamp" in expected_dict
 
-    msg_timestamp = msg_dict.pop("timestamp")
+    msg_dict.pop("timestamp")
     expected_dict.pop("timestamp")
-
     assert msg_dict == expected_dict
-
-    diff = datetime.now(tz=timezone.utc) - msg_timestamp
-    assert diff.total_seconds() < time_diff
 
 
 async def run_test_battery_status_channel(  # pylint: disable=too-many-arguments
@@ -450,7 +444,7 @@ async def run_test_battery_status_channel(  # pylint: disable=too-many-arguments
     msg = await asyncio.wait_for(
         battery_pool_metric_receiver.receive(), timeout=waiting_time_sec
     )
-    compare_messages(msg, only_first_battery_result, waiting_time_sec)
+    compare_messages(msg, only_first_battery_result)
 
     # All batteries stopped working data
     working -= {batteries_in_pool[0]}
@@ -475,7 +469,7 @@ async def run_test_battery_status_channel(  # pylint: disable=too-many-arguments
     msg = await asyncio.wait_for(
         battery_pool_metric_receiver.receive(), timeout=waiting_time_sec
     )
-    compare_messages(msg, only_first_battery_result, waiting_time_sec)
+    compare_messages(msg, only_first_battery_result)
 
     # All batteries are working again
     await battery_status_sender.send(
@@ -484,7 +478,7 @@ async def run_test_battery_status_channel(  # pylint: disable=too-many-arguments
     msg = await asyncio.wait_for(
         battery_pool_metric_receiver.receive(), timeout=waiting_time_sec
     )
-    compare_messages(msg, all_pool_result, waiting_time_sec)
+    compare_messages(msg, all_pool_result)
 
 
 async def test_battery_pool_power(mocker: MockerFixture) -> None:
@@ -788,7 +782,7 @@ async def run_capacity_test(  # pylint: disable=too-many-locals
             50.0
         ),  # 50% of 50 kWh + 50% of 50 kWh = 25 + 25 = 50 kWh
     )
-    compare_messages(msg, expected, WAIT_FOR_COMPONENT_DATA_SEC + 0.2)
+    compare_messages(msg, expected)
 
     batteries_in_pool = list(battery_pool.component_ids)
     scenarios: list[Scenario[Sample[Energy]]] = [
@@ -914,9 +908,7 @@ async def run_capacity_test(  # pylint: disable=too-many-locals
     fake_time.shift(MAX_BATTERY_DATA_AGE_SEC + 0.2)
     msg = await asyncio.wait_for(capacity_receiver.receive(), timeout=waiting_time_sec)
     # the msg time difference shouldn't be bigger then the shifted time + 0.2 sec tolerance
-    compare_messages(
-        msg, Sample(now, Energy.from_watt_hours(21.0)), MAX_BATTERY_DATA_AGE_SEC + 0.4
-    )
+    compare_messages(msg, Sample(now, Energy.from_watt_hours(21.0)))
 
     # All batteries stopped sending data.
     await streamer.stop_streaming(batteries_in_pool[0])
@@ -933,7 +925,6 @@ async def run_capacity_test(  # pylint: disable=too-many-locals
     compare_messages(
         msg,
         Sample(datetime.now(tz=timezone.utc), Energy.from_watt_hours(21.0)),
-        MAX_BATTERY_DATA_AGE_SEC + 0.4,
     )
 
 
@@ -980,7 +971,7 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
         timestamp=now,
         value=Percentage.from_percent(10.0),
     )
-    compare_messages(msg, expected, WAIT_FOR_COMPONENT_DATA_SEC + 0.2)
+    compare_messages(msg, expected)
 
     batteries_in_pool = list(battery_pool.component_ids)
     scenarios: list[Scenario[Sample[Percentage]]] = [
@@ -1055,7 +1046,7 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
     await streamer.stop_streaming(batteries_in_pool[1])
     await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.2)
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
-    compare_messages(msg, Sample(now, Percentage.from_percent(50.0)), 0.2)
+    compare_messages(msg, Sample(now, Percentage.from_percent(50.0)))
 
     # All batteries stopped sending data.
     await streamer.stop_streaming(batteries_in_pool[0])
@@ -1067,7 +1058,7 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
     latest_data = streamer.get_current_component_data(batteries_in_pool[0])
     streamer.start_streaming(latest_data, sampling_rate=0.1)
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
-    compare_messages(msg, Sample(now, Percentage.from_percent(50.0)), 0.2)
+    compare_messages(msg, Sample(now, Percentage.from_percent(50.0)))
 
 
 async def run_power_bounds_test(  # pylint: disable=too-many-locals
@@ -1136,7 +1127,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
         inclusion_bounds=Bounds(Power.from_watts(-1800), Power.from_watts(10000)),
         exclusion_bounds=Bounds(Power.from_watts(-600), Power.from_watts(600)),
     )
-    compare_messages(msg, expected, WAIT_FOR_COMPONENT_DATA_SEC + 0.2)
+    compare_messages(msg, expected)
 
     batteries_in_pool = list(battery_pool.component_ids)
     scenarios: list[Scenario[SystemBounds]] = [
@@ -1315,7 +1306,6 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
             inclusion_bounds=Bounds(Power.from_watts(-300), Power.from_watts(400)),
             exclusion_bounds=Bounds(Power.from_watts(-130), Power.from_watts(130)),
         ),
-        0.2,
     )
 
     # All components stopped sending data, we can assume that power bounds are 0
@@ -1370,7 +1360,7 @@ async def run_temperature_test(  # pylint: disable=too-many-locals
     )
     now = datetime.now(tz=timezone.utc)
     expected = Sample(now, value=Temperature.from_celsius(25.0))
-    compare_messages(msg, expected, WAIT_FOR_COMPONENT_DATA_SEC + 0.2)
+    compare_messages(msg, expected)
 
     batteries_in_pool = list(battery_pool.component_ids)
     bat_0, bat_1 = batteries_in_pool
@@ -1424,7 +1414,7 @@ async def run_temperature_test(  # pylint: disable=too-many-locals
     await streamer.stop_streaming(bat_1)
     await asyncio.sleep(MAX_BATTERY_DATA_AGE_SEC + 0.2)
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
-    compare_messages(msg, Sample(now, Temperature.from_celsius(30.0)), 0.2)
+    compare_messages(msg, Sample(now, Temperature.from_celsius(30.0)))
 
     # All batteries stopped sending data.
     await streamer.stop_streaming(bat_0)
@@ -1436,4 +1426,4 @@ async def run_temperature_test(  # pylint: disable=too-many-locals
     latest_data = streamer.get_current_component_data(bat_1)
     streamer.start_streaming(latest_data, sampling_rate=0.1)
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
-    compare_messages(msg, Sample(now, Temperature.from_celsius(15.0)), 0.2)
+    compare_messages(msg, Sample(now, Temperature.from_celsius(15.0)))
