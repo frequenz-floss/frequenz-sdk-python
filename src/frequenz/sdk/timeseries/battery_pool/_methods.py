@@ -12,7 +12,7 @@ from typing import Generic
 
 from frequenz.channels import Broadcast, Receiver
 
-from ..._internal._asyncio import cancel_and_await
+from ..._internal._asyncio import cancel_and_await, run_forever
 from ..._internal._constants import RECEIVER_MAX_SIZE, WAIT_FOR_COMPONENT_DATA_SEC
 from ...microgrid._power_distributing._component_managers._battery_manager import (
     _get_battery_inverter_mappings,
@@ -104,8 +104,10 @@ class SendOnUpdate(MetricAggregator[T]):
         self._update_event = asyncio.Event()
         self._cached_metrics: dict[int, ComponentMetricsData] = {}
 
-        self._update_task = asyncio.create_task(self._update_and_notify())
-        self._send_task = asyncio.create_task(self._send_on_update(min_update_interval))
+        self._update_task = asyncio.create_task(run_forever(self._update_and_notify))
+        self._send_task = asyncio.create_task(
+            run_forever(lambda: self._send_on_update(min_update_interval))
+        )
         self._pending_data_fetchers: set[asyncio.Task[ComponentMetricsData | None]] = (
             set()
         )

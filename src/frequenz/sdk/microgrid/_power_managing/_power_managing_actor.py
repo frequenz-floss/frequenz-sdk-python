@@ -15,6 +15,7 @@ from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.microgrid import ComponentCategory, ComponentType, InverterType
 from typing_extensions import override
 
+from ..._internal._asyncio import run_forever
 from ..._internal._channels import ChannelRegistry
 from ...actor import Actor
 from ...timeseries import Power
@@ -194,7 +195,7 @@ class PowerManagingActor(Actor):  # pylint: disable=too-many-instance-attributes
 
         # Start the bounds tracker, for ongoing updates.
         self._bound_tracker_tasks[component_ids] = asyncio.create_task(
-            self._bounds_tracker(component_ids, bounds_receiver)
+            run_forever(lambda: self._bounds_tracker(component_ids, bounds_receiver))
         )
 
     def _calculate_shifted_bounds(

@@ -24,6 +24,7 @@ from frequenz.client.microgrid import (
 )
 from typing_extensions import override
 
+from ....._internal._asyncio import run_forever
 from ....._internal._math import is_close_to_zero
 from .....timeseries import Power, Sample3Phase, Voltage
 from .... import _data_pipeline, connection_manager
@@ -89,7 +90,7 @@ class EVChargerManager(ComponentManager):
         """Start the ev charger data manager."""
         # Need to start a task only if there are EV chargers in the component graph.
         if self._ev_charger_ids:
-            self._task = asyncio.create_task(self._run_forever())
+            self._task = asyncio.create_task(run_forever(self._run))
 
     @override
     async def distribute_power(self, request: Request) -> None:
@@ -216,15 +217,6 @@ class EVChargerManager(ComponentManager):
             target_power,
         )
         return {component_id: target_power}
-
-    async def _run_forever(self) -> None:
-        """Run the EV charger manager forever."""
-        while True:
-            try:
-                await self._run()
-            except Exception:  # pylint: disable=broad-except
-                _logger.exception("Recovering from an error in EV charger manager.")
-                await asyncio.sleep(1.0)
 
     async def _run(self) -> None:  # pylint: disable=too-many-locals
         """Run the main event loop of the EV charger manager."""

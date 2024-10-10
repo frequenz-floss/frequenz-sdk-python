@@ -18,6 +18,7 @@ from frequenz.client.microgrid import (
     MeterData,
 )
 
+from ..._internal._asyncio import run_forever
 from ..._internal._channels import ChannelRegistry
 from ...microgrid import connection_manager
 from ...timeseries import Sample
@@ -460,7 +461,7 @@ class MicrogridApiSource:
             self.comp_data_tasks[comp_id].cancel()
 
         self.comp_data_tasks[comp_id] = asyncio.create_task(
-            self._handle_data_stream(comp_id, category)
+            run_forever(lambda: self._handle_data_stream(comp_id, category))
         )
 
     async def add_metric(self, request: ComponentMetricRequest) -> None:
