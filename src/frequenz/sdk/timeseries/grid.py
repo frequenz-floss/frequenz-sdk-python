@@ -13,7 +13,7 @@ import uuid
 from dataclasses import dataclass
 
 from frequenz.channels import Sender
-from frequenz.client.microgrid._component import ComponentCategory
+from frequenz.client.microgrid._component import ComponentCategory, ComponentMetricId
 from frequenz.quantities import Current, Power
 
 from .._internal._channels import ChannelRegistry
@@ -26,6 +26,7 @@ from .formula_engine._formula_generators import (
     GridCurrentFormula,
     GridPower3PhaseFormula,
     GridPowerFormula,
+    GridReactivePowerFormula,
 )
 
 _logger = logging.getLogger(__name__)
@@ -91,6 +92,28 @@ class Grid:
         engine = self._formula_pool.from_power_formula_generator(
             "grid_power",
             GridPowerFormula,
+        )
+        assert isinstance(engine, FormulaEngine)
+        return engine
+
+    @property
+    def reactive_power(self) -> FormulaEngine[Power]:
+        """Fetch the grid reactive power for the microgrid.
+
+        This formula produces values that are in the Passive Sign Convention (PSC).
+
+        If a formula engine to calculate grid power is not already running, it will be
+        started.
+
+        A receiver from the formula engine can be created using the `new_receiver`
+        method.
+
+        Returns:
+            A FormulaEngine that will calculate and stream grid reactive power.
+        """
+        engine = self._formula_pool.from_power_formula_generator(
+            f"grid-{ComponentMetricId.REACTIVE_POWER.value}",
+            GridReactivePowerFormula,
         )
         assert isinstance(engine, FormulaEngine)
         return engine

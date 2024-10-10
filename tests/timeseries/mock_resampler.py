@@ -67,28 +67,43 @@ class MockResampler:
                 ]
             return senders
 
+        # Active power senders
         self._bat_inverter_power_senders = metric_senders(
             bat_inverter_ids, ComponentMetricId.ACTIVE_POWER
-        )
-        self._bat_inverter_frequency_senders = metric_senders(
-            bat_inverter_ids, ComponentMetricId.FREQUENCY
         )
         self._pv_inverter_power_senders = metric_senders(
             pv_inverter_ids, ComponentMetricId.ACTIVE_POWER
         )
         self._ev_power_senders = metric_senders(evc_ids, ComponentMetricId.ACTIVE_POWER)
+
         self._chp_power_senders = metric_senders(
             chp_ids, ComponentMetricId.ACTIVE_POWER
         )
         self._meter_power_senders = metric_senders(
             meter_ids, ComponentMetricId.ACTIVE_POWER
         )
-        self._meter_frequency_senders = metric_senders(
-            meter_ids, ComponentMetricId.FREQUENCY
-        )
         self._non_existing_component_sender = metric_senders(
             [NON_EXISTING_COMPONENT_ID], ComponentMetricId.ACTIVE_POWER
         )[0]
+
+        # Frequency senders
+        self._bat_inverter_frequency_senders = metric_senders(
+            bat_inverter_ids, ComponentMetricId.FREQUENCY
+        )
+        self._meter_frequency_senders = metric_senders(
+            meter_ids, ComponentMetricId.FREQUENCY
+        )
+
+        # Reactive power senders
+        self._meter_reactive_power_senders = metric_senders(
+            meter_ids, ComponentMetricId.REACTIVE_POWER
+        )
+        self._bat_inverter_reactive_power_senders = metric_senders(
+            bat_inverter_ids, ComponentMetricId.REACTIVE_POWER
+        )
+        self._ev_reactive_power_senders = metric_senders(
+            evc_ids, ComponentMetricId.REACTIVE_POWER
+        )
 
         def multi_phase_senders(
             ids: list[int],
@@ -298,6 +313,29 @@ class MockResampler:
         """Send the given values as resampler output for battery inverter power."""
         assert len(values) == len(self._bat_inverter_power_senders)
         for chan, value in zip(self._bat_inverter_power_senders, values):
+            sample = self.make_sample(value)
+            await chan.send(sample)
+
+    async def send_meter_reactive_power(self, values: list[float | None]) -> None:
+        """Send the given values as resampler output for meter reactive power."""
+        assert len(values) == len(self._meter_reactive_power_senders)
+        for chan, value in zip(self._meter_reactive_power_senders, values):
+            sample = self.make_sample(value)
+            await chan.send(sample)
+
+    async def send_bat_inverter_reactive_power(
+        self, values: list[float | None]
+    ) -> None:
+        """Send the given values as resampler output for battery inverter reactive power."""
+        assert len(values) == len(self._bat_inverter_reactive_power_senders)
+        for chan, value in zip(self._bat_inverter_reactive_power_senders, values):
+            sample = self.make_sample(value)
+            await chan.send(sample)
+
+    async def send_evc_reactive_power(self, values: list[float | None]) -> None:
+        """Send the given values as resampler output for EV Charger reactive power."""
+        assert len(values) == len(self._ev_reactive_power_senders)
+        for chan, value in zip(self._ev_reactive_power_senders, values):
             sample = self.make_sample(value)
             await chan.send(sample)
 

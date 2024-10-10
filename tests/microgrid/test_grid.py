@@ -192,6 +192,102 @@ async def test_grid_power_2(mocker: MockerFixture) -> None:
     assert equal_float_lists(results, meter_sums)
 
 
+async def test_grid_reactive_power_1(mocker: MockerFixture) -> None:
+    """Test the grid power formula with a grid side meter."""
+    mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
+    mockgrid.add_batteries(2)
+    mockgrid.add_solar_inverters(1)
+
+    results = []
+    grid_meter_data = []
+    async with mockgrid, AsyncExitStack() as stack:
+        grid = microgrid.grid()
+        assert grid, "Grid is not initialized"
+        stack.push_async_callback(grid.stop)
+
+        grid_power_recv = grid.reactive_power.new_receiver()
+
+        grid_meter_recv = get_resampled_stream(
+            grid._formula_pool._namespace,  # pylint: disable=protected-access
+            mockgrid.meter_ids[0],
+            client.ComponentMetricId.REACTIVE_POWER,
+            Power.from_watts,
+        )
+
+        for count in range(10):
+            await mockgrid.mock_resampler.send_meter_reactive_power(
+                [20.0 + count, 12.0, -13.0, -5.0]
+            )
+            val = await grid_meter_recv.receive()
+            assert (
+                val is not None
+                and val.value is not None
+                and val.value.as_watts() != 0.0
+            )
+            grid_meter_data.append(val.value)
+
+            val = await grid_power_recv.receive()
+            assert val is not None and val.value is not None
+            results.append(val.value)
+
+    assert equal_float_lists(results, grid_meter_data)
+
+
+async def test_grid_reactive_power_2(mocker: MockerFixture) -> None:
+    """Test the grid power formula without a grid side meter."""
+    mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
+    mockgrid.add_consumer_meters(1)
+    mockgrid.add_batteries(1, no_meter=False)
+    mockgrid.add_batteries(1, no_meter=True)
+    mockgrid.add_solar_inverters(1)
+
+    results: list[Quantity] = []
+    meter_sums: list[Quantity] = []
+    async with mockgrid, AsyncExitStack() as stack:
+        grid = microgrid.grid()
+        assert grid, "Grid is not initialized"
+        stack.push_async_callback(grid.stop)
+
+        grid_power_recv = grid.reactive_power.new_receiver()
+
+        component_receivers = [
+            get_resampled_stream(
+                grid._formula_pool._namespace,  # pylint: disable=protected-access
+                component_id,
+                client.ComponentMetricId.REACTIVE_POWER,
+                Power.from_watts,
+            )
+            for component_id in [
+                *mockgrid.meter_ids,
+                # The last battery has no meter, so we get the power from the inverter
+                mockgrid.battery_inverter_ids[-1],
+            ]
+        ]
+
+        for count in range(10):
+            await mockgrid.mock_resampler.send_meter_reactive_power(
+                [20.0 + count, 12.0, -13.0]
+            )
+            await mockgrid.mock_resampler.send_bat_inverter_reactive_power([0.0, -5.0])
+            meter_sum = 0.0
+            for recv in component_receivers:
+                val = await recv.receive()
+                assert (
+                    val is not None
+                    and val.value is not None
+                    and val.value.as_watts() != 0.0
+                )
+                meter_sum += val.value.as_watts()
+
+            val = await grid_power_recv.receive()
+            assert val is not None and val.value is not None
+            results.append(val.value)
+            meter_sums.append(Quantity(meter_sum))
+
+    assert len(results) == 10
+    assert equal_float_lists(results, meter_sums)
+
+
 async def test_grid_power_3_phase_side_meter(mocker: MockerFixture) -> None:
     """Test the grid 3-phase power with a grid side meter."""
     mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
