@@ -858,7 +858,7 @@ class _BaseHOFormulaBuilder(ABC, Generic[FormulaEngineT, QuantityT]):
                 TokenType,
                 FormulaEngine[QuantityT]
                 | FormulaEngine3Phase[QuantityT]
-                | QuantityT
+                | Quantity
                 | float
                 | str,
             ]

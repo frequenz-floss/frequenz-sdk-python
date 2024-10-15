@@ -11,19 +11,6 @@ import math
 from datetime import timedelta
 from typing import Any, NoReturn, Self, TypeVar, overload
 
-QuantityT = TypeVar(
-    "QuantityT",
-    "Quantity",
-    "Power",
-    "Current",
-    "Voltage",
-    "Energy",
-    "Frequency",
-    "Percentage",
-    "Temperature",
-)
-"""Type variable for representing various quantity types."""
-
 
 class Quantity:
     """A quantity with a unit.
@@ -1339,3 +1326,7 @@ class Percentage(
             This quantity as a fraction.
         """
         return self._base_value / 100
+
+
+QuantityT = TypeVar("QuantityT", bound=Quantity)
+"""Type variable for representing various quantity types."""

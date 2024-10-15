@@ -53,7 +53,7 @@ class ResampledFormulaBuilder(FormulaBuilder[QuantityT]):
         self._namespace: str = namespace
         self._metric_id: ComponentMetricId = metric_id
         self._resampler_requests: list[ComponentMetricRequest] = []
-        super().__init__(formula_name, create_method)  # type: ignore[arg-type]
+        super().__init__(formula_name, create_method)
 
     def _get_resampled_receiver(
         self, component_id: int, metric_id: ComponentMetricId
