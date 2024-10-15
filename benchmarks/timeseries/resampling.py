@@ -7,8 +7,9 @@ from collections.abc import Sequence
 from datetime import datetime, timedelta, timezone
 from timeit import timeit
 
+from frequenz.quantities import Quantity
+
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._quantities import Quantity
 from frequenz.sdk.timeseries._resampling import (
     ResamplerConfig,
     SourceProperties,

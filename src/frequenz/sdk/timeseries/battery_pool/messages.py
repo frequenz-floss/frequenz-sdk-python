@@ -6,6 +6,8 @@
 import abc
 import typing
 
+from frequenz.quantities import Power
+
 from ...microgrid._power_distributing import (
     Error,
     OutOfBounds,
@@ -14,7 +16,6 @@ from ...microgrid._power_distributing import (
     Success,
 )
 from .._base_types import Bounds
-from .._quantities import Power
 
 
 # This class is used to expose the generic reports from the PowerManager with specific

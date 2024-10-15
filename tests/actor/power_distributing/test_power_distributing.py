@@ -14,6 +14,7 @@ from unittest.mock import MagicMock
 
 from frequenz.channels import Broadcast
 from frequenz.client.microgrid import ComponentCategory
+from frequenz.quantities import Power
 from pytest_mock import MockerFixture
 
 from frequenz.sdk.microgrid._power_distributing import (
@@ -35,7 +36,6 @@ from frequenz.sdk.microgrid._power_distributing.result import (
     Result,
     Success,
 )
-from frequenz.sdk.timeseries import Power
 
 from ...conftest import SAFETY_TIMEOUT
 from ...microgrid.fixtures import _Mocks, _mocks

@@ -20,11 +20,11 @@ from timeit import timeit
 
 import numpy as np
 from frequenz.channels import Broadcast
+from frequenz.quantities import Quantity
 from numpy.random import default_rng
 from numpy.typing import NDArray
 
 from frequenz.sdk.timeseries import MovingWindow, PeriodicFeatureExtractor, Sample
-from frequenz.sdk.timeseries._quantities import Quantity
 
 
 @contextlib.asynccontextmanager

@@ -13,12 +13,12 @@ from datetime import datetime, timedelta, timezone
 from frequenz.channels import Receiver, Sender, select, selected_from
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.microgrid import ComponentCategory, ComponentType, InverterType
+from frequenz.quantities import Power
 from typing_extensions import override
 
 from ..._internal._asyncio import run_forever
 from ..._internal._channels import ChannelRegistry
 from ...actor import Actor
-from ...timeseries import Power
 from ...timeseries._base_types import Bounds, SystemBounds
 from .. import _data_pipeline, _power_distributing
 from ._base_classes import Algorithm, BaseAlgorithm, Proposal, ReportRequest, _Report

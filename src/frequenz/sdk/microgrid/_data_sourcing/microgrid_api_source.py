@@ -17,12 +17,12 @@ from frequenz.client.microgrid import (
     InverterData,
     MeterData,
 )
+from frequenz.quantities import Quantity
 
 from ..._internal._asyncio import run_forever
 from ..._internal._channels import ChannelRegistry
 from ...microgrid import connection_manager
 from ...timeseries import Sample
-from ...timeseries._quantities import Quantity
 from ._component_metric_request import ComponentMetricRequest
 
 _logger = logging.getLogger(__name__)

@@ -8,13 +8,13 @@ from collections import abc
 
 from frequenz.channels import Receiver, Sender, merge, select, selected_from
 from frequenz.client.microgrid import InverterData
+from frequenz.quantities import Power
 
 from ..._internal._asyncio import run_forever
 from ...actor import BackgroundService
 from ...microgrid import connection_manager
 from ...microgrid._power_distributing._component_status import ComponentPoolStatus
 from .._base_types import Bounds, SystemBounds
-from .._quantities import Power
 
 
 class PVSystemBoundsTracker(BackgroundService):

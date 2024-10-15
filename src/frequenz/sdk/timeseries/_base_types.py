@@ -10,7 +10,9 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Generic, Protocol, Self, TypeVar, cast, overload
 
-from ._quantities import Power, QuantityT
+from frequenz.quantities import Power
+
+from ._quantities import QuantityT
 
 UNIX_EPOCH = datetime.fromtimestamp(0.0, tz=timezone.utc)
 """The UNIX epoch (in UTC)."""

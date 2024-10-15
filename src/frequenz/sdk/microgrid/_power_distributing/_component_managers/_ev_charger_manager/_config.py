@@ -7,7 +7,7 @@ from collections import abc
 from dataclasses import dataclass, field
 from datetime import timedelta
 
-from .....timeseries import Current
+from frequenz.quantities import Current
 
 
 @dataclass(frozen=True)

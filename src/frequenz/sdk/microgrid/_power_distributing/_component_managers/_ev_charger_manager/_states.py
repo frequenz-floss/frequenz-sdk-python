@@ -9,8 +9,7 @@ from datetime import datetime
 from typing import Iterable
 
 from frequenz.client.microgrid import EVChargerData
-
-from .....timeseries import Power
+from frequenz.quantities import Power
 
 
 @dataclass

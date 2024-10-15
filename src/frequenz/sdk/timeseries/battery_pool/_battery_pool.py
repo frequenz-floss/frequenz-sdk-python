@@ -12,10 +12,12 @@ import asyncio
 import uuid
 from collections import abc
 
+from frequenz.quantities import Energy, Percentage, Power, Temperature
+
 from ... import timeseries
 from ..._internal._channels import MappingReceiverFetcher, ReceiverFetcher
 from ...microgrid import _power_distributing, _power_managing
-from ...timeseries import Energy, Percentage, Power, Sample, Temperature
+from ...timeseries import Sample
 from .._base_types import SystemBounds
 from ..formula_engine import FormulaEngine
 from ..formula_engine._formula_generators import (

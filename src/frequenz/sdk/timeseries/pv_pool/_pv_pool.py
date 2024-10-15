@@ -7,11 +7,12 @@ import asyncio
 import uuid
 from collections import abc
 
+from frequenz.quantities import Power
+
 from ..._internal._channels import MappingReceiverFetcher, ReceiverFetcher
 from ...microgrid import _power_distributing, _power_managing
 from ...timeseries import Bounds
 from .._base_types import SystemBounds
-from .._quantities import Power
 from ..formula_engine import FormulaEngine
 from ..formula_engine._formula_generators import FormulaGeneratorConfig, PVPowerFormula
 from ._pv_pool_reference_store import PVPoolReferenceStore

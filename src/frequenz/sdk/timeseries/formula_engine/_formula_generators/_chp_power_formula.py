@@ -8,9 +8,9 @@ import logging
 from collections import abc
 
 from frequenz.client.microgrid import ComponentCategory, ComponentMetricId
+from frequenz.quantities import Power
 
 from ....microgrid import connection_manager
-from ..._quantities import Power
 from ...formula_engine import FormulaEngine
 from ._formula_generator import (
     NON_EXISTING_COMPONENT_ID,

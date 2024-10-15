@@ -14,12 +14,12 @@ from dataclasses import dataclass
 
 from frequenz.channels import Sender
 from frequenz.client.microgrid._component import ComponentCategory
+from frequenz.quantities import Current, Power
 
 from .._internal._channels import ChannelRegistry
 from ..microgrid import connection_manager
 from ..microgrid._data_sourcing import ComponentMetricRequest
 from ._fuse import Fuse
-from ._quantities import Current, Power
 from .formula_engine import FormulaEngine, FormulaEngine3Phase
 from .formula_engine._formula_engine_pool import FormulaEnginePool
 from .formula_engine._formula_generators import (

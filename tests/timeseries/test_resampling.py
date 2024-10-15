@@ -14,9 +14,9 @@ import async_solipsism
 import pytest
 import time_machine
 from frequenz.channels import Broadcast, SenderError
+from frequenz.quantities import Quantity
 
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._quantities import Quantity
 from frequenz.sdk.timeseries._resampling import (
     DEFAULT_BUFFER_LEN_MAX,
     DEFAULT_BUFFER_LEN_WARN,

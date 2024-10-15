@@ -9,11 +9,12 @@ from collections.abc import Callable
 
 from frequenz.channels import Receiver, Sender
 from frequenz.client.microgrid import ComponentMetricId
+from frequenz.quantities import Quantity
 
 from ..._internal._channels import ChannelRegistry
 from ...microgrid._data_sourcing import ComponentMetricRequest
 from .. import Sample
-from .._quantities import Quantity, QuantityT
+from .._quantities import QuantityT
 from ._formula_engine import FormulaBuilder, FormulaEngine
 from ._formula_steps import FallbackMetricFetcher
 from ._tokenizer import Tokenizer, TokenType

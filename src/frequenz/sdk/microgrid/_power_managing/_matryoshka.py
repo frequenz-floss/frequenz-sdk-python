@@ -23,10 +23,10 @@ import logging
 import typing
 from datetime import timedelta
 
+from frequenz.quantities import Power
 from typing_extensions import override
 
 from ... import timeseries
-from ...timeseries import Power
 from . import _bounds
 from ._base_classes import BaseAlgorithm, Proposal, _Report
 

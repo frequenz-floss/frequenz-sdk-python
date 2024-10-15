@@ -6,8 +6,9 @@
 
 from datetime import datetime
 
+from frequenz.quantities import Power
+
 from frequenz.sdk.timeseries._base_types import Bounds, SystemBounds
-from frequenz.sdk.timeseries._quantities import Power
 
 
 def test_bounds_contains() -> None:

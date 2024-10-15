@@ -6,7 +6,7 @@
 import dataclasses
 from collections import abc
 
-from ...timeseries._quantities import Power
+from frequenz.quantities import Power
 
 
 @dataclasses.dataclass

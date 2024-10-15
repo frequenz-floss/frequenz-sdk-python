@@ -10,10 +10,10 @@ from typing import Any
 
 import numpy as np
 import pytest
+from frequenz.quantities import Quantity
 
 import frequenz.sdk.timeseries._ringbuffer as rb
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._quantities import Quantity
 
 FIVE_MINUTES = timedelta(minutes=5)
 _29_DAYS = 60 * 24 * 29

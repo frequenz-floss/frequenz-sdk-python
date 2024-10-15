@@ -15,10 +15,10 @@ from typing import TYPE_CHECKING
 
 from frequenz.channels import Receiver, Sender
 from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.quantities import Quantity, Voltage
 
 from .._internal._channels import ChannelRegistry
 from ..timeseries._base_types import Sample, Sample3Phase
-from ..timeseries._quantities import Quantity, Voltage
 
 if TYPE_CHECKING:
     # Imported here to avoid a circular import.

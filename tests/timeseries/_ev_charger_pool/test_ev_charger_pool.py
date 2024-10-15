@@ -4,10 +4,10 @@
 """Tests for the `EVChargerPool`."""
 
 
+from frequenz.quantities import Power
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
-from frequenz.sdk.timeseries._quantities import Power
 from tests.timeseries.mock_microgrid import MockMicrogrid
 
 

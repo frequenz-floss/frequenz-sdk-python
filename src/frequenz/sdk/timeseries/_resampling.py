@@ -17,10 +17,11 @@ from datetime import datetime, timedelta, timezone
 from typing import cast
 
 from frequenz.channels.timer import Timer, TriggerAllMissed, _to_microseconds
+from frequenz.quantities import Quantity
 
 from .._internal._asyncio import cancel_and_await
 from ._base_types import UNIX_EPOCH, Sample
-from ._quantities import Quantity, QuantityT
+from ._quantities import QuantityT
 
 _logger = logging.getLogger(__name__)
 

@@ -11,9 +11,9 @@ from typing import Any
 
 import numpy as np
 import pytest
+from frequenz.quantities import Quantity
 
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._quantities import Quantity
 from frequenz.sdk.timeseries._ringbuffer import Gap, OrderedRingBuffer
 from frequenz.sdk.timeseries._ringbuffer.buffer import FloatArray
 
