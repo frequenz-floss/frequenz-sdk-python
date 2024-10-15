@@ -10,12 +10,13 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Generic, Protocol, Self, TypeVar, cast, overload
 
-from frequenz.quantities import Power
-
-from ._quantities import QuantityT
+from frequenz.quantities import Power, Quantity
 
 UNIX_EPOCH = datetime.fromtimestamp(0.0, tz=timezone.utc)
 """The UNIX epoch (in UTC)."""
+
+QuantityT = TypeVar("QuantityT", bound=Quantity)
+"""Type variable for representing various quantity types."""
 
 
 @dataclass(frozen=True, order=True)
