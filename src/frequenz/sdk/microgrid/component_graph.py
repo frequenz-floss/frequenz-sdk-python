@@ -1065,28 +1065,3 @@ class _MicrogridComponentGraph(
             raise InvalidGraphError(
                 f"Leaf components with graph successors: {with_successors}"
             )
-
-
-def _correct_graph_errors(graph: _MicrogridComponentGraph) -> None:
-    """Attempt to correct errors in component graph data.
-
-    For now, this handles just the special case of graph data that is missing an
-    explicit grid endpoint, but has an implicit one due to one or more
-    components having node 0 as their parent.
-
-    Args:
-        graph: the graph whose data to correct (will be updated in place)
-    """
-    # Check if there is an implicit grid endpoint with id == 0.
-    # This is an expected case from the API: that no explicit
-    # grid endpoint will be provided, but that components connected
-    # to the grid endpoint will have node 0 as their predecessor.
-    # pylint: disable=protected-access
-    if (
-        graph._graph.has_node(0)
-        and graph._graph.in_degree(0) == 0
-        and graph._graph.out_degree(0) > 0
-        and "type" not in graph._graph.nodes[0]
-    ):
-        graph._graph.add_node(0, **asdict(Component(0, ComponentCategory.GRID)))
-    # pylint: enable=protected-access
