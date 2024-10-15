@@ -18,8 +18,7 @@ from frequenz.channels import Broadcast, Receiver
 from frequenz.quantities import Quantity
 
 from ..._internal._asyncio import cancel_and_await
-from .. import Sample, Sample3Phase
-from .._quantities import QuantityT
+from .._base_types import QuantityT, Sample, Sample3Phase
 from ._formula_evaluator import FormulaEvaluator
 from ._formula_formatter import format_formula
 from ._formula_steps import (

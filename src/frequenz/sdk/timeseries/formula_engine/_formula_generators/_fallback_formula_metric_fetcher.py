@@ -5,8 +5,7 @@
 
 from frequenz.channels import Receiver
 
-from ... import Sample
-from ..._quantities import QuantityT
+from ..._base_types import QuantityT, Sample
 from .. import FormulaEngine
 from .._formula_steps import FallbackMetricFetcher
 from ._formula_generator import FormulaGenerator

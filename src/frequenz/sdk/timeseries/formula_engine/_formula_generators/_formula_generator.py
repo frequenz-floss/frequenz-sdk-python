@@ -18,7 +18,7 @@ from frequenz.client.microgrid import Component, ComponentCategory, ComponentMet
 from ...._internal._channels import ChannelRegistry
 from ....microgrid import connection_manager
 from ....microgrid._data_sourcing import ComponentMetricRequest
-from ..._quantities import QuantityT
+from ..._base_types import QuantityT
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase
 from .._resampled_formula_builder import ResampledFormulaBuilder
 

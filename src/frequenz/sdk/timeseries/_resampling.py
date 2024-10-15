@@ -20,8 +20,7 @@ from frequenz.channels.timer import Timer, TriggerAllMissed, _to_microseconds
 from frequenz.quantities import Quantity
 
 from .._internal._asyncio import cancel_and_await
-from ._base_types import UNIX_EPOCH, Sample
-from ._quantities import QuantityT
+from ._base_types import UNIX_EPOCH, QuantityT, Sample
 
 _logger = logging.getLogger(__name__)
 

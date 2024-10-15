@@ -9,8 +9,7 @@ from datetime import datetime
 from math import isinf, isnan
 from typing import Generic
 
-from .. import Sample
-from .._quantities import QuantityT
+from .._base_types import QuantityT, Sample
 from ._formula_steps import FormulaStep, MetricFetcher
 
 
