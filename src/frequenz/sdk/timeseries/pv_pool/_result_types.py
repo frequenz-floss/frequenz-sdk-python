@@ -5,8 +5,9 @@
 
 import typing
 
+from frequenz.quantities import Power
+
 from .._base_types import Bounds
-from .._quantities import Power
 
 
 class PVPoolReport(typing.Protocol):

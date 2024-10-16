@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from typing import Generic, TypeVar
 
 from frequenz.client.microgrid import ComponentMetricId
+from frequenz.quantities import Energy, Percentage, Power, Temperature
 
 from ... import timeseries
 from ..._internal import _math
@@ -23,7 +24,6 @@ from ...microgrid._power_distributing._distribution_algorithm._battery_distribut
 )
 from ...microgrid._power_distributing.result import PowerBounds
 from .._base_types import Sample, SystemBounds
-from .._quantities import Energy, Percentage, Power, Temperature
 from ._component_metrics import ComponentMetricsData
 
 _logger = logging.getLogger(__name__)

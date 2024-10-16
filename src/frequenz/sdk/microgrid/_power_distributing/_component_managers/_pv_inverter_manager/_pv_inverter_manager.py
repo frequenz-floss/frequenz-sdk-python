@@ -15,10 +15,10 @@ from frequenz.client.microgrid import (
     InverterData,
     InverterType,
 )
+from frequenz.quantities import Power
 from typing_extensions import override
 
 from ....._internal._math import is_close_to_zero
-from .....timeseries import Power
 from .... import connection_manager
 from ..._component_pool_status_tracker import ComponentPoolStatusTracker
 from ..._component_status import ComponentPoolStatus, PVInverterStatusTracker

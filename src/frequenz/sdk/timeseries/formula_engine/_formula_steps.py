@@ -12,8 +12,7 @@ from typing import Any, Generic
 
 from frequenz.channels import Receiver, ReceiverError
 
-from .. import Sample
-from .._quantities import QuantityT
+from .._base_types import QuantityT, Sample
 
 _logger = logging.getLogger(__name__)
 

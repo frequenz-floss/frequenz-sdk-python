@@ -10,8 +10,9 @@ import dataclasses
 import enum
 import typing
 
+from frequenz.quantities import Power
+
 from ... import timeseries
-from ...timeseries import Power
 from . import _bounds
 
 if typing.TYPE_CHECKING:

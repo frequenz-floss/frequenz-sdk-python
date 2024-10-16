@@ -9,10 +9,11 @@ from contextlib import AsyncExitStack
 
 import pytest
 from frequenz.client.microgrid import ComponentMetricId
+from frequenz.quantities import Power
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
-from frequenz.sdk.timeseries import Power, Sample
+from frequenz.sdk.timeseries import Sample
 
 from ..mock_microgrid import MockMicrogrid
 from .utils import get_resampled_stream

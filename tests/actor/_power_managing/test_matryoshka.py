@@ -6,10 +6,12 @@
 import asyncio
 from datetime import datetime, timedelta, timezone
 
+from frequenz.quantities import Power
+
 from frequenz.sdk import timeseries
 from frequenz.sdk.microgrid._power_managing import Proposal
 from frequenz.sdk.microgrid._power_managing._matryoshka import Matryoshka
-from frequenz.sdk.timeseries import Power, _base_types
+from frequenz.sdk.timeseries import _base_types
 
 
 class StatefulTester:

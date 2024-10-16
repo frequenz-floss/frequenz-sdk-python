@@ -7,10 +7,10 @@
 import asyncio
 from datetime import datetime, timezone
 
+from frequenz.quantities import Frequency
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
-from frequenz.sdk.timeseries._quantities import Frequency
 from tests.utils import component_data_wrapper
 
 from ._formula_engine.utils import equal_float_lists

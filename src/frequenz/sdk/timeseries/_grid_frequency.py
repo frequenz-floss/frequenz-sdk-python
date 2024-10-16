@@ -10,12 +10,12 @@ import logging
 
 from frequenz.channels import Receiver, Sender
 from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.quantities import Frequency, Quantity
 
 from .._internal._channels import ChannelRegistry
 from ..microgrid import connection_manager
 from ..microgrid._data_sourcing import ComponentMetricRequest
 from ..timeseries._base_types import Sample
-from ..timeseries._quantities import Frequency, Quantity
 
 _logger = logging.getLogger(__name__)
 

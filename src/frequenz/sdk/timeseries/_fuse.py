@@ -5,11 +5,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    # Break circular import
-    from . import Current
+from frequenz.quantities import Current
 
 
 @dataclass(frozen=True)

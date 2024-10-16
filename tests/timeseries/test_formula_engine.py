@@ -8,9 +8,9 @@ from collections.abc import Callable
 from datetime import datetime
 
 from frequenz.channels import Broadcast, Receiver
+from frequenz.quantities import Power, Quantity
 
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._quantities import Power, Quantity
 from frequenz.sdk.timeseries.formula_engine._formula_engine import (
     FormulaBuilder,
     FormulaEngine,

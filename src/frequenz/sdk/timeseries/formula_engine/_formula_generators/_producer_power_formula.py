@@ -7,9 +7,9 @@ import logging
 from typing import Callable
 
 from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.quantities import Power
 
 from ....microgrid import connection_manager
-from ..._quantities import Power
 from .._formula_engine import FormulaEngine
 from ._fallback_formula_metric_fetcher import FallbackFormulaMetricFetcher
 from ._formula_generator import (

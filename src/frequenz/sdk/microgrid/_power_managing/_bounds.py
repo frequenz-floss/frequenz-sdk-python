@@ -3,7 +3,9 @@
 
 """Utilities for checking and clamping bounds and power values to exclusion bounds."""
 
-from ...timeseries import Bounds, Power
+from frequenz.quantities import Power
+
+from ...timeseries import Bounds
 
 
 def check_exclusion_bounds_overlap(

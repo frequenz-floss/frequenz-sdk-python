@@ -6,7 +6,11 @@
 
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
+- Replace `Quantity` and its sub-classes (`Power`, `Current`, etc.) in the `frequenz.sdk.timeseries` module with the external
+[`frequenz-quantities`](https://pypi.org/project/frequenz-quantities/) package. Please add the new library as a dependency
+and adapt your imports if you are using these types.
+- The `QuantityT` has been moved to the `frequenz.sdk.timeseries._base_types` module.
+- The `QuantityT` doesn't include itself (`QuantityT`) anymore.
 
 ## New Features
 

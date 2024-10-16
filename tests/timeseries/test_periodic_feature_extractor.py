@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 import pytest
 from frequenz.channels import Broadcast
+from frequenz.quantities import Quantity
 
 from frequenz.sdk.timeseries import (
     UNIX_EPOCH,
@@ -17,7 +18,6 @@ from frequenz.sdk.timeseries import (
     PeriodicFeatureExtractor,
     Sample,
 )
-from frequenz.sdk.timeseries._quantities import Quantity
 from tests.timeseries.test_moving_window import (
     init_moving_window,
     push_logical_meter_data,

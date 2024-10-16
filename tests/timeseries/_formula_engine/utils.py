@@ -11,8 +11,7 @@ from frequenz.channels import Receiver
 from frequenz.client.microgrid import ComponentMetricId
 
 from frequenz.sdk.microgrid import _data_pipeline
-from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._quantities import QuantityT
+from frequenz.sdk.timeseries._base_types import QuantityT, Sample
 from frequenz.sdk.timeseries.formula_engine._resampled_formula_builder import (
     ResampledFormulaBuilder,
 )

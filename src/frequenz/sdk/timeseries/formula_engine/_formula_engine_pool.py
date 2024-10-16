@@ -9,10 +9,10 @@ from typing import TYPE_CHECKING
 
 from frequenz.channels import Sender
 from frequenz.client.microgrid import ComponentMetricId
+from frequenz.quantities import Current, Power, Quantity
 
 from ..._internal._channels import ChannelRegistry
 from ...microgrid._data_sourcing import ComponentMetricRequest
-from .._quantities import Current, Power, Quantity
 from ._formula_generators._formula_generator import (
     FormulaGenerator,
     FormulaGeneratorConfig,

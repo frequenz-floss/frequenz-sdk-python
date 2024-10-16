@@ -9,12 +9,12 @@ import dataclasses
 import logging
 
 from frequenz.channels import Receiver, Sender
+from frequenz.quantities import Quantity
 
 from .._internal._asyncio import cancel_and_await
 from .._internal._channels import ChannelRegistry
 from ..actor import Actor
 from ..timeseries import Sample
-from ..timeseries._quantities import Quantity
 from ..timeseries._resampling import Resampler, ResamplerConfig, ResamplingError
 from ._data_sourcing import ComponentMetricRequest
 

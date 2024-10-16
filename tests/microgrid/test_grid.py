@@ -7,11 +7,12 @@ from contextlib import AsyncExitStack
 
 import frequenz.client.microgrid as client
 from frequenz.client.microgrid import ComponentCategory
+from frequenz.quantities import Current, Power, Quantity
 from pytest_mock import MockerFixture
 
 import frequenz.sdk.microgrid.component_graph as gr
 from frequenz.sdk import microgrid
-from frequenz.sdk.timeseries import Current, Fuse, Power, Quantity
+from frequenz.sdk.timeseries import Fuse
 from tests.utils.graph_generator import GraphGenerator
 
 from ..timeseries._formula_engine.utils import equal_float_lists, get_resampled_stream

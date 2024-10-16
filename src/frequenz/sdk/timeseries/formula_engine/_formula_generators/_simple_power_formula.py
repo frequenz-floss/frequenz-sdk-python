@@ -4,9 +4,9 @@
 """Formula generator from component graph."""
 
 from frequenz.client.microgrid import ComponentCategory, ComponentMetricId
+from frequenz.quantities import Power
 
 from ....microgrid import connection_manager
-from ..._quantities import Power
 from .._formula_engine import FormulaEngine
 from ._formula_generator import FormulaGenerator
 

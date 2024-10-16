@@ -22,11 +22,12 @@ from frequenz.client.microgrid import (
     ComponentCategory,
     EVChargerData,
 )
+from frequenz.quantities import Power, Voltage
 from typing_extensions import override
 
 from ....._internal._asyncio import run_forever
 from ....._internal._math import is_close_to_zero
-from .....timeseries import Power, Sample3Phase, Voltage
+from .....timeseries import Sample3Phase
 from .... import _data_pipeline, connection_manager
 from ..._component_pool_status_tracker import ComponentPoolStatusTracker
 from ..._component_status import ComponentPoolStatus, EVChargerStatusTracker

@@ -3,8 +3,10 @@
 
 """Tests for methods provided by the PowerManager's reports."""
 
+from frequenz.quantities import Power
+
 from frequenz.sdk.microgrid._power_managing import _Report
-from frequenz.sdk.timeseries import Bounds, Power
+from frequenz.sdk.timeseries import Bounds
 
 
 class BoundsTester:

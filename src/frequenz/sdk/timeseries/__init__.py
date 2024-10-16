@@ -40,16 +40,6 @@ from ._base_types import UNIX_EPOCH, Bounds, Sample, Sample3Phase
 from ._fuse import Fuse
 from ._moving_window import MovingWindow
 from ._periodic_feature_extractor import PeriodicFeatureExtractor
-from ._quantities import (
-    Current,
-    Energy,
-    Frequency,
-    Percentage,
-    Power,
-    Quantity,
-    Temperature,
-    Voltage,
-)
 from ._resampling import ResamplerConfig
 
 __all__ = [
@@ -62,15 +52,4 @@ __all__ = [
     "Sample",
     "Sample3Phase",
     "UNIX_EPOCH",
-    #
-    # Quantities
-    #
-    "Quantity",
-    "Current",
-    "Energy",
-    "Power",
-    "Temperature",
-    "Voltage",
-    "Frequency",
-    "Percentage",
 ]

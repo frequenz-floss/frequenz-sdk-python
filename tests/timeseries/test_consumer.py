@@ -5,10 +5,10 @@
 
 from contextlib import AsyncExitStack
 
+from frequenz.quantities import Power
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
-from frequenz.sdk.timeseries._quantities import Power
 
 from .mock_microgrid import MockMicrogrid
 

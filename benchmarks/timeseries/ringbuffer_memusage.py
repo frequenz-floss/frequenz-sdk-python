@@ -9,9 +9,9 @@ import tracemalloc
 from datetime import datetime, timedelta, timezone
 
 import numpy as np
+from frequenz.quantities import Quantity
 
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._quantities import Quantity
 from frequenz.sdk.timeseries._ringbuffer import OrderedRingBuffer
 
 FIVE_MINUTES = timedelta(minutes=5)

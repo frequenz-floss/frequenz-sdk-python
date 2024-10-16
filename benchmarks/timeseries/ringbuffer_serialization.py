@@ -11,10 +11,10 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import numpy as np
+from frequenz.quantities import Quantity
 
 import frequenz.sdk.timeseries._ringbuffer as rb
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._quantities import Quantity
 
 FILE_NAME = "ringbuffer.pkl"
 FIVE_MINUTES = timedelta(minutes=5)

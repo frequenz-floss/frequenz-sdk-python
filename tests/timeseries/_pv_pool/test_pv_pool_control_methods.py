@@ -12,13 +12,13 @@ import async_solipsism
 import pytest
 from frequenz.channels import Receiver
 from frequenz.client.microgrid import InverterComponentState
+from frequenz.quantities import Power
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
 from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.microgrid import _power_distributing
 from frequenz.sdk.microgrid._data_pipeline import _DataPipeline
-from frequenz.sdk.timeseries import Power
 from frequenz.sdk.timeseries.pv_pool import PVPoolReport
 
 from ...microgrid.fixtures import _Mocks

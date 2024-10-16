@@ -8,11 +8,12 @@ import asyncio
 import uuid
 from collections import abc
 
+from frequenz.quantities import Current, Power
+
 from ..._internal._channels import MappingReceiverFetcher, ReceiverFetcher
 from ...microgrid import _power_distributing, _power_managing
 from ...timeseries import Bounds
 from .._base_types import SystemBounds
-from .._quantities import Current, Power
 from ..formula_engine import FormulaEngine, FormulaEngine3Phase
 from ..formula_engine._formula_generators import (
     EVChargerCurrentFormula,

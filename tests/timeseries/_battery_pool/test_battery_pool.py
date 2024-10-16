@@ -21,6 +21,7 @@ import pytest
 import time_machine
 from frequenz.channels import Receiver, Sender
 from frequenz.client.microgrid import ComponentCategory
+from frequenz.quantities import Energy, Percentage, Power, Temperature
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
@@ -33,14 +34,7 @@ from frequenz.sdk.microgrid._power_distributing import ComponentPoolStatus
 from frequenz.sdk.microgrid._power_distributing._component_managers._battery_manager import (
     _get_battery_inverter_mappings,
 )
-from frequenz.sdk.timeseries import (
-    Bounds,
-    Energy,
-    Percentage,
-    Power,
-    Sample,
-    Temperature,
-)
+from frequenz.sdk.timeseries import Bounds, Sample
 from frequenz.sdk.timeseries._base_types import SystemBounds
 from frequenz.sdk.timeseries.battery_pool import BatteryPool
 from frequenz.sdk.timeseries.formula_engine._formula_generators._formula_generator import (

@@ -15,10 +15,10 @@ from collections.abc import Callable
 from typing import Any, Generic, Self, TypeVar
 
 from frequenz.channels import Broadcast, Receiver
+from frequenz.quantities import Quantity
 
 from ..._internal._asyncio import cancel_and_await
-from .. import Sample, Sample3Phase
-from .._quantities import Quantity, QuantityT
+from .._base_types import QuantityT, Sample, Sample3Phase
 from ._formula_evaluator import FormulaEvaluator
 from ._formula_formatter import format_formula
 from ._formula_steps import (
@@ -137,7 +137,7 @@ class FormulaEngine(Generic[QuantityT]):
         Example:
             ```python
             from frequenz.sdk import microgrid
-            from frequenz.sdk.timeseries import Power
+            from frequenz.quantities import Power
 
             async def run() -> None:
                 producer_power_engine = microgrid.producer().power
@@ -626,7 +626,7 @@ class FormulaBuilder(Generic[QuantityT]):
         following calls need to be made:
 
         ```python
-        from frequenz.sdk.timeseries import Power
+        from frequenz.quantities import Power
 
         channel = Broadcast[Sample[Power]](name="channel")
         receiver_1 = channel.new_receiver(name="receiver_1")
@@ -746,7 +746,7 @@ class FormulaBuilder(Generic[QuantityT]):
         For example, this clips the output of the entire expression:
 
         ```python
-        from frequenz.sdk.timeseries import Power
+        from frequenz.quantities import Power
 
         builder = FormulaBuilder("example", Power)
         channel = Broadcast[Sample[Power]](name="channel")
@@ -764,7 +764,7 @@ class FormulaBuilder(Generic[QuantityT]):
         And this clips the output of metric_2 only, and not the final result:
 
         ```python
-        from frequenz.sdk.timeseries import Power
+        from frequenz.quantities import Power
 
         builder = FormulaBuilder("example", Power)
         channel = Broadcast[Sample[Power]](name="channel")
@@ -858,7 +858,7 @@ class _BaseHOFormulaBuilder(ABC, Generic[FormulaEngineT, QuantityT]):
                 TokenType,
                 FormulaEngine[QuantityT]
                 | FormulaEngine3Phase[QuantityT]
-                | QuantityT
+                | Quantity
                 | float
                 | str,
             ]

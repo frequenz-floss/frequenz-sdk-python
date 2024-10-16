@@ -7,7 +7,7 @@
 import dataclasses
 from collections import abc
 
-from frequenz.sdk.timeseries._quantities import Power
+from frequenz.quantities import Power
 
 from .request import Request
 
@@ -117,7 +117,7 @@ Example: Handling power distribution results
     )
     from frequenz.sdk.actor.power_distributing.request import Request
     from frequenz.sdk.actor.power_distributing.result import PowerBounds
-    from frequenz.sdk.timeseries._quantities import Power
+    from frequenz.quantities import Power
 
     def handle_power_request_result(result: Result) -> None:
         match result:

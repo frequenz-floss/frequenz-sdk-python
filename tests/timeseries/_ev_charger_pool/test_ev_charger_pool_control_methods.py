@@ -13,6 +13,7 @@ import pytest
 import time_machine
 from frequenz.channels import Receiver
 from frequenz.client.microgrid import EVChargerCableState, EVChargerComponentState
+from frequenz.quantities import Power, Voltage
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
@@ -22,7 +23,7 @@ from frequenz.sdk.microgrid._power_distributing import ComponentPoolStatus
 from frequenz.sdk.microgrid._power_distributing._component_pool_status_tracker import (
     ComponentPoolStatusTracker,
 )
-from frequenz.sdk.timeseries import Power, ResamplerConfig, Sample3Phase, Voltage
+from frequenz.sdk.timeseries import ResamplerConfig, Sample3Phase
 from frequenz.sdk.timeseries.ev_charger_pool import EVChargerPool, EVChargerPoolReport
 
 from ...microgrid.fixtures import _Mocks
