@@ -33,7 +33,7 @@ dependencies = [
   "frequenz-channels >= 1.2.0, < 2.0.0",
   "frequenz-quantities == 1.0.0rc2",
   "networkx >= 2.8, < 4",
-  "numpy >= 1.26.4, < 2",
+  "numpy >= 1.26.4, < 3",
   "typing_extensions >= 4.6.1, < 5",
 ]
 dynamic = ["version"]
