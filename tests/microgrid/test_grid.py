@@ -7,7 +7,7 @@ from contextlib import AsyncExitStack
 
 import frequenz.client.microgrid as client
 from frequenz.client.microgrid import ComponentCategory
-from frequenz.quantities import Current, Power, Quantity
+from frequenz.quantities import Current, Power, Quantity, ReactivePower
 from pytest_mock import MockerFixture
 
 import frequenz.sdk.microgrid.component_graph as gr
@@ -211,7 +211,7 @@ async def test_grid_reactive_power_1(mocker: MockerFixture) -> None:
             grid._formula_pool._namespace,  # pylint: disable=protected-access
             mockgrid.meter_ids[0],
             client.ComponentMetricId.REACTIVE_POWER,
-            Power.from_watts,
+            ReactivePower.from_volt_amperes_reactive,
         )
 
         for count in range(10):
@@ -222,7 +222,7 @@ async def test_grid_reactive_power_1(mocker: MockerFixture) -> None:
             assert (
                 val is not None
                 and val.value is not None
-                and val.value.as_watts() != 0.0
+                and val.value.as_volt_amperes_reactive() != 0.0
             )
             grid_meter_data.append(val.value)
 
@@ -255,7 +255,7 @@ async def test_grid_reactive_power_2(mocker: MockerFixture) -> None:
                 grid._formula_pool._namespace,  # pylint: disable=protected-access
                 component_id,
                 client.ComponentMetricId.REACTIVE_POWER,
-                Power.from_watts,
+                ReactivePower.from_volt_amperes_reactive,
             )
             for component_id in [
                 *mockgrid.meter_ids,
@@ -275,9 +275,9 @@ async def test_grid_reactive_power_2(mocker: MockerFixture) -> None:
                 assert (
                     val is not None
                     and val.value is not None
-                    and val.value.as_watts() != 0.0
+                    and val.value.as_volt_amperes_reactive() != 0.0
                 )
-                meter_sum += val.value.as_watts()
+                meter_sum += val.value.as_volt_amperes_reactive()
 
             val = await grid_power_recv.receive()
             assert val is not None and val.value is not None
