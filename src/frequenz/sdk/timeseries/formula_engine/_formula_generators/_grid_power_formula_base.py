@@ -3,28 +3,23 @@
 
 """Base formula generator from component graph for Grid Power."""
 
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from frequenz.client.microgrid import Component, ComponentCategory
-from frequenz.quantities import Power
 
+from ..._base_types import QuantityT
 from .._formula_engine import FormulaEngine
 from .._resampled_formula_builder import ResampledFormulaBuilder
 from ._fallback_formula_metric_fetcher import FallbackFormulaMetricFetcher
-from ._formula_generator import (
-    ComponentNotFound,
-    FormulaGenerator,
-    FormulaGeneratorConfig,
-)
-from ._simple_power_formula import SimplePowerFormula
+from ._formula_generator import ComponentNotFound, FormulaGenerator
 
 
-class GridPowerFormulaBase(FormulaGenerator[Power], ABC):
+class GridPowerFormulaBase(FormulaGenerator[QuantityT], ABC):
     """Base class for grid power formula generators."""
 
     def _generate(
-        self, builder: ResampledFormulaBuilder[Power]
-    ) -> FormulaEngine[Power]:
+        self, builder: ResampledFormulaBuilder[QuantityT]
+    ) -> FormulaEngine[QuantityT]:
         """Generate a formula for calculating grid power from the component graph.
 
         Args:
@@ -92,9 +87,10 @@ class GridPowerFormulaBase(FormulaGenerator[Power], ABC):
 
         return builder.build()
 
+    @abstractmethod
     def _get_fallback_formulas(
         self, components: set[Component]
-    ) -> dict[Component, FallbackFormulaMetricFetcher[Power] | None]:
+    ) -> dict[Component, FallbackFormulaMetricFetcher[QuantityT] | None]:
         """Find primary and fallback components and create fallback formulas.
 
         The primary component is the one that will be used to calculate the producer power.
@@ -108,30 +104,3 @@ class GridPowerFormulaBase(FormulaGenerator[Power], ABC):
         Returns:
             A dictionary mapping primary components to their FallbackFormulaMetricFetcher.
         """
-        fallbacks = self._get_metric_fallback_components(components)
-
-        fallback_formulas: dict[
-            Component, FallbackFormulaMetricFetcher[Power] | None
-        ] = {}
-
-        for primary_component, fallback_components in fallbacks.items():
-            if len(fallback_components) == 0:
-                fallback_formulas[primary_component] = None
-                continue
-
-            fallback_ids = [c.component_id for c in fallback_components]
-            generator = SimplePowerFormula(
-                f"{self._namespace}_fallback_{fallback_ids}",
-                self._channel_registry,
-                self._resampler_subscription_sender,
-                FormulaGeneratorConfig(
-                    component_ids=set(fallback_ids),
-                    allow_fallback=False,
-                ),
-            )
-
-            fallback_formulas[primary_component] = FallbackFormulaMetricFetcher(
-                generator
-            )
-
-        return fallback_formulas
