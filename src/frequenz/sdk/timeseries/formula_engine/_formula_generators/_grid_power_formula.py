@@ -11,7 +11,7 @@ from .._formula_engine import FormulaEngine
 from ._fallback_formula_metric_fetcher import FallbackFormulaMetricFetcher
 from ._formula_generator import FormulaGeneratorConfig
 from ._grid_power_formula_base import GridPowerFormulaBase
-from ._simple_power_formula import SimplePowerFormula
+from ._simple_formula import SimplePowerFormula
 
 
 class GridPowerFormula(GridPowerFormulaBase[Power]):
