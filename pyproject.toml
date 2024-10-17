@@ -31,7 +31,7 @@ dependencies = [
   # (plugins.mkdocstrings.handlers.python.import)
   "frequenz-client-microgrid >= 0.5.1, < 0.6.0",
   "frequenz-channels >= 1.2.0, < 2.0.0",
-  "frequenz-quantities == 1.0.0rc1",
+  "frequenz-quantities == 1.0.0rc2",
   "networkx >= 2.8, < 4",
   "numpy >= 1.26.4, < 2",
   "typing_extensions >= 4.6.1, < 5",
