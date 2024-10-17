@@ -275,6 +275,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                     lambda value, ts: MeterDataWrapper(
                         component_id=meter_id,
                         timestamp=ts,
+                        reactive_power=2 * value,
                         active_power=value,
                         current_per_phase=(value + 100.0, value + 101.0, value + 102.0),
                         voltage_per_phase=(value + 200.0, value + 199.8, value + 200.2),
@@ -307,7 +308,10 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                 self._comp_data_send_task(
                     inv_id,
                     lambda value, ts: InverterDataWrapper(
-                        component_id=inv_id, timestamp=ts, active_power=value
+                        component_id=inv_id,
+                        timestamp=ts,
+                        active_power=value,
+                        reactive_power=2 * value,
                     ),
                 ),
             )
@@ -325,6 +329,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                         component_id=evc_id,
                         timestamp=ts,
                         active_power=value,
+                        reactive_power=2 * value,
                         current_per_phase=(value + 10.0, value + 11.0, value + 12.0),
                         component_state=self.evc_component_states[evc_id],
                         cable_state=self.evc_cable_states[evc_id],

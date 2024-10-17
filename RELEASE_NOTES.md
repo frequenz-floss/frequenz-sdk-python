@@ -18,6 +18,8 @@ and adapt your imports if you are using these types.
   - `force_polling`: Whether to force file polling to check for changes. Default is `True`.
   - `polling_interval`: The interval to check for changes. Only relevant if polling is enabled. Default is 1 second.
 
+- Add a new method `microgrid.grid().reactive_power` to stream reactive power at the grid connection point.
+
 ## Bug Fixes
 
 - Many long running async tasks including metric streamers in the BatteryPool now have automatic recovery in case of exceptions.

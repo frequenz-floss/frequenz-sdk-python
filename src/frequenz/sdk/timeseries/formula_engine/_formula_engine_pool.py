@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 from frequenz.channels import Sender
 from frequenz.client.microgrid import ComponentMetricId
-from frequenz.quantities import Current, Power, Quantity
+from frequenz.quantities import Current, Power, Quantity, ReactivePower
 
 from ..._internal._channels import ChannelRegistry
 from ...microgrid._data_sourcing import ComponentMetricRequest
@@ -54,6 +54,7 @@ class FormulaEnginePool:
         self._power_engines: dict[str, FormulaEngine[Power]] = {}
         self._power_3_phase_engines: dict[str, FormulaEngine3Phase[Power]] = {}
         self._current_engines: dict[str, FormulaEngine3Phase[Current]] = {}
+        self._reactive_power_engines: dict[str, FormulaEngine[ReactivePower]] = {}
 
     def from_string(
         self,
@@ -90,6 +91,40 @@ class FormulaEnginePool:
         self._string_engines[channel_key] = formula_engine
 
         return formula_engine
+
+    def from_reactive_power_formula_generator(
+        self,
+        channel_key: str,
+        generator: type[FormulaGenerator[ReactivePower]],
+        config: FormulaGeneratorConfig = FormulaGeneratorConfig(),
+    ) -> FormulaEngine[ReactivePower]:
+        """Get a receiver for a formula from a generator.
+
+        Args:
+            channel_key: A string to uniquely identify the formula.
+            generator: A formula generator.
+            config: config to initialize the formula generator with.
+
+        Returns:
+            A FormulaReceiver or a FormulaReceiver3Phase instance based on what the
+                FormulaGenerator returns.
+        """
+        from ._formula_engine import (  # pylint: disable=import-outside-toplevel
+            FormulaEngine,
+        )
+
+        if channel_key in self._reactive_power_engines:
+            return self._reactive_power_engines[channel_key]
+
+        engine = generator(
+            self._namespace,
+            self._channel_registry,
+            self._resampler_subscription_sender,
+            config,
+        ).generate()
+        assert isinstance(engine, FormulaEngine)
+        self._reactive_power_engines[channel_key] = engine
+        return engine
 
     def from_power_formula_generator(
         self,
@@ -203,3 +238,5 @@ class FormulaEnginePool:
             await power_3_phase_engine._stop()  # pylint: disable=protected-access
         for current_engine in self._current_engines.values():
             await current_engine._stop()  # pylint: disable=protected-access
+        for reactive_power_engine in self._reactive_power_engines.values():
+            await reactive_power_engine._stop()  # pylint: disable=protected-access
