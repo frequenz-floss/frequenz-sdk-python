@@ -4,41 +4,33 @@
 """Formula generator from component graph."""
 
 from frequenz.client.microgrid import ComponentCategory, ComponentMetricId
-from frequenz.quantities import Power
+from frequenz.quantities import Power, ReactivePower
 
 from ....microgrid import connection_manager
+from ..._base_types import QuantityT
 from .._formula_engine import FormulaEngine
+from .._resampled_formula_builder import ResampledFormulaBuilder
 from ._formula_generator import FormulaGenerator
 
 
-class SimplePowerFormula(FormulaGenerator[Power]):
-    """Formula generator from component graph for calculating sum of Power.
+class SimpleFormulaBase(FormulaGenerator[QuantityT]):
+    """Base class for simple formula generators."""
 
-    Raises:
-        RuntimeError: If no components are defined in the config or if any
-            component is not found in the component graph.
-    """
+    def _generate(
+        self, builder: ResampledFormulaBuilder[QuantityT]
+    ) -> FormulaEngine[QuantityT]:
+        """Generate formula for calculating quantity from the component graph.
 
-    def generate(  # noqa: DOC502
-        # * ComponentNotFound is raised indirectly by _get_grid_component()
-        # * RuntimeError is raised indirectly by connection_manager.get()
-        self,
-    ) -> FormulaEngine[Power]:
-        """Generate formula for calculating producer power from the component graph.
+        Args:
+            builder: The builder to use for generating the formula.
 
         Returns:
-            A formula engine that will calculate the producer power.
+            A formula engine that will calculate the quantity.
 
         Raises:
-            ComponentNotFound: If the component graph does not contain a producer power
-                component.
-            RuntimeError: If the grid component has a single successor that is not a
-                meter.
+            RuntimeError: If components ids in config are not specified
+              or component graph does not contain all specified components.
         """
-        builder = self._get_builder(
-            "simple_power_formula", ComponentMetricId.ACTIVE_POWER, Power.from_watts
-        )
-
         component_graph = connection_manager.get().component_graph
         if self._config.component_ids is None:
             raise RuntimeError("Power formula without component ids is not supported.")
@@ -65,3 +57,53 @@ class SimplePowerFormula(FormulaGenerator[Power]):
             )
 
         return builder.build()
+
+
+class SimplePowerFormula(SimpleFormulaBase[Power]):
+    """Formula generator from component graph for calculating sum of Power."""
+
+    def generate(  # noqa: DOC502
+        # * ComponentNotFound is raised indirectly by _get_grid_component()
+        # * RuntimeError is raised indirectly by connection_manager.get()
+        self,
+    ) -> FormulaEngine[Power]:
+        """Generate formula for calculating sum of power from the component graph.
+
+        Returns:
+            A formula engine that will calculate the power.
+
+        Raises:
+            RuntimeError: If components ids in config are not specified
+                or component graph does not contain all specified components.
+        """
+        builder = self._get_builder(
+            "simple_power_formula",
+            ComponentMetricId.ACTIVE_POWER,
+            Power.from_watts,
+        )
+        return self._generate(builder)
+
+
+class SimpleReactivePowerFormula(SimpleFormulaBase[ReactivePower]):
+    """Formula generator from component graph for calculating sum of reactive power."""
+
+    def generate(  # noqa: DOC502
+        # * ComponentNotFound is raised indirectly by _get_grid_component()
+        # * RuntimeError is raised indirectly by connection_manager.get()
+        self,
+    ) -> FormulaEngine[ReactivePower]:
+        """Generate formula for calculating sum of reactive power from the component graph.
+
+        Returns:
+            A formula engine that will calculate the power.
+
+        Raises:
+            RuntimeError: If components ids in config are not specified
+                or component graph does not contain all specified components.
+        """
+        builder = self._get_builder(
+            "simple_reactive_power_formula",
+            ComponentMetricId.REACTIVE_POWER,
+            ReactivePower.from_volt_amperes_reactive,
+        )
+        return self._generate(builder)
