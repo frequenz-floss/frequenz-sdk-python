@@ -14,7 +14,7 @@ from dataclasses import dataclass
 
 from frequenz.channels import Sender
 from frequenz.client.microgrid._component import ComponentCategory, ComponentMetricId
-from frequenz.quantities import Current, Power
+from frequenz.quantities import Current, Power, ReactivePower
 
 from .._internal._channels import ChannelRegistry
 from ..microgrid import connection_manager
@@ -97,7 +97,7 @@ class Grid:
         return engine
 
     @property
-    def reactive_power(self) -> FormulaEngine[Power]:
+    def reactive_power(self) -> FormulaEngine[ReactivePower]:
         """Fetch the grid reactive power for the microgrid.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
@@ -111,7 +111,7 @@ class Grid:
         Returns:
             A FormulaEngine that will calculate and stream grid reactive power.
         """
-        engine = self._formula_pool.from_power_formula_generator(
+        engine = self._formula_pool.from_reactive_power_formula_generator(
             f"grid-{ComponentMetricId.REACTIVE_POWER.value}",
             GridReactivePowerFormula,
         )
