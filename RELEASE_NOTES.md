@@ -2,13 +2,13 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
+The SDK starts using the [`frequenz-quantities`](https://pypi.org/project/frequenz-quantities/) package with this release.
+
+A new method for streaming reactive power at the grid connection point has been added, and the `ConfigManagingActor` has been improved.
 
 ## Upgrading
 
-- Replace `Quantity` and its sub-classes (`Power`, `Current`, etc.) in the `frequenz.sdk.timeseries` module with the external
-[`frequenz-quantities`](https://pypi.org/project/frequenz-quantities/) package. Please add the new library as a dependency
-and adapt your imports if you are using these types.
+- Replace `Quantity` and its sub-classes (`Power`, `Current`, etc.) in the `frequenz.sdk.timeseries` module with the external [`frequenz-quantities`](https://pypi.org/project/frequenz-quantities/) package. Please add the new library as a dependency and adapt your imports if you are using these types.
 - The `QuantityT` has been moved to the `frequenz.sdk.timeseries._base_types` module.
 - The `QuantityT` doesn't include itself (`QuantityT`) anymore.
 
