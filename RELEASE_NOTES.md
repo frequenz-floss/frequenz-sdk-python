@@ -6,11 +6,18 @@
 
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
+- The `ConfigManagingActor` now takes multiple configuration files as input, and the argument was renamed from `config_file` to `config_files`. If you are using this actor, please update your code. For example:
+
+   ```python
+   # Old
+   actor = ConfigManagingActor(config_file="config.yaml")
+   # New
+   actor = ConfigManagingActor(config_files=["config.yaml"])
+   ```
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+- The `ConfigManagingActor` can now take multiple configuration files as input, allowing to override default configurations with custom configurations.
 
 ## Bug Fixes
 
