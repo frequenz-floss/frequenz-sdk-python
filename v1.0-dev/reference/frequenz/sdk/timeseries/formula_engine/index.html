@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../../../../_img/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.34">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.43">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.35f28582.min.css">
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.0253249f.min.css">
       
         
         <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.06af60db.min.css">
@@ -2110,7 +2110,7 @@
 
     <div class="doc doc-contents first">
 
-      <p>Provides a way for the SDK to apply formulas on resampled data streams.</p>
+        <p>Provides a way for the SDK to apply formulas on resampled data streams.</p>
 <h3 id="frequenz.sdk.timeseries.formula_engine--formula-engine">Formula Engine<a class="headerlink" href="#frequenz.sdk.timeseries.formula_engine--formula-engine" title="Permanent link">¤</a></h3>
 <p><a class="autorefs autorefs-internal" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine"><code>FormulaEngine</code></a>s are used in the
 SDK to calculate and stream metrics like
@@ -2199,6 +2199,11 @@ instances.</p>
 
 
 
+
+
+
+
+
   <div class="doc doc-children">
 
 
@@ -2224,7 +2229,7 @@ instances.</p>
               Bases: <code><a class="autorefs autorefs-external" title="typing.Generic" href="https://docs.python.org/3/library/typing.html#typing.Generic">Generic</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]</code></p>
 
 
-      <p>An engine to apply formulas on resampled data streams.</p>
+        <p>An engine to apply formulas on resampled data streams.</p>
 <p>Please refer to the <a class="autorefs autorefs-internal" href="#frequenz.sdk.timeseries.formula_engine">module documentation</a>
 for more information on how formula engines are used throughout the SDK.</p>
 
@@ -2258,6 +2263,11 @@ for more information on how formula engines are used throughout the SDK.</p>
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">power</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span></code></pre></div>
 </details>
+
+
+
+
+
               <details class="quote">
                 <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-59"> 59</a></span>
@@ -2901,7 +2911,7 @@ for more information on how formula engines are used throughout the SDK.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Return a formula builder that adds (data in) <code>other</code> to <code>self</code>.</p>
+        <p>Return a formula builder that adds (data in) <code>other</code> to <code>self</code>.</p>
 
 
 <table>
@@ -2913,7 +2923,9 @@ for more information on how formula engines are used throughout the SDK.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>other</code></td>
+            <td>
+                <code>other</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A formula receiver, or a formula builder instance corresponding to a
@@ -3012,7 +3024,7 @@ into a formula engine.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Create a <code>FormulaEngine</code> instance.</p>
+        <p>Create a <code>FormulaEngine</code> instance.</p>
 
 
 <table>
@@ -3024,7 +3036,9 @@ into a formula engine.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>builder</code></td>
+            <td>
+                <code>builder</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A <code>FormulaBuilder</code> instance to get the formula steps and metric
@@ -3039,7 +3053,9 @@ fetchers from.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>create_method</code></td>
+            <td>
+                <code>create_method</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A method to generate the output <code>Sample</code> value with.  If the
@@ -3123,7 +3139,7 @@ formula is for generating power values, this would be
 
     <div class="doc doc-contents ">
 
-      <p>Return a formula builder that multiplies (data in) <code>self</code> with <code>other</code>.</p>
+        <p>Return a formula builder that multiplies (data in) <code>self</code> with <code>other</code>.</p>
 
 
 <table>
@@ -3135,7 +3151,9 @@ formula is for generating power values, this would be
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>other</code></td>
+            <td>
+                <code>other</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A formula receiver, or a formula builder instance corresponding to a
@@ -3227,7 +3245,7 @@ into a formula engine.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Return a string representation of the formula.</p>
+        <p>Return a string representation of the formula.</p>
 
 
 <table>
@@ -3303,7 +3321,7 @@ into a formula engine.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Return a formula builder that subtracts (data in) <code>other</code> from <code>self</code>.</p>
+        <p>Return a formula builder that subtracts (data in) <code>other</code> from <code>self</code>.</p>
 
 
 <table>
@@ -3315,7 +3333,9 @@ into a formula engine.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>other</code></td>
+            <td>
+                <code>other</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A formula receiver, or a formula builder instance corresponding to a
@@ -3417,7 +3437,7 @@ into a formula engine.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Return a formula builder that divides (data in) <code>self</code> by <code>other</code>.</p>
+        <p>Return a formula builder that divides (data in) <code>self</code> by <code>other</code>.</p>
 
 
 <table>
@@ -3429,7 +3449,9 @@ into a formula engine.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>other</code></td>
+            <td>
+                <code>other</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A formula receiver, or a formula builder instance corresponding to a
@@ -3521,7 +3543,7 @@ into a formula engine.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Return a formula builder that applies the consumption operator on <code>self</code>.</p>
+        <p>Return a formula builder that applies the consumption operator on <code>self</code>.</p>
 <p>The consumption operator returns either the identity if the power value is
 positive or 0.</p>
 
@@ -3575,7 +3597,7 @@ positive or 0.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Create a formula engine from a receiver.</p>
+        <p>Create a formula engine from a receiver.</p>
 <p>Can be used to compose a formula engine with a receiver. When composing
 the new engine with other engines, make sure that receiver gets data
 from the same resampler and that the <code>create_method</code>s match.</p>
@@ -3616,7 +3638,9 @@ from the same resampler and that the <code>create_method</code>s match.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>name</code></td>
+            <td>
+                <code>name</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A name for the formula engine.</p>
@@ -3630,7 +3654,9 @@ from the same resampler and that the <code>create_method</code>s match.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>receiver</code></td>
+            <td>
+                <code>receiver</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A receiver that streams <code>Sample</code>s.</p>
@@ -3644,7 +3670,9 @@ from the same resampler and that the <code>create_method</code>s match.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>create_method</code></td>
+            <td>
+                <code>create_method</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A method to generate the output <code>Sample</code> value with,
@@ -3659,7 +3687,9 @@ e.g. <code>Power.from_watts</code>.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>nones_are_zeros</code></td>
+            <td>
+                <code>nones_are_zeros</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>If <code>True</code>, <code>None</code> values in the receiver are treated as 0.</p>
@@ -3837,7 +3867,7 @@ e.g. <code>Power.from_watts</code>.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Return a formula engine that outputs the maximum of <code>self</code> and <code>other</code>.</p>
+        <p>Return a formula engine that outputs the maximum of <code>self</code> and <code>other</code>.</p>
 
 
 <table>
@@ -3849,7 +3879,9 @@ e.g. <code>Power.from_watts</code>.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>other</code></td>
+            <td>
+                <code>other</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A formula receiver, a formula builder or a QuantityT instance
@@ -3951,7 +3983,7 @@ into a formula engine.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Return a formula engine that outputs the minimum of <code>self</code> and <code>other</code>.</p>
+        <p>Return a formula engine that outputs the minimum of <code>self</code> and <code>other</code>.</p>
 
 
 <table>
@@ -3963,7 +3995,9 @@ into a formula engine.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>other</code></td>
+            <td>
+                <code>other</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A formula receiver, a formula builder or a QuantityT instance
@@ -4061,7 +4095,7 @@ into a formula engine.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Create a new receiver that streams the output of the formula engine.</p>
+        <p>Create a new receiver that streams the output of the formula engine.</p>
 
 
 <table>
@@ -4073,7 +4107,9 @@ into a formula engine.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>name</code></td>
+            <td>
+                <code>name</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>An optional name for the receiver.</p>
@@ -4091,7 +4127,9 @@ into a formula engine.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>max_size</code></td>
+            <td>
+                <code>max_size</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The size of the receiver's buffer.</p>
@@ -4211,7 +4249,7 @@ into a formula engine.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Return a formula builder that applies the production operator on <code>self</code>.</p>
+        <p>Return a formula builder that applies the production operator on <code>self</code>.</p>
 <p>The production operator returns either the absolute value if the power value is
 negative or 0.</p>
 
@@ -4266,7 +4304,7 @@ negative or 0.</p>
               Bases: <code><a class="autorefs autorefs-external" title="typing.Generic" href="https://docs.python.org/3/library/typing.html#typing.Generic">Generic</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]</code></p>
 
 
-      <p>An engine to apply formulas on 3-phase resampled data streams.</p>
+        <p>An engine to apply formulas on 3-phase resampled data streams.</p>
 <p>Please refer to the <a class="autorefs autorefs-internal" href="#frequenz.sdk.timeseries.formula_engine">module documentation</a>
 for more information on how formula engines are used throughout the SDK.</p>
 
@@ -4298,6 +4336,11 @@ for more information on how formula engines are used throughout the SDK.</p>
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Other current: </span><span class="si">{</span><span class="n">sample</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span></code></pre></div>
 </details>
+
+
+
+
+
               <details class="quote">
                 <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-365">365</a></span>
@@ -4832,7 +4875,7 @@ for more information on how formula engines are used throughout the SDK.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Return a formula builder that adds (data in) <code>other</code> to <code>self</code>.</p>
+        <p>Return a formula builder that adds (data in) <code>other</code> to <code>self</code>.</p>
 
 
 <table>
@@ -4844,7 +4887,9 @@ for more information on how formula engines are used throughout the SDK.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>other</code></td>
+            <td>
+                <code>other</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A formula receiver, or a formula builder instance corresponding to a
@@ -4948,7 +4993,7 @@ into a formula engine.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Create a <code>FormulaEngine3Phase</code> instance.</p>
+        <p>Create a <code>FormulaEngine3Phase</code> instance.</p>
 
 
 <table>
@@ -4960,7 +5005,9 @@ into a formula engine.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>name</code></td>
+            <td>
+                <code>name</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A name for the formula.</p>
@@ -4974,7 +5021,9 @@ into a formula engine.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>create_method</code></td>
+            <td>
+                <code>create_method</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A method to generate the output <code>Sample</code> value with.  If the
@@ -4990,7 +5039,9 @@ formula is for generating power values, this would be
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>phase_streams</code></td>
+            <td>
+                <code>phase_streams</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>output streams of formula engines running per-phase formulas.</p>
@@ -5089,7 +5140,7 @@ formula is for generating power values, this would be
 
     <div class="doc doc-contents ">
 
-      <p>Return a formula builder that multiplies (data in) <code>self</code> with <code>other</code>.</p>
+        <p>Return a formula builder that multiplies (data in) <code>self</code> with <code>other</code>.</p>
 
 
 <table>
@@ -5101,7 +5152,9 @@ formula is for generating power values, this would be
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>other</code></td>
+            <td>
+                <code>other</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A formula receiver, or a formula builder instance corresponding to a
@@ -5202,7 +5255,7 @@ into a formula engine.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Return a formula builder that subtracts (data in) <code>other</code> from <code>self</code>.</p>
+        <p>Return a formula builder that subtracts (data in) <code>other</code> from <code>self</code>.</p>
 
 
 <table>
@@ -5214,7 +5267,9 @@ into a formula engine.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>other</code></td>
+            <td>
+                <code>other</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A formula receiver, or a formula builder instance corresponding to a
@@ -5315,7 +5370,7 @@ into a formula engine.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Return a formula builder that divides (data in) <code>self</code> by <code>other</code>.</p>
+        <p>Return a formula builder that divides (data in) <code>self</code> by <code>other</code>.</p>
 
 
 <table>
@@ -5327,7 +5382,9 @@ into a formula engine.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>other</code></td>
+            <td>
+                <code>other</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A formula receiver, or a formula builder instance corresponding to a
@@ -5423,7 +5480,7 @@ into a formula engine.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Return a formula builder that applies the consumption operator on <code>self</code>.</p>
+        <p>Return a formula builder that applies the consumption operator on <code>self</code>.</p>
 <p>The consumption operator returns either the identity if the power value is
 positive or 0.</p>
 
@@ -5472,7 +5529,7 @@ positive or 0.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Return a formula engine that outputs the maximum of <code>self</code> and <code>other</code>.</p>
+        <p>Return a formula engine that outputs the maximum of <code>self</code> and <code>other</code>.</p>
 
 
 <table>
@@ -5484,7 +5541,9 @@ positive or 0.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>other</code></td>
+            <td>
+                <code>other</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A formula receiver, a formula builder or a QuantityT instance
@@ -5585,7 +5644,7 @@ into a formula engine.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Return a formula engine that outputs the minimum of <code>self</code> and <code>other</code>.</p>
+        <p>Return a formula engine that outputs the minimum of <code>self</code> and <code>other</code>.</p>
 
 
 <table>
@@ -5597,7 +5656,9 @@ into a formula engine.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>other</code></td>
+            <td>
+                <code>other</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A formula receiver, a formula builder or a QuantityT instance
@@ -5695,7 +5756,7 @@ into a formula engine.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Create a new receiver that streams the output of the formula engine.</p>
+        <p>Create a new receiver that streams the output of the formula engine.</p>
 
 
 <table>
@@ -5707,7 +5768,9 @@ into a formula engine.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>name</code></td>
+            <td>
+                <code>name</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>An optional name for the receiver.</p>
@@ -5725,7 +5788,9 @@ into a formula engine.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>max_size</code></td>
+            <td>
+                <code>max_size</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The size of the receiver's buffer.</p>
@@ -5845,7 +5910,7 @@ into a formula engine.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Return a formula builder that applies the production operator on <code>self</code>.</p>
+        <p>Return a formula builder that applies the production operator on <code>self</code>.</p>
 <p>The production operator returns either the absolute value if the power value is
 negative or 0.</p>
 
@@ -6014,10 +6079,10 @@ negative or 0.</p>
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["content.code.annotate", "content.code.copy", "navigation.indexes", "navigation.instant", "navigation.footer", "navigation.tabs", "navigation.top", "navigation.tracking", "toc.follow"], "search": "../../../../../assets/javascripts/workers/search.07f07601.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["content.code.annotate", "content.code.copy", "navigation.indexes", "navigation.instant", "navigation.footer", "navigation.tabs", "navigation.top", "navigation.tracking", "toc.follow"], "search": "../../../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../../../../assets/javascripts/bundle.56dfad97.min.js"></script>
+      <script src="../../../../../assets/javascripts/bundle.83f73b43.min.js"></script>
       
     
   </body>

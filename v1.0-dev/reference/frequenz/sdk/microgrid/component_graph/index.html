@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../../../../_img/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.34">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.43">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.35f28582.min.css">
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.0253249f.min.css">
       
         
         <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.06af60db.min.css">
@@ -1882,7 +1882,7 @@
 
     <div class="doc doc-contents first">
 
-      <p>Defines a graph representation of how microgrid components are connected.</p>
+        <p>Defines a graph representation of how microgrid components are connected.</p>
 <p>The component graph is an approximate representation of the microgrid circuit,
 abstracted to a level appropriate for higher-level monitoring and control.
 Examples of use-cases would be:</p>
@@ -1903,6 +1903,11 @@ Examples of use-cases would be:</p>
 <p>It deliberately does not include all pieces of hardware placed in the microgrid,
 instead limiting itself to just those that are needed to monitor and control the
 flow of power.</p>
+
+
+
+
+
 
 
 
@@ -1931,7 +1936,12 @@ flow of power.</p>
               Bases: <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
 
 
-      <p>Interface for component graph implementations.</p>
+        <p>Interface for component graph implementations.</p>
+
+
+
+
+
 
               <details class="quote">
                 <summary>Source code in <code>frequenz/sdk/microgrid/component_graph.py</code></summary>
@@ -2557,7 +2567,7 @@ flow of power.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Fetch the components of the microgrid.</p>
+        <p>Fetch the components of the microgrid.</p>
 
 
 <table>
@@ -2569,7 +2579,9 @@ flow of power.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>component_ids</code></td>
+            <td>
+                <code>component_ids</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>filter out any components not matching one of the provided IDs</p>
@@ -2587,7 +2599,9 @@ flow of power.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>component_categories</code></td>
+            <td>
+                <code>component_categories</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>filter out any components not matching one of the
@@ -2694,7 +2708,7 @@ the provided <code>component_ids</code> and <code>component_categories</code> va
 
     <div class="doc doc-contents ">
 
-      <p>Fetch the connections between microgrid components.</p>
+        <p>Fetch the connections between microgrid components.</p>
 
 
 <table>
@@ -2706,7 +2720,9 @@ the provided <code>component_ids</code> and <code>component_categories</code> va
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>start</code></td>
+            <td>
+                <code>start</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>filter out any connections whose <code>start</code> does not match one of these
@@ -2725,7 +2741,9 @@ component IDs</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>end</code></td>
+            <td>
+                <code>end</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>filter out any connections whose <code>end</code> does not match one of these
@@ -2835,7 +2853,7 @@ the provided <code>start</code>/<code>end</code> choices.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Search for components that fulfill the condition in the Graph.</p>
+        <p>Search for components that fulfill the condition in the Graph.</p>
 <p>DFS is used for searching the graph. The graph traversal is stopped
 once a component fulfills the condition.</p>
 
@@ -2849,7 +2867,9 @@ once a component fulfills the condition.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>current_node</code></td>
+            <td>
+                <code>current_node</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The current node to search from.</p>
@@ -2863,7 +2883,9 @@ once a component fulfills the condition.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>visited</code></td>
+            <td>
+                <code>visited</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The set of visited nodes.</p>
@@ -2877,7 +2899,9 @@ once a component fulfills the condition.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>condition</code></td>
+            <td>
+                <code>condition</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The condition function to check for.</p>
@@ -3001,7 +3025,7 @@ once a component fulfills the condition.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Find the first descendant component given root and descendant categories.</p>
+        <p>Find the first descendant component given root and descendant categories.</p>
 <p>This method searches for the root component within the provided root
 category. If multiple components share the same root category, the
 first found one is considered as the root component.</p>
@@ -3021,7 +3045,9 @@ highest priority.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>root_category</code></td>
+            <td>
+                <code>root_category</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The category of the root component to search for.</p>
@@ -3035,7 +3061,9 @@ highest priority.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>descendant_categories</code></td>
+            <td>
+                <code>descendant_categories</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The descendant categories to search for the
@@ -3170,7 +3198,7 @@ first descendant component in.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Check if the specified component is part of a battery chain.</p>
+        <p>Check if the specified component is part of a battery chain.</p>
 <p>A component is part of a battery chain if it is a battery meter or a battery
 inverter.</p>
 
@@ -3184,7 +3212,9 @@ inverter.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>component</code></td>
+            <td>
+                <code>component</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>component to check.</p>
@@ -3274,7 +3304,7 @@ inverter.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Check if the specified component is a battery inverter.</p>
+        <p>Check if the specified component is a battery inverter.</p>
 
 
 <table>
@@ -3286,7 +3316,9 @@ inverter.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>component</code></td>
+            <td>
+                <code>component</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>component to check.</p>
@@ -3370,7 +3402,7 @@ inverter.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Check if the specified component is a battery meter.</p>
+        <p>Check if the specified component is a battery meter.</p>
 <p>This is done by checking if the component has only battery inverters as its
 predecessors.</p>
 
@@ -3384,7 +3416,9 @@ predecessors.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>component</code></td>
+            <td>
+                <code>component</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>component to check.</p>
@@ -3474,7 +3508,7 @@ predecessors.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Check if the specified component is a CHP.</p>
+        <p>Check if the specified component is a CHP.</p>
 
 
 <table>
@@ -3486,7 +3520,9 @@ predecessors.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>component</code></td>
+            <td>
+                <code>component</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>component to check.</p>
@@ -3570,7 +3606,7 @@ predecessors.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Check if the specified component is part of a CHP chain.</p>
+        <p>Check if the specified component is part of a CHP chain.</p>
 <p>A component is part of a CHP chain if it is a CHP meter or a CHP.</p>
 
 
@@ -3583,7 +3619,9 @@ predecessors.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>component</code></td>
+            <td>
+                <code>component</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>component to check.</p>
@@ -3671,7 +3709,7 @@ predecessors.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Check if the specified component is a CHP meter.</p>
+        <p>Check if the specified component is a CHP meter.</p>
 <p>This is done by checking if the component has only CHPs as its successors.</p>
 
 
@@ -3684,7 +3722,9 @@ predecessors.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>component</code></td>
+            <td>
+                <code>component</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>component to check.</p>
@@ -3772,7 +3812,7 @@ predecessors.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Check if the specified component is an EV charger.</p>
+        <p>Check if the specified component is an EV charger.</p>
 
 
 <table>
@@ -3784,7 +3824,9 @@ predecessors.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>component</code></td>
+            <td>
+                <code>component</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>component to check.</p>
@@ -3868,7 +3910,7 @@ predecessors.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Check if the specified component is part of an EV charger chain.</p>
+        <p>Check if the specified component is part of an EV charger chain.</p>
 <p>A component is part of an EV charger chain if it is an EV charger meter or an
 EV charger.</p>
 
@@ -3882,7 +3924,9 @@ EV charger.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>component</code></td>
+            <td>
+                <code>component</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>component to check.</p>
@@ -3972,7 +4016,7 @@ EV charger.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Check if the specified component is an EV charger meter.</p>
+        <p>Check if the specified component is an EV charger meter.</p>
 <p>This is done by checking if the component has only EV chargers as its
 successors.</p>
 
@@ -3986,7 +4030,9 @@ successors.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>component</code></td>
+            <td>
+                <code>component</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>component to check.</p>
@@ -4076,7 +4122,7 @@ successors.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Check if the specified component is a grid meter.</p>
+        <p>Check if the specified component is a grid meter.</p>
 <p>This is done by checking if the component is the only successor to the <code>Grid</code>
 component.</p>
 
@@ -4090,7 +4136,9 @@ component.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>component</code></td>
+            <td>
+                <code>component</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>component to check.</p>
@@ -4180,7 +4228,7 @@ component.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Check if the specified component is part of a PV chain.</p>
+        <p>Check if the specified component is part of a PV chain.</p>
 <p>A component is part of a PV chain if it is a PV meter or a PV inverter.</p>
 
 
@@ -4193,7 +4241,9 @@ component.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>component</code></td>
+            <td>
+                <code>component</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>component to check.</p>
@@ -4281,7 +4331,7 @@ component.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Check if the specified component is a PV inverter.</p>
+        <p>Check if the specified component is a PV inverter.</p>
 
 
 <table>
@@ -4293,7 +4343,9 @@ component.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>component</code></td>
+            <td>
+                <code>component</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>component to check.</p>
@@ -4377,7 +4429,7 @@ component.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Check if the specified component is a PV meter.</p>
+        <p>Check if the specified component is a PV meter.</p>
 <p>This is done by checking if the component has only PV inverters as its
 successors.</p>
 
@@ -4391,7 +4443,9 @@ successors.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>component</code></td>
+            <td>
+                <code>component</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>component to check.</p>
@@ -4481,7 +4535,7 @@ successors.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Fetch the graph predecessors of the specified component.</p>
+        <p>Fetch the graph predecessors of the specified component.</p>
 
 
 <table>
@@ -4493,7 +4547,9 @@ successors.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>component_id</code></td>
+            <td>
+                <code>component_id</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>numerical ID of the component whose predecessors should be
@@ -4616,7 +4672,7 @@ i.e. for which there is a connection from each of these components to
 
     <div class="doc doc-contents ">
 
-      <p>Fetch the graph successors of the specified component.</p>
+        <p>Fetch the graph successors of the specified component.</p>
 
 
 <table>
@@ -4628,7 +4684,9 @@ i.e. for which there is a connection from each of these components to
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>component_id</code></td>
+            <td>
+                <code>component_id</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>numerical ID of the component whose successors should be
@@ -4758,7 +4816,12 @@ these components.</p>
               Bases: <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#Exception">Exception</a></code></p>
 
 
-      <p>Exception type that will be thrown if graph data is not valid.</p>
+        <p>Exception type that will be thrown if graph data is not valid.</p>
+
+
+
+
+
 
               <details class="quote">
                 <summary>Source code in <code>frequenz/sdk/microgrid/component_graph.py</code></summary>
@@ -4902,10 +4965,10 @@ these components.</p>
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["content.code.annotate", "content.code.copy", "navigation.indexes", "navigation.instant", "navigation.footer", "navigation.tabs", "navigation.top", "navigation.tracking", "toc.follow"], "search": "../../../../../assets/javascripts/workers/search.07f07601.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["content.code.annotate", "content.code.copy", "navigation.indexes", "navigation.instant", "navigation.footer", "navigation.tabs", "navigation.top", "navigation.tracking", "toc.follow"], "search": "../../../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../../../../assets/javascripts/bundle.56dfad97.min.js"></script>
+      <script src="../../../../../assets/javascripts/bundle.83f73b43.min.js"></script>
       
     
   </body>

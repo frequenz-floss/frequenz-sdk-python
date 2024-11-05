@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../../../../_img/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.34">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.43">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.35f28582.min.css">
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.0253249f.min.css">
       
         
         <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.06af60db.min.css">
@@ -1606,7 +1606,12 @@
 
     <div class="doc doc-contents first">
 
-      <p>The logical component for calculating high level producer metrics for a microgrid.</p>
+        <p>The logical component for calculating high level producer metrics for a microgrid.</p>
+
+
+
+
+
 
 
 
@@ -1633,7 +1638,7 @@
     <div class="doc doc-contents ">
 
 
-      <p>Calculate high level producer metrics in a microgrid.</p>
+        <p>Calculate high level producer metrics in a microgrid.</p>
 <p>Under normal circumstances this is expected to correspond to the gross
 production of the sites active parts excluding EV chargers and batteries.</p>
 <p>Producer provides methods for fetching power values from different points
@@ -1668,6 +1673,11 @@ for creating <code>Producer</code> instances.</p>
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">producer_power_sample</span><span class="p">)</span>
 </span></code></pre></div>
 </details>
+
+
+
+
+
               <details class="quote">
                 <summary>Source code in <code>frequenz/sdk/timeseries/producer.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-18"> 18</a></span>
@@ -1866,7 +1876,7 @@ for creating <code>Producer</code> instances.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Fetch the producer power for the microgrid.</p>
+        <p>Fetch the producer power for the microgrid.</p>
 <p>This formula produces values that are in the Passive Sign Convention (PSC).</p>
 <p>It will start the formula engine to calculate producer power if it is
 not already running.</p>
@@ -1920,7 +1930,7 @@ not already running.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Initialize the producer formula generator.</p>
+        <p>Initialize the producer formula generator.</p>
 
 
 <table>
@@ -1932,7 +1942,9 @@ not already running.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>channel_registry</code></td>
+            <td>
+                <code>channel_registry</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The channel registry to use for the producer.</p>
@@ -1946,7 +1958,9 @@ not already running.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>resampler_subscription_sender</code></td>
+            <td>
+                <code>resampler_subscription_sender</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The sender to use for resampler subscriptions.</p>
@@ -2020,7 +2034,7 @@ not already running.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Stop all formula engines.</p>
+        <p>Stop all formula engines.</p>
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/producer.py</code></summary>
@@ -2173,10 +2187,10 @@ not already running.</p>
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["content.code.annotate", "content.code.copy", "navigation.indexes", "navigation.instant", "navigation.footer", "navigation.tabs", "navigation.top", "navigation.tracking", "toc.follow"], "search": "../../../../../assets/javascripts/workers/search.07f07601.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["content.code.annotate", "content.code.copy", "navigation.indexes", "navigation.instant", "navigation.footer", "navigation.tabs", "navigation.top", "navigation.tracking", "toc.follow"], "search": "../../../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../../../../assets/javascripts/bundle.56dfad97.min.js"></script>
+      <script src="../../../../../assets/javascripts/bundle.83f73b43.min.js"></script>
       
     
   </body>
