@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../../../../_img/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.34">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.43">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.35f28582.min.css">
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.0253249f.min.css">
       
         
         <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.06af60db.min.css">
@@ -1623,7 +1623,12 @@
 
     <div class="doc doc-contents first">
 
-      <p>Manage a pool of batteries.</p>
+        <p>Manage a pool of batteries.</p>
+
+
+
+
+
 
 
 
@@ -1650,7 +1655,7 @@
     <div class="doc doc-contents ">
 
 
-      <p>An interface for interaction with pools of batteries.</p>
+        <p>An interface for interaction with pools of batteries.</p>
 
 
 <details class="provides" open>
@@ -1668,6 +1673,11 @@
   <a class="autorefs autorefs-internal" href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_discharge">propose_discharge</a>.</li>
 </ul>
 </details>
+
+
+
+
+
               <details class="quote">
                 <summary>Source code in <code>frequenz/sdk/timeseries/battery_pool/_battery_pool.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-40"> 40</a></span>
@@ -2494,7 +2504,7 @@
 
     <div class="doc doc-contents ">
 
-      <p>Get a receiver to receive new capacity metrics when they change.</p>
+        <p>Get a receiver to receive new capacity metrics when they change.</p>
 <p>The reported capacity values consider only working batteries with operational
 inverters.</p>
 <p>Calculated with the formula:
@@ -2556,7 +2566,7 @@ operational inverters.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Return ids of the batteries in the pool.</p>
+        <p>Return ids of the batteries in the pool.</p>
 
 
 <table>
@@ -2603,7 +2613,7 @@ operational inverters.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Fetch the total power of the batteries in the pool.</p>
+        <p>Fetch the total power of the batteries in the pool.</p>
 <p>This formula produces values that are in the Passive Sign Convention (PSC).</p>
 <p>If a formula engine to calculate this metric is not already running, it will be
 started.</p>
@@ -2656,7 +2666,7 @@ batteries in the pool.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Get a receiver to receive power distribution results.</p>
+        <p>Get a receiver to receive power distribution results.</p>
 
 
 <table>
@@ -2715,7 +2725,7 @@ batteries in the pool.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Get a receiver to receive new power status reports when they change.</p>
+        <p>Get a receiver to receive new power status reports when they change.</p>
 <p>These include
   - the current inclusion/exclusion bounds available for the pool's priority,
   - the current target power for the pool's set of batteries,
@@ -2766,7 +2776,7 @@ batteries in the pool.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Fetch the normalized average weighted-by-capacity SoC values for the pool.</p>
+        <p>Fetch the normalized average weighted-by-capacity SoC values for the pool.</p>
 <p>The SoC values are normalized to the 0-100% range and clamped if they are out
 of bounds. Only values from working batteries with operational inverters are
 considered in the calculation.</p>
@@ -2836,7 +2846,7 @@ operational inverters.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Fetch the average temperature of the batteries in the pool.</p>
+        <p>Fetch the average temperature of the batteries in the pool.</p>
 
 
 <table>
@@ -2887,7 +2897,7 @@ of all batteries in the pool.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Create a BatteryPool instance.</p>
+        <p>Create a BatteryPool instance.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><code>BatteryPool</code> instances are not meant to be created directly by users.  Use
@@ -2905,7 +2915,9 @@ method for creating <code>BatteryPool</code> instances.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>pool_ref_store</code></td>
+            <td>
+                <code>pool_ref_store</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The battery pool reference store instance.</p>
@@ -2919,7 +2931,9 @@ method for creating <code>BatteryPool</code> instances.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>name</code></td>
+            <td>
+                <code>name</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>An optional name used to identify this instance of the pool or a
@@ -2934,7 +2948,9 @@ corresponding actor in the logs.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>priority</code></td>
+            <td>
+                <code>priority</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The priority of the actor using this wrapper.</p>
@@ -2948,7 +2964,9 @@ corresponding actor in the logs.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>set_operating_point</code></td>
+            <td>
+                <code>set_operating_point</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>Whether this instance sets the operating point power or
@@ -3045,7 +3063,7 @@ the normal power for the components.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Set the given charge power for the batteries in the pool.</p>
+        <p>Set the given charge power for the batteries in the pool.</p>
 <p>Power values need to be positive values, indicating charge power.</p>
 <p>When using the Passive Sign Convention, the
 <a class="autorefs autorefs-internal" href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power"><code>propose_power</code></a>
@@ -3068,7 +3086,9 @@ method.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>power</code></td>
+            <td>
+                <code>power</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The unsigned charge power to propose for the batteries in the pool.
@@ -3212,7 +3232,7 @@ precedence as the target power.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Set the given discharge power for the batteries in the pool.</p>
+        <p>Set the given discharge power for the batteries in the pool.</p>
 <p>Power values need to be positive values, indicating discharge power.</p>
 <p>When using the Passive Sign Convention, the
 <a class="autorefs autorefs-internal" href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power"><code>propose_power</code></a>
@@ -3235,7 +3255,9 @@ method.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>power</code></td>
+            <td>
+                <code>power</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The unsigned discharge power to propose for the batteries in the
@@ -3381,15 +3403,13 @@ precedence as the target power.</p>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">propose_power</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">power</span><span class="p">:</span> <span class="n"><span title="frequenz.quantities.Power">Power</span></span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="o">*</span><span class="p">,</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">bounds</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Bounds" href="../#frequenz.sdk.timeseries.Bounds">Bounds</a></span><span class="p">[</span><span class="n"><span title="frequenz.quantities.Power">Power</span></span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">timeseries</span><span class="o">.</span><span class="n">Bounds</span><span class="p">(</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="p">)</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">bounds</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Bounds" href="../#frequenz.sdk.timeseries.Bounds">Bounds</a></span><span class="p">[</span><span class="n"><span title="frequenz.quantities.Power">Power</span></span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Bounds" href="../#frequenz.sdk.timeseries.Bounds">Bounds</a></span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
 
-      <p>Send a proposal to the power manager for the pool's set of batteries.</p>
+        <p>Send a proposal to the power manager for the pool's set of batteries.</p>
 <p>Power values need to follow the Passive Sign Convention (PSC). That is, positive
 values indicate charge power and negative values indicate discharge power.</p>
 <p>If the same batteries are shared by multiple actors, the power manager will
@@ -3418,7 +3438,9 @@ its priority.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>power</code></td>
+            <td>
+                <code>power</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The power to propose for the batteries in the pool.  If <code>None</code>, this
@@ -3435,7 +3457,9 @@ proposal or withdrawing a previous one.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>bounds</code></td>
+            <td>
+                <code>bounds</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The power bounds for the proposal.  These bounds will apply to
@@ -3587,7 +3611,7 @@ and experimental feature.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Stop all tasks and channels owned by the BatteryPool.</p>
+        <p>Stop all tasks and channels owned by the BatteryPool.</p>
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/battery_pool/_battery_pool.py</code></summary>
@@ -3626,7 +3650,12 @@ and experimental feature.</p>
               Bases: <code><a class="autorefs autorefs-external" title="typing.Protocol" href="https://docs.python.org/3/library/typing.html#typing.Protocol">Protocol</a></code></p>
 
 
-      <p>A status report for a battery pool.</p>
+        <p>A status report for a battery pool.</p>
+
+
+
+
+
 
               <details class="quote">
                 <summary>Source code in <code>frequenz/sdk/timeseries/battery_pool/messages.py</code></summary>
@@ -3804,7 +3833,7 @@ and experimental feature.</p>
 
     <div class="doc doc-contents ">
 
-      <p>The usable bounds for the batteries.</p>
+        <p>The usable bounds for the batteries.</p>
 <p>These bounds are adjusted to any restrictions placed by actors with higher
 priorities.</p>
 <p>There might be exclusion zones within these bounds. If necessary, the
@@ -3833,7 +3862,7 @@ the closest possible power values that do fit the bounds.</p>
 
     <div class="doc doc-contents ">
 
-      <p>The currently set power for the batteries.</p>
+        <p>The currently set power for the batteries.</p>
     </div>
 
 </div>
@@ -3859,7 +3888,7 @@ the closest possible power values that do fit the bounds.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Adjust a power value to the bounds.</p>
+        <p>Adjust a power value to the bounds.</p>
 <p>This method can be used to adjust a desired power value to the power bounds
 available to the actor.</p>
 <p>If the given power value falls within the usable bounds, it will be returned
@@ -3910,7 +3939,9 @@ two possible power values, both of which fall within the available bounds.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>power</code></td>
+            <td>
+                <code>power</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The power value to adjust.</p>
@@ -4200,10 +4231,10 @@ the available bounds for the actor.</p>
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["content.code.annotate", "content.code.copy", "navigation.indexes", "navigation.instant", "navigation.footer", "navigation.tabs", "navigation.top", "navigation.tracking", "toc.follow"], "search": "../../../../../assets/javascripts/workers/search.07f07601.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["content.code.annotate", "content.code.copy", "navigation.indexes", "navigation.instant", "navigation.footer", "navigation.tabs", "navigation.top", "navigation.tracking", "toc.follow"], "search": "../../../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../../../../assets/javascripts/bundle.56dfad97.min.js"></script>
+      <script src="../../../../../assets/javascripts/bundle.83f73b43.min.js"></script>
       
     
   </body>

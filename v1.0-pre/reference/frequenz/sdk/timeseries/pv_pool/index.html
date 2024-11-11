@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../../../../_img/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.34">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.43">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.35f28582.min.css">
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.0253249f.min.css">
       
         
         <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.06af60db.min.css">
@@ -1792,7 +1792,12 @@
 
     <div class="doc doc-contents first">
 
-      <p>Interactions with PV inverters.</p>
+        <p>Interactions with PV inverters.</p>
+
+
+
+
+
 
 
 
@@ -1819,7 +1824,7 @@
     <div class="doc doc-contents ">
 
 
-      <p>An interface for interaction with pools of PV inverters.</p>
+        <p>An interface for interaction with pools of PV inverters.</p>
 
 
 <details class="provides" open>
@@ -1829,6 +1834,11 @@
   measurements of the PV inverters in the pool.</li>
 </ul>
 </details>
+
+
+
+
+
               <details class="quote">
                 <summary>Source code in <code>frequenz/sdk/timeseries/pv_pool/_pv_pool.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-26"> 26</a></span>
@@ -2235,7 +2245,7 @@
 
     <div class="doc doc-contents ">
 
-      <p>Return component IDs of all PV inverters managed by this PVPool.</p>
+        <p>Return component IDs of all PV inverters managed by this PVPool.</p>
 
 
 <table>
@@ -2282,7 +2292,7 @@
 
     <div class="doc doc-contents ">
 
-      <p>Fetch the total power for the PV Inverters in the pool.</p>
+        <p>Fetch the total power for the PV Inverters in the pool.</p>
 <p>This formula produces values that are in the Passive Sign Convention (PSC).</p>
 <p>If a formula engine to calculate PV Inverter power is not already running, it
 will be started.</p>
@@ -2335,7 +2345,7 @@ Inverters.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Get a receiver to receive power distribution results.</p>
+        <p>Get a receiver to receive power distribution results.</p>
 
 
 <table>
@@ -2394,7 +2404,7 @@ Inverters.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Get a receiver to receive new power status reports when they change.</p>
+        <p>Get a receiver to receive new power status reports when they change.</p>
 <p>These include
   - the current inclusion/exclusion bounds available for the pool's priority,
   - the current target power for the pool's set of batteries,
@@ -2448,7 +2458,7 @@ Inverters.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Initialize the instance.</p>
+        <p>Initialize the instance.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><code>PVPool</code> instances are not meant to be created directly by users. Use the
@@ -2466,7 +2476,9 @@ creating <code>PVPool</code> instances.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>pool_ref_store</code></td>
+            <td>
+                <code>pool_ref_store</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The reference store for the PV pool.</p>
@@ -2480,7 +2492,9 @@ creating <code>PVPool</code> instances.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>name</code></td>
+            <td>
+                <code>name</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The name of the PV pool.</p>
@@ -2494,7 +2508,9 @@ creating <code>PVPool</code> instances.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>priority</code></td>
+            <td>
+                <code>priority</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The priority of the PV pool.</p>
@@ -2508,7 +2524,9 @@ creating <code>PVPool</code> instances.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>set_operating_point</code></td>
+            <td>
+                <code>set_operating_point</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>Whether this instance sets the operating point power or
@@ -2601,13 +2619,13 @@ the normal power for the components.</p>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">propose_power</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">power</span><span class="p">:</span> <span class="n"><span title="frequenz.quantities.Power">Power</span></span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="o">*</span><span class="p">,</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">bounds</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Bounds" href="../#frequenz.sdk.timeseries.Bounds">Bounds</a></span><span class="p">[</span><span class="n"><span title="frequenz.quantities.Power">Power</span></span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">Bounds</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">bounds</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Bounds" href="../#frequenz.sdk.timeseries.Bounds">Bounds</a></span><span class="p">[</span><span class="n"><span title="frequenz.quantities.Power">Power</span></span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Bounds" href="../#frequenz.sdk.timeseries.Bounds">Bounds</a></span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
 
-      <p>Send a proposal to the power manager for the pool's set of PV inverters.</p>
+        <p>Send a proposal to the power manager for the pool's set of PV inverters.</p>
 <p>This proposal is for the maximum power that can be set for the PV inverters in
 the pool.  The actual production might be lower.</p>
 <p>Power values need to follow the Passive Sign Convention (PSC). That is, positive
@@ -2639,7 +2657,9 @@ its priority.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>power</code></td>
+            <td>
+                <code>power</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The power to propose for the PV inverters in the pool.  If <code>None</code>,
@@ -2656,7 +2676,9 @@ having a proposal or withdrawing a previous one.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>bounds</code></td>
+            <td>
+                <code>bounds</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The power bounds for the proposal.  These bounds will apply to
@@ -2850,7 +2872,7 @@ experimental feature.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Stop all tasks and channels owned by the PVPool.</p>
+        <p>Stop all tasks and channels owned by the PVPool.</p>
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/pv_pool/_pv_pool.py</code></summary>
@@ -2889,7 +2911,12 @@ experimental feature.</p>
               Bases: <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#Exception">Exception</a></code></p>
 
 
-      <p>An error that occurred in any of the PVPool methods.</p>
+        <p>An error that occurred in any of the PVPool methods.</p>
+
+
+
+
+
 
               <details class="quote">
                 <summary>Source code in <code>frequenz/sdk/timeseries/pv_pool/_pv_pool.py</code></summary>
@@ -2919,7 +2946,12 @@ experimental feature.</p>
               Bases: <code><a class="autorefs autorefs-external" title="typing.Protocol" href="https://docs.python.org/3/library/typing.html#typing.Protocol">Protocol</a></code></p>
 
 
-      <p>A status report for a PV pool.</p>
+        <p>A status report for a PV pool.</p>
+
+
+
+
+
 
               <details class="quote">
                 <summary>Source code in <code>frequenz/sdk/timeseries/pv_pool/_result_types.py</code></summary>
@@ -2981,7 +3013,7 @@ experimental feature.</p>
 
     <div class="doc doc-contents ">
 
-      <p>The usable bounds for the PV inverters.</p>
+        <p>The usable bounds for the PV inverters.</p>
 <p>These bounds are adjusted to any restrictions placed by actors with higher
 priorities.</p>
     </div>
@@ -3006,7 +3038,7 @@ priorities.</p>
 
     <div class="doc doc-contents ">
 
-      <p>The currently set power for the PV inverters.</p>
+        <p>The currently set power for the PV inverters.</p>
     </div>
 
 </div>
@@ -3151,10 +3183,10 @@ priorities.</p>
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["content.code.annotate", "content.code.copy", "navigation.indexes", "navigation.instant", "navigation.footer", "navigation.tabs", "navigation.top", "navigation.tracking", "toc.follow"], "search": "../../../../../assets/javascripts/workers/search.07f07601.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["content.code.annotate", "content.code.copy", "navigation.indexes", "navigation.instant", "navigation.footer", "navigation.tabs", "navigation.top", "navigation.tracking", "toc.follow"], "search": "../../../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../../../../assets/javascripts/bundle.56dfad97.min.js"></script>
+      <script src="../../../../../assets/javascripts/bundle.83f73b43.min.js"></script>
       
     
   </body>

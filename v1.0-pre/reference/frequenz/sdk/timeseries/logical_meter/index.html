@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../../../../_img/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.34">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.43">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.35f28582.min.css">
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.0253249f.min.css">
       
         
         <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.06af60db.min.css">
@@ -1624,7 +1624,12 @@
 
     <div class="doc doc-contents first">
 
-      <p>A logical meter for calculating high level metrics for a microgrid.</p>
+        <p>A logical meter for calculating high level metrics for a microgrid.</p>
+
+
+
+
+
 
 
 
@@ -1651,7 +1656,7 @@
     <div class="doc doc-contents ">
 
 
-      <p>A logical meter for calculating high level metrics in a microgrid.</p>
+        <p>A logical meter for calculating high level metrics in a microgrid.</p>
 <p>LogicalMeter provides methods for fetching power values from different points in the
 microgrid.  These methods return <code>FormulaReceiver</code> objects, which can be used like
 normal <code>Receiver</code>s, but can also be composed to form higher-order formula streams.</p>
@@ -1687,6 +1692,11 @@ creating <code>LogicalMeter</code> instances.</p>
 </span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">power</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 </span></code></pre></div>
 </details>
+
+
+
+
+
               <details class="quote">
                 <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-19"> 19</a></span>
@@ -1965,7 +1975,7 @@ creating <code>LogicalMeter</code> instances.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Fetch the CHP power production in the microgrid.</p>
+        <p>Fetch the CHP power production in the microgrid.</p>
 <p>This formula produces values that are in the Passive Sign Convention (PSC).</p>
 <p>If a formula engine to calculate CHP power production is not already running, it
 will be started.</p>
@@ -2019,7 +2029,7 @@ method.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Create a <code>LogicalMeter</code> instance.</p>
+        <p>Create a <code>LogicalMeter</code> instance.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><code>LogicalMeter</code> instances are not meant to be created directly by users.  Use
@@ -2037,7 +2047,9 @@ for creating <code>LogicalMeter</code> instances.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>channel_registry</code></td>
+            <td>
+                <code>channel_registry</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A channel registry instance shared with the resampling
@@ -2052,7 +2064,9 @@ actor.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>resampler_subscription_sender</code></td>
+            <td>
+                <code>resampler_subscription_sender</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>A sender for sending metric requests to the
@@ -2156,7 +2170,7 @@ resampling actor.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Start execution of the given formula.</p>
+        <p>Start execution of the given formula.</p>
 <p>Formulas can have Component IDs that are preceeded by a pound symbol("#"), and
 these operators: +, -, *, /, (, ).</p>
 <p>For example, the input string: "#20 + #5" is a formula for adding metrics from
@@ -2172,7 +2186,9 @@ two components with ids 20 and 5.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>formula</code></td>
+            <td>
+                <code>formula</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>formula to execute.</p>
@@ -2186,7 +2202,9 @@ two components with ids 20 and 5.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>component_metric_id</code></td>
+            <td>
+                <code>component_metric_id</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The metric ID to use when fetching receivers from the
@@ -2201,7 +2219,9 @@ resampling actor.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>nones_are_zeros</code></td>
+            <td>
+                <code>nones_are_zeros</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>Whether to treat None values from the stream as 0s.  If
@@ -2326,7 +2346,7 @@ False, the returned value will be a None.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Stop all formula engines.</p>
+        <p>Stop all formula engines.</p>
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/logical_meter/_logical_meter.py</code></summary>
@@ -2479,10 +2499,10 @@ False, the returned value will be a None.</p>
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["content.code.annotate", "content.code.copy", "navigation.indexes", "navigation.instant", "navigation.footer", "navigation.tabs", "navigation.top", "navigation.tracking", "toc.follow"], "search": "../../../../../assets/javascripts/workers/search.07f07601.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["content.code.annotate", "content.code.copy", "navigation.indexes", "navigation.instant", "navigation.footer", "navigation.tabs", "navigation.top", "navigation.tracking", "toc.follow"], "search": "../../../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../../../../assets/javascripts/bundle.56dfad97.min.js"></script>
+      <script src="../../../../../assets/javascripts/bundle.83f73b43.min.js"></script>
       
     
   </body>

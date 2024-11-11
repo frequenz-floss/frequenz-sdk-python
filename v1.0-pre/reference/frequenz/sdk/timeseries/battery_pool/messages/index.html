@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../../../../../_img/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.34">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.43">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../../../../../../assets/stylesheets/main.35f28582.min.css">
+      <link rel="stylesheet" href="../../../../../../assets/stylesheets/main.0253249f.min.css">
       
         
         <link rel="stylesheet" href="../../../../../../assets/stylesheets/palette.06af60db.min.css">
@@ -2148,7 +2148,12 @@
 
     <div class="doc doc-contents first">
 
-      <p>Types for exposing battery pool reports.</p>
+        <p>Types for exposing battery pool reports.</p>
+
+
+
+
+
 
 
 
@@ -2178,7 +2183,7 @@
 
     <div class="doc doc-contents ">
 
-      <p>Power distribution result.</p>
+        <p>Power distribution result.</p>
 <p>Example: Handling power distribution results</p>
 <div class="language-text highlight"><pre><span></span><code>```python
 from typing import assert_never
@@ -2257,7 +2262,12 @@ for r in results:
               Bases: <code><a class="autorefs autorefs-external" title="typing.Protocol" href="https://docs.python.org/3/library/typing.html#typing.Protocol">Protocol</a></code></p>
 
 
-      <p>A status report for a battery pool.</p>
+        <p>A status report for a battery pool.</p>
+
+
+
+
+
 
               <details class="quote">
                 <summary>Source code in <code>frequenz/sdk/timeseries/battery_pool/messages.py</code></summary>
@@ -2435,7 +2445,7 @@ for r in results:
 
     <div class="doc doc-contents ">
 
-      <p>The usable bounds for the batteries.</p>
+        <p>The usable bounds for the batteries.</p>
 <p>These bounds are adjusted to any restrictions placed by actors with higher
 priorities.</p>
 <p>There might be exclusion zones within these bounds. If necessary, the
@@ -2464,7 +2474,7 @@ the closest possible power values that do fit the bounds.</p>
 
     <div class="doc doc-contents ">
 
-      <p>The currently set power for the batteries.</p>
+        <p>The currently set power for the batteries.</p>
     </div>
 
 </div>
@@ -2490,7 +2500,7 @@ the closest possible power values that do fit the bounds.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Adjust a power value to the bounds.</p>
+        <p>Adjust a power value to the bounds.</p>
 <p>This method can be used to adjust a desired power value to the power bounds
 available to the actor.</p>
 <p>If the given power value falls within the usable bounds, it will be returned
@@ -2541,7 +2551,9 @@ two possible power values, both of which fall within the available bounds.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>power</code></td>
+            <td>
+                <code>power</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The power value to adjust.</p>
@@ -2721,7 +2733,12 @@ the available bounds for the actor.</p>
               Bases: <code><span title="frequenz.sdk.microgrid._power_distributing.result._BaseResultMixin">_BaseResultMixin</span></code></p>
 
 
-      <p>Result returned when an error occurred and power was not set at all.</p>
+        <p>Result returned when an error occurred and power was not set at all.</p>
+
+
+
+
+
 
               <details class="quote">
                 <summary>Source code in <code>frequenz/sdk/microgrid/_power_distributing/result.py</code></summary>
@@ -2767,7 +2784,7 @@ the available bounds for the actor.</p>
 
     <div class="doc doc-contents ">
 
-      <p>The error message explaining why error happened.</p>
+        <p>The error message explaining why error happened.</p>
     </div>
 
 </div>
@@ -2790,7 +2807,7 @@ the available bounds for the actor.</p>
 
     <div class="doc doc-contents ">
 
-      <p>The user's request to which this message responds.</p>
+        <p>The user's request to which this message responds.</p>
     </div>
 
 </div>
@@ -2825,9 +2842,14 @@ the available bounds for the actor.</p>
               Bases: <code><span title="frequenz.sdk.microgrid._power_distributing.result._BaseResultMixin">_BaseResultMixin</span></code></p>
 
 
-      <p>Result returned when the power was not set because it was out of bounds.</p>
+        <p>Result returned when the power was not set because it was out of bounds.</p>
 <p>This result happens when the originating request was done with
 <code>adjust_power = False</code> and the requested power is not within the available bounds.</p>
+
+
+
+
+
 
               <details class="quote">
                 <summary>Source code in <code>frequenz/sdk/microgrid/_power_distributing/result.py</code></summary>
@@ -2889,7 +2911,7 @@ the available bounds for the actor.</p>
 
     <div class="doc doc-contents ">
 
-      <p>The power bounds for the requested components.</p>
+        <p>The power bounds for the requested components.</p>
 <p>If the requested power negative, then this value is the lower bound.
 Otherwise it is upper bound.</p>
     </div>
@@ -2914,7 +2936,7 @@ Otherwise it is upper bound.</p>
 
     <div class="doc doc-contents ">
 
-      <p>The user's request to which this message responds.</p>
+        <p>The user's request to which this message responds.</p>
     </div>
 
 </div>
@@ -2949,7 +2971,12 @@ Otherwise it is upper bound.</p>
               Bases: <code><span title="frequenz.sdk.microgrid._power_distributing.result._BaseSuccessMixin">_BaseSuccessMixin</span></code>, <code><span title="frequenz.sdk.microgrid._power_distributing.result._BaseResultMixin">_BaseResultMixin</span></code></p>
 
 
-      <p>Result returned when some of the components had an error setting the power.</p>
+        <p>Result returned when some of the components had an error setting the power.</p>
+
+
+
+
+
 
               <details class="quote">
                 <summary>Source code in <code>frequenz/sdk/microgrid/_power_distributing/result.py</code></summary>
@@ -3001,7 +3028,7 @@ Otherwise it is upper bound.</p>
 
     <div class="doc doc-contents ">
 
-      <p>The part of the requested power that could not be fulfilled.</p>
+        <p>The part of the requested power that could not be fulfilled.</p>
 <p>This happens when the requested power is outside the available power bounds.</p>
     </div>
 
@@ -3025,7 +3052,7 @@ Otherwise it is upper bound.</p>
 
     <div class="doc doc-contents ">
 
-      <p>The subset of batteries for which the request failed.</p>
+        <p>The subset of batteries for which the request failed.</p>
     </div>
 
 </div>
@@ -3048,7 +3075,7 @@ Otherwise it is upper bound.</p>
 
     <div class="doc doc-contents ">
 
-      <p>The part of the requested power that failed to be set.</p>
+        <p>The part of the requested power that failed to be set.</p>
     </div>
 
 </div>
@@ -3071,7 +3098,7 @@ Otherwise it is upper bound.</p>
 
     <div class="doc doc-contents ">
 
-      <p>The user's request to which this message responds.</p>
+        <p>The user's request to which this message responds.</p>
     </div>
 
 </div>
@@ -3094,7 +3121,7 @@ Otherwise it is upper bound.</p>
 
     <div class="doc doc-contents ">
 
-      <p>The subset of components for which power was set successfully.</p>
+        <p>The subset of components for which power was set successfully.</p>
     </div>
 
 </div>
@@ -3117,7 +3144,7 @@ Otherwise it is upper bound.</p>
 
     <div class="doc doc-contents ">
 
-      <p>The part of the requested power that was successfully set.</p>
+        <p>The part of the requested power that was successfully set.</p>
     </div>
 
 </div>
@@ -3152,7 +3179,12 @@ Otherwise it is upper bound.</p>
               Bases: <code><span title="frequenz.sdk.microgrid._power_distributing.result._BaseSuccessMixin">_BaseSuccessMixin</span></code>, <code><span title="frequenz.sdk.microgrid._power_distributing.result._BaseResultMixin">_BaseResultMixin</span></code></p>
 
 
-      <p>Result returned when setting the power was successful for all components.</p>
+        <p>Result returned when setting the power was successful for all components.</p>
+
+
+
+
+
 
               <details class="quote">
                 <summary>Source code in <code>frequenz/sdk/microgrid/_power_distributing/result.py</code></summary>
@@ -3192,7 +3224,7 @@ Otherwise it is upper bound.</p>
 
     <div class="doc doc-contents ">
 
-      <p>The part of the requested power that could not be fulfilled.</p>
+        <p>The part of the requested power that could not be fulfilled.</p>
 <p>This happens when the requested power is outside the available power bounds.</p>
     </div>
 
@@ -3216,7 +3248,7 @@ Otherwise it is upper bound.</p>
 
     <div class="doc doc-contents ">
 
-      <p>The user's request to which this message responds.</p>
+        <p>The user's request to which this message responds.</p>
     </div>
 
 </div>
@@ -3239,7 +3271,7 @@ Otherwise it is upper bound.</p>
 
     <div class="doc doc-contents ">
 
-      <p>The subset of components for which power was set successfully.</p>
+        <p>The subset of components for which power was set successfully.</p>
     </div>
 
 </div>
@@ -3262,7 +3294,7 @@ Otherwise it is upper bound.</p>
 
     <div class="doc doc-contents ">
 
-      <p>The part of the requested power that was successfully set.</p>
+        <p>The part of the requested power that was successfully set.</p>
     </div>
 
 </div>
@@ -3407,10 +3439,10 @@ Otherwise it is upper bound.</p>
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../../../../..", "features": ["content.code.annotate", "content.code.copy", "navigation.indexes", "navigation.instant", "navigation.footer", "navigation.tabs", "navigation.top", "navigation.tracking", "toc.follow"], "search": "../../../../../../assets/javascripts/workers/search.07f07601.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "../../../../../..", "features": ["content.code.annotate", "content.code.copy", "navigation.indexes", "navigation.instant", "navigation.footer", "navigation.tabs", "navigation.top", "navigation.tracking", "toc.follow"], "search": "../../../../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../../../../../assets/javascripts/bundle.56dfad97.min.js"></script>
+      <script src="../../../../../../assets/javascripts/bundle.83f73b43.min.js"></script>
       
     
   </body>
