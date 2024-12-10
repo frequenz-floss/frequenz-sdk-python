@@ -73,10 +73,12 @@ class BackgroundService(abc.ABC):
         """Initialize this BackgroundService.
 
         Args:
-            name: The name of this background service. If `None`, `str(id(self))` will
-                be used. This is used mostly for debugging purposes.
+            name: The name of this background service. If `None`, id with the
+                class name will be generated. This is used mostly for debugging purposes.
         """
-        self._name: str = str(id(self)) if name is None else name
+        self._name: str = (
+            f"{self.__class__.__name__}_{id(self)}" if name is None else name
+        )
         self._tasks: set[asyncio.Task[Any]] = set()
 
     @abc.abstractmethod

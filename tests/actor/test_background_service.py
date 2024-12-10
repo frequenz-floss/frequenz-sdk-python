@@ -47,7 +47,7 @@ class FakeService(BackgroundService):
 async def test_construction_defaults() -> None:
     """Test the construction of a background service with default arguments."""
     fake_service = FakeService()
-    assert fake_service.name == str(id(fake_service))
+    assert fake_service.name.startswith("FakeService_")
     assert fake_service.tasks == set()
     assert fake_service.is_running is False
     assert str(fake_service) == f"FakeService[{fake_service.name}]"

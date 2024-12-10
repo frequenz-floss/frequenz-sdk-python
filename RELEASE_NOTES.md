@@ -26,6 +26,8 @@
         + The class is now immutable.
         + The constructor now accepts only keyword arguments.
 
+- The Actor class now generates a name with the class name and the instance id.
+
 ## New Features
 
 - `LoggingConfigUpdatingActor`
