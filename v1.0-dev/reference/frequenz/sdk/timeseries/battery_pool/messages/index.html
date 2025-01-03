@@ -436,6 +436,8 @@
       
         
       
+        
+      
     
     
       
@@ -489,6 +491,27 @@
   
   <span class="md-ellipsis">
     Actors
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../user-guide/config/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration
   </span>
   
 
@@ -2440,7 +2463,7 @@ for r in results:
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport.bounds" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">bounds</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._base_types.Bounds" href="../../#frequenz.sdk.timeseries.Bounds">Bounds</a></span><span class="p">[</span><span class="n"><span title="frequenz.quantities.Power">Power</span></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">bounds</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._base_types.Bounds" href="../../#frequenz.sdk.timeseries.Bounds">Bounds</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2469,7 +2492,7 @@ the closest possible power values that do fit the bounds.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport.target_power" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">target_power</span><span class="p">:</span> <span class="n"><span title="frequenz.quantities.Power">Power</span></span> <span class="o">|</span> <span class="kc">None</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">target_power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span> <span class="o">|</span> <span class="kc">None</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2494,8 +2517,8 @@ the closest possible power values that do fit the bounds.</p>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport.adjust_to_bounds" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">adjust_to_bounds</span><span class="p">(</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">power</span><span class="p">:</span> <span class="n"><span title="frequenz.quantities.Power">Power</span></span><span class="p">,</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a></span><span class="p">[</span><span class="n"><span title="frequenz.quantities.Power">Power</span></span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n"><span title="frequenz.quantities.Power">Power</span></span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2561,7 +2584,7 @@ two possible power values, both of which fall within the available bounds.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><span title="frequenz.quantities.Power">Power</span></code>
+                      <code><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></code>
                   </span>
               </p>
             </td>
@@ -2581,7 +2604,7 @@ two possible power values, both of which fall within the available bounds.</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a>[<span title="frequenz.quantities.Power">Power</span> | None, <span title="frequenz.quantities.Power">Power</span> | None]</code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a>[<a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a> | None, <a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a> | None]</code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -3023,7 +3046,7 @@ Otherwise it is upper bound.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.PartialFailure.excess_power" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">excess_power</span><span class="p">:</span> <span class="n"><span title="frequenz.quantities.Power">Power</span></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">excess_power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3070,7 +3093,7 @@ Otherwise it is upper bound.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.PartialFailure.failed_power" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">failed_power</span><span class="p">:</span> <span class="n"><span title="frequenz.quantities.Power">Power</span></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">failed_power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3139,7 +3162,7 @@ Otherwise it is upper bound.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.PartialFailure.succeeded_power" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">succeeded_power</span><span class="p">:</span> <span class="n"><span title="frequenz.quantities.Power">Power</span></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">succeeded_power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3219,7 +3242,7 @@ Otherwise it is upper bound.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.Success.excess_power" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">excess_power</span><span class="p">:</span> <span class="n"><span title="frequenz.quantities.Power">Power</span></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">excess_power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3289,7 +3312,7 @@ Otherwise it is upper bound.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.Success.succeeded_power" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">succeeded_power</span><span class="p">:</span> <span class="n"><span title="frequenz.quantities.Power">Power</span></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">succeeded_power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
