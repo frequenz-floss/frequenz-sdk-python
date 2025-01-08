@@ -10,7 +10,7 @@ import logging
 import math
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Generic, Self, TypeVar
 
 from frequenz.channels import ChannelClosedError, Receiver
@@ -22,6 +22,7 @@ from frequenz.client.microgrid import (
     InverterData,
 )
 
+from ..._internal import _logging
 from ..._internal._asyncio import AsyncConstructible
 from ..._internal._constants import MAX_BATTERY_DATA_AGE_SEC
 from ...microgrid import connection_manager
@@ -32,6 +33,11 @@ from ...microgrid._data_sourcing.microgrid_api_source import (
 from ._component_metrics import ComponentMetricsData
 
 _logger = logging.getLogger(__name__)
+
+_missing_data_logger = _logging.RateLimitedLogger(
+    _logger,
+    timedelta(minutes=5),
+)
 
 T = TypeVar("T", bound=ComponentData)
 """Type variable for component data."""
@@ -120,6 +126,12 @@ class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
             data = await asyncio.wait_for(
                 self._receiver.receive(), self._max_waiting_time
             )
+            if _missing_data_logger.is_limiting():
+                _missing_data_logger.reset()
+                _missing_data_logger.debug(
+                    "Component %d has started sending data.", self._component_id
+                )
+                _missing_data_logger.reset()
 
         except ChannelClosedError:
             _logger.exception(
@@ -128,7 +140,9 @@ class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
             return None
         except asyncio.TimeoutError:
             # Next time wait infinitely until we receive any message.
-            _logger.debug("Component %d stopped sending data.", self._component_id)
+            _missing_data_logger.debug(
+                "Component %d stopped sending data.", self._component_id
+            )
             return ComponentMetricsData(
                 self._component_id, datetime.now(tz=timezone.utc), {}
             )
