@@ -32,8 +32,8 @@ class ReportRequest:
     priority: int
     """The priority of the actor ."""
 
-    set_operating_point: bool
-    """Whether this proposal sets the operating point power or the normal power."""
+    in_shifting_group: bool
+    """Whether the proposal gets sent to the shifting group of the power manager."""
 
     def get_channel_name(self) -> str:
         """Get the channel name for the report request.
@@ -157,8 +157,8 @@ class Proposal:
     This is used by the power manager to determine the age of the proposal.
     """
 
-    set_operating_point: bool
-    """Whether this proposal sets the operating point power or the normal power."""
+    in_shifting_group: bool
+    """Whether the proposal gets sent to the shifting group of the power manager."""
 
     def __lt__(self, other: Proposal) -> bool:
         """Compare two proposals by their priority.
