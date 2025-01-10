@@ -203,6 +203,7 @@ class Algorithm(enum.Enum):
     """The available algorithms for the power manager."""
 
     MATRYOSHKA = "matryoshka"
+    SHIFTING_MATRYOSHKA = "shifting_matryoshka"
 
 
 class BaseAlgorithm(abc.ABC):
