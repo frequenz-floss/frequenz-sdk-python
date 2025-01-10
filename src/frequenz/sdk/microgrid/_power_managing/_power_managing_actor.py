@@ -126,8 +126,8 @@ class PowerManagingActor(Actor):
             await self._send_updated_target_power(component_ids, None)
             await self._send_reports(component_ids)
 
-    def _add_bounds_tracker(self, component_ids: frozenset[int]) -> None:
-        """Add a bounds tracker.
+    def _add_system_bounds_tracker(self, component_ids: frozenset[int]) -> None:
+        """Add a system bounds tracker for the given components.
 
         Args:
             component_ids: The component IDs for which to add a bounds tracker.
@@ -210,7 +210,7 @@ class PowerManagingActor(Actor):
             if selected_from(selected, self._proposals_receiver):
                 proposal = selected.message
                 if proposal.component_ids not in self._bound_tracker_tasks:
-                    self._add_bounds_tracker(proposal.component_ids)
+                    self._add_system_bounds_tracker(proposal.component_ids)
 
                 # TODO: must_send=True forces a new request to # pylint: disable=fixme
                 # be sent to the PowerDistributor, even if there's no change in power.
@@ -245,7 +245,7 @@ class PowerManagingActor(Actor):
                     )
 
                 if sub.component_ids not in self._bound_tracker_tasks:
-                    self._add_bounds_tracker(sub.component_ids)
+                    self._add_system_bounds_tracker(sub.component_ids)
 
             elif selected_from(selected, self._power_distributing_results_receiver):
                 result = selected.message
