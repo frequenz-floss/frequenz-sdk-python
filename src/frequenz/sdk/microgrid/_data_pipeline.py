@@ -210,7 +210,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         priority: int,
         component_ids: abc.Set[int] | None = None,
         name: str | None = None,
-        in_shifting_group: bool = False,
     ) -> EVChargerPool:
         """Return the corresponding EVChargerPool instance for the given ids.
 
@@ -223,8 +222,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 EVChargerPool.
             name: An optional name used to identify this instance of the pool or a
                 corresponding actor in the logs.
-            in_shifting_group: Whether the power requests get sent to the shifting group
-                in the PowerManager or not.
 
         Returns:
             An EVChargerPool instance.
@@ -281,7 +278,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             pool_ref_store=self._ev_charger_pool_reference_stores[ref_store_key],
             name=name,
             priority=priority,
-            in_shifting_group=in_shifting_group,
         )
 
     def new_pv_pool(
@@ -290,7 +286,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         priority: int,
         component_ids: abc.Set[int] | None = None,
         name: str | None = None,
-        in_shifting_group: bool = False,
     ) -> PVPool:
         """Return a new `PVPool` instance for the given ids.
 
@@ -303,8 +298,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 `PVPool`.
             name: An optional name used to identify this instance of the pool or a
                 corresponding actor in the logs.
-            in_shifting_group: Whether the power requests get sent to the shifting group
-                in the PowerManager or not.
 
         Returns:
             A `PVPool` instance.
@@ -358,7 +351,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             pool_ref_store=self._pv_pool_reference_stores[ref_store_key],
             name=name,
             priority=priority,
-            in_shifting_group=in_shifting_group,
         )
 
     def new_battery_pool(
@@ -367,7 +359,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         priority: int,
         component_ids: abc.Set[int] | None = None,
         name: str | None = None,
-        in_shifting_group: bool = False,
     ) -> BatteryPool:
         """Return a new `BatteryPool` instance for the given ids.
 
@@ -380,8 +371,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 `BatteryPool`.
             name: An optional name used to identify this instance of the pool or a
                 corresponding actor in the logs.
-            in_shifting_group: Whether the power requests get sent to the shifting group
-                in the PowerManager or not.
 
         Returns:
             A `BatteryPool` instance.
@@ -440,7 +429,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             pool_ref_store=self._battery_pool_reference_stores[ref_store_key],
             name=name,
             priority=priority,
-            in_shifting_group=in_shifting_group,
         )
 
     def _data_sourcing_request_sender(self) -> Sender[ComponentMetricRequest]:
@@ -557,7 +545,6 @@ def new_ev_charger_pool(
     priority: int,
     component_ids: abc.Set[int] | None = None,
     name: str | None = None,
-    in_shifting_group: bool = False,
 ) -> EVChargerPool:
     """Return a new `EVChargerPool` instance for the given parameters.
 
@@ -583,17 +570,12 @@ def new_ev_charger_pool(
             component graph are used.
         name: An optional name used to identify this instance of the pool or a
             corresponding actor in the logs.
-        in_shifting_group: Whether the power requests get sent to the shifting group
-            in the PowerManager or not.
 
     Returns:
         An `EVChargerPool` instance.
     """
     return _get().new_ev_charger_pool(
-        priority=priority,
-        component_ids=component_ids,
-        name=name,
-        in_shifting_group=in_shifting_group,
+        priority=priority, component_ids=component_ids, name=name
     )
 
 
@@ -602,7 +584,6 @@ def new_battery_pool(
     priority: int,
     component_ids: abc.Set[int] | None = None,
     name: str | None = None,
-    in_shifting_group: bool = False,
 ) -> BatteryPool:
     """Return a new `BatteryPool` instance for the given parameters.
 
@@ -628,17 +609,12 @@ def new_battery_pool(
             graph are used.
         name: An optional name used to identify this instance of the pool or a
             corresponding actor in the logs.
-        in_shifting_group: Whether the power requests get sent to the shifting group
-            in the PowerManager or not.
 
     Returns:
         A `BatteryPool` instance.
     """
     return _get().new_battery_pool(
-        priority=priority,
-        component_ids=component_ids,
-        name=name,
-        in_shifting_group=in_shifting_group,
+        priority=priority, component_ids=component_ids, name=name
     )
 
 
@@ -647,7 +623,6 @@ def new_pv_pool(
     priority: int,
     component_ids: abc.Set[int] | None = None,
     name: str | None = None,
-    in_shifting_group: bool = False,
 ) -> PVPool:
     """Return a new `PVPool` instance for the given parameters.
 
@@ -673,18 +648,11 @@ def new_pv_pool(
             graph are used.
         name: An optional name used to identify this instance of the pool or a
             corresponding actor in the logs.
-        in_shifting_group: Whether the power requests get sent to the shifting group
-            in the PowerManager or not.
 
     Returns:
         A `PVPool` instance.
     """
-    return _get().new_pv_pool(
-        priority=priority,
-        component_ids=component_ids,
-        name=name,
-        in_shifting_group=in_shifting_group,
-    )
+    return _get().new_pv_pool(priority=priority, component_ids=component_ids, name=name)
 
 
 def grid() -> Grid:

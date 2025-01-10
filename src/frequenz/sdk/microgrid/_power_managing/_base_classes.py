@@ -32,9 +32,6 @@ class ReportRequest:
     priority: int
     """The priority of the actor ."""
 
-    in_shifting_group: bool
-    """Whether the proposal gets sent to the shifting group of the power manager."""
-
     def get_channel_name(self) -> str:
         """Get the channel name for the report request.
 
@@ -157,9 +154,6 @@ class Proposal:
     This is used by the power manager to determine the age of the proposal.
     """
 
-    in_shifting_group: bool
-    """Whether the proposal gets sent to the shifting group of the power manager."""
-
     def __lt__(self, other: Proposal) -> bool:
         """Compare two proposals by their priority.
 
@@ -235,21 +229,6 @@ class BaseAlgorithm(abc.ABC):
         Returns:
             The new target power for the components, or `None` if the target power
                 didn't change.
-        """
-
-    @abc.abstractmethod
-    def get_target_power(
-        self,
-        component_ids: frozenset[int],
-    ) -> Power | None:
-        """Get the target power for the given components.
-
-        Args:
-            component_ids: The component IDs to get the target power for.
-
-        Returns:
-            The target power for the given components, or `None` if there is no target
-                power.
         """
 
     # The arguments for this method are tightly coupled to the `Matryoshka` algorithm.

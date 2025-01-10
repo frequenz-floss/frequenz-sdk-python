@@ -37,7 +37,6 @@ class PVPool:
         pool_ref_store: PVPoolReferenceStore,
         name: str | None,
         priority: int,
-        in_shifting_group: bool,
     ) -> None:
         """Initialize the instance.
 
@@ -50,14 +49,11 @@ class PVPool:
             pool_ref_store: The reference store for the PV pool.
             name: The name of the PV pool.
             priority: The priority of the PV pool.
-            in_shifting_group: Whether the power requests get sent to the shifting group
-                in the PowerManager or not.
         """
         self._pool_ref_store = pool_ref_store
         unique_id = uuid.uuid4()
         self._source_id = str(unique_id) if name is None else f"{name}-{unique_id}"
         self._priority = priority
-        self._in_shifting_group = in_shifting_group
 
     async def propose_power(
         self,
@@ -117,7 +113,6 @@ class PVPool:
                 component_ids=self._pool_ref_store.component_ids,
                 priority=self._priority,
                 creation_time=asyncio.get_running_loop().time(),
-                in_shifting_group=self._in_shifting_group,
             )
         )
 
@@ -172,7 +167,6 @@ class PVPool:
             source_id=self._source_id,
             priority=self._priority,
             component_ids=self._pool_ref_store.component_ids,
-            in_shifting_group=self._in_shifting_group,
         )
         self._pool_ref_store.power_bounds_subs[sub.get_channel_name()] = (
             asyncio.create_task(
