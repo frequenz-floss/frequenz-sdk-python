@@ -546,3 +546,65 @@ async def test_matryoshka_none_proposals() -> None:
         expected=20.0,
         batteries=overlapping_batteries,
     )
+
+
+async def test_matryoshka_shifting_limiting() -> None:
+    """Tests for the power managing actor.
+
+    With the following scenario:
+
+    | Actor | System Limits     | Specified Limits | Desired | Adjusted | Aggregate |
+    | Prio  |                   |                  | Power   | Power    | Power     |
+    |-------|-------------------|------------------|---------|----------|-----------|
+    | 7     | -100 kW .. 100 kW | None             | 10 kW   | 10 kW    | 10 kW     |
+    | 6     | -110 kW .. 90 kW  | -110 kW .. 80 kW | 10 kW   | 10 kW    | 20 kW     |
+    | 5     | -120 kW .. 70 kW  | -100 kW .. 80 kW | 80 kW   | 70 kW    | 90 kW     |
+    | 4     | -170 kW .. 0 kW   | None             | -120 kW | -120 kW  | -30 kW    |
+    | 3     | -50 kW .. 120 kW  | None             | 60 kW   | 60 kW    | 30 kW     |
+    | 2     | -110 kW .. 60 kW  | -40 kW .. 30 kW  | 20 kW   | 20 kW    | 50 kW     |
+    | 1     | -60 kW .. 10 kW   | -50 kW .. 40 kW  | 25 kW   | 10 kW    | 60 kW     |
+    | 0     | -60 kW .. 0 kW    | None             | 12 kW   | 0 kW     | 60 kW     |
+    | -1    | -60 kW .. 0 kW    | -40 kW .. -10 kW | -10 kW  | -10 kW   | 50 kW     |
+    |-------|-------------------|------------------|---------|----------|-----------|
+    |       |                   |                  |         | Power    |           |
+    |       |                   |                  |         | Setpoint | 50 kW     |
+    """
+    batteries = frozenset({2, 5})
+
+    system_bounds = _base_types.SystemBounds(
+        timestamp=datetime.now(tz=timezone.utc),
+        inclusion_bounds=timeseries.Bounds(
+            lower=Power.from_watts(-100.0), upper=Power.from_watts(100.0)
+        ),
+        exclusion_bounds=timeseries.Bounds(
+            lower=Power.from_watts(-0.0), upper=Power.from_watts(0.0)
+        ),
+    )
+
+    tester = StatefulTester(batteries, system_bounds)
+    tester.tgt_power(priority=7, power=10.0, bounds=(None, None), expected=10.0)
+    tester.bounds(priority=7, expected_power=10.0, expected_bounds=(-100.0, 100.0))
+    tester.bounds(priority=6, expected_power=10.0, expected_bounds=(-110.0, 90.0))
+
+    tester.tgt_power(priority=6, power=10.0, bounds=(-110.0, 80.0), expected=20.0)
+    tester.bounds(priority=5, expected_power=20.0, expected_bounds=(-120.0, 70.0))
+
+    tester.tgt_power(priority=5, power=80.0, bounds=(-100.0, 80.0), expected=90.0)
+    tester.bounds(priority=4, expected_power=90.0, expected_bounds=(-170.0, 0.0))
+
+    tester.tgt_power(priority=4, power=-120.0, bounds=(None, None), expected=-30.0)
+    tester.bounds(priority=3, expected_power=-30.0, expected_bounds=(-50.0, 120.0))
+
+    tester.tgt_power(priority=3, power=60.0, bounds=(None, None), expected=30.0)
+    tester.bounds(priority=2, expected_power=30.0, expected_bounds=(-110.0, 60.0))
+
+    tester.tgt_power(priority=2, power=20.0, bounds=(-40.0, 30.0), expected=50.0)
+    tester.bounds(priority=1, expected_power=50.0, expected_bounds=(-60.0, 10.0))
+
+    tester.tgt_power(priority=1, power=25.0, bounds=(-50.0, 40.0), expected=60.0)
+    tester.bounds(priority=0, expected_power=60.0, expected_bounds=(-60.0, 0.0))
+
+    tester.tgt_power(priority=0, power=12.0, bounds=(None, None), expected=None)
+    tester.bounds(priority=-1, expected_power=60.0, expected_bounds=(-60.0, 0.0))
+
+    tester.tgt_power(priority=-1, power=-10.0, bounds=(-40.0, -10.0), expected=50.0)
