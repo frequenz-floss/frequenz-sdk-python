@@ -43,7 +43,7 @@ class PowerManagingActor(Actor):
         component_type: ComponentType | None = None,
         # arguments to actors need to serializable, so we pass an enum for the algorithm
         # instead of an instance of the algorithm.
-        algorithm: Algorithm = Algorithm.MATRYOSHKA,
+        algorithm: Algorithm = Algorithm.SHIFTING_MATRYOSHKA,
     ):
         """Create a new instance of the power manager.
 
