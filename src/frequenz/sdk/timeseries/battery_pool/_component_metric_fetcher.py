@@ -21,6 +21,7 @@ from frequenz.client.microgrid import (
     ComponentMetricId,
     InverterData,
 )
+from typing_extensions import override
 
 from ..._internal._asyncio import AsyncConstructible
 from ..._internal._constants import MAX_BATTERY_DATA_AGE_SEC
@@ -67,6 +68,10 @@ class ComponentMetricFetcher(AsyncConstructible, ABC):
     @abstractmethod
     async def fetch_next(self) -> ComponentMetricsData | None:
         """Fetch metrics for this component."""
+
+    @abstractmethod
+    def stop(self) -> None:
+        """Stop the metric fetcher."""
 
 
 class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
@@ -142,6 +147,11 @@ class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
                 metrics[mid] = value
 
         return ComponentMetricsData(self._component_id, data.timestamp, metrics)
+
+    @override
+    def stop(self) -> None:
+        """Stop the metric fetcher."""
+        self._receiver.close()
 
     @abstractmethod
     def _extract_metric(self, data: T, mid: ComponentMetricId) -> float: ...
