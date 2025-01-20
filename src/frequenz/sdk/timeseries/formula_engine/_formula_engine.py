@@ -117,6 +117,9 @@ class FormulaEngine(Generic[QuantityT]):
         if self._task is None:
             return
         await cancel_and_await(self._task)
+        _, fetchers = self._builder.finalize()
+        for fetcher in fetchers.values():
+            fetcher.stream.close()
 
     @classmethod
     def from_receiver(
