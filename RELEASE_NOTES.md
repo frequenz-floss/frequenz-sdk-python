@@ -61,3 +61,5 @@ This release includes a new `ConfigManager` class to simplify managing the confi
 - Fix a bug in `BackgroundService` where it won't try to `self.cancel()` and `await self.wait()` if there are no internal tasks. This prevented to properly implement custom stop logic without having to redefine the `stop()` method too.
 
 - Fix a bug where if a string was passed to the `ConfigManagingActor` it would be interpreted as a sequence of 1 character strings.
+
+- Remove a confusing log message and rate-limit another spammy log message.

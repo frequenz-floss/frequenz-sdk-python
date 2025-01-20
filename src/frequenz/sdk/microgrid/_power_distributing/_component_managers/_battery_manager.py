@@ -400,7 +400,6 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             return Error(request=request, msg="Empty battery IDs in the request")
 
         for battery in request.component_ids:
-            _logger.debug("Checking battery %d", battery)
             if battery not in self._battery_caches:
                 msg = (
                     f"No battery {battery}, available batteries: "
