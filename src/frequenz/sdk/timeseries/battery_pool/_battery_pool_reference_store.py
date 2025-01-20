@@ -90,9 +90,12 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
         self._working_batteries: set[int] = set()
 
         self._update_battery_status_task: asyncio.Task[None] | None = None
+        self._batteries_status_receiver: Receiver[ComponentPoolStatus] = (
+            batteries_status_receiver
+        )
         if self._batteries:
             self._update_battery_status_task = asyncio.create_task(
-                self._update_battery_status(batteries_status_receiver)
+                self._update_battery_status(self._batteries_status_receiver)
             )
 
         self._min_update_interval: timedelta = min_update_interval
@@ -128,6 +131,7 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
         if self._update_battery_status_task:
             tasks_to_stop.append(cancel_and_await(self._update_battery_status_task))
         await asyncio.gather(*tasks_to_stop)
+        self._batteries_status_receiver.close()
 
     def _get_all_batteries(self) -> frozenset[int]:
         """Get all batteries from the microgrid.

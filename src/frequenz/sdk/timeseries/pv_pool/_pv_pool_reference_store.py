@@ -108,3 +108,4 @@ class PVPoolReferenceStore:
         """Stop all tasks and channels owned by the PVInverterPool."""
         await self.formula_pool.stop()
         await self.bounds_tracker.stop()
+        self.status_receiver.close()
