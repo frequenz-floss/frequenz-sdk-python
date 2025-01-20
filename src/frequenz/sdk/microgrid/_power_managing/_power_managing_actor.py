@@ -9,6 +9,7 @@ import asyncio
 import logging
 import sys
 from datetime import datetime, timedelta, timezone
+from typing import assert_never
 
 from frequenz.channels import Receiver, Sender, select, selected_from
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
@@ -22,6 +23,7 @@ from ...timeseries._base_types import SystemBounds
 from .. import _data_pipeline, _power_distributing
 from ._base_classes import Algorithm, BaseAlgorithm, Proposal, ReportRequest, _Report
 from ._matryoshka import Matryoshka
+from ._shifting_matryoshka import ShiftingMatryoshka
 
 _logger = logging.getLogger(__name__)
 
@@ -63,15 +65,7 @@ class PowerManagingActor(Actor):
                 `None` when the component category is enough to uniquely identify the
                 component.
             algorithm: The power management algorithm to use.
-
-        Raises:
-            NotImplementedError: When an unknown algorithm is given.
         """
-        if algorithm is not Algorithm.MATRYOSHKA:
-            raise NotImplementedError(
-                f"PowerManagingActor: Unknown algorithm: {algorithm}"
-            )
-
         self._component_category = component_category
         self._component_type = component_type
         self._bounds_subscription_receiver = bounds_subscription_receiver
@@ -84,9 +78,17 @@ class PowerManagingActor(Actor):
         self._bound_tracker_tasks: dict[frozenset[int], asyncio.Task[None]] = {}
         self._subscriptions: dict[frozenset[int], dict[int, Sender[_Report]]] = {}
 
-        self._algorithm: BaseAlgorithm = Matryoshka(
-            max_proposal_age=timedelta(seconds=60.0)
-        )
+        match algorithm:
+            case Algorithm.MATRYOSHKA:
+                self._algorithm: BaseAlgorithm = Matryoshka(
+                    max_proposal_age=timedelta(seconds=60.0)
+                )
+            case Algorithm.SHIFTING_MATRYOSHKA:
+                self._algorithm = ShiftingMatryoshka(
+                    max_proposal_age=timedelta(seconds=60.0)
+                )
+            case _:
+                assert_never(algorithm)
 
         super().__init__()
 
