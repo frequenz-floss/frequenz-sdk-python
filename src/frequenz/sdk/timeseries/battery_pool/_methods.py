@@ -168,6 +168,8 @@ class SendOnUpdate(MetricAggregator[T]):
         await asyncio.gather(
             *[cancel_and_await(self._send_task), cancel_and_await(self._update_task)]
         )
+        for fetcher in self._fetchers.values():
+            fetcher.stop()
 
     async def _create_data_fetchers(self) -> None:
         fetchers: dict[int, ComponentMetricFetcher] = {
