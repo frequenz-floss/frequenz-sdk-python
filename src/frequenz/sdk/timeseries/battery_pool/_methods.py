@@ -112,6 +112,8 @@ class SendOnUpdate(MetricAggregator[T]):
             set()
         )
 
+        self._fetchers: dict[int, ComponentMetricFetcher] = {}
+
     @classmethod
     def name(cls) -> str:
         """Get name of the method.
@@ -167,27 +169,25 @@ class SendOnUpdate(MetricAggregator[T]):
             *[cancel_and_await(self._send_task), cancel_and_await(self._update_task)]
         )
 
-    async def _create_data_fetchers(self) -> dict[int, ComponentMetricFetcher]:
+    async def _create_data_fetchers(self) -> None:
         fetchers: dict[int, ComponentMetricFetcher] = {
             cid: await LatestBatteryMetricsFetcher.async_new(cid, metrics)
             for cid, metrics in self._metric_calculator.battery_metrics.items()
         }
+        self._fetchers.update(fetchers)
         inverter_fetchers = {
             cid: await LatestInverterMetricsFetcher.async_new(cid, metrics)
             for cid, metrics in self._metric_calculator.inverter_metrics.items()
         }
-        fetchers.update(inverter_fetchers)
-        return fetchers
+        self._fetchers.update(inverter_fetchers)
 
-    def _remove_metric_fetcher(
-        self, fetchers: dict[int, ComponentMetricFetcher], component_id: int
-    ) -> None:
+    def _remove_metric_fetcher(self, component_id: int) -> None:
         _logger.error(
             "Removing component %d from the %s formula.",
             component_id,
             self._result_channel._name,  # pylint: disable=protected-access
         )
-        fetchers.pop(component_id)
+        self._fetchers.pop(component_id)
 
     def _metric_updated(self, new_metrics: ComponentMetricsData) -> bool:
         cid = new_metrics.component_id
@@ -197,11 +197,11 @@ class SendOnUpdate(MetricAggregator[T]):
 
     async def _update_and_notify(self) -> None:
         """Receive component metrics and send notification when they change."""
-        fetchers = await self._create_data_fetchers()
+        await self._create_data_fetchers()
 
         self._pending_data_fetchers = {
             asyncio.create_task(fetcher.fetch_next(), name=str(cid))
-            for cid, fetcher in fetchers.items()
+            for cid, fetcher in self._fetchers.items()
         }
         while len(self._pending_data_fetchers) > 0:
             done, self._pending_data_fetchers = await asyncio.wait(
@@ -210,7 +210,7 @@ class SendOnUpdate(MetricAggregator[T]):
             for item in done:
                 metrics = item.result()
                 if metrics is None:
-                    self._remove_metric_fetcher(fetchers, int(item.get_name()))
+                    self._remove_metric_fetcher(int(item.get_name()))
                     continue
                 if self._metric_updated(metrics):
                     self._update_event.set()
@@ -220,7 +220,7 @@ class SendOnUpdate(MetricAggregator[T]):
                 self._cached_metrics[cid] = metrics
                 # Add fetcher back to the processing list.
                 self._pending_data_fetchers.add(
-                    asyncio.create_task(fetchers[cid].fetch_next(), name=str(cid))
+                    asyncio.create_task(self._fetchers[cid].fetch_next(), name=str(cid))
                 )
 
     async def _send_on_update(self, min_update_interval: timedelta) -> None:
