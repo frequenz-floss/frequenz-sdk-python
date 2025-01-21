@@ -63,3 +63,5 @@ This release includes a new `ConfigManager` class to simplify managing the confi
 - Fix a bug where if a string was passed to the `ConfigManagingActor` it would be interpreted as a sequence of 1 character strings.
 
 - Remove a confusing log message in the power distributing actor.
+
+- Close all receivers owned by a *pool when stopping the pool.
