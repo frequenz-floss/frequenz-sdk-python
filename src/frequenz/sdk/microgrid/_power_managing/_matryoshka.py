@@ -292,10 +292,17 @@ class Matryoshka(BaseAlgorithm):
         Args:
             loop_time: The current loop time.
         """
-        for bucket in self._component_buckets.values():
-            to_delete = []
-            for proposal in bucket:
+        buckets_to_delete: list[frozenset[int]] = []
+        for component_ids, proposals in self._component_buckets.items():
+            to_delete: list[Proposal] = []
+            for proposal in proposals:
                 if (loop_time - proposal.creation_time) > self._max_proposal_age_sec:
                     to_delete.append(proposal)
             for proposal in to_delete:
-                bucket.remove(proposal)
+                proposals.remove(proposal)
+            if not proposals:
+                buckets_to_delete.append(component_ids)
+
+        for component_ids in buckets_to_delete:
+            del self._component_buckets[component_ids]
+            _ = self._target_power.pop(component_ids, None)
