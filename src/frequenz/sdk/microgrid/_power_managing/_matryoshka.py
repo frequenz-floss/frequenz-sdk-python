@@ -199,7 +199,15 @@ class Matryoshka(BaseAlgorithm):
             bucket = self._component_buckets.setdefault(component_ids, set())
             if proposal in bucket:
                 bucket.remove(proposal)
-            bucket.add(proposal)
+            if (
+                proposal.preferred_power is not None
+                or proposal.bounds.lower is not None
+                or proposal.bounds.upper is not None
+            ):
+                bucket.add(proposal)
+            elif not bucket:
+                del self._component_buckets[component_ids]
+                _ = self._target_power.pop(component_ids, None)
 
         # If there has not been any proposal for the given components, don't calculate a
         # target power and just return `None`.
