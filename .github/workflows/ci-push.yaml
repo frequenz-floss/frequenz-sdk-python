@@ -2,7 +2,6 @@ name: CI
 
 on:
   merge_group:
-  pull_request:
   push:
     # We need to explicitly include tags because otherwise when adding
     # `branches-ignore` it will only trigger on branches.
@@ -29,8 +28,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        arch:
+          - amd64
+          - arm
         os:
-          - ubuntu-20.04
+          - ubuntu-24.04
         python:
           - "3.11"
           - "3.12"
@@ -39,50 +41,16 @@ jobs:
           # that uses the same venv to run multiple linting sessions
           - "ci_checks_max"
           - "pytest_min"
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}${{ matrix.arch != 'amd64' && format('-{0}', matrix.arch) || '' }}
 
     steps:
-      - name: Setup Git
-        uses: frequenz-floss/gh-action-setup-git@v0.x.x
-
-      - name: Print environment (debug)
-        run: env
-
-      - name: Fetch sources
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python }}
-          cache: 'pip'
-
-      - name: Install required Python packages
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e .[dev-noxfile]
-          pip freeze
-
-      - name: Create nox venv
-        env:
-          NOX_SESSION: ${{ matrix.nox-session }}
-        run: nox --install-only -e "$NOX_SESSION"
-
-      - name: Print pip freeze for nox venv (debug)
-        env:
-          NOX_SESSION: ${{ matrix.nox-session }}
-        run: |
-          . ".nox/$NOX_SESSION/bin/activate"
-          pip freeze
-          deactivate
-
       - name: Run nox
-        env:
-          NOX_SESSION: ${{ matrix.nox-session }}
-        run: nox -R -e "$NOX_SESSION"
-        timeout-minutes: 10
+        uses: frequenz-floss/gh-action-nox@v1.0.0
+        with:
+          git-username: ${{ secrets.GIT_USER }}
+          git-password: ${{ secrets.GIT_PASS }}
+          python-version: ${{ matrix.python }}
+          nox-session: ${{ matrix.nox-session }}
 
   # This job runs if all the `nox` matrix jobs ran and succeeded.
   # It is only used to have a single job that we can require in branch
@@ -94,158 +62,34 @@ jobs:
     needs: ["nox"]
     # We skip this job only if nox was also skipped
     if: always() && needs.nox.result != 'skipped'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       DEPS_RESULT: ${{ needs.nox.result }}
     steps:
       - name: Check matrix job result
         run: test "$DEPS_RESULT" = "success"
 
-  nox-cross-arch:
-    name: Cross-arch tests with nox
-    if: github.event_name != 'pull_request'
-    strategy:
-      fail-fast: false
-      # Before adding new items to this matrix, make sure that a dockerfile
-      # exists for the combination of items in the matrix.
-      # Refer to .github/containers/nox-cross-arch/README.md to learn how to
-      # add and name new dockerfiles.
-      matrix:
-        arch:
-          - arm64
-        os:
-          - ubuntu-20.04
-        python:
-          - "3.11"
-          - "3.12"
-        nox-session:
-          - "pytest_min"
-          - "pytest_max"
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - name: Setup Git
-        uses: frequenz-floss/gh-action-setup-git@v0.x.x
-
-      - name: Fetch sources
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: linux/${{ matrix.arch }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      # This is a workaround to prevent the cache from growing indefinitely.
-      # https://docs.docker.com/build/ci/github-actions/cache/#local-cache
-      # https://github.com/docker/build-push-action/issues/252
-      # https://github.com/moby/buildkit/issues/1896
-      - name: Cache container layers
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-nox-${{ matrix.arch }}-${{ matrix.os }}-${{ matrix.python }}
-
-      - name: Build image
-        uses: docker/build-push-action@v6
-        with:
-          context: .github/containers/nox-cross-arch
-          file: .github/containers/nox-cross-arch/${{ matrix.arch }}-${{ matrix.os }}-python.Dockerfile
-          platforms: linux/${{ matrix.arch }}
-          build-args: |
-            PYTHON_VERSION=${{ matrix.python }}
-          tags: localhost/nox-cross-arch:latest
-          push: false
-          load: true
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
-
-      # Refer to the workaround mentioned above
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-
-      # Cache pip downloads
-      - name: Cache pip downloads
-        uses: actions/cache@v4
-        with:
-          path: /tmp/pip-cache
-          key: nox-${{ matrix.nox-session }}-${{ matrix.arch }}-${{ matrix.os }}-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}
-
-      # This ensures that the docker container has access to the pip cache.
-      # Changing the user in the docker-run step causes it to fail due to
-      # incorrect permissions. Setting the ownership of the pip cache to root
-      # before running is a workaround to this issue.
-      - name: Set pip cache owners to root for docker
-        run: if [[ -e /tmp/pip-cache ]]; then sudo chown -R root:root /tmp/pip-cache; fi
-
-      - name: Run nox
-        run: |
-          docker run \
-            --rm \
-            -v $(pwd):/${{ github.workspace }} \
-            -v /tmp/pip-cache:/root/.cache/pip \
-            -w ${{ github.workspace }} \
-            --net=host \
-            --platform linux/${{ matrix.arch }} \
-            localhost/nox-cross-arch:latest \
-            bash -c "pip install -e .[dev-noxfile]; nox --install-only -e ${{ matrix.nox-session }}; pip freeze; nox -e ${{ matrix.nox-session }}"
-        timeout-minutes: 30
-
-      # This ensures that the runner has access to the pip cache.
-      - name: Reset pip cache ownership
-        if: always()
-        run: if [[ -e /tmp/pip-cache ]]; then sudo chown -R $USER:$USER /tmp/pip-cache; fi
-
-  # This job runs if all the `nox-cross-arch` matrix jobs ran and succeeded.
-  # As the `nox-all` job, its main purpose is to provide a single point of
-  # reference in branch protection rules, similar to how `nox-all` operates.
-  # However, there's a crucial difference: the `nox-cross-arch` job is omitted
-  # in PRs. Without the `nox-cross-arch-all` job, the inner matrix wouldn't be
-  # expanded in such scenarios. This would lead to the CI indefinitely waiting
-  # for these jobs to complete due to the branch protection rules, essentially
-  # causing it to hang. This behavior is tied to a recognized GitHub matrices
-  # issue when certain jobs are skipped. For a deeper understanding, refer to:
-  # https://github.com/orgs/community/discussions/9141
-  nox-cross-arch-all:
-    # The job name should match the name of the `nox-cross-arch` job.
-    name: Cross-arch tests with nox
-    needs: ["nox-cross-arch"]
-    # We skip this job only if nox-cross-arch was also skipped
-    if: always() && needs.nox-cross-arch.result != 'skipped'
-    runs-on: ubuntu-20.04
-    env:
-      DEPS_RESULT: ${{ needs.nox-cross-arch.result }}
-    steps:
-      - name: Check matrix job result
-        run: test "$DEPS_RESULT" = "success"
-
   build:
     name: Build distribution packages
-    runs-on: ubuntu-20.04
+    # Since this is a pure Python package, we only need to build it once. If it
+    # had any architecture specific code, we would need to build it for each
+    # architecture.
+    runs-on: ubuntu-24.04
+
     steps:
       - name: Setup Git
-        uses: frequenz-floss/gh-action-setup-git@v0.x.x
+        uses: frequenz-floss/gh-action-setup-git@v1.0.0
 
       - name: Fetch sources
         uses: actions/checkout@v4
         with:
           submodules: true
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: frequenz-floss/gh-action-setup-python-with-deps@v1.0.0
         with:
           python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
-          cache: 'pip'
-
-      - name: Install required Python packages
-        run: |
-          python -m pip install -U pip
-          python -m pip install -U build
-          pip freeze
+          dependencies: build
 
       - name: Build the source and binary distribution
         run: python -m build
@@ -258,23 +102,27 @@ jobs:
           if-no-files-found: error
 
   test-installation:
-    name: Test package installation in different architectures
+    name: Test package installation
     needs: ["build"]
     strategy:
       fail-fast: false
       matrix:
+        arch:
+          - amd64
+          - arm
         os:
-          - ubuntu-20.04
+          - ubuntu-24.04
         python:
           - "3.11"
           - "3.12"
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}${{ matrix.arch != 'amd64' && format('-{0}', matrix.arch) || '' }}
+
     steps:
       - name: Setup Git
-        uses: frequenz-floss/gh-action-setup-git@v0.x.x
+        uses: frequenz-floss/gh-action-setup-git@v1.0.0
 
-      - name: Fetch sources
-        uses: actions/checkout@v4
+      - name: Print environment (debug)
+        run: env
 
       - name: Download package
         uses: actions/download-artifact@v4
@@ -282,22 +130,28 @@ jobs:
           name: dist-packages
           path: dist
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      # This is necessary for the `pip` caching in the setup-python action to work
+      - name: Fetch the pyproject.toml file for this action hash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          REF: ${{ github.sha }}
+        run: |
+          set -ux
+          gh api \
+              -X GET \
+              -H "Accept: application/vnd.github.raw" \
+              "/repos/$REPO/contents/pyproject.toml?ref=$REF" \
+            > pyproject.toml
 
-      - name: Set up docker-buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Test Installation
-        uses: docker/build-push-action@v6
+      - name: Setup Python
+        uses: frequenz-floss/gh-action-setup-python-with-deps@v1.0.0
         with:
-          context: .
-          file: .github/containers/test-installation/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          build-args: |
-            PYTHON_VERSION=${{ matrix.python }}
-          tags: localhost/test-installation
-          push: false
+          python-version: ${{ matrix.python }}
+          dependencies: dist/*.whl
+
+      - name: Print installed packages (debug)
+        run: python -m pip freeze
 
   # This job runs if all the `test-installation` matrix jobs ran and succeeded.
   # It is only used to have a single job that we can require in branch
@@ -305,11 +159,11 @@ jobs:
   # we add or remove a job from the matrix.
   test-installation-all:
     # The job name should match the name of the `test-installation` job.
-    name: Test package installation in different architectures
+    name: Test package installation
     needs: ["test-installation"]
     # We skip this job only if test-installation was also skipped
     if: always() && needs.test-installation.result != 'skipped'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       DEPS_RESULT: ${{ needs.test-installation.result }}
     steps:
@@ -319,27 +173,21 @@ jobs:
   test-docs:
     name: Test documentation website generation
     if: github.event_name != 'push'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Setup Git
-        uses: frequenz-floss/gh-action-setup-git@v0.x.x
+        uses: frequenz-floss/gh-action-setup-git@v1.0.0
 
       - name: Fetch sources
         uses: actions/checkout@v4
         with:
           submodules: true
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: frequenz-floss/gh-action-setup-python-with-deps@v1.0.0
         with:
           python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
-          cache: 'pip'
-
-      - name: Install build dependencies
-        run: |
-          python -m pip install -U pip
-          python -m pip install .[dev-mkdocs]
-          pip freeze
+          dependencies: .[dev-mkdocs]
 
       - name: Generate the documentation
         env:
@@ -357,31 +205,25 @@ jobs:
 
   publish-docs:
     name: Publish documentation website to GitHub pages
-    needs: ["nox-all", "nox-cross-arch-all", "test-installation"]
+    needs: ["nox-all", "test-installation-all"]
     if: github.event_name == 'push'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
       - name: Setup Git
-        uses: frequenz-floss/gh-action-setup-git@v0.x.x
+        uses: frequenz-floss/gh-action-setup-git@v1.0.0
 
       - name: Fetch sources
         uses: actions/checkout@v4
         with:
           submodules: true
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: frequenz-floss/gh-action-setup-python-with-deps@v1.0.0
         with:
           python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
-          cache: 'pip'
-
-      - name: Install build dependencies
-        run: |
-          python -m pip install -U pip
-          python -m pip install .[dev-mkdocs]
-          pip freeze
+          dependencies: .[dev-mkdocs]
 
       - name: Calculate and check version
         id: mike-version
@@ -436,7 +278,7 @@ jobs:
       # discussions to create the release announcement in the discussion forums
       contents: write
       discussions: write
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Download distribution files
         uses: actions/download-artifact@v4
@@ -478,7 +320,7 @@ jobs:
   publish-to-pypi:
     name: Publish packages to PyPI
     needs: ["create-github-release"]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     permissions:
       # For trusted publishing. See:
       # https://blog.pypi.org/posts/2023-04-20-introducing-trusted-publishers/
