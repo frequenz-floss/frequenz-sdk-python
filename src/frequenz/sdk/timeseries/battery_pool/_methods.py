@@ -189,7 +189,8 @@ class SendOnUpdate(MetricAggregator[T]):
             component_id,
             self._result_channel._name,  # pylint: disable=protected-access
         )
-        self._fetchers.pop(component_id)
+        fetcher = self._fetchers.pop(component_id)
+        fetcher.stop()
 
     def _metric_updated(self, new_metrics: ComponentMetricsData) -> bool:
         cid = new_metrics.component_id
