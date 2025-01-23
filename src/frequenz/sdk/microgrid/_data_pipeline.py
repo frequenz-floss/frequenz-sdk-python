@@ -22,7 +22,6 @@ from frequenz.client.microgrid import ComponentCategory, InverterType
 from .._internal._channels import ChannelRegistry
 from ..actor._actor import Actor
 from ..timeseries import ResamplerConfig
-from ..timeseries._grid_frequency import GridFrequency
 from ..timeseries._voltage_streamer import VoltageStreamer
 from ..timeseries.grid import Grid
 from ..timeseries.grid import get as get_grid
@@ -35,6 +34,7 @@ from ._power_wrapper import PowerWrapper
 #
 # pylint: disable=import-outside-toplevel
 if typing.TYPE_CHECKING:
+    from ..timeseries._grid_frequency import GridFrequency
     from ..timeseries.battery_pool import BatteryPool
     from ..timeseries.battery_pool._battery_pool_reference_store import (
         BatteryPoolReferenceStore,
@@ -140,6 +140,8 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
     def frequency(self) -> GridFrequency:
         """Return the grid frequency measuring point."""
+        from ..timeseries._grid_frequency import GridFrequency
+
         if self._frequency_instance is None:
             self._frequency_instance = GridFrequency(
                 self._data_sourcing_request_sender(),

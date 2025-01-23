@@ -30,7 +30,7 @@ dependencies = [
   # changing the version
   # (plugins.mkdocstrings.handlers.python.import)
   "frequenz-client-microgrid >= 0.6.0, < 0.7.0",
-  "frequenz-channels >= 1.4.0, < 2.0.0",
+  "frequenz-channels >= 1.6.0, < 2.0.0",
   "frequenz-quantities[marshmallow] >= 1.0.0, < 2.0.0",
   "networkx >= 2.8, < 4",
   "numpy >= 1.26.4, < 2",
@@ -48,7 +48,7 @@ email = "floss@frequenz.com"
 dev-flake8 = [
   "flake8 == 7.1.1",
   "flake8-docstrings == 1.7.0",
-  "flake8-pyproject == 1.2.3",  # For reading the flake8 config from pyproject.toml
+  "flake8-pyproject == 1.2.3", # For reading the flake8 config from pyproject.toml
   "pydoclint == 0.5.14",
   "pydocstyle == 6.3.0",
 ]

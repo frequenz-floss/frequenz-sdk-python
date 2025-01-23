@@ -227,7 +227,11 @@ class ConfigManager(BackgroundService):
         """
         _validate_load_kwargs(marshmallow_load_kwargs)
 
-        receiver = self.config_channel.new_receiver(name=f"{self}:{key}", limit=1).map(
+        # We disable warning on overflow, because we are only interested in the latest
+        # configuration, it is completely fine to drop old configuration updates.
+        receiver = self.config_channel.new_receiver(
+            name=f"{self}:{key}", limit=1, warn_on_overflow=False
+        ).map(
             lambda config: _load_config_with_logging_and_errors(
                 config,
                 config_class,
