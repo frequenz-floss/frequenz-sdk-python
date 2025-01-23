@@ -107,3 +107,4 @@ class EVChargerPoolReferenceStore:
         """Stop all tasks and channels owned by the EVChargerPool."""
         await self.formula_pool.stop()
         await self.bounds_tracker.stop()
+        self.status_receiver.close()
