@@ -483,3 +483,60 @@ async def test_matryoshka_drop_old_proposals() -> None:
         must_send=True,
         batteries=overlapping_batteries,
     )
+
+
+async def test_matryoshka_none_proposals() -> None:
+    """Tests for the power managing actor.
+
+    When a `None` proposal is received, is source id should be dropped from the bucket.
+    Then if the bucket becomes empty, it should be dropped as well.
+    """
+    batteries = frozenset({2, 5})
+    overlapping_batteries = frozenset({5, 8})
+
+    system_bounds = _base_types.SystemBounds(
+        timestamp=datetime.now(tz=timezone.utc),
+        inclusion_bounds=timeseries.Bounds(
+            lower=Power.from_watts(-200.0), upper=Power.from_watts(200.0)
+        ),
+        exclusion_bounds=timeseries.Bounds(lower=Power.zero(), upper=Power.zero()),
+    )
+
+    def ensure_overlapping_bucket_request_fails() -> None:
+        with pytest.raises(
+            NotImplementedError,
+            match=re.escape(
+                "PowerManagingActor: component IDs frozenset({8, 5}) are already "
+                + "part of another bucket.  Overlapping buckets are not yet supported."
+            ),
+        ):
+            tester.tgt_power(
+                priority=1,
+                power=None,
+                bounds=(20.0, 50.0),
+                expected=None,
+                must_send=True,
+                batteries=overlapping_batteries,
+            )
+
+    tester = StatefulTester(batteries, system_bounds)
+
+    tester.tgt_power(priority=3, power=22.0, bounds=(22.0, 30.0), expected=22.0)
+    tester.tgt_power(priority=2, power=25.0, bounds=(25.0, 50.0), expected=25.0)
+    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=None)
+
+    ensure_overlapping_bucket_request_fails()
+    tester.tgt_power(priority=1, power=None, bounds=(None, None), expected=None)
+    ensure_overlapping_bucket_request_fails()
+    tester.tgt_power(priority=3, power=None, bounds=(None, None), expected=None)
+    ensure_overlapping_bucket_request_fails()
+    tester.tgt_power(priority=2, power=None, bounds=(None, None), expected=None)
+
+    # Overlapping battery bucket is dropped.
+    tester.tgt_power(
+        priority=1,
+        power=20.0,
+        bounds=(20.0, 50.0),
+        expected=20.0,
+        batteries=overlapping_batteries,
+    )
