@@ -4,8 +4,10 @@
 """Tests for the Matryoshka power manager algorithm."""
 
 import asyncio
+import re
 from datetime import datetime, timedelta, timezone
 
+import pytest
 from frequenz.quantities import Power
 
 from frequenz.sdk import timeseries
@@ -36,13 +38,14 @@ class StatefulTester:
         expected: float | None,
         creation_time: float | None = None,
         must_send: bool = False,
+        batteries: frozenset[int] | None = None,
     ) -> None:
         """Test the target power calculation."""
         self._call_count += 1
         tgt_power = self.algorithm.calculate_target_power(
-            self._batteries,
+            self._batteries if batteries is None else batteries,
             Proposal(
-                component_ids=self._batteries,
+                component_ids=self._batteries if batteries is None else batteries,
                 source_id=f"actor-{priority}",
                 preferred_power=None if power is None else Power.from_watts(power),
                 bounds=timeseries.Bounds(
@@ -368,6 +371,7 @@ async def test_matryoshka_drop_old_proposals() -> None:
     With inclusion bounds, and exclusion bounds -30.0 to 30.0.
     """
     batteries = frozenset({2, 5})
+    overlapping_batteries = frozenset({5, 8})
 
     system_bounds = _base_types.SystemBounds(
         timestamp=datetime.now(tz=timezone.utc),
@@ -423,4 +427,116 @@ async def test_matryoshka_drop_old_proposals() -> None:
     tester.algorithm.drop_old_proposals(now)
     tester.tgt_power(
         priority=1, power=20.0, bounds=(20.0, 50.0), expected=25.0, must_send=True
+    )
+
+    # When all proposals are too old, they are dropped, and the buckets are dropped as
+    # well.  After that, sending a request for a different but overlapping bucket will
+    # succeed.  And it will fail until then.
+    with pytest.raises(
+        NotImplementedError,
+        match=re.escape(
+            "PowerManagingActor: component IDs frozenset({8, 5}) are already "
+            + "part of another bucket.  Overlapping buckets are not yet supported."
+        ),
+    ):
+        tester.tgt_power(
+            priority=1,
+            power=25.0,
+            bounds=(25.0, 50.0),
+            expected=25.0,
+            must_send=True,
+            batteries=overlapping_batteries,
+        )
+
+    tester.tgt_power(
+        priority=1,
+        power=25.0,
+        bounds=(25.0, 50.0),
+        creation_time=now - 70.0,
+        expected=25.0,
+        must_send=True,
+    )
+    tester.tgt_power(
+        priority=2,
+        power=25.0,
+        bounds=(25.0, 50.0),
+        creation_time=now - 70.0,
+        expected=25.0,
+        must_send=True,
+    )
+    tester.tgt_power(
+        priority=3,
+        power=25.0,
+        bounds=(25.0, 50.0),
+        creation_time=now - 70.0,
+        expected=25.0,
+        must_send=True,
+    )
+
+    tester.algorithm.drop_old_proposals(now)
+
+    tester.tgt_power(
+        priority=1,
+        power=25.0,
+        bounds=(25.0, 50.0),
+        expected=25.0,
+        must_send=True,
+        batteries=overlapping_batteries,
+    )
+
+
+async def test_matryoshka_none_proposals() -> None:
+    """Tests for the power managing actor.
+
+    When a `None` proposal is received, is source id should be dropped from the bucket.
+    Then if the bucket becomes empty, it should be dropped as well.
+    """
+    batteries = frozenset({2, 5})
+    overlapping_batteries = frozenset({5, 8})
+
+    system_bounds = _base_types.SystemBounds(
+        timestamp=datetime.now(tz=timezone.utc),
+        inclusion_bounds=timeseries.Bounds(
+            lower=Power.from_watts(-200.0), upper=Power.from_watts(200.0)
+        ),
+        exclusion_bounds=timeseries.Bounds(lower=Power.zero(), upper=Power.zero()),
+    )
+
+    def ensure_overlapping_bucket_request_fails() -> None:
+        with pytest.raises(
+            NotImplementedError,
+            match=re.escape(
+                "PowerManagingActor: component IDs frozenset({8, 5}) are already "
+                + "part of another bucket.  Overlapping buckets are not yet supported."
+            ),
+        ):
+            tester.tgt_power(
+                priority=1,
+                power=None,
+                bounds=(20.0, 50.0),
+                expected=None,
+                must_send=True,
+                batteries=overlapping_batteries,
+            )
+
+    tester = StatefulTester(batteries, system_bounds)
+
+    tester.tgt_power(priority=3, power=22.0, bounds=(22.0, 30.0), expected=22.0)
+    tester.tgt_power(priority=2, power=25.0, bounds=(25.0, 50.0), expected=25.0)
+    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=None)
+
+    ensure_overlapping_bucket_request_fails()
+    tester.tgt_power(priority=1, power=None, bounds=(None, None), expected=None)
+    ensure_overlapping_bucket_request_fails()
+    tester.tgt_power(priority=3, power=None, bounds=(None, None), expected=None)
+    ensure_overlapping_bucket_request_fails()
+    tester.tgt_power(priority=2, power=None, bounds=(None, None), expected=None)
+
+    # Overlapping battery bucket is dropped.
+    tester.tgt_power(
+        priority=1,
+        power=20.0,
+        bounds=(20.0, 50.0),
+        expected=20.0,
+        batteries=overlapping_batteries,
     )
