@@ -1,0 +1,54 @@
+name: Test PR
+
+on: pull_request
+
+env:
+  # Please make sure this version is included in the `matrix`, as the
+  # `matrix` section can't use `env`, so it must be entered manually
+  DEFAULT_PYTHON_VERSION: '3.11'
+  # It would be nice to be able to also define a DEFAULT_UBUNTU_VERSION
+  # but sadly `env` can't be used either in `runs-on`.
+
+jobs:
+  nox:
+    name: Test with nox
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Run nox
+        uses: frequenz-floss/gh-action-nox@v1.0.0
+        with:
+          python-version: "3.11"
+          nox-session: ci_checks_max
+
+  test-docs:
+    name: Test documentation website generation
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Setup Git
+        uses: frequenz-floss/gh-action-setup-git@v1.0.0
+
+      - name: Fetch sources
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup Python
+        uses: frequenz-floss/gh-action-setup-python-with-deps@v1.0.0
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
+          dependencies: .[dev-mkdocs]
+
+      - name: Generate the documentation
+        env:
+          MIKE_VERSION: gh-${{ github.job }}
+        run: |
+          mike deploy $MIKE_VERSION
+          mike set-default $MIKE_VERSION
+
+      - name: Upload site
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-site
+          path: site/
+          if-no-files-found: error
