@@ -4,6 +4,7 @@
 """Tests for the moving window."""
 
 import asyncio
+import re
 from collections.abc import Sequence
 from datetime import datetime, timedelta, timezone
 
@@ -29,6 +30,7 @@ async def push_logical_meter_data(
     sender: Sender[Sample[Quantity]],
     test_seq: Sequence[float | None],
     start_ts: datetime = UNIX_EPOCH,
+    fake_time: time_machine.Coordinates | None = None,
 ) -> None:
     """Push data in the passed sender to mock `LogicalMeter` behaviour.
 
@@ -38,23 +40,29 @@ async def push_logical_meter_data(
         sender: Sender for pushing resampled samples to the `MovingWindow`.
         test_seq: The Sequence that is pushed into the `MovingWindow`.
         start_ts: The start timestamp of the `MovingWindow`.
+        fake_time: The fake time object to shift the time.
     """
     for i, j in zip(test_seq, range(0, len(test_seq))):
         timestamp = start_ts + timedelta(seconds=j)
         await sender.send(
             Sample(timestamp, Quantity(float(i)) if i is not None else None)
         )
+        if fake_time is not None:
+            await asyncio.sleep(1.0)
+            fake_time.shift(1)
 
     await asyncio.sleep(0.0)
 
 
 def init_moving_window(
     size: timedelta,
+    resampler_config: ResamplerConfig | None = None,
 ) -> tuple[MovingWindow, Sender[Sample[Quantity]]]:
     """Initialize the moving window with given shape.
 
     Args:
         size: The size of the `MovingWindow`
+        resampler_config: The resampler configuration.
 
     Returns:
         tuple[MovingWindow, Sender[Sample]]: A pair of sender and `MovingWindow`.
@@ -65,6 +73,7 @@ def init_moving_window(
         size=size,
         resampled_data_recv=lm_chan.new_receiver(),
         input_sampling_period=timedelta(seconds=1),
+        resampler_config=resampler_config,
     )
     return window, lm_tx
 
@@ -361,6 +370,149 @@ async def test_window_size() -> None:  # pylint: disable=too-many-statements
             expected_valid=3,
             expected_covered=5,
         )
+
+
+async def test_wait_for_samples() -> None:
+    """Test waiting for samples in the window."""
+    window, sender = init_moving_window(timedelta(seconds=10))
+    async with window:
+        task = asyncio.create_task(window.wait_for_samples(5))
+        await asyncio.sleep(0)
+        assert not task.done()
+        await push_logical_meter_data(sender, range(0, 5))
+        await asyncio.sleep(0)
+        # After pushing 5 values, the `wait_for_samples` task should be done.
+        assert task.done()
+
+        task = asyncio.create_task(window.wait_for_samples(5))
+        await asyncio.sleep(0)
+        await push_logical_meter_data(
+            sender, [1, 2, 3, 4], start_ts=UNIX_EPOCH + timedelta(seconds=5)
+        )
+        await asyncio.sleep(0)
+        # The task should not be done yet, since we have only pushed 4 values.
+        assert not task.done()
+
+        await push_logical_meter_data(
+            sender, [1], start_ts=UNIX_EPOCH + timedelta(seconds=9)
+        )
+        await asyncio.sleep(0)
+        # After pushing the last value, the task should be done.
+        assert task.done()
+
+        task = asyncio.create_task(window.wait_for_samples(-1))
+        with pytest.raises(
+            ValueError,
+            match=re.escape("The number of samples to wait for must be 0 or greater."),
+        ):
+            await task
+
+        task = asyncio.create_task(window.wait_for_samples(20))
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "The number of samples to wait for must be less than or equal to the "
+                + "capacity of the MovingWindow (10)."
+            ),
+        ):
+            await task
+
+        task = asyncio.create_task(window.wait_for_samples(4))
+        await asyncio.sleep(0)
+        await push_logical_meter_data(
+            sender, range(0, 10), start_ts=UNIX_EPOCH + timedelta(seconds=10)
+        )
+        await asyncio.sleep(0)
+        assert task.done()
+
+        task = asyncio.create_task(window.wait_for_samples(10))
+        await asyncio.sleep(0)
+        await push_logical_meter_data(
+            sender, range(0, 5), start_ts=UNIX_EPOCH + timedelta(seconds=20)
+        )
+        await asyncio.sleep(0)
+        assert not task.done()
+
+        await push_logical_meter_data(
+            sender, range(10, 15), start_ts=UNIX_EPOCH + timedelta(seconds=25)
+        )
+        await asyncio.sleep(0)
+        assert task.done()
+
+        task = asyncio.create_task(window.wait_for_samples(5))
+        await asyncio.sleep(0)
+        await push_logical_meter_data(
+            sender, [1, 2, None, 4, None], start_ts=UNIX_EPOCH + timedelta(seconds=30)
+        )
+        await asyncio.sleep(0)
+        # `None` values *are* counted towards the number of samples to wait for.
+        assert task.done()
+
+
+async def test_wait_for_samples_with_resampling(
+    fake_time: time_machine.Coordinates,
+) -> None:
+    """Test waiting for samples in a moving window with resampling."""
+    window, sender = init_moving_window(
+        timedelta(seconds=20), ResamplerConfig(resampling_period=timedelta(seconds=2))
+    )
+    async with window:
+        task = asyncio.create_task(window.wait_for_samples(3))
+        await asyncio.sleep(0)
+        assert not task.done()
+        await push_logical_meter_data(sender, range(0, 7), fake_time=fake_time)
+        assert task.done()
+
+        task = asyncio.create_task(window.wait_for_samples(10))
+        await push_logical_meter_data(
+            sender,
+            range(0, 11),
+            fake_time=fake_time,
+            start_ts=UNIX_EPOCH + timedelta(seconds=7),
+        )
+        assert window.count_covered() == 8
+        assert not task.done()
+
+        await push_logical_meter_data(
+            sender,
+            range(0, 5),
+            fake_time=fake_time,
+            start_ts=UNIX_EPOCH + timedelta(seconds=18),
+        )
+        assert window.count_covered() == 10
+        assert not task.done()
+
+        await push_logical_meter_data(
+            sender,
+            range(0, 6),
+            fake_time=fake_time,
+            start_ts=UNIX_EPOCH + timedelta(seconds=23),
+        )
+        assert window.count_covered() == 10
+        assert window.count_valid() == 10
+        assert task.done()
+
+        task = asyncio.create_task(window.wait_for_samples(5))
+        await push_logical_meter_data(
+            sender,
+            [1, 2, None, None, None, None, None, None, None, None],
+            fake_time=fake_time,
+            start_ts=UNIX_EPOCH + timedelta(seconds=29),
+        )
+        assert window.count_covered() == 10
+        assert window.count_valid() == 8
+        assert task.done()
+
+        task = asyncio.create_task(window.wait_for_samples(5))
+        await push_logical_meter_data(
+            sender,
+            [None, 4, None, None, None, None, None, None, None, 5],
+            fake_time=fake_time,
+            start_ts=UNIX_EPOCH + timedelta(seconds=39),
+        )
+        assert window.count_covered() == 10
+        assert window.count_valid() == 7
+        assert task.done()
 
 
 # pylint: disable=redefined-outer-name

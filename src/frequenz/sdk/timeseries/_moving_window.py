@@ -190,6 +190,8 @@ class MovingWindow(BackgroundService):
             align_to=align_to,
         )
 
+        self._condition_new_sample = asyncio.Condition()
+
     def start(self) -> None:
         """Start the MovingWindow.
 
@@ -318,6 +320,44 @@ class MovingWindow(BackgroundService):
             start, end, force_copy=force_copy, fill_value=fill_value
         )
 
+    async def wait_for_samples(self, n: int) -> None:
+        """Wait until the next `n` samples are available in the MovingWindow.
+
+        This function returns after `n` new samples are available in the MovingWindow,
+        without considering whether the new samples are valid.  The validity of the
+        samples can be verified by calling the
+        [`count_valid`][frequenz.sdk.timeseries.MovingWindow.count_valid] method.
+
+        Args:
+            n: The number of samples to wait for.
+
+        Raises:
+            ValueError: If `n` is less than or equal to 0 or greater than the capacity
+                of the MovingWindow.
+        """
+        if n == 0:
+            return
+        if n < 0:
+            raise ValueError("The number of samples to wait for must be 0 or greater.")
+        if n > self.capacity:
+            raise ValueError(
+                "The number of samples to wait for must be less than or equal to the "
+                + f"capacity of the MovingWindow ({self.capacity})."
+            )
+        start_timestamp = (
+            # Start from the next expected timestamp.
+            self.newest_timestamp + self.sampling_period
+            if self.newest_timestamp is not None
+            else None
+        )
+        while True:
+            async with self._condition_new_sample:
+                # Every time a new sample is received, this condition gets notified and
+                # will wake up.
+                _ = await self._condition_new_sample.wait()
+            if self.count_covered(since=start_timestamp) >= n:
+                return
+
     async def _run_impl(self) -> None:
         """Awaits samples from the receiver and updates the underlying ring buffer.
 
@@ -331,6 +371,9 @@ class MovingWindow(BackgroundService):
                     await self._resampler_sender.send(sample)
                 else:
                     self._buffer.update(sample)
+                    async with self._condition_new_sample:
+                        # Wake up all coroutines waiting for new samples.
+                        self._condition_new_sample.notify_all()
 
         except asyncio.CancelledError:
             _logger.info("MovingWindow task has been cancelled.")
@@ -344,6 +387,9 @@ class MovingWindow(BackgroundService):
 
         async def sink_buffer(sample: Sample[Quantity]) -> None:
             self._buffer.update(sample)
+            async with self._condition_new_sample:
+                # Wake up all coroutines waiting for new samples.
+                self._condition_new_sample.notify_all()
 
         resampler_channel = Broadcast[Sample[Quantity]](name="average")
         self._resampler_sender = resampler_channel.new_sender()
