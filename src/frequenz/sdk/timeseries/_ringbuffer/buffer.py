@@ -678,13 +678,29 @@ class OrderedRingBuffer(Generic[FloatArray]):
             // self._sampling_period.total_seconds()
         )
 
-    def count_valid(self) -> int:
-        """Count the number of valid items that this buffer currently holds.
+    def count_valid(
+        self, *, since: datetime | None = None, until: datetime | None = None
+    ) -> int:
+        """Count the number of valid items in this buffer.
+
+        If `since` and `until` are provided, the count is limited to the items between
+        (and including) the given timestamps.
+
+        Args:
+            since: The timestamp from which to start counting.  If `None`, the oldest
+                timestamp in the buffer is used.
+            until: The timestamp until (and including) which to count.  If `None`, the
+                newest timestamp in the buffer is used.
 
         Returns:
             The number of valid items in this buffer.
         """
-        if self._timestamp_newest == self._TIMESTAMP_MIN:
+        if since is None or since < self._timestamp_oldest:
+            since = self._timestamp_oldest
+        if until is None or until > self._timestamp_newest:
+            until = self._timestamp_newest
+
+        if until == self._TIMESTAMP_MIN or until < since:
             return 0
 
         # Sum of all elements in the gap ranges
@@ -692,17 +708,18 @@ class OrderedRingBuffer(Generic[FloatArray]):
             0,
             sum(
                 (
-                    gap.end
+                    min(gap.end, until + self._sampling_period)
                     # Don't look further back than oldest timestamp
-                    - max(gap.start, self._timestamp_oldest)
+                    - max(gap.start, since)
                 )
                 // self._sampling_period
                 for gap in self._gaps
+                if gap.start <= until and gap.end >= since
             ),
         )
 
-        start_pos = self.to_internal_index(self._timestamp_oldest)
-        end_pos = self.to_internal_index(self._timestamp_newest)
+        start_pos = self.to_internal_index(since)
+        end_pos = self.to_internal_index(until)
 
         if end_pos < start_pos:
             return len(self._buffer) - start_pos + end_pos + 1 - sum_missing_entries

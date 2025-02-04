@@ -212,19 +212,91 @@ async def test_access_empty_window() -> None:
 
 async def test_window_size() -> None:
     """Test the size of the window."""
-    window, sender = init_moving_window(timedelta(seconds=5))
+    window, sender = init_moving_window(timedelta(seconds=10))
     async with window:
-        assert window.capacity == 5, "Wrong window capacity"
+        assert window.capacity == 10, "Wrong window capacity"
         assert window.count_valid() == 0, "Window should be empty"
         assert window.count_covered() == 0, "Window should be empty"
+
         await push_logical_meter_data(sender, range(0, 2))
-        assert window.capacity == 5, "Wrong window capacity"
+        assert window.capacity == 10, "Wrong window capacity"
         assert window.count_valid() == 2, "Window should be partially full"
         assert window.count_covered() == 2, "Window should be partially full"
-        await push_logical_meter_data(sender, range(2, 20))
-        assert window.capacity == 5, "Wrong window capacity"
-        assert window.count_valid() == 5, "Window should be full"
-        assert window.count_covered() == 5, "Window should be full"
+
+        newest_ts = window.newest_timestamp
+        assert newest_ts is not None and newest_ts == UNIX_EPOCH + timedelta(seconds=1)
+
+        await push_logical_meter_data(sender, range(2, 5), start_ts=newest_ts)
+        assert window.capacity == 10, "Wrong window capacity"
+        assert window.count_valid() == 4, "Window should be partially full"
+        assert window.count_covered() == 4, "Window should be partially full"
+
+        newest_ts = window.newest_timestamp
+        assert newest_ts is not None and newest_ts == UNIX_EPOCH + timedelta(seconds=3)
+
+        await push_logical_meter_data(sender, range(5, 12), start_ts=newest_ts)
+        assert window.capacity == 10, "Wrong window capacity"
+        assert window.count_valid() == 10, "Window should be full"
+        assert window.count_covered() == 10, "Window should be full"
+
+        assert window.count_valid(since=UNIX_EPOCH + timedelta(seconds=1)) == 9
+        assert window.count_valid(until=UNIX_EPOCH + timedelta(seconds=2)) == 3
+        assert (
+            window.count_valid(
+                since=UNIX_EPOCH + timedelta(seconds=1),
+                until=UNIX_EPOCH + timedelta(seconds=1),
+            )
+            == 1
+        )
+        assert (
+            window.count_valid(
+                since=UNIX_EPOCH + timedelta(seconds=3),
+                until=UNIX_EPOCH + timedelta(seconds=8),
+            )
+            == 6
+        )
+        assert (
+            window.count_valid(
+                since=UNIX_EPOCH + timedelta(seconds=8),
+                until=UNIX_EPOCH + timedelta(seconds=3),
+            )
+            == 0
+        )
+
+        newest_ts = window.newest_timestamp
+        assert newest_ts is not None and newest_ts == UNIX_EPOCH + timedelta(seconds=9)
+        assert window.oldest_timestamp == UNIX_EPOCH
+
+        await push_logical_meter_data(sender, range(5, 12), start_ts=newest_ts)
+        assert window.capacity == 10, "Wrong window capacity"
+        assert window.count_valid() == 10, "Window should be full"
+        assert window.count_covered() == 10, "Window should be full"
+
+        newest_ts = window.newest_timestamp
+        assert newest_ts is not None and newest_ts == UNIX_EPOCH + timedelta(seconds=15)
+        assert window.oldest_timestamp == UNIX_EPOCH + timedelta(seconds=6)
+
+        assert (
+            window.count_valid(
+                since=UNIX_EPOCH + timedelta(seconds=1),
+                until=UNIX_EPOCH + timedelta(seconds=5),
+            )
+            == 0
+        )
+        assert (
+            window.count_valid(
+                since=UNIX_EPOCH + timedelta(seconds=3),
+                until=UNIX_EPOCH + timedelta(seconds=8),
+            )
+            == 3
+        )
+        assert (
+            window.count_valid(
+                since=UNIX_EPOCH + timedelta(seconds=6),
+                until=UNIX_EPOCH + timedelta(seconds=20),
+            )
+            == 10
+        )
 
 
 # pylint: disable=redefined-outer-name

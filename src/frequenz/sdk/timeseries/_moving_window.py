@@ -355,14 +355,24 @@ class MovingWindow(BackgroundService):
             asyncio.create_task(self._resampler.resample(), name="resample")
         )
 
-    def count_valid(self) -> int:
-        """
-        Count the number of valid samples in this `MovingWindow`.
+    def count_valid(
+        self, *, since: datetime | None = None, until: datetime | None = None
+    ) -> int:
+        """Count the number of valid samples in this `MovingWindow`.
+
+        If `since` and `until` are provided, the count is limited to the samples between
+        (and including) the given timestamps.
+
+        Args:
+            since: The timestamp from which to start counting.  If `None`, the oldest
+                timestamp of the buffer is used.
+            until: The timestamp until (and including) which to count.  If `None`, the
+                newest timestamp of the buffer is used.
 
         Returns:
             The number of valid samples in this `MovingWindow`.
         """
-        return self._buffer.count_valid()
+        return self._buffer.count_valid(since=since, until=until)
 
     def count_covered(self) -> int:
         """Count the number of samples that are covered by the oldest and newest valid samples.
