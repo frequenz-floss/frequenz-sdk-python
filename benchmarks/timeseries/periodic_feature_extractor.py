@@ -50,9 +50,9 @@ async def init_feature_extractor(
 
 def _calculate_avg_window(
     feature_extractor: PeriodicFeatureExtractor,
-    window: NDArray[np.float_],
+    window: NDArray[np.float64],
     window_size: int,
-) -> NDArray[np.float_]:
+) -> NDArray[np.float64]:
     """
     Reshapes the window and calculates the average.
 
@@ -77,10 +77,10 @@ def _calculate_avg_window(
 
 def _calculate_avg_window_py(
     feature_extractor: PeriodicFeatureExtractor,
-    window: NDArray[np.float_],
+    window: NDArray[np.float64],
     window_size: int,
     weights: list[float] | None = None,
-) -> NDArray[np.float_]:
+) -> NDArray[np.float64]:
     """
     Plain python version of the average calculator.
 
@@ -100,7 +100,7 @@ def _calculate_avg_window_py(
     """
 
     def _num_windows(
-        window: NDArray[np.float_] | MovingWindow, window_size: int, period: int
+        window: NDArray[np.float64] | MovingWindow, window_size: int, period: int
     ) -> int:
         """
         Get the number of windows that are fully contained in the MovingWindow.
@@ -118,7 +118,7 @@ def _calculate_avg_window_py(
             The number of windows that are fully contained in the MovingWindow.
         """
 
-        def length(window: NDArray[np.float_] | MovingWindow) -> int:
+        def length(window: NDArray[np.float64] | MovingWindow) -> int:
             return (
                 window.count_valid()
                 if isinstance(window, MovingWindow)
@@ -159,14 +159,14 @@ def _calculate_avg_window_py(
 
 
 def run_benchmark(
-    array: NDArray[np.float_],
+    array: NDArray[np.float64],
     window_size: int,
     feature_extractor: PeriodicFeatureExtractor,
 ) -> None:
     """Run the benchmark for the given ndarray and window size."""
 
     def run_avg_np(
-        array: NDArray[np.float_],
+        array: NDArray[np.float64],
         window_size: int,
         feature_extractor: PeriodicFeatureExtractor,
     ) -> None:
@@ -183,7 +183,7 @@ def run_benchmark(
         _calculate_avg_window(feature_extractor, array, window_size)
 
     def run_avg_py(
-        array: NDArray[np.float_],
+        array: NDArray[np.float64],
         window_size: int,
         feature_extractor: PeriodicFeatureExtractor,
     ) -> None:
