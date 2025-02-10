@@ -27,7 +27,7 @@ def event_loop_policy() -> async_solipsism.EventLoopPolicy:
 
 async def push_logical_meter_data(
     sender: Sender[Sample[Quantity]],
-    test_seq: Sequence[float],
+    test_seq: Sequence[float | None],
     start_ts: datetime = UNIX_EPOCH,
 ) -> None:
     """Push data in the passed sender to mock `LogicalMeter` behaviour.
@@ -41,7 +41,9 @@ async def push_logical_meter_data(
     """
     for i, j in zip(test_seq, range(0, len(test_seq))):
         timestamp = start_ts + timedelta(seconds=j)
-        await sender.send(Sample(timestamp, Quantity(float(i))))
+        await sender.send(
+            Sample(timestamp, Quantity(float(i)) if i is not None else None)
+        )
 
     await asyncio.sleep(0.0)
 
@@ -210,10 +212,27 @@ async def test_access_empty_window() -> None:
             _ = window[42]
 
 
-async def test_window_size() -> None:
+async def test_window_size() -> None:  # pylint: disable=too-many-statements
     """Test the size of the window."""
     window, sender = init_moving_window(timedelta(seconds=10))
     async with window:
+
+        def assert_valid_and_covered_counts(
+            *,
+            since: datetime | None = None,
+            until: datetime | None = None,
+            expected: int | None = None,
+            expected_valid: int | None = None,
+            expected_covered: int | None = None,
+        ) -> None:
+            if expected is not None:
+                assert window.count_valid(since=since, until=until) == expected
+                assert window.count_covered(since=since, until=until) == expected
+                return
+
+            assert window.count_valid(since=since, until=until) == expected_valid
+            assert window.count_covered(since=since, until=until) == expected_covered
+
         assert window.capacity == 10, "Wrong window capacity"
         assert window.count_valid() == 0, "Window should be empty"
         assert window.count_covered() == 0, "Window should be empty"
@@ -239,28 +258,26 @@ async def test_window_size() -> None:
         assert window.count_valid() == 10, "Window should be full"
         assert window.count_covered() == 10, "Window should be full"
 
-        assert window.count_valid(since=UNIX_EPOCH + timedelta(seconds=1)) == 9
-        assert window.count_valid(until=UNIX_EPOCH + timedelta(seconds=2)) == 3
-        assert (
-            window.count_valid(
-                since=UNIX_EPOCH + timedelta(seconds=1),
-                until=UNIX_EPOCH + timedelta(seconds=1),
-            )
-            == 1
+        assert_valid_and_covered_counts(
+            since=UNIX_EPOCH + timedelta(seconds=1), expected=9
         )
-        assert (
-            window.count_valid(
-                since=UNIX_EPOCH + timedelta(seconds=3),
-                until=UNIX_EPOCH + timedelta(seconds=8),
-            )
-            == 6
+        assert_valid_and_covered_counts(
+            until=UNIX_EPOCH + timedelta(seconds=2), expected=3
         )
-        assert (
-            window.count_valid(
-                since=UNIX_EPOCH + timedelta(seconds=8),
-                until=UNIX_EPOCH + timedelta(seconds=3),
-            )
-            == 0
+        assert_valid_and_covered_counts(
+            since=UNIX_EPOCH + timedelta(seconds=1),
+            until=UNIX_EPOCH + timedelta(seconds=1),
+            expected=1,
+        )
+        assert_valid_and_covered_counts(
+            since=UNIX_EPOCH + timedelta(seconds=3),
+            until=UNIX_EPOCH + timedelta(seconds=8),
+            expected=6,
+        )
+        assert_valid_and_covered_counts(
+            since=UNIX_EPOCH + timedelta(seconds=8),
+            until=UNIX_EPOCH + timedelta(seconds=3),
+            expected=0,
         )
 
         newest_ts = window.newest_timestamp
@@ -269,33 +286,80 @@ async def test_window_size() -> None:
 
         await push_logical_meter_data(sender, range(5, 12), start_ts=newest_ts)
         assert window.capacity == 10, "Wrong window capacity"
-        assert window.count_valid() == 10, "Window should be full"
-        assert window.count_covered() == 10, "Window should be full"
+        assert_valid_and_covered_counts(expected=10)
 
         newest_ts = window.newest_timestamp
         assert newest_ts is not None and newest_ts == UNIX_EPOCH + timedelta(seconds=15)
         assert window.oldest_timestamp == UNIX_EPOCH + timedelta(seconds=6)
 
-        assert (
-            window.count_valid(
-                since=UNIX_EPOCH + timedelta(seconds=1),
-                until=UNIX_EPOCH + timedelta(seconds=5),
-            )
-            == 0
+        assert_valid_and_covered_counts(
+            since=UNIX_EPOCH + timedelta(seconds=1),
+            until=UNIX_EPOCH + timedelta(seconds=5),
+            expected=0,
         )
-        assert (
-            window.count_valid(
-                since=UNIX_EPOCH + timedelta(seconds=3),
-                until=UNIX_EPOCH + timedelta(seconds=8),
-            )
-            == 3
+        assert_valid_and_covered_counts(
+            since=UNIX_EPOCH + timedelta(seconds=3),
+            until=UNIX_EPOCH + timedelta(seconds=8),
+            expected=3,
         )
-        assert (
-            window.count_valid(
-                since=UNIX_EPOCH + timedelta(seconds=6),
-                until=UNIX_EPOCH + timedelta(seconds=20),
-            )
-            == 10
+        assert_valid_and_covered_counts(
+            since=UNIX_EPOCH + timedelta(seconds=6),
+            until=UNIX_EPOCH + timedelta(seconds=20),
+            expected=10,
+        )
+
+        newest_ts = window.newest_timestamp
+        assert newest_ts is not None and newest_ts == UNIX_EPOCH + timedelta(seconds=15)
+        assert window.oldest_timestamp == UNIX_EPOCH + timedelta(seconds=6)
+
+        await push_logical_meter_data(
+            sender, [3, 4, None, None, 10, 12, None], start_ts=newest_ts
+        )
+
+        # After the last insertion, the moving window would look like this:
+        #
+        # +------------------------+----+----+-----+----+----+-----+-----+-----+-----+-----+
+        # | MovingWindow timestamp |    |    |     |    |    |     |     |     |     |     |
+        # | (seconds after EPOCH)  | 12 | 13 | 14  | 15 | 16 | 17  | 18  | 19  | 20  | 21  |
+        # |------------------------+----+----+-----+----+----+-----+-----+-----+-----+-----|
+        # | value in buffer        | 8. | 9. | 10. | 3. | 4. | nan | nan | 10. | 12. | nan |
+        # +------------------------+----+----+-----+----+----+-----+-----+-----+-----+-----+
+
+        newest_ts = window.newest_timestamp
+        assert newest_ts is not None and newest_ts == UNIX_EPOCH + timedelta(seconds=21)
+        assert window.oldest_timestamp == UNIX_EPOCH + timedelta(seconds=12)
+
+        assert_valid_and_covered_counts(
+            expected_valid=7,
+            expected_covered=10,
+        )
+        assert_valid_and_covered_counts(
+            since=UNIX_EPOCH + timedelta(seconds=15),
+            expected_valid=4,
+            expected_covered=7,
+        )
+        assert_valid_and_covered_counts(
+            until=UNIX_EPOCH + timedelta(seconds=19),
+            expected_valid=6,
+            expected_covered=8,
+        )
+        assert_valid_and_covered_counts(
+            since=UNIX_EPOCH + timedelta(seconds=12),
+            until=UNIX_EPOCH + timedelta(seconds=15),
+            expected_valid=4,
+            expected_covered=4,
+        )
+        assert_valid_and_covered_counts(
+            since=UNIX_EPOCH + timedelta(seconds=17),
+            until=UNIX_EPOCH + timedelta(seconds=18),
+            expected_valid=0,
+            expected_covered=2,
+        )
+        assert_valid_and_covered_counts(
+            since=UNIX_EPOCH + timedelta(seconds=16),
+            until=UNIX_EPOCH + timedelta(seconds=20),
+            expected_valid=3,
+            expected_covered=5,
         )
 
 

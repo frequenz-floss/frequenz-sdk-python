@@ -374,14 +374,25 @@ class MovingWindow(BackgroundService):
         """
         return self._buffer.count_valid(since=since, until=until)
 
-    def count_covered(self) -> int:
+    def count_covered(
+        self, *, since: datetime | None = None, until: datetime | None = None
+    ) -> int:
         """Count the number of samples that are covered by the oldest and newest valid samples.
+
+        If `since` and `until` are provided, the count is limited to the samples between
+        (and including) the given timestamps.
+
+        Args:
+            since: The timestamp from which to start counting.  If `None`, the oldest
+                timestamp of the buffer is used.
+            until: The timestamp until (and including) which to count.  If `None`, the
+                newest timestamp of the buffer is used.
 
         Returns:
             The count of samples between the oldest and newest (inclusive) valid samples
                 or 0 if there are is no time range covered.
         """
-        return self._buffer.count_covered()
+        return self._buffer.count_covered(since=since, until=until)
 
     @overload
     def __getitem__(self, key: SupportsIndex) -> float:

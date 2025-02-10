@@ -651,8 +651,19 @@ class OrderedRingBuffer(Generic[FloatArray]):
         """
         return self._buffer.__getitem__(index_or_slice)
 
-    def _covered_time_range(self) -> timedelta:
+    def _covered_time_range(
+        self, since: datetime | None = None, until: datetime | None = None
+    ) -> timedelta:
         """Return the time range that is covered by the oldest and newest valid samples.
+
+        If `since` and `until` are provided, the time range is limited to the items
+        between (and including) the given timestamps.
+
+        Args:
+            since: The timestamp from which to start counting.  If `None`, the oldest
+                timestamp in the buffer is used.
+            until: The timestamp until (and including) which to count.  If `None`, the
+                newest timestamp in the buffer is used.
 
         Returns:
             The time range between the oldest and newest valid samples or 0 if
@@ -664,17 +675,37 @@ class OrderedRingBuffer(Generic[FloatArray]):
         assert (
             self.newest_timestamp is not None
         ), "Newest timestamp cannot be None here."
-        return self.newest_timestamp - self.oldest_timestamp + self._sampling_period
 
-    def count_covered(self) -> int:
+        if since is None or since < self.oldest_timestamp:
+            since = self.oldest_timestamp
+        if until is None or until > self.newest_timestamp:
+            until = self.newest_timestamp
+
+        if until < since:
+            return timedelta(0)
+
+        return until - since + self._sampling_period
+
+    def count_covered(
+        self, *, since: datetime | None = None, until: datetime | None = None
+    ) -> int:
         """Count the number of samples that are covered by the oldest and newest valid samples.
+
+        If `since` and `until` are provided, the count is limited to the items between
+        (and including) the given timestamps.
+
+        Args:
+            since: The timestamp from which to start counting.  If `None`, the oldest
+                timestamp in the buffer is used.
+            until: The timestamp until (and including) which to count.  If `None`, the
+                newest timestamp in the buffer is used.
 
         Returns:
             The count of samples between the oldest and newest (inclusive) valid samples
                 or 0 if there are is no time range covered.
         """
         return int(
-            self._covered_time_range().total_seconds()
+            self._covered_time_range(since, until).total_seconds()
             // self._sampling_period.total_seconds()
         )
 
