@@ -343,8 +343,7 @@ class MovingWindow(BackgroundService):
         assert self._resampler is not None
 
         async def sink_buffer(sample: Sample[Quantity]) -> None:
-            if sample.value is not None:
-                self._buffer.update(sample)
+            self._buffer.update(sample)
 
         resampler_channel = Broadcast[Sample[Quantity]](name="average")
         self._resampler_sender = resampler_channel.new_sender()
