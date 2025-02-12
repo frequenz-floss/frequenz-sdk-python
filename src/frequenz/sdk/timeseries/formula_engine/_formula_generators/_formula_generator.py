@@ -215,8 +215,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
 
         # All fallbacks has to be of the same type and category.
         if (
-            all(graph.is_chp(c) for c in successors)
-            or all(graph.is_pv_inverter(c) for c in successors)
+            all(graph.is_pv_inverter(c) for c in successors)
             or all(graph.is_battery_inverter(c) for c in successors)
             or all(graph.is_ev_charger(c) for c in successors)
         ):
