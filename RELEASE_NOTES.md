@@ -1,13 +1,5 @@
 # Frequenz Python SDK Release Notes
 
-## Summary
-
-<!-- Here goes a general summary of what this release is about -->
-
-## Upgrading
-
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
-
 ## New Features
 
 - The `MovingWindow` now has an async `wait_for_samples` method that waits for a given number of samples to become available in the moving window and then returns.
