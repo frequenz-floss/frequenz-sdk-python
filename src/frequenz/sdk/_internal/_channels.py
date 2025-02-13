@@ -6,7 +6,6 @@
 import abc
 import dataclasses
 import logging
-import traceback
 import typing
 
 from frequenz.channels import Broadcast, Receiver
@@ -140,13 +139,9 @@ class ChannelRegistry:
             ValueError: If the channel exists and the message type does not match.
         """
         if key not in self._channels:
-            if _logger.isEnabledFor(logging.DEBUG):
-                _logger.debug(
-                    "Creating a new channel for key %r with type %s at:\n%s",
-                    key,
-                    message_type,
-                    "".join(traceback.format_stack(limit=10)[:9]),
-                )
+            _logger.debug(
+                "Creating a new channel for key %r with type %s.", key, message_type
+            )
             self._channels[key] = _Entry(
                 message_type, Broadcast(name=f"{self._name}-{key}")
             )
@@ -158,14 +153,7 @@ class ChannelRegistry:
                 f"message type {message_type} is not the same as the existing "
                 f"message type {entry.message_type}."
             )
-            if _logger.isEnabledFor(logging.DEBUG):
-                _logger.debug(
-                    "%s at:\n%s",
-                    error_message,
-                    # We skip the last frame because it's this method, and limit the
-                    # stack to 9 frames to avoid adding too much noise.
-                    "".join(traceback.format_stack(limit=10)[:9]),
-                )
+            _logger.debug("%s", error_message)
             raise ValueError(error_message)
 
         return typing.cast(Broadcast[T], entry.channel)
