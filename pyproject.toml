@@ -187,7 +187,6 @@ strict = true
 [[tool.mypy.overrides]]
 module = [
   "async_solipsism",
-  "async_solipsism.*",
   "mkdocs_macros.*",
   # The available stubs packages are outdated or incomplete (WIP/experimental):
   # https://github.com/frequenz-floss/frequenz-sdk-python/issues/430
