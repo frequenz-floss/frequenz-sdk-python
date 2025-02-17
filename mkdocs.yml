@@ -119,7 +119,7 @@ plugins:
             - https://docs.python.org/3/objects.inv
             - https://frequenz-floss.github.io/frequenz-channels-python/v1/objects.inv
             - https://frequenz-floss.github.io/frequenz-client-common-python/v0.3/objects.inv
-            - https://frequenz-floss.github.io/frequenz-client-microgrid-python/v0.9/objects.inv
+            - https://frequenz-floss.github.io/frequenz-client-microgrid-python/v0.18/objects.inv
             - https://frequenz-floss.github.io/frequenz-core-python/v1/objects.inv
             - https://frequenz-floss.github.io/frequenz-quantities-python/v1/objects.inv
             - https://lovasoa.github.io/marshmallow_dataclass/html/objects.inv
