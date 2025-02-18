@@ -313,7 +313,7 @@ class FormulaEngine(Generic[QuantityT]):
             try:
                 msg = await evaluator.apply()
             except asyncio.CancelledError:
-                _logger.exception("FormulaEngine task cancelled: %s", self._name)
+                _logger.debug("FormulaEngine task cancelled: %s", self._name)
                 raise
             except Exception as err:  # pylint: disable=broad-except
                 _logger.warning(
@@ -582,7 +582,7 @@ class FormulaEngine3Phase(Generic[QuantityT]):
                     phase_3.value,
                 )
             except asyncio.CancelledError:
-                _logger.exception("FormulaEngine task cancelled: %s", self._name)
+                _logger.debug("FormulaEngine task cancelled: %s", self._name)
                 break
             else:
                 await sender.send(msg)
