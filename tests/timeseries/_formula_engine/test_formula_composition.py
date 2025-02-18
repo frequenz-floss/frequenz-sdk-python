@@ -56,8 +56,7 @@ class TestFormulaComposition:
             pv_power_recv = pv_pool.power.new_receiver()
 
             engine = (pv_pool.power + battery_pool.power).build("inv_power")
-            stack.push_async_callback(engine._stop)  # pylint: disable=protected-access
-
+            stack.push_async_callback(engine.stop)
             inv_calc_recv = engine.new_receiver()
 
             await mockgrid.mock_resampler.send_bat_inverter_power([10.0, 12.0, 14.0])
@@ -126,7 +125,7 @@ class TestFormulaComposition:
             battery_power_recv = battery_pool.power.new_receiver()
             pv_power_recv = pv_pool.power.new_receiver()
             engine = (pv_pool.power + battery_pool.power).build("inv_power")
-            stack.push_async_callback(engine._stop)  # pylint: disable=protected-access
+            stack.push_async_callback(engine.stop)
 
             inv_calc_recv = engine.new_receiver()
 
@@ -168,7 +167,7 @@ class TestFormulaComposition:
             battery_power_recv = battery_pool.power.new_receiver()
             pv_power_recv = pv_pool.power.new_receiver()
             engine = (pv_pool.power + battery_pool.power).build("inv_power")
-            stack.push_async_callback(engine._stop)  # pylint: disable=protected-access
+            stack.push_async_callback(engine.stop)
 
             inv_calc_recv = engine.new_receiver()
 
@@ -203,15 +202,11 @@ class TestFormulaComposition:
             stack.push_async_callback(grid.stop)
 
             engine_min = grid.power.min(logical_meter.chp_power).build("grid_power_min")
-            stack.push_async_callback(
-                engine_min._stop  # pylint: disable=protected-access
-            )
+            stack.push_async_callback(engine_min.stop)
             engine_min_rx = engine_min.new_receiver()
 
             engine_max = grid.power.max(logical_meter.chp_power).build("grid_power_max")
-            stack.push_async_callback(
-                engine_max._stop  # pylint: disable=protected-access
-            )
+            stack.push_async_callback(engine_max.stop)
             engine_max_rx = engine_max.new_receiver()
 
             await mockgrid.mock_resampler.send_meter_power([100.0, 200.0])
@@ -265,15 +260,11 @@ class TestFormulaComposition:
             stack.push_async_callback(grid.stop)
 
             engine_min = grid.power.min(Power.zero()).build("grid_power_min")
-            stack.push_async_callback(
-                engine_min._stop  # pylint: disable=protected-access
-            )
+            stack.push_async_callback(engine_min.stop)
             engine_min_rx = engine_min.new_receiver()
 
             engine_max = grid.power.max(Power.zero()).build("grid_power_max")
-            stack.push_async_callback(
-                engine_max._stop  # pylint: disable=protected-access
-            )
+            stack.push_async_callback(engine_max.stop)
             engine_max_rx = engine_max.new_receiver()
 
             await mockgrid.mock_resampler.send_meter_power([100.0])
@@ -320,23 +311,15 @@ class TestFormulaComposition:
             engine_add = (grid.power + Power.from_watts(50)).build(
                 "grid_power_addition"
             )
-            stack.push_async_callback(
-                engine_add._stop  # pylint: disable=protected-access
-            )
+            stack.push_async_callback(engine_add.stop)
             engine_sub = (grid.power - Power.from_watts(100)).build(
                 "grid_power_subtraction"
             )
-            stack.push_async_callback(
-                engine_sub._stop  # pylint: disable=protected-access
-            )
+            stack.push_async_callback(engine_sub.stop)
             engine_mul = (grid.power * 2.0).build("grid_power_multiplication")
-            stack.push_async_callback(
-                engine_mul._stop  # pylint: disable=protected-access
-            )
+            stack.push_async_callback(engine_mul.stop)
             engine_div = (grid.power / 2.0).build("grid_power_division")
-            stack.push_async_callback(
-                engine_div._stop  # pylint: disable=protected-access
-            )
+            stack.push_async_callback(engine_div.stop)
 
             engine_composite = (
                 (
@@ -435,7 +418,7 @@ class TestFormulaComposition:
             engine = (grid.current_per_phase - ev_pool.current_per_phase).build(
                 "net_current"
             )
-            stack.push_async_callback(engine._stop)  # pylint: disable=protected-access
+            stack.push_async_callback(engine.stop)
             net_current_recv = engine.new_receiver()
 
             for _ in range(10):

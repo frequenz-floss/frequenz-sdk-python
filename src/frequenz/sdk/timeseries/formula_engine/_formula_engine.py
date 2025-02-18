@@ -112,7 +112,7 @@ class FormulaEngine(Generic[QuantityT]):
         self._channel: Broadcast[Sample[QuantityT]] = Broadcast(name=self._name)
         self._task: asyncio.Task[None] | None = None
 
-    async def _stop(self) -> None:
+    async def stop(self) -> None:
         """Stop a running formula engine."""
         if self._task is None:
             return
@@ -428,7 +428,7 @@ class FormulaEngine3Phase(Generic[QuantityT]):
             FormulaEngine[QuantityT],
         ] = phase_streams
 
-    async def _stop(self) -> None:
+    async def stop(self) -> None:
         """Stop a running formula engine."""
         if self._task is None:
             return
