@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 import math
 from abc import ABC, abstractmethod
-from typing import Any, Generic
+from typing import Generic
 
 from frequenz.channels import Receiver, ReceiverError, ReceiverStoppedError
 
@@ -450,7 +450,7 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
                     self._name,
                 )
             return None
-        except ReceiverError[Any] as err:
+        except ReceiverError as err:
             _logger.error(
                 "Failed to fetch next value from fallback stream %s: %s",
                 self._name,
@@ -527,7 +527,7 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
                 "Failed to fetch next value from %s. Primary stream closed.",
                 self._name,
             )
-        except ReceiverError[Any] as err:
+        except ReceiverError as err:
             _logger.error("Failed to fetch next value from %s: %s", self._name, err)
 
         # We have no fallback, so we just return primary value even if it is not correct.
