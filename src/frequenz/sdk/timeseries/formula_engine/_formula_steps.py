@@ -541,6 +541,11 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
         if is_primary_value_valid:
             # Primary stream is good again, so we can stop fallback and return primary_value.
             if self._fallback.is_running:
+                _logger.info(
+                    "Primary metric %s is good again, stopping fallback metric fetcher %s",
+                    self._name,
+                    self._fallback.name,
+                )
                 await self._fallback.stop()
             return primary_value
 
