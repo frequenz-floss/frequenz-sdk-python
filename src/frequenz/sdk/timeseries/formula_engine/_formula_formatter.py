@@ -215,7 +215,7 @@ class FormulaFormatter:
                     self._stack.append(StackItem(value, OperatorPrecedence.PRIMARY, 1))
                 case MetricFetcher():
                     metric_fetcher = step
-                    value = metric_fetcher._name  # pylint: disable=protected-access
+                    value = str(metric_fetcher)
                     if engine_reference := getattr(
                         metric_fetcher.stream, "_engine_reference", None
                     ):
