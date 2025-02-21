@@ -77,3 +77,13 @@ class FallbackFormulaMetricFetcher(FallbackMetricFetcher[QuantityT]):
         ), f"Fallback metric fetcher: {self.name} was not started"
 
         return self._receiver.consume()
+
+    async def stop(self) -> None:
+        """Stop fallback metric fetcher, by closing the connection."""
+        if self._formula_engine is not None:
+            await self._formula_engine.stop()
+            self._formula_engine = None
+
+        if self._receiver is not None:
+            self._receiver.close()
+            self._receiver = None

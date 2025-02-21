@@ -148,9 +148,9 @@ class TestProducer:
                 ([None, None], [None, None], [300.0], Power.from_watts(300.0)),
                 ([-200.0, None], [None, -100.0], [50.0], Power.from_watts(-250.0)),
                 ([-200.0, -200.0], [-10.0, -20.0], [50.0], Power.from_watts(-350.0)),
-                # Case 8: Meter is unavailable but we already subscribed for inverter
-                # So don't return None in this case. Just proper formula result.
-                ([None, -200.0], [-10.0, -100.0], [50.0], Power.from_watts(-160.0)),
+                # Case 8: Meter is unavailable, start fallback formula.
+                ([None, -200.0], [-10.0, -100.0], [50.0], None),
+                ([None, -200.0], [-10.0, -100.0], [50.0], Power.from_watts(-160)),
 
             ]
             # fmt: on

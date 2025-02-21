@@ -113,7 +113,8 @@ class TestConsumer:
                 ([None, 100, -50], [100], [-200, -300], None),
                 ([None, 200, -50], [100], [-200, -300], None),
                 ([100, 100, -50], [100], [-200, -300], Power.from_watts(350)),
-                # Case 5: Only grid meter is working
+                # Case 5: Only grid meter is working, subscribe for fallback formula
+                ([100, None, None], [None], [None, None], None),
                 ([100, None, None], [None], [None, None], Power.from_watts(100)),
                 ([-500, None, None], [None], [None, None], Power.from_watts(-500)),
                 # Case 6: Nothing is working

@@ -368,6 +368,10 @@ class FallbackMetricFetcher(Receiver[Sample[QuantityT]], Generic[QuantityT]):
     def start(self) -> None:
         """Initialize the metric fetcher and start fetching samples."""
 
+    @abstractmethod
+    async def stop(self) -> None:
+        """Stope the fetcher if is running."""
+
 
 class MetricFetcher(Generic[QuantityT], FormulaStep):
     """A formula step for fetching a value from a metric Receiver."""
@@ -405,6 +409,16 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
             The stream from which to fetch values.
         """
         return self._stream
+
+    async def stop(self) -> None:
+        """Stop metric fetcher.
+
+        If metric fetcher is stopped, it can't be started again.
+        There is no use-case now to start it again.
+        """
+        self.stream.close()
+        if self._fallback:
+            await self._fallback.stop()
 
     def stream_name(self) -> str:
         """Return the name of the stream.
@@ -497,6 +511,9 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
         )
 
         if is_primary_value_valid:
+            # Primary stream is good again, so we can stop fallback and return primary_value.
+            if self._fallback.is_running:
+                await self._fallback.stop()
             return primary_value
 
         if not self._fallback.is_running:

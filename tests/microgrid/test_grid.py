@@ -480,6 +480,8 @@ async def test_grid_fallback_formula_without_grid_meter(mocker: MockerFixture) -
             ([2000, 1000], [-200, 1000, None], Power.from_watts(3000)),
             # battery start working
             ([2000, 10], [-200, 1000, 100], Power.from_watts(2110)),
+            # No primary value, start fallback formula
+            ([2000, None], [-200, 1000, 100], None),
             ([2000, None], [-200, 1000, 100], Power.from_watts(2900)),
         ]
         # fmt: on
