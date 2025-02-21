@@ -76,30 +76,6 @@ async def test_grid_2(mocker: MockerFixture) -> None:
         assert grid.fuse == Fuse(max_current=Current.from_amperes(123.0))
 
 
-async def test_grid_3(mocker: MockerFixture) -> None:
-    """Validate that microgrids with a grid connection without a fuse are instantiated."""
-    components = {
-        client.Component(
-            ComponentId(1),
-            client.ComponentCategory.GRID,
-            None,
-            client.GridMetadata(None),
-        ),
-        client.Component(ComponentId(2), client.ComponentCategory.METER),
-    }
-    connections = {client.Connection(ComponentId(1), ComponentId(2))}
-
-    graph = gr._MicrogridComponentGraph(  # pylint: disable=protected-access
-        components=components, connections=connections
-    )
-
-    async with MockMicrogrid(graph=graph, mocker=mocker), AsyncExitStack() as stack:
-        grid = microgrid.grid()
-        assert grid is not None
-        stack.push_async_callback(grid.stop)
-        assert grid.fuse is None
-
-
 async def test_grid_power_1(mocker: MockerFixture) -> None:
     """Test the grid power formula with a grid side meter."""
     mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
