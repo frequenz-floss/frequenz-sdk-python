@@ -469,40 +469,6 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
                 break
         return self._latest_fallback_sample
 
-    async def fetch_next_with_fallback(
-        self, fallback_fetcher: FallbackMetricFetcher[QuantityT]
-    ) -> Sample[QuantityT]:
-        """Fetch the next value from the primary and fallback streams.
-
-        Return the value from the stream that returns a valid value.
-        If any stream raises an exception, then return the value from
-        the other stream.
-
-        Args:
-            fallback_fetcher: The fallback metric fetcher.
-
-        Returns:
-            The value fetched from either the primary or fallback stream.
-        """
-        try:
-            primary = await self._stream.receive()
-        except ReceiverError[Any] as err:
-            _logger.error(
-                "Primary metric fetcher %s failed to fetch next value: %s."
-                "Using fallback metric fetcher.",
-                self._name,
-                err,
-            )
-            return await fallback_fetcher.receive()
-
-        fallback = await self._synchronize_and_fetch_fallback(primary, fallback_fetcher)
-        if fallback is None:
-            return primary
-
-        if self._is_value_valid(primary.value):
-            return primary
-        return fallback
-
     async def fetch_next(self) -> Sample[QuantityT] | None:
         """Fetch the next value from the stream.
 
