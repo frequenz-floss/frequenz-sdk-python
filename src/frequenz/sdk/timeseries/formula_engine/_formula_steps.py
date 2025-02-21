@@ -417,6 +417,19 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
     def _is_value_valid(self, value: QuantityT | None) -> bool:
         return not (value is None or value.isnan() or value.isinf())
 
+    async def _fetch_from_fallback(
+        self, fallback_fetcher: FallbackMetricFetcher[QuantityT]
+    ) -> Sample[QuantityT] | None:
+        try:
+            return await fallback_fetcher.receive()
+        except ReceiverError[Any] as err:
+            _logger.error(
+                "Failed to fetch next value from fallback stream %s: %s",
+                self._name,
+                err,
+            )
+            return None
+
     async def _synchronize_and_fetch_fallback(
         self,
         primary_fetcher_sample: Sample[QuantityT],
@@ -433,35 +446,27 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
             fetcher sample is older than the latest sample from the fallback
             fetcher or if the fallback fetcher fails to fetch the next value.
         """
-        # fallback_fetcher was not used, yet. We need to fetch first value.
+        # We need to save value, because
+        # primary_fetcher_value.timestamp < self._latest_fallback_sample.timestamp
+        # In that case we should wait for our time window.
         if self._latest_fallback_sample is None:
-            try:
-                self._latest_fallback_sample = await fallback_fetcher.receive()
-            except ReceiverError[Any] as err:
-                _logger.error(
-                    "Fallback metric fetcher %s failed to fetch next value: %s."
-                    "Using primary metric fetcher.",
-                    fallback_fetcher.name,
-                    err,
-                )
-                return None
+            self._latest_fallback_sample = await self._fetch_from_fallback(
+                fallback_fetcher
+            )
+
+        if self._latest_fallback_sample is None:
+            return self._latest_fallback_sample
 
         if primary_fetcher_sample.timestamp < self._latest_fallback_sample.timestamp:
             return None
 
         # Synchronize the fallback fetcher with primary one
         while primary_fetcher_sample.timestamp > self._latest_fallback_sample.timestamp:
-            try:
-                self._latest_fallback_sample = await fallback_fetcher.receive()
-            except ReceiverError[Any] as err:
-                _logger.error(
-                    "Fallback metric fetcher %s failed to fetch next value: %s."
-                    "Using primary metric fetcher.",
-                    fallback_fetcher.name,
-                    err,
-                )
-                return None
-
+            self._latest_fallback_sample = await self._fetch_from_fallback(
+                fallback_fetcher
+            )
+            if self._latest_fallback_sample is None:
+                break
         return self._latest_fallback_sample
 
     async def fetch_next_with_fallback(
