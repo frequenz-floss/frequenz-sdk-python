@@ -432,13 +432,13 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
 
     async def _synchronize_and_fetch_fallback(
         self,
-        primary_fetcher_sample: Sample[QuantityT],
+        primary_fetcher_value: Sample[QuantityT] | None,
         fallback_fetcher: FallbackMetricFetcher[QuantityT],
     ) -> Sample[QuantityT] | None:
         """Synchronize the fallback fetcher and return the fallback value.
 
         Args:
-            primary_fetcher_sample: The sample fetched from the primary fetcher.
+            primary_fetcher_value: The sample fetched from the primary fetcher.
             fallback_fetcher: The fallback metric fetcher.
 
         Returns:
@@ -454,14 +454,14 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
                 fallback_fetcher
             )
 
-        if self._latest_fallback_sample is None:
+        if primary_fetcher_value is None or self._latest_fallback_sample is None:
             return self._latest_fallback_sample
 
-        if primary_fetcher_sample.timestamp < self._latest_fallback_sample.timestamp:
+        if primary_fetcher_value.timestamp < self._latest_fallback_sample.timestamp:
             return None
 
         # Synchronize the fallback fetcher with primary one
-        while primary_fetcher_sample.timestamp > self._latest_fallback_sample.timestamp:
+        while primary_fetcher_value.timestamp > self._latest_fallback_sample.timestamp:
             self._latest_fallback_sample = await self._fetch_from_fallback(
                 fallback_fetcher
             )
