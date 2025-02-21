@@ -10,7 +10,7 @@ import math
 from abc import ABC, abstractmethod
 from typing import Any, Generic
 
-from frequenz.channels import Receiver, ReceiverError
+from frequenz.channels import Receiver, ReceiverError, ReceiverStoppedError
 
 from .._base_types import QuantityT, Sample
 
@@ -400,6 +400,7 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
         self._nones_are_zeros = nones_are_zeros
         self._fallback: FallbackMetricFetcher[QuantityT] | None = fallback
         self._latest_fallback_sample: Sample[QuantityT] | None = None
+        self._is_stopped = False
 
     @property
     def stream(self) -> Receiver[Sample[QuantityT]]:
@@ -416,6 +417,7 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
         If metric fetcher is stopped, it can't be started again.
         There is no use-case now to start it again.
         """
+        self._is_stopped = True
         self.stream.close()
         if self._fallback:
             await self._fallback.stop()
@@ -436,6 +438,18 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
     ) -> Sample[QuantityT] | None:
         try:
             return await fallback_fetcher.receive()
+        except ReceiverStoppedError:
+            if self._is_stopped:
+                _logger.debug(
+                    "Stream for fallback metric fetcher %s closed.",
+                    fallback_fetcher.name,
+                )
+            else:
+                _logger.error(
+                    "Failed to fetch next value from %s. Fallback stream closed.",
+                    self._name,
+                )
+            return None
         except ReceiverError[Any] as err:
             _logger.error(
                 "Failed to fetch next value from fallback stream %s: %s",
@@ -491,6 +505,12 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
         Returns:
             The fetched Sample.
         """
+        if self._is_stopped:
+            _logger.error(
+                "Metric fetcher %s stopped. Can't fetch new value.", self._name
+            )
+            return None
+
         self._next_value = await self._fetch_next()
         return self._next_value
 
@@ -499,6 +519,14 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
         primary_value: Sample[QuantityT] | None = None
         try:
             primary_value = await self._stream.receive()
+        except ReceiverStoppedError:
+            if self._is_stopped:
+                _logger.debug("Stream for metric fetcher %s closed.", self._name)
+                return None
+            _logger.error(
+                "Failed to fetch next value from %s. Primary stream closed.",
+                self._name,
+            )
         except ReceiverError[Any] as err:
             _logger.error("Failed to fetch next value from %s: %s", self._name, err)
 
