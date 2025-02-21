@@ -515,30 +515,36 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
         return self._next_value
 
     async def _fetch_next(self) -> Sample[QuantityT] | None:
-        if self._fallback is None:
-            return await self._stream.receive()
-
-        if self._fallback.is_running:
-            return await self.fetch_next_with_fallback(self._fallback)
-
+        # First fetch from primary stream
         next_value = None
         try:
             next_value = await self._stream.receive()
         except ReceiverError[Any] as err:
             _logger.error("Failed to fetch next value from %s: %s", self._name, err)
-        else:
-            if self._is_value_valid(next_value.value):
-                return next_value
 
-        _logger.warning(
-            "Primary metric %s is invalid. Running fallback metric fetcher: %s",
-            self._name,
-            self._fallback.name,
+        # We have no fallback, so we just return primary value even if it is not correct.
+        if self._fallback is None:
+            return next_value
+
+        is_primary_value_valid = next_value is not None and self._is_value_valid(
+            next_value.value
         )
-        # start fallback formula but don't wait for it because it has to
-        # synchronize. Just return invalid value.
-        self._fallback.start()
-        return next_value
+
+        if is_primary_value_valid:
+            return next_value
+
+        if not self._fallback.is_running:
+            _logger.warning(
+                "Primary metric %s is invalid. Running fallback metric fetcher: %s",
+                self._name,
+                self._fallback.name,
+            )
+            # We started fallback, but it has to subscribe.
+            # We will receive fallback values since the next time window.
+            self._fallback.start()
+            return next_value
+
+        return await self._synchronize_and_fetch_fallback(next_value, self._fallback)
 
     @property
     def value(self) -> Sample[QuantityT] | None:
