@@ -482,22 +482,22 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
 
     async def _fetch_next(self) -> Sample[QuantityT] | None:
         # First fetch from primary stream
-        next_value = None
+        primary_value: Sample[QuantityT] | None = None
         try:
-            next_value = await self._stream.receive()
+            primary_value = await self._stream.receive()
         except ReceiverError[Any] as err:
             _logger.error("Failed to fetch next value from %s: %s", self._name, err)
 
         # We have no fallback, so we just return primary value even if it is not correct.
         if self._fallback is None:
-            return next_value
+            return primary_value
 
-        is_primary_value_valid = next_value is not None and self._is_value_valid(
-            next_value.value
+        is_primary_value_valid = primary_value is not None and self._is_value_valid(
+            primary_value.value
         )
 
         if is_primary_value_valid:
-            return next_value
+            return primary_value
 
         if not self._fallback.is_running:
             _logger.warning(
@@ -508,9 +508,9 @@ class MetricFetcher(Generic[QuantityT], FormulaStep):
             # We started fallback, but it has to subscribe.
             # We will receive fallback values since the next time window.
             self._fallback.start()
-            return next_value
+            return primary_value
 
-        return await self._synchronize_and_fetch_fallback(next_value, self._fallback)
+        return await self._synchronize_and_fetch_fallback(primary_value, self._fallback)
 
     @property
     def value(self) -> Sample[QuantityT] | None:
