@@ -231,12 +231,12 @@ class FormulaEnginePool:
     async def stop(self) -> None:
         """Stop all formula engines in the pool."""
         for string_engine in self._string_engines.values():
-            await string_engine._stop()  # pylint: disable=protected-access
+            await string_engine.stop()
         for power_engine in self._power_engines.values():
-            await power_engine._stop()  # pylint: disable=protected-access
+            await power_engine.stop()
         for power_3_phase_engine in self._power_3_phase_engines.values():
-            await power_3_phase_engine._stop()  # pylint: disable=protected-access
+            await power_3_phase_engine.stop()
         for current_engine in self._current_engines.values():
-            await current_engine._stop()  # pylint: disable=protected-access
+            await current_engine.stop()
         for reactive_power_engine in self._reactive_power_engines.values():
-            await reactive_power_engine._stop()  # pylint: disable=protected-access
+            await reactive_power_engine.stop()

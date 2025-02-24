@@ -112,14 +112,15 @@ class FormulaEngine(Generic[QuantityT]):
         self._channel: Broadcast[Sample[QuantityT]] = Broadcast(name=self._name)
         self._task: asyncio.Task[None] | None = None
 
-    async def _stop(self) -> None:
+    async def stop(self) -> None:
         """Stop a running formula engine."""
         if self._task is None:
             return
         await cancel_and_await(self._task)
+
         _, fetchers = self._builder.finalize()
         for fetcher in fetchers.values():
-            fetcher.stream.close()
+            await fetcher.stop()
 
     @classmethod
     def from_receiver(
@@ -313,7 +314,7 @@ class FormulaEngine(Generic[QuantityT]):
             try:
                 msg = await evaluator.apply()
             except asyncio.CancelledError:
-                _logger.exception("FormulaEngine task cancelled: %s", self._name)
+                _logger.debug("FormulaEngine task cancelled: %s", self._name)
                 raise
             except Exception as err:  # pylint: disable=broad-except
                 _logger.warning(
@@ -428,7 +429,7 @@ class FormulaEngine3Phase(Generic[QuantityT]):
             FormulaEngine[QuantityT],
         ] = phase_streams
 
-    async def _stop(self) -> None:
+    async def stop(self) -> None:
         """Stop a running formula engine."""
         if self._task is None:
             return
@@ -582,7 +583,7 @@ class FormulaEngine3Phase(Generic[QuantityT]):
                     phase_3.value,
                 )
             except asyncio.CancelledError:
-                _logger.exception("FormulaEngine task cancelled: %s", self._name)
+                _logger.debug("FormulaEngine task cancelled: %s", self._name)
                 break
             else:
                 await sender.send(msg)

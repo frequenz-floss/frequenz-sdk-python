@@ -95,7 +95,7 @@ class TestFormulaEngine:
                     and next_val.value.base_value == io_output
                 )
             tests_passed += 1
-        await engine._stop()  # pylint: disable=protected-access
+        await engine.stop()
         assert tests_passed == len(io_pairs)
 
     async def test_simple(self) -> None:
@@ -384,7 +384,7 @@ class TestFormulaEngineComposition:
                     and next_val.value.base_value == io_output
                 )
             tests_passed += 1
-        await engine._stop()  # pylint: disable=protected-access
+        await engine.stop()
         assert tests_passed == len(io_pairs)
 
     async def test_simple(self) -> None:

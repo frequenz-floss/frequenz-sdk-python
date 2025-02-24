@@ -642,8 +642,9 @@ async def test_battery_power_fallback_formula(
             ([-1.0, None], [100.0, 100.0, None], Power.from_watts(200.0)),
             # Case 4: bat_inv_meter is available, ignore fallback inverters
             ([-1.0, 10], [100.0, 100.0, None], Power.from_watts(10.0)),
-            # Case 4: all components are unavailable (None). Return 0 according to the
-            # "nones-are-zero" rule.
+            # Case 4: all components are unavailable (None). Start fallback formula.
+            # Returned power = 0 according to the "nones-are-zero" rule.
+            ([-1.0, None], [None, None, None], None),
             ([-1.0, None], [None, None, None], Power.from_watts(0.0)),
             # Case 5: Components becomes available
             ([-1.0, None], [None, None, 100.0], Power.from_watts(100.0)),
