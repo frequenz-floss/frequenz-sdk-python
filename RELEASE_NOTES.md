@@ -17,3 +17,5 @@
 ## Bug Fixes
 
 - Fixed bug with formulas raising exception when stopped.
+
+- Fix a bug that raised `CancelledError` when actor was started with `frequenz.sdk.actor.run` and stopped.

@@ -390,6 +390,6 @@ async def test_does_not_restart_if_cancelled(
         (*RUN_INFO, "Actor EchoActor[EchoActor]: Starting..."),
         (*ACTOR_INFO, "Actor EchoActor[EchoActor]: Started."),
         (*ACTOR_INFO, "Actor EchoActor[EchoActor]: Cancelled."),
-        (*RUN_ERROR, "Actor EchoActor[EchoActor]: Raised an exception while running."),
+        (*RUN_INFO, "Actor EchoActor[EchoActor]: Cancelled while running."),
         (*RUN_INFO, "All 1 actor(s) finished."),
     ]
