@@ -78,31 +78,6 @@ class RaiseExceptionActor(BaseTestActor):
         print(f"{self} done (should not happen)")
 
 
-class RaiseBaseExceptionActor(BaseTestActor):
-    """A faulty actor that raises a BaseException as soon as it receives a message."""
-
-    def __init__(
-        self,
-        recv: Receiver[int],
-    ) -> None:
-        """Create an instance.
-
-        Args:
-            recv: A channel receiver for int data.
-        """
-        super().__init__(name="test")
-        self._recv = recv
-
-    async def _run(self) -> None:
-        """Start the actor and crash upon receiving a message."""
-        print(f"{self} started")
-        self.inc_restart_count()
-        async for _ in self._recv:
-            print(f"{self} is about to crash")
-            raise MyBaseException("This is a test")
-        print(f"{self} done (should not happen)")
-
-
 ACTOR_INFO = ("frequenz.sdk.actor._actor", 20)
 ACTOR_ERROR = ("frequenz.sdk.actor._actor", 40)
 RUN_INFO = ("frequenz.sdk.actor._run_utils", 20)
@@ -305,41 +280,6 @@ async def test_does_not_restart_on_normal_exit(
         (*ACTOR_INFO, "Actor NopActor[test]: _run() returned without error."),
         (*ACTOR_INFO, "Actor NopActor[test]: Stopped."),
         (*RUN_INFO, "Actor NopActor[test]: Finished normally."),
-        (*RUN_INFO, "All 1 actor(s) finished."),
-    ]
-
-
-async def test_does_not_restart_on_base_exception(
-    actor_auto_restart_once: None,  # pylint: disable=unused-argument
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """Create a faulty actor and expect it not to restart because it raises a base exception."""
-    caplog.set_level("DEBUG", logger="frequenz.sdk.actor._actor")
-    caplog.set_level("DEBUG", logger="frequenz.sdk.actor._run_utils")
-
-    channel: Broadcast[int] = Broadcast(name="channel")
-
-    actor = RaiseBaseExceptionActor(channel.new_receiver())
-
-    async with asyncio.timeout(1.0):
-        await channel.new_sender().send(1)
-        # We can't use pytest.raises() here because known BaseExceptions are handled
-        # specially by pytest.
-        try:
-            await run(actor)
-        except MyBaseException as error:
-            assert str(error) == "This is a test"
-
-    assert BaseTestActor.restart_count == 0
-    assert caplog.record_tuples == [
-        (*RUN_INFO, "Starting 1 actor(s)..."),
-        (*RUN_INFO, "Actor RaiseBaseExceptionActor[test]: Starting..."),
-        (*ACTOR_INFO, "Actor RaiseBaseExceptionActor[test]: Started."),
-        (*ACTOR_ERROR, "Actor RaiseBaseExceptionActor[test]: Raised a BaseException."),
-        (
-            *RUN_ERROR,
-            "Actor RaiseBaseExceptionActor[test]: Raised an exception while running.",
-        ),
         (*RUN_INFO, "All 1 actor(s) finished."),
     ]
 

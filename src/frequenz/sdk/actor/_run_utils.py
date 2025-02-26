@@ -49,7 +49,7 @@ async def run(*actors: Actor) -> None:
                 task.result()
             except* asyncio.CancelledError:
                 _logger.info("Actor %s: Cancelled while running.", task.get_name())
-            except* BaseException:  # pylint: disable=broad-exception-caught
+            except* Exception:  # pylint: disable=broad-exception-caught
                 _logger.exception(
                     "Actor %s: Raised an exception while running.",
                     task.get_name(),
