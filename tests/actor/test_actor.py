@@ -9,7 +9,7 @@ from datetime import timedelta
 import pytest
 from frequenz.channels import Broadcast, Receiver, Sender, select, selected_from
 
-from frequenz.sdk.actor import Actor, run
+from frequenz.sdk.actor import Actor, RestartActorException, run
 
 from ..conftest import actor_restart_limit
 
@@ -76,6 +76,32 @@ class RaiseExceptionActor(BaseTestActor):
             print(f"{self} is about to crash")
             _ = msg / 0
         print(f"{self} done (should not happen)")
+
+
+class RaiseRestartExceptionActor(BaseTestActor):
+    """Actor that raises an RestartActorException as soon as it receives a message."""
+
+    def __init__(self, recv: Receiver[int], raise_count: int) -> None:
+        """Create an instance.
+
+        Args:
+            recv: A channel receiver for int data.
+            raise_count: How many time raise RestartActorException
+        """
+        super().__init__(name="test")
+        self._recv = recv
+        self._raise_count = raise_count
+
+    async def _run(self) -> None:
+        """Start the actor and crash upon receiving a message."""
+        print(f"{self} started")
+        self.inc_restart_count()
+        async for _ in self._recv:
+            if self._raise_count <= 0:
+                break
+            self._raise_count -= 1
+            raise RestartActorException("Actor should restarts")
+        print(f"{self} done")
 
 
 ACTOR_INFO = ("frequenz.sdk.actor._actor", 20)
@@ -244,6 +270,82 @@ async def test_restart_on_unhandled_exception(
                 "Actor RaiseExceptionActor[test]: Raised an exception while running.",
             ),
             (*RUN_INFO, "All 1 actor(s) finished."),
+        ]
+    )
+    print("caplog.record_tuples:", caplog.record_tuples)
+    # This is an ugly hack. There seem to be some issues with asyncio and caplog, maybe
+    # pytest-asyncio, that reports some pending tasks from an unrelated test when tested
+    # inside QEMU (suggesting also some timing issue when things run very slow).
+    filtered_logs = [r for r in caplog.record_tuples if r[0] in relevant_loggers]
+    print("filtered_logs:", filtered_logs)
+    print("expected_log:", expected_log)
+    assert filtered_logs == expected_log
+
+
+@pytest.mark.parametrize("restart_num", [1])
+async def test_restart_on_restart_exception(
+    restart_num: int, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Create a faulty actor and expect it to restart because it raises an exception.
+
+    Also test this works with different restart limits.
+
+    Args:
+        restart_num: The restart limit to use.
+        caplog: The log capture fixture.
+    """
+    relevant_loggers = {"frequenz.sdk.actor._actor", "frequenz.sdk.actor._run_utils"}
+    for logger in relevant_loggers:
+        caplog.set_level("DEBUG", logger=logger)
+
+    channel: Broadcast[int] = Broadcast(name="channel")
+
+    # We need some timeout, 1 second for each restart should be enough.
+    # There should be no restart delay.
+    expected_wait_time = timedelta(seconds=restart_num + 1.0)
+    async with asyncio.timeout(expected_wait_time.total_seconds()):
+        actor = RaiseRestartExceptionActor(
+            channel.new_receiver(),
+            raise_count=restart_num,
+        )
+        for i in range(restart_num + 1):
+            await channel.new_sender().send(i)
+
+        await run(actor)
+        await actor.wait()
+
+    assert actor.is_running is False
+    assert BaseTestActor.restart_count == restart_num
+    expected_log = [
+        (*RUN_INFO, "Starting 1 actor(s)..."),
+        (*RUN_INFO, "Actor RaiseRestartExceptionActor[test]: Starting..."),
+        (*ACTOR_INFO, "Actor RaiseRestartExceptionActor[test]: Started."),
+    ]
+    for i in range(restart_num):
+        expected_log.append(
+            (
+                *ACTOR_INFO,
+                "Actor RaiseRestartExceptionActor[test]: Restarting.",
+            ),
+        )
+    expected_log.extend(
+        [
+            (
+                *ACTOR_INFO,
+                "Actor RaiseRestartExceptionActor[test]: _run() returned without error.",
+            ),
+            (
+                *ACTOR_INFO,
+                "Actor RaiseRestartExceptionActor[test]: Stopped.",
+            ),
+            (
+                *RUN_INFO,
+                "Actor RaiseRestartExceptionActor[test]: Finished normally.",
+            ),
+            (
+                *RUN_INFO,
+                "All 1 actor(s) finished.",
+            ),
         ]
     )
     print("caplog.record_tuples:", caplog.record_tuples)

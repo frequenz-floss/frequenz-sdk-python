@@ -14,6 +14,8 @@
 
 - Stop fallback formulas when primary formula starts working again.
 
+- Add `RestartActorException` to `frequnez.sdk.actor`. Actor can use it to restart `run` method if necessary.
+
 ## Bug Fixes
 
 - Fixed bug with formulas raising exception when stopped.

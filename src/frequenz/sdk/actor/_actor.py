@@ -13,6 +13,10 @@ from ._background_service import BackgroundService
 _logger = logging.getLogger(__name__)
 
 
+class RestartActorException(Exception):
+    """Exception raised when an actor should be restarted."""
+
+
 class Actor(BackgroundService, abc.ABC):
     """A primitive unit of computation that runs autonomously.
 
@@ -58,19 +62,14 @@ class Actor(BackgroundService, abc.ABC):
     async def _run(self) -> None:
         """Run this actor's logic."""
 
-    async def _delay_if_restart(self, iteration: int) -> None:
-        """Delay the restart of this actor's n'th iteration.
-
-        Args:
-            iteration: The current iteration of the restart.
-        """
+    async def _delay(self) -> None:
+        """Delay the restart of this actor."""
         # NB: I think it makes sense (in the future) to think about deminishing returns
         # the longer the actor has been running.
         # Not just for the restart-delay but actually for the n_restarts counter as well.
-        if iteration > 0:
-            delay = self.RESTART_DELAY.total_seconds()
-            _logger.info("Actor %s: Waiting %s seconds...", self, delay)
-            await asyncio.sleep(delay)
+        delay = self.RESTART_DELAY.total_seconds()
+        _logger.info("Actor %s: Waiting %s seconds...", self, delay)
+        await asyncio.sleep(delay)
 
     async def _run_loop(self) -> None:
         """Run the actor's task continuously, managing restarts, cancellation, and termination.
@@ -85,15 +84,22 @@ class Actor(BackgroundService, abc.ABC):
         """
         _logger.info("Actor %s: Started.", self)
         n_restarts = 0
+        should_delay = False
         while True:
             try:
-                await self._delay_if_restart(n_restarts)
+                if should_delay:
+                    await self._delay()
+                    should_delay = False
                 await self._run()
                 _logger.info("Actor %s: _run() returned without error.", self)
             except asyncio.CancelledError:
                 _logger.info("Actor %s: Cancelled.", self)
                 raise
+            except RestartActorException:
+                _logger.info("Actor %s: Restarting.", self)
+                continue
             except Exception:  # pylint: disable=broad-except
+                should_delay = True
                 _logger.exception("Actor %s: Raised an unhandled exception.", self)
                 limit_str = "∞" if self._restart_limit is None else self._restart_limit
                 limit_str = f"({n_restarts}/{limit_str})"

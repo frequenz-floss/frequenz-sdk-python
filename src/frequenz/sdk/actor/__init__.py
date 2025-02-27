@@ -598,12 +598,13 @@ Received message=False
 """
 
 from ..timeseries._resampling import ResamplerConfig
-from ._actor import Actor
+from ._actor import Actor, RestartActorException
 from ._background_service import BackgroundService
 from ._run_utils import run
 
 __all__ = [
     "Actor",
+    "RestartActorException",
     "BackgroundService",
     "ResamplerConfig",
     "run",
