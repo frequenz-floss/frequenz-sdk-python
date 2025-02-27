@@ -1581,19 +1581,19 @@
 
         <p>Provides a way for the SDK to apply formulas on resampled data streams.</p>
 <h2 id="frequenz.sdk.timeseries.formula_engine--formula-engine">Formula Engine<a class="headerlink" href="#frequenz.sdk.timeseries.formula_engine--formula-engine" title="Permanent link">¤</a></h2>
-<p><a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/formula_engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine"><code>FormulaEngine</code></a>s are used in the
+<p><a class="autorefs autorefs-internal" title=" FormulaEngine" href="../../reference/frequenz/sdk/timeseries/formula_engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine"><code>FormulaEngine</code></a>s are used in the
 SDK to calculate and stream metrics like
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/grid/#frequenz.sdk.timeseries.grid.Grid.power"><code>grid_power</code></a>,
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/consumer/#frequenz.sdk.timeseries.consumer.Consumer.power"><code>consumer_power</code></a>, etc., which are
-building blocks of the <a class="autorefs autorefs-internal" href="../microgrid-concepts/#frequenz.sdk.microgrid--frequenz-sdk-microgrid-model">Frequenz SDK Microgrid
+<a class="autorefs autorefs-internal" title=" power" href="../../reference/frequenz/sdk/timeseries/grid/#frequenz.sdk.timeseries.grid.Grid.power"><code>grid_power</code></a>,
+<a class="autorefs autorefs-internal" title=" power" href="../../reference/frequenz/sdk/timeseries/consumer/#frequenz.sdk.timeseries.consumer.Consumer.power"><code>consumer_power</code></a>, etc., which are
+building blocks of the <a class="autorefs autorefs-internal" title="Frequenz SDK Microgrid Model" href="../microgrid-concepts/#frequenz.sdk.microgrid--frequenz-sdk-microgrid-model">Frequenz SDK Microgrid
 Model</a>.</p>
 <p>The SDK creates the formulas by analysing the configuration of components in the
 <a href="../glossary/#component-graph">Component Graph</a>.</p>
 <h3 id="frequenz.sdk.timeseries.formula_engine--streaming-interface">Streaming Interface<a class="headerlink" href="#frequenz.sdk.timeseries.formula_engine--streaming-interface" title="Permanent link">¤</a></h3>
 <p>The
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/formula_engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine.new_receiver"><code>FormulaEngine.new_receiver()</code></a>
+<a class="autorefs autorefs-internal" title=" new_receiver" href="../../reference/frequenz/sdk/timeseries/formula_engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine.new_receiver"><code>FormulaEngine.new_receiver()</code></a>
 method can be used to create a <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a> that streams the
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/#frequenz.sdk.timeseries.Sample">Sample</a>s calculated by the formula engine.</p>
+<a class="autorefs autorefs-internal" title=" Sample" href="../../reference/frequenz/sdk/timeseries/#frequenz.sdk.timeseries.Sample">Sample</a>s calculated by the formula engine.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">frequenz.sdk</span><span class="w"> </span><span class="kn">import</span> <span class="n">microgrid</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">battery_pool</span> <span class="o">=</span> <span class="n">microgrid</span><span class="o">.</span><span class="n">new_battery_pool</span><span class="p">(</span><span class="n">priority</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
@@ -1606,10 +1606,10 @@ method can be used to create a <a class="autorefs autorefs-external" href="https
 <code>FormulaEngine</code>s streaming the same type of data.</p>
 <p>For example, if you're interested in a particular composite metric that can be
 calculated by subtracting
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.power"><code>new_battery_pool().power</code></a> and
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool"><code>new_ev_charger_pool().power</code></a>
+<a class="autorefs autorefs-internal" title=" power" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.power"><code>new_battery_pool().power</code></a> and
+<a class="autorefs autorefs-internal" title=" EVChargerPool" href="../../reference/frequenz/sdk/timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool"><code>new_ev_charger_pool().power</code></a>
 from the
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/grid/#frequenz.sdk.timeseries.grid.Grid.power"><code>grid().power</code></a>,
+<a class="autorefs autorefs-internal" title=" power" href="../../reference/frequenz/sdk/timeseries/grid/#frequenz.sdk.timeseries.grid.Grid.power"><code>grid().power</code></a>,
 we can build a <code>FormulaEngine</code> that provides a stream of this calculated metric as
 follows:</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">frequenz.sdk</span><span class="w"> </span><span class="kn">import</span> <span class="n">microgrid</span>
@@ -1628,19 +1628,19 @@ follows:</p>
 </span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">power</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span></code></pre></div>
 <h2 id="frequenz.sdk.timeseries.formula_engine--formula-engine-3-phase">Formula Engine 3-Phase<a class="headerlink" href="#frequenz.sdk.timeseries.formula_engine--formula-engine-3-phase" title="Permanent link">¤</a></h2>
-<p>A <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/formula_engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase"><code>FormulaEngine3Phase</code></a>
+<p>A <a class="autorefs autorefs-internal" title=" FormulaEngine3Phase" href="../../reference/frequenz/sdk/timeseries/formula_engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase"><code>FormulaEngine3Phase</code></a>
 is similar to a
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/formula_engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine"><code>FormulaEngine</code></a>, except that
-they stream <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/#frequenz.sdk.timeseries.Sample3Phase">3-phase samples</a>.  All the
+<a class="autorefs autorefs-internal" title=" FormulaEngine" href="../../reference/frequenz/sdk/timeseries/formula_engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine"><code>FormulaEngine</code></a>, except that
+they stream <a class="autorefs autorefs-internal" title=" Sample3Phase" href="../../reference/frequenz/sdk/timeseries/#frequenz.sdk.timeseries.Sample3Phase">3-phase samples</a>.  All the
 current formulas (like
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/grid/#frequenz.sdk.timeseries.grid.Grid.current_per_phase"><code>Grid.current_per_phase</code></a>,
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.current_per_phase"><code>EVChargerPool.current_per_phase</code></a>,
+<a class="autorefs autorefs-internal" title=" current_per_phase" href="../../reference/frequenz/sdk/timeseries/grid/#frequenz.sdk.timeseries.grid.Grid.current_per_phase"><code>Grid.current_per_phase</code></a>,
+<a class="autorefs autorefs-internal" title=" current_per_phase" href="../../reference/frequenz/sdk/timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.current_per_phase"><code>EVChargerPool.current_per_phase</code></a>,
 etc.) are implemented as per-phase formulas.</p>
 <h3 id="frequenz.sdk.timeseries.formula_engine--streaming-interface_1">Streaming Interface<a class="headerlink" href="#frequenz.sdk.timeseries.formula_engine--streaming-interface_1" title="Permanent link">¤</a></h3>
 <p>The
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/formula_engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase.new_receiver"><code>FormulaEngine3Phase.new_receiver()</code></a>
+<a class="autorefs autorefs-internal" title=" new_receiver" href="../../reference/frequenz/sdk/timeseries/formula_engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase.new_receiver"><code>FormulaEngine3Phase.new_receiver()</code></a>
 method can be used to create a <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a> that streams the
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/#frequenz.sdk.timeseries.Sample3Phase">Sample3Phase</a> values
+<a class="autorefs autorefs-internal" title=" Sample3Phase" href="../../reference/frequenz/sdk/timeseries/#frequenz.sdk.timeseries.Sample3Phase">Sample3Phase</a> values
 calculated by the formula engine.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">frequenz.sdk</span><span class="w"> </span><span class="kn">import</span> <span class="n">microgrid</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>

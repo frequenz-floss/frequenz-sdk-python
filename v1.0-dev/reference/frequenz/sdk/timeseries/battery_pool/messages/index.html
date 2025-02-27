@@ -2231,7 +2231,7 @@
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.Result" class="headerlink" title="Permanent link">¤</a></h4>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">Result</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid._power_distributing.result.Success" href="#frequenz.sdk.timeseries.battery_pool.messages.Success">Success</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid._power_distributing.result.PartialFailure" href="#frequenz.sdk.timeseries.battery_pool.messages.PartialFailure">PartialFailure</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid._power_distributing.result.Error" href="#frequenz.sdk.timeseries.battery_pool.messages.Error">Error</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid._power_distributing.result.OutOfBounds" href="#frequenz.sdk.timeseries.battery_pool.messages.OutOfBounds">OutOfBounds</a></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">Result</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title=" Success (frequenz.sdk.microgrid._power_distributing.result.Success)" href="#frequenz.sdk.timeseries.battery_pool.messages.Success">Success</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title=" PartialFailure (frequenz.sdk.microgrid._power_distributing.result.PartialFailure)" href="#frequenz.sdk.timeseries.battery_pool.messages.PartialFailure">PartialFailure</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title=" Error (frequenz.sdk.microgrid._power_distributing.result.Error)" href="#frequenz.sdk.timeseries.battery_pool.messages.Error">Error</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title=" OutOfBounds (frequenz.sdk.microgrid._power_distributing.result.OutOfBounds)" href="#frequenz.sdk.timeseries.battery_pool.messages.OutOfBounds">OutOfBounds</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2493,7 +2493,7 @@ for r in results:
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport.bounds" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">bounds</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._base_types.Bounds" href="../../#frequenz.sdk.timeseries.Bounds">Bounds</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">bounds</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title=" Bounds (frequenz.sdk.timeseries._base_types.Bounds)" href="../../#frequenz.sdk.timeseries.Bounds">Bounds</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2502,7 +2502,7 @@ for r in results:
 <p>These bounds are adjusted to any restrictions placed by actors with higher
 priorities.</p>
 <p>There might be exclusion zones within these bounds. If necessary, the
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport.adjust_to_bounds"><code>adjust_to_bounds</code></a>
+<a class="autorefs autorefs-internal" title=" adjust_to_bounds" href="#frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport.adjust_to_bounds"><code>adjust_to_bounds</code></a>
 method may be used to check if a desired power value fits the bounds, or to get
 the closest possible power values that do fit the bounds.</p>
     </div>

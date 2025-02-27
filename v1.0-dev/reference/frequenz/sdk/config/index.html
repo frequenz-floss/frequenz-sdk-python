@@ -3352,7 +3352,7 @@
         <p>Configuration management.</p>
 <h3 id="frequenz.sdk.config--overview">Overview<a class="headerlink" href="#frequenz.sdk.config--overview" title="Permanent link">¤</a></h3>
 <p>To provide dynamic configurations to an application, you can use the
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.config.ConfigManager"><code>ConfigManager</code></a> class. This class provides
+<a class="autorefs autorefs-internal" title=" ConfigManager" href="#frequenz.sdk.config.ConfigManager"><code>ConfigManager</code></a> class. This class provides
 a convenient interface to manage configurations from multiple config files and receive
 updates when the configurations change.  Users can create a receiver to receive
 configurations from the manager.</p>
@@ -3371,7 +3371,7 @@ lists) will be replaced by the value in the last path.</p>
 </span></code></pre></div>
 <h3 id="frequenz.sdk.config--logging">Logging<a class="headerlink" href="#frequenz.sdk.config--logging" title="Permanent link">¤</a></h3>
 <p>The <code>ConfigManager</code> can also instantiate
-a <a class="autorefs autorefs-internal" href="#frequenz.sdk.config.LoggingConfigUpdatingActor"><code>LoggingConfigUpdatingActor</code></a> to
+a <a class="autorefs autorefs-internal" title=" LoggingConfigUpdatingActor" href="#frequenz.sdk.config.LoggingConfigUpdatingActor"><code>LoggingConfigUpdatingActor</code></a> to
 monitor logging configurations. This actor will listen for logging configuration changes
 and update the logging configuration accordingly.</p>
 <p>This feature is enabled by default using the key <code>logging</code> in the configuration file. To
@@ -3389,7 +3389,7 @@ errors loading the configuration (typically
 a <a class="autorefs autorefs-external" href="https://marshmallow.readthedocs.io/en/stable/top_level.html#marshmallow.ValidationError"><code>ValidationError</code></a>), or <code>None</code> if there is no
 configuration for the key.</p>
 <p>The value under <code>key</code> must be another mapping, otherwise
-a <a class="autorefs autorefs-internal" href="#frequenz.sdk.config.InvalidValueForKeyError"><code>InvalidValueForKeyError</code></a> instance will
+a <a class="autorefs autorefs-internal" title=" InvalidValueForKeyError" href="#frequenz.sdk.config.InvalidValueForKeyError"><code>InvalidValueForKeyError</code></a> instance will
 be sent to the receiver.</p>
 <p>If there were any errors loading the configuration, the error will be logged too.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
@@ -3418,7 +3418,7 @@ the <a class="autorefs autorefs-external" href="https://lovasoa.github.io/marshm
 dataclass using <a class="autorefs autorefs-external" href="https://lovasoa.github.io/marshmallow_dataclass/html/marshmallow_dataclass.html#module-marshmallow_dataclass"><code>marshmallow_dataclass</code></a> to specify extra validation and
 options via field metadata.</p>
 <p>Customization can also be done via a <code>base_schema</code>. By default
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.config.BaseConfigSchema"><code>BaseConfigSchema</code></a> is used to provide support
+<a class="autorefs autorefs-internal" title=" BaseConfigSchema" href="#frequenz.sdk.config.BaseConfigSchema"><code>BaseConfigSchema</code></a> is used to provide support
 for some extra commonly used fields (like <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities">quantities</a>) and to
 exclude unknown fields by default.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">marshmallow.validate</span>
@@ -3444,7 +3444,7 @@ The comparison is done using the <em>raw</em> <code>dict</code> to determine if 
 has changed.</p>
 <h4 id="frequenz.sdk.config--error-handling">Error handling<a class="headerlink" href="#frequenz.sdk.config--error-handling" title="Permanent link">¤</a></h4>
 <p>The value under <code>key</code> must be another mapping, otherwise an error
-will be logged and a <a class="autorefs autorefs-internal" href="#frequenz.sdk.config.InvalidValueForKeyError"><code>frequenz.sdk.config.InvalidValueForKeyError</code></a> instance
+will be logged and a <a class="autorefs autorefs-internal" title=" InvalidValueForKeyError" href="#frequenz.sdk.config.InvalidValueForKeyError"><code>frequenz.sdk.config.InvalidValueForKeyError</code></a> instance
 will be sent to the receiver.</p>
 <p>Configurations that don't pass the validation will be logged as an error and
 the <a class="autorefs autorefs-external" href="https://marshmallow.readthedocs.io/en/stable/top_level.html#marshmallow.ValidationError"><code>ValidationError</code></a> sent to the receiver.</p>
@@ -3453,7 +3453,7 @@ logged as an error and the error instance sent to the receiver.</p>
 <h4 id="frequenz.sdk.config--further-customization">Further customization<a class="headerlink" href="#frequenz.sdk.config--further-customization" title="Permanent link">¤</a></h4>
 <p>If you have special needs for receiving the configurations (for example validating using
 <code>marshmallow</code> doesn't fit your needs), you can create a custom receiver using
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.config.ConfigManager.config_channel"><code>config_channel.new_receiver()</code></a>
+<a class="autorefs autorefs-internal" title=" config_channel" href="#frequenz.sdk.config.ConfigManager.config_channel"><code>config_channel.new_receiver()</code></a>
 directly. Please bear in mind that this provides a low-level access to the whole config
 in the file as a raw Python mapping.</p>
 <h3 id="frequenz.sdk.config--recommended-usage">Recommended usage<a class="headerlink" href="#frequenz.sdk.config--recommended-usage" title="Permanent link">¤</a></h3>
@@ -3463,7 +3463,7 @@ actors to have full control over how the configuration is loaded (for example pr
 a custom base schema or marshmallow options).</p>
 <p>Passing the key explicitly too allows application to structure the configuration in
 whatever way is most convenient for the application.</p>
-<p>Actors can use the <a class="autorefs autorefs-internal" href="#frequenz.sdk.config.wait_for_first"><code>wait_for_first()</code></a> function to
+<p>Actors can use the <a class="autorefs autorefs-internal" title=" wait_for_first" href="#frequenz.sdk.config.wait_for_first"><code>wait_for_first()</code></a> function to
 wait for the first configuration to be received, and cache the configuration for later
 use and in case the actor is restarted. If the configuration is not received after some
 timeout, a <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/asyncio-exceptions.html#asyncio.TimeoutError"><code>asyncio.TimeoutError</code></a> will be raised (and if uncaught, the actor will
@@ -4015,13 +4015,13 @@ If False, quantities are serialized as floats.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor._background_service.BackgroundService" href="../actor/#frequenz.sdk.actor.BackgroundService">BackgroundService</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title=" BackgroundService (frequenz.sdk.actor._background_service.BackgroundService)" href="../actor/#frequenz.sdk.actor.BackgroundService">BackgroundService</a></code></p>
 
 
         <p>A manager for configuration files.</p>
 <p>This class reads configuration files and sends the configuration to the receivers,
 providing configuration key filtering and value validation.</p>
-<p>For a more in-depth introduction and examples, please read the <a class="autorefs autorefs-internal" href="#frequenz.sdk.config">module
+<p>For a more in-depth introduction and examples, please read the <a class="autorefs autorefs-internal" title=" config" href="#frequenz.sdk.config">module
 documentation</a>.</p>
 
 
@@ -4472,8 +4472,8 @@ documentation</a>.</p>
   </span>
 
 <a href="#frequenz.sdk.config.ConfigManager.config_actor" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">config_actor</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Final" href="https://docs.python.org/3/library/typing.html#typing.Final">Final</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.config._managing_actor.ConfigManagingActor" href="#frequenz.sdk.config.ConfigManagingActor">ConfigManagingActor</a></span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.config._managing_actor.ConfigManagingActor" href="#frequenz.sdk.config.ConfigManagingActor">ConfigManagingActor</a></span><span class="p">(</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">config_actor</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Final" href="https://docs.python.org/3/library/typing.html#typing.Final">Final</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title=" ConfigManagingActor (frequenz.sdk.config._managing_actor.ConfigManagingActor)" href="#frequenz.sdk.config.ConfigManagingActor">ConfigManagingActor</a></span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n"><a class="autorefs autorefs-internal" title=" ConfigManagingActor (frequenz.sdk.config._managing_actor.ConfigManagingActor)" href="#frequenz.sdk.config.ConfigManagingActor">ConfigManagingActor</a></span><span class="p">(</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><span title="frequenz.sdk.config._manager.ConfigManager(config_paths)">config_paths</span></span><span class="p">,</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="n"><span title="frequenz.sdk.config._manager.ConfigManager(self).config_channel.new_sender">new_sender</span></span><span class="p">(),</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="n"><span title="frequenz.sdk.config._managing_actor.ConfigManagingActor(name)">name</span></span><span class="o">=</span><span class="n"><span title="frequenz.sdk.config._manager.ConfigManager(self).name">name</span></span><span class="p">,</span>
@@ -4512,7 +4512,7 @@ documentation</a>.</p>
 
         <p>The channel used for sending configuration updates (resends the latest value).</p>
 <p>This is the channel used to communicate with the
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.config.ConfigManager.config_actor"><code>ConfigManagingActor</code></a> and will
+<a class="autorefs autorefs-internal" title=" config_actor" href="#frequenz.sdk.config.ConfigManager.config_actor"><code>ConfigManagingActor</code></a> and will
 receive the complete raw configuration as a mapping.</p>
     </div>
 
@@ -4554,10 +4554,10 @@ receive the complete raw configuration as a mapping.</p>
   </span>
 
 <a href="#frequenz.sdk.config.ConfigManager.logging_actor" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">logging_actor</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Final" href="https://docs.python.org/3/library/typing.html#typing.Final">Final</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.config._logging_actor.LoggingConfigUpdatingActor" href="#frequenz.sdk.config.LoggingConfigUpdatingActor">LoggingConfigUpdatingActor</a></span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">logging_actor</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Final" href="https://docs.python.org/3/library/typing.html#typing.Final">Final</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title=" LoggingConfigUpdatingActor (frequenz.sdk.config._logging_actor.LoggingConfigUpdatingActor)" href="#frequenz.sdk.config.LoggingConfigUpdatingActor">LoggingConfigUpdatingActor</a></span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="kc">None</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="k">if</span> <span class="n"><span title="frequenz.sdk.config._manager.ConfigManager(logging_config_key)">logging_config_key</span></span> <span class="ow">is</span> <span class="kc">None</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="k">else</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.config._logging_actor.LoggingConfigUpdatingActor" href="#frequenz.sdk.config.LoggingConfigUpdatingActor">LoggingConfigUpdatingActor</a></span><span class="p">(</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="k">else</span> <span class="n"><a class="autorefs autorefs-internal" title=" LoggingConfigUpdatingActor (frequenz.sdk.config._logging_actor.LoggingConfigUpdatingActor)" href="#frequenz.sdk.config.LoggingConfigUpdatingActor">LoggingConfigUpdatingActor</a></span><span class="p">(</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="n"><span title="frequenz.sdk.config._manager.ConfigManager(self)">self</span></span><span class="p">,</span> <span class="n"><span title="frequenz.sdk.config._logging_actor.LoggingConfigUpdatingActor(config_key)">config_key</span></span><span class="o">=</span><span class="n"><span title="frequenz.sdk.config._manager.ConfigManager(logging_config_key)">logging_config_key</span></span><span class="p">,</span> <span class="n"><span title="frequenz.sdk.config._logging_actor.LoggingConfigUpdatingActor(name)">name</span></span><span class="o">=</span><span class="n"><span title="frequenz.sdk.config._manager.ConfigManager(self).name">name</span></span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="p">)</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span>
@@ -5432,7 +5432,7 @@ polling is enabled.</p>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="o">/</span><span class="p">,</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="o">*</span><span class="p">,</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">skip_unchanged</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">base_schema</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#type">type</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="marshmallow.Schema" href="https://marshmallow.readthedocs.io/en/stable/top_level.html#marshmallow.Schema">Schema</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.config._base_schema.BaseConfigSchema" href="#frequenz.sdk.config.BaseConfigSchema">BaseConfigSchema</a></span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">base_schema</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#type">type</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="marshmallow.Schema" href="https://marshmallow.readthedocs.io/en/stable/top_level.html#marshmallow.Schema">Schema</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title=" BaseConfigSchema (frequenz.sdk.config._base_schema.BaseConfigSchema)" href="#frequenz.sdk.config.BaseConfigSchema">BaseConfigSchema</a></span><span class="p">,</span>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">marshmallow_load_kwargs</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.config._util.DataclassT">DataclassT</span></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#Exception">Exception</a></span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span>
 </span></code></pre></div>
@@ -5444,8 +5444,8 @@ polling is enabled.</p>
 receive configurations, but it also imposes some restrictions on how the
 configurations are received. If you need more control over the configuration
 receiver, you can create a receiver directly using
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.config.ConfigManager.config_channel"><code>config_channel.new_receiver()</code></a>.</p>
-<p>For a more in-depth introduction and examples, please read the <a class="autorefs autorefs-internal" href="#frequenz.sdk.config">module
+<a class="autorefs autorefs-internal" title=" config_channel" href="#frequenz.sdk.config.ConfigManager.config_channel"><code>config_channel.new_receiver()</code></a>.</p>
+<p>For a more in-depth introduction and examples, please read the <a class="autorefs autorefs-internal" title=" config" href="#frequenz.sdk.config">module
 documentation</a>.</p>
 
 
@@ -5530,7 +5530,7 @@ passed to <a class="autorefs autorefs-external" href="https://lovasoa.github.io/
                   </span>
                   <span class="doc-param-default">
                     <b>DEFAULT:</b>
-                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.config._base_schema.BaseConfigSchema" href="#frequenz.sdk.config.BaseConfigSchema">BaseConfigSchema</a></code>
+                      <code><a class="autorefs autorefs-internal" title=" BaseConfigSchema (frequenz.sdk.config._base_schema.BaseConfigSchema)" href="#frequenz.sdk.config.BaseConfigSchema">BaseConfigSchema</a></code>
                   </span>
               </p>
             </td>
@@ -6023,7 +6023,7 @@ the exception group).</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor._actor.Actor" href="../actor/#frequenz.sdk.actor.Actor">Actor</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title=" Actor (frequenz.sdk.actor._actor.Actor)" href="../actor/#frequenz.sdk.actor.Actor">Actor</a></code></p>
 
 
         <p>An actor that monitors a TOML configuration files for updates.</p>
@@ -8239,7 +8239,7 @@ the exception group).</p>
   </span>
 
 <a href="#frequenz.sdk.config.LoggingConfig.loggers" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">loggers</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.config._logging_actor.LoggerConfig" href="#frequenz.sdk.config.LoggerConfig">LoggerConfig</a></span><span class="p">]</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="dataclasses.field" href="https://docs.python.org/3/library/dataclasses.html#dataclasses.field">field</a></span><span class="p">(</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">loggers</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-internal" title=" LoggerConfig (frequenz.sdk.config._logging_actor.LoggerConfig)" href="#frequenz.sdk.config.LoggerConfig">LoggerConfig</a></span><span class="p">]</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="dataclasses.field" href="https://docs.python.org/3/library/dataclasses.html#dataclasses.field">field</a></span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n"><span title="dataclasses.field(default_factory)">default_factory</span></span><span class="o">=</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">,</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n"><span title="dataclasses.field(metadata)">metadata</span></span><span class="o">=</span><span class="p">{</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -8270,8 +8270,8 @@ the exception group).</p>
   </span>
 
 <a href="#frequenz.sdk.config.LoggingConfig.root_logger" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">root_logger</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.config._logging_actor.LoggerConfig" href="#frequenz.sdk.config.LoggerConfig">LoggerConfig</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="dataclasses.field" href="https://docs.python.org/3/library/dataclasses.html#dataclasses.field">field</a></span><span class="p">(</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n"><span title="dataclasses.field(default_factory)">default_factory</span></span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.config._logging_actor.LoggerConfig" href="#frequenz.sdk.config.LoggerConfig">LoggerConfig</a></span><span class="p">(</span><span class="n"><span title="frequenz.sdk.config._logging_actor.LoggerConfig(level)">level</span></span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">),</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">root_logger</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title=" LoggerConfig (frequenz.sdk.config._logging_actor.LoggerConfig)" href="#frequenz.sdk.config.LoggerConfig">LoggerConfig</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="dataclasses.field" href="https://docs.python.org/3/library/dataclasses.html#dataclasses.field">field</a></span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n"><span title="dataclasses.field(default_factory)">default_factory</span></span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title=" LoggerConfig (frequenz.sdk.config._logging_actor.LoggerConfig)" href="#frequenz.sdk.config.LoggerConfig">LoggerConfig</a></span><span class="p">(</span><span class="n"><span title="frequenz.sdk.config._logging_actor.LoggerConfig(level)">level</span></span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">),</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n"><span title="dataclasses.field(metadata)">metadata</span></span><span class="o">=</span><span class="p">{</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Default default configuration for all loggers.&quot;</span>
@@ -8310,7 +8310,7 @@ the exception group).</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor.Actor" href="../actor/#frequenz.sdk.actor.Actor">Actor</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title=" Actor (frequenz.sdk.actor.Actor)" href="../actor/#frequenz.sdk.actor.Actor">Actor</a></code></p>
 
 
         <p>Actor that listens for logging configuration changes and sets them.</p>
@@ -9121,7 +9121,7 @@ unless the class explicitly documents it is safe to do so.</p>
 
 <a href="#frequenz.sdk.config.LoggingConfigUpdatingActor.__init__" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="fm">__init__</span><span class="p">(</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="nf">config_manager</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.config._manager.ConfigManager" href="#frequenz.sdk.config.ConfigManager">ConfigManager</a></span><span class="p">,</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="nf">config_manager</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title=" ConfigManager (frequenz.sdk.config._manager.ConfigManager)" href="#frequenz.sdk.config.ConfigManager">ConfigManager</a></span><span class="p">,</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="o">/</span><span class="p">,</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="o">*</span><span class="p">,</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">config_key</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Sequence" href="https://docs.python.org/3/library/typing.html#typing.Sequence">Sequence</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;logging&quot;</span><span class="p">,</span>
@@ -9155,7 +9155,7 @@ unless the class explicitly documents it is safe to do so.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.config._manager.ConfigManager" href="#frequenz.sdk.config.ConfigManager">ConfigManager</a></code>
+                      <code><a class="autorefs autorefs-internal" title=" ConfigManager (frequenz.sdk.config._manager.ConfigManager)" href="#frequenz.sdk.config.ConfigManager">ConfigManager</a></code>
                   </span>
               </p>
             </td>
@@ -9853,7 +9853,7 @@ the exception group).</p>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">config</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Mapping" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping">Mapping</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">],</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="o">/</span><span class="p">,</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="o">*</span><span class="p">,</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">base_schema</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#type">type</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="marshmallow.Schema" href="https://marshmallow.readthedocs.io/en/stable/top_level.html#marshmallow.Schema">Schema</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.config._base_schema.BaseConfigSchema" href="#frequenz.sdk.config.BaseConfigSchema">BaseConfigSchema</a></span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">base_schema</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#type">type</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="marshmallow.Schema" href="https://marshmallow.readthedocs.io/en/stable/top_level.html#marshmallow.Schema">Schema</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title=" BaseConfigSchema (frequenz.sdk.config._base_schema.BaseConfigSchema)" href="#frequenz.sdk.config.BaseConfigSchema">BaseConfigSchema</a></span><span class="p">,</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">marshmallow_load_kwargs</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="frequenz.sdk.config._util.DataclassT">DataclassT</span></span>
 </span></code></pre></div>
@@ -9938,7 +9938,7 @@ class. This allow using custom fields for example. Will be passed to
                   </span>
                   <span class="doc-param-default">
                     <b>DEFAULT:</b>
-                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.config._base_schema.BaseConfigSchema" href="#frequenz.sdk.config.BaseConfigSchema">BaseConfigSchema</a></code>
+                      <code><a class="autorefs autorefs-internal" title=" BaseConfigSchema (frequenz.sdk.config._base_schema.BaseConfigSchema)" href="#frequenz.sdk.config.BaseConfigSchema">BaseConfigSchema</a></code>
                   </span>
               </p>
             </td>
@@ -10139,7 +10139,7 @@ class. This allow using custom fields for example. Will be passed to
     <div class="doc doc-contents ">
 
         <p>Wait for and receive the the first configuration.</p>
-<p>For a more in-depth introduction and examples, please read the <a class="autorefs autorefs-internal" href="#frequenz.sdk.config">module
+<p>For a more in-depth introduction and examples, please read the <a class="autorefs autorefs-internal" title=" config" href="#frequenz.sdk.config">module
 documentation</a>.</p>
 
 

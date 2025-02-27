@@ -1737,76 +1737,76 @@ junction --- ev</code></pre>
 <h3 id="frequenz.sdk.microgrid--grid">Grid<a class="headerlink" href="#frequenz.sdk.microgrid--grid" title="Permanent link">¤</a></h3>
 <p>This refers to a microgrid's connection to the external Grid.  The power flowing through
 this connection can be streamed through
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/grid/#frequenz.sdk.timeseries.grid.Grid.power"><code>grid_power</code></a>.</p>
+<a class="autorefs autorefs-internal" title=" power" href="../../reference/frequenz/sdk/timeseries/grid/#frequenz.sdk.timeseries.grid.Grid.power"><code>grid_power</code></a>.</p>
 <p>In locations without a grid connection, this method remains accessible, and streams zero
 values.</p>
 <h3 id="frequenz.sdk.microgrid--consumer">Consumer<a class="headerlink" href="#frequenz.sdk.microgrid--consumer" title="Permanent link">¤</a></h3>
 <p>This is the main power consumer at the site of a microgrid, and often the
 <a href="../glossary/#load">load</a> the microgrid is built to support.  The power drawn by the consumer
-is available through <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/consumer/#frequenz.sdk.timeseries.consumer.Consumer.power"><code>consumer_power</code></a></p>
+is available through <a class="autorefs autorefs-internal" title=" power" href="../../reference/frequenz/sdk/timeseries/consumer/#frequenz.sdk.timeseries.consumer.Consumer.power"><code>consumer_power</code></a></p>
 <p>In locations without a consumer, this method streams zero values.</p>
 <h3 id="frequenz.sdk.microgrid--producers-pv-arrays-chp">Producers: PV Arrays, CHP<a class="headerlink" href="#frequenz.sdk.microgrid--producers-pv-arrays-chp" title="Permanent link">¤</a></h3>
 <p>The total CHP production in a site can be streamed through
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter.chp_power"><code>chp_power</code></a>.  PV Power
+<a class="autorefs autorefs-internal" title=" chp_power" href="../../reference/frequenz/sdk/timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter.chp_power"><code>chp_power</code></a>.  PV Power
 is available through the PV pool described below.  And total producer power is available
-through <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/producer/#frequenz.sdk.timeseries.producer.Producer.power"><code>microgrid.producer().power</code></a>.</p>
+through <a class="autorefs autorefs-internal" title=" power" href="../../reference/frequenz/sdk/timeseries/producer/#frequenz.sdk.timeseries.producer.Producer.power"><code>microgrid.producer().power</code></a>.</p>
 <p>As is the case with the other methods, if PV Arrays or CHPs are not available in a
 microgrid, the corresponding methods stream zero values.</p>
 <h3 id="frequenz.sdk.microgrid--pv-arrays">PV Arrays<a class="headerlink" href="#frequenz.sdk.microgrid--pv-arrays" title="Permanent link">¤</a></h3>
 <p>The total PV power production is available through
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.new_pv_pool"><code>pv_pool</code></a>'s
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/pv_pool/#frequenz.sdk.timeseries.pv_pool.PVPool.power"><code>power</code></a>.  The PV pool by default uses
+<a class="autorefs autorefs-internal" title=" new_pv_pool" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.new_pv_pool"><code>pv_pool</code></a>'s
+<a class="autorefs autorefs-internal" title=" power" href="../../reference/frequenz/sdk/timeseries/pv_pool/#frequenz.sdk.timeseries.pv_pool.PVPool.power"><code>power</code></a>.  The PV pool by default uses
 all PV inverters available at a location, but PV pool instances can be created for
 subsets of PV inverters if necessary, by specifying the inverter ids.</p>
 <p>The <code>pv_pool</code> also provides available power bounds through the
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/pv_pool/#frequenz.sdk.timeseries.pv_pool.PVPool.power_status"><code>power_status</code></a> method.</p>
+<a class="autorefs autorefs-internal" title=" power_status" href="../../reference/frequenz/sdk/timeseries/pv_pool/#frequenz.sdk.timeseries.pv_pool.PVPool.power_status"><code>power_status</code></a> method.</p>
 <p>The <code>pv_pool</code> also provides a control method
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/pv_pool/#frequenz.sdk.timeseries.pv_pool.PVPool.propose_power"><code>propose_power</code></a>, which accepts
+<a class="autorefs autorefs-internal" title=" propose_power" href="../../reference/frequenz/sdk/timeseries/pv_pool/#frequenz.sdk.timeseries.pv_pool.PVPool.propose_power"><code>propose_power</code></a>, which accepts
 values in the <a href="../glossary/#psc">Passive Sign Convention</a> and supports only
 production.</p>
 <h3 id="frequenz.sdk.microgrid--batteries">Batteries<a class="headerlink" href="#frequenz.sdk.microgrid--batteries" title="Permanent link">¤</a></h3>
 <p>The total Battery power is available through the
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.new_battery_pool"><code>battery_pool</code></a>'s
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.power"><code>power</code></a>.  The battery pool by
+<a class="autorefs autorefs-internal" title=" new_battery_pool" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.new_battery_pool"><code>battery_pool</code></a>'s
+<a class="autorefs autorefs-internal" title=" power" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.power"><code>power</code></a>.  The battery pool by
 default uses all batteries available at a location, but battery pool instances can be
 created for subsets of batteries if necessary, by specifying the battery ids.</p>
 <p>The <code>battery_pool</code> also provides
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.soc"><code>soc</code></a>,
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity"><code>capacity</code></a>,
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.temperature"><code>temperature</code></a> and
+<a class="autorefs autorefs-internal" title=" soc" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.soc"><code>soc</code></a>,
+<a class="autorefs autorefs-internal" title=" capacity" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity"><code>capacity</code></a>,
+<a class="autorefs autorefs-internal" title=" temperature" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.temperature"><code>temperature</code></a> and
 available power bounds through the
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status"><code>power_status</code></a> method.</p>
+<a class="autorefs autorefs-internal" title=" power_status" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status"><code>power_status</code></a> method.</p>
 <p>The <code>battery_pool</code> also provides control methods
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power"><code>propose_power</code></a> (which
+<a class="autorefs autorefs-internal" title=" propose_power" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power"><code>propose_power</code></a> (which
 accepts values in the <a href="../glossary/#psc">Passive Sign Convention</a> and supports both
 charging and discharging), or through
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_charge"><code>propose_charge</code></a>, or
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_discharge"><code>propose_discharge</code></a>.</p>
+<a class="autorefs autorefs-internal" title=" propose_charge" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_charge"><code>propose_charge</code></a>, or
+<a class="autorefs autorefs-internal" title=" propose_discharge" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_discharge"><code>propose_discharge</code></a>.</p>
 <h3 id="frequenz.sdk.microgrid--ev-chargers">EV Chargers<a class="headerlink" href="#frequenz.sdk.microgrid--ev-chargers" title="Permanent link">¤</a></h3>
-<p>The <a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.new_ev_charger_pool"><code>ev_charger_pool</code></a> offers a
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power"><code>power</code></a> method that
+<p>The <a class="autorefs autorefs-internal" title=" new_ev_charger_pool" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.new_ev_charger_pool"><code>ev_charger_pool</code></a> offers a
+<a class="autorefs autorefs-internal" title=" power" href="../../reference/frequenz/sdk/timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power"><code>power</code></a> method that
 streams the total power measured for all the <a href="../glossary/#ev-charger">EV Chargers</a>
 at a site.</p>
 <p>The <code>ev_charger_pool</code> also provides available power bounds through the
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power_status"><code>power_status</code></a>
+<a class="autorefs autorefs-internal" title=" power_status" href="../../reference/frequenz/sdk/timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power_status"><code>power_status</code></a>
 method.</p>
 <p>The <code>ev_charger_pool</code> also provides a control method
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.propose_power"><code>propose_power</code></a>,
+<a class="autorefs autorefs-internal" title=" propose_power" href="../../reference/frequenz/sdk/timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.propose_power"><code>propose_power</code></a>,
 which accepts values in the <a href="../glossary/#psc">Passive Sign Convention</a> and supports
 only charging.</p>
 <h2 id="frequenz.sdk.microgrid--component-pools">Component pools<a class="headerlink" href="#frequenz.sdk.microgrid--component-pools" title="Permanent link">¤</a></h2>
 <p>The SDK provides a unified interface for interacting with sets of Batteries, EV
 chargers and PV arrays, through their corresponding <code>Pool</code>s.</p>
 <ul>
-<li><a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.new_battery_pool">Battery pool</a></li>
-<li><a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.new_ev_charger_pool">EV charger pool</a></li>
-<li><a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.new_pv_pool">PV pool</a></li>
+<li><a class="autorefs autorefs-internal" title=" new_battery_pool" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.new_battery_pool">Battery pool</a></li>
+<li><a class="autorefs autorefs-internal" title=" new_ev_charger_pool" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.new_ev_charger_pool">EV charger pool</a></li>
+<li><a class="autorefs autorefs-internal" title=" new_pv_pool" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.new_pv_pool">PV pool</a></li>
 </ul>
 <p>All of them provide support for streaming aggregated data and for setting the
 power values of the components.</p>
 <h3 id="frequenz.sdk.microgrid--streaming-component-data">Streaming component data<a class="headerlink" href="#frequenz.sdk.microgrid--streaming-component-data" title="Permanent link">¤</a></h3>
 <p>All pools have a <code>power</code> property, which is a
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/formula_engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine"><code>FormulaEngine</code></a> that can</p>
+<a class="autorefs autorefs-internal" title=" FormulaEngine" href="../../reference/frequenz/sdk/timeseries/formula_engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine"><code>FormulaEngine</code></a> that can</p>
 <ul>
 <li>
 <p>provide a stream of resampled power values, which correspond to the sum of the
@@ -1818,9 +1818,9 @@ power measured from all the components in the pool together.</p>
 </ul>
 <p>In addition, the battery pool has some additional properties that can be used as
 streams for metrics specific to batteries:
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.soc"><code>soc</code></a>,
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity"><code>capacity</code></a> and
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.temperature"><code>temperature</code></a>.</p>
+<a class="autorefs autorefs-internal" title=" soc" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.soc"><code>soc</code></a>,
+<a class="autorefs autorefs-internal" title=" capacity" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity"><code>capacity</code></a> and
+<a class="autorefs autorefs-internal" title=" temperature" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.temperature"><code>temperature</code></a>.</p>
 <h3 id="frequenz.sdk.microgrid--setting-power">Setting power<a class="headerlink" href="#frequenz.sdk.microgrid--setting-power" title="Permanent link">¤</a></h3>
 <p>All pools provide a <code>propose_power</code> method for setting power for the pool.  This
 would then be distributed to the individual components in the pool, using an
@@ -1834,7 +1834,7 @@ requests.  Actors need to specify their priorities as parameters when creating
 the <code>*Pool</code> instances using the constructors mentioned above.</p>
 <p>The algorithm used for resolving power conflicts based on actor priority can be
 found in the documentation for any of the
-<a class="autorefs autorefs-internal" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power"><code>propose_power</code></a>
+<a class="autorefs autorefs-internal" title=" propose_power" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power"><code>propose_power</code></a>
 methods.</p>
 <h4 id="frequenz.sdk.microgrid--shifting-the-target-power-by-an-operating-point-power">Shifting the target power by an Operating Point power<a class="headerlink" href="#frequenz.sdk.microgrid--shifting-the-target-power-by-an-operating-point-power" title="Permanent link">¤</a></h4>
 <p>There are cases where the target power needs to be shifted by an operating point.  This

@@ -2257,7 +2257,7 @@
 
         <p>Handling of timeseries streams.</p>
 <p>A timeseries is a stream (normally an async iterator) of
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.timeseries.Sample"><code>Sample</code></a>s.</p>
+<a class="autorefs autorefs-internal" title=" Sample" href="#frequenz.sdk.timeseries.Sample"><code>Sample</code></a>s.</p>
 <h3 id="frequenz.sdk.timeseries--periodicity-and-alignment">Periodicity and alignment<a class="headerlink" href="#frequenz.sdk.timeseries--periodicity-and-alignment" title="Permanent link">¤</a></h3>
 <p>All the data produced by this package is always periodic and aligned to the
 <code>UNIX_EPOCH</code> (by default).</p>
@@ -2703,7 +2703,7 @@ which case it means that there is no lower or upper bound, respectively.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor._background_service.BackgroundService" href="../actor/#frequenz.sdk.actor.BackgroundService">BackgroundService</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title=" BackgroundService (frequenz.sdk.actor._background_service.BackgroundService)" href="../actor/#frequenz.sdk.actor.BackgroundService">BackgroundService</a></code></p>
 
 
         <p>A data window that moves with the latest datapoints of a data stream.</p>
@@ -4637,10 +4637,10 @@ or by a slice of timestamps or integers.</p>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">*</span><span class="p">,</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="nf">size</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3/library/datetime.html#datetime.timedelta">timedelta</a></span><span class="p">,</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">resampled_data_recv</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._base_types.Sample" href="#frequenz.sdk.timeseries.Sample">Sample</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Quantity" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Quantity">Quantity</a></span><span class="p">]],</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">resampled_data_recv</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title=" Sample (frequenz.sdk.timeseries._base_types.Sample)" href="#frequenz.sdk.timeseries.Sample">Sample</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Quantity" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Quantity">Quantity</a></span><span class="p">]],</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">input_sampling_period</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3/library/datetime.html#datetime.timedelta">timedelta</a></span><span class="p">,</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">resampler_config</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._resampling.ResamplerConfig" href="../actor/#frequenz.sdk.actor.ResamplerConfig">ResamplerConfig</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">align_to</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="datetime.datetime" href="https://docs.python.org/3/library/datetime.html#datetime.datetime">datetime</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._base_types.UNIX_EPOCH" href="#frequenz.sdk.timeseries.UNIX_EPOCH">UNIX_EPOCH</a></span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">resampler_config</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title=" ResamplerConfig (frequenz.sdk.timeseries._resampling.ResamplerConfig)" href="#frequenz.sdk.timeseries.ResamplerConfig">ResamplerConfig</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">align_to</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="datetime.datetime" href="https://docs.python.org/3/library/datetime.html#datetime.datetime">datetime</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title=" UNIX_EPOCH (frequenz.sdk.timeseries._base_types.UNIX_EPOCH)" href="#frequenz.sdk.timeseries.UNIX_EPOCH">UNIX_EPOCH</a></span><span class="p">,</span>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </span></code></pre></div>
@@ -4689,7 +4689,7 @@ given sampling period.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._base_types.Sample" href="#frequenz.sdk.timeseries.Sample">Sample</a>[<a class="autorefs autorefs-external" title="frequenz.quantities.Quantity" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Quantity">Quantity</a>]]</code>
+                      <code><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a>[<a class="autorefs autorefs-internal" title=" Sample (frequenz.sdk.timeseries._base_types.Sample)" href="#frequenz.sdk.timeseries.Sample">Sample</a>[<a class="autorefs autorefs-external" title="frequenz.quantities.Quantity" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Quantity">Quantity</a>]]</code>
                   </span>
               </p>
             </td>
@@ -4721,7 +4721,7 @@ given sampling period.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._resampling.ResamplerConfig" href="../actor/#frequenz.sdk.actor.ResamplerConfig">ResamplerConfig</a> | None</code>
+                      <code><a class="autorefs autorefs-internal" title=" ResamplerConfig (frequenz.sdk.timeseries._resampling.ResamplerConfig)" href="#frequenz.sdk.timeseries.ResamplerConfig">ResamplerConfig</a> | None</code>
                   </span>
                   <span class="doc-param-default">
                     <b>DEFAULT:</b>
@@ -4747,7 +4747,7 @@ information, consult the class level documentation.</p>
                   </span>
                   <span class="doc-param-default">
                     <b>DEFAULT:</b>
-                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._base_types.UNIX_EPOCH" href="#frequenz.sdk.timeseries.UNIX_EPOCH">UNIX_EPOCH</a></code>
+                      <code><a class="autorefs autorefs-internal" title=" UNIX_EPOCH (frequenz.sdk.timeseries._base_types.UNIX_EPOCH)" href="#frequenz.sdk.timeseries.UNIX_EPOCH">UNIX_EPOCH</a></code>
                   </span>
               </p>
             </td>
@@ -5043,7 +5043,7 @@ used. This is used mostly for debugging purposes.</p>
     <div class="doc doc-contents ">
 
         <p>Return the sample at the given index or timestamp.</p>
-<p>In contrast to the <a class="autorefs autorefs-internal" href="#frequenz.sdk.timeseries.MovingWindow.window"><code>window</code></a> method,
+<p>In contrast to the <a class="autorefs autorefs-internal" title=" window" href="#frequenz.sdk.timeseries.MovingWindow.window"><code>window</code></a> method,
 which expects a slice as argument, this method expects a single index as argument
 and returns a single value.</p>
 
@@ -5877,7 +5877,7 @@ the exception group).</p>
 <p>This function returns after <code>n</code> new samples are available in the MovingWindow,
 without considering whether the new samples are valid.  The validity of the
 samples can be verified by calling the
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.timeseries.MovingWindow.count_valid"><code>count_valid</code></a> method.</p>
+<a class="autorefs autorefs-internal" title=" count_valid" href="#frequenz.sdk.timeseries.MovingWindow.count_valid"><code>count_valid</code></a> method.</p>
 
 
 <table>
@@ -6033,7 +6033,7 @@ of the MovingWindow.</p>
     <div class="doc doc-contents ">
 
         <p>Return an array containing the samples in the given time interval.</p>
-<p>In contrast to the <a class="autorefs autorefs-internal" href="#frequenz.sdk.timeseries.MovingWindow.at"><code>at</code></a> method,
+<p>In contrast to the <a class="autorefs autorefs-internal" title=" at" href="#frequenz.sdk.timeseries.MovingWindow.at"><code>at</code></a> method,
 which expects a single index as argument, this method expects a slice as argument
 and returns an array.</p>
 
@@ -7058,7 +7058,7 @@ calculation, e.g. an average, over all values of $S_i$ at position $i$.</p>
 
 <a href="#frequenz.sdk.timeseries.PeriodicFeatureExtractor.__init__" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="fm">__init__</span><span class="p">(</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="nf">moving_window</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._moving_window.MovingWindow" href="#frequenz.sdk.timeseries.MovingWindow">MovingWindow</a></span><span class="p">,</span> <span class="n">period</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3/library/datetime.html#datetime.timedelta">timedelta</a></span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="nf">moving_window</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title=" MovingWindow (frequenz.sdk.timeseries._moving_window.MovingWindow)" href="#frequenz.sdk.timeseries.MovingWindow">MovingWindow</a></span><span class="p">,</span> <span class="n">period</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3/library/datetime.html#datetime.timedelta">timedelta</a></span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </span></code></pre></div>
 
@@ -7086,7 +7086,7 @@ calculation, e.g. an average, over all values of $S_i$ at position $i$.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._moving_window.MovingWindow" href="#frequenz.sdk.timeseries.MovingWindow">MovingWindow</a></code>
+                      <code><a class="autorefs autorefs-internal" title=" MovingWindow (frequenz.sdk.timeseries._moving_window.MovingWindow)" href="#frequenz.sdk.timeseries.MovingWindow">MovingWindow</a></code>
                   </span>
               </p>
             </td>
@@ -7872,7 +7872,7 @@ windows fully inside the MovingWindow having the period
   </span>
 
 <a href="#frequenz.sdk.timeseries.ResamplerConfig.align_to" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">align_to</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="datetime.datetime" href="https://docs.python.org/3/library/datetime.html#datetime.datetime">datetime</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._base_types.UNIX_EPOCH" href="#frequenz.sdk.timeseries.UNIX_EPOCH">UNIX_EPOCH</a></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">align_to</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="datetime.datetime" href="https://docs.python.org/3/library/datetime.html#datetime.datetime">datetime</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title=" UNIX_EPOCH (frequenz.sdk.timeseries._base_types.UNIX_EPOCH)" href="#frequenz.sdk.timeseries.UNIX_EPOCH">UNIX_EPOCH</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
