@@ -2824,13 +2824,13 @@ programming model, here are some useful resources:</p>
   (Akka)</a></li>
 </ul>
 <h4 id="frequenz.sdk.actor--frequenz-sdk-actors">Frequenz SDK Actors<a class="headerlink" href="#frequenz.sdk.actor--frequenz-sdk-actors" title="Permanent link">¤</a></h4>
-<p>The <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a> class serves as the foundation for
+<p>The <a class="autorefs autorefs-internal" title=" Actor" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a> class serves as the foundation for
 creating concurrent tasks and all actors in the SDK inherit from it. This class
 provides a straightforward way to implement actors. It shares similarities with
 the traditional actor programming model but also has some unique features:</p>
 <ul>
 <li>
-<p><strong>Message Passing:</strong> Like traditional actors, our <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a>
+<p><strong>Message Passing:</strong> Like traditional actors, our <a class="autorefs autorefs-internal" title=" Actor" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a>
   class communicates through message passing. Even when no particular message passing
   mechanism is enforced, the SDK actors use <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels"><code>frequenz.channels</code></a> for communication.</p>
 </li>
@@ -2842,11 +2842,11 @@ the traditional actor programming model but also has some unique features:</p>
 <li>
 <p><strong>Simplified Task Management:</strong> Actors manage asynchronous tasks using
   <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/asyncio.html#module-asyncio"><code>asyncio</code></a>. You can create and manage tasks within the actor, and the
-  <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a> class handles task cancellation and cleanup.</p>
+  <a class="autorefs autorefs-internal" title=" Actor" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a> class handles task cancellation and cleanup.</p>
 </li>
 <li>
 <p><strong>Simplified lifecycle management:</strong> Actors are [async context managers] and also
-  a <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.run"><code>run()</code></a> function is provided to easily run a group of
+  a <a class="autorefs autorefs-internal" title=" run" href="#frequenz.sdk.actor.run"><code>run()</code></a> function is provided to easily run a group of
   actors and wait for them to finish.</p>
 </li>
 </ul>
@@ -2854,9 +2854,9 @@ the traditional actor programming model but also has some unique features:</p>
 <p>Actors are not started when they are created. There are 3 main ways to start an actor
 (from most to least recommended):</p>
 <ol>
-<li>By using the <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.run"><code>run()</code></a> function.</li>
+<li>By using the <a class="autorefs autorefs-internal" title=" run" href="#frequenz.sdk.actor.run"><code>run()</code></a> function.</li>
 <li>By using the actor as an <a href="https://docs.python.org/3/reference/datamodel.html#async-context-managers">async context manager</a>.</li>
-<li>By using the <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor.start"><code>start()</code></a> method.</li>
+<li>By using the <a class="autorefs autorefs-internal" title=" start" href="#frequenz.sdk.actor.Actor.start"><code>start()</code></a> method.</li>
 </ol>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -2874,7 +2874,7 @@ the traditional actor programming model but also has some unique features:</p>
 </ol>
 </div>
 <h5 id="frequenz.sdk.actor--the-run-function">The <code>run()</code> Function<a class="headerlink" href="#frequenz.sdk.actor--the-run-function" title="Permanent link">¤</a></h5>
-<p>The <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.run"><code>run()</code></a> function can start many actors at once and waits
+<p>The <a class="autorefs autorefs-internal" title=" run" href="#frequenz.sdk.actor.run"><code>run()</code></a> function can start many actors at once and waits
 for them to finish. If any of the actors is stopped with errors, the errors will be
 logged.</p>
 <details class="example" open="open">
@@ -2911,14 +2911,14 @@ logged.</p>
 </span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="c1"># (2)!</span>
 </span></code></pre></div>
 <ol>
-<li><a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor.start"><code>start()</code></a> is called automatically when entering
+<li><a class="autorefs autorefs-internal" title=" start" href="#frequenz.sdk.actor.Actor.start"><code>start()</code></a> is called automatically when entering
     the <code>async with</code> block.</li>
-<li><a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor.stop"><code>stop()</code></a> is called automatically when exiting
+<li><a class="autorefs autorefs-internal" title=" stop" href="#frequenz.sdk.actor.Actor.stop"><code>stop()</code></a> is called automatically when exiting
     the <code>async with</code> block.</li>
 </ol>
 </details>
 <h5 id="frequenz.sdk.actor--the-start-method">The <code>start()</code> Method<a class="headerlink" href="#frequenz.sdk.actor--the-start-method" title="Permanent link">¤</a></h5>
-<p>When using the <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor.start"><code>start()</code></a> method, the actor is
+<p>When using the <a class="autorefs autorefs-internal" title=" start" href="#frequenz.sdk.actor.Actor.start"><code>start()</code></a> method, the actor is
 started in the background and the method returns immediately. The actor will
 continue to run until it is <strong>manually</strong> stopped or until it completes its execution.</p>
 <details class="example" open="open">
@@ -2954,21 +2954,21 @@ continue to run until it is <strong>manually</strong> stopped or until it comple
 manually, especially in error conditions.</p>
 </div>
 <h4 id="frequenz.sdk.actor--communication">Communication<a class="headerlink" href="#frequenz.sdk.actor--communication" title="Permanent link">¤</a></h4>
-<p>The <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a> class doesn't impose any specific way to
+<p>The <a class="autorefs autorefs-internal" title=" Actor" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a> class doesn't impose any specific way to
 communicate between actors. However, <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels"><code>frequenz.channels</code></a> are always used as the
 communication mechanism between actors in the SDK.</p>
 <h4 id="frequenz.sdk.actor--implementing-an-actor">Implementing an Actor<a class="headerlink" href="#frequenz.sdk.actor--implementing-an-actor" title="Permanent link">¤</a></h4>
-<p>To implement an actor, you must inherit from the <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a>
+<p>To implement an actor, you must inherit from the <a class="autorefs autorefs-internal" title=" Actor" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a>
 class and implement an <em>initializer</em> and the abstract <a href="#frequenz.sdk.actor--the-_run-method"><code>_run()</code></a> method.</p>
 <h5 id="frequenz.sdk.actor--initialization">Initialization<a class="headerlink" href="#frequenz.sdk.actor--initialization" title="Permanent link">¤</a></h5>
 <p>The <a class="autorefs autorefs-external" href="https://docs.python.org/3/reference/datamodel.html#object.__init__">initializer</a> is called when the actor is created. The
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a> class initializer
-(<a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor.__init__"><code>__init__</code></a>) should be always called first in the
+<a class="autorefs autorefs-internal" title=" Actor" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a> class initializer
+(<a class="autorefs autorefs-internal" title=" __init__" href="#frequenz.sdk.actor.Actor.__init__"><code>__init__</code></a>) should be always called first in the
 class we are implementing to make sure actors are properly initialized.</p>
-<p>The <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor.__init__"><code>Actor.__init__()</code></a> takes one optional argument,
-a <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor.name"><code>name</code></a> that will be used to identify the actor in
+<p>The <a class="autorefs autorefs-internal" title=" __init__" href="#frequenz.sdk.actor.Actor.__init__"><code>Actor.__init__()</code></a> takes one optional argument,
+a <a class="autorefs autorefs-internal" title=" name" href="#frequenz.sdk.actor.Actor.name"><code>name</code></a> that will be used to identify the actor in
 logs. If no name is provided, a default name will be generated, but it is recommended
-that <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a> subclasses can also receive a name as an
+that <a class="autorefs autorefs-internal" title=" Actor" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a> subclasses can also receive a name as an
 argument to make it easier to identify individual instances in logs more easily.</p>
 <p>The actor initializer normally also accepts as arguments the input channels receivers
 and output channels senders that will be used for communication. These channels should
@@ -2993,7 +2993,7 @@ composed easily.</p>
 <ol>
 <li>
 <p>We define a new actor class called <code>EchoActor</code> that inherits from
-    <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a>.</p>
+    <a class="autorefs autorefs-internal" title=" Actor" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a>.</p>
 </li>
 <li>
 <p>We accept an <code>receiver</code> argument that will be used to receive messages from
@@ -3002,7 +3002,7 @@ composed easily.</p>
 <li>We accept an <code>output</code> argument that will be used to send messages to a channel.</li>
 <li>We accept an optional <code>name</code> argument that will be used to identify the actor in
     logs.</li>
-<li>We call <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor.__init__"><code>Actor.__init__()</code></a> to make sure the
+<li>We call <a class="autorefs autorefs-internal" title=" __init__" href="#frequenz.sdk.actor.Actor.__init__"><code>Actor.__init__()</code></a> to make sure the
     actor is properly initialized.</li>
 <li>We store the <code>receiver</code> argument in a <em>private</em> attribute to use it later.</li>
 <li>We store the <code>output</code> argument in a <em>private</em> attribute to use it later.</li>
@@ -3010,9 +3010,9 @@ composed easily.</p>
 </details>
 <h5 id="frequenz.sdk.actor--the-_run-method">The <code>_run()</code> Method<a class="headerlink" href="#frequenz.sdk.actor--the-_run-method" title="Permanent link">¤</a></h5>
 <p>The abstract <code>_run()</code> method is called automatically by the base class when the actor is
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor.start">started</a>.</p>
+<a class="autorefs autorefs-internal" title=" start" href="#frequenz.sdk.actor.Actor.start">started</a>.</p>
 <p>Normally an actor should run forever (or until it is
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor.stop">stopped</a>), so it is very common to have an infinite loop
+<a class="autorefs autorefs-internal" title=" stop" href="#frequenz.sdk.actor.Actor.stop">stopped</a>), so it is very common to have an infinite loop
 in the <code>_run()</code> method, typically receiving messages from one or more channels
 (<a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">receivers</a>), processing them and sending the results to
 other channels (<a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Sender">senders</a>).
@@ -3045,8 +3045,8 @@ or a limited number of runs, terminating upon completion.</p>
 </ol>
 </details>
 <h5 id="frequenz.sdk.actor--stopping">Stopping<a class="headerlink" href="#frequenz.sdk.actor--stopping" title="Permanent link">¤</a></h5>
-<p>By default, the <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor.stop"><code>stop()</code></a> method will call the
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor.cancel"><code>cancel()</code></a> method (which will cancel all the tasks
+<p>By default, the <a class="autorefs autorefs-internal" title=" stop" href="#frequenz.sdk.actor.Actor.stop"><code>stop()</code></a> method will call the
+<a class="autorefs autorefs-internal" title=" cancel" href="#frequenz.sdk.actor.Actor.cancel"><code>cancel()</code></a> method (which will cancel all the tasks
 created by the actor) and will wait for them to finish.</p>
 <p>This means that when an actor is stopped, the <a href="#frequenz.sdk.actor--the-_run-method"><code>_run()</code></a> method will receive
 a <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/asyncio-exceptions.html#asyncio.CancelledError"><code>CancelledError</code></a> exception. You should have this in mind
@@ -3061,21 +3061,21 @@ errors, but you should also have this in mind if you need to do any cleanup to m
 the re-run doesn't cause any problems.</p>
 <details class="tip" open="open">
 <summary>Tip</summary>
-<p>You could implement your own <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor.stop"><code>stop()</code></a> method to,
+<p>You could implement your own <a class="autorefs autorefs-internal" title=" stop" href="#frequenz.sdk.actor.Actor.stop"><code>stop()</code></a> method to,
 for example, send a message to a channel to notify that the actor should stop, or
 any other more graceful way to stop the actor if you need to make sure it can't be
 interrupted at any <code>await</code> point.</p>
 </details>
 <h5 id="frequenz.sdk.actor--spawning-extra-tasks">Spawning Extra Tasks<a class="headerlink" href="#frequenz.sdk.actor--spawning-extra-tasks" title="Permanent link">¤</a></h5>
 <p>Actors run at least one background task, created automatically by the
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a> class. But <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a>
-inherits from <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.BackgroundService"><code>BackgroundService</code></a>, which
+<a class="autorefs autorefs-internal" title=" Actor" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a> class. But <a class="autorefs autorefs-internal" title=" Actor" href="#frequenz.sdk.actor.Actor"><code>Actor</code></a>
+inherits from <a class="autorefs autorefs-internal" title=" BackgroundService" href="#frequenz.sdk.actor.BackgroundService"><code>BackgroundService</code></a>, which
 provides a few methods to create and manage extra tasks.</p>
 <p>If your actor needs to spawn extra tasks, you can use
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.BackgroundService"><code>BackgroundService</code></a> facilities to manage the
+<a class="autorefs autorefs-internal" title=" BackgroundService" href="#frequenz.sdk.actor.BackgroundService"><code>BackgroundService</code></a> facilities to manage the
 tasks, so they are also automatically stopped when the actor is stopped.</p>
 <p>All you need to do is add the newly spawned tasks to the actor's
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor.tasks"><code>tasks</code></a> set.</p>
+<a class="autorefs autorefs-internal" title=" tasks" href="#frequenz.sdk.actor.Actor.tasks"><code>tasks</code></a> set.</p>
 <details class="example" open="open">
 <summary>Example</summary>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
@@ -3100,7 +3100,7 @@ tasks, so they are also automatically stopped when the actor is stopped.</p>
 </span></code></pre></div>
 <ol>
 <li>We create a new task using <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/asyncio-task.html#asyncio.create_task"><code>asyncio.create_task()</code></a>.</li>
-<li>We add the task to the actor's <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.Actor.tasks"><code>tasks</code></a> set.
+<li>We add the task to the actor's <a class="autorefs autorefs-internal" title=" tasks" href="#frequenz.sdk.actor.Actor.tasks"><code>tasks</code></a> set.
     This ensures the task will be cancelled and cleaned up when the actor is stopped.</li>
 <li>We leave the actor running forever.</li>
 <li>The extra task will also run forever.</li>
@@ -3207,7 +3207,7 @@ annotations are numbered according to the order of execution.</p>
     <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">receivers</a> from the channels.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>We don't use the <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.run"><code>run()</code></a> function here because we
+<p>We don't use the <a class="autorefs autorefs-internal" title=" run" href="#frequenz.sdk.actor.run"><code>run()</code></a> function here because we
 want to stop the actors when we are done with them, but the actors will run
 forever (as long as the channel is not closed). So the async context manager
 is a better fit for this example.</p>
@@ -3347,7 +3347,7 @@ is a better fit for this example.</p>
 </li>
 <li>
 <p>We start the actor and wait for it to finish using the
-    <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.run"><code>run()</code></a> function.</p>
+    <a class="autorefs autorefs-internal" title=" run" href="#frequenz.sdk.actor.run"><code>run()</code></a> function.</p>
 </li>
 <li>
 <p>The <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.select"><code>select()</code></a> function will get the first message
@@ -3377,7 +3377,7 @@ is a better fit for this example.</p>
 </li>
 <li>
 <p>The <a href="#frequenz.sdk.actor--the-_run-method"><code>_run()</code></a> method will finish normally and the actor will be stopped, so
-    the <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.run"><code>run()</code></a> function will return.</p>
+    the <a class="autorefs autorefs-internal" title=" run" href="#frequenz.sdk.actor.run"><code>run()</code></a> function will return.</p>
 </li>
 <li>
 <p>We close the <code>echo_channel</code> to make sure the <code>echo_receiver</code> will stop receiving
@@ -3426,18 +3426,18 @@ is a better fit for this example.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor._background_service.BackgroundService" href="#frequenz.sdk.actor.BackgroundService">BackgroundService</a></code>, <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title=" BackgroundService (frequenz.sdk.actor._background_service.BackgroundService)" href="#frequenz.sdk.actor.BackgroundService">BackgroundService</a></code>, <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
 
 
         <p>A primitive unit of computation that runs autonomously.</p>
 <p>To implement an actor, subclasses must implement the
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.actor--the-_run-method"><code>_run()</code></a> method, which should run the actor's
-logic. The <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor--the-_run-method"><code>_run()</code></a> method is called by the
+<a class="autorefs autorefs-internal" title="The _run() Method" href="#frequenz.sdk.actor--the-_run-method"><code>_run()</code></a> method, which should run the actor's
+logic. The <a class="autorefs autorefs-internal" title="The _run() Method" href="#frequenz.sdk.actor--the-_run-method"><code>_run()</code></a> method is called by the
 base class when the actor is started, and is expected to run until the actor is
 stopped.</p>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
-<p>Please read the <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor"><code>actor</code> module documentation</a> for more
+<p>Please read the <a class="autorefs autorefs-internal" title=" actor" href="#frequenz.sdk.actor"><code>actor</code> module documentation</a> for more
 comprehensive guide on how to use and implement actors properly.</p>
 </div>
 
@@ -4709,16 +4709,16 @@ the exception group).</p>
 
         <p>A background service that can be started and stopped.</p>
 <p>A background service is a service that runs in the background spawning one or more
-tasks. The service can be <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.BackgroundService.start">started</a>
-and <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.BackgroundService.stop">stopped</a> and can work as an
+tasks. The service can be <a class="autorefs autorefs-internal" title=" start" href="#frequenz.sdk.actor.BackgroundService.start">started</a>
+and <a class="autorefs autorefs-internal" title=" stop" href="#frequenz.sdk.actor.BackgroundService.stop">stopped</a> and can work as an
 async context manager to provide deterministic cleanup.</p>
 <p>To implement a background service, subclasses must implement the
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.BackgroundService.start"><code>start()</code></a> method, which should
+<a class="autorefs autorefs-internal" title=" start" href="#frequenz.sdk.actor.BackgroundService.start"><code>start()</code></a> method, which should
 start the background tasks needed by the service, and add them to the <code>_tasks</code>
 protected attribute.</p>
 <p>If you need to collect results or handle exceptions of the tasks when stopping the
 service, then you need to also override the
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.BackgroundService.stop"><code>stop()</code></a> method, as the base
+<a class="autorefs autorefs-internal" title=" stop" href="#frequenz.sdk.actor.BackgroundService.stop"><code>stop()</code></a> method, as the base
 implementation does not collect any results and re-raises all exceptions.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -4768,9 +4768,9 @@ documentation</a>.</p>
 <details class="example" open>
   <summary>Background service example using custom stopping logic</summary>
   <p>If you need to implement custom stopping logic, you can override the
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.BackgroundService.cancel"><code>cancel()</code></a> and
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.BackgroundService.wait"><code>wait()</code></a> methods, and the
-<a class="autorefs autorefs-internal" href="#frequenz.sdk.actor.BackgroundService.is_running"><code>is_running</code></a> property.</p>
+<a class="autorefs autorefs-internal" title=" cancel" href="#frequenz.sdk.actor.BackgroundService.cancel"><code>cancel()</code></a> and
+<a class="autorefs autorefs-internal" title=" wait" href="#frequenz.sdk.actor.BackgroundService.wait"><code>wait()</code></a> methods, and the
+<a class="autorefs autorefs-internal" title=" is_running" href="#frequenz.sdk.actor.BackgroundService.is_running"><code>is_running</code></a> property.</p>
 <p>For example, if you are using an external library that uses tasks internally and
 you don't have access to them.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing_extensions</span><span class="w"> </span><span class="kn">import</span> <span class="n">override</span>
@@ -6686,7 +6686,7 @@ the exception group).</p>
   </span>
 
 <a href="#frequenz.sdk.actor.ResamplerConfig.align_to" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">align_to</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="datetime.datetime" href="https://docs.python.org/3/library/datetime.html#datetime.datetime">datetime</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries._base_types.UNIX_EPOCH" href="../timeseries/#frequenz.sdk.timeseries.UNIX_EPOCH">UNIX_EPOCH</a></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">align_to</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="datetime.datetime" href="https://docs.python.org/3/library/datetime.html#datetime.datetime">datetime</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title=" UNIX_EPOCH (frequenz.sdk.timeseries._base_types.UNIX_EPOCH)" href="../timeseries/#frequenz.sdk.timeseries.UNIX_EPOCH">UNIX_EPOCH</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -7035,7 +7035,7 @@ logs, so buffers don't grow too big inadvertently.</p>
   </span>
 
 <a href="#frequenz.sdk.actor.run" class="headerlink" title="Permanent link">¤</a></h4>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">run</span><span class="p">(</span><span class="o">*</span><span class="n">actors</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.actor._actor.Actor" href="#frequenz.sdk.actor.Actor">Actor</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">run</span><span class="p">(</span><span class="o">*</span><span class="n">actors</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title=" Actor (frequenz.sdk.actor._actor.Actor)" href="#frequenz.sdk.actor.Actor">Actor</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -7043,7 +7043,7 @@ logs, so buffers don't grow too big inadvertently.</p>
         <p>Await the completion of all actors.</p>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
-<p>Please read the <a class="autorefs autorefs-internal" href="#frequenz.sdk.actor"><code>actor</code> module documentation</a> for more
+<p>Please read the <a class="autorefs autorefs-internal" title=" actor" href="#frequenz.sdk.actor"><code>actor</code> module documentation</a> for more
 comprehensive guide on how to use and implement actors properly.</p>
 </div>
 
@@ -7067,7 +7067,7 @@ comprehensive guide on how to use and implement actors properly.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor._actor.Actor" href="#frequenz.sdk.actor.Actor">Actor</a></code>
+                      <code><a class="autorefs autorefs-internal" title=" Actor (frequenz.sdk.actor._actor.Actor)" href="#frequenz.sdk.actor.Actor">Actor</a></code>
                   </span>
                   <span class="doc-param-default">
                     <b>DEFAULT:</b>
@@ -7123,7 +7123,10 @@ comprehensive guide on how to use and implement actors properly.</p>
 <span class="normal"><a href="#__codelineno-0-54">54</a></span>
 <span class="normal"><a href="#__codelineno-0-55">55</a></span>
 <span class="normal"><a href="#__codelineno-0-56">56</a></span>
-<span class="normal"><a href="#__codelineno-0-57">57</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="o">*</span><span class="n">actors</span><span class="p">:</span> <span class="n">Actor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal"><a href="#__codelineno-0-57">57</a></span>
+<span class="normal"><a href="#__codelineno-0-58">58</a></span>
+<span class="normal"><a href="#__codelineno-0-59">59</a></span>
+<span class="normal"><a href="#__codelineno-0-60">60</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="o">*</span><span class="n">actors</span><span class="p">:</span> <span class="n">Actor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Await the completion of all actors.</span>
 </span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17"></a>
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18"></a><span class="sd">    !!! info</span>
@@ -7149,23 +7152,26 @@ comprehensive guide on how to use and implement actors properly.</p>
 </span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38"></a>        <span class="n">done_tasks</span><span class="p">,</span> <span class="n">pending_tasks</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span>
 </span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39"></a>            <span class="n">pending_tasks</span><span class="p">,</span> <span class="n">return_when</span><span class="o">=</span><span class="n">asyncio</span><span class="o">.</span><span class="n">FIRST_COMPLETED</span>
 </span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40"></a>        <span class="p">)</span>
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41"></a>
-</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42"></a>        <span class="c1"># This should always be only one task, but we handle many for extra safety</span>
-</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43"></a>        <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">done_tasks</span><span class="p">:</span>
-</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44"></a>            <span class="c1"># Cancellation needs to be checked first, otherwise the other methods</span>
-</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45"></a>            <span class="c1"># could raise a CancelledError</span>
-</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46"></a>            <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">cancelled</span><span class="p">():</span>
-</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47"></a>                <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Cancelled while running.&quot;</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">get_name</span><span class="p">())</span>
-</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48"></a>            <span class="k">elif</span> <span class="n">exception</span> <span class="o">:=</span> <span class="n">task</span><span class="o">.</span><span class="n">exception</span><span class="p">():</span>
-</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49"></a>                <span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50"></a>                    <span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Raised an exception while running.&quot;</span><span class="p">,</span>
-</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51"></a>                    <span class="n">task</span><span class="o">.</span><span class="n">get_name</span><span class="p">(),</span>
-</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52"></a>                    <span class="n">exc_info</span><span class="o">=</span><span class="n">exception</span><span class="p">,</span>
-</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53"></a>                <span class="p">)</span>
-</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54"></a>            <span class="k">else</span><span class="p">:</span>
-</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55"></a>                <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Finished normally.&quot;</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">get_name</span><span class="p">())</span>
-</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56"></a>
-</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57"></a>    <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;All </span><span class="si">%s</span><span class="s2"> actor(s) finished.&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">actors</span><span class="p">))</span>
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41"></a>        <span class="c1"># This should always be only one task, but we handle many for extra safety</span>
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42"></a>        <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">done_tasks</span><span class="p">:</span>
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43"></a>            <span class="c1"># BackgroundService returns a BaseExceptionGroup containing multiple</span>
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44"></a>            <span class="c1"># exceptions. The &#39;task.result()&#39; statement raises these exceptions,</span>
+</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45"></a>            <span class="c1"># and &#39;except*&#39; is used to handle them as a group. If the task raises</span>
+</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46"></a>            <span class="c1"># multiple different exceptions, &#39;except*&#39; will be invoked multiple times,</span>
+</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47"></a>            <span class="c1"># once for each exception group.</span>
+</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48"></a>            <span class="k">try</span><span class="p">:</span>
+</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49"></a>                <span class="n">task</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50"></a>            <span class="k">except</span><span class="o">*</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">CancelledError</span><span class="p">:</span>
+</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51"></a>                <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Cancelled while running.&quot;</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">get_name</span><span class="p">())</span>
+</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52"></a>            <span class="k">except</span><span class="o">*</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-exception-caught</span>
+</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53"></a>                <span class="n">_logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span>
+</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54"></a>                    <span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Raised an exception while running.&quot;</span><span class="p">,</span>
+</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55"></a>                    <span class="n">task</span><span class="o">.</span><span class="n">get_name</span><span class="p">(),</span>
+</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56"></a>                <span class="p">)</span>
+</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57"></a>            <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58"></a>                <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Actor </span><span class="si">%s</span><span class="s2">: Finished normally.&quot;</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">get_name</span><span class="p">())</span>
+</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59"></a>
+</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60"></a>    <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;All </span><span class="si">%s</span><span class="s2"> actor(s) finished.&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">actors</span><span class="p">))</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
