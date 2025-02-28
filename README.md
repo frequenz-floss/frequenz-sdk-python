@@ -1,6 +1,6 @@
 # Frequenz Python SDK
 
-[![Build Status](https://github.com/frequenz-floss/frequenz-sdk-python/actions/workflows/ci.yaml/badge.svg)](https://github.com/frequenz-floss/frequenz-sdk-python/actions/workflows/ci.yaml)
+[![Build Status](https://github.com/frequenz-floss/frequenz-sdk-python/actions/workflows/ci-push.yaml/badge.svg)](https://github.com/frequenz-floss/frequenz-sdk-python/actions/workflows/ci-push.yaml)
 [![PyPI Package](https://img.shields.io/pypi/v/frequenz-sdk)](https://pypi.org/project/frequenz-sdk/)
 [![Docs](https://img.shields.io/badge/docs-latest-informational)](https://frequenz-floss.github.io/frequenz-sdk-python/)
 
