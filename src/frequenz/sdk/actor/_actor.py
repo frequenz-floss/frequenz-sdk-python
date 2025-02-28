@@ -83,7 +83,7 @@ class Actor(BackgroundService, abc.ABC):
             BaseException: If the actor's `_run()` method raises any base exception.
         """
         _logger.info("Actor %s: Started.", self)
-        n_restarts = 0
+        n_errors = 0
         should_delay = False
         while True:
             try:
@@ -102,10 +102,12 @@ class Actor(BackgroundService, abc.ABC):
                 should_delay = True
                 _logger.exception("Actor %s: Raised an unhandled exception.", self)
                 limit_str = "∞" if self._restart_limit is None else self._restart_limit
-                limit_str = f"({n_restarts}/{limit_str})"
-                if self._restart_limit is None or n_restarts < self._restart_limit:
-                    n_restarts += 1
-                    _logger.info("Actor %s: Restarting %s...", self, limit_str)
+                limit_str = f"({n_errors}/{limit_str})"
+                if self._restart_limit is None or n_errors < self._restart_limit:
+                    n_errors += 1
+                    _logger.info(
+                        "Actor %s: Restarting, error count %s...", self, limit_str
+                    )
                     continue
                 _logger.info(
                     "Actor %s: Maximum restarts attempted %s, bailing out...",
