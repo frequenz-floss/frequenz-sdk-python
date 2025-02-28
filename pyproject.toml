@@ -180,13 +180,13 @@ namespace_packages = true
 # used but getting the original ignored error when removing the type: ignore.
 # See for example: https://github.com/python/mypy/issues/2960
 no_incremental = true
-packages = ["frequenz.sdk"]
+mypy_path = "src"
+files = ["src", "tests", "examples", "benchmarks", "docs", "noxfile.py"]
 strict = true
 
 [[tool.mypy.overrides]]
 module = [
   "async_solipsism",
-  "async_solipsism.*",
   "mkdocs_macros.*",
   # The available stubs packages are outdated or incomplete (WIP/experimental):
   # https://github.com/frequenz-floss/frequenz-sdk-python/issues/430
