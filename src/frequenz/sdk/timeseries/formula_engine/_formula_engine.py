@@ -719,15 +719,15 @@ class FormulaBuilder(Generic[QuantityT]):
                 invalid data (e.g. due to a component stop). If None, the data from
                 primary metric fetcher will be used.
         """
-        fetcher = self._metric_fetchers.setdefault(
-            name,
-            MetricFetcher(
+        fetcher = self._metric_fetchers.get(name)
+        if fetcher is None:
+            fetcher = MetricFetcher(
                 name,
                 data_stream,
                 nones_are_zeros=nones_are_zeros,
                 fallback=fallback,
-            ),
-        )
+            )
+            self._metric_fetchers[name] = fetcher
         self._steps.append(fetcher)
 
     def push_constant(self, value: float) -> None:

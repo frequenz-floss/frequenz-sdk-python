@@ -15,3 +15,5 @@
 - Fixed a bug that raised `CancelledError` when actor was started with `frequenz.sdk.actor.run` and stopped.
 
 - Stop catching `BaseException` in `frequenz.sdk.actor.run`. Only `CancelledError` and `Exception` are caught now.
+
+- Fix `MetricFetcher` leaks when a requested metric fetcher already existed.
