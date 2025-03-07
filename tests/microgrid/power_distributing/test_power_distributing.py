@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import asyncio
 import math
-import re
 from collections import abc
 from typing import TypeVar
 from unittest.mock import MagicMock
@@ -474,7 +473,7 @@ class TestPowerDistributingActor:
                 assert result.request == request
                 assert (
                     result.msg
-                    == "No data for at least one of the given batteries {9, 19}"
+                    == "No data for at least one of the given batteries: 9, 19"
                 )
 
     async def test_battery_two_inverters(self, mocker: MockerFixture) -> None:
@@ -821,13 +820,10 @@ class TestPowerDistributingActor:
                 result: Result = done.pop().result()
                 assert isinstance(result, Error)
                 assert result.request == request
-
-                err_msg = re.search(
-                    r"'Inverters \{48\} are connected to batteries that were not "
-                    r"requested: \{19\}'",
-                    result.msg,
+                assert (
+                    result.msg
+                    == "Inverter(s) (48) are connected to battery(ies) (19) that were not requested"
                 )
-                assert err_msg is not None
 
     async def test_battery_soc_nan(self, mocker: MockerFixture) -> None:
         """Test if battery with SoC==NaN is not used."""
@@ -1054,8 +1050,7 @@ class TestPowerDistributingActor:
             result: Result = done.pop().result()
             assert isinstance(result, Error)
             assert result.request == request
-            err_msg = re.search(r"No battery 100, available batteries:", result.msg)
-            assert err_msg is not None
+            assert result.msg == "No battery 100, available batteries: 9, 19, 29"
 
     async def test_power_distributor_one_user_adjust_power_consume(
         self, mocker: MockerFixture
