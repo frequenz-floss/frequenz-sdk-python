@@ -215,15 +215,9 @@ class TestPowerDistributingActor:
             await requests_channel.new_sender().send(request)
             result_rx = results_channel.new_receiver()
 
-            done, pending = await asyncio.wait(
-                [asyncio.create_task(result_rx.receive())],
-                timeout=SAFETY_TIMEOUT.total_seconds(),
-            )
+            async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                result = await result_rx.receive()
 
-        assert len(pending) == 0
-        assert len(done) == 1
-
-        result: Result = done.pop().result()
         assert isinstance(result, Success)
         assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
         assert result.excess_power.isclose(Power.from_watts(200.0))
@@ -284,15 +278,9 @@ class TestPowerDistributingActor:
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
-                done, pending = await asyncio.wait(
-                    [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT.total_seconds(),
-                )
+                async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                    result = await result_rx.receive()
 
-                assert len(pending) == 0
-                assert len(done) == 1
-
-                result: Result = done.pop().result()
                 assert isinstance(result, Success)
                 assert result.succeeded_power.isclose(Power.zero(), abs_tol=1e-9)
                 assert result.excess_power.isclose(Power.zero(), abs_tol=1e-9)
@@ -308,15 +296,9 @@ class TestPowerDistributingActor:
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
-                done, pending = await asyncio.wait(
-                    [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT.total_seconds(),
-                )
+                async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                    result = await result_rx.receive()
 
-                assert len(pending) == 0
-                assert len(done) == 1
-
-                result = done.pop().result()
                 assert isinstance(
                     result, OutOfBounds
                 ), f"Expected OutOfBounds, got {result}"
@@ -380,15 +362,9 @@ class TestPowerDistributingActor:
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
-                done, pending = await asyncio.wait(
-                    [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT.total_seconds(),
-                )
+                async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                    result = await result_rx.receive()
 
-                assert len(pending) == 0
-                assert len(done) == 1
-
-                result: Result = done.pop().result()
                 assert isinstance(result, Success)
                 # Inverter bounded at 500
                 assert result.succeeded_power.isclose(Power.from_watts(500.0))
@@ -459,15 +435,8 @@ class TestPowerDistributingActor:
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
-                done, pending = await asyncio.wait(
-                    [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT.total_seconds(),
-                )
-
-                assert len(pending) == 0
-                assert len(done) == 1
-
-                result: Result = done.pop().result()
+                async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                    result = await result_rx.receive()
 
                 assert isinstance(result, Error)
                 assert result.request == request
@@ -516,15 +485,9 @@ class TestPowerDistributingActor:
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
-                done, pending = await asyncio.wait(
-                    [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT.total_seconds(),
-                )
+                async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                    result = await result_rx.receive()
 
-                assert len(pending) == 0
-                assert len(done) == 1
-
-                result: Result = done.pop().result()
                 assert isinstance(result, Success)
                 # Inverters each bounded at 500, together 1000
                 assert result.succeeded_power.isclose(Power.from_watts(1000.0))
@@ -569,15 +532,9 @@ class TestPowerDistributingActor:
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
-                done, pending = await asyncio.wait(
-                    [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT.total_seconds(),
-                )
+                async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                    result = await result_rx.receive()
 
-                assert len(pending) == 0
-                assert len(done) == 1
-
-                result: Result = done.pop().result()
                 assert isinstance(result, Success)
                 # each inverter is bounded at 500 and we have 3 inverters
                 assert result.succeeded_power.isclose(Power.from_watts(1500.0))
@@ -656,15 +613,9 @@ class TestPowerDistributingActor:
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
-                done, pending = await asyncio.wait(
-                    [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT.total_seconds(),
-                )
+                async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                    result = await result_rx.receive()
 
-                assert len(pending) == 0
-                assert len(done) == 1
-
-                result: Result = done.pop().result()
                 assert isinstance(result, OutOfBounds)
                 assert result.request == request
                 assert result.bounds == PowerBounds(-1000, -500, 500, 1000)
@@ -744,15 +695,9 @@ class TestPowerDistributingActor:
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
-                done, pending = await asyncio.wait(
-                    [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT.total_seconds(),
-                )
+                async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                    result = await result_rx.receive()
 
-                assert len(pending) == 0
-                assert len(done) == 1
-
-                result: Result = done.pop().result()
                 assert isinstance(result, OutOfBounds)
                 assert result.request == request
                 # each inverter is bounded at 500
@@ -809,15 +754,9 @@ class TestPowerDistributingActor:
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
-                done, pending = await asyncio.wait(
-                    [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT.total_seconds(),
-                )
+                async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                    result = await result_rx.receive()
 
-                assert len(pending) == 0
-                assert len(done) == 1
-
-                result: Result = done.pop().result()
                 assert isinstance(result, Error)
                 assert result.request == request
                 assert (
@@ -865,15 +804,9 @@ class TestPowerDistributingActor:
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
-                done, pending = await asyncio.wait(
-                    [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT.total_seconds(),
-                )
+                async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                    result = await result_rx.receive()
 
-            assert len(pending) == 0
-            assert len(done) == 1
-
-            result: Result = done.pop().result()
             assert isinstance(result, Success)
             assert result.succeeded_components == {19}
             assert result.succeeded_power.isclose(Power.from_watts(500.0))
@@ -921,15 +854,9 @@ class TestPowerDistributingActor:
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
-                done, pending = await asyncio.wait(
-                    [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT.total_seconds(),
-                )
+                async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                    result = await result_rx.receive()
 
-            assert len(pending) == 0
-            assert len(done) == 1
-
-            result: Result = done.pop().result()
             assert isinstance(result, Success)
             assert result.succeeded_components == {19}
             assert result.succeeded_power.isclose(Power.from_watts(500.0))
@@ -996,15 +923,9 @@ class TestPowerDistributingActor:
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
-                done, pending = await asyncio.wait(
-                    [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT.total_seconds(),
-                )
+                async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                    result = await result_rx.receive()
 
-            assert len(pending) == 0
-            assert len(done) == 1
-
-            result: Result = done.pop().result()
             assert isinstance(result, Success)
             assert result.succeeded_components == {19}
             assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
@@ -1041,13 +962,9 @@ class TestPowerDistributingActor:
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
-                done, _ = await asyncio.wait(
-                    [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT.total_seconds(),
-                )
+                async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                    result = await result_rx.receive()
 
-            assert len(done) == 1
-            result: Result = done.pop().result()
             assert isinstance(result, Error)
             assert result.request == request
             assert result.msg == "No battery 100, available batteries: 9, 19, 29"
@@ -1086,15 +1003,9 @@ class TestPowerDistributingActor:
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
-                done, pending = await asyncio.wait(
-                    [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT.total_seconds(),
-                )
+                async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                    result = await result_rx.receive()
 
-            assert len(pending) == 0
-            assert len(done) == 1
-
-            result = done.pop().result()
             assert isinstance(result, OutOfBounds)
             assert result is not None
             assert result.request == request
@@ -1134,15 +1045,9 @@ class TestPowerDistributingActor:
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
-                done, pending = await asyncio.wait(
-                    [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT.total_seconds(),
-                )
+                async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                    result = await result_rx.receive()
 
-            assert len(pending) == 0
-            assert len(done) == 1
-
-            result = done.pop().result()
             assert isinstance(result, OutOfBounds)
             assert result is not None
             assert result.request == request
@@ -1182,15 +1087,9 @@ class TestPowerDistributingActor:
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
-                done, pending = await asyncio.wait(
-                    [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT.total_seconds(),
-                )
+                async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                    result = await result_rx.receive()
 
-            assert len(pending) == 0
-            assert len(done) == 1
-
-            result = done.pop().result()
             assert isinstance(result, Success)
             assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
             assert result.excess_power.isclose(Power.zero(), abs_tol=1e-9)
@@ -1229,14 +1128,9 @@ class TestPowerDistributingActor:
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
-                done, pending = await asyncio.wait(
-                    [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT.total_seconds(),
-                )
+                async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                    result = await result_rx.receive()
 
-                assert len(pending) == 0
-                assert len(done) == 1
-                result = done.pop().result()
                 assert isinstance(result, Success)
                 assert result.succeeded_components == {19}
                 assert result.excess_power.isclose(Power.from_watts(700.0))
@@ -1284,13 +1178,9 @@ class TestPowerDistributingActor:
                 await requests_channel.new_sender().send(request)
                 result_rx = results_channel.new_receiver()
 
-                done, pending = await asyncio.wait(
-                    [asyncio.create_task(result_rx.receive())],
-                    timeout=SAFETY_TIMEOUT.total_seconds(),
-                )
-                assert len(pending) == 0
-                assert len(done) == 1
-                result = done.pop().result()
+                async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                    result = await result_rx.receive()
+
                 assert isinstance(result, PartialFailure)
                 assert result.succeeded_components == batteries - failed_batteries
                 assert result.failed_components == failed_batteries
