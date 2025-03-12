@@ -5,48 +5,24 @@
 
 
 from collections.abc import Mapping
+from dataclasses import dataclass
 from datetime import datetime
 
 from frequenz.client.microgrid import ComponentMetricId
 
 
+@dataclass(frozen=True, eq=False)
 class ComponentMetricsData:
     """Store values of the component metrics."""
 
-    def __init__(
-        self,
-        component_id: int,
-        timestamp: datetime,
-        metrics: Mapping[ComponentMetricId, float],
-    ) -> None:
-        """Create class instance.
+    component_id: int
+    """The component ID the data is for."""
 
-        Args:
-            component_id: component id
-            timestamp: timestamp the same for all metrics
-            metrics: map between metrics and its values.
-        """
-        self._component_id = component_id
-        self._timestamp = timestamp
-        self._metrics: Mapping[ComponentMetricId, float] = metrics
+    timestamp: datetime
+    """The timestamp for all the metrics."""
 
-    @property
-    def component_id(self) -> int:
-        """Get component id of the given metrics.
-
-        Returns:
-            Component id
-        """
-        return self._component_id
-
-    @property
-    def timestamp(self) -> datetime:
-        """Get timestamp of the given metrics.
-
-        Returns:
-            Timestamp (one for all metrics).
-        """
-        return self._timestamp
+    metrics: Mapping[ComponentMetricId, float]
+    """The values for each metric."""
 
     def get(self, metric: ComponentMetricId) -> float | None:
         """Get metric value.
@@ -57,7 +33,7 @@ class ComponentMetricsData:
         Returns:
             Value of the metric.
         """
-        return self._metrics.get(metric, None)
+        return self.metrics.get(metric, None)
 
     def __eq__(self, other: object) -> bool:
         """Compare two objects of this class.
@@ -74,6 +50,4 @@ class ComponentMetricsData:
         if not isinstance(other, ComponentMetricsData):
             return False
 
-        return (
-            self.component_id == other.component_id and self._metrics == other._metrics
-        )
+        return self.component_id == other.component_id and self.metrics == other.metrics
