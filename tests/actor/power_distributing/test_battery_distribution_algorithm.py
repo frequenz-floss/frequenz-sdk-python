@@ -4,6 +4,7 @@
 # pylint: disable=too-many-lines
 """Tests for distribution algorithm."""
 import math
+from collections.abc import Sequence, Set
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
@@ -1023,6 +1024,20 @@ class TestDistWithExclBounds:
         assert result.distribution == approx(expected.distribution, abs=0.01)
         assert result.remaining_power == approx(expected.remaining_power, abs=0.01)
 
+    @staticmethod
+    def assert_any_result(
+        result: DistributionResult,
+        expected_distribution_ids: Set[int],
+        expected_distribution_powers: Sequence[float],
+        expected_remaining_power: float,
+    ) -> None:
+        """Assert the result is as expected, disregarding which power goes to which component."""
+        assert result.remaining_power == expected_remaining_power
+        assert {*result.distribution.keys()} == expected_distribution_ids
+        assert list(sorted(result.distribution.values())) == list(
+            sorted(expected_distribution_powers)
+        )
+
     def test_scenario_1(self) -> None:
         """Test scenario 1.
 
@@ -1349,19 +1364,27 @@ class TestDistWithExclBounds:
 
         algorithm = BatteryDistributionAlgorithm()
 
-        self.assert_result(
+        # The assignment of power to each inverter can be swapped, as they both have the
+        # same bounds, none will be preferred
+        self.assert_any_result(
             algorithm.distribute_power(-300, components),
-            DistributionResult({2: -300, 3: 0}, remaining_power=0.0),
+            expected_distribution_ids={2, 3},
+            expected_distribution_powers=[-300, 0],
+            expected_remaining_power=0,
         )
 
-        self.assert_result(
+        self.assert_any_result(
             algorithm.distribute_power(300, components),
-            DistributionResult({2: 300, 3: 0}, remaining_power=0.0),
+            expected_distribution_ids={2, 3},
+            expected_distribution_powers=[300, 0],
+            expected_remaining_power=0,
         )
 
-        self.assert_result(
+        self.assert_any_result(
             algorithm.distribute_power(-1800, components),
-            DistributionResult({2: -1000, 3: -500}, remaining_power=-300.0),
+            expected_distribution_ids={2, 3},
+            expected_distribution_powers=[-1000, -500],
+            expected_remaining_power=-300,
         )
 
     def test_scenario_5(self) -> None:
@@ -1431,33 +1454,37 @@ class TestDistWithExclBounds:
 
         algorithm = BatteryDistributionAlgorithm()
 
-        self.assert_result(
+        self.assert_any_result(
             algorithm.distribute_power(-300, components),
-            DistributionResult({10: -200, 11: 0, 20: -100, 21: 0}, remaining_power=0.0),
+            expected_distribution_ids={10, 11, 20, 21},
+            expected_distribution_powers=[-200, 0, -100, 0],
+            expected_remaining_power=0.0,
         )
 
-        self.assert_result(
+        self.assert_any_result(
             algorithm.distribute_power(300, components),
-            DistributionResult({10: 200, 11: 0, 20: 100, 21: 0}, remaining_power=0.0),
+            expected_distribution_ids={10, 11, 20, 21},
+            expected_distribution_powers=[200, 0, 100, 0],
+            expected_remaining_power=0.0,
         )
 
-        self.assert_result(
+        self.assert_any_result(
             algorithm.distribute_power(-1800, components),
-            DistributionResult(
-                {10: -300, 11: 0, 20: -1000, 21: -500}, remaining_power=0.0
-            ),
+            expected_distribution_ids={10, 11, 20, 21},
+            expected_distribution_powers=[-300, 0, -1000, -500],
+            expected_remaining_power=0.0,
         )
 
-        self.assert_result(
+        self.assert_any_result(
             algorithm.distribute_power(3000, components),
-            DistributionResult(
-                {10: 1000, 11: 500, 20: 1000, 21: 500}, remaining_power=0.0
-            ),
+            expected_distribution_ids={10, 11, 20, 21},
+            expected_distribution_powers=[1000, 500, 1000, 500],
+            expected_remaining_power=0.0,
         )
 
-        self.assert_result(
+        self.assert_any_result(
             algorithm.distribute_power(3500, components),
-            DistributionResult(
-                {10: 1000, 11: 500, 20: 1000, 21: 500}, remaining_power=500.0
-            ),
+            expected_distribution_ids={10, 11, 20, 21},
+            expected_distribution_powers=[1000, 500, 1000, 500],
+            expected_remaining_power=500.0,
         )
