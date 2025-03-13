@@ -144,8 +144,9 @@ class Matryoshka(BaseAlgorithm):
 
             for bucket in self._component_buckets:
                 if any(component_id in bucket for component_id in component_ids):
+                    comp_ids = ", ".join(map(str, sorted(component_ids)))
                     raise NotImplementedError(
-                        f"PowerManagingActor: component IDs {component_ids} are already"
+                        f"PowerManagingActor: component IDs {comp_ids} are already"
                         " part of another bucket.  Overlapping buckets are not"
                         " yet supported."
                     )
