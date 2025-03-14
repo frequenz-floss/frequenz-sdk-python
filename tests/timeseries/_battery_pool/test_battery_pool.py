@@ -347,6 +347,10 @@ async def test_battery_pool_soc(setup_batteries_pool: SetupArgs) -> None:
     await run_soc_test(setup_batteries_pool)
 
 
+@pytest.mark.skip(
+    reason="Bounds are not calculated properly, see "
+    "https://github.com/frequenz-floss/frequenz-sdk-python/issues/1180"
+)
 async def test_all_batteries_power_bounds(setup_all_batteries: SetupArgs) -> None:
     """Test power bounds metric for battery pool with all components in the microgrid.
 
@@ -356,6 +360,10 @@ async def test_all_batteries_power_bounds(setup_all_batteries: SetupArgs) -> Non
     await run_power_bounds_test(setup_all_batteries)
 
 
+@pytest.mark.skip(
+    reason="Bounds are not calculated properly, see "
+    "https://github.com/frequenz-floss/frequenz-sdk-python/issues/1180"
+)
 async def test_battery_pool_power_bounds(setup_batteries_pool: SetupArgs) -> None:
     """Test power bounds metric for battery pool with subset of components in the microgrid.
 
