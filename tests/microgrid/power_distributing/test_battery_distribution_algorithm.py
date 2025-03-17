@@ -562,7 +562,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
     # Test consumption power distribution
     def test_consumption_three_batteries_1(self) -> None:
-        """Distribute consume power."""
+        """Distribute consume power with three batteries with the same capacity."""
         capacity: list[Metric] = [Metric(49000), Metric(49000), Metric(49000)]
         soc: list[Metric] = [
             Metric(80.0, Bound(0, 100)),
@@ -587,7 +587,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         assert result.remaining_power == approx(0.0)
 
     def test_consumption_three_batteries_2(self) -> None:
-        """Distribute consume power."""
+        """Distribute consume power with three batteries but one with double the capacity."""
         capacity: list[Metric] = [Metric(98000), Metric(49000), Metric(49000)]
         soc: list[Metric] = [
             Metric(80.0, Bound(0, 100)),

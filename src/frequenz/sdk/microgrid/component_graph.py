@@ -5,18 +5,18 @@
 
 The component graph is an approximate representation of the microgrid circuit,
 abstracted to a level appropriate for higher-level monitoring and control.
-Examples of use-cases would be:
+Common use cases include:
 
-  * using the graph structure to infer which component measurements
-    need to be combined to obtain grid power or onsite load
+* Combining component measurements to compute grid power or onsite load by using
+  the graph structure to determine which measurements to aggregate
 
-  * identifying which inverter(s) need to be engaged to (dis)charge
-    a particular battery
+* Identifying which inverter(s) need to be engaged to charge or discharge
+  a particular battery based on their connectivity in the graph
 
-  * understanding which power flows in the microgrid are derived from
-    green and grey sources
+* Understanding which power flows in the microgrid are derived from green vs
+  grey sources based on the component connectivity
 
-It deliberately does not include all pieces of hardware placed in the microgrid,
+The graph deliberately does not include all pieces of hardware placed in the microgrid,
 instead limiting itself to just those that are needed to monitor and control the
 flow of power.
 """
@@ -40,7 +40,7 @@ _logger = logging.getLogger(__name__)
 # pylint: disable=too-many-lines
 
 
-# Constant to store the actual obejcts as data attached to the graph nodes and edges
+# Constant to store the actual objects as data attached to the graph nodes and edges
 _DATA_KEY = "data"
 
 
@@ -60,12 +60,11 @@ class ComponentGraph(ABC):
         """Fetch the components of the microgrid.
 
         Args:
-            component_ids: filter out any components not matching one of the provided IDs
-            component_categories: filter out any components not matching one of the
-                provided types
+            component_ids: The component IDs that the components must match.
+            component_categories: The component categories that the components must match.
 
         Returns:
-            Set of the components currently connected to the microgrid, filtered by
+            The set of components currently connected to the microgrid, filtered by
                 the provided `component_ids` and `component_categories` values.
         """
 
@@ -78,13 +77,11 @@ class ComponentGraph(ABC):
         """Fetch the connections between microgrid components.
 
         Args:
-            start: filter out any connections whose `start` does not match one of these
-                component IDs
-            end: filter out any connections whose `end` does not match one of these
-                component IDs
+            start: The component IDs that the connections' start must match.
+            end: The component IDs that the connections' end must match.
 
         Returns:
-            Set of the connections between components in the microgrid, filtered by
+            The set of connections between components in the microgrid, filtered by
                 the provided `start`/`end` choices.
         """
 
@@ -93,16 +90,16 @@ class ComponentGraph(ABC):
         """Fetch the graph predecessors of the specified component.
 
         Args:
-            component_id: numerical ID of the component whose predecessors should be
-                fetched
+            component_id: The IDs of the components whose predecessors should be
+                fetched.
 
         Returns:
-            Set of IDs of the components that are predecessors of `component_id`,
-                i.e. for which there is a connection from each of these components to
+            The set of components that are predecessors of `component_id`, i.e. for
+                which there is a connection from each of these components to
                 `component_id`.
 
         Raises:
-            KeyError: if the specified `component_id` is not in the graph
+            KeyError: If the specified `component_id` is not in the graph.
         """
 
     @abstractmethod
@@ -110,16 +107,15 @@ class ComponentGraph(ABC):
         """Fetch the graph successors of the specified component.
 
         Args:
-            component_id: numerical ID of the component whose successors should be
-                fetched
+            component_id: The IDs of the components whose successors should be fetched.
 
         Returns:
-            Set of IDs of the components that are successors of `component_id`,
-                i.e. for which there is a connection from `component_id` to each of
-                these components.
+            The set of components that are successors of `component_id`, i.e. for
+                which there is a connection from `component_id` to each of these
+                components.
 
         Raises:
-            KeyError: if the specified `component_id` is not in the graph
+            KeyError: If the specified `component_id` is not in the graph
         """
 
     @abstractmethod
@@ -130,7 +126,7 @@ class ComponentGraph(ABC):
         component.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is a grid meter.
@@ -141,7 +137,7 @@ class ComponentGraph(ABC):
         """Check if the specified component is a PV inverter.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is a PV inverter.
@@ -155,7 +151,7 @@ class ComponentGraph(ABC):
         successors.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is a PV meter.
@@ -168,7 +164,7 @@ class ComponentGraph(ABC):
         A component is part of a PV chain if it is a PV meter or a PV inverter.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is part of a PV chain.
@@ -179,7 +175,7 @@ class ComponentGraph(ABC):
         """Check if the specified component is a battery inverter.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is a battery inverter.
@@ -193,7 +189,7 @@ class ComponentGraph(ABC):
         predecessors.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is a battery meter.
@@ -207,7 +203,7 @@ class ComponentGraph(ABC):
         inverter.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is part of a battery chain.
@@ -218,7 +214,7 @@ class ComponentGraph(ABC):
         """Check if the specified component is an EV charger.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is an EV charger.
@@ -232,7 +228,7 @@ class ComponentGraph(ABC):
         successors.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is an EV charger meter.
@@ -246,7 +242,7 @@ class ComponentGraph(ABC):
         EV charger.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is part of an EV charger chain.
@@ -257,7 +253,7 @@ class ComponentGraph(ABC):
         """Check if the specified component is a CHP.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is a CHP.
@@ -270,7 +266,7 @@ class ComponentGraph(ABC):
         This is done by checking if the component has only CHPs as its successors.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is a CHP meter.
@@ -283,7 +279,7 @@ class ComponentGraph(ABC):
         A component is part of a CHP chain if it is a CHP meter or a CHP.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is part of a CHP chain.
@@ -296,8 +292,7 @@ class ComponentGraph(ABC):
         visited: set[Component],
         condition: Callable[[Component], bool],
     ) -> set[Component]:
-        """
-        Search for components that fulfill the condition in the Graph.
+        """Search for components that fulfill the condition in the Graph.
 
         DFS is used for searching the graph. The graph traversal is stopped
         once a component fulfills the condition.
@@ -308,8 +303,8 @@ class ComponentGraph(ABC):
             condition: The condition function to check for.
 
         Returns:
-            A set of component ids where the corresponding components fulfill
-            the condition function.
+            A set of component IDs where the corresponding components fulfill
+                the `condition` function.
         """
 
     @abstractmethod
@@ -333,13 +328,13 @@ class ComponentGraph(ABC):
         highest priority.
 
         Args:
-            root_category: The category of the root component to search for.
-            descendant_categories: The descendant categories to search for the
-                first descendant component in.
+            root_category: The class of the root component to search for.
+            descendant_categories: The descendant classes to search for the first
+                descendant component in.
 
         Returns:
             The first descendant component found in the component graph,
-            considering the specified root and descendant categories.
+                considering the specified `root` and `descendants` categories.
         """
 
 
@@ -359,16 +354,14 @@ class _MicrogridComponentGraph(
         """Initialize the component graph.
 
         Args:
-            components: components with which to first initialize the graph,
-                provided as pairs of the form `(component_id,
-                component_category)`; if set, must provide `connections` as well
-            connections: connections with which to initialize the graph,
-                provided as pairs of component IDs describing the start and end
-                of the connection; if set, must provide `components` as well
+            components: The components to initialize the graph with. If set, must
+                provide `connections` as well.
+            connections: The connections to initialize the graph with. If set, must
+                provide `components` as well.
 
         Raises:
-            InvalidGraphError: if `components` and `connections` are not both `None`
-                and either of them is either `None` or empty
+            InvalidGraphError: If `components` and `connections` are not both `None`
+                and either of them is either `None` or empty.
         """
         self._graph: nx.DiGraph = nx.DiGraph()
 
@@ -392,12 +385,11 @@ class _MicrogridComponentGraph(
         """Fetch the components of the microgrid.
 
         Args:
-            component_ids: filter out any components not matching one of the provided IDs
-            component_categories: filter out any components not matching one of the
-                provided types
+            component_ids: The component IDs that the components must match.
+            component_categories: The component categories that the components must match.
 
         Returns:
-            Set of the components currently connected to the microgrid, filtered by
+            The set of components currently connected to the microgrid, filtered by
                 the provided `component_ids` and `component_categories` values.
         """
         selection_ids = (
@@ -422,13 +414,11 @@ class _MicrogridComponentGraph(
         """Fetch the connections between microgrid components.
 
         Args:
-            start: filter out any connections whose `start` does not match one of these
-                component IDs
-            end: filter out any connections whose `end` does not match one of these
-                component IDs
+            start: The component IDs that the connections' start must match.
+            end: The component IDs that the connections' end must match.
 
         Returns:
-            Set of the connections between components in the microgrid, filtered by
+            The set of connections between components in the microgrid, filtered by
                 the provided `start`/`end` choices.
         """
         match (start, end):
@@ -449,16 +439,16 @@ class _MicrogridComponentGraph(
         """Fetch the graph predecessors of the specified component.
 
         Args:
-            component_id: numerical ID of the component whose predecessors should be
-                fetched
+            component_id: The IDs of the components whose predecessors should be
+                fetched.
 
         Returns:
-            Set of IDs of the components that are predecessors of `component_id`,
-                i.e. for which there is a connection from each of these components to
+            The set of components that are predecessors of `component_id`, i.e. for
+                which there is a connection from each of these components to
                 `component_id`.
 
         Raises:
-            KeyError: if the specified `component_id` is not in the graph
+            KeyError: If the specified `component_id` is not in the graph.
         """
         if component_id not in self._graph:
             raise KeyError(
@@ -473,16 +463,15 @@ class _MicrogridComponentGraph(
         """Fetch the graph successors of the specified component.
 
         Args:
-            component_id: numerical ID of the component whose successors should be
-                fetched
+            component_id: The IDs of the components whose successors should be fetched.
 
         Returns:
-            Set of IDs of the components that are successors of `component_id`,
-                i.e. for which there is a connection from `component_id` to each of
-                these components.
+            The set of components that are successors of `component_id`, i.e. for
+                which there is a connection from `component_id` to each of these
+                components.
 
         Raises:
-            KeyError: if the specified `component_id` is not in the graph
+            KeyError: If the specified `component_id` is not in the graph
         """
         if component_id not in self._graph:
             raise KeyError(
@@ -505,16 +494,14 @@ class _MicrogridComponentGraph(
         components and connections.
 
         Args:
-            components: components to include in the graph, provided as pairs of
-                the form `(component_id, component_category)`
-            connections: connections to include in the graph, provided as pairs
-                of component IDs describing the start and end of the connection
-            correct_errors: callback that, if set, will be invoked if the
+            components: The components to include in the graph.
+            connections: The connections to include in the graph.
+            correct_errors: The callback that, if set, will be invoked if the
                 provided graph data is in any way invalid (it will attempt to
-                correct the errors by inferring what the correct data should be)
+                correct the errors by inferring what the correct data should be).
 
         Raises:
-            InvalidGraphError: if the provided `components` and `connections`
+            InvalidGraphError: If the provided `components` and `connections`
                 do not form a valid component graph and `correct_errors` does
                 not fix it.
         """
@@ -565,10 +552,10 @@ class _MicrogridComponentGraph(
         """Refresh the contents of a component graph from the remote API.
 
         Args:
-            api: API client from which to fetch graph data
-            correct_errors: callback that, if set, will be invoked if the
+            api: The API client from which to fetch graph data.
+            correct_errors: The callback that, if set, will be invoked if the
                 provided graph data is in any way invalid (it will attempt to
-                correct the errors by inferring what the correct data should be)
+                correct the errors by inferring what the correct data should be).
         """
         components, connections = await asyncio.gather(
             api.components(),
@@ -592,7 +579,7 @@ class _MicrogridComponentGraph(
         component.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is a grid meter.
@@ -615,7 +602,7 @@ class _MicrogridComponentGraph(
         """Check if the specified component is a PV inverter.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is a PV inverter.
@@ -632,7 +619,7 @@ class _MicrogridComponentGraph(
         successors.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is a PV meter.
@@ -655,7 +642,7 @@ class _MicrogridComponentGraph(
         meter.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is part of a PV chain.
@@ -666,7 +653,7 @@ class _MicrogridComponentGraph(
         """Check if the specified component is an EV charger.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is an EV charger.
@@ -680,7 +667,7 @@ class _MicrogridComponentGraph(
         successors.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is an EV charger meter.
@@ -700,7 +687,7 @@ class _MicrogridComponentGraph(
         EV charger meter.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is part of an EV charger chain.
@@ -711,7 +698,7 @@ class _MicrogridComponentGraph(
         """Check if the specified component is a battery inverter.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is a battery inverter.
@@ -728,7 +715,7 @@ class _MicrogridComponentGraph(
         its successors.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is a battery meter.
@@ -748,7 +735,7 @@ class _MicrogridComponentGraph(
         battery meter.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is part of a battery chain.
@@ -759,7 +746,7 @@ class _MicrogridComponentGraph(
         """Check if the specified component is a CHP.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is a CHP.
@@ -773,7 +760,7 @@ class _MicrogridComponentGraph(
         successors.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is a CHP meter.
@@ -792,7 +779,7 @@ class _MicrogridComponentGraph(
         A component is part of a CHP chain if it is either a CHP or a CHP meter.
 
         Args:
-            component: component to check.
+            component: The component to check.
 
         Returns:
             Whether the specified component is part of a CHP chain.
@@ -805,8 +792,7 @@ class _MicrogridComponentGraph(
         visited: set[Component],
         condition: Callable[[Component], bool],
     ) -> set[Component]:
-        """
-        Search for components that fulfill the condition in the Graph.
+        """Search for components that fulfill the condition in the Graph.
 
         DFS is used for searching the graph. The graph traversal is stopped
         once a component fulfills the condition.
@@ -817,7 +803,7 @@ class _MicrogridComponentGraph(
             condition: The condition function to check for.
 
         Returns:
-            A set of component ids where the corresponding components fulfill
+            A set of component IDs where the corresponding components fulfill
             the condition function.
         """
         if current_node in visited:
@@ -855,17 +841,17 @@ class _MicrogridComponentGraph(
         highest priority.
 
         Args:
-            root_category: The category of the root component to search for.
-            descendant_categories: The descendant categories to search for the
-                first descendant component in.
-
-        Raises:
-            ValueError: when the root component is not found in the component
-                graph or when no component is found in the given categories.
+            root_category: The class of the root component to search for.
+            descendant_categories: The descendant classes to search for the first
+                descendant component in.
 
         Returns:
             The first descendant component found in the component graph,
-            considering the specified root and descendant categories.
+                considering the specified `root` and `descendants` categories.
+
+        Raises:
+            ValueError: When the root component is not found in the component
+                graph or when no component is found in the given categories.
         """
         root_component = next(
             (comp for comp in self.components(component_categories={root_category})),
@@ -900,8 +886,11 @@ class _MicrogridComponentGraph(
         """Check that the underlying graph data is valid.
 
         Raises:
-            InvalidGraphError: if there are no components, or no connections, or
-                the graph is not a tree, or if any component lacks type data
+            InvalidGraphError: If:
+                - There are no components.
+                - There are no connections.
+                - The graph is not a tree.
+                - Any node lacks its associated component data.
         """
         if self._graph.number_of_nodes() == 0:
             raise InvalidGraphError("No components in graph!")
@@ -943,9 +932,8 @@ class _MicrogridComponentGraph(
         """Check that there is exactly one node without predecessors, of valid type.
 
         Raises:
-            InvalidGraphError: if there is more than one node without predecessors,
-                or if there is a single such node that is not one of NONE, GRID, or
-                JUNCTION
+            InvalidGraphError: If there is more than one node without predecessors,
+                or if there is a single such node that is not one of NONE or GRID.
         """
         no_predecessors = filter(
             lambda c: self._graph.in_degree(c.component_id) == 0,
@@ -975,11 +963,11 @@ class _MicrogridComponentGraph(
         """Check that the grid endpoint is configured correctly in the graph.
 
         Raises:
-            InvalidGraphError: if there is more than one grid endpoint in the
+            InvalidGraphError: If there is more than one grid endpoint in the
                 graph, or if the grid endpoint has predecessors (if it exists,
                 then it should be the root of the component-graph tree), or if
                 it has no successors in the graph (i.e. it is not connected to
-                anything)
+                anything).
         """
         grid = list(self.components(component_categories={ComponentCategory.GRID}))
 
@@ -1010,8 +998,8 @@ class _MicrogridComponentGraph(
         successors in the component graph, such as METER, or INVERTER.
 
         Raises:
-            InvalidGraphError: if any intermediary component has zero predecessors
-                or zero successors
+            InvalidGraphError: If any intermediary component has zero predecessors
+                or zero successors.
         """
         intermediary_components = list(
             self.components(component_categories={ComponentCategory.INVERTER})
@@ -1037,8 +1025,8 @@ class _MicrogridComponentGraph(
         connections and no outgoing connections.
 
         Raises:
-            InvalidGraphError: if any leaf component in the graph has 0 predecessors,
-                or has > 0 successors
+            InvalidGraphError: If any leaf component in the graph has 0 predecessors,
+                or has > 0 successors.
         """
         leaf_components = list(
             self.components(

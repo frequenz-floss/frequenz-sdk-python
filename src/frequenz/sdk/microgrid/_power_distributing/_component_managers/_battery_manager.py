@@ -224,17 +224,18 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         Returns:
             Distribution of the batteries.
         """
-        try:
-            pairs_data: list[InvBatPair] = self._get_components_data(
-                request.component_ids
-            )
-        except KeyError as err:
-            return Error(request=request, msg=str(err))
+        match self._get_components_data(request.component_ids):
+            case str() as err:
+                return Error(request=request, msg=err)
+            case list() as pairs_data:
+                pass
+            case unexpected:
+                typing.assert_never(unexpected)
 
         if not pairs_data:
             error_msg = (
-                "No data for at least one of the given "
-                f"batteries {str(request.component_ids)}"
+                "No data for at least one of the given batteries: "
+                + self._str_ids(request.component_ids)
             )
             return Error(request=request, msg=str(error_msg))
 
@@ -510,18 +511,17 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
 
     def _get_components_data(
         self, batteries: collections.abc.Set[int]
-    ) -> list[InvBatPair]:
+    ) -> list[InvBatPair] | str:
         """Get data for the given batteries and adjacent inverters.
 
         Args:
             batteries: Batteries that needs data.
 
-        Raises:
-            KeyError: If any battery in the given list doesn't exists in microgrid.
-
         Returns:
-            Pairs of battery and adjacent inverter data.
+            Pairs of battery and adjacent inverter data or an error message if there was
+                an error while getting the data.
         """
+        inverter_ids: collections.abc.Set[int]
         pairs_data: list[InvBatPair] = []
 
         working_batteries = self._component_pool_status_tracker.get_working_components(
@@ -530,9 +530,9 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
 
         for battery_id in working_batteries:
             if battery_id not in self._battery_caches:
-                raise KeyError(
+                return (
                     f"No battery {battery_id}, "
-                    f"available batteries: {list(self._battery_caches.keys())}"
+                    f"available batteries: {self._str_ids(self._battery_caches.keys())}"
                 )
 
         connected_inverters = _get_all_from_map(self._bat_invs_map, batteries)
@@ -545,9 +545,10 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
 
         if batteries_from_inverters != batteries:
             extra_batteries = batteries_from_inverters - batteries
-            raise KeyError(
-                f"Inverters {_get_all_from_map(self._bat_invs_map, extra_batteries)} "
-                f"are connected to batteries that were not requested: {extra_batteries}"
+            inverter_ids = _get_all_from_map(self._bat_invs_map, extra_batteries)
+            return (
+                f"Inverter(s) ({self._str_ids(inverter_ids)}) are connected to "
+                f"battery(ies) ({self._str_ids(extra_batteries)}) that were not requested"
             )
 
         # set of set of batteries one for each working_battery
@@ -556,7 +557,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         )
 
         for battery_ids in battery_sets:
-            inverter_ids: frozenset[int] = self._bat_invs_map[next(iter(battery_ids))]
+            inverter_ids = self._bat_invs_map[next(iter(battery_ids))]
 
             data = self._get_battery_inverter_data(battery_ids, inverter_ids)
             if data is None:
@@ -569,6 +570,9 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             assert len(data.inverter) > 0
             pairs_data.append(data)
         return pairs_data
+
+    def _str_ids(self, ids: collections.abc.Set[int]) -> str:
+        return ", ".join(str(cid) for cid in sorted(ids))
 
     def _get_power_distribution(
         self, request: Request, inv_bat_pairs: list[InvBatPair]
