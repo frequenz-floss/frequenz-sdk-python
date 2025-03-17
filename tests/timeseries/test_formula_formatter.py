@@ -4,15 +4,13 @@
 """Tests for the FormulaFormatter."""
 
 
-from contextlib import AsyncExitStack
-
 from frequenz.channels import Broadcast
 from frequenz.quantities import Quantity
-from pytest_mock import MockerFixture
 
-from frequenz.sdk import microgrid
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries.formula_engine._formula_engine import FormulaBuilder
+from frequenz.sdk.timeseries.formula_engine._formula_engine import (
+    FormulaBuilder,
+)
 from frequenz.sdk.timeseries.formula_engine._formula_formatter import format_formula
 from frequenz.sdk.timeseries.formula_engine._formula_steps import (
     Clipper,
@@ -22,7 +20,6 @@ from frequenz.sdk.timeseries.formula_engine._formula_steps import (
     Minimizer,
 )
 from frequenz.sdk.timeseries.formula_engine._tokenizer import Tokenizer, TokenType
-from tests.timeseries.mock_microgrid import MockMicrogrid
 
 
 def build_formula(formula: str) -> list[FormulaStep]:
@@ -112,27 +109,34 @@ class TestFormulaFormatter:
         # flake8: enable
         # fmt: on
 
-    async def test_higher_order_formula(self, mocker: MockerFixture) -> None:
-        """Test that the formula is formatted correctly for a higher-order formula."""
-        mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
-        mockgrid.add_batteries(3)
-        mockgrid.add_ev_chargers(1)
-        mockgrid.add_solar_inverters(2)
+    async def test_higher_order_formula(self) -> None:
+        """Test that higher-order formulas (formulas combining other formulas) are formatted correctly."""
+        # Create two base formulas
+        builder1 = FormulaBuilder("test_formula1", Quantity)
+        builder2 = FormulaBuilder("test_formula2", Quantity)
 
-        async with mockgrid, AsyncExitStack() as stack:
-            logical_meter = microgrid.logical_meter()
-            stack.push_async_callback(logical_meter.stop)
+        # Push metrics directly to the builders
+        channel1 = Broadcast[Sample[Quantity]](name="channel1")
+        channel2 = Broadcast[Sample[Quantity]](name="channel2")
+        builder1.push_metric("#1", channel1.new_receiver(), nones_are_zeros=True)
+        builder1.push_oper("+")
+        builder1.push_metric("#2", channel2.new_receiver(), nones_are_zeros=True)
 
-            pv_pool = microgrid.new_pv_pool(priority=5)
-            stack.push_async_callback(pv_pool.stop)
+        channel3 = Broadcast[Sample[Quantity]](name="channel3")
+        channel4 = Broadcast[Sample[Quantity]](name="channel4")
+        builder2.push_metric("#3", channel3.new_receiver(), nones_are_zeros=True)
+        builder2.push_oper("+")
+        builder2.push_metric("#4", channel4.new_receiver(), nones_are_zeros=True)
 
-            grid = microgrid.grid()
-            stack.push_async_callback(grid.stop)
+        # Build individual formula engines first
+        engine1 = builder1.build()
+        engine2 = builder2.build()
 
-            assert str(grid.power) == "#36 + #7 + #47 + #17 + #57 + #27"
+        # Combine them into a higher-order formula
+        composed_formula = (engine1 - engine2).build("higher_order_formula")
 
-            composed_formula = (grid.power - pv_pool.power).build("grid_minus_pv")
-            assert (
-                str(composed_formula)
-                == "[grid-power](#36 + #7 + #47 + #17 + #57 + #27) - [pv-power](#47 + #57)"
-            )
+        # Check the string representation
+        assert (
+            str(composed_formula)
+            == "[test_formula1](#1 + #2) - [test_formula2](#3 + #4)"
+        )

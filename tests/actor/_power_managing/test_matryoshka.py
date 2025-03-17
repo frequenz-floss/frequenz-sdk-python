@@ -435,8 +435,8 @@ async def test_matryoshka_drop_old_proposals() -> None:
     with pytest.raises(
         NotImplementedError,
         match=re.escape(
-            "PowerManagingActor: component IDs frozenset({8, 5}) are already "
-            + "part of another bucket.  Overlapping buckets are not yet supported."
+            "PowerManagingActor: component IDs 5, 8 are already part of "
+            "another bucket.  Overlapping buckets are not yet supported."
         ),
     ):
         tester.tgt_power(
@@ -506,8 +506,8 @@ async def test_matryoshka_none_proposals() -> None:
         with pytest.raises(
             NotImplementedError,
             match=re.escape(
-                "PowerManagingActor: component IDs frozenset({8, 5}) are already "
-                + "part of another bucket.  Overlapping buckets are not yet supported."
+                "PowerManagingActor: component IDs 5, 8 are already part of "
+                "another bucket.  Overlapping buckets are not yet supported."
             ),
         ):
             tester.tgt_power(

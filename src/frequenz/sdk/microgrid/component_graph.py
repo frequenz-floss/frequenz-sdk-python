@@ -915,14 +915,14 @@ class _MicrogridComponentGraph(
         # This check doesn't seem to have much sense, it only search for nodes without
         # data associated with them. We leave it here for now, but we should consider
         # removing it in the future.
-        undefined: list[int] = [
+        if undefined := [
             node[0] for node in self._graph.nodes(data=True) if len(node[1]) == 0
-        ]
-
-        if len(undefined) > 0:
+        ]:
+            undefined_str = ", ".join(map(str, sorted(undefined)))
             raise InvalidGraphError(
-                f"Missing definition for graph components: {undefined}"
+                f"Missing definition for graph components: {undefined_str}"
             )
+
         # should be true as a consequence of checks above
         if sum(1 for _ in self.components()) <= 0:
             raise InvalidGraphError("Graph must have a least one component!")

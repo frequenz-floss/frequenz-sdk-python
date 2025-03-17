@@ -198,11 +198,21 @@ async def setup_batteries_pool(mocker: MockerFixture) -> AsyncIterator[SetupArgs
     # the scope of this tests. This tests should cover BatteryPool only.
     # We use our own battery status channel, where we easily control set of working
     # batteries.
-    all_batteries = list(get_components(mock_microgrid, ComponentCategory.BATTERY))
+    all_batteries = get_components(mock_microgrid, ComponentCategory.BATTERY)
 
-    battery_pool = microgrid.new_battery_pool(
-        priority=5, component_ids=set(all_batteries[:2])
-    )
+    # This is a hack because these tests used to rely on the order in which components
+    # are returned from the component graph using `all_batteries[:2]` to get the first 2
+    # batteries. But the component graph returns a set, which doesn't have any ordering
+    # guarantees, so if the Python implementation changes, the hashing can change and
+    # this resulting order could be different, breaking the tests. This is why we are
+    # now specifying IDs to use explicitly (these are the IDs that were used when the
+    # tests were written). This can also change in the future if generator of mock
+    # components changes, as it might produce different IDs, so this solution is also
+    # not bullet-proof.
+    assert 8 in all_batteries
+    assert 11 in all_batteries
+
+    battery_pool = microgrid.new_battery_pool(priority=5, component_ids=set([8, 11]))
 
     dp = microgrid._data_pipeline._DATA_PIPELINE
     assert dp is not None
@@ -1125,7 +1135,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
     )
     compare_messages(msg, expected)
 
-    batteries_in_pool = list(battery_pool.component_ids)
+    batteries_in_pool = list(sorted(battery_pool.component_ids))
     scenarios: list[Scenario[SystemBounds]] = [
         Scenario(
             next(iter(bat_invs_map[batteries_in_pool[0]])),

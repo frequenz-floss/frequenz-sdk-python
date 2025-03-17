@@ -609,8 +609,12 @@ class BatteryDistributionAlgorithm:
             else:
                 remaining_power = power.power
 
-                # Inverters are sorted by largest excl bound first
-                for inverter_id in inverter_ids:
+                # Sort inverters to have the largest exclusion bounds first
+                sorted_inverter_ids = sorted(
+                    inverter_ids, key=lambda inv_id: excl_bounds[inv_id], reverse=True
+                )
+
+                for inverter_id in sorted_inverter_ids:
                     if (
                         not is_close_to_zero(remaining_power)
                         and excl_bounds[inverter_id] <= remaining_power
