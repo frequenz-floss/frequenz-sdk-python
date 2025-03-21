@@ -24,6 +24,28 @@ if typing.TYPE_CHECKING:
 _logger = logging.getLogger(__name__)
 
 
+def _get_nearest_possible_power(
+    power: Power,
+    lower_bound: Power,
+    upper_bound: Power,
+    exclusion_bounds: Bounds[Power] | None,
+) -> Power:
+    match _bounds.clamp_to_bounds(
+        power,
+        lower_bound,
+        upper_bound,
+        exclusion_bounds,
+    ):
+        case (None, p) | (p, None) if p:
+            return p
+        case (low, high) if low and high:
+            if high - power < power - low:
+                return high
+            return low
+        case _:
+            return Power.zero()
+
+
 class ShiftingMatryoshka(BaseAlgorithm):
     """The ShiftingMatryoshka algorithm.
 
@@ -39,7 +61,7 @@ class ShiftingMatryoshka(BaseAlgorithm):
         self._component_buckets: dict[frozenset[int], set[Proposal]] = {}
         self._target_power: dict[frozenset[int], Power] = {}
 
-    def _calc_targets(  # pylint: disable=too-many-locals,too-many-branches
+    def _calc_targets(
         self,
         proposals: set[Proposal],
         system_bounds: SystemBounds,
@@ -108,22 +130,12 @@ class ShiftingMatryoshka(BaseAlgorithm):
             if proposal_power is not None:
                 if top_pri_bounds is None and proposal_power != Power.zero():
                     top_pri_bounds = Bounds[Power](lower=lower_bound, upper=upper_bound)
-                clamped = _bounds.clamp_to_bounds(
+                proposal_power = _get_nearest_possible_power(
                     proposal_power,
                     lower_bound,
                     upper_bound,
                     None,
                 )
-                match clamped:
-                    case (None, None):
-                        proposal_power = Power.zero()
-                    case (None, power) | (power, None) if power:
-                        proposal_power = power
-                    case (power_low, power_high) if power_low and power_high:
-                        if power_high - proposal_power < proposal_power - power_low:
-                            proposal_power = power_high
-                        else:
-                            proposal_power = power_low
                 lower_bound = lower_bound - proposal_power
                 upper_bound = upper_bound - proposal_power
                 target_power += proposal_power
@@ -131,22 +143,12 @@ class ShiftingMatryoshka(BaseAlgorithm):
         if top_pri_bounds is not None:
             available_bounds = top_pri_bounds
 
-        clamped = _bounds.clamp_to_bounds(
+        target_power = _get_nearest_possible_power(
             target_power,
             available_bounds.lower,
             available_bounds.upper,
             system_bounds.exclusion_bounds,
         )
-        match clamped:
-            case (None, None):
-                target_power = Power.zero()
-            case (None, power) | (power, None) if power:
-                target_power = power
-            case (power_low, power_high) if power_low and power_high:
-                if power_high - target_power < target_power - power_low:
-                    target_power = power_high
-                else:
-                    target_power = power_low
 
         return target_power, Bounds[Power](lower=lower_bound, upper=upper_bound)
 
