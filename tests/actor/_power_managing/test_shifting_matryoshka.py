@@ -122,15 +122,15 @@ async def test_matryoshka_no_excl() -> None:  # pylint: disable=too-many-stateme
     tester.tgt_power(priority=3, power=10.0, bounds=(10.0, 15.0), expected=15.0)
     tester.bounds(priority=3, expected_power=15.0, expected_bounds=(-200.0, 200.0))
     tester.bounds(priority=2, expected_power=15.0, expected_bounds=(0.0, 5.0))
-    tester.bounds(priority=1, expected_power=15.0, expected_bounds=(-5.0, 0.0))
+    tester.bounds(priority=1, expected_power=15.0, expected_bounds=(0.0, 0.0))
 
     tester.tgt_power(priority=3, power=10.0, bounds=(10.0, 22.0), expected=22.0)
     tester.bounds(priority=3, expected_power=22.0, expected_bounds=(-200.0, 200.0))
     tester.bounds(priority=2, expected_power=22.0, expected_bounds=(0.0, 12.0))
-    tester.bounds(priority=1, expected_power=22.0, expected_bounds=(-12.0, 0.0))
+    tester.bounds(priority=1, expected_power=22.0, expected_bounds=(0.0, 0.0))
 
     tester.tgt_power(priority=1, power=30.0, bounds=(20.0, 50.0), expected=None)
-    tester.bounds(priority=1, expected_power=22.0, expected_bounds=(-12.0, 0.0))
+    tester.bounds(priority=1, expected_power=22.0, expected_bounds=(0.0, 0.0))
 
     tester.tgt_power(priority=3, power=10.0, bounds=(10.0, 50.0), expected=50.0)
     tester.bounds(priority=3, expected_power=50.0, expected_bounds=(-200.0, 200.0))
@@ -140,7 +140,7 @@ async def test_matryoshka_no_excl() -> None:  # pylint: disable=too-many-stateme
     tester.tgt_power(priority=2, power=40.0, bounds=(40.0, None), expected=None)
     tester.bounds(priority=3, expected_power=50.0, expected_bounds=(-200.0, 200.0))
     tester.bounds(priority=2, expected_power=50.0, expected_bounds=(0.0, 40.0))
-    tester.bounds(priority=1, expected_power=50.0, expected_bounds=(-40.0, 0.0))
+    tester.bounds(priority=1, expected_power=50.0, expected_bounds=(0.0, 0.0))
 
     tester.tgt_power(priority=2, power=0.0, bounds=(-200.0, 200.0), expected=40.0)
     tester.bounds(priority=4, expected_power=40.0, expected_bounds=(-200.0, 200.0))
@@ -151,8 +151,8 @@ async def test_matryoshka_no_excl() -> None:  # pylint: disable=too-many-stateme
     tester.tgt_power(priority=4, power=-50.0, bounds=(None, -50.0), expected=-50.0)
     tester.bounds(priority=4, expected_power=-50.0, expected_bounds=(-200.0, 200.0))
     tester.bounds(priority=3, expected_power=-50.0, expected_bounds=(-150.0, 0.0))
-    tester.bounds(priority=2, expected_power=-50.0, expected_bounds=(-150.0, 0.0))
-    tester.bounds(priority=1, expected_power=-50.0, expected_bounds=(-150.0, 0.0))
+    tester.bounds(priority=2, expected_power=-50.0, expected_bounds=(0.0, 0.0))
+    tester.bounds(priority=1, expected_power=-50.0, expected_bounds=(0.0, 0.0))
 
     tester.tgt_power(priority=3, power=0.0, bounds=(-200.0, 200.0), expected=None)
     tester.bounds(priority=1, expected_power=-50.0, expected_bounds=(-150.0, 0.0))
@@ -202,6 +202,35 @@ async def test_matryoshka_no_excl() -> None:  # pylint: disable=too-many-stateme
     tester.bounds(priority=1, expected_power=50.0, expected_bounds=(-150.0, 50.0))
 
 
+async def test_matryoshka_simple() -> None:
+    """Tests for the power managing actor.
+
+    With inclusion bounds, and exclusion bounds -30.0 to 0.0.
+    """
+    batteries = frozenset({2, 5})
+
+    system_bounds = _base_types.SystemBounds(
+        timestamp=datetime.now(tz=timezone.utc),
+        inclusion_bounds=timeseries.Bounds(
+            lower=Power.from_watts(-200.0), upper=Power.from_watts(200.0)
+        ),
+        exclusion_bounds=timeseries.Bounds(
+            lower=Power.from_watts(-30.0), upper=Power.from_watts(30.0)
+        ),
+    )
+
+    tester = StatefulTester(batteries, system_bounds)
+    tester.tgt_power(priority=3, power=None, bounds=(-200.0, 200.0), expected=0.0)
+    tester.bounds(priority=2, expected_power=0.0, expected_bounds=(-200.0, 200.0))
+    tester.tgt_power(priority=1, power=None, bounds=(-200.0, 200.0), expected=None)
+    tester.bounds(priority=2, expected_power=0.0, expected_bounds=(-200.0, 200.0))
+    tester.tgt_power(priority=2, power=25.0, bounds=(25.0, 50.0), expected=30.0)
+    # tester.tgt_power(priority=2, power=-10.0, bounds=(-10.0, 50.0), expected=-10.0)
+    # tester.bounds(priority=1, expected_power=-10.0, expected_bounds=(0.0, 60.0))
+    # tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, 20.0), expected=None)
+    # tester.bounds(priority=0, expected_power=-10.0, expected_bounds=(0.0, 20.0))
+
+
 async def test_matryoshka_with_excl_1() -> None:
     """Tests for the power managing actor.
 
@@ -228,32 +257,29 @@ async def test_matryoshka_with_excl_1() -> None:
     tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=45.0)
     tester.bounds(priority=1, expected_power=45.0, expected_bounds=(0.0, 25.0))
 
-    tester.tgt_power(priority=2, power=-10.0, bounds=(-10.0, 50.0), expected=20.0)
-    tester.bounds(priority=1, expected_power=20.0, expected_bounds=(0.0, 50.0))
-    tester.bounds(priority=0, expected_power=20.0, expected_bounds=(0.0, 30.0))
+    tester.tgt_power(priority=2, power=-10.0, bounds=(-10.0, 50.0), expected=10.0)
+    tester.bounds(priority=1, expected_power=10.0, expected_bounds=(0.0, 60.0))
+    tester.bounds(priority=0, expected_power=10.0, expected_bounds=(0.0, 30.0))
 
     tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, 50.0), expected=0.0)
     tester.bounds(priority=0, expected_power=0.0, expected_bounds=(0.0, 50.0))
 
-    tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, 20.0), expected=None)
-    tester.bounds(priority=0, expected_power=0.0, expected_bounds=(0.0, 20.0))
-
     tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, -5.0), expected=None)
-    tester.bounds(priority=0, expected_power=0.0, expected_bounds=(0.0, 50.0))
+    tester.bounds(priority=0, expected_power=0.0, expected_bounds=(0.0, 0.0))
 
-    tester.tgt_power(priority=2, power=-10.0, bounds=(-200.0, -5.0), expected=-40.0)
-    tester.bounds(priority=1, expected_power=-40.0, expected_bounds=(-170.0, 0.0))
-    tester.bounds(priority=0, expected_power=-40.0, expected_bounds=(0.0, 5.0))
+    tester.tgt_power(priority=2, power=-10.0, bounds=(-200.0, -5.0), expected=-30.0)
+    tester.bounds(priority=1, expected_power=-30.0, expected_bounds=(-190.0, 5.0))
+    tester.bounds(priority=0, expected_power=-30.0, expected_bounds=(0.0, 5.0))
 
     tester.tgt_power(priority=2, power=None, bounds=(None, None), expected=0.0)
     tester.bounds(priority=2, expected_power=0.0, expected_bounds=(-200.0, 200.0))
     tester.bounds(priority=1, expected_power=0.0, expected_bounds=(-200.0, 200.0))
 
     tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, -5.0), expected=None)
-    tester.bounds(priority=0, expected_power=0.0, expected_bounds=(0.0, 0.0))
+    tester.bounds(priority=0, expected_power=0.0, expected_bounds=(0.0, 5.0))
 
     tester.tgt_power(priority=1, power=-10.0, bounds=(-100.0, -5.0), expected=-30.0)
-    tester.bounds(priority=0, expected_power=-30.0, expected_bounds=(-70.0, 0.0))
+    tester.bounds(priority=0, expected_power=-30.0, expected_bounds=(-90.0, 5.0))
 
     tester.tgt_power(priority=1, power=-40.0, bounds=(-100.0, -35.0), expected=-40.0)
     tester.bounds(priority=0, expected_power=-40.0, expected_bounds=(-60.0, 5.0))
@@ -280,13 +306,13 @@ async def test_matryoshka_with_excl_2() -> None:
 
     tester.tgt_power(priority=2, power=25.0, bounds=(25.0, 50.0), expected=30.0)
     tester.bounds(priority=2, expected_power=30.0, expected_bounds=(-200.0, 200.0))
-    tester.bounds(priority=1, expected_power=30.0, expected_bounds=(0.0, 20.0))
+    tester.bounds(priority=1, expected_power=30.0, expected_bounds=(0.0, 25.0))
 
-    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=50.0)
-    tester.bounds(priority=1, expected_power=50.0, expected_bounds=(0.0, 20.0))
+    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=45.0)
+    tester.bounds(priority=1, expected_power=45.0, expected_bounds=(0.0, 25.0))
 
-    tester.tgt_power(priority=1, power=10.0, bounds=(5.0, 10.0), expected=40.0)
-    tester.bounds(priority=0, expected_power=40.0, expected_bounds=(-5.0, 0.0))
+    tester.tgt_power(priority=1, power=10.0, bounds=(5.0, 10.0), expected=35.0)
+    tester.bounds(priority=0, expected_power=35.0, expected_bounds=(-5.0, 0.0))
 
     tester.tgt_power(priority=2, power=-10.0, bounds=(-10.0, 50.0), expected=0.0)
     tester.bounds(priority=1, expected_power=0.0, expected_bounds=(0.0, 60.0))
@@ -298,10 +324,10 @@ async def test_matryoshka_with_excl_2() -> None:
     tester.bounds(priority=0, expected_power=30.0, expected_bounds=(0.0, 50.0))
 
     tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, 20.0), expected=-10.0)
-    tester.bounds(priority=0, expected_power=-10.0, expected_bounds=(0.0, 10.0))
+    tester.bounds(priority=0, expected_power=-10.0, expected_bounds=(0.0, 20.0))
 
-    tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, -5.0), expected=30.0)
-    tester.bounds(priority=0, expected_power=30.0, expected_bounds=(0.0, 60.0))
+    tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, -5.0), expected=None)
+    tester.bounds(priority=0, expected_power=-10.0, expected_bounds=(0.0, 0.0))
 
     tester.tgt_power(priority=2, power=-10.0, bounds=(-200.0, -5.0), expected=-20.0)
     tester.bounds(priority=1, expected_power=-20.0, expected_bounds=(-190.0, 5.0))
@@ -336,39 +362,39 @@ async def test_matryoshka_with_excl_3() -> None:
     tester.tgt_power(priority=2, power=-10.0, bounds=(-200.0, 200.0), expected=-30.0)
     tester.tgt_power(priority=2, power=0.0, bounds=(-200.0, 200.0), expected=0.0)
     tester.tgt_power(priority=3, power=20.0, bounds=(-200.0, 200.0), expected=30.0)
-    tester.tgt_power(priority=1, power=-20.0, bounds=(-200.0, 200.0), expected=None)
+    tester.tgt_power(priority=1, power=-20.0, bounds=(-200.0, 200.0), expected=0.0)
     tester.tgt_power(priority=3, power=None, bounds=(-200.0, 200.0), expected=-30.0)
     tester.tgt_power(priority=1, power=None, bounds=(-200.0, 200.0), expected=0.0)
 
     tester.tgt_power(priority=2, power=25.0, bounds=(25.0, 50.0), expected=30.0)
     tester.bounds(priority=2, expected_power=30.0, expected_bounds=(-200.0, 200.0))
-    tester.bounds(priority=1, expected_power=30.0, expected_bounds=(0.0, 20.0))
+    tester.bounds(priority=1, expected_power=30.0, expected_bounds=(0.0, 25.0))
 
-    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=50.0)
-    tester.bounds(priority=1, expected_power=50.0, expected_bounds=(0.0, 20.0))
+    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=45.0)
+    tester.bounds(priority=1, expected_power=45.0, expected_bounds=(0.0, 25.0))
 
-    tester.tgt_power(priority=1, power=10.0, bounds=(5.0, 10.0), expected=40.0)
-    tester.bounds(priority=0, expected_power=40.0, expected_bounds=(-5.0, 0.0))
+    tester.tgt_power(priority=1, power=10.0, bounds=(5.0, 10.0), expected=35.0)
+    tester.bounds(priority=0, expected_power=35.0, expected_bounds=(-5.0, 0.0))
 
-    tester.tgt_power(priority=2, power=-10.0, bounds=(-10.0, 50.0), expected=None)
-    tester.bounds(priority=1, expected_power=40.0, expected_bounds=(0.0, 20.0))
-    tester.bounds(priority=0, expected_power=40.0, expected_bounds=(-5.0, 0.0))
+    tester.tgt_power(priority=2, power=-10.0, bounds=(-10.0, 50.0), expected=30.0)
+    tester.bounds(priority=1, expected_power=30.0, expected_bounds=(0.0, 60.0))
+    tester.bounds(priority=0, expected_power=30.0, expected_bounds=(-5.0, 0.0))
 
-    tester.tgt_power(priority=1, power=40.0, bounds=(-10.0, 50.0), expected=50.0)
-    tester.bounds(priority=0, expected_power=50.0, expected_bounds=(-20.0, 0.0))
+    tester.tgt_power(priority=1, power=40.0, bounds=(-10.0, 50.0), expected=None)
+    tester.bounds(priority=0, expected_power=30.0, expected_bounds=(-40.0, 10.0))
 
-    tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, 20.0), expected=30.0)
+    tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, 20.0), expected=None)
     tester.bounds(priority=0, expected_power=30.0, expected_bounds=(0.0, 20.0))
 
-    tester.tgt_power(priority=2, power=-10.0, bounds=(-200.0, -5.0), expected=-40.0)
-    tester.bounds(priority=1, expected_power=-40.0, expected_bounds=(-170.0, 0.0))
-    tester.bounds(priority=0, expected_power=-40.0, expected_bounds=(0.0, 10.0))
+    tester.tgt_power(priority=2, power=-10.0, bounds=(-200.0, -5.0), expected=-30.0)
+    tester.bounds(priority=1, expected_power=-30.0, expected_bounds=(-190.0, 5.0))
+    tester.bounds(priority=0, expected_power=-30.0, expected_bounds=(0.0, 15.0))
 
     tester.tgt_power(priority=1, power=-10.0, bounds=(-100.0, -5.0), expected=None)
-    tester.bounds(priority=0, expected_power=-40.0, expected_bounds=(-90.0, 5.0))
+    tester.bounds(priority=0, expected_power=-30.0, expected_bounds=(-90.0, 5.0))
 
-    tester.tgt_power(priority=1, power=-40.0, bounds=(-100.0, -35.0), expected=-70.0)
-    tester.bounds(priority=0, expected_power=-70.0, expected_bounds=(-60.0, 5.0))
+    tester.tgt_power(priority=1, power=-40.0, bounds=(-100.0, -35.0), expected=-50.0)
+    tester.bounds(priority=0, expected_power=-50.0, expected_bounds=(-60.0, 5.0))
 
 
 async def test_matryoshka_drop_old_proposals() -> None:

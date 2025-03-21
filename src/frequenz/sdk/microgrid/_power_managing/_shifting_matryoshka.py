@@ -72,19 +72,11 @@ class ShiftingMatryoshka(BaseAlgorithm):
         if not proposals:
             return None, Bounds[Power](lower=lower_bound, upper=upper_bound)
 
-        exclusion_bounds = None
-        if system_bounds.exclusion_bounds is not None and (
-            system_bounds.exclusion_bounds.lower != Power.zero()
-            or system_bounds.exclusion_bounds.upper != Power.zero()
-        ):
-            exclusion_bounds = Bounds(
-                system_bounds.exclusion_bounds.lower,
-                system_bounds.exclusion_bounds.upper,
-            )
+        available_bounds = Bounds[Power](lower=lower_bound, upper=upper_bound)
+        top_pri_bounds: Bounds[Power] | None = None
 
         target_power = Power.zero()
         for next_proposal in sorted(proposals, reverse=True):
-            unshifted_power = Power.zero()
             if priority is not None and next_proposal.priority <= priority:
                 break
 
@@ -104,45 +96,57 @@ class ShiftingMatryoshka(BaseAlgorithm):
                 continue
 
             if proposal_lower >= upper_bound:
-                if proposal_power:
-                    proposal_power = upper_bound
+                proposal_lower = upper_bound
+                proposal_upper = upper_bound
             elif proposal_upper <= lower_bound:
-                if proposal_power:
-                    proposal_power = lower_bound
-            else:
-                lower_bound = max(lower_bound, proposal_lower)
-                upper_bound = min(upper_bound, proposal_upper)
+                proposal_lower = lower_bound
+                proposal_upper = lower_bound
 
-            if proposal_power:
-                match _bounds.clamp_to_bounds(
+            lower_bound = max(lower_bound, proposal_lower)
+            upper_bound = min(upper_bound, proposal_upper)
+
+            if proposal_power is not None:
+                if top_pri_bounds is None and proposal_power != Power.zero():
+                    top_pri_bounds = Bounds[Power](lower=lower_bound, upper=upper_bound)
+                clamped = _bounds.clamp_to_bounds(
                     proposal_power,
                     lower_bound,
                     upper_bound,
-                    exclusion_bounds,
-                ):
+                    None,
+                )
+                match clamped:
+                    case (None, None):
+                        proposal_power = Power.zero()
                     case (None, power) | (power, None) if power:
-                        unshifted_power = power
+                        proposal_power = power
                     case (power_low, power_high) if power_low and power_high:
                         if power_high - proposal_power < proposal_power - power_low:
-                            unshifted_power = power_high
+                            proposal_power = power_high
                         else:
-                            unshifted_power = power_low
-                    case _:
-                        pass
+                            proposal_power = power_low
+                lower_bound = lower_bound - proposal_power
+                upper_bound = upper_bound - proposal_power
+                target_power += proposal_power
 
-            lower_bound, upper_bound = _bounds.adjust_exclusion_bounds(
-                lower_bound, upper_bound, exclusion_bounds
-            )
+        if top_pri_bounds is not None:
+            available_bounds = top_pri_bounds
 
-            lower_bound = lower_bound - unshifted_power
-            upper_bound = upper_bound - unshifted_power
-            target_power += unshifted_power
-
-            if exclusion_bounds is not None:
-                exclusion_bounds = Bounds[Power](
-                    exclusion_bounds.lower - unshifted_power,
-                    exclusion_bounds.upper - unshifted_power,
-                )
+        clamped = _bounds.clamp_to_bounds(
+            target_power,
+            available_bounds.lower,
+            available_bounds.upper,
+            system_bounds.exclusion_bounds,
+        )
+        match clamped:
+            case (None, None):
+                target_power = Power.zero()
+            case (None, power) | (power, None) if power:
+                target_power = power
+            case (power_low, power_high) if power_low and power_high:
+                if power_high - target_power < target_power - power_low:
+                    target_power = power_high
+                else:
+                    target_power = power_low
 
         return target_power, Bounds[Power](lower=lower_bound, upper=upper_bound)
 
