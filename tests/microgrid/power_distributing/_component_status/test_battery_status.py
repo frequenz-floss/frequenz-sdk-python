@@ -20,6 +20,7 @@ from frequenz.client.microgrid import (
     BatteryError,
     BatteryErrorCode,
     BatteryRelayState,
+    ComponentId,
     ErrorLevel,
     InverterComponentState,
     InverterData,
@@ -42,7 +43,7 @@ from ....utils.receive_timeout import Timeout, receive_timeout
 
 
 def battery_data(  # pylint: disable=too-many-arguments,too-many-positional-arguments
-    component_id: int,
+    component_id: ComponentId,
     timestamp: datetime | None = None,
     relay_state: BatteryRelayState = BatteryRelayState.CLOSED,
     component_state: BatteryComponentState = BatteryComponentState.CHARGING,
@@ -80,7 +81,7 @@ def battery_data(  # pylint: disable=too-many-arguments,too-many-positional-argu
 
 
 def inverter_data(
-    component_id: int,
+    component_id: ComponentId,
     timestamp: datetime | None = None,
     component_state: InverterComponentState = InverterComponentState.CHARGING,
     errors: list[InverterError] | None = None,
@@ -120,8 +121,8 @@ class Message(Generic[T]):
     inner: T
 
 
-BATTERY_ID = 9
-INVERTER_ID = 8
+BATTERY_ID = ComponentId(9)
+INVERTER_ID = ComponentId(8)
 
 
 # pylint: disable=protected-access, unused-argument
@@ -345,7 +346,7 @@ class TestBatteryStatus:
 
                 # message is not correct, component should not block.
                 tracker._handle_status_set_power_result(
-                    SetPowerResult(succeeded={1}, failed={BATTERY_ID})
+                    SetPowerResult(succeeded={ComponentId(1)}, failed={BATTERY_ID})
                 )
 
                 assert tracker._get_new_status_if_changed() is None
@@ -361,7 +362,7 @@ class TestBatteryStatus:
                 for timeout in expected_blocking_timeout:
                     # message is not correct, component should not block.
                     tracker._handle_status_set_power_result(
-                        SetPowerResult(succeeded={1}, failed={BATTERY_ID})
+                        SetPowerResult(succeeded={ComponentId(1)}, failed={BATTERY_ID})
                     )
 
                     assert (
@@ -372,7 +373,7 @@ class TestBatteryStatus:
                     # Battery should be still blocked, nothing should happen
                     time.shift(timeout - 1)
                     tracker._handle_status_set_power_result(
-                        SetPowerResult(succeeded={1}, failed={BATTERY_ID})
+                        SetPowerResult(succeeded={ComponentId(1)}, failed={BATTERY_ID})
                     )
 
                     assert tracker._get_new_status_if_changed() is None
@@ -395,7 +396,7 @@ class TestBatteryStatus:
 
                 # should block for 30 sec
                 tracker._handle_status_set_power_result(
-                    SetPowerResult(succeeded={1}, failed={BATTERY_ID})
+                    SetPowerResult(succeeded={ComponentId(1)}, failed={BATTERY_ID})
                 )
 
                 assert (
@@ -424,7 +425,7 @@ class TestBatteryStatus:
 
                 # should block for 30 sec
                 tracker._handle_status_set_power_result(
-                    SetPowerResult(succeeded={1}, failed={BATTERY_ID})
+                    SetPowerResult(succeeded={ComponentId(1)}, failed={BATTERY_ID})
                 )
                 assert (
                     tracker._get_new_status_if_changed()
@@ -434,7 +435,7 @@ class TestBatteryStatus:
 
                 # If battery succeed, then it should unblock.
                 tracker._handle_status_set_power_result(
-                    SetPowerResult(succeeded={BATTERY_ID}, failed={19})
+                    SetPowerResult(succeeded={BATTERY_ID}, failed={ComponentId(19)})
                 )
                 assert (
                     tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
@@ -478,7 +479,7 @@ class TestBatteryStatus:
             assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
 
             tracker._handle_status_set_power_result(
-                SetPowerResult(succeeded={1}, failed={BATTERY_ID})
+                SetPowerResult(succeeded={ComponentId(1)}, failed={BATTERY_ID})
             )
             assert tracker._get_new_status_if_changed() is ComponentStatusEnum.UNCERTAIN
 
@@ -486,7 +487,7 @@ class TestBatteryStatus:
             for timeout in expected_blocking_timeout:
                 # message is not correct, component should not block.
                 tracker._handle_status_set_power_result(
-                    SetPowerResult(succeeded={1}, failed={BATTERY_ID})
+                    SetPowerResult(succeeded={ComponentId(1)}, failed={BATTERY_ID})
                 )
                 assert tracker._get_new_status_if_changed() is None
                 time_machine.move_to(start + timedelta(seconds=timeout))
@@ -528,7 +529,7 @@ class TestBatteryStatus:
             assert tracker._get_new_status_if_changed() is ComponentStatusEnum.WORKING
 
             tracker._handle_status_set_power_result(
-                SetPowerResult(succeeded={1}, failed={BATTERY_ID})
+                SetPowerResult(succeeded={ComponentId(1)}, failed={BATTERY_ID})
             )
             assert tracker._get_new_status_if_changed() is ComponentStatusEnum.UNCERTAIN
 
@@ -543,7 +544,7 @@ class TestBatteryStatus:
             )
 
             tracker._handle_status_set_power_result(
-                SetPowerResult(succeeded={1}, failed={BATTERY_ID})
+                SetPowerResult(succeeded={ComponentId(1)}, failed={BATTERY_ID})
             )
             assert tracker._get_new_status_if_changed() is None
 

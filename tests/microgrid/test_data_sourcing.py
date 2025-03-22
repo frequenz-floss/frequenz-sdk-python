@@ -19,6 +19,7 @@ from frequenz.client.microgrid import (
     Component,
     ComponentCategory,
     ComponentData,
+    ComponentId,
     ComponentMetricId,
     EVChargerCableState,
     EVChargerComponentState,
@@ -46,16 +47,24 @@ def mock_connection_manager(mocker: pytest_mock.MockFixture) -> mock.Mock:
     mock_client.components = mock.AsyncMock(
         name="components()",
         return_value=[
-            Component(component_id=4, category=ComponentCategory.METER),
-            Component(component_id=6, category=ComponentCategory.INVERTER),
-            Component(component_id=9, category=ComponentCategory.BATTERY),
-            Component(component_id=12, category=ComponentCategory.EV_CHARGER),
+            Component(component_id=ComponentId(4), category=ComponentCategory.METER),
+            Component(component_id=ComponentId(6), category=ComponentCategory.INVERTER),
+            Component(component_id=ComponentId(9), category=ComponentCategory.BATTERY),
+            Component(
+                component_id=ComponentId(12), category=ComponentCategory.EV_CHARGER
+            ),
         ],
     )
-    mock_client.meter_data = _new_meter_data_mock(4, starting_value=100.0)
-    mock_client.inverter_data = _new_inverter_data_mock(6, starting_value=0.0)
-    mock_client.battery_data = _new_battery_data_mock(9, starting_value=9.0)
-    mock_client.ev_charger_data = _new_ev_charger_data_mock(12, starting_value=-13.0)
+    mock_client.meter_data = _new_meter_data_mock(ComponentId(4), starting_value=100.0)
+    mock_client.inverter_data = _new_inverter_data_mock(
+        ComponentId(6), starting_value=0.0
+    )
+    mock_client.battery_data = _new_battery_data_mock(
+        ComponentId(9), starting_value=9.0
+    )
+    mock_client.ev_charger_data = _new_ev_charger_data_mock(
+        ComponentId(12), starting_value=-13.0
+    )
     mock_conn_manager = mock.MagicMock(name="connection_manager")
     mocker.patch(
         "frequenz.sdk.microgrid._data_sourcing"
@@ -77,7 +86,7 @@ async def test_data_sourcing_actor(  # pylint: disable=too-many-locals
 
     async with DataSourcingActor(req_chan.new_receiver(), registry):
         active_power_request_4 = ComponentMetricRequest(
-            "test-namespace", 4, ComponentMetricId.ACTIVE_POWER, None
+            "test-namespace", ComponentId(4), ComponentMetricId.ACTIVE_POWER, None
         )
         active_power_recv_4 = registry.get_or_create(
             Sample[Quantity], active_power_request_4.get_channel_name()
@@ -85,7 +94,7 @@ async def test_data_sourcing_actor(  # pylint: disable=too-many-locals
         await req_sender.send(active_power_request_4)
 
         reactive_power_request_4 = ComponentMetricRequest(
-            "test-namespace", 4, ComponentMetricId.REACTIVE_POWER, None
+            "test-namespace", ComponentId(4), ComponentMetricId.REACTIVE_POWER, None
         )
         reactive_power_recv_4 = registry.get_or_create(
             Sample[Quantity], reactive_power_request_4.get_channel_name()
@@ -93,7 +102,7 @@ async def test_data_sourcing_actor(  # pylint: disable=too-many-locals
         await req_sender.send(reactive_power_request_4)
 
         active_power_request_6 = ComponentMetricRequest(
-            "test-namespace", 6, ComponentMetricId.ACTIVE_POWER, None
+            "test-namespace", ComponentId(6), ComponentMetricId.ACTIVE_POWER, None
         )
         active_power_recv_6 = registry.get_or_create(
             Sample[Quantity], active_power_request_6.get_channel_name()
@@ -101,7 +110,7 @@ async def test_data_sourcing_actor(  # pylint: disable=too-many-locals
         await req_sender.send(active_power_request_6)
 
         soc_request_9 = ComponentMetricRequest(
-            "test-namespace", 9, ComponentMetricId.SOC, None
+            "test-namespace", ComponentId(9), ComponentMetricId.SOC, None
         )
         soc_recv_9 = registry.get_or_create(
             Sample[Quantity], soc_request_9.get_channel_name()
@@ -109,7 +118,7 @@ async def test_data_sourcing_actor(  # pylint: disable=too-many-locals
         await req_sender.send(soc_request_9)
 
         soc2_request_9 = ComponentMetricRequest(
-            "test-namespace", 9, ComponentMetricId.SOC, None
+            "test-namespace", ComponentId(9), ComponentMetricId.SOC, None
         )
         soc2_recv_9 = registry.get_or_create(
             Sample[Quantity], soc2_request_9.get_channel_name()
@@ -117,7 +126,7 @@ async def test_data_sourcing_actor(  # pylint: disable=too-many-locals
         await req_sender.send(soc2_request_9)
 
         active_power_request_12 = ComponentMetricRequest(
-            "test-namespace", 12, ComponentMetricId.ACTIVE_POWER, None
+            "test-namespace", ComponentId(12), ComponentMetricId.ACTIVE_POWER, None
         )
         active_power_recv_12 = registry.get_or_create(
             Sample[Quantity], active_power_request_12.get_channel_name()
@@ -150,7 +159,9 @@ async def test_data_sourcing_actor(  # pylint: disable=too-many-locals
             assert -13.0 + i == sample.value.base_value
 
 
-def _new_meter_data(component_id: int, timestamp: datetime, value: float) -> MeterData:
+def _new_meter_data(
+    component_id: ComponentId, timestamp: datetime, value: float
+) -> MeterData:
     return MeterData(
         component_id=component_id,
         timestamp=timestamp,
@@ -165,7 +176,7 @@ def _new_meter_data(component_id: int, timestamp: datetime, value: float) -> Met
 
 
 def _new_inverter_data(
-    component_id: int, timestamp: datetime, value: float
+    component_id: ComponentId, timestamp: datetime, value: float
 ) -> InverterData:
     return InverterData(
         component_id=component_id,
@@ -187,7 +198,7 @@ def _new_inverter_data(
 
 
 def _new_battery_data(
-    component_id: int, timestamp: datetime, value: float
+    component_id: ComponentId, timestamp: datetime, value: float
 ) -> BatteryData:
     return BatteryData(
         component_id=component_id,
@@ -208,7 +219,7 @@ def _new_battery_data(
 
 
 def _new_ev_charger_data(
-    component_id: int, timestamp: datetime, value: float
+    component_id: ComponentId, timestamp: datetime, value: float
 ) -> EVChargerData:
     return EVChargerData(
         component_id=component_id,
@@ -231,8 +242,8 @@ def _new_ev_charger_data(
 
 def _new_streamer_mock(
     name: str,
-    constructor: Callable[[int, datetime, float], T],
-    component_id: int,
+    constructor: Callable[[ComponentId, datetime, float], T],
+    component_id: ComponentId,
     starting_value: float,
 ) -> mock.AsyncMock:
     """Get a mock streamer."""
@@ -247,7 +258,9 @@ def _new_streamer_mock(
     return mock.AsyncMock(name=name, return_value=generate_data(starting_value))
 
 
-def _new_meter_data_mock(component_id: int, starting_value: float) -> mock.AsyncMock:
+def _new_meter_data_mock(
+    component_id: ComponentId, starting_value: float
+) -> mock.AsyncMock:
     """Get a mock streamer for meter data."""
     return _new_streamer_mock(
         f"meter_data_mock(id={component_id}, starting_value={starting_value})",
@@ -257,7 +270,9 @@ def _new_meter_data_mock(component_id: int, starting_value: float) -> mock.Async
     )
 
 
-def _new_inverter_data_mock(component_id: int, starting_value: float) -> mock.AsyncMock:
+def _new_inverter_data_mock(
+    component_id: ComponentId, starting_value: float
+) -> mock.AsyncMock:
     """Get a mock streamer for inverter data."""
     return _new_streamer_mock(
         f"inverter_data_mock(id={component_id}, starting_value={starting_value})",
@@ -267,7 +282,9 @@ def _new_inverter_data_mock(component_id: int, starting_value: float) -> mock.As
     )
 
 
-def _new_battery_data_mock(component_id: int, starting_value: float) -> mock.AsyncMock:
+def _new_battery_data_mock(
+    component_id: ComponentId, starting_value: float
+) -> mock.AsyncMock:
     """Get a mock streamer for battery data."""
     return _new_streamer_mock(
         f"battery_data_mock(id={component_id}, starting_value={starting_value})",
@@ -278,7 +295,7 @@ def _new_battery_data_mock(component_id: int, starting_value: float) -> mock.Asy
 
 
 def _new_ev_charger_data_mock(
-    component_id: int, starting_value: float
+    component_id: ComponentId, starting_value: float
 ) -> mock.AsyncMock:
     """Get a mock streamer for EV charger data."""
     return _new_streamer_mock(

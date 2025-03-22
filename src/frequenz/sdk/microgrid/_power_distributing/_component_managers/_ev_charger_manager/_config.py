@@ -7,6 +7,7 @@ from collections import abc
 from dataclasses import dataclass, field
 from datetime import timedelta
 
+from frequenz.client.microgrid import ComponentId
 from frequenz.quantities import Current
 
 
@@ -14,7 +15,7 @@ from frequenz.quantities import Current
 class EVDistributionConfig:
     """Configuration for the power distributor's EV charger manager."""
 
-    component_ids: abc.Set[int]
+    component_ids: abc.Set[ComponentId]
     """The component ids of the EV chargers."""
 
     min_current: Current = field(default_factory=lambda: Current.from_amperes(6.0))

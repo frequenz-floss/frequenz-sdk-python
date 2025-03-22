@@ -19,6 +19,7 @@ from frequenz.channels import (
 from frequenz.client.microgrid import (
     ApiClientError,
     ComponentCategory,
+    ComponentId,
     EVChargerData,
     MicrogridApiClient,
 )
@@ -82,7 +83,7 @@ class EVChargerManager(ComponentManager):
         self._latest_request: Request = Request(Power.zero(), set())
 
     @override
-    def component_ids(self) -> collections.abc.Set[int]:
+    def component_ids(self) -> collections.abc.Set[ComponentId]:
         """Return the set of ev charger ids."""
         return self._ev_charger_ids
 
@@ -109,7 +110,7 @@ class EVChargerManager(ComponentManager):
         await self._voltage_cache.stop()
         await self._component_pool_status_tracker.stop()
 
-    def _get_ev_charger_ids(self) -> collections.abc.Set[int]:
+    def _get_ev_charger_ids(self) -> collections.abc.Set[ComponentId]:
         """Return the IDs of all EV chargers present in the component graph."""
         return {
             evc.component_id
@@ -118,7 +119,7 @@ class EVChargerManager(ComponentManager):
             )
         }
 
-    def _allocate_new_ev(self, component_id: int) -> dict[int, Power]:
+    def _allocate_new_ev(self, component_id: ComponentId) -> dict[ComponentId, Power]:
         """Allocate power to a newly connected EV charger.
 
         Args:
@@ -147,7 +148,7 @@ class EVChargerManager(ComponentManager):
 
         return {}
 
-    def _act_on_new_data(self, ev_data: EVChargerData) -> dict[int, Power]:
+    def _act_on_new_data(self, ev_data: EVChargerData) -> dict[ComponentId, Power]:
         """Act on new data from an EV charger.
 
         Args:
@@ -226,7 +227,7 @@ class EVChargerManager(ComponentManager):
             *[await api.ev_charger_data(evc_id) for evc_id in self._ev_charger_ids]
         )
         target_power_rx = self._target_power_channel.new_receiver()
-        latest_target_powers: dict[int, Power] = {}
+        latest_target_powers: dict[ComponentId, Power] = {}
         async for selected in select(ev_charger_data_rx, target_power_rx):
             target_power_changes = {}
             now = datetime.now(tz=timezone.utc)
@@ -293,7 +294,7 @@ class EVChargerManager(ComponentManager):
     async def _set_api_power(
         self,
         api: MicrogridApiClient,
-        target_power_changes: dict[int, Power],
+        target_power_changes: dict[ComponentId, Power],
         api_request_timeout: timedelta,
     ) -> Result:
         """Send the EV charger power changes to the microgrid API.
@@ -308,7 +309,7 @@ class EVChargerManager(ComponentManager):
             Power distribution result, corresponding to the result of the API
                 request.
         """
-        tasks: dict[int, asyncio.Task[None]] = {}
+        tasks: dict[ComponentId, asyncio.Task[None]] = {}
         for component_id, power in target_power_changes.items():
             tasks[component_id] = asyncio.create_task(
                 api.set_power(component_id, power.as_watts())
@@ -322,8 +323,8 @@ class EVChargerManager(ComponentManager):
             task.cancel()
         await asyncio.gather(*pending, return_exceptions=True)
 
-        failed_components: set[int] = set()
-        succeeded_components: set[int] = set()
+        failed_components: set[ComponentId] = set()
+        succeeded_components: set[ComponentId] = set()
         failed_power = Power.zero()
         for component_id, task in tasks.items():
             try:
@@ -365,7 +366,9 @@ class EVChargerManager(ComponentManager):
             request=self._latest_request,
         )
 
-    def _deallocate_unused_power(self, to_deallocate: Power) -> dict[int, Power]:
+    def _deallocate_unused_power(
+        self, to_deallocate: Power
+    ) -> dict[ComponentId, Power]:
         """Reduce the power allocated to the EV chargers to meet the target power.
 
         This prioritizes reducing power to EV chargers that aren't consuming the
@@ -409,7 +412,7 @@ class EVChargerManager(ComponentManager):
     def _throttle_ev_chargers(  # pylint: disable=too-many-locals
         self,
         throttle_by: Power,
-    ) -> dict[int, Power]:
+    ) -> dict[ComponentId, Power]:
         """Reduce EV charging power to meet the target power.
 
         This targets EV chargers that are currently consuming the most.

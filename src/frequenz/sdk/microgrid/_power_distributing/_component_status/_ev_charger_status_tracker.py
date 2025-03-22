@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 from frequenz.channels import Receiver, Sender, select, selected_from
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.microgrid import (
+    ComponentId,
     EVChargerCableState,
     EVChargerComponentState,
     EVChargerData,
@@ -47,7 +48,7 @@ class EVChargerStatusTracker(ComponentStatusTracker, BackgroundService):
     def __init__(  # pylint: disable=too-many-arguments
         self,
         *,
-        component_id: int,
+        component_id: ComponentId,
         max_data_age: timedelta,
         max_blocking_duration: timedelta,
         status_sender: Sender[ComponentStatus],

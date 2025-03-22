@@ -11,6 +11,7 @@ from collections import abc
 from datetime import timedelta
 
 from frequenz.channels import Broadcast, Merger, Receiver, Sender, merge
+from frequenz.client.microgrid import ComponentId
 
 from ..._internal._asyncio import cancel_and_await
 from ._component_status import (
@@ -34,7 +35,7 @@ class ComponentPoolStatusTracker:
     def __init__(  # pylint: disable=too-many-arguments
         self,
         *,
-        component_ids: abc.Set[int],
+        component_ids: abc.Set[ComponentId],
         component_status_sender: Sender[ComponentPoolStatus],
         max_data_age: timedelta,
         max_blocking_duration: timedelta,
@@ -136,7 +137,9 @@ class ComponentPoolStatusTracker:
             await self._component_status_sender.send(self._current_status)
 
     async def update_status(
-        self, succeeded_components: set[int], failed_components: set[int]
+        self,
+        succeeded_components: set[ComponentId],
+        failed_components: set[ComponentId],
     ) -> None:
         """Notify which components succeeded or failed in the request.
 
@@ -153,7 +156,9 @@ class ComponentPoolStatusTracker:
             SetPowerResult(succeeded=succeeded_components, failed=failed_components)
         )
 
-    def get_working_components(self, components: abc.Set[int]) -> abc.Set[int]:
+    def get_working_components(
+        self, components: abc.Set[ComponentId]
+    ) -> abc.Set[ComponentId]:
         """From the given set of components, return only working ones.
 
         Args:

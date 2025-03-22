@@ -13,7 +13,12 @@ from dataclasses import dataclass
 from typing import Generic
 
 from frequenz.channels import Sender
-from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid import (
+    Component,
+    ComponentCategory,
+    ComponentId,
+    ComponentMetricId,
+)
 
 from ...._internal._channels import ChannelRegistry
 from ....microgrid import connection_manager
@@ -31,7 +36,7 @@ class ComponentNotFound(FormulaGenerationError):
     """Indicates that a component required for generating a formula is not found."""
 
 
-NON_EXISTING_COMPONENT_ID = sys.maxsize
+NON_EXISTING_COMPONENT_ID = ComponentId(sys.maxsize)
 """The component ID for non-existent components in the components graph.
 
 The non-existing component ID is commonly used in scenarios where a formula
@@ -46,7 +51,7 @@ frequency as the other streams.
 class FormulaGeneratorConfig:
     """Config for formula generators."""
 
-    component_ids: abc.Set[int] | None = None
+    component_ids: abc.Set[ComponentId] | None = None
     """The component IDs to use for generating the formula."""
 
     allow_fallback: bool = True

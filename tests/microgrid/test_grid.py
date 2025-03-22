@@ -6,7 +6,7 @@
 from contextlib import AsyncExitStack
 
 import frequenz.client.microgrid as client
-from frequenz.client.microgrid import ComponentCategory
+from frequenz.client.microgrid import ComponentCategory, ComponentId
 from frequenz.quantities import Current, Power, Quantity, ReactivePower
 from pytest_mock import MockerFixture
 
@@ -27,11 +27,11 @@ async def test_grid_1(mocker: MockerFixture) -> None:
 
     # validate that islands with no grid connection are accepted.
     components = {
-        client.Component(1, client.ComponentCategory.NONE),
-        client.Component(2, client.ComponentCategory.METER),
+        client.Component(ComponentId(1), client.ComponentCategory.NONE),
+        client.Component(ComponentId(2), client.ComponentCategory.METER),
     }
     connections = {
-        client.Connection(1, 2),
+        client.Connection(ComponentId(1), ComponentId(2)),
     }
 
     graph = gr._MicrogridComponentGraph(  # pylint: disable=protected-access
@@ -52,15 +52,15 @@ async def test_grid_2(mocker: MockerFixture) -> None:
     """Validate that microgrids with one grid connection are accepted."""
     components = {
         client.Component(
-            1,
+            ComponentId(1),
             client.ComponentCategory.GRID,
             None,
             client.ComponentMetadata(fuse=client.Fuse(max_current=123.0)),
         ),
-        client.Component(2, client.ComponentCategory.METER),
+        client.Component(ComponentId(2), client.ComponentCategory.METER),
     }
     connections = {
-        client.Connection(1, 2),
+        client.Connection(ComponentId(1), ComponentId(2)),
     }
 
     graph = gr._MicrogridComponentGraph(  # pylint: disable=protected-access
@@ -79,13 +79,14 @@ async def test_grid_3(mocker: MockerFixture) -> None:
     """Validate that microgrids with a grid connection without a fuse are instantiated."""
     components = {
         client.Component(
-            1, client.ComponentCategory.GRID, None, client.GridMetadata(None)
+            ComponentId(1),
+            client.ComponentCategory.GRID,
+            None,
+            client.GridMetadata(None),
         ),
-        client.Component(2, client.ComponentCategory.METER),
+        client.Component(ComponentId(2), client.ComponentCategory.METER),
     }
-    connections = {
-        client.Connection(1, 2),
-    }
+    connections = {client.Connection(ComponentId(1), ComponentId(2))}
 
     graph = gr._MicrogridComponentGraph(  # pylint: disable=protected-access
         components=components, connections=connections

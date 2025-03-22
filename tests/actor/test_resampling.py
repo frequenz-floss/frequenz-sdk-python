@@ -10,7 +10,7 @@ import async_solipsism
 import pytest
 import time_machine
 from frequenz.channels import Broadcast
-from frequenz.client.microgrid import ComponentMetricId
+from frequenz.client.microgrid import ComponentId, ComponentMetricId
 from frequenz.quantities import Quantity
 
 from frequenz.sdk._internal._channels import ChannelRegistry
@@ -119,7 +119,7 @@ async def test_single_request(
     ) as resampling_actor:
         subs_req = ComponentMetricRequest(
             namespace="Resampling",
-            component_id=9,
+            component_id=ComponentId(9),
             metric_id=ComponentMetricId.SOC,
             start_time=None,
         )
@@ -162,7 +162,7 @@ async def test_duplicate_request(
     ) as resampling_actor:
         subs_req = ComponentMetricRequest(
             namespace="Resampling",
-            component_id=9,
+            component_id=ComponentId(9),
             metric_id=ComponentMetricId.SOC,
             start_time=None,
         )

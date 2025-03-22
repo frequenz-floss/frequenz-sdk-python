@@ -8,7 +8,7 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 
 from frequenz.channels import Broadcast
-from frequenz.client.microgrid import InverterComponentState
+from frequenz.client.microgrid import ComponentId, InverterComponentState
 from pytest_mock import MockerFixture
 
 from frequenz.sdk._internal._asyncio import cancel_and_await
@@ -23,7 +23,7 @@ from ....timeseries.mock_microgrid import MockMicrogrid
 from ....utils.component_data_wrapper import InverterDataWrapper
 from ....utils.receive_timeout import Timeout, receive_timeout
 
-_PV_INVERTER_ID = 8
+_PV_INVERTER_ID = ComponentId(8)
 
 
 class TestPVInverterStatusTracker:

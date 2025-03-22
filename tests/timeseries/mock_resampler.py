@@ -9,7 +9,7 @@ import math
 from datetime import datetime
 
 from frequenz.channels import Broadcast, Receiver, Sender
-from frequenz.client.microgrid import ComponentMetricId
+from frequenz.client.microgrid import ComponentId, ComponentMetricId
 from frequenz.quantities import Quantity
 from pytest_mock import MockerFixture
 
@@ -31,11 +31,11 @@ class MockResampler:
         self,
         mocker: MockerFixture,
         resampler_config: ResamplerConfig,
-        bat_inverter_ids: list[int],
-        pv_inverter_ids: list[int],
-        evc_ids: list[int],
-        chp_ids: list[int],
-        meter_ids: list[int],
+        bat_inverter_ids: list[ComponentId],
+        pv_inverter_ids: list[ComponentId],
+        evc_ids: list[ComponentId],
+        chp_ids: list[ComponentId],
+        meter_ids: list[ComponentId],
         namespaces: int,
     ) -> None:
         """Create a `MockDataPipeline` instance."""
@@ -48,7 +48,7 @@ class MockResampler:
         self._input_channels_receivers: dict[str, list[Receiver[Sample[Quantity]]]] = {}
 
         def metric_senders(
-            comp_ids: list[int],
+            comp_ids: list[ComponentId],
             metric_id: ComponentMetricId,
         ) -> list[Sender[Sample[Quantity]]]:
             senders: list[Sender[Sample[Quantity]]] = []
@@ -106,7 +106,7 @@ class MockResampler:
         )
 
         def multi_phase_senders(
-            ids: list[int],
+            ids: list[ComponentId],
             metrics: tuple[ComponentMetricId, ComponentMetricId, ComponentMetricId],
         ) -> list[list[Sender[Sample[Quantity]]]]:
             senders: list[list[Sender[Sample[Quantity]]]] = []
@@ -148,7 +148,9 @@ class MockResampler:
                 ]
             return senders
 
-        def current_senders(ids: list[int]) -> list[list[Sender[Sample[Quantity]]]]:
+        def current_senders(
+            ids: list[ComponentId],
+        ) -> list[list[Sender[Sample[Quantity]]]]:
             return multi_phase_senders(
                 ids,
                 (
@@ -158,7 +160,9 @@ class MockResampler:
                 ),
             )
 
-        def voltage_senders(ids: list[int]) -> list[list[Sender[Sample[Quantity]]]]:
+        def voltage_senders(
+            ids: list[ComponentId],
+        ) -> list[list[Sender[Sample[Quantity]]]]:
             return multi_phase_senders(
                 ids,
                 (
@@ -169,7 +173,7 @@ class MockResampler:
             )
 
         def power_3_phase_senders(
-            ids: list[int],
+            ids: list[ComponentId],
         ) -> list[list[Sender[Sample[Quantity]]]]:
             return multi_phase_senders(
                 ids,

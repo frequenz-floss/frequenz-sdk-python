@@ -10,6 +10,7 @@ import re
 from datetime import datetime, timedelta, timezone
 
 import pytest
+from frequenz.client.microgrid import ComponentId
 from frequenz.quantities import Power
 
 from frequenz.sdk import timeseries
@@ -26,7 +27,7 @@ class StatefulTester:
 
     def __init__(
         self,
-        batteries: frozenset[int],
+        batteries: frozenset[ComponentId],
         system_bounds: _base_types.SystemBounds,
     ) -> None:
         """Create a new instance of the stateful tester."""
@@ -44,7 +45,7 @@ class StatefulTester:
         bounds: tuple[float | None, float | None],
         expected: float | None,
         creation_time: float | None = None,
-        batteries: frozenset[int] | None = None,
+        batteries: frozenset[ComponentId] | None = None,
     ) -> None:
         """Test the target power calculation."""
         self._call_count += 1
@@ -98,7 +99,7 @@ async def test_matryoshka_no_excl() -> None:  # pylint: disable=too-many-stateme
 
     With just inclusion bounds, and no exclusion bounds.
     """
-    batteries = frozenset({2, 5})
+    batteries = frozenset({ComponentId(2), ComponentId(5)})
 
     system_bounds = _base_types.SystemBounds(
         timestamp=datetime.now(tz=timezone.utc),
@@ -206,7 +207,7 @@ async def test_matryoshka_simple() -> None:
 
     With inclusion bounds, and exclusion bounds -30.0 to 0.0.
     """
-    batteries = frozenset({2, 5})
+    batteries = frozenset({ComponentId(2), ComponentId(5)})
 
     system_bounds = _base_types.SystemBounds(
         timestamp=datetime.now(tz=timezone.utc),
@@ -235,7 +236,7 @@ async def test_matryoshka_with_excl_1() -> None:
 
     With inclusion bounds, and exclusion bounds -30.0 to 0.0.
     """
-    batteries = frozenset({2, 5})
+    batteries = frozenset({ComponentId(2), ComponentId(5)})
 
     system_bounds = _base_types.SystemBounds(
         timestamp=datetime.now(tz=timezone.utc),
@@ -289,7 +290,7 @@ async def test_matryoshka_with_excl_2() -> None:
 
     With inclusion bounds, and exclusion bounds 0.0 to 30.0.
     """
-    batteries = frozenset({2, 5})
+    batteries = frozenset({ComponentId(2), ComponentId(5)})
 
     system_bounds = _base_types.SystemBounds(
         timestamp=datetime.now(tz=timezone.utc),
@@ -344,7 +345,7 @@ async def test_matryoshka_with_excl_3() -> None:
 
     With inclusion bounds, and exclusion bounds -30.0 to 30.0.
     """
-    batteries = frozenset({2, 5})
+    batteries = frozenset({ComponentId(2), ComponentId(5)})
 
     system_bounds = _base_types.SystemBounds(
         timestamp=datetime.now(tz=timezone.utc),
@@ -401,8 +402,8 @@ async def test_matryoshka_drop_old_proposals() -> None:
 
     With inclusion bounds, and exclusion bounds -30.0 to 30.0.
     """
-    batteries = frozenset({2, 5})
-    overlapping_batteries = frozenset({5, 8})
+    batteries = frozenset({ComponentId(2), ComponentId(5)})
+    overlapping_batteries = frozenset({ComponentId(5), ComponentId(8)})
 
     system_bounds = _base_types.SystemBounds(
         timestamp=datetime.now(tz=timezone.utc),
@@ -457,8 +458,8 @@ async def test_matryoshka_drop_old_proposals() -> None:
     with pytest.raises(
         NotImplementedError,
         match=re.escape(
-            "PowerManagingActor: component IDs frozenset({8, 5}) are already "
-            + "part of another bucket.  Overlapping buckets are not yet supported."
+            "PowerManagingActor: CID5, CID8 are already part of another bucket. "
+            + " Overlapping buckets are not yet supported."
         ),
     ):
         tester.tgt_power(
@@ -508,8 +509,8 @@ async def test_matryoshka_none_proposals() -> None:
     When a `None` proposal is received, is source id should be dropped from the bucket.
     Then if the bucket becomes empty, it should be dropped as well.
     """
-    batteries = frozenset({2, 5})
-    overlapping_batteries = frozenset({5, 8})
+    batteries = frozenset({ComponentId(2), ComponentId(5)})
+    overlapping_batteries = frozenset({ComponentId(5), ComponentId(8)})
 
     system_bounds = _base_types.SystemBounds(
         timestamp=datetime.now(tz=timezone.utc),
@@ -523,8 +524,8 @@ async def test_matryoshka_none_proposals() -> None:
         with pytest.raises(
             NotImplementedError,
             match=re.escape(
-                "PowerManagingActor: component IDs frozenset({8, 5}) are already "
-                + "part of another bucket.  Overlapping buckets are not yet supported."
+                "PowerManagingActor: CID5, CID8 are already part of another bucket. "
+                + " Overlapping buckets are not yet supported."
             ),
         ):
             tester.tgt_power(
@@ -579,7 +580,7 @@ async def test_matryoshka_shifting_limiting() -> None:
     |       |                   |                  |         | Power    |           |
     |       |                   |                  |         | Setpoint | 50 kW     |
     """
-    batteries = frozenset({2, 5})
+    batteries = frozenset({ComponentId(2), ComponentId(5)})
 
     system_bounds = _base_types.SystemBounds(
         timestamp=datetime.now(tz=timezone.utc),

@@ -6,7 +6,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from frequenz.client.microgrid import ComponentMetricId
+from frequenz.client.microgrid import ComponentId, ComponentMetricId
 
 __all__ = ["ComponentMetricRequest", "ComponentMetricId"]
 
@@ -36,7 +36,7 @@ class ComponentMetricRequest:
     namespace: str
     """A client-defined identifier influencing the channel name."""
 
-    component_id: int
+    component_id: ComponentId
     """The ID of the requested component."""
 
     metric_id: ComponentMetricId

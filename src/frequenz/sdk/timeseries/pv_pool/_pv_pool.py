@@ -7,6 +7,7 @@ import asyncio
 import uuid
 from collections import abc
 
+from frequenz.client.microgrid import ComponentId
 from frequenz.quantities import Power
 
 from ..._internal._channels import MappingReceiverFetcher, ReceiverFetcher
@@ -98,7 +99,7 @@ class PVPool:
         )
 
     @property
-    def component_ids(self) -> abc.Set[int]:
+    def component_ids(self) -> abc.Set[ComponentId]:
         """Return component IDs of all PV inverters managed by this PVPool.
 
         Returns:

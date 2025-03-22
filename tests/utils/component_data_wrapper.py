@@ -21,6 +21,7 @@ from frequenz.client.microgrid import (
     BatteryData,
     BatteryError,
     BatteryRelayState,
+    ComponentId,
     EVChargerCableState,
     EVChargerComponentState,
     EVChargerData,
@@ -39,7 +40,7 @@ class BatteryDataWrapper(BatteryData):
 
     def __init__(
         self,
-        component_id: int,
+        component_id: ComponentId,
         timestamp: datetime,
         soc: float = math.nan,
         soc_lower_bound: float = math.nan,
@@ -97,7 +98,7 @@ class InverterDataWrapper(InverterData):
 
     def __init__(  # pylint: disable=too-many-locals
         self,
-        component_id: int,
+        component_id: ComponentId,
         timestamp: datetime,
         active_power: float = math.nan,
         active_power_per_phase: tuple[float, float, float] = (
@@ -165,7 +166,7 @@ class EvChargerDataWrapper(EVChargerData):
 
     def __init__(  # pylint: disable=too-many-locals
         self,
-        component_id: int,
+        component_id: ComponentId,
         timestamp: datetime,
         active_power: float = math.nan,
         active_power_per_phase: tuple[float, float, float] = (
@@ -233,7 +234,7 @@ class MeterDataWrapper(MeterData):
 
     def __init__(
         self,
-        component_id: int,
+        component_id: ComponentId,
         timestamp: datetime,
         active_power: float = math.nan,
         active_power_per_phase: tuple[float, float, float] = (

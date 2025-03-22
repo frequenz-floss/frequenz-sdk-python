@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 
 from frequenz.channels import Receiver, Sender
+from frequenz.client.microgrid import ComponentId
 
 from ....actor._background_service import BackgroundService
 
@@ -19,13 +20,15 @@ from ....actor._background_service import BackgroundService
 class ComponentPoolStatus:
     """Status of all components of a certain category in the microgrid."""
 
-    working: set[int]
+    working: set[ComponentId]
     """Set of working component ids."""
 
-    uncertain: set[int]
+    uncertain: set[ComponentId]
     """Set of components to be used only when there are none known to be working."""
 
-    def get_working_components(self, components: abc.Set[int]) -> set[int]:
+    def get_working_components(
+        self, components: abc.Set[ComponentId]
+    ) -> set[ComponentId]:
         """From the given set of components return the working ones.
 
         Args:
@@ -61,7 +64,7 @@ class ComponentStatusEnum(enum.Enum):
 class ComponentStatus:
     """Status of a single component."""
 
-    component_id: int
+    component_id: ComponentId
     """Component ID."""
 
     value: ComponentStatusEnum
@@ -72,10 +75,10 @@ class ComponentStatus:
 class SetPowerResult:
     """Lists of components for which the last set power command succeeded or failed."""
 
-    succeeded: abc.Set[int]
+    succeeded: abc.Set[ComponentId]
     """Component IDs for which the last set power command succeeded."""
 
-    failed: abc.Set[int]
+    failed: abc.Set[ComponentId]
     """Component IDs for which the last set power command failed."""
 
 
@@ -86,7 +89,7 @@ class ComponentStatusTracker(BackgroundService, ABC):
     def __init__(  # pylint: disable=too-many-arguments,super-init-not-called
         self,
         *,
-        component_id: int,
+        component_id: ComponentId,
         max_data_age: timedelta,
         max_blocking_duration: timedelta,
         status_sender: Sender[ComponentStatus],

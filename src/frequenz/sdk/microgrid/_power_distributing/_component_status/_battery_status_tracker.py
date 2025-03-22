@@ -29,6 +29,7 @@ from frequenz.client.microgrid import (
     BatteryRelayState,
     ComponentCategory,
     ComponentData,
+    ComponentId,
     ErrorLevel,
     InverterComponentState,
     InverterData,
@@ -50,7 +51,7 @@ _logger = logging.getLogger(__name__)
 
 @dataclass
 class _ComponentStreamStatus:
-    component_id: int
+    component_id: ComponentId
     """Component id."""
 
     data_recv_timer: Timer
@@ -100,7 +101,7 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
     def __init__(  # pylint: disable=too-many-arguments
         self,
         *,
-        component_id: int,
+        component_id: ComponentId,
         max_data_age: timedelta,
         max_blocking_duration: timedelta,
         status_sender: Sender[ComponentStatus],
@@ -162,7 +163,7 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
         )
 
     @property
-    def battery_id(self) -> int:
+    def battery_id(self) -> ComponentId:
         """Get battery id.
 
         Returns:
@@ -469,7 +470,7 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
 
         return not is_outdated
 
-    def _find_adjacent_inverter_id(self, battery_id: int) -> int | None:
+    def _find_adjacent_inverter_id(self, battery_id: ComponentId) -> ComponentId | None:
         """Find inverter adjacent to this battery.
 
         Args:

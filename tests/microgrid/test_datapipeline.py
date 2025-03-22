@@ -12,6 +12,7 @@ import time_machine
 from frequenz.client.microgrid import (
     Component,
     ComponentCategory,
+    ComponentId,
     Connection,
     InverterType,
 )
@@ -60,11 +61,14 @@ async def test_actors_started(
 
     mock_client = MockMicrogridClient(
         {
-            Component(1, ComponentCategory.GRID),
-            Component(4, ComponentCategory.INVERTER, InverterType.BATTERY),
-            Component(15, ComponentCategory.BATTERY),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(4), ComponentCategory.INVERTER, InverterType.BATTERY),
+            Component(ComponentId(15), ComponentCategory.BATTERY),
         },
-        connections={Connection(1, 4), Connection(4, 15)},
+        connections={
+            Connection(ComponentId(1), ComponentId(4)),
+            Connection(ComponentId(4), ComponentId(15)),
+        },
     )
     mock_client.initialize(mocker)
 
