@@ -99,9 +99,16 @@ class ShiftingMatryoshka(BaseAlgorithm):
 
         target_power = Power.zero()
         for next_proposal in sorted(proposals, reverse=True):
+            # if a priority is given, the bounds calculated until that priority is
+            # reached will be the bounds available to an actor with the given priority.
+            #
+            # This could mean that the calculated target power is incorrect and should
+            # not be used.
             if priority is not None and next_proposal.priority <= priority:
                 break
 
+            # When the upper bound is less than the lower bound, if means that there's
+            # no more room to process further proposals, so we break out of the loop.
             if upper_bound < lower_bound:
                 break
 
@@ -109,9 +116,12 @@ class ShiftingMatryoshka(BaseAlgorithm):
             proposal_upper = next_proposal.bounds.upper or upper_bound
             proposal_power = next_proposal.preferred_power
 
+            # Make sure that if the proposal specified bounds, they make sense.
             if proposal_upper < proposal_lower:
                 continue
 
+            # If the proposal bounds are outside the available bounds, we need to
+            # adjust the proposal bounds to fit within the available bounds.
             if proposal_lower >= upper_bound:
                 proposal_lower = upper_bound
                 proposal_upper = upper_bound
@@ -119,25 +129,36 @@ class ShiftingMatryoshka(BaseAlgorithm):
                 proposal_lower = lower_bound
                 proposal_upper = lower_bound
 
+            # Clamp the available bounds by the proposal bounds.
             lower_bound = max(lower_bound, proposal_lower)
             upper_bound = min(upper_bound, proposal_upper)
 
             if proposal_power is not None:
+                # If this is the first power setting proposal, then hold on to the
+                # bounds that were available at that time, for use when applying the
+                # exclusion bounds to the target power at the end.
                 if top_pri_bounds is None and proposal_power != Power.zero():
                     top_pri_bounds = Bounds[Power](lower=lower_bound, upper=upper_bound)
+                # Clamp the proposal power to its available bounds.
                 proposal_power = _get_nearest_possible_power(
                     proposal_power,
                     lower_bound,
                     upper_bound,
                     None,
                 )
+                # Shift the available bounds by the proposal power.
                 lower_bound = lower_bound - proposal_power
                 upper_bound = upper_bound - proposal_power
+                # Add the proposal power to the target power (aka shift in the opposite direction).
                 target_power += proposal_power
 
+        # The `top_pri_bounds` is to ensure that when applying the exclusion bounds to
+        # the target power at the end, we respect the bounds that were set by the first
+        # power-proposing actor.
         if top_pri_bounds is not None:
             available_bounds = top_pri_bounds
 
+        # Apply the exclusion bounds to the target power.
         target_power = _get_nearest_possible_power(
             target_power,
             available_bounds.lower,
