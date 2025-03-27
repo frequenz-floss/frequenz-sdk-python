@@ -112,11 +112,6 @@ class ShiftingMatryoshka(BaseAlgorithm):
             if proposal_upper < proposal_lower:
                 continue
 
-            if proposal_power and (
-                proposal_power < proposal_lower or proposal_power > proposal_upper
-            ):
-                continue
-
             if proposal_lower >= upper_bound:
                 proposal_lower = upper_bound
                 proposal_upper = upper_bound
