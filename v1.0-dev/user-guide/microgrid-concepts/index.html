@@ -717,20 +717,44 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.microgrid--resolving-conflicting-power-proposals" class="md-nav__link">
+  <a href="#frequenz.sdk.microgrid--how-to-work-with-other-actors" class="md-nav__link">
     <span class="md-ellipsis">
-      Resolving conflicting power proposals
+      How to work with other actors
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to work with other actors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--adding-the-power-proposals-of-individual-actors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding the power proposals of individual actors
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.microgrid--shifting-the-target-power-by-an-operating-point-power" class="md-nav__link">
+  <a href="#frequenz.sdk.microgrid--limiting-bounds-for-lower-priority-actors" class="md-nav__link">
     <span class="md-ellipsis">
-      Shifting the target power by an Operating Point power
+      Limiting bounds for lower priority actors
     </span>
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--comprehensive-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comprehensive example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1631,20 +1655,44 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.microgrid--resolving-conflicting-power-proposals" class="md-nav__link">
+  <a href="#frequenz.sdk.microgrid--how-to-work-with-other-actors" class="md-nav__link">
     <span class="md-ellipsis">
-      Resolving conflicting power proposals
+      How to work with other actors
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to work with other actors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--adding-the-power-proposals-of-individual-actors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding the power proposals of individual actors
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#frequenz.sdk.microgrid--shifting-the-target-power-by-an-operating-point-power" class="md-nav__link">
+  <a href="#frequenz.sdk.microgrid--limiting-bounds-for-lower-priority-actors" class="md-nav__link">
     <span class="md-ellipsis">
-      Shifting the target power by an Operating Point power
+      Limiting bounds for lower priority actors
     </span>
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--comprehensive-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comprehensive example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1827,95 +1875,100 @@ would then be distributed to the individual components in the pool, using an
 algorithm that's suitable for the category of the components.  For example, when
 controlling batteries, power could be distributed based on the <code>SoC</code> of the
 individual batteries, to keep the batteries in balance.</p>
-<h4 id="frequenz.sdk.microgrid--resolving-conflicting-power-proposals">Resolving conflicting power proposals<a class="headerlink" href="#frequenz.sdk.microgrid--resolving-conflicting-power-proposals" title="Permanent link">¤</a></h4>
-<p>When there are multiple actors trying to control the same set of batteries, a
-target power is calculated based on the priorities of the actors making the
-requests.  Actors need to specify their priorities as parameters when creating
-the <code>*Pool</code> instances using the constructors mentioned above.</p>
-<p>The algorithm used for resolving power conflicts based on actor priority can be
-found in the documentation for any of the
-<a class="autorefs autorefs-internal" title=" propose_power" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power"><code>propose_power</code></a>
-methods.</p>
-<h4 id="frequenz.sdk.microgrid--shifting-the-target-power-by-an-operating-point-power">Shifting the target power by an Operating Point power<a class="headerlink" href="#frequenz.sdk.microgrid--shifting-the-target-power-by-an-operating-point-power" title="Permanent link">¤</a></h4>
-<p>There are cases where the target power needs to be shifted by an operating point.  This
-can be done by designating some actors to be able to set only the operating point power.</p>
-<p>When creating a <code>*Pool</code> instance using the above-mentioned constructors, an optional
-<code>set_operating_point</code> parameter can be passed to specify that this actor is special, and
-the target power of the regular actors will be shifted by the target power of all actors
-with <code>set_operating_point</code> together.</p>
-<p>In a location with 2 regular actors and 1 <code>set_operating_point</code> actor, here's how things
-would play out:</p>
-<ol>
-<li>When only regular actors have made proposals, the power bounds available from the
-   batteries are available to them exactly.</li>
-</ol>
-<table>
-<thead>
-<tr>
-<th>actor priority</th>
-<th>in op group?</th>
-<th>proposed power/bounds</th>
-<th>available bounds</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>3</td>
-<td>No</td>
-<td>1000, -4000..2500</td>
-<td>-3000..3000</td>
-</tr>
-<tr>
-<td>2</td>
-<td>No</td>
-<td>2500</td>
-<td>-3000..2500</td>
-</tr>
-<tr>
-<td>1</td>
-<td>Yes</td>
-<td>None</td>
-<td>-3000..3000</td>
-</tr>
-</tbody>
-</table>
-<p>Power actually distributed to the batteries: 2500W</p>
-<ol>
-<li>When the <code>set_operating_point</code> actor has made proposals, the bounds available to the
-   regular actors gets shifted, and the final power that actually gets distributed to
-   the batteries is also shifted.</li>
-</ol>
-<table>
-<thead>
-<tr>
-<th>actor priority</th>
-<th>in op group?</th>
-<th>proposed power/bounds</th>
-<th>available bounds</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>3</td>
-<td>No</td>
-<td>1000, -4000..2500</td>
-<td>-2000..4000</td>
-</tr>
-<tr>
-<td>2</td>
-<td>No</td>
-<td>2500</td>
-<td>-2000..2500</td>
-</tr>
-<tr>
-<td>1</td>
-<td>Yes</td>
-<td>-1000</td>
-<td>-3000..3000</td>
-</tr>
-</tbody>
-</table>
-<p>Power actually distributed to the batteries: 1500W</p>
+<h4 id="frequenz.sdk.microgrid--how-to-work-with-other-actors">How to work with other actors<a class="headerlink" href="#frequenz.sdk.microgrid--how-to-work-with-other-actors" title="Permanent link">¤</a></h4>
+<p>If multiple actors are trying to control (by proposing power values) the same
+set of components, the power manager will aggregate their desired power values,
+while considering the priority of the actors and the bounds they set, to
+calculate the target power for the components.</p>
+<p>The final target power can be accessed using the receiver returned from the
+<a class="autorefs autorefs-internal" title=" power_status" href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status"><code>power_status</code></a>
+method available for all pools, which also streams the bounds that an actor
+should comply with, based on its priority.</p>
+<h5 id="frequenz.sdk.microgrid--adding-the-power-proposals-of-individual-actors">Adding the power proposals of individual actors<a class="headerlink" href="#frequenz.sdk.microgrid--adding-the-power-proposals-of-individual-actors" title="Permanent link">¤</a></h5>
+<p>When an actor A calls the <code>propose_power</code> method with a power, the proposed
+power of the lower priority actor will get added to actor A's power.  This works
+as follows:</p>
+<ul>
+<li>the lower priority actor would see bounds shifted by the power proposed by
+   actor A.</li>
+<li>After lower priority actor B sets a power in its shifted bounds, it will get
+   shifted back by the power set by actor A.</li>
+</ul>
+<p>This has the effect of adding the powers set by actors A and B.</p>
+<p><em>Example 1</em>: Battery bounds available for use: -100kW to 100kW</p>
+<p>| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
+|       |          |                 |                  | Power     | Power        | Power     |
+|-------|----------|-----------------|------------------|-----------|--------------|-----------|
+| A     | 3        | -100kW .. 100kW | None             | 20kW      | 20kW         | 20kW      |
+| B     | 2        | -120kW .. 80kW  | None             | 50kW      | 50kW         | 70kW      |
+| C     | 1        | -170kW .. 30kW  | None             | 50kW      | 30kW         | 100kW     |
+|       |          |                 |                  |           | target power | 100kW     |</p>
+<p>Actor A proposes a power of <code>20kW</code>, but no bounds.  In this case, actor B sees
+bounds shifted by A's proposal.  Actor B proposes a power of <code>50kW</code> on this
+shifted range, and if this is applied on to the original bounds (aka shift the
+bounds back to the original range), it would be <code>20kW + 50kW = 70kW</code>.</p>
+<p>So Actor C sees bounds shifted by <code>70kW</code> from the original bounds, and sets
+<code>50kW</code> on this shifted range, but it can't exceed <code>30kW</code>, so its request gets
+limited to 30kW.  Shifting this back by <code>70kW</code>, the target power is calculated
+to be <code>100kW</code>.</p>
+<p>Irrespective of what any actor sets, the final power won't exceed the available
+battery bounds.</p>
+<p><em>Example 2</em>:</p>
+<p>| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
+|       |          |                 |                  | Power     | Power        | Power     |
+|-------|----------|-----------------|------------------|-----------|--------------|-----------|
+| A     | 3        | -100kW .. 100kW | None             | 20kW      | 20kW         | 20kW      |
+| B     | 2        | -120kW .. 80kW  | None             | -20kW     | -20kW        | 0kW       |
+|       |          |                 |                  |           | target power | 0kW       |</p>
+<p>Actors with exactly opposite requests cancel each other out.</p>
+<h5 id="frequenz.sdk.microgrid--limiting-bounds-for-lower-priority-actors">Limiting bounds for lower priority actors<a class="headerlink" href="#frequenz.sdk.microgrid--limiting-bounds-for-lower-priority-actors" title="Permanent link">¤</a></h5>
+<p>When an actor A calls the <code>propose_power</code> method with bounds (either both lower
+and upper bounds or at least one of them), lower priority actors will see their
+(shifted) bounds restricted and can only propose power values within that range.</p>
+<p><em>Example 1</em>: Battery bounds available for use: -100kW to 100kW</p>
+<p>| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
+|       |          |                 |                  | Power     | Power        | Power     |
+|-------|----------|-----------------|------------------|-----------|--------------|-----------|
+| A     | 3        | -100kW .. 100kW | -20kW .. 100kW   | 50kW      | 40kW         | 50kW      |
+| B     | 2        | -70kW .. 50kW   | -90kW .. 0kW     | -10kW     | -10kW        | 40kW      |
+| C     | 1        | -60kW .. 10kW   | None             | -20kW     | -20kW        | 20kW      |
+|       |          |                 |                  |           | target power | 20kW      |</p>
+<p>Actor A with the highest priority has the entire battery bounds available to it.
+It sets limited bounds of -20kW .. 100kW, and proposes a power of 50kW.</p>
+<p>Actor B sees Actor A's limit of -20kW..100kW shifted by 50kW as -70kW..50kW, and
+can only propose powers within this range, which will get added (shifted back)
+to Actor A's proposed power.</p>
+<p>Actor B tries to limit the bounds of actor C to -90kW .. 0kW, but it can only
+operate in the -70kW .. 50kW range because of bounds set by actor A, so its
+requested bounds get restricted to -70kW .. 0kW.</p>
+<p>Actor C sees this as -60kW .. 10kW, because it gets shifted by Actor B's
+proposed power of -10kW.</p>
+<p>Actor C proposes a power within its bounds and the proposals of all the actors
+are added to get the target power.</p>
+<p><em>Example 2</em>:</p>
+<p>| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
+|       |          |                 |                  | Power     | Power        | Power     |
+|-------|----------|-----------------|------------------|-----------|--------------|-----------|
+| A     | 3        | -100kW .. 100kW | -20kW .. 100kW   | 50kW      | 50kW         | 50kW      |
+| B     | 2        | -70kW .. 50kW   | -90kW .. 0kW     | -90kW     | -70kW        | -20kW     |
+|       |          |                 |                  |           | target power | -20kW     |</p>
+<p>When an actor requests a power that's outside its available bounds, the closest
+available power is used.</p>
+<h5 id="frequenz.sdk.microgrid--comprehensive-example">Comprehensive example<a class="headerlink" href="#frequenz.sdk.microgrid--comprehensive-example" title="Permanent link">¤</a></h5>
+<p>Battery bounds available for use: -100kW to 100kW</p>
+<p>| Priority | System Bounds     | Requested Bounds | Requested | Adjusted     | Aggregate |
+|          |                   |                  | Power     | Power        | Power     |
+|----------|-------------------|------------------|-----------|--------------|-----------|
+| 7        | -100 kW .. 100 kW | None             | 10 kW     | 10 kW        | 10 kW     |
+| 6        | -110 kW .. 90 kW  | -110 kW .. 80 kW | 10 kW     | 10 kW        | 20 kW     |
+| 5        | -120 kW .. 70 kW  | -100 kW .. 80 kW | 80 kW     | 70 kW        | 90 kW     |
+| 4        | -170 kW .. 0 kW   | None             | -120 kW   | -120 kW      | -30 kW    |
+| 3        | -50 kW .. 120 kW  | None             | 60 kW     | 60 kW        | 30 kW     |
+| 2        | -110 kW .. 60 kW  | -40 kW .. 30 kW  | 20 kW     | 20 kW        | 50 kW     |
+| 1        | -60 kW .. 10 kW   | -50 kW .. 40 kW  | 25 kW     | 10 kW        | 60 kW     |
+| 0        | -60 kW .. 0 kW    | None             | 12 kW     | 0 kW         | 60 kW     |
+| -1       | -60 kW .. 0 kW    | -40 kW .. -10 kW | -10 kW    | -10 kW       | 50 kW     |
+|          |                   |                  |           | Target Power | 50 kW     |</p>
 
 
 
