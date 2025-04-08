@@ -58,7 +58,6 @@ class StatefulTester:
                     if creation_time is not None
                     else asyncio.get_event_loop().time()
                 ),
-                set_operating_point=False,
             ),
             self._system_bounds,
             must_send,

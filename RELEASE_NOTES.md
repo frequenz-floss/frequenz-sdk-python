@@ -6,7 +6,8 @@
 
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
+- The `microgrid.new_*_pool` methods no longer accept a `set_operating_point` parameter.
+- The power manager now uses a new algorithm described [here](https://frequenz-floss.github.io/frequenz-sdk-python/v1.0-dev/user-guide/microgrid-concepts/#frequenz.sdk.microgrid--setting-power).
 
 ## New Features
 

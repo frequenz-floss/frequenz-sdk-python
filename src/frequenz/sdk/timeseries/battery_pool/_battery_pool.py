@@ -59,7 +59,6 @@ class BatteryPool:
         pool_ref_store: BatteryPoolReferenceStore,
         name: str | None,
         priority: int,
-        set_operating_point: bool,
     ):
         """Create a BatteryPool instance.
 
@@ -73,14 +72,11 @@ class BatteryPool:
             name: An optional name used to identify this instance of the pool or a
                 corresponding actor in the logs.
             priority: The priority of the actor using this wrapper.
-            set_operating_point: Whether this instance sets the operating point power or
-                the normal power for the components.
         """
         self._pool_ref_store = pool_ref_store
         unique_id = str(uuid.uuid4())
         self._source_id = unique_id if name is None else f"{name}-{unique_id}"
         self._priority = priority
-        self._set_operating_point = set_operating_point
 
     async def propose_power(
         self,
@@ -93,35 +89,17 @@ class BatteryPool:
         Power values need to follow the Passive Sign Convention (PSC). That is, positive
         values indicate charge power and negative values indicate discharge power.
 
-        If the same batteries are shared by multiple actors, the power manager will
-        consider the priority of the actors, the bounds they set, and their preferred
-        power, when calculating the target power for the batteries.
-
-        The preferred power of lower priority actors will take precedence as long as
-        they respect the bounds set by higher priority actors.  If lower priority actors
-        request power values outside of the bounds set by higher priority actors, the
-        target power will be the closest value to the preferred power that is within the
-        bounds.
-
-        When there are no other actors trying to use the same batteries, the actor's
-        preferred power would be set as the target power, as long as it falls within the
-        system power bounds for the batteries.
-
-        The result of the request can be accessed using the receiver returned from the
-        [`power_status`][frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status]
-        method, which also streams the bounds that an actor should comply with, based on
-        its priority.
+        Details on how the power manager handles proposals can be found in the
+        [Microgrid][frequenz.sdk.microgrid--setting-power] documentation.
 
         Args:
             power: The power to propose for the batteries in the pool.  If `None`, this
                 proposal will not have any effect on the target power, unless bounds are
-                specified.  If both are `None`, it is equivalent to not having a
-                proposal or withdrawing a previous one.
-            bounds: The power bounds for the proposal.  These bounds will apply to
-                actors with a lower priority, and can be overridden by bounds from
-                actors with a higher priority.  If None, the power bounds will be set
-                to the maximum power of the batteries in the pool.  This is currently
-                and experimental feature.
+                specified.  When specified without bounds, bounds for lower priority
+                actors will be shifted by this power.  If both are `None`, it is
+                equivalent to not having a proposal or withdrawing a previous one.
+            bounds: The power bounds for the proposal.  When specified, this will limit
+                the bounds for lower priority actors.
         """
         await self._pool_ref_store._power_manager_requests_sender.send(
             _power_managing.Proposal(
@@ -131,7 +109,6 @@ class BatteryPool:
                 component_ids=self._pool_ref_store._batteries,
                 priority=self._priority,
                 creation_time=asyncio.get_running_loop().time(),
-                set_operating_point=self._set_operating_point,
             )
         )
 
@@ -145,13 +122,9 @@ class BatteryPool:
         method might be more convenient.
 
         If the same batteries are shared by multiple actors, the behaviour is the same
-        as that of the `propose_power` method.  The bounds for lower priority actors
-        can't be specified with this method.  If that's required, use the
-        `propose_power` method instead.
-
-        The result of the request can be accessed using the receiver returned from the
-        [`power_status`][frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status]
-        method.
+        as that of the `propose_power` method, when calling it with `None` bounds.  The
+        bounds for lower priority actors can't be specified with this method.  If that's
+        required, use the `propose_power` method instead.
 
         Args:
             power: The unsigned charge power to propose for the batteries in the pool.
@@ -171,7 +144,6 @@ class BatteryPool:
                 component_ids=self._pool_ref_store._batteries,
                 priority=self._priority,
                 creation_time=asyncio.get_running_loop().time(),
-                set_operating_point=self._set_operating_point,
             )
         )
 
@@ -185,13 +157,9 @@ class BatteryPool:
         method might be more convenient.
 
         If the same batteries are shared by multiple actors, the behaviour is the same
-        as that of the `propose_power` method.  The bounds for lower priority actors
-        can't be specified with this method.  If that's required, use the
-        `propose_power` method instead.
-
-        The result of the request can be accessed using the receiver returned from the
-        [`power_status`][frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status]
-        method.
+        as that of the `propose_power` method, when calling it with `None` bounds.  The
+        bounds for lower priority actors can't be specified with this method.  If that's
+        required, use the `propose_power` method instead.
 
         Args:
             power: The unsigned discharge power to propose for the batteries in the
@@ -213,7 +181,6 @@ class BatteryPool:
                 component_ids=self._pool_ref_store._batteries,
                 priority=self._priority,
                 creation_time=asyncio.get_running_loop().time(),
-                set_operating_point=self._set_operating_point,
             )
         )
 
@@ -373,7 +340,6 @@ class BatteryPool:
             source_id=self._source_id,
             priority=self._priority,
             component_ids=self._pool_ref_store._batteries,
-            set_operating_point=self._set_operating_point,
         )
         self._pool_ref_store._power_bounds_subs[sub.get_channel_name()] = (
             asyncio.create_task(

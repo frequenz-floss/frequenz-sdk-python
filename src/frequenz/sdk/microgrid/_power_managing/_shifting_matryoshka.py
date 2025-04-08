@@ -1,21 +1,7 @@
 # License: MIT
-# Copyright © 2023 Frequenz Energy-as-a-Service GmbH
+# Copyright © 2025 Frequenz Energy-as-a-Service GmbH
 
-"""A power manager implementation that uses the matryoshka algorithm.
-
-When there are multiple proposals from different actors for the same set of components,
-the matryoshka algorithm will consider the priority of the actors, the bounds they set
-and their preferred power to determine the target power for the components.
-
-The preferred power of lower priority actors will take precedence as long as they
-respect the bounds set by higher priority actors.  If lower priority actors request
-power values outside the bounds set by higher priority actors, the target power will
-be the closest value to the preferred power that is within the bounds.
-
-When there is only a single proposal for a set of components, its preferred power would
-be the target power, as long as it falls within the system power bounds for the
-components.
-"""
+"""A power manager implementation that uses the shifting matryoshka algorithm."""
 
 from __future__ import annotations
 
@@ -25,6 +11,8 @@ from datetime import timedelta
 
 from frequenz.quantities import Power
 from typing_extensions import override
+
+from frequenz.sdk.timeseries._base_types import Bounds
 
 from ... import timeseries
 from . import _bounds
@@ -36,8 +24,36 @@ if typing.TYPE_CHECKING:
 _logger = logging.getLogger(__name__)
 
 
-class Matryoshka(BaseAlgorithm):
-    """The matryoshka algorithm."""
+def _get_nearest_possible_power(
+    power: Power,
+    lower_bound: Power,
+    upper_bound: Power,
+    exclusion_bounds: Bounds[Power] | None,
+) -> Power:
+    match _bounds.clamp_to_bounds(
+        power,
+        lower_bound,
+        upper_bound,
+        exclusion_bounds,
+    ):
+        case (None, p) | (p, None) if p:
+            return p
+        case (low, high) if low and high:
+            if high - power < power - low:
+                return high
+            return low
+        case _:
+            return Power.zero()
+
+
+class ShiftingMatryoshka(BaseAlgorithm):
+    """The ShiftingMatryoshka algorithm.
+
+    When there are multiple actors trying to control the same set of components, this
+    algorithm will reconcile the different proposals and calculate the target power.
+
+    Details about the algorithm can be found in the [microgrid module documentation](https://frequenz-floss.github.io/frequenz-sdk-python/v1.0-dev/user-guide/microgrid-concepts/#frequenz.sdk.microgrid--setting-power).
+    """  # noqa: E501 (line too long)
 
     def __init__(self, max_proposal_age: timedelta) -> None:
         """Create a new instance of the matryoshka algorithm."""
@@ -45,19 +61,21 @@ class Matryoshka(BaseAlgorithm):
         self._component_buckets: dict[frozenset[int], set[Proposal]] = {}
         self._target_power: dict[frozenset[int], Power] = {}
 
-    def _calc_target_power(
+    def _calc_targets(
         self,
         proposals: set[Proposal],
         system_bounds: SystemBounds,
-    ) -> Power:
-        """Calculate the target power for the given components.
+        priority: int | None = None,
+    ) -> tuple[Power | None, Bounds[Power]]:
+        """Calculate the target power and bounds for the given components.
 
         Args:
             proposals: The proposals for the given components.
             system_bounds: The system bounds for the components in the proposal.
+            priority: The priority of the actor for which the target power is calculated.
 
         Returns:
-            The new target power for the components.
+            The new target power and bounds for the components.
         """
         lower_bound = (
             system_bounds.inclusion_bounds.lower
@@ -73,52 +91,82 @@ class Matryoshka(BaseAlgorithm):
             else Power.zero()
         )
 
-        exclusion_bounds = None
-        if system_bounds.exclusion_bounds is not None and (
-            system_bounds.exclusion_bounds.lower != Power.zero()
-            or system_bounds.exclusion_bounds.upper != Power.zero()
-        ):
-            exclusion_bounds = system_bounds.exclusion_bounds
+        if not proposals:
+            return None, Bounds[Power](lower=lower_bound, upper=upper_bound)
+
+        available_bounds = Bounds[Power](lower=lower_bound, upper=upper_bound)
+        top_pri_bounds: Bounds[Power] | None = None
 
         target_power = Power.zero()
         for next_proposal in sorted(proposals, reverse=True):
+            # if a priority is given, the bounds calculated until that priority is
+            # reached will be the bounds available to an actor with the given priority.
+            #
+            # This could mean that the calculated target power is incorrect and should
+            # not be used.
+            if priority is not None and next_proposal.priority <= priority:
+                break
+
+            # When the upper bound is less than the lower bound, if means that there's
+            # no more room to process further proposals, so we break out of the loop.
             if upper_bound < lower_bound:
                 break
-            if next_proposal.preferred_power:
-                match _bounds.clamp_to_bounds(
-                    next_proposal.preferred_power,
-                    lower_bound,
-                    upper_bound,
-                    exclusion_bounds,
-                ):
-                    case (None, power) | (power, None) if power:
-                        target_power = power
-                    case (power_low, power_high) if power_low and power_high:
-                        if (
-                            power_high - next_proposal.preferred_power
-                            < next_proposal.preferred_power - power_low
-                        ):
-                            target_power = power_high
-                        else:
-                            target_power = power_low
 
             proposal_lower = next_proposal.bounds.lower or lower_bound
             proposal_upper = next_proposal.bounds.upper or upper_bound
-            # If the bounds from the current proposal are fully within the exclusion
-            # bounds, then don't use them to narrow the bounds further. This allows
-            # subsequent proposals to not be blocked by the current proposal.
-            match _bounds.check_exclusion_bounds_overlap(
-                proposal_lower, proposal_upper, exclusion_bounds
-            ):
-                case (True, True):
-                    continue
+            proposal_power = next_proposal.preferred_power
+
+            # Make sure that if the proposal specified bounds, they make sense.
+            if proposal_upper < proposal_lower:
+                continue
+
+            # If the proposal bounds are outside the available bounds, we need to
+            # adjust the proposal bounds to fit within the available bounds.
+            if proposal_lower >= upper_bound:
+                proposal_lower = upper_bound
+                proposal_upper = upper_bound
+            elif proposal_upper <= lower_bound:
+                proposal_lower = lower_bound
+                proposal_upper = lower_bound
+
+            # Clamp the available bounds by the proposal bounds.
             lower_bound = max(lower_bound, proposal_lower)
             upper_bound = min(upper_bound, proposal_upper)
-            lower_bound, upper_bound = _bounds.adjust_exclusion_bounds(
-                lower_bound, upper_bound, exclusion_bounds
-            )
 
-        return target_power
+            if proposal_power is not None:
+                # If this is the first power setting proposal, then hold on to the
+                # bounds that were available at that time, for use when applying the
+                # exclusion bounds to the target power at the end.
+                if top_pri_bounds is None and proposal_power != Power.zero():
+                    top_pri_bounds = Bounds[Power](lower=lower_bound, upper=upper_bound)
+                # Clamp the proposal power to its available bounds.
+                proposal_power = _get_nearest_possible_power(
+                    proposal_power,
+                    lower_bound,
+                    upper_bound,
+                    None,
+                )
+                # Shift the available bounds by the proposal power.
+                lower_bound = lower_bound - proposal_power
+                upper_bound = upper_bound - proposal_power
+                # Add the proposal power to the target power (aka shift in the opposite direction).
+                target_power += proposal_power
+
+        # The `top_pri_bounds` is to ensure that when applying the exclusion bounds to
+        # the target power at the end, we respect the bounds that were set by the first
+        # power-proposing actor.
+        if top_pri_bounds is not None:
+            available_bounds = top_pri_bounds
+
+        # Apply the exclusion bounds to the target power.
+        target_power = _get_nearest_possible_power(
+            target_power,
+            available_bounds.lower,
+            available_bounds.upper,
+            system_bounds.exclusion_bounds,
+        )
+
+        return target_power, Bounds[Power](lower=lower_bound, upper=upper_bound)
 
     def _validate_component_ids(
         self,
@@ -136,19 +184,18 @@ class Matryoshka(BaseAlgorithm):
                 if proposal is not None:
                     _logger.warning(
                         "PowerManagingActor: No system bounds available for component "
-                        "IDs %s, but a proposal was given.  The proposal will be "
-                        "ignored.",
+                        + "IDs %s, but a proposal was given.  The proposal will be "
+                        + "ignored.",
                         component_ids,
                     )
                 return False
 
             for bucket in self._component_buckets:
                 if any(component_id in bucket for component_id in component_ids):
-                    comp_ids = ", ".join(map(str, sorted(component_ids)))
                     raise NotImplementedError(
-                        f"PowerManagingActor: component IDs {comp_ids} are already"
-                        " part of another bucket.  Overlapping buckets are not"
-                        " yet supported."
+                        f"PowerManagingActor: component IDs {component_ids} are already"
+                        + " part of another bucket.  Overlapping buckets are not"
+                        + " yet supported."
                     )
         return True
 
@@ -195,15 +242,11 @@ class Matryoshka(BaseAlgorithm):
                 del self._component_buckets[component_ids]
                 _ = self._target_power.pop(component_ids, None)
 
-        # If there has not been any proposal for the given components, don't calculate a
-        # target power and just return `None`.
-        proposals = self._component_buckets.get(component_ids)
-        if proposals is None:
-            return None
+        target_power, _ = self._calc_targets(
+            self._component_buckets.get(component_ids, set()), system_bounds
+        )
 
-        target_power = self._calc_target_power(proposals, system_bounds)
-
-        if (
+        if target_power is not None and (
             must_return_power
             or component_ids not in self._target_power
             or self._target_power[component_ids] != target_power
@@ -213,7 +256,7 @@ class Matryoshka(BaseAlgorithm):
         return None
 
     @override
-    def get_status(
+    def get_status(  # pylint: disable=too-many-locals
         self,
         component_ids: frozenset[int],
         priority: int,
@@ -231,47 +274,13 @@ class Matryoshka(BaseAlgorithm):
                 the given priority.
         """
         target_power = self._target_power.get(component_ids)
-        if system_bounds.inclusion_bounds is None:
-            return _Report(
-                target_power=target_power,
-                _inclusion_bounds=None,
-                _exclusion_bounds=system_bounds.exclusion_bounds,
-            )
-
-        lower_bound = system_bounds.inclusion_bounds.lower
-        upper_bound = system_bounds.inclusion_bounds.upper
-
-        exclusion_bounds = None
-        if system_bounds.exclusion_bounds is not None and (
-            system_bounds.exclusion_bounds.lower != Power.zero()
-            or system_bounds.exclusion_bounds.upper != Power.zero()
-        ):
-            exclusion_bounds = system_bounds.exclusion_bounds
-
-        for next_proposal in sorted(
-            self._component_buckets.get(component_ids, []), reverse=True
-        ):
-            if next_proposal.priority <= priority:
-                break
-            proposal_lower = next_proposal.bounds.lower or lower_bound
-            proposal_upper = next_proposal.bounds.upper or upper_bound
-            match _bounds.check_exclusion_bounds_overlap(
-                proposal_lower, proposal_upper, exclusion_bounds
-            ):
-                case (True, True):
-                    continue
-            calc_lower_bound = max(lower_bound, proposal_lower)
-            calc_upper_bound = min(upper_bound, proposal_upper)
-            if calc_lower_bound <= calc_upper_bound:
-                lower_bound, upper_bound = _bounds.adjust_exclusion_bounds(
-                    calc_lower_bound, calc_upper_bound, exclusion_bounds
-                )
-            else:
-                break
+        _, bounds = self._calc_targets(
+            self._component_buckets.get(component_ids, set()), system_bounds, priority
+        )
         return _Report(
             target_power=target_power,
             _inclusion_bounds=timeseries.Bounds[Power](
-                lower=lower_bound, upper=upper_bound
+                lower=bounds.lower, upper=bounds.upper
             ),
             _exclusion_bounds=system_bounds.exclusion_bounds,
         )

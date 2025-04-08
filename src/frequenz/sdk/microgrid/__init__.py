@@ -174,53 +174,128 @@ algorithm that's suitable for the category of the components.  For example, when
 controlling batteries, power could be distributed based on the `SoC` of the
 individual batteries, to keep the batteries in balance.
 
-### Resolving conflicting power proposals
+### How to work with other actors
 
-When there are multiple actors trying to control the same set of batteries, a
-target power is calculated based on the priorities of the actors making the
-requests.  Actors need to specify their priorities as parameters when creating
-the `*Pool` instances using the constructors mentioned above.
+If multiple actors are trying to control (by proposing power values) the same
+set of components, the power manager will aggregate their desired power values,
+while considering the priority of the actors and the bounds they set, to
+calculate the target power for the components.
 
-The algorithm used for resolving power conflicts based on actor priority can be
-found in the documentation for any of the
-[`propose_power`][frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power]
-methods.
+The final target power can be accessed using the receiver returned from the
+[`power_status`][frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status]
+method available for all pools, which also streams the bounds that an actor
+should comply with, based on its priority.
 
-### Shifting the target power by an Operating Point power
+#### Adding the power proposals of individual actors
 
-There are cases where the target power needs to be shifted by an operating point.  This
-can be done by designating some actors to be able to set only the operating point power.
+When an actor A calls the `propose_power` method with a power, the proposed
+power of the lower priority actor will get added to actor A's power.  This works
+as follows:
 
-When creating a `*Pool` instance using the above-mentioned constructors, an optional
-`set_operating_point` parameter can be passed to specify that this actor is special, and
-the target power of the regular actors will be shifted by the target power of all actors
-with `set_operating_point` together.
+ - the lower priority actor would see bounds shifted by the power proposed by
+   actor A.
+ - After lower priority actor B sets a power in its shifted bounds, it will get
+   shifted back by the power set by actor A.
 
-In a location with 2 regular actors and 1 `set_operating_point` actor, here's how things
-would play out:
+This has the effect of adding the powers set by actors A and B.
 
-1. When only regular actors have made proposals, the power bounds available from the
-   batteries are available to them exactly.
+*Example 1*: Battery bounds available for use: -100kW to 100kW
 
-   | actor priority | in op group? | proposed power/bounds | available bounds |
-   |----------------|--------------|-----------------------|------------------|
-   | 3              | No           | 1000, -4000..2500     | -3000..3000      |
-   | 2              | No           | 2500                  | -3000..2500      |
-   | 1              | Yes          | None                  | -3000..3000      |
+| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
+|       |          |                 |                  | Power     | Power        | Power     |
+|-------|----------|-----------------|------------------|-----------|--------------|-----------|
+| A     | 3        | -100kW .. 100kW | None             | 20kW      | 20kW         | 20kW      |
+| B     | 2        | -120kW .. 80kW  | None             | 50kW      | 50kW         | 70kW      |
+| C     | 1        | -170kW .. 30kW  | None             | 50kW      | 30kW         | 100kW     |
+|       |          |                 |                  |           | target power | 100kW     |
 
-   Power actually distributed to the batteries: 2500W
+Actor A proposes a power of `20kW`, but no bounds.  In this case, actor B sees
+bounds shifted by A's proposal.  Actor B proposes a power of `50kW` on this
+shifted range, and if this is applied on to the original bounds (aka shift the
+bounds back to the original range), it would be `20kW + 50kW = 70kW`.
 
-2. When the `set_operating_point` actor has made proposals, the bounds available to the
-   regular actors gets shifted, and the final power that actually gets distributed to
-   the batteries is also shifted.
+So Actor C sees bounds shifted by `70kW` from the original bounds, and sets
+`50kW` on this shifted range, but it can't exceed `30kW`, so its request gets
+limited to 30kW.  Shifting this back by `70kW`, the target power is calculated
+to be `100kW`.
 
-   | actor priority | in op group? | proposed power/bounds | available bounds |
-   |----------------|--------------|-----------------------|------------------|
-   | 3              | No           | 1000, -4000..2500     | -2000..4000      |
-   | 2              | No           | 2500                  | -2000..2500      |
-   | 1              | Yes          | -1000                 | -3000..3000      |
+Irrespective of what any actor sets, the final power won't exceed the available
+battery bounds.
 
-   Power actually distributed to the batteries: 1500W
+*Example 2*:
+
+| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
+|       |          |                 |                  | Power     | Power        | Power     |
+|-------|----------|-----------------|------------------|-----------|--------------|-----------|
+| A     | 3        | -100kW .. 100kW | None             | 20kW      | 20kW         | 20kW      |
+| B     | 2        | -120kW .. 80kW  | None             | -20kW     | -20kW        | 0kW       |
+|       |          |                 |                  |           | target power | 0kW       |
+
+Actors with exactly opposite requests cancel each other out.
+
+#### Limiting bounds for lower priority actors
+
+When an actor A calls the `propose_power` method with bounds (either both lower
+and upper bounds or at least one of them), lower priority actors will see their
+(shifted) bounds restricted and can only propose power values within that range.
+
+*Example 1*: Battery bounds available for use: -100kW to 100kW
+
+| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
+|       |          |                 |                  | Power     | Power        | Power     |
+|-------|----------|-----------------|------------------|-----------|--------------|-----------|
+| A     | 3        | -100kW .. 100kW | -20kW .. 100kW   | 50kW      | 40kW         | 50kW      |
+| B     | 2        | -70kW .. 50kW   | -90kW .. 0kW     | -10kW     | -10kW        | 40kW      |
+| C     | 1        | -60kW .. 10kW   | None             | -20kW     | -20kW        | 20kW      |
+|       |          |                 |                  |           | target power | 20kW      |
+
+Actor A with the highest priority has the entire battery bounds available to it.
+It sets limited bounds of -20kW .. 100kW, and proposes a power of 50kW.
+
+Actor B sees Actor A's limit of -20kW..100kW shifted by 50kW as -70kW..50kW, and
+can only propose powers within this range, which will get added (shifted back)
+to Actor A's proposed power.
+
+Actor B tries to limit the bounds of actor C to -90kW .. 0kW, but it can only
+operate in the -70kW .. 50kW range because of bounds set by actor A, so its
+requested bounds get restricted to -70kW .. 0kW.
+
+Actor C sees this as -60kW .. 10kW, because it gets shifted by Actor B's
+proposed power of -10kW.
+
+Actor C proposes a power within its bounds and the proposals of all the actors
+are added to get the target power.
+
+*Example 2*:
+
+| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
+|       |          |                 |                  | Power     | Power        | Power     |
+|-------|----------|-----------------|------------------|-----------|--------------|-----------|
+| A     | 3        | -100kW .. 100kW | -20kW .. 100kW   | 50kW      | 50kW         | 50kW      |
+| B     | 2        | -70kW .. 50kW   | -90kW .. 0kW     | -90kW     | -70kW        | -20kW     |
+|       |          |                 |                  |           | target power | -20kW     |
+
+When an actor requests a power that's outside its available bounds, the closest
+available power is used.
+
+#### Comprehensive example
+
+Battery bounds available for use: -100kW to 100kW
+
+| Priority | System Bounds     | Requested Bounds | Requested | Adjusted     | Aggregate |
+|          |                   |                  | Power     | Power        | Power     |
+|----------|-------------------|------------------|-----------|--------------|-----------|
+| 7        | -100 kW .. 100 kW | None             | 10 kW     | 10 kW        | 10 kW     |
+| 6        | -110 kW .. 90 kW  | -110 kW .. 80 kW | 10 kW     | 10 kW        | 20 kW     |
+| 5        | -120 kW .. 70 kW  | -100 kW .. 80 kW | 80 kW     | 70 kW        | 90 kW     |
+| 4        | -170 kW .. 0 kW   | None             | -120 kW   | -120 kW      | -30 kW    |
+| 3        | -50 kW .. 120 kW  | None             | 60 kW     | 60 kW        | 30 kW     |
+| 2        | -110 kW .. 60 kW  | -40 kW .. 30 kW  | 20 kW     | 20 kW        | 50 kW     |
+| 1        | -60 kW .. 10 kW   | -50 kW .. 40 kW  | 25 kW     | 10 kW        | 60 kW     |
+| 0        | -60 kW .. 0 kW    | None             | 12 kW     | 0 kW         | 60 kW     |
+| -1       | -60 kW .. 0 kW    | -40 kW .. -10 kW | -10 kW    | -10 kW       | 50 kW     |
+|          |                   |                  |           | Target Power | 50 kW     |
+
 """  # noqa: D205, D400
 
 from datetime import timedelta

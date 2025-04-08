@@ -37,7 +37,6 @@ class PVPool:
         pool_ref_store: PVPoolReferenceStore,
         name: str | None,
         priority: int,
-        set_operating_point: bool,
     ) -> None:
         """Initialize the instance.
 
@@ -50,19 +49,15 @@ class PVPool:
             pool_ref_store: The reference store for the PV pool.
             name: The name of the PV pool.
             priority: The priority of the PV pool.
-            set_operating_point: Whether this instance sets the operating point power or
-                the normal power for the components.
         """
         self._pool_ref_store = pool_ref_store
         unique_id = uuid.uuid4()
         self._source_id = str(unique_id) if name is None else f"{name}-{unique_id}"
         self._priority = priority
-        self._set_operating_point = set_operating_point
 
     async def propose_power(
         self,
         power: Power | None,
-        *,
         bounds: Bounds[Power | None] = Bounds(None, None),
     ) -> None:
         """Send a proposal to the power manager for the pool's set of PV inverters.
@@ -71,38 +66,20 @@ class PVPool:
         the pool.  The actual production might be lower.
 
         Power values need to follow the Passive Sign Convention (PSC). That is, positive
-        values indicate charge power and negative values indicate discharge power.
-        Only discharge powers are allowed for PV inverters.
+        values indicate charge power and negative values indicate discharge power.  Only
+        discharge powers are allowed for PV inverters.
 
-        If the same PV inverters are shared by multiple actors, the power manager will
-        consider the priority of the actors, the bounds they set, and their preferred
-        power, when calculating the target power for the PV inverters.
-
-        The preferred power of lower priority actors will take precedence as long as
-        they respect the bounds set by higher priority actors.  If lower priority actors
-        request power values outside of the bounds set by higher priority actors, the
-        target power will be the closest value to the preferred power that is within the
-        bounds.
-
-        When there are no other actors trying to use the same PV inverters, the actor's
-        preferred power would be set as the target power, as long as it falls within the
-        system power bounds for the PV inverters.
-
-        The result of the request can be accessed using the receiver returned from the
-        [`power_status`][frequenz.sdk.timeseries.pv_pool.PVPool.power_status]
-        method, which also streams the bounds that an actor should comply with, based on
-        its priority.
+        Details on how the power manager handles proposals can be found in the
+        [Microgrid][frequenz.sdk.microgrid--setting-power] documentation.
 
         Args:
             power: The power to propose for the PV inverters in the pool.  If `None`,
                 this proposal will not have any effect on the target power, unless
-                bounds are specified.  If both are `None`, it is equivalent to not
-                having a proposal or withdrawing a previous one.
-            bounds: The power bounds for the proposal.  These bounds will apply to
-                actors with a lower priority, and can be overridden by bounds from
-                actors with a higher priority.  If None, the power bounds will be set to
-                the maximum power of the batteries in the pool.  This is currently and
-                experimental feature.
+                bounds are specified.  When speficied without bounds, bounds for lower
+                priority actors will be shifted by this power.  If both are `None`, it
+                is equivalent to not having a proposal or withdrawing a previous one.
+            bounds: The power bounds for the proposal.  When specified, this will limit
+                the bounds for lower priority actors.
 
         Raises:
             PVPoolError: If a charge power for PV inverters is requested.
@@ -117,7 +94,6 @@ class PVPool:
                 component_ids=self._pool_ref_store.component_ids,
                 priority=self._priority,
                 creation_time=asyncio.get_running_loop().time(),
-                set_operating_point=self._set_operating_point,
             )
         )
 
@@ -172,7 +148,6 @@ class PVPool:
             source_id=self._source_id,
             priority=self._priority,
             component_ids=self._pool_ref_store.component_ids,
-            set_operating_point=self._set_operating_point,
         )
         self._pool_ref_store.power_bounds_subs[sub.get_channel_name()] = (
             asyncio.create_task(

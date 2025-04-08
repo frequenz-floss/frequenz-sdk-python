@@ -44,7 +44,6 @@ class EVChargerPool:
         pool_ref_store: EVChargerPoolReferenceStore,
         name: str | None,
         priority: int,
-        set_operating_point: bool,
     ) -> None:
         """Create an `EVChargerPool` instance.
 
@@ -60,14 +59,11 @@ class EVChargerPool:
             name: An optional name used to identify this instance of the pool or a
                 corresponding actor in the logs.
             priority: The priority of the actor using this wrapper.
-            set_operating_point: Whether this instance sets the operating point power or
-                the normal power for the components.
         """
         self._pool_ref_store = pool_ref_store
         unique_id = str(uuid.uuid4())
         self._source_id = unique_id if name is None else f"{name}-{unique_id}"
         self._priority = priority
-        self._set_operating_point = set_operating_point
 
     async def propose_power(
         self,
@@ -81,39 +77,17 @@ class EVChargerPool:
         the pool.  The actual consumption might be lower based on the number of phases
         an EV is drawing power from, and its current state of charge.
 
-        Power values need to follow the Passive Sign Convention (PSC). That is, positive
-        values indicate charge power and negative values indicate discharge power.
-        Discharging from EV chargers is currently not supported.
-
-        If the same EV chargers are shared by multiple actors, the power manager will
-        consider the priority of the actors, the bounds they set, and their preferred
-        power, when calculating the target power for the EV chargers
-
-        The preferred power of lower priority actors will take precedence as long as
-        they respect the bounds set by higher priority actors.  If lower priority actors
-        request power values outside of the bounds set by higher priority actors, the
-        target power will be the closest value to the preferred power that is within the
-        bounds.
-
-        When there are no other actors trying to use the same EV chargers, the actor's
-        preferred power would be set as the target power, as long as it falls within the
-        system power bounds for the EV chargers.
-
-        The result of the request can be accessed using the receiver returned from the
-        [`power_status`][frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power_status]
-        method, which also streams the bounds that an actor should comply with, based on
-        its priority.
+        Details on how the power manager handles proposals can be found in the
+        [Microgrid][frequenz.sdk.microgrid--setting-power] documentation.
 
         Args:
             power: The power to propose for the EV chargers in the pool.  If `None`,
                 this proposal will not have any effect on the target power, unless
-                bounds are specified.  If both are `None`, it is equivalent to not
-                having a proposal or withdrawing a previous one.
-            bounds: The power bounds for the proposal.  These bounds will apply to
-                actors with a lower priority, and can be overridden by bounds from
-                actors with a higher priority.  If None, the power bounds will be set to
-                the maximum power of the batteries in the pool.  This is currently and
-                experimental feature.
+                bounds are specified.  When specified without bounds, bounds for lower
+                priority actors will be shifted by this power.  If both are `None`, it
+                is equivalent to not having a proposal or withdrawing a previous one.
+            bounds: The power bounds for the proposal. When specified, these bounds will
+                limit the bounds for lower priority actors.
 
         Raises:
             EVChargerPoolError: If a discharge power for EV chargers is requested.
@@ -130,7 +104,6 @@ class EVChargerPool:
                 component_ids=self._pool_ref_store.component_ids,
                 priority=self._priority,
                 creation_time=asyncio.get_running_loop().time(),
-                set_operating_point=self._set_operating_point,
             )
         )
 
@@ -213,7 +186,6 @@ class EVChargerPool:
             source_id=self._source_id,
             priority=self._priority,
             component_ids=self._pool_ref_store.component_ids,
-            set_operating_point=self._set_operating_point,
         )
         self._pool_ref_store.power_bounds_subs[sub.get_channel_name()] = (
             asyncio.create_task(
