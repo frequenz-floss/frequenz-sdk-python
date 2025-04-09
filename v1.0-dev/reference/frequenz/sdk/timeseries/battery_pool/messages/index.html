@@ -1200,7 +1200,7 @@
           <li class="md-nav__item">
   <a href="#frequenz.sdk.timeseries.battery_pool.messages.Result" class="md-nav__link">
     <span class="md-ellipsis">
-      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;Result
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;frequenz.sdk.timeseries.battery_pool.messages.Result
     </span>
   </a>
   
@@ -1819,7 +1819,7 @@
           <li class="md-nav__item">
   <a href="#frequenz.sdk.timeseries.battery_pool.messages.Result" class="md-nav__link">
     <span class="md-ellipsis">
-      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;Result
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;frequenz.sdk.timeseries.battery_pool.messages.Result
     </span>
   </a>
   
@@ -2210,6 +2210,7 @@
 
 
 
+
   <div class="doc doc-children">
 
 
@@ -2231,7 +2232,27 @@
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.Result" class="headerlink" title="Permanent link">¤</a></h4>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">Result</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title=" Success (frequenz.sdk.microgrid._power_distributing.result.Success)" href="#frequenz.sdk.timeseries.battery_pool.messages.Success">Success</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title=" PartialFailure (frequenz.sdk.microgrid._power_distributing.result.PartialFailure)" href="#frequenz.sdk.timeseries.battery_pool.messages.PartialFailure">PartialFailure</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title=" Error (frequenz.sdk.microgrid._power_distributing.result.Error)" href="#frequenz.sdk.timeseries.battery_pool.messages.Error">Error</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title=" OutOfBounds (frequenz.sdk.microgrid._power_distributing.result.OutOfBounds)" href="#frequenz.sdk.timeseries.battery_pool.messages.OutOfBounds">OutOfBounds</a></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">Result</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.battery_pool.messages.Success
+
+
+  
+      dataclass
+   (frequenz.sdk.microgrid._power_distributing.result.Success)" href="#frequenz.sdk.timeseries.battery_pool.messages.Success">Success</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.battery_pool.messages.PartialFailure
+
+
+  
+      dataclass
+   (frequenz.sdk.microgrid._power_distributing.result.PartialFailure)" href="#frequenz.sdk.timeseries.battery_pool.messages.PartialFailure">PartialFailure</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.battery_pool.messages.Error
+
+
+  
+      dataclass
+   (frequenz.sdk.microgrid._power_distributing.result.Error)" href="#frequenz.sdk.timeseries.battery_pool.messages.Error">Error</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.battery_pool.messages.OutOfBounds
+
+
+  
+      dataclass
+   (frequenz.sdk.microgrid._power_distributing.result.OutOfBounds)" href="#frequenz.sdk.timeseries.battery_pool.messages.OutOfBounds">OutOfBounds</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2294,6 +2315,7 @@ for r in results:
     handle_power_request_result(r)
 ```
 </code></pre></div>
+
     </div>
 
 </div>
@@ -2316,6 +2338,7 @@ for r in results:
 
 
         <p>A status report for a battery pool.</p>
+
 
 
 
@@ -2493,7 +2516,12 @@ for r in results:
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport.bounds" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">bounds</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title=" Bounds (frequenz.sdk.timeseries._base_types.Bounds)" href="../../#frequenz.sdk.timeseries.Bounds">Bounds</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">bounds</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Bounds
+
+
+  
+      dataclass
+   (frequenz.sdk.timeseries._base_types.Bounds)" href="../../#frequenz.sdk.timeseries.Bounds">Bounds</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2502,9 +2530,15 @@ for r in results:
 <p>These bounds are adjusted to any restrictions placed by actors with higher
 priorities.</p>
 <p>There might be exclusion zones within these bounds. If necessary, the
-<a class="autorefs autorefs-internal" title=" adjust_to_bounds" href="#frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport.adjust_to_bounds"><code>adjust_to_bounds</code></a>
+<a class="autorefs autorefs-internal" title="adjust_to_bounds
+
+
+  
+      abstractmethod
+  " href="#frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport.adjust_to_bounds"><code>adjust_to_bounds</code></a>
 method may be used to check if a desired power value fits the bounds, or to get
 the closest possible power values that do fit the bounds.</p>
+
     </div>
 
 </div>
@@ -2528,6 +2562,7 @@ the closest possible power values that do fit the bounds.</p>
     <div class="doc doc-contents ">
 
         <p>The currently set power for the batteries.</p>
+
     </div>
 
 </div>
@@ -2646,6 +2681,7 @@ the available bounds for the actor.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/battery_pool/messages.py</code></summary>
@@ -2793,6 +2829,7 @@ the available bounds for the actor.</p>
 
 
 
+
               <details class="quote">
                 <summary>Source code in <code>frequenz/sdk/microgrid/_power_distributing/result.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-62">62</a></span>
@@ -2838,6 +2875,7 @@ the available bounds for the actor.</p>
     <div class="doc doc-contents ">
 
         <p>The error message explaining why error happened.</p>
+
     </div>
 
 </div>
@@ -2861,6 +2899,7 @@ the available bounds for the actor.</p>
     <div class="doc doc-contents ">
 
         <p>The user's request to which this message responds.</p>
+
     </div>
 
 </div>
@@ -2898,6 +2937,7 @@ the available bounds for the actor.</p>
         <p>Result returned when the power was not set because it was out of bounds.</p>
 <p>This result happens when the originating request was done with
 <code>adjust_power = False</code> and the requested power is not within the available bounds.</p>
+
 
 
 
@@ -2967,6 +3007,7 @@ the available bounds for the actor.</p>
         <p>The power bounds for the requested components.</p>
 <p>If the requested power negative, then this value is the lower bound.
 Otherwise it is upper bound.</p>
+
     </div>
 
 </div>
@@ -2990,6 +3031,7 @@ Otherwise it is upper bound.</p>
     <div class="doc doc-contents ">
 
         <p>The user's request to which this message responds.</p>
+
     </div>
 
 </div>
@@ -3025,6 +3067,7 @@ Otherwise it is upper bound.</p>
 
 
         <p>Result returned when some of the components had an error setting the power.</p>
+
 
 
 
@@ -3083,6 +3126,7 @@ Otherwise it is upper bound.</p>
 
         <p>The part of the requested power that could not be fulfilled.</p>
 <p>This happens when the requested power is outside the available power bounds.</p>
+
     </div>
 
 </div>
@@ -3106,6 +3150,7 @@ Otherwise it is upper bound.</p>
     <div class="doc doc-contents ">
 
         <p>The subset of batteries for which the request failed.</p>
+
     </div>
 
 </div>
@@ -3129,6 +3174,7 @@ Otherwise it is upper bound.</p>
     <div class="doc doc-contents ">
 
         <p>The part of the requested power that failed to be set.</p>
+
     </div>
 
 </div>
@@ -3152,6 +3198,7 @@ Otherwise it is upper bound.</p>
     <div class="doc doc-contents ">
 
         <p>The user's request to which this message responds.</p>
+
     </div>
 
 </div>
@@ -3175,6 +3222,7 @@ Otherwise it is upper bound.</p>
     <div class="doc doc-contents ">
 
         <p>The subset of components for which power was set successfully.</p>
+
     </div>
 
 </div>
@@ -3198,6 +3246,7 @@ Otherwise it is upper bound.</p>
     <div class="doc doc-contents ">
 
         <p>The part of the requested power that was successfully set.</p>
+
     </div>
 
 </div>
@@ -3233,6 +3282,7 @@ Otherwise it is upper bound.</p>
 
 
         <p>Result returned when setting the power was successful for all components.</p>
+
 
 
 
@@ -3279,6 +3329,7 @@ Otherwise it is upper bound.</p>
 
         <p>The part of the requested power that could not be fulfilled.</p>
 <p>This happens when the requested power is outside the available power bounds.</p>
+
     </div>
 
 </div>
@@ -3302,6 +3353,7 @@ Otherwise it is upper bound.</p>
     <div class="doc doc-contents ">
 
         <p>The user's request to which this message responds.</p>
+
     </div>
 
 </div>
@@ -3325,6 +3377,7 @@ Otherwise it is upper bound.</p>
     <div class="doc doc-contents ">
 
         <p>The subset of components for which power was set successfully.</p>
+
     </div>
 
 </div>
@@ -3348,6 +3401,7 @@ Otherwise it is upper bound.</p>
     <div class="doc doc-contents ">
 
         <p>The part of the requested power that was successfully set.</p>
+
     </div>
 
 </div>

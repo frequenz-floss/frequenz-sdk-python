@@ -1684,6 +1684,7 @@
 
 
 
+
   <div class="doc doc-children">
 
 
@@ -1714,17 +1715,53 @@
   <summary>Provides</summary>
   <ul>
 <li>properties for fetching reporting streams of instantaneous
-  <a class="autorefs autorefs-internal" title=" power" href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.power">power</a>,
-  <a class="autorefs autorefs-internal" title=" soc" href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.soc">soc</a>,
-  <a class="autorefs autorefs-internal" title=" capacity" href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity">capacity</a> values and
+  <a class="autorefs autorefs-internal" title="power
+
+
+  
+      property
+  " href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.power">power</a>,
+  <a class="autorefs autorefs-internal" title="soc
+
+
+  
+      property
+  " href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.soc">soc</a>,
+  <a class="autorefs autorefs-internal" title="capacity
+
+
+  
+      property
+  " href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity">capacity</a> values and
   available power bounds and other status through
-  <a class="autorefs autorefs-internal" title=" power_status" href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status">power_status</a>.</li>
+  <a class="autorefs autorefs-internal" title="power_status
+
+
+  
+      property
+  " href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status">power_status</a>.</li>
 <li>control methods for proposing power values, namely:
-  <a class="autorefs autorefs-internal" title=" propose_power" href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power">propose_power</a>,
-  <a class="autorefs autorefs-internal" title=" propose_charge" href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_charge">propose_charge</a> and
-  <a class="autorefs autorefs-internal" title=" propose_discharge" href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_discharge">propose_discharge</a>.</li>
+  <a class="autorefs autorefs-internal" title="propose_power
+
+
+  
+      async
+  " href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power">propose_power</a>,
+  <a class="autorefs autorefs-internal" title="propose_charge
+
+
+  
+      async
+  " href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_charge">propose_charge</a> and
+  <a class="autorefs autorefs-internal" title="propose_discharge
+
+
+  
+      async
+  " href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_discharge">propose_discharge</a>.</li>
 </ul>
 </details>
+
 
 
 
@@ -2483,7 +2520,12 @@
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">capacity</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title=" ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title=" Sample (frequenz.sdk.timeseries.Sample)" href="../#frequenz.sdk.timeseries.Sample">Sample</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Energy" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Energy">Energy</a></span><span class="p">]]</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">capacity</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
+
+
+  
+      dataclass
+  " href="../#frequenz.sdk.timeseries.Sample">Sample</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Energy" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Energy">Energy</a></span><span class="p">]]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2515,7 +2557,12 @@ inverters to calculate metrics.</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><a class="autorefs autorefs-internal" title=" ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a>[<a class="autorefs autorefs-internal" title=" Sample (frequenz.sdk.timeseries.Sample)" href="../#frequenz.sdk.timeseries.Sample">Sample</a>[<a class="autorefs autorefs-external" title="frequenz.quantities.Energy" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Energy">Energy</a>]]</code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
+
+
+  
+      dataclass
+  " href="../#frequenz.sdk.timeseries.Sample">Sample</a>[<a class="autorefs autorefs-external" title="frequenz.quantities.Energy" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Energy">Energy</a>]]</code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -2528,6 +2575,7 @@ operational inverters.</p>
           </tr>
       </tbody>
     </table>
+
     </div>
 
 </div>
@@ -2575,6 +2623,7 @@ operational inverters.</p>
           </tr>
       </tbody>
     </table>
+
     </div>
 
 </div>
@@ -2592,7 +2641,7 @@ operational inverters.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.power" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine.FormulaEngine)" href="../formula_engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span><span class="p">]</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine" href="../formula_engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2616,7 +2665,7 @@ method.</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine.FormulaEngine)" href="../formula_engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a>]</code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine" href="../formula_engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a>]</code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -2628,6 +2677,7 @@ batteries in the pool.</p>
           </tr>
       </tbody>
     </table>
+
     </div>
 
 </div>
@@ -2645,7 +2695,12 @@ batteries in the pool.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.power_distribution_results" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">power_distribution_results</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title=" ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title=" Result (frequenz.sdk.microgrid._power_distributing.Result)" href="messages/#frequenz.sdk.timeseries.battery_pool.messages.Result">Result</a></span><span class="p">]</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">power_distribution_results</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.battery_pool.messages.Result
+
+
+  
+      module-attribute
+   (frequenz.sdk.microgrid._power_distributing.Result)" href="messages/#frequenz.sdk.timeseries.battery_pool.messages.Result">Result</a></span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2664,7 +2719,12 @@ batteries in the pool.</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><a class="autorefs autorefs-internal" title=" ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a>[<a class="autorefs autorefs-internal" title=" Result (frequenz.sdk.microgrid._power_distributing.Result)" href="messages/#frequenz.sdk.timeseries.battery_pool.messages.Result">Result</a>]</code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.battery_pool.messages.Result
+
+
+  
+      module-attribute
+   (frequenz.sdk.microgrid._power_distributing.Result)" href="messages/#frequenz.sdk.timeseries.battery_pool.messages.Result">Result</a>]</code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -2676,7 +2736,12 @@ batteries in the pool.</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><a class="autorefs autorefs-internal" title=" ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a>[<a class="autorefs autorefs-internal" title=" Result (frequenz.sdk.microgrid._power_distributing.Result)" href="messages/#frequenz.sdk.timeseries.battery_pool.messages.Result">Result</a>]</code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.battery_pool.messages.Result
+
+
+  
+      module-attribute
+   (frequenz.sdk.microgrid._power_distributing.Result)" href="messages/#frequenz.sdk.timeseries.battery_pool.messages.Result">Result</a>]</code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -2687,6 +2752,7 @@ batteries in the pool.</p>
           </tr>
       </tbody>
     </table>
+
     </div>
 
 </div>
@@ -2704,7 +2770,7 @@ batteries in the pool.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">power_status</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title=" ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title=" BatteryPoolReport (frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport)" href="messages/#frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport">BatteryPoolReport</a></span><span class="p">]</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">power_status</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport" href="messages/#frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport">BatteryPoolReport</a></span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2727,7 +2793,7 @@ batteries in the pool.</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><a class="autorefs autorefs-internal" title=" ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a>[<a class="autorefs autorefs-internal" title=" BatteryPoolReport (frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport)" href="messages/#frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport">BatteryPoolReport</a>]</code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport" href="messages/#frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport">BatteryPoolReport</a>]</code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -2738,6 +2804,7 @@ batteries in the pool.</p>
           </tr>
       </tbody>
     </table>
+
     </div>
 
 </div>
@@ -2755,7 +2822,12 @@ batteries in the pool.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.soc" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">soc</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title=" ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title=" Sample (frequenz.sdk.timeseries.Sample)" href="../#frequenz.sdk.timeseries.Sample">Sample</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Percentage" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Percentage">Percentage</a></span><span class="p">]]</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">soc</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
+
+
+  
+      dataclass
+  " href="../#frequenz.sdk.timeseries.Sample">Sample</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Percentage" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Percentage">Percentage</a></span><span class="p">]]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2795,7 +2867,12 @@ inverters to calculate the metric with.</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><a class="autorefs autorefs-internal" title=" ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a>[<a class="autorefs autorefs-internal" title=" Sample (frequenz.sdk.timeseries.Sample)" href="../#frequenz.sdk.timeseries.Sample">Sample</a>[<a class="autorefs autorefs-external" title="frequenz.quantities.Percentage" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Percentage">Percentage</a>]]</code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
+
+
+  
+      dataclass
+  " href="../#frequenz.sdk.timeseries.Sample">Sample</a>[<a class="autorefs autorefs-external" title="frequenz.quantities.Percentage" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Percentage">Percentage</a>]]</code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -2808,6 +2885,7 @@ operational inverters.</p>
           </tr>
       </tbody>
     </table>
+
     </div>
 
 </div>
@@ -2825,7 +2903,12 @@ operational inverters.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.temperature" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">temperature</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title=" ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title=" Sample (frequenz.sdk.timeseries.Sample)" href="../#frequenz.sdk.timeseries.Sample">Sample</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Temperature" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Temperature">Temperature</a></span><span class="p">]]</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">temperature</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
+
+
+  
+      dataclass
+  " href="../#frequenz.sdk.timeseries.Sample">Sample</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Temperature" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Temperature">Temperature</a></span><span class="p">]]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2844,7 +2927,12 @@ operational inverters.</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><a class="autorefs autorefs-internal" title=" ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a>[<a class="autorefs autorefs-internal" title=" Sample (frequenz.sdk.timeseries.Sample)" href="../#frequenz.sdk.timeseries.Sample">Sample</a>[<a class="autorefs autorefs-external" title="frequenz.quantities.Temperature" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Temperature">Temperature</a>]]</code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.ReceiverFetcher (frequenz.sdk._internal._channels.ReceiverFetcher)" href="../#frequenz.sdk.timeseries.ReceiverFetcher">ReceiverFetcher</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
+
+
+  
+      dataclass
+  " href="../#frequenz.sdk.timeseries.Sample">Sample</a>[<a class="autorefs autorefs-external" title="frequenz.quantities.Temperature" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Temperature">Temperature</a>]]</code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -2856,6 +2944,7 @@ of all batteries in the pool.</p>
           </tr>
       </tbody>
     </table>
+
     </div>
 
 </div>
@@ -2884,7 +2973,7 @@ of all batteries in the pool.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><code>BatteryPool</code> instances are not meant to be created directly by users.  Use
-the <a class="autorefs autorefs-internal" title=" new_battery_pool" href="../../microgrid/#frequenz.sdk.microgrid.new_battery_pool"><code>microgrid.new_battery_pool</code></a>
+the <a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.new_battery_pool" href="../../microgrid/#frequenz.sdk.microgrid.new_battery_pool"><code>microgrid.new_battery_pool</code></a>
 method for creating <code>BatteryPool</code> instances.</p>
 </div>
 
@@ -2948,6 +3037,7 @@ corresponding actor in the logs.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/battery_pool/_battery_pool.py</code></summary>
@@ -3024,7 +3114,12 @@ corresponding actor in the logs.</p>
         <p>Set the given charge power for the batteries in the pool.</p>
 <p>Power values need to be positive values, indicating charge power.</p>
 <p>When using the Passive Sign Convention, the
-<a class="autorefs autorefs-internal" title=" propose_power" href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power"><code>propose_power</code></a>
+<a class="autorefs autorefs-internal" title="propose_power
+
+
+  
+      async
+  " href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power"><code>propose_power</code></a>
 method might be more convenient.</p>
 <p>If the same batteries are shared by multiple actors, the behaviour is the same
 as that of the <code>propose_power</code> method, when calling it with <code>None</code> bounds.  The
@@ -3084,6 +3179,7 @@ precedence as the target power.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/battery_pool/_battery_pool.py</code></summary>
@@ -3180,7 +3276,12 @@ precedence as the target power.</p>
         <p>Set the given discharge power for the batteries in the pool.</p>
 <p>Power values need to be positive values, indicating discharge power.</p>
 <p>When using the Passive Sign Convention, the
-<a class="autorefs autorefs-internal" title=" propose_power" href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power"><code>propose_power</code></a>
+<a class="autorefs autorefs-internal" title="propose_power
+
+
+  
+      async
+  " href="#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power"><code>propose_power</code></a>
 method might be more convenient.</p>
 <p>If the same batteries are shared by multiple actors, the behaviour is the same
 as that of the <code>propose_power</code> method, when calling it with <code>None</code> bounds.  The
@@ -3240,6 +3341,7 @@ precedence as the target power.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/battery_pool/_battery_pool.py</code></summary>
@@ -3335,7 +3437,17 @@ precedence as the target power.</p>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">propose_power</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">power</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="o">*</span><span class="p">,</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">bounds</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title=" Bounds (frequenz.sdk.timeseries.Bounds)" href="../#frequenz.sdk.timeseries.Bounds">Bounds</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title=" Bounds (frequenz.sdk.timeseries.Bounds)" href="../#frequenz.sdk.timeseries.Bounds">Bounds</a></span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">bounds</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Bounds
+
+
+  
+      dataclass
+  " href="../#frequenz.sdk.timeseries.Bounds">Bounds</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Bounds
+
+
+  
+      dataclass
+  " href="../#frequenz.sdk.timeseries.Bounds">Bounds</a></span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </span></code></pre></div>
 
@@ -3388,17 +3500,28 @@ the bounds for lower priority actors.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-internal" title=" Bounds (frequenz.sdk.timeseries.Bounds)" href="../#frequenz.sdk.timeseries.Bounds">Bounds</a>[<a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a> | None]</code>
+                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Bounds
+
+
+  
+      dataclass
+  " href="../#frequenz.sdk.timeseries.Bounds">Bounds</a>[<a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a> | None]</code>
                   </span>
                   <span class="doc-param-default">
                     <b>DEFAULT:</b>
-                      <code><a class="autorefs autorefs-internal" title=" Bounds (frequenz.sdk.timeseries.Bounds)" href="../#frequenz.sdk.timeseries.Bounds">Bounds</a>(None, None)</code>
+                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Bounds
+
+
+  
+      dataclass
+  " href="../#frequenz.sdk.timeseries.Bounds">Bounds</a>(None, None)</code>
                   </span>
               </p>
             </td>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/battery_pool/_battery_pool.py</code></summary>
@@ -3492,6 +3615,7 @@ the bounds for lower priority actors.</p>
 
         <p>Stop all tasks and channels owned by the BatteryPool.</p>
 
+
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/battery_pool/_battery_pool.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-400">400</a></span>
@@ -3530,6 +3654,7 @@ the bounds for lower priority actors.</p>
 
 
         <p>A status report for a battery pool.</p>
+
 
 
 
@@ -3707,7 +3832,12 @@ the bounds for lower priority actors.</p>
   </span>
 
 <a href="#frequenz.sdk.timeseries.battery_pool.BatteryPoolReport.bounds" class="headerlink" title="Permanent link">¤</a></h6>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">bounds</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title=" Bounds (frequenz.sdk.timeseries._base_types.Bounds)" href="../#frequenz.sdk.timeseries.Bounds">Bounds</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">bounds</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Bounds
+
+
+  
+      dataclass
+   (frequenz.sdk.timeseries._base_types.Bounds)" href="../#frequenz.sdk.timeseries.Bounds">Bounds</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="frequenz.quantities.Power" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities.Power">Power</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3716,9 +3846,15 @@ the bounds for lower priority actors.</p>
 <p>These bounds are adjusted to any restrictions placed by actors with higher
 priorities.</p>
 <p>There might be exclusion zones within these bounds. If necessary, the
-<a class="autorefs autorefs-internal" title=" adjust_to_bounds" href="messages/#frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport.adjust_to_bounds"><code>adjust_to_bounds</code></a>
+<a class="autorefs autorefs-internal" title="adjust_to_bounds
+
+
+  
+      abstractmethod
+  " href="messages/#frequenz.sdk.timeseries.battery_pool.messages.BatteryPoolReport.adjust_to_bounds"><code>adjust_to_bounds</code></a>
 method may be used to check if a desired power value fits the bounds, or to get
 the closest possible power values that do fit the bounds.</p>
+
     </div>
 
 </div>
@@ -3742,6 +3878,7 @@ the closest possible power values that do fit the bounds.</p>
     <div class="doc doc-contents ">
 
         <p>The currently set power for the batteries.</p>
+
     </div>
 
 </div>
@@ -3860,6 +3997,7 @@ the available bounds for the actor.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/battery_pool/messages.py</code></summary>

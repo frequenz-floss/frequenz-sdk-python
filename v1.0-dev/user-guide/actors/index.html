@@ -1774,13 +1774,13 @@ programming model, here are some useful resources:</p>
   (Akka)</a></li>
 </ul>
 <h3 id="frequenz.sdk.actor--frequenz-sdk-actors">Frequenz SDK Actors<a class="headerlink" href="#frequenz.sdk.actor--frequenz-sdk-actors" title="Permanent link">¤</a></h3>
-<p>The <a class="autorefs autorefs-internal" title=" Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a> class serves as the foundation for
+<p>The <a class="autorefs autorefs-internal" title="frequenz.sdk.actor.Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a> class serves as the foundation for
 creating concurrent tasks and all actors in the SDK inherit from it. This class
 provides a straightforward way to implement actors. It shares similarities with
 the traditional actor programming model but also has some unique features:</p>
 <ul>
 <li>
-<p><strong>Message Passing:</strong> Like traditional actors, our <a class="autorefs autorefs-internal" title=" Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a>
+<p><strong>Message Passing:</strong> Like traditional actors, our <a class="autorefs autorefs-internal" title="frequenz.sdk.actor.Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a>
   class communicates through message passing. Even when no particular message passing
   mechanism is enforced, the SDK actors use <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels"><code>frequenz.channels</code></a> for communication.</p>
 </li>
@@ -1792,11 +1792,16 @@ the traditional actor programming model but also has some unique features:</p>
 <li>
 <p><strong>Simplified Task Management:</strong> Actors manage asynchronous tasks using
   <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/asyncio.html#module-asyncio"><code>asyncio</code></a>. You can create and manage tasks within the actor, and the
-  <a class="autorefs autorefs-internal" title=" Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a> class handles task cancellation and cleanup.</p>
+  <a class="autorefs autorefs-internal" title="frequenz.sdk.actor.Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a> class handles task cancellation and cleanup.</p>
 </li>
 <li>
 <p><strong>Simplified lifecycle management:</strong> Actors are [async context managers] and also
-  a <a class="autorefs autorefs-internal" title=" run" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.run"><code>run()</code></a> function is provided to easily run a group of
+  a <a class="autorefs autorefs-internal" title="frequenz.sdk.actor.run
+
+
+  
+      async
+  " href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.run"><code>run()</code></a> function is provided to easily run a group of
   actors and wait for them to finish.</p>
 </li>
 </ul>
@@ -1804,9 +1809,14 @@ the traditional actor programming model but also has some unique features:</p>
 <p>Actors are not started when they are created. There are 3 main ways to start an actor
 (from most to least recommended):</p>
 <ol>
-<li>By using the <a class="autorefs autorefs-internal" title=" run" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.run"><code>run()</code></a> function.</li>
+<li>By using the <a class="autorefs autorefs-internal" title="frequenz.sdk.actor.run
+
+
+  
+      async
+  " href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.run"><code>run()</code></a> function.</li>
 <li>By using the actor as an <a href="https://docs.python.org/3/reference/datamodel.html#async-context-managers">async context manager</a>.</li>
-<li>By using the <a class="autorefs autorefs-internal" title=" start" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.start"><code>start()</code></a> method.</li>
+<li>By using the <a class="autorefs autorefs-internal" title="start" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.start"><code>start()</code></a> method.</li>
 </ol>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -1824,7 +1834,12 @@ the traditional actor programming model but also has some unique features:</p>
 </ol>
 </div>
 <h4 id="frequenz.sdk.actor--the-run-function">The <code>run()</code> Function<a class="headerlink" href="#frequenz.sdk.actor--the-run-function" title="Permanent link">¤</a></h4>
-<p>The <a class="autorefs autorefs-internal" title=" run" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.run"><code>run()</code></a> function can start many actors at once and waits
+<p>The <a class="autorefs autorefs-internal" title="frequenz.sdk.actor.run
+
+
+  
+      async
+  " href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.run"><code>run()</code></a> function can start many actors at once and waits
 for them to finish. If any of the actors is stopped with errors, the errors will be
 logged.</p>
 <details class="example" open="open">
@@ -1861,14 +1876,19 @@ logged.</p>
 </span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="c1"># (2)!</span>
 </span></code></pre></div>
 <ol>
-<li><a class="autorefs autorefs-internal" title=" start" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.start"><code>start()</code></a> is called automatically when entering
+<li><a class="autorefs autorefs-internal" title="start" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.start"><code>start()</code></a> is called automatically when entering
     the <code>async with</code> block.</li>
-<li><a class="autorefs autorefs-internal" title=" stop" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.stop"><code>stop()</code></a> is called automatically when exiting
+<li><a class="autorefs autorefs-internal" title="stop
+
+
+  
+      async
+  " href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.stop"><code>stop()</code></a> is called automatically when exiting
     the <code>async with</code> block.</li>
 </ol>
 </details>
 <h4 id="frequenz.sdk.actor--the-start-method">The <code>start()</code> Method<a class="headerlink" href="#frequenz.sdk.actor--the-start-method" title="Permanent link">¤</a></h4>
-<p>When using the <a class="autorefs autorefs-internal" title=" start" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.start"><code>start()</code></a> method, the actor is
+<p>When using the <a class="autorefs autorefs-internal" title="start" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.start"><code>start()</code></a> method, the actor is
 started in the background and the method returns immediately. The actor will
 continue to run until it is <strong>manually</strong> stopped or until it completes its execution.</p>
 <details class="example" open="open">
@@ -1904,21 +1924,26 @@ continue to run until it is <strong>manually</strong> stopped or until it comple
 manually, especially in error conditions.</p>
 </div>
 <h3 id="frequenz.sdk.actor--communication">Communication<a class="headerlink" href="#frequenz.sdk.actor--communication" title="Permanent link">¤</a></h3>
-<p>The <a class="autorefs autorefs-internal" title=" Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a> class doesn't impose any specific way to
+<p>The <a class="autorefs autorefs-internal" title="frequenz.sdk.actor.Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a> class doesn't impose any specific way to
 communicate between actors. However, <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels"><code>frequenz.channels</code></a> are always used as the
 communication mechanism between actors in the SDK.</p>
 <h3 id="frequenz.sdk.actor--implementing-an-actor">Implementing an Actor<a class="headerlink" href="#frequenz.sdk.actor--implementing-an-actor" title="Permanent link">¤</a></h3>
-<p>To implement an actor, you must inherit from the <a class="autorefs autorefs-internal" title=" Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a>
+<p>To implement an actor, you must inherit from the <a class="autorefs autorefs-internal" title="frequenz.sdk.actor.Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a>
 class and implement an <em>initializer</em> and the abstract <a href="#frequenz.sdk.actor--the-_run-method"><code>_run()</code></a> method.</p>
 <h4 id="frequenz.sdk.actor--initialization">Initialization<a class="headerlink" href="#frequenz.sdk.actor--initialization" title="Permanent link">¤</a></h4>
 <p>The <a class="autorefs autorefs-external" href="https://docs.python.org/3/reference/datamodel.html#object.__init__">initializer</a> is called when the actor is created. The
-<a class="autorefs autorefs-internal" title=" Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a> class initializer
-(<a class="autorefs autorefs-internal" title=" __init__" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.__init__"><code>__init__</code></a>) should be always called first in the
+<a class="autorefs autorefs-internal" title="frequenz.sdk.actor.Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a> class initializer
+(<a class="autorefs autorefs-internal" title="__init__" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.__init__"><code>__init__</code></a>) should be always called first in the
 class we are implementing to make sure actors are properly initialized.</p>
-<p>The <a class="autorefs autorefs-internal" title=" __init__" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.__init__"><code>Actor.__init__()</code></a> takes one optional argument,
-a <a class="autorefs autorefs-internal" title=" name" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.name"><code>name</code></a> that will be used to identify the actor in
+<p>The <a class="autorefs autorefs-internal" title="__init__" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.__init__"><code>Actor.__init__()</code></a> takes one optional argument,
+a <a class="autorefs autorefs-internal" title="name
+
+
+  
+      property
+  " href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.name"><code>name</code></a> that will be used to identify the actor in
 logs. If no name is provided, a default name will be generated, but it is recommended
-that <a class="autorefs autorefs-internal" title=" Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a> subclasses can also receive a name as an
+that <a class="autorefs autorefs-internal" title="frequenz.sdk.actor.Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a> subclasses can also receive a name as an
 argument to make it easier to identify individual instances in logs more easily.</p>
 <p>The actor initializer normally also accepts as arguments the input channels receivers
 and output channels senders that will be used for communication. These channels should
@@ -1943,7 +1968,7 @@ composed easily.</p>
 <ol>
 <li>
 <p>We define a new actor class called <code>EchoActor</code> that inherits from
-    <a class="autorefs autorefs-internal" title=" Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a>.</p>
+    <a class="autorefs autorefs-internal" title="frequenz.sdk.actor.Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a>.</p>
 </li>
 <li>
 <p>We accept an <code>receiver</code> argument that will be used to receive messages from
@@ -1952,7 +1977,7 @@ composed easily.</p>
 <li>We accept an <code>output</code> argument that will be used to send messages to a channel.</li>
 <li>We accept an optional <code>name</code> argument that will be used to identify the actor in
     logs.</li>
-<li>We call <a class="autorefs autorefs-internal" title=" __init__" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.__init__"><code>Actor.__init__()</code></a> to make sure the
+<li>We call <a class="autorefs autorefs-internal" title="__init__" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.__init__"><code>Actor.__init__()</code></a> to make sure the
     actor is properly initialized.</li>
 <li>We store the <code>receiver</code> argument in a <em>private</em> attribute to use it later.</li>
 <li>We store the <code>output</code> argument in a <em>private</em> attribute to use it later.</li>
@@ -1960,9 +1985,14 @@ composed easily.</p>
 </details>
 <h4 id="frequenz.sdk.actor--the-_run-method">The <code>_run()</code> Method<a class="headerlink" href="#frequenz.sdk.actor--the-_run-method" title="Permanent link">¤</a></h4>
 <p>The abstract <code>_run()</code> method is called automatically by the base class when the actor is
-<a class="autorefs autorefs-internal" title=" start" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.start">started</a>.</p>
+<a class="autorefs autorefs-internal" title="start" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.start">started</a>.</p>
 <p>Normally an actor should run forever (or until it is
-<a class="autorefs autorefs-internal" title=" stop" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.stop">stopped</a>), so it is very common to have an infinite loop
+<a class="autorefs autorefs-internal" title="stop
+
+
+  
+      async
+  " href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.stop">stopped</a>), so it is very common to have an infinite loop
 in the <code>_run()</code> method, typically receiving messages from one or more channels
 (<a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">receivers</a>), processing them and sending the results to
 other channels (<a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Sender">senders</a>).
@@ -1995,8 +2025,13 @@ or a limited number of runs, terminating upon completion.</p>
 </ol>
 </details>
 <h4 id="frequenz.sdk.actor--stopping">Stopping<a class="headerlink" href="#frequenz.sdk.actor--stopping" title="Permanent link">¤</a></h4>
-<p>By default, the <a class="autorefs autorefs-internal" title=" stop" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.stop"><code>stop()</code></a> method will call the
-<a class="autorefs autorefs-internal" title=" cancel" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.cancel"><code>cancel()</code></a> method (which will cancel all the tasks
+<p>By default, the <a class="autorefs autorefs-internal" title="stop
+
+
+  
+      async
+  " href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.stop"><code>stop()</code></a> method will call the
+<a class="autorefs autorefs-internal" title="cancel" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.cancel"><code>cancel()</code></a> method (which will cancel all the tasks
 created by the actor) and will wait for them to finish.</p>
 <p>This means that when an actor is stopped, the <a href="#frequenz.sdk.actor--the-_run-method"><code>_run()</code></a> method will receive
 a <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/asyncio-exceptions.html#asyncio.CancelledError"><code>CancelledError</code></a> exception. You should have this in mind
@@ -2011,21 +2046,31 @@ errors, but you should also have this in mind if you need to do any cleanup to m
 the re-run doesn't cause any problems.</p>
 <details class="tip" open="open">
 <summary>Tip</summary>
-<p>You could implement your own <a class="autorefs autorefs-internal" title=" stop" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.stop"><code>stop()</code></a> method to,
+<p>You could implement your own <a class="autorefs autorefs-internal" title="stop
+
+
+  
+      async
+  " href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.stop"><code>stop()</code></a> method to,
 for example, send a message to a channel to notify that the actor should stop, or
 any other more graceful way to stop the actor if you need to make sure it can't be
 interrupted at any <code>await</code> point.</p>
 </details>
 <h4 id="frequenz.sdk.actor--spawning-extra-tasks">Spawning Extra Tasks<a class="headerlink" href="#frequenz.sdk.actor--spawning-extra-tasks" title="Permanent link">¤</a></h4>
 <p>Actors run at least one background task, created automatically by the
-<a class="autorefs autorefs-internal" title=" Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a> class. But <a class="autorefs autorefs-internal" title=" Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a>
-inherits from <a class="autorefs autorefs-internal" title=" BackgroundService" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.BackgroundService"><code>BackgroundService</code></a>, which
+<a class="autorefs autorefs-internal" title="frequenz.sdk.actor.Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a> class. But <a class="autorefs autorefs-internal" title="frequenz.sdk.actor.Actor" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor"><code>Actor</code></a>
+inherits from <a class="autorefs autorefs-internal" title="frequenz.sdk.actor.BackgroundService" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.BackgroundService"><code>BackgroundService</code></a>, which
 provides a few methods to create and manage extra tasks.</p>
 <p>If your actor needs to spawn extra tasks, you can use
-<a class="autorefs autorefs-internal" title=" BackgroundService" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.BackgroundService"><code>BackgroundService</code></a> facilities to manage the
+<a class="autorefs autorefs-internal" title="frequenz.sdk.actor.BackgroundService" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.BackgroundService"><code>BackgroundService</code></a> facilities to manage the
 tasks, so they are also automatically stopped when the actor is stopped.</p>
 <p>All you need to do is add the newly spawned tasks to the actor's
-<a class="autorefs autorefs-internal" title=" tasks" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.tasks"><code>tasks</code></a> set.</p>
+<a class="autorefs autorefs-internal" title="tasks
+
+
+  
+      property
+  " href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.tasks"><code>tasks</code></a> set.</p>
 <details class="example" open="open">
 <summary>Example</summary>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
@@ -2050,7 +2095,12 @@ tasks, so they are also automatically stopped when the actor is stopped.</p>
 </span></code></pre></div>
 <ol>
 <li>We create a new task using <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/asyncio-task.html#asyncio.create_task"><code>asyncio.create_task()</code></a>.</li>
-<li>We add the task to the actor's <a class="autorefs autorefs-internal" title=" tasks" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.tasks"><code>tasks</code></a> set.
+<li>We add the task to the actor's <a class="autorefs autorefs-internal" title="tasks
+
+
+  
+      property
+  " href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.Actor.tasks"><code>tasks</code></a> set.
     This ensures the task will be cancelled and cleaned up when the actor is stopped.</li>
 <li>We leave the actor running forever.</li>
 <li>The extra task will also run forever.</li>
@@ -2157,7 +2207,12 @@ annotations are numbered according to the order of execution.</p>
     <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">receivers</a> from the channels.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>We don't use the <a class="autorefs autorefs-internal" title=" run" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.run"><code>run()</code></a> function here because we
+<p>We don't use the <a class="autorefs autorefs-internal" title="frequenz.sdk.actor.run
+
+
+  
+      async
+  " href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.run"><code>run()</code></a> function here because we
 want to stop the actors when we are done with them, but the actors will run
 forever (as long as the channel is not closed). So the async context manager
 is a better fit for this example.</p>
@@ -2297,7 +2352,12 @@ is a better fit for this example.</p>
 </li>
 <li>
 <p>We start the actor and wait for it to finish using the
-    <a class="autorefs autorefs-internal" title=" run" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.run"><code>run()</code></a> function.</p>
+    <a class="autorefs autorefs-internal" title="frequenz.sdk.actor.run
+
+
+  
+      async
+  " href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.run"><code>run()</code></a> function.</p>
 </li>
 <li>
 <p>The <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.select"><code>select()</code></a> function will get the first message
@@ -2327,7 +2387,12 @@ is a better fit for this example.</p>
 </li>
 <li>
 <p>The <a href="#frequenz.sdk.actor--the-_run-method"><code>_run()</code></a> method will finish normally and the actor will be stopped, so
-    the <a class="autorefs autorefs-internal" title=" run" href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.run"><code>run()</code></a> function will return.</p>
+    the <a class="autorefs autorefs-internal" title="frequenz.sdk.actor.run
+
+
+  
+      async
+  " href="../../reference/frequenz/sdk/actor/#frequenz.sdk.actor.run"><code>run()</code></a> function will return.</p>
 </li>
 <li>
 <p>We close the <code>echo_channel</code> to make sure the <code>echo_receiver</code> will stop receiving
@@ -2346,6 +2411,7 @@ is a better fit for this example.</p>
 </span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>Received message=True
 </span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>Received message=False
 </span></code></pre></div>
+
 
 
 

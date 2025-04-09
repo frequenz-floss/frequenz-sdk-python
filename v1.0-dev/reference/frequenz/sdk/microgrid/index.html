@@ -1741,76 +1741,166 @@ junction --- ev</code></pre>
 <h4 id="frequenz.sdk.microgrid--grid">Grid<a class="headerlink" href="#frequenz.sdk.microgrid--grid" title="Permanent link">¤</a></h4>
 <p>This refers to a microgrid's connection to the external Grid.  The power flowing through
 this connection can be streamed through
-<a class="autorefs autorefs-internal" title=" power" href="../timeseries/grid/#frequenz.sdk.timeseries.grid.Grid.power"><code>grid_power</code></a>.</p>
+<a class="autorefs autorefs-internal" title="power
+
+
+  
+      property
+  " href="../timeseries/grid/#frequenz.sdk.timeseries.grid.Grid.power"><code>grid_power</code></a>.</p>
 <p>In locations without a grid connection, this method remains accessible, and streams zero
 values.</p>
 <h4 id="frequenz.sdk.microgrid--consumer">Consumer<a class="headerlink" href="#frequenz.sdk.microgrid--consumer" title="Permanent link">¤</a></h4>
 <p>This is the main power consumer at the site of a microgrid, and often the
 <a href="../../../../user-guide/glossary/#load">load</a> the microgrid is built to support.  The power drawn by the consumer
-is available through <a class="autorefs autorefs-internal" title=" power" href="../timeseries/consumer/#frequenz.sdk.timeseries.consumer.Consumer.power"><code>consumer_power</code></a></p>
+is available through <a class="autorefs autorefs-internal" title="power
+
+
+  
+      property
+  " href="../timeseries/consumer/#frequenz.sdk.timeseries.consumer.Consumer.power"><code>consumer_power</code></a></p>
 <p>In locations without a consumer, this method streams zero values.</p>
 <h4 id="frequenz.sdk.microgrid--producers-pv-arrays-chp">Producers: PV Arrays, CHP<a class="headerlink" href="#frequenz.sdk.microgrid--producers-pv-arrays-chp" title="Permanent link">¤</a></h4>
 <p>The total CHP production in a site can be streamed through
-<a class="autorefs autorefs-internal" title=" chp_power" href="../timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter.chp_power"><code>chp_power</code></a>.  PV Power
+<a class="autorefs autorefs-internal" title="chp_power
+
+
+  
+      property
+  " href="../timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter.chp_power"><code>chp_power</code></a>.  PV Power
 is available through the PV pool described below.  And total producer power is available
-through <a class="autorefs autorefs-internal" title=" power" href="../timeseries/producer/#frequenz.sdk.timeseries.producer.Producer.power"><code>microgrid.producer().power</code></a>.</p>
+through <a class="autorefs autorefs-internal" title="power
+
+
+  
+      property
+  " href="../timeseries/producer/#frequenz.sdk.timeseries.producer.Producer.power"><code>microgrid.producer().power</code></a>.</p>
 <p>As is the case with the other methods, if PV Arrays or CHPs are not available in a
 microgrid, the corresponding methods stream zero values.</p>
 <h4 id="frequenz.sdk.microgrid--pv-arrays">PV Arrays<a class="headerlink" href="#frequenz.sdk.microgrid--pv-arrays" title="Permanent link">¤</a></h4>
 <p>The total PV power production is available through
-<a class="autorefs autorefs-internal" title=" new_pv_pool" href="#frequenz.sdk.microgrid.new_pv_pool"><code>pv_pool</code></a>'s
-<a class="autorefs autorefs-internal" title=" power" href="../timeseries/pv_pool/#frequenz.sdk.timeseries.pv_pool.PVPool.power"><code>power</code></a>.  The PV pool by default uses
+<a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.new_pv_pool" href="#frequenz.sdk.microgrid.new_pv_pool"><code>pv_pool</code></a>'s
+<a class="autorefs autorefs-internal" title="power
+
+
+  
+      property
+  " href="../timeseries/pv_pool/#frequenz.sdk.timeseries.pv_pool.PVPool.power"><code>power</code></a>.  The PV pool by default uses
 all PV inverters available at a location, but PV pool instances can be created for
 subsets of PV inverters if necessary, by specifying the inverter ids.</p>
 <p>The <code>pv_pool</code> also provides available power bounds through the
-<a class="autorefs autorefs-internal" title=" power_status" href="../timeseries/pv_pool/#frequenz.sdk.timeseries.pv_pool.PVPool.power_status"><code>power_status</code></a> method.</p>
+<a class="autorefs autorefs-internal" title="power_status
+
+
+  
+      property
+  " href="../timeseries/pv_pool/#frequenz.sdk.timeseries.pv_pool.PVPool.power_status"><code>power_status</code></a> method.</p>
 <p>The <code>pv_pool</code> also provides a control method
-<a class="autorefs autorefs-internal" title=" propose_power" href="../timeseries/pv_pool/#frequenz.sdk.timeseries.pv_pool.PVPool.propose_power"><code>propose_power</code></a>, which accepts
+<a class="autorefs autorefs-internal" title="propose_power
+
+
+  
+      async
+  " href="../timeseries/pv_pool/#frequenz.sdk.timeseries.pv_pool.PVPool.propose_power"><code>propose_power</code></a>, which accepts
 values in the <a href="../../../../user-guide/glossary/#psc">Passive Sign Convention</a> and supports only
 production.</p>
 <h4 id="frequenz.sdk.microgrid--batteries">Batteries<a class="headerlink" href="#frequenz.sdk.microgrid--batteries" title="Permanent link">¤</a></h4>
 <p>The total Battery power is available through the
-<a class="autorefs autorefs-internal" title=" new_battery_pool" href="#frequenz.sdk.microgrid.new_battery_pool"><code>battery_pool</code></a>'s
-<a class="autorefs autorefs-internal" title=" power" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.power"><code>power</code></a>.  The battery pool by
+<a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.new_battery_pool" href="#frequenz.sdk.microgrid.new_battery_pool"><code>battery_pool</code></a>'s
+<a class="autorefs autorefs-internal" title="power
+
+
+  
+      property
+  " href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.power"><code>power</code></a>.  The battery pool by
 default uses all batteries available at a location, but battery pool instances can be
 created for subsets of batteries if necessary, by specifying the battery ids.</p>
 <p>The <code>battery_pool</code> also provides
-<a class="autorefs autorefs-internal" title=" soc" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.soc"><code>soc</code></a>,
-<a class="autorefs autorefs-internal" title=" capacity" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity"><code>capacity</code></a>,
-<a class="autorefs autorefs-internal" title=" temperature" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.temperature"><code>temperature</code></a> and
+<a class="autorefs autorefs-internal" title="soc
+
+
+  
+      property
+  " href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.soc"><code>soc</code></a>,
+<a class="autorefs autorefs-internal" title="capacity
+
+
+  
+      property
+  " href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity"><code>capacity</code></a>,
+<a class="autorefs autorefs-internal" title="temperature
+
+
+  
+      property
+  " href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.temperature"><code>temperature</code></a> and
 available power bounds through the
-<a class="autorefs autorefs-internal" title=" power_status" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status"><code>power_status</code></a> method.</p>
+<a class="autorefs autorefs-internal" title="power_status
+
+
+  
+      property
+  " href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status"><code>power_status</code></a> method.</p>
 <p>The <code>battery_pool</code> also provides control methods
-<a class="autorefs autorefs-internal" title=" propose_power" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power"><code>propose_power</code></a> (which
+<a class="autorefs autorefs-internal" title="propose_power
+
+
+  
+      async
+  " href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_power"><code>propose_power</code></a> (which
 accepts values in the <a href="../../../../user-guide/glossary/#psc">Passive Sign Convention</a> and supports both
 charging and discharging), or through
-<a class="autorefs autorefs-internal" title=" propose_charge" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_charge"><code>propose_charge</code></a>, or
-<a class="autorefs autorefs-internal" title=" propose_discharge" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_discharge"><code>propose_discharge</code></a>.</p>
+<a class="autorefs autorefs-internal" title="propose_charge
+
+
+  
+      async
+  " href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_charge"><code>propose_charge</code></a>, or
+<a class="autorefs autorefs-internal" title="propose_discharge
+
+
+  
+      async
+  " href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.propose_discharge"><code>propose_discharge</code></a>.</p>
 <h4 id="frequenz.sdk.microgrid--ev-chargers">EV Chargers<a class="headerlink" href="#frequenz.sdk.microgrid--ev-chargers" title="Permanent link">¤</a></h4>
-<p>The <a class="autorefs autorefs-internal" title=" new_ev_charger_pool" href="#frequenz.sdk.microgrid.new_ev_charger_pool"><code>ev_charger_pool</code></a> offers a
-<a class="autorefs autorefs-internal" title=" power" href="../timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power"><code>power</code></a> method that
+<p>The <a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.new_ev_charger_pool" href="#frequenz.sdk.microgrid.new_ev_charger_pool"><code>ev_charger_pool</code></a> offers a
+<a class="autorefs autorefs-internal" title="power
+
+
+  
+      property
+  " href="../timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power"><code>power</code></a> method that
 streams the total power measured for all the <a href="../../../../user-guide/glossary/#ev-charger">EV Chargers</a>
 at a site.</p>
 <p>The <code>ev_charger_pool</code> also provides available power bounds through the
-<a class="autorefs autorefs-internal" title=" power_status" href="../timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power_status"><code>power_status</code></a>
+<a class="autorefs autorefs-internal" title="power_status
+
+
+  
+      property
+  " href="../timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.power_status"><code>power_status</code></a>
 method.</p>
 <p>The <code>ev_charger_pool</code> also provides a control method
-<a class="autorefs autorefs-internal" title=" propose_power" href="../timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.propose_power"><code>propose_power</code></a>,
+<a class="autorefs autorefs-internal" title="propose_power
+
+
+  
+      async
+  " href="../timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.propose_power"><code>propose_power</code></a>,
 which accepts values in the <a href="../../../../user-guide/glossary/#psc">Passive Sign Convention</a> and supports
 only charging.</p>
 <h3 id="frequenz.sdk.microgrid--component-pools">Component pools<a class="headerlink" href="#frequenz.sdk.microgrid--component-pools" title="Permanent link">¤</a></h3>
 <p>The SDK provides a unified interface for interacting with sets of Batteries, EV
 chargers and PV arrays, through their corresponding <code>Pool</code>s.</p>
 <ul>
-<li><a class="autorefs autorefs-internal" title=" new_battery_pool" href="#frequenz.sdk.microgrid.new_battery_pool">Battery pool</a></li>
-<li><a class="autorefs autorefs-internal" title=" new_ev_charger_pool" href="#frequenz.sdk.microgrid.new_ev_charger_pool">EV charger pool</a></li>
-<li><a class="autorefs autorefs-internal" title=" new_pv_pool" href="#frequenz.sdk.microgrid.new_pv_pool">PV pool</a></li>
+<li><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.new_battery_pool" href="#frequenz.sdk.microgrid.new_battery_pool">Battery pool</a></li>
+<li><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.new_ev_charger_pool" href="#frequenz.sdk.microgrid.new_ev_charger_pool">EV charger pool</a></li>
+<li><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.new_pv_pool" href="#frequenz.sdk.microgrid.new_pv_pool">PV pool</a></li>
 </ul>
 <p>All of them provide support for streaming aggregated data and for setting the
 power values of the components.</p>
 <h4 id="frequenz.sdk.microgrid--streaming-component-data">Streaming component data<a class="headerlink" href="#frequenz.sdk.microgrid--streaming-component-data" title="Permanent link">¤</a></h4>
 <p>All pools have a <code>power</code> property, which is a
-<a class="autorefs autorefs-internal" title=" FormulaEngine" href="../timeseries/formula_engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine"><code>FormulaEngine</code></a> that can</p>
+<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine" href="../timeseries/formula_engine/#frequenz.sdk.timeseries.formula_engine.FormulaEngine"><code>FormulaEngine</code></a> that can</p>
 <ul>
 <li>
 <p>provide a stream of resampled power values, which correspond to the sum of the
@@ -1822,9 +1912,24 @@ power measured from all the components in the pool together.</p>
 </ul>
 <p>In addition, the battery pool has some additional properties that can be used as
 streams for metrics specific to batteries:
-<a class="autorefs autorefs-internal" title=" soc" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.soc"><code>soc</code></a>,
-<a class="autorefs autorefs-internal" title=" capacity" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity"><code>capacity</code></a> and
-<a class="autorefs autorefs-internal" title=" temperature" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.temperature"><code>temperature</code></a>.</p>
+<a class="autorefs autorefs-internal" title="soc
+
+
+  
+      property
+  " href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.soc"><code>soc</code></a>,
+<a class="autorefs autorefs-internal" title="capacity
+
+
+  
+      property
+  " href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.capacity"><code>capacity</code></a> and
+<a class="autorefs autorefs-internal" title="temperature
+
+
+  
+      property
+  " href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.temperature"><code>temperature</code></a>.</p>
 <h4 id="frequenz.sdk.microgrid--setting-power">Setting power<a class="headerlink" href="#frequenz.sdk.microgrid--setting-power" title="Permanent link">¤</a></h4>
 <p>All pools provide a <code>propose_power</code> method for setting power for the pool.  This
 would then be distributed to the individual components in the pool, using an
@@ -1837,7 +1942,12 @@ set of components, the power manager will aggregate their desired power values,
 while considering the priority of the actors and the bounds they set, to
 calculate the target power for the components.</p>
 <p>The final target power can be accessed using the receiver returned from the
-<a class="autorefs autorefs-internal" title=" power_status" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status"><code>power_status</code></a>
+<a class="autorefs autorefs-internal" title="power_status
+
+
+  
+      property
+  " href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status"><code>power_status</code></a>
 method available for all pools, which also streams the bounds that an actor
 should comply with, based on its priority.</p>
 <h6 id="frequenz.sdk.microgrid--adding-the-power-proposals-of-individual-actors">Adding the power proposals of individual actors<a class="headerlink" href="#frequenz.sdk.microgrid--adding-the-power-proposals-of-individual-actors" title="Permanent link">¤</a></h6>
@@ -1933,6 +2043,7 @@ available power is used.</p>
 
 
 
+
   <div class="doc doc-children">
 
 
@@ -1951,12 +2062,13 @@ available power is used.</p>
 
 
 <a href="#frequenz.sdk.microgrid.consumer" class="headerlink" title="Permanent link">¤</a></h4>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">consumer</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title=" Consumer (frequenz.sdk.timeseries.consumer.Consumer)" href="../timeseries/consumer/#frequenz.sdk.timeseries.consumer.Consumer">Consumer</a></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">consumer</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.consumer.Consumer" href="../timeseries/consumer/#frequenz.sdk.timeseries.consumer.Consumer">Consumer</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
 
-        <p>Return the <a class="autorefs autorefs-internal" title=" Consumer" href="../timeseries/consumer/#frequenz.sdk.timeseries.consumer.Consumer"><code>Consumption</code></a> measuring point.</p>
+        <p>Return the <a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.consumer.Consumer" href="../timeseries/consumer/#frequenz.sdk.timeseries.consumer.Consumer"><code>Consumption</code></a> measuring point.</p>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/microgrid/_data_pipeline.py</code></summary>
@@ -1986,6 +2098,7 @@ available power is used.</p>
 
         <p>Return the grid frequency measuring point.</p>
 
+
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/microgrid/_data_pipeline.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-518">518</a></span>
@@ -2007,12 +2120,18 @@ available power is used.</p>
 
 
 <a href="#frequenz.sdk.microgrid.grid" class="headerlink" title="Permanent link">¤</a></h4>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">grid</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title=" Grid (frequenz.sdk.timeseries.grid.Grid)" href="../timeseries/grid/#frequenz.sdk.timeseries.grid.Grid">Grid</a></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">grid</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.grid.Grid
+
+
+  
+      dataclass
+  " href="../timeseries/grid/#frequenz.sdk.timeseries.grid.Grid">Grid</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
 
         <p>Return the grid measuring point.</p>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/microgrid/_data_pipeline.py</code></summary>
@@ -2041,7 +2160,12 @@ available power is used.</p>
 <a href="#frequenz.sdk.microgrid.initialize" class="headerlink" title="Permanent link">¤</a></h4>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">initialize</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">server_url</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">resampler_config</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title=" ResamplerConfig (frequenz.sdk.actor.ResamplerConfig)" href="../actor/#frequenz.sdk.actor.ResamplerConfig">ResamplerConfig</a></span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">resampler_config</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.actor.ResamplerConfig
+
+
+  
+      dataclass
+  " href="../actor/#frequenz.sdk.actor.ResamplerConfig">ResamplerConfig</a></span><span class="p">,</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="o">*</span><span class="p">,</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">api_power_request_timeout</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3/library/datetime.html#datetime.timedelta">timedelta</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3/library/datetime.html#datetime.timedelta">timedelta</a></span><span class="p">(</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        <span class="n"><span title="datetime.timedelta(seconds)">seconds</span></span><span class="o">=</span><span class="mf">5.0</span>
@@ -2093,7 +2217,12 @@ where the port should be an int between <code>0</code> and <code>65535</code> (d
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-internal" title=" ResamplerConfig (frequenz.sdk.actor.ResamplerConfig)" href="../actor/#frequenz.sdk.actor.ResamplerConfig">ResamplerConfig</a></code>
+                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor.ResamplerConfig
+
+
+  
+      dataclass
+  " href="../actor/#frequenz.sdk.actor.ResamplerConfig">ResamplerConfig</a></code>
                   </span>
               </p>
             </td>
@@ -2123,6 +2252,7 @@ will be unavailable from the corresponding component pools.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/microgrid/__init__.py</code></summary>
@@ -2189,12 +2319,13 @@ will be unavailable from the corresponding component pools.</p>
 
 
 <a href="#frequenz.sdk.microgrid.logical_meter" class="headerlink" title="Permanent link">¤</a></h4>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">logical_meter</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title=" LogicalMeter (frequenz.sdk.timeseries.logical_meter.LogicalMeter)" href="../timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter">LogicalMeter</a></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">logical_meter</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.logical_meter.LogicalMeter" href="../timeseries/logical_meter/#frequenz.sdk.timeseries.logical_meter.LogicalMeter">LogicalMeter</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
 
         <p>Return the logical meter of the microgrid.</p>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/microgrid/_data_pipeline.py</code></summary>
@@ -2222,7 +2353,7 @@ will be unavailable from the corresponding component pools.</p>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">priority</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">,</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">component_ids</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Set" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Set">Set</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title=" BatteryPool (frequenz.sdk.timeseries.battery_pool.BatteryPool)" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool">BatteryPool</a></span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.battery_pool.BatteryPool" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool">BatteryPool</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2325,7 +2456,7 @@ corresponding actor in the logs.</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><a class="autorefs autorefs-internal" title=" BatteryPool (frequenz.sdk.timeseries.battery_pool.BatteryPool)" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool">BatteryPool</a></code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.battery_pool.BatteryPool" href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool">BatteryPool</a></code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -2336,6 +2467,7 @@ corresponding actor in the logs.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/microgrid/_data_pipeline.py</code></summary>
@@ -2431,7 +2563,7 @@ corresponding actor in the logs.</p>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">priority</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">,</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">component_ids</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Set" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Set">Set</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title=" EVChargerPool (frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool)" href="../timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool">EVChargerPool</a></span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool" href="../timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool">EVChargerPool</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2534,7 +2666,7 @@ corresponding actor in the logs.</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><a class="autorefs autorefs-internal" title=" EVChargerPool (frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool)" href="../timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool">EVChargerPool</a></code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool" href="../timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool">EVChargerPool</a></code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -2545,6 +2677,7 @@ corresponding actor in the logs.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/microgrid/_data_pipeline.py</code></summary>
@@ -2640,7 +2773,7 @@ corresponding actor in the logs.</p>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">priority</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">,</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">component_ids</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Set" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Set">Set</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title=" PVPool (frequenz.sdk.timeseries.pv_pool.PVPool)" href="../timeseries/pv_pool/#frequenz.sdk.timeseries.pv_pool.PVPool">PVPool</a></span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.pv_pool.PVPool" href="../timeseries/pv_pool/#frequenz.sdk.timeseries.pv_pool.PVPool">PVPool</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2743,7 +2876,7 @@ corresponding actor in the logs.</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><a class="autorefs autorefs-internal" title=" PVPool (frequenz.sdk.timeseries.pv_pool.PVPool)" href="../timeseries/pv_pool/#frequenz.sdk.timeseries.pv_pool.PVPool">PVPool</a></code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.pv_pool.PVPool" href="../timeseries/pv_pool/#frequenz.sdk.timeseries.pv_pool.PVPool">PVPool</a></code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -2754,6 +2887,7 @@ corresponding actor in the logs.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/microgrid/_data_pipeline.py</code></summary>
@@ -2840,12 +2974,13 @@ corresponding actor in the logs.</p>
 
 
 <a href="#frequenz.sdk.microgrid.producer" class="headerlink" title="Permanent link">¤</a></h4>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">producer</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title=" Producer (frequenz.sdk.timeseries.producer.Producer)" href="../timeseries/producer/#frequenz.sdk.timeseries.producer.Producer">Producer</a></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">producer</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.producer.Producer" href="../timeseries/producer/#frequenz.sdk.timeseries.producer.Producer">Producer</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
 
-        <p>Return the <a class="autorefs autorefs-internal" title=" Producer" href="../timeseries/producer/#frequenz.sdk.timeseries.producer.Producer"><code>Production</code></a> measuring point.</p>
+        <p>Return the <a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.producer.Producer" href="../timeseries/producer/#frequenz.sdk.timeseries.producer.Producer"><code>Production</code></a> measuring point.</p>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/microgrid/_data_pipeline.py</code></summary>
@@ -2874,6 +3009,7 @@ corresponding actor in the logs.</p>
     <div class="doc doc-contents ">
 
         <p>Return the per-phase voltage measuring point.</p>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/microgrid/_data_pipeline.py</code></summary>

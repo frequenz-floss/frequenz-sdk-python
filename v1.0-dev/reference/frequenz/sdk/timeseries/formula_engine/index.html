@@ -2201,19 +2201,34 @@
 
         <p>Provides a way for the SDK to apply formulas on resampled data streams.</p>
 <h3 id="frequenz.sdk.timeseries.formula_engine--formula-engine">Formula Engine<a class="headerlink" href="#frequenz.sdk.timeseries.formula_engine--formula-engine" title="Permanent link">¤</a></h3>
-<p><a class="autorefs autorefs-internal" title=" FormulaEngine" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine"><code>FormulaEngine</code></a>s are used in the
+<p><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine"><code>FormulaEngine</code></a>s are used in the
 SDK to calculate and stream metrics like
-<a class="autorefs autorefs-internal" title=" power" href="../grid/#frequenz.sdk.timeseries.grid.Grid.power"><code>grid_power</code></a>,
-<a class="autorefs autorefs-internal" title=" power" href="../consumer/#frequenz.sdk.timeseries.consumer.Consumer.power"><code>consumer_power</code></a>, etc., which are
+<a class="autorefs autorefs-internal" title="power
+
+
+  
+      property
+  " href="../grid/#frequenz.sdk.timeseries.grid.Grid.power"><code>grid_power</code></a>,
+<a class="autorefs autorefs-internal" title="power
+
+
+  
+      property
+  " href="../consumer/#frequenz.sdk.timeseries.consumer.Consumer.power"><code>consumer_power</code></a>, etc., which are
 building blocks of the <a class="autorefs autorefs-internal" title="Frequenz SDK Microgrid Model" href="../../microgrid/#frequenz.sdk.microgrid--frequenz-sdk-microgrid-model">Frequenz SDK Microgrid
 Model</a>.</p>
 <p>The SDK creates the formulas by analysing the configuration of components in the
 <a href="../../../../../user-guide/glossary/#component-graph">Component Graph</a>.</p>
 <h4 id="frequenz.sdk.timeseries.formula_engine--streaming-interface">Streaming Interface<a class="headerlink" href="#frequenz.sdk.timeseries.formula_engine--streaming-interface" title="Permanent link">¤</a></h4>
 <p>The
-<a class="autorefs autorefs-internal" title=" new_receiver" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine.new_receiver"><code>FormulaEngine.new_receiver()</code></a>
+<a class="autorefs autorefs-internal" title="new_receiver" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine.new_receiver"><code>FormulaEngine.new_receiver()</code></a>
 method can be used to create a <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a> that streams the
-<a class="autorefs autorefs-internal" title=" Sample" href="../#frequenz.sdk.timeseries.Sample">Sample</a>s calculated by the formula engine.</p>
+<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
+
+
+  
+      dataclass
+  " href="../#frequenz.sdk.timeseries.Sample">Sample</a>s calculated by the formula engine.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">frequenz.sdk</span><span class="w"> </span><span class="kn">import</span> <span class="n">microgrid</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">battery_pool</span> <span class="o">=</span> <span class="n">microgrid</span><span class="o">.</span><span class="n">new_battery_pool</span><span class="p">(</span><span class="n">priority</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
@@ -2226,10 +2241,20 @@ method can be used to create a <a class="autorefs autorefs-external" href="https
 <code>FormulaEngine</code>s streaming the same type of data.</p>
 <p>For example, if you're interested in a particular composite metric that can be
 calculated by subtracting
-<a class="autorefs autorefs-internal" title=" power" href="../battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.power"><code>new_battery_pool().power</code></a> and
-<a class="autorefs autorefs-internal" title=" EVChargerPool" href="../ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool"><code>new_ev_charger_pool().power</code></a>
+<a class="autorefs autorefs-internal" title="power
+
+
+  
+      property
+  " href="../battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.power"><code>new_battery_pool().power</code></a> and
+<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool" href="../ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool"><code>new_ev_charger_pool().power</code></a>
 from the
-<a class="autorefs autorefs-internal" title=" power" href="../grid/#frequenz.sdk.timeseries.grid.Grid.power"><code>grid().power</code></a>,
+<a class="autorefs autorefs-internal" title="power
+
+
+  
+      property
+  " href="../grid/#frequenz.sdk.timeseries.grid.Grid.power"><code>grid().power</code></a>,
 we can build a <code>FormulaEngine</code> that provides a stream of this calculated metric as
 follows:</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">frequenz.sdk</span><span class="w"> </span><span class="kn">import</span> <span class="n">microgrid</span>
@@ -2248,19 +2273,39 @@ follows:</p>
 </span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">power</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span></code></pre></div>
 <h3 id="frequenz.sdk.timeseries.formula_engine--formula-engine-3-phase">Formula Engine 3-Phase<a class="headerlink" href="#frequenz.sdk.timeseries.formula_engine--formula-engine-3-phase" title="Permanent link">¤</a></h3>
-<p>A <a class="autorefs autorefs-internal" title=" FormulaEngine3Phase" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase"><code>FormulaEngine3Phase</code></a>
+<p>A <a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase"><code>FormulaEngine3Phase</code></a>
 is similar to a
-<a class="autorefs autorefs-internal" title=" FormulaEngine" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine"><code>FormulaEngine</code></a>, except that
-they stream <a class="autorefs autorefs-internal" title=" Sample3Phase" href="../#frequenz.sdk.timeseries.Sample3Phase">3-phase samples</a>.  All the
+<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine"><code>FormulaEngine</code></a>, except that
+they stream <a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample3Phase
+
+
+  
+      dataclass
+  " href="../#frequenz.sdk.timeseries.Sample3Phase">3-phase samples</a>.  All the
 current formulas (like
-<a class="autorefs autorefs-internal" title=" current_per_phase" href="../grid/#frequenz.sdk.timeseries.grid.Grid.current_per_phase"><code>Grid.current_per_phase</code></a>,
-<a class="autorefs autorefs-internal" title=" current_per_phase" href="../ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.current_per_phase"><code>EVChargerPool.current_per_phase</code></a>,
+<a class="autorefs autorefs-internal" title="current_per_phase
+
+
+  
+      property
+  " href="../grid/#frequenz.sdk.timeseries.grid.Grid.current_per_phase"><code>Grid.current_per_phase</code></a>,
+<a class="autorefs autorefs-internal" title="current_per_phase
+
+
+  
+      property
+  " href="../ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.current_per_phase"><code>EVChargerPool.current_per_phase</code></a>,
 etc.) are implemented as per-phase formulas.</p>
 <h4 id="frequenz.sdk.timeseries.formula_engine--streaming-interface_1">Streaming Interface<a class="headerlink" href="#frequenz.sdk.timeseries.formula_engine--streaming-interface_1" title="Permanent link">¤</a></h4>
 <p>The
-<a class="autorefs autorefs-internal" title=" new_receiver" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase.new_receiver"><code>FormulaEngine3Phase.new_receiver()</code></a>
+<a class="autorefs autorefs-internal" title="new_receiver" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase.new_receiver"><code>FormulaEngine3Phase.new_receiver()</code></a>
 method can be used to create a <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a> that streams the
-<a class="autorefs autorefs-internal" title=" Sample3Phase" href="../#frequenz.sdk.timeseries.Sample3Phase">Sample3Phase</a> values
+<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample3Phase
+
+
+  
+      dataclass
+  " href="../#frequenz.sdk.timeseries.Sample3Phase">Sample3Phase</a> values
 calculated by the formula engine.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">frequenz.sdk</span><span class="w"> </span><span class="kn">import</span> <span class="n">microgrid</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
@@ -2285,6 +2330,7 @@ instances.</p>
 </span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="k">async</span> <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">other_current</span><span class="o">.</span><span class="n">new_receiver</span><span class="p">():</span>
 </span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Other current: </span><span class="si">{</span><span class="n">sample</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span></code></pre></div>
+
 
 
 
@@ -2319,7 +2365,7 @@ instances.</p>
 
 
         <p>An engine to apply formulas on resampled data streams.</p>
-<p>Please refer to the <a class="autorefs autorefs-internal" title=" formula_engine" href="#frequenz.sdk.timeseries.formula_engine">module documentation</a>
+<p>Please refer to the <a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine" href="#frequenz.sdk.timeseries.formula_engine">module documentation</a>
 for more information on how formula engines are used throughout the SDK.</p>
 
 
@@ -2352,6 +2398,7 @@ for more information on how formula engines are used throughout the SDK.</p>
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">power</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span></code></pre></div>
 </details>
+
 
 
 
@@ -2999,7 +3046,7 @@ for more information on how formula engines are used throughout the SDK.</p>
 <a href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine.__add__" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="fm">__add__</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="nf">other</span><span class="p">:</span> <span class="p">(</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="o">|</span> <span class="n"><span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder">HigherOrderFormulaBuilder</span></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="o">|</span> <span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="p">),</span>
@@ -3031,7 +3078,7 @@ sub-expression.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder">HigherOrderFormulaBuilder</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></code>
+                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder">HigherOrderFormulaBuilder</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></code>
                   </span>
               </p>
             </td>
@@ -3063,6 +3110,7 @@ into a formula engine.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
@@ -3170,6 +3218,7 @@ formula is for generating power values, this would be
       </tbody>
     </table>
 
+
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-94"> 94</a></span>
@@ -3227,7 +3276,7 @@ formula is for generating power values, this would be
 <a href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine.__mul__" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="fm">__mul__</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="nf">other</span><span class="p">:</span> <span class="p">(</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="o">|</span> <span class="n"><span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder">HigherOrderFormulaBuilder</span></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="o">|</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="p">),</span>
@@ -3259,7 +3308,7 @@ sub-expression.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder">HigherOrderFormulaBuilder</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder">HigherOrderFormulaBuilder</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
                   </span>
               </p>
             </td>
@@ -3291,6 +3340,7 @@ into a formula engine.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
@@ -3368,6 +3418,7 @@ into a formula engine.</p>
       </tbody>
     </table>
 
+
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-326">326</a></span>
@@ -3409,7 +3460,7 @@ into a formula engine.</p>
 <a href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine.__sub__" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="fm">__sub__</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="nf">other</span><span class="p">:</span> <span class="p">(</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="o">|</span> <span class="n"><span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder">HigherOrderFormulaBuilder</span></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="o">|</span> <span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="p">),</span>
@@ -3441,7 +3492,7 @@ sub-expression.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder">HigherOrderFormulaBuilder</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></code>
+                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder">HigherOrderFormulaBuilder</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></code>
                   </span>
               </p>
             </td>
@@ -3473,6 +3524,7 @@ into a formula engine.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
@@ -3525,7 +3577,7 @@ into a formula engine.</p>
 <a href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine.__truediv__" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="fm">__truediv__</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="nf">other</span><span class="p">:</span> <span class="p">(</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="o">|</span> <span class="n"><span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder">HigherOrderFormulaBuilder</span></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="o">|</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="p">),</span>
@@ -3557,7 +3609,7 @@ sub-expression.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder">HigherOrderFormulaBuilder</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder">HigherOrderFormulaBuilder</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
                   </span>
               </p>
             </td>
@@ -3589,6 +3641,7 @@ into a formula engine.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
@@ -3644,6 +3697,7 @@ into a formula engine.</p>
 <p>The consumption operator returns either the identity if the power value is
 positive or 0.</p>
 
+
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-284">284</a></span>
@@ -3685,11 +3739,16 @@ positive or 0.</p>
 <a href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine.from_receiver" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">from_receiver</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">receiver</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title=" Sample (frequenz.sdk.timeseries._base_types.Sample)" href="../#frequenz.sdk.timeseries.Sample">Sample</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]],</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">receiver</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
+
+
+  
+      dataclass
+   (frequenz.sdk.timeseries._base_types.Sample)" href="../#frequenz.sdk.timeseries.Sample">Sample</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]],</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">create_method</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable">Callable</a></span><span class="p">[[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span><span class="p">],</span> <span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">],</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="o">*</span><span class="p">,</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">nones_are_zeros</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3761,7 +3820,12 @@ from the same resampler and that the <code>create_method</code>s match.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a>[<a class="autorefs autorefs-internal" title=" Sample (frequenz.sdk.timeseries._base_types.Sample)" href="../#frequenz.sdk.timeseries.Sample">Sample</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]]</code>
+                      <code><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
+
+
+  
+      dataclass
+   (frequenz.sdk.timeseries._base_types.Sample)" href="../#frequenz.sdk.timeseries.Sample">Sample</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]]</code>
                   </span>
               </p>
             </td>
@@ -3818,7 +3882,7 @@ e.g. <code>Power.from_watts</code>.</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]</code>
+                    <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]</code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -3829,6 +3893,7 @@ e.g. <code>Power.from_watts</code>.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
@@ -3955,7 +4020,7 @@ e.g. <code>Power.from_watts</code>.</p>
 <a href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine.max" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">max</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="nf">other</span><span class="p">:</span> <span class="p">(</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="o">|</span> <span class="n"><span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder">HigherOrderFormulaBuilder</span></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="o">|</span> <span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="p">),</span>
@@ -3987,7 +4052,7 @@ corresponding to a sub-expression.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder">HigherOrderFormulaBuilder</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></code>
+                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder">HigherOrderFormulaBuilder</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></code>
                   </span>
               </p>
             </td>
@@ -4019,6 +4084,7 @@ into a formula engine.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
@@ -4071,7 +4137,7 @@ into a formula engine.</p>
 <a href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine.min" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">min</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="nf">other</span><span class="p">:</span> <span class="p">(</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="o">|</span> <span class="n"><span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder">HigherOrderFormulaBuilder</span></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="o">|</span> <span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="p">),</span>
@@ -4103,7 +4169,7 @@ corresponding to a sub-expression.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder">HigherOrderFormulaBuilder</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></code>
+                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder">HigherOrderFormulaBuilder</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></code>
                   </span>
               </p>
             </td>
@@ -4135,6 +4201,7 @@ into a formula engine.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
@@ -4187,7 +4254,12 @@ into a formula engine.</p>
 <a href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine.new_receiver" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">new_receiver</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">max_size</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">50</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title=" Sample (frequenz.sdk.timeseries._base_types.Sample)" href="../#frequenz.sdk.timeseries.Sample">Sample</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]]</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
+
+
+  
+      dataclass
+   (frequenz.sdk.timeseries._base_types.Sample)" href="../#frequenz.sdk.timeseries.Sample">Sample</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -4258,7 +4330,12 @@ into a formula engine.</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a>[<a class="autorefs autorefs-internal" title=" Sample (frequenz.sdk.timeseries._base_types.Sample)" href="../#frequenz.sdk.timeseries.Sample">Sample</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]]</code>
+                    <code><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
+
+
+  
+      dataclass
+   (frequenz.sdk.timeseries._base_types.Sample)" href="../#frequenz.sdk.timeseries.Sample">Sample</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]]</code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -4269,6 +4346,7 @@ into a formula engine.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
@@ -4350,6 +4428,7 @@ into a formula engine.</p>
 <p>The production operator returns either the absolute value if the power value is
 negative or 0.</p>
 
+
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-295">295</a></span>
@@ -4395,6 +4474,7 @@ negative or 0.</p>
     <div class="doc doc-contents ">
 
         <p>Stop a running formula engine.</p>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
@@ -4446,7 +4526,7 @@ negative or 0.</p>
 
 
         <p>An engine to apply formulas on 3-phase resampled data streams.</p>
-<p>Please refer to the <a class="autorefs autorefs-internal" title=" formula_engine" href="#frequenz.sdk.timeseries.formula_engine">module documentation</a>
+<p>Please refer to the <a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine" href="#frequenz.sdk.timeseries.formula_engine">module documentation</a>
 for more information on how formula engines are used throughout the SDK.</p>
 
 
@@ -4477,6 +4557,7 @@ for more information on how formula engines are used throughout the SDK.</p>
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Other current: </span><span class="si">{</span><span class="n">sample</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span></code></pre></div>
 </details>
+
 
 
 
@@ -5008,7 +5089,7 @@ for more information on how formula engines are used throughout the SDK.</p>
 <a href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase.__add__" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="fm">__add__</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="nf">other</span><span class="p">:</span> <span class="p">(</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title=" FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="o">|</span> <span class="n"><span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="p">),</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
@@ -5039,7 +5120,7 @@ sub-expression.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-internal" title=" FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]</code>
+                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]</code>
                   </span>
               </p>
             </td>
@@ -5071,6 +5152,7 @@ into a formula engine.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
@@ -5125,9 +5207,9 @@ into a formula engine.</p>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="nf">name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">create_method</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable">Callable</a></span><span class="p">[[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span><span class="p">],</span> <span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">],</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">phase_streams</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a></span><span class="p">[</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="n"><a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">],</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        <span class="n"><a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">],</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        <span class="n"><a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">],</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">],</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">],</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">],</span>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="p">],</span>
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </span></code></pre></div>
@@ -5190,13 +5272,14 @@ formula is for generating power values, this would be
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a>[<a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>], <a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>], <a class="autorefs autorefs-internal" title=" FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]]</code>
+                      <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>], <a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>], <a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine">FormulaEngine</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]]</code>
                   </span>
               </p>
             </td>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
@@ -5273,7 +5356,7 @@ formula is for generating power values, this would be
 <a href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase.__mul__" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="fm">__mul__</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="nf">other</span><span class="p">:</span> <span class="p">(</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title=" FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="o">|</span> <span class="n"><span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="p">),</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
@@ -5304,7 +5387,7 @@ sub-expression.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-internal" title=" FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]</code>
+                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]</code>
                   </span>
               </p>
             </td>
@@ -5336,6 +5419,7 @@ into a formula engine.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
@@ -5388,7 +5472,7 @@ into a formula engine.</p>
 <a href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase.__sub__" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="fm">__sub__</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="nf">other</span><span class="p">:</span> <span class="p">(</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title=" FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="o">|</span> <span class="n"><span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="p">),</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
@@ -5419,7 +5503,7 @@ sub-expression.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-internal" title=" FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]</code>
+                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]</code>
                   </span>
               </p>
             </td>
@@ -5451,6 +5535,7 @@ into a formula engine.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
@@ -5503,7 +5588,7 @@ into a formula engine.</p>
 <a href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase.__truediv__" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="fm">__truediv__</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="nf">other</span><span class="p">:</span> <span class="p">(</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title=" FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="o">|</span> <span class="n"><span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="p">),</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
@@ -5534,7 +5619,7 @@ sub-expression.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-internal" title=" FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]</code>
+                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]</code>
                   </span>
               </p>
             </td>
@@ -5566,6 +5651,7 @@ into a formula engine.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
@@ -5625,6 +5711,7 @@ into a formula engine.</p>
 <p>The consumption operator returns either the identity if the power value is
 positive or 0.</p>
 
+
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-546">546</a></span>
@@ -5662,7 +5749,7 @@ positive or 0.</p>
 <a href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase.max" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">max</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="nf">other</span><span class="p">:</span> <span class="p">(</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title=" FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="o">|</span> <span class="n"><span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="p">),</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
@@ -5693,7 +5780,7 @@ corresponding to a sub-expression.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-internal" title=" FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]</code>
+                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]</code>
                   </span>
               </p>
             </td>
@@ -5725,6 +5812,7 @@ into a formula engine.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
@@ -5777,7 +5865,7 @@ into a formula engine.</p>
 <a href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase.min" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">min</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="nf">other</span><span class="p">:</span> <span class="p">(</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title=" FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="o">|</span> <span class="n"><span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="p">),</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]</span>
@@ -5808,7 +5896,7 @@ corresponding to a sub-expression.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-internal" title=" FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]</code>
+                      <code><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase (frequenz.sdk.timeseries.formula_engine._formula_engine.FormulaEngine3Phase)" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase">FormulaEngine3Phase</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>] | <span title="frequenz.sdk.timeseries.formula_engine._formula_engine.HigherOrderFormulaBuilder3Phase">HigherOrderFormulaBuilder3Phase</span>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]</code>
                   </span>
               </p>
             </td>
@@ -5840,6 +5928,7 @@ into a formula engine.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
@@ -5892,7 +5981,12 @@ into a formula engine.</p>
 <a href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase.new_receiver" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">new_receiver</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">max_size</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">50</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title=" Sample3Phase (frequenz.sdk.timeseries._base_types.Sample3Phase)" href="../#frequenz.sdk.timeseries.Sample3Phase">Sample3Phase</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]]</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample3Phase
+
+
+  
+      dataclass
+   (frequenz.sdk.timeseries._base_types.Sample3Phase)" href="../#frequenz.sdk.timeseries.Sample3Phase">Sample3Phase</a></span><span class="p">[</span><span class="n"><span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span></span><span class="p">]]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -5963,7 +6057,12 @@ into a formula engine.</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a>[<a class="autorefs autorefs-internal" title=" Sample3Phase (frequenz.sdk.timeseries._base_types.Sample3Phase)" href="../#frequenz.sdk.timeseries.Sample3Phase">Sample3Phase</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]]</code>
+                    <code><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample3Phase
+
+
+  
+      dataclass
+   (frequenz.sdk.timeseries._base_types.Sample3Phase)" href="../#frequenz.sdk.timeseries.Sample3Phase">Sample3Phase</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]]</code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -5974,6 +6073,7 @@ into a formula engine.</p>
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
@@ -6055,6 +6155,7 @@ into a formula engine.</p>
 <p>The production operator returns either the absolute value if the power value is
 negative or 0.</p>
 
+
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-557">557</a></span>
@@ -6100,6 +6201,7 @@ negative or 0.</p>
     <div class="doc doc-contents ">
 
         <p>Stop a running formula engine.</p>
+
 
             <details class="quote">
               <summary>Source code in <code>frequenz/sdk/timeseries/formula_engine/_formula_engine.py</code></summary>

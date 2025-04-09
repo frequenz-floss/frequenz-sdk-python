@@ -1624,7 +1624,7 @@
         <p>Configuration management.</p>
 <h2 id="frequenz.sdk.config--overview">Overview<a class="headerlink" href="#frequenz.sdk.config--overview" title="Permanent link">¤</a></h2>
 <p>To provide dynamic configurations to an application, you can use the
-<a class="autorefs autorefs-internal" title=" ConfigManager" href="../../reference/frequenz/sdk/config/#frequenz.sdk.config.ConfigManager"><code>ConfigManager</code></a> class. This class provides
+<a class="autorefs autorefs-internal" title="frequenz.sdk.config.ConfigManager" href="../../reference/frequenz/sdk/config/#frequenz.sdk.config.ConfigManager"><code>ConfigManager</code></a> class. This class provides
 a convenient interface to manage configurations from multiple config files and receive
 updates when the configurations change.  Users can create a receiver to receive
 configurations from the manager.</p>
@@ -1643,7 +1643,7 @@ lists) will be replaced by the value in the last path.</p>
 </span></code></pre></div>
 <h2 id="frequenz.sdk.config--logging">Logging<a class="headerlink" href="#frequenz.sdk.config--logging" title="Permanent link">¤</a></h2>
 <p>The <code>ConfigManager</code> can also instantiate
-a <a class="autorefs autorefs-internal" title=" LoggingConfigUpdatingActor" href="../../reference/frequenz/sdk/config/#frequenz.sdk.config.LoggingConfigUpdatingActor"><code>LoggingConfigUpdatingActor</code></a> to
+a <a class="autorefs autorefs-internal" title="frequenz.sdk.config.LoggingConfigUpdatingActor" href="../../reference/frequenz/sdk/config/#frequenz.sdk.config.LoggingConfigUpdatingActor"><code>LoggingConfigUpdatingActor</code></a> to
 monitor logging configurations. This actor will listen for logging configuration changes
 and update the logging configuration accordingly.</p>
 <p>This feature is enabled by default using the key <code>logging</code> in the configuration file. To
@@ -1661,7 +1661,7 @@ errors loading the configuration (typically
 a <a class="autorefs autorefs-external" href="https://marshmallow.readthedocs.io/en/stable/top_level.html#marshmallow.ValidationError"><code>ValidationError</code></a>), or <code>None</code> if there is no
 configuration for the key.</p>
 <p>The value under <code>key</code> must be another mapping, otherwise
-a <a class="autorefs autorefs-internal" title=" InvalidValueForKeyError" href="../../reference/frequenz/sdk/config/#frequenz.sdk.config.InvalidValueForKeyError"><code>InvalidValueForKeyError</code></a> instance will
+a <a class="autorefs autorefs-internal" title="frequenz.sdk.config.InvalidValueForKeyError" href="../../reference/frequenz/sdk/config/#frequenz.sdk.config.InvalidValueForKeyError"><code>InvalidValueForKeyError</code></a> instance will
 be sent to the receiver.</p>
 <p>If there were any errors loading the configuration, the error will be logged too.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
@@ -1690,7 +1690,7 @@ the <a class="autorefs autorefs-external" href="https://lovasoa.github.io/marshm
 dataclass using <a class="autorefs autorefs-external" href="https://lovasoa.github.io/marshmallow_dataclass/html/marshmallow_dataclass.html#module-marshmallow_dataclass"><code>marshmallow_dataclass</code></a> to specify extra validation and
 options via field metadata.</p>
 <p>Customization can also be done via a <code>base_schema</code>. By default
-<a class="autorefs autorefs-internal" title=" BaseConfigSchema" href="../../reference/frequenz/sdk/config/#frequenz.sdk.config.BaseConfigSchema"><code>BaseConfigSchema</code></a> is used to provide support
+<a class="autorefs autorefs-internal" title="frequenz.sdk.config.BaseConfigSchema" href="../../reference/frequenz/sdk/config/#frequenz.sdk.config.BaseConfigSchema"><code>BaseConfigSchema</code></a> is used to provide support
 for some extra commonly used fields (like <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-quantities-python/v1/reference/frequenz/quantities/#frequenz.quantities">quantities</a>) and to
 exclude unknown fields by default.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">marshmallow.validate</span>
@@ -1716,7 +1716,7 @@ The comparison is done using the <em>raw</em> <code>dict</code> to determine if 
 has changed.</p>
 <h3 id="frequenz.sdk.config--error-handling">Error handling<a class="headerlink" href="#frequenz.sdk.config--error-handling" title="Permanent link">¤</a></h3>
 <p>The value under <code>key</code> must be another mapping, otherwise an error
-will be logged and a <a class="autorefs autorefs-internal" title=" InvalidValueForKeyError" href="../../reference/frequenz/sdk/config/#frequenz.sdk.config.InvalidValueForKeyError"><code>frequenz.sdk.config.InvalidValueForKeyError</code></a> instance
+will be logged and a <a class="autorefs autorefs-internal" title="frequenz.sdk.config.InvalidValueForKeyError" href="../../reference/frequenz/sdk/config/#frequenz.sdk.config.InvalidValueForKeyError"><code>frequenz.sdk.config.InvalidValueForKeyError</code></a> instance
 will be sent to the receiver.</p>
 <p>Configurations that don't pass the validation will be logged as an error and
 the <a class="autorefs autorefs-external" href="https://marshmallow.readthedocs.io/en/stable/top_level.html#marshmallow.ValidationError"><code>ValidationError</code></a> sent to the receiver.</p>
@@ -1725,7 +1725,12 @@ logged as an error and the error instance sent to the receiver.</p>
 <h3 id="frequenz.sdk.config--further-customization">Further customization<a class="headerlink" href="#frequenz.sdk.config--further-customization" title="Permanent link">¤</a></h3>
 <p>If you have special needs for receiving the configurations (for example validating using
 <code>marshmallow</code> doesn't fit your needs), you can create a custom receiver using
-<a class="autorefs autorefs-internal" title=" config_channel" href="../../reference/frequenz/sdk/config/#frequenz.sdk.config.ConfigManager.config_channel"><code>config_channel.new_receiver()</code></a>
+<a class="autorefs autorefs-internal" title="config_channel
+
+
+  
+      instance-attribute
+  " href="../../reference/frequenz/sdk/config/#frequenz.sdk.config.ConfigManager.config_channel"><code>config_channel.new_receiver()</code></a>
 directly. Please bear in mind that this provides a low-level access to the whole config
 in the file as a raw Python mapping.</p>
 <h2 id="frequenz.sdk.config--recommended-usage">Recommended usage<a class="headerlink" href="#frequenz.sdk.config--recommended-usage" title="Permanent link">¤</a></h2>
@@ -1735,7 +1740,12 @@ actors to have full control over how the configuration is loaded (for example pr
 a custom base schema or marshmallow options).</p>
 <p>Passing the key explicitly too allows application to structure the configuration in
 whatever way is most convenient for the application.</p>
-<p>Actors can use the <a class="autorefs autorefs-internal" title=" wait_for_first" href="../../reference/frequenz/sdk/config/#frequenz.sdk.config.wait_for_first"><code>wait_for_first()</code></a> function to
+<p>Actors can use the <a class="autorefs autorefs-internal" title="frequenz.sdk.config.wait_for_first
+
+
+  
+      async
+  " href="../../reference/frequenz/sdk/config/#frequenz.sdk.config.wait_for_first"><code>wait_for_first()</code></a> function to
 wait for the first configuration to be received, and cache the configuration for later
 use and in case the actor is restarted. If the configuration is not received after some
 timeout, a <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/asyncio-exceptions.html#asyncio.TimeoutError"><code>asyncio.TimeoutError</code></a> will be raised (and if uncaught, the actor will
@@ -2004,6 +2014,7 @@ a default configuration, the changes would be the same as in the actor examples.
 </span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;DEBUG&quot;</span>
 </span></code></pre></div>
 </details>
+
 
 
 
