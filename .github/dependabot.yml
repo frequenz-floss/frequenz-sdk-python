@@ -13,40 +13,50 @@ updates:
     versioning-strategy: auto
     # Allow up to 10 open pull requests for updates to dependency versions
     open-pull-requests-limit: 10
-    # We group production and development ("optional" in the context of
-    # pyproject.toml) dependency updates when they are patch and minor updates,
-    # so we end up with less PRs being generated.
-    # Major updates are still managed, but they'll create one PR per
-    # dependency, as major updates are expected to be breaking, it is better to
-    # manage them individually.
+    # We group patch updates as they should always work.
+    # We also group minor updates, as it works too for most libraries,
+    # typically except libraries that don't have a stable release yet (v0.x.x
+    # branch), so we make some exceptions for them.
+    # Major updates and dependencies excluded by the above groups are still
+    # managed, but they'll create one PR per dependency, as breakage is
+    # expected, so it might need manual intervention.
+    # Finally, we group some dependencies that are related to each other, and
+    # usually need to be updated together.
     groups:
-      required:
-        dependency-type: "production"
+      patch:
         update-types:
-          - "minor"
           - "patch"
         exclude-patterns:
-          - "frequenz-client-microgrid*"
-      optional:
-        dependency-type: "development"
+          # pydoclint has shipped breaking changes in patch updates often
+          - "pydoclint"
+      minor:
         update-types:
           - "minor"
-          - "patch"
-      in-devel-patch:
+        exclude-patterns:
+          - "async-solipsism"
+          - "frequenz-client-microgrid"
+          - "frequenz-repo-config*"
+          - "markdown-callouts"
+          - "mkdocs-gen-files"
+          - "mkdocs-literate-nav"
+          - "mkdocstrings*"
+          - "pydoclint"
+          - "pytest-asyncio"
+      # We group repo-config updates as it uses optional dependencies that are
+      # considered different dependencies otherwise, and will create one PR for
+      # each if we don't group them.
+      repo-config:
         patterns:
-          - "frequenz-client-microgrid*"
-        dependency-type: "production"
-        update-types:
-          - "patch"
+          - "frequenz-repo-config*"
+      mkdocstrings:
+        patterns:
+          - "mkdocstrings*"
     ignore:
       # Upgrade to time-machine 2.13.0+ breaks our tests. See:
       # https://github.com/frequenz-floss/frequenz-sdk-python/issues/832
       - dependency-name: "time-machine"
         versions: [">=2.13.0"]
-      # Upgrading to 0.16.0+ needs a lot of changes in the code. See:
-      # https://github.com/frequenz-floss/frequenz-sdk-python/issues/844
-      - dependency-name: "frequenz-api-microgrid"
-        versions: [">=0.16.0"]
+
 
 
   - package-ecosystem: "github-actions"

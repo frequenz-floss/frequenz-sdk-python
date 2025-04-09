@@ -47,8 +47,6 @@ jobs:
       - name: Run nox
         uses: frequenz-floss/gh-action-nox@v1.0.0
         with:
-          git-username: ${{ secrets.GIT_USER }}
-          git-password: ${{ secrets.GIT_PASS }}
           python-version: ${{ matrix.python }}
           nox-session: ${{ matrix.nox-session }}
 
