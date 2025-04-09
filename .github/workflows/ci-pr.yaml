@@ -1,6 +1,7 @@
 name: Test PR
 
-on: pull_request
+on:
+  pull_request:
 
 env:
   # Please make sure this version is included in the `matrix`, as the
