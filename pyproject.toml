@@ -163,6 +163,14 @@ disable = [
 max-attributes = 12
 
 [tool.pytest.ini_options]
+# We need to ignore PytestUnraisableExceptionWarning because we have some
+# cleanup issues, and sometimes exceptions are raised in __del__ methods, for
+# example when trying to do async stuff and the event loop is already closed.
+# This could even be caused by the GC, some time after the test function that
+# has the issue was completed.
+# Please see this issue for more details:
+# https://github.com/frequenz-floss/frequenz-sdk-python/issues/982
+addopts = "-W=all -Werror -Wdefault::DeprecationWarning -Wdefault::PendingDeprecationWarning -Wdefault::pytest.PytestUnraisableExceptionWarning -vv"
 testpaths = ["tests", "src"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
