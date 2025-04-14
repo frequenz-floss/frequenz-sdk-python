@@ -99,6 +99,9 @@ class ShiftingMatryoshka(BaseAlgorithm):
         top_pri_bounds: Bounds[Power] | None = None
 
         target_power = Power.zero()
+
+        allocations: dict[str, str] = {}
+
         for next_proposal in sorted(proposals, reverse=True):
             # if a priority is given, the bounds calculated until that priority is
             # reached will be the bounds available to an actor with the given priority.
@@ -153,6 +156,8 @@ class ShiftingMatryoshka(BaseAlgorithm):
                 # Add the proposal power to the target power (aka shift in the opposite direction).
                 target_power += proposal_power
 
+                allocations[next_proposal.source_id] = str(proposal_power)
+
         # The `top_pri_bounds` is to ensure that when applying the exclusion bounds to
         # the target power at the end, we respect the bounds that were set by the first
         # power-proposing actor.
@@ -166,6 +171,13 @@ class ShiftingMatryoshka(BaseAlgorithm):
             available_bounds.upper,
             system_bounds.exclusion_bounds,
         )
+
+        if allocations:
+            _logger.info(
+                "PowerManager allocations for component IDs: %s: %s",
+                sorted(component_ids),
+                allocations,
+            )
 
         return target_power, Bounds[Power](lower=lower_bound, upper=upper_bound)
 
