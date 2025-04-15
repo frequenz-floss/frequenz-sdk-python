@@ -63,20 +63,21 @@ class ShiftingMatryoshka(BaseAlgorithm):
 
     def _calc_targets(
         self,
-        proposals: set[Proposal],
+        component_ids: frozenset[int],
         system_bounds: SystemBounds,
         priority: int | None = None,
     ) -> tuple[Power | None, Bounds[Power]]:
         """Calculate the target power and bounds for the given components.
 
         Args:
-            proposals: The proposals for the given components.
+            component_ids: The component IDs to calculate the target power for.
             system_bounds: The system bounds for the components in the proposal.
             priority: The priority of the actor for which the target power is calculated.
 
         Returns:
             The new target power and bounds for the components.
         """
+        proposals = self._component_buckets.get(component_ids, set())
         lower_bound = (
             system_bounds.inclusion_bounds.lower
             if system_bounds.inclusion_bounds
@@ -98,6 +99,9 @@ class ShiftingMatryoshka(BaseAlgorithm):
         top_pri_bounds: Bounds[Power] | None = None
 
         target_power = Power.zero()
+
+        allocations: dict[str, str] = {}
+
         for next_proposal in sorted(proposals, reverse=True):
             # if a priority is given, the bounds calculated until that priority is
             # reached will be the bounds available to an actor with the given priority.
@@ -152,6 +156,8 @@ class ShiftingMatryoshka(BaseAlgorithm):
                 # Add the proposal power to the target power (aka shift in the opposite direction).
                 target_power += proposal_power
 
+                allocations[next_proposal.source_id] = str(proposal_power)
+
         # The `top_pri_bounds` is to ensure that when applying the exclusion bounds to
         # the target power at the end, we respect the bounds that were set by the first
         # power-proposing actor.
@@ -165,6 +171,13 @@ class ShiftingMatryoshka(BaseAlgorithm):
             available_bounds.upper,
             system_bounds.exclusion_bounds,
         )
+
+        if allocations:
+            _logger.info(
+                "PowerManager allocations for component IDs: %s: %s",
+                sorted(component_ids),
+                allocations,
+            )
 
         return target_power, Bounds[Power](lower=lower_bound, upper=upper_bound)
 
@@ -242,9 +255,7 @@ class ShiftingMatryoshka(BaseAlgorithm):
                 del self._component_buckets[component_ids]
                 _ = self._target_power.pop(component_ids, None)
 
-        target_power, _ = self._calc_targets(
-            self._component_buckets.get(component_ids, set()), system_bounds
-        )
+        target_power, _ = self._calc_targets(component_ids, system_bounds)
 
         if target_power is not None and (
             must_return_power
@@ -274,9 +285,7 @@ class ShiftingMatryoshka(BaseAlgorithm):
                 the given priority.
         """
         target_power = self._target_power.get(component_ids)
-        _, bounds = self._calc_targets(
-            self._component_buckets.get(component_ids, set()), system_bounds, priority
-        )
+        _, bounds = self._calc_targets(component_ids, system_bounds, priority)
         return _Report(
             target_power=target_power,
             _inclusion_bounds=timeseries.Bounds[Power](
