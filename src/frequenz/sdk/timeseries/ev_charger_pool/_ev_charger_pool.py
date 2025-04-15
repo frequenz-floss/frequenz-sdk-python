@@ -217,7 +217,12 @@ class EVChargerPool:
 
     async def stop(self) -> None:
         """Stop all tasks and channels owned by the EVChargerPool."""
-        await self._pool_ref_store.stop()
+        # This was closing the pool_ref_store, which is not correct, because those are
+        # shared.
+        #
+        # This method will do until we have a mechanism to track the resources created
+        # through it.  It can also eventually cleanup the pool_ref_store, when it is
+        # holding the last reference to it.
 
     @property
     def _system_power_bounds(self) -> ReceiverFetcher[SystemBounds]:
