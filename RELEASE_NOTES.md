@@ -14,4 +14,5 @@
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+- Fixes a bug where battery pool metrics would stop for one actor when another actor managing the same components stops its pool.
+
