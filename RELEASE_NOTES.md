@@ -1,17 +1,5 @@
 # Frequenz Python SDK Release Notes
 
-## Summary
-
-<!-- Here goes a general summary of what this release is about -->
-
-## Upgrading
-
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
-
-## New Features
-
-<!-- Here goes the main new features and examples or instructions on how to use them -->
-
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+- The additive `ShiftingMatryoshka` algorithm was made for batteries, but got set as the default algorithm for PV and EV chargers.  This is now reversed and PV and EV chargers are back to using the original `Matryoshka` algorithm.
