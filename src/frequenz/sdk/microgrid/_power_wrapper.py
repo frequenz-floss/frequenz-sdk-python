@@ -23,6 +23,7 @@ from ._power_distributing import (
     Request,
     Result,
 )
+from ._power_managing._base_classes import Algorithm
 
 _logger = logging.getLogger(__name__)
 
@@ -30,11 +31,12 @@ _logger = logging.getLogger(__name__)
 class PowerWrapper:
     """Wrapper around the power managing and power distributing actors."""
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         channel_registry: ChannelRegistry,
         *,
         api_power_request_timeout: timedelta,
+        power_manager_algorithm: Algorithm,
         component_category: ComponentCategory,
         component_type: ComponentType | None = None,
     ):
@@ -44,6 +46,7 @@ class PowerWrapper:
             channel_registry: A channel registry for use in the actors.
             api_power_request_timeout: Timeout to use when making power requests to
                 the microgrid API.
+            power_manager_algorithm: The power management algorithm to use.
             component_category: The category of the components that actors started by
                 this instance of the PowerWrapper will be responsible for.
             component_type: The type of the component of the given category that this
@@ -56,6 +59,7 @@ class PowerWrapper:
         """
         self._component_category = component_category
         self._component_type = component_type
+        self._power_manager_algorithm = power_manager_algorithm
         self._channel_registry = channel_registry
         self._api_power_request_timeout = api_power_request_timeout
 
@@ -101,6 +105,7 @@ class PowerWrapper:
         self._power_managing_actor = _power_managing.PowerManagingActor(
             component_category=self._component_category,
             component_type=self._component_type,
+            algorithm=self._power_manager_algorithm,
             proposals_receiver=self.proposal_channel.new_receiver(),
             bounds_subscription_receiver=(
                 self.bounds_subscription_channel.new_receiver()
