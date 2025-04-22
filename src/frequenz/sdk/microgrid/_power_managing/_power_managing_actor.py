@@ -39,11 +39,9 @@ class PowerManagingActor(Actor):
         power_distributing_requests_sender: Sender[_power_distributing.Request],
         power_distributing_results_receiver: Receiver[_power_distributing.Result],
         channel_registry: ChannelRegistry,
+        algorithm: Algorithm,
         component_category: ComponentCategory,
         component_type: ComponentType | None = None,
-        # arguments to actors need to serializable, so we pass an enum for the algorithm
-        # instead of an instance of the algorithm.
-        algorithm: Algorithm = Algorithm.SHIFTING_MATRYOSHKA,
     ):
         """Create a new instance of the power manager.
 
@@ -55,6 +53,7 @@ class PowerManagingActor(Actor):
             power_distributing_results_receiver: The receiver for power distribution
                 results.
             channel_registry: The channel registry.
+            algorithm: The power management algorithm to use.
             component_category: The category of the component this power manager
                 instance is going to support.
             component_type: The type of the component of the given category that this
@@ -64,7 +63,6 @@ class PowerManagingActor(Actor):
                 the inverter as a solar inverter or a battery inverter.  This can be
                 `None` when the component category is enough to uniquely identify the
                 component.
-            algorithm: The power management algorithm to use.
         """
         self._component_category = component_category
         self._component_type = component_type
