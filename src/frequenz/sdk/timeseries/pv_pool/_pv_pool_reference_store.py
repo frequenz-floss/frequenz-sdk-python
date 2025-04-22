@@ -97,15 +97,20 @@ class PVPoolReferenceStore:
             name=f"System Bounds for PV inverters: {component_ids}",
             resend_latest=True,
         )
-        self.bounds_tracker: PVSystemBoundsTracker = PVSystemBoundsTracker(
-            self.component_ids,
-            self.status_receiver,
-            self.bounds_channel.new_sender(),
-        )
-        self.bounds_tracker.start()
+
+        self.bounds_tracker: PVSystemBoundsTracker | None = None
+        # In locations without PV inverters, the bounds tracker will not be started.
+        if self.component_ids:
+            self.bounds_tracker = PVSystemBoundsTracker(
+                self.component_ids,
+                self.status_receiver,
+                self.bounds_channel.new_sender(),
+            )
+            self.bounds_tracker.start()
 
     async def stop(self) -> None:
         """Stop all tasks and channels owned by the PVInverterPool."""
         await self.formula_pool.stop()
-        await self.bounds_tracker.stop()
+        if self.bounds_tracker is not None:
+            await self.bounds_tracker.stop()
         self.status_receiver.close()
