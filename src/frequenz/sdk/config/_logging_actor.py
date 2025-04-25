@@ -25,8 +25,8 @@ LogLevel = Annotated[
 
 
 @dataclass(frozen=True, kw_only=True)
-class LoggerConfig:
-    """A configuration for a logger."""
+class RootLoggerConfig:
+    """A configuration for the root logger."""
 
     level: LogLevel = field(
         default="NOTSET",
@@ -36,15 +36,29 @@ class LoggerConfig:
             },
         },
     )
-    """The log level for the logger."""
+    """The log level for the root logger."""
+
+
+@dataclass(frozen=True, kw_only=True)
+class LoggerConfig(RootLoggerConfig):
+    """A configuration for a logger."""
+
+    name: str = field(
+        metadata={
+            "metadata": {
+                "description": "The name of the logger that will be affected by this "
+                "configuration."
+            },
+        },
+    )
 
 
 @dataclass(frozen=True, kw_only=True)
 class LoggingConfig:
     """A configuration for the logging system."""
 
-    root_logger: LoggerConfig = field(
-        default_factory=lambda: LoggerConfig(level="INFO"),
+    root_logger: RootLoggerConfig = field(
+        default_factory=lambda: RootLoggerConfig(level="INFO"),
         metadata={
             "metadata": {
                 "description": "Default default configuration for all loggers.",
@@ -73,10 +87,12 @@ class LoggingConfigUpdatingActor(Actor):
         [logging.root_logger]
         level = "INFO"
 
-        [logging.loggers."frequenz.sdk.actor.power_distributing"]
+        [logging.loggers.power_dist]
+        name = "frequenz.sdk.actor.power_distributing"
         level = "DEBUG"
 
-        [logging.loggers."frequenz.channels"]
+        [logging.loggers.chan]
+        name = "frequenz.channels"
         level = "DEBUG"
         ```
 
@@ -184,10 +200,12 @@ class LoggingConfigUpdatingActor(Actor):
     def _update_logging(self, config: LoggingConfig) -> None:
         """Configure the logging level."""
         # If the logger is not in the new config, set it to NOTSET
-        loggers_to_unset = self._current_config.loggers.keys() - config.loggers.keys()
-        for logger_id in loggers_to_unset:
-            _logger.debug("Unsetting log level for logger '%s'", logger_id)
-            logging.getLogger(logger_id).setLevel(logging.NOTSET)
+        old_names = {old.name for old in self._current_config.loggers.values()}
+        new_names = {new.name for new in config.loggers.values()}
+        loggers_to_unset = old_names - new_names
+        for logger_name in loggers_to_unset:
+            _logger.debug("Unsetting log level for logger '%s'", logger_name)
+            logging.getLogger(logger_name).setLevel(logging.NOTSET)
 
         self._current_config = config
         _logger.info(
@@ -196,12 +214,12 @@ class LoggingConfigUpdatingActor(Actor):
         logging.getLogger().setLevel(self._current_config.root_logger.level)
 
         # For each logger in the new config, set the log level
-        for logger_id, logger_config in self._current_config.loggers.items():
+        for logger_config in self._current_config.loggers.values():
             _logger.info(
                 "Setting log level for logger '%s' to '%s'",
-                logger_id,
+                logger_config.name,
                 logger_config.level,
             )
-            logging.getLogger(logger_id).setLevel(logger_config.level)
+            logging.getLogger(logger_config.name).setLevel(logger_config.level)
 
         _logger.info("Logging config update completed.")

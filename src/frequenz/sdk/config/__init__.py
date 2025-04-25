@@ -424,7 +424,12 @@ Example: Application
 """
 
 from ._base_schema import BaseConfigSchema
-from ._logging_actor import LoggerConfig, LoggingConfig, LoggingConfigUpdatingActor
+from ._logging_actor import (
+    LoggerConfig,
+    LoggingConfig,
+    LoggingConfigUpdatingActor,
+    RootLoggerConfig,
+)
 from ._manager import ConfigManager, InvalidValueForKeyError, wait_for_first
 from ._managing_actor import ConfigManagingActor
 from ._util import load_config
@@ -437,6 +442,7 @@ __all__ = [
     "LoggerConfig",
     "LoggingConfig",
     "LoggingConfigUpdatingActor",
+    "RootLoggerConfig",
     "load_config",
     "wait_for_first",
 ]
