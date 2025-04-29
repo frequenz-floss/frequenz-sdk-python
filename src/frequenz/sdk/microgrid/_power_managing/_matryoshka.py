@@ -203,14 +203,8 @@ class Matryoshka(BaseAlgorithm):
 
         target_power = self._calc_target_power(proposals, system_bounds)
 
-        if (
-            must_return_power
-            or component_ids not in self._target_power
-            or self._target_power[component_ids] != target_power
-        ):
-            self._target_power[component_ids] = target_power
-            return target_power
-        return None
+        self._target_power[component_ids] = target_power
+        return target_power
 
     @override
     def get_status(

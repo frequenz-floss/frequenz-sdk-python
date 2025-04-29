@@ -257,14 +257,9 @@ class ShiftingMatryoshka(BaseAlgorithm):
 
         target_power, _ = self._calc_targets(component_ids, system_bounds)
 
-        if target_power is not None and (
-            must_return_power
-            or component_ids not in self._target_power
-            or self._target_power[component_ids] != target_power
-        ):
+        if target_power is not None:
             self._target_power[component_ids] = target_power
-            return target_power
-        return None
+        return target_power
 
     @override
     def get_status(  # pylint: disable=too-many-locals
