@@ -121,7 +121,14 @@ class PowerManagingActor(Actor):
                 collective bounds of.
             bounds_receiver: The receiver for power bounds.
         """
+        last_bounds: SystemBounds | None = None
         async for bounds in bounds_receiver:
+            if (
+                last_bounds is not None
+                and bounds.inclusion_bounds == last_bounds.inclusion_bounds
+            ):
+                continue
+            last_bounds = bounds
             self._system_bounds[component_ids] = bounds
             await self._send_updated_target_power(component_ids, None)
             await self._send_reports(component_ids)
