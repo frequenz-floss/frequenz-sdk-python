@@ -158,7 +158,6 @@ class Matryoshka(BaseAlgorithm):
         component_ids: frozenset[int],
         proposal: Proposal | None,
         system_bounds: SystemBounds,
-        must_return_power: bool = False,
     ) -> Power | None:
         """Calculate and return the target power for the given components.
 
@@ -167,12 +166,10 @@ class Matryoshka(BaseAlgorithm):
             proposal: If given, the proposal to added to the bucket, before the target
                 power is calculated.
             system_bounds: The system bounds for the components in the proposal.
-            must_return_power: If `True`, the algorithm must return a target power,
-                even if it hasn't changed since the last call.
 
         Returns:
             The new target power for the components, or `None` if the target power
-                didn't change.
+                couldn't be calculated.
 
         Raises:  # noqa: DOC502
             NotImplementedError: When the proposal contains component IDs that are

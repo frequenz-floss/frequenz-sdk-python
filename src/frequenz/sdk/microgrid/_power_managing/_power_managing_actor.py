@@ -186,13 +186,11 @@ class PowerManagingActor(Actor):
         self,
         component_ids: frozenset[int],
         proposal: Proposal | None,
-        must_send: bool = False,
     ) -> None:
         target_power = self._algorithm.calculate_target_power(
             component_ids,
             proposal,
             self._system_bounds[component_ids],
-            must_send,
         )
         if target_power is not None:
             await self._power_distributing_requests_sender.send(
@@ -228,9 +226,7 @@ class PowerManagingActor(Actor):
                 # This can be removed as soon as
                 # https://github.com/frequenz-floss/frequenz-sdk-python/issues/293 is
                 # implemented.
-                await self._send_updated_target_power(
-                    proposal.component_ids, proposal, must_send=True
-                )
+                await self._send_updated_target_power(proposal.component_ids, proposal)
                 await self._send_reports(proposal.component_ids)
 
             elif selected_from(selected, self._bounds_subscription_receiver):
@@ -265,7 +261,7 @@ class PowerManagingActor(Actor):
                         if not last_result_partial_failure:
                             last_result_partial_failure = True
                             await self._send_updated_target_power(
-                                frozenset(request.component_ids), None, must_send=True
+                                frozenset(request.component_ids), None
                             )
                     case _power_distributing.Success():
                         last_result_partial_failure = False

@@ -41,7 +41,6 @@ class StatefulTester:
         bounds: tuple[float | None, float | None],
         expected: float | None,
         creation_time: float | None = None,
-        must_send: bool = False,
         batteries: frozenset[int] | None = None,
     ) -> None:
         """Test the target power calculation."""
@@ -64,7 +63,6 @@ class StatefulTester:
                 ),
             ),
             self._system_bounds,
-            must_send,
         )
         assert tgt_power == (
             Power.from_watts(expected) if expected is not None else None
@@ -114,9 +112,7 @@ async def test_matryoshka_no_excl() -> None:  # pylint: disable=too-many-stateme
     tester.bounds(priority=1, expected_power=25.0, expected_bounds=(0.0, 25.0))
 
     tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=45.0)
-    tester.tgt_power(
-        priority=1, power=20.0, bounds=(20.0, 50.0), expected=45.0, must_send=True
-    )
+    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=45.0)
     tester.bounds(priority=1, expected_power=45.0, expected_bounds=(0.0, 25.0))
 
     tester.tgt_power(priority=3, power=10.0, bounds=(10.0, 15.0), expected=15.0)
@@ -428,13 +424,9 @@ async def test_matryoshka_drop_old_proposals() -> None:
         expected=47.0,
     )
 
-    tester.tgt_power(
-        priority=1, power=20.0, bounds=(20.0, 50.0), expected=67.0, must_send=True
-    )
+    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=67.0)
     tester.algorithm.drop_old_proposals(now)
-    tester.tgt_power(
-        priority=1, power=20.0, bounds=(20.0, 50.0), expected=42.0, must_send=True
-    )
+    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=42.0)
 
     # When overwritten by a newer proposal, that proposal is not dropped.
     tester.tgt_power(
@@ -450,16 +442,11 @@ async def test_matryoshka_drop_old_proposals() -> None:
         bounds=(25.0, 50.0),
         creation_time=now - 30.0,
         expected=67.0,
-        must_send=True,
     )
 
-    tester.tgt_power(
-        priority=1, power=20.0, bounds=(20.0, 50.0), expected=67.0, must_send=True
-    )
+    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=67.0)
     tester.algorithm.drop_old_proposals(now)
-    tester.tgt_power(
-        priority=1, power=20.0, bounds=(20.0, 50.0), expected=67.0, must_send=True
-    )
+    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=67.0)
 
     # When all proposals are too old, they are dropped, and the buckets are dropped as
     # well.  After that, sending a request for a different but overlapping bucket will
@@ -476,7 +463,6 @@ async def test_matryoshka_drop_old_proposals() -> None:
             power=25.0,
             bounds=(25.0, 50.0),
             expected=25.0,
-            must_send=True,
             batteries=overlapping_batteries,
         )
 
@@ -486,7 +472,6 @@ async def test_matryoshka_drop_old_proposals() -> None:
         bounds=(25.0, 100.0),
         creation_time=now - 70.0,
         expected=72.0,
-        must_send=True,
     )
     tester.tgt_power(
         priority=2,
@@ -494,7 +479,6 @@ async def test_matryoshka_drop_old_proposals() -> None:
         bounds=(25.0, 100.0),
         creation_time=now - 70.0,
         expected=72.0,
-        must_send=True,
     )
     tester.tgt_power(
         priority=3,
@@ -502,7 +486,6 @@ async def test_matryoshka_drop_old_proposals() -> None:
         bounds=(25.0, 100.0),
         creation_time=now - 70.0,
         expected=75.0,
-        must_send=True,
     )
 
     tester.algorithm.drop_old_proposals(now)
@@ -512,7 +495,6 @@ async def test_matryoshka_drop_old_proposals() -> None:
         power=25.0,
         bounds=(25.0, 50.0),
         expected=25.0,
-        must_send=True,
         batteries=overlapping_batteries,
     )
 
@@ -547,7 +529,6 @@ async def test_matryoshka_none_proposals() -> None:
                 power=None,
                 bounds=(20.0, 50.0),
                 expected=None,
-                must_send=True,
                 batteries=overlapping_batteries,
             )
 
