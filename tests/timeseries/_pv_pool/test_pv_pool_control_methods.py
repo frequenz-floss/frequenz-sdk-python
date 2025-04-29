@@ -95,7 +95,7 @@ class TestPVPoolControl:
 
     def _assert_report(  # pylint: disable=too-many-arguments
         self,
-        report: PVPoolReport,
+        report: PVPoolReport | None,
         *,
         power: float | None,
         lower: float,
@@ -105,7 +105,7 @@ class TestPVPoolControl:
             typing.Callable[[_power_distributing.Result], bool] | None
         ) = None,
     ) -> None:
-        assert report.target_power == (
+        assert report is not None and report.target_power == (
             Power.from_watts(power) if power is not None else None
         )
         assert report.bounds is not None
@@ -119,15 +119,18 @@ class TestPVPoolControl:
         self,
         bounds_rx: Receiver[PVPoolReport],
         check: typing.Callable[[PVPoolReport], bool],
-    ) -> None:
+    ) -> PVPoolReport | None:
         """Receive reports until the given condition is met."""
         max_reports = 10
         ctr = 0
+        latest_report: PVPoolReport | None = None
         while ctr < max_reports:
             ctr += 1
-            report = await bounds_rx.receive()
-            if check(report):
+            latest_report = await bounds_rx.receive()
+            if check(latest_report):
                 break
+
+        return latest_report
 
     async def test_setting_power(  # pylint: disable=too-many-statements
         self,
@@ -142,13 +145,11 @@ class TestPVPoolControl:
         await self._init_pv_inverters(mocks)
         pv_pool = microgrid.new_pv_pool(priority=5)
         bounds_rx = pv_pool.power_status.new_receiver()
-        await self._recv_reports_until(
+        latest_report = await self._recv_reports_until(
             bounds_rx,
             lambda x: x.bounds is not None and x.bounds.lower.as_watts() == -100000.0,
         )
-        self._assert_report(
-            await bounds_rx.receive(), power=None, lower=-100000.0, upper=0.0
-        )
+        self._assert_report(latest_report, power=None, lower=-100000.0, upper=0.0)
         await pv_pool.propose_power(Power.from_watts(-80000.0))
         await self._recv_reports_until(
             bounds_rx,
