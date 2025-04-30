@@ -889,7 +889,7 @@ class _MicrogridComponentGraph(
             InvalidGraphError: If:
                 - There are no components.
                 - There are no connections.
-                - The graph is not a tree.
+                - The graph is not a tree (but tree with dangling components is allowed).
                 - Any node lacks its associated component data.
         """
         if self._graph.number_of_nodes() == 0:
@@ -899,7 +899,7 @@ class _MicrogridComponentGraph(
             raise InvalidGraphError("No connections in component graph!")
 
         if not nx.is_directed_acyclic_graph(self._graph):
-            raise InvalidGraphError("Component graph is not a tree!")
+            raise InvalidGraphError("Component graph has a cycle!")
 
         # This check doesn't seem to have much sense, it only search for nodes without
         # data associated with them. We leave it here for now, but we should consider
@@ -918,15 +918,12 @@ class _MicrogridComponentGraph(
         if sum(1 for _ in self.connections()) <= 0:
             raise InvalidGraphError("Graph must have a least one connection!")
 
-        # should be true as a consequence of the tree property:
-        # there should be no unconnected components
-        unconnected = filter(
-            lambda c: self._graph.degree(c.component_id) == 0, self.components()
-        )
-        if sum(1 for _ in unconnected) != 0:
-            raise InvalidGraphError(
-                "Every component must have at least one connection!"
-            )
+        for component in self.components():
+            if self._graph.degree(component.component_id) == 0:
+                _logger.warning(
+                    "Component %s has no connections and will be ignored",
+                    component,
+                )
 
     def _validate_graph_root(self) -> None:
         """Check that there is exactly one node without predecessors, of valid type.
