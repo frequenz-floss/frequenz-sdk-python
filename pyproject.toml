@@ -35,7 +35,7 @@ dependencies = [
   "networkx >= 2.8, < 4",
   "numpy >= 1.26.4, < 2",
   "typing_extensions >= 4.6.1, < 5",
-  "marshmallow >= 3.19.0, < 4",
+  "marshmallow >= 3.19.0, < 5",
   "marshmallow_dataclass >= 8.7.1, < 9",
 ]
 dynamic = ["version"]
