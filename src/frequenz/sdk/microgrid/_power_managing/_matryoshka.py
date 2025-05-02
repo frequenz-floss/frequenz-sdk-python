@@ -49,7 +49,7 @@ class Matryoshka(BaseAlgorithm):
         self,
         proposals: set[Proposal],
         system_bounds: SystemBounds,
-    ) -> Power:
+    ) -> Power | None:
         """Calculate the target power for the given components.
 
         Args:
@@ -80,7 +80,7 @@ class Matryoshka(BaseAlgorithm):
         ):
             exclusion_bounds = system_bounds.exclusion_bounds
 
-        target_power = Power.zero()
+        target_power = None
         for next_proposal in sorted(proposals, reverse=True):
             if upper_bound < lower_bound:
                 break
@@ -200,7 +200,9 @@ class Matryoshka(BaseAlgorithm):
 
         target_power = self._calc_target_power(proposals, system_bounds)
 
-        self._target_power[component_ids] = target_power
+        if target_power is not None:
+            self._target_power[component_ids] = target_power
+
         return target_power
 
     @override
