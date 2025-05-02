@@ -23,12 +23,12 @@ from ._power_distributing import (
     Request,
     Result,
 )
-from ._power_managing._base_classes import Algorithm
+from ._power_managing._base_classes import Algorithm, DefaultPower
 
 _logger = logging.getLogger(__name__)
 
 
-class PowerWrapper:
+class PowerWrapper:  # pylint: disable=too-many-instance-attributes
     """Wrapper around the power managing and power distributing actors."""
 
     def __init__(  # pylint: disable=too-many-arguments
@@ -37,6 +37,7 @@ class PowerWrapper:
         *,
         api_power_request_timeout: timedelta,
         power_manager_algorithm: Algorithm,
+        default_power: DefaultPower,
         component_category: ComponentCategory,
         component_type: ComponentType | None = None,
     ):
@@ -47,6 +48,7 @@ class PowerWrapper:
             api_power_request_timeout: Timeout to use when making power requests to
                 the microgrid API.
             power_manager_algorithm: The power management algorithm to use.
+            default_power: The default power to use for the components.
             component_category: The category of the components that actors started by
                 this instance of the PowerWrapper will be responsible for.
             component_type: The type of the component of the given category that this
@@ -57,6 +59,7 @@ class PowerWrapper:
                 `None` when the component category is enough to uniquely identify the
                 component.
         """
+        self._default_power = default_power
         self._component_category = component_category
         self._component_type = component_type
         self._power_manager_algorithm = power_manager_algorithm
@@ -103,6 +106,7 @@ class PowerWrapper:
             return
 
         self._power_managing_actor = _power_managing.PowerManagingActor(
+            default_power=self._default_power,
             component_category=self._component_category,
             component_type=self._component_type,
             algorithm=self._power_manager_algorithm,

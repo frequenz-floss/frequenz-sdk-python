@@ -279,3 +279,23 @@ class TestPVPoolControl:
             mocker.call(inv_ids[2], 0.0),
             mocker.call(inv_ids[3], 0.0),
         ]
+
+        # Resetting the power should lead to default (full) power getting set for all
+        # inverters.
+        set_power.reset_mock()
+        await pv_pool.propose_power(None)
+        report = await self._recv_reports_until(
+            bounds_rx,
+            lambda x: x.target_power is None,
+        )
+        self._assert_report(report, power=None, lower=-100000.0, upper=0.0)
+        await asyncio.sleep(0.0)
+
+        assert set_power.call_count == 4
+        inv_ids = mocks.microgrid.pv_inverter_ids
+        assert sorted(set_power.call_args_list, key=lambda x: x.args[0]) == [
+            mocker.call(inv_ids[0], -10_000.0),
+            mocker.call(inv_ids[1], -20_000.0),
+            mocker.call(inv_ids[2], -30_000.0),
+            mocker.call(inv_ids[3], -40_000.0),
+        ]

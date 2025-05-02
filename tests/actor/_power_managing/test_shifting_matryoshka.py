@@ -14,6 +14,7 @@ from frequenz.quantities import Power
 
 from frequenz.sdk import timeseries
 from frequenz.sdk.microgrid._power_managing import Proposal
+from frequenz.sdk.microgrid._power_managing._base_classes import DefaultPower
 from frequenz.sdk.microgrid._power_managing._shifting_matryoshka import (
     ShiftingMatryoshka,
 )
@@ -32,7 +33,9 @@ class StatefulTester:
         self._call_count = 0
         self._batteries = batteries
         self._system_bounds = system_bounds
-        self.algorithm = ShiftingMatryoshka(max_proposal_age=timedelta(seconds=60.0))
+        self.algorithm = ShiftingMatryoshka(
+            max_proposal_age=timedelta(seconds=60.0), default_power=DefaultPower.ZERO
+        )
 
     def tgt_power(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
@@ -543,7 +546,7 @@ async def test_matryoshka_none_proposals() -> None:
     ensure_overlapping_bucket_request_fails()
     tester.tgt_power(priority=3, power=None, bounds=(None, None), expected=25.0)
     ensure_overlapping_bucket_request_fails()
-    tester.tgt_power(priority=2, power=None, bounds=(None, None), expected=None)
+    tester.tgt_power(priority=2, power=None, bounds=(None, None), expected=0.0)
 
     # Overlapping battery bucket is dropped.
     tester.tgt_power(

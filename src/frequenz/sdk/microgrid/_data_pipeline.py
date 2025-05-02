@@ -19,7 +19,7 @@ from datetime import timedelta
 from frequenz.channels import Broadcast, Sender
 from frequenz.client.microgrid import ComponentCategory, InverterType
 
-from frequenz.sdk.microgrid._power_managing._base_classes import Algorithm
+from frequenz.sdk.microgrid._power_managing._base_classes import Algorithm, DefaultPower
 
 from .._internal._channels import ChannelRegistry
 from ..actor._actor import Actor
@@ -107,12 +107,14 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             api_power_request_timeout=api_power_request_timeout,
             power_manager_algorithm=Algorithm.SHIFTING_MATRYOSHKA,
             component_category=ComponentCategory.BATTERY,
+            default_power=DefaultPower.ZERO,
         )
         self._ev_power_wrapper = PowerWrapper(
             self._channel_registry,
             api_power_request_timeout=api_power_request_timeout,
             power_manager_algorithm=Algorithm.MATRYOSHKA,
             component_category=ComponentCategory.EV_CHARGER,
+            default_power=DefaultPower.MAX,
         )
         self._pv_power_wrapper = PowerWrapper(
             self._channel_registry,
@@ -120,6 +122,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             power_manager_algorithm=Algorithm.MATRYOSHKA,
             component_category=ComponentCategory.INVERTER,
             component_type=InverterType.SOLAR,
+            default_power=DefaultPower.MIN,
         )
 
         self._logical_meter: LogicalMeter | None = None

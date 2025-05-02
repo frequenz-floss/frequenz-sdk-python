@@ -21,7 +21,14 @@ from ..._internal._channels import ChannelRegistry
 from ...actor import Actor
 from ...timeseries._base_types import SystemBounds
 from .. import _data_pipeline, _power_distributing
-from ._base_classes import Algorithm, BaseAlgorithm, Proposal, ReportRequest, _Report
+from ._base_classes import (
+    Algorithm,
+    BaseAlgorithm,
+    DefaultPower,
+    Proposal,
+    ReportRequest,
+    _Report,
+)
 from ._matryoshka import Matryoshka
 from ._shifting_matryoshka import ShiftingMatryoshka
 
@@ -40,6 +47,7 @@ class PowerManagingActor(Actor):
         power_distributing_results_receiver: Receiver[_power_distributing.Result],
         channel_registry: ChannelRegistry,
         algorithm: Algorithm,
+        default_power: DefaultPower,
         component_category: ComponentCategory,
         component_type: ComponentType | None = None,
     ):
@@ -54,6 +62,7 @@ class PowerManagingActor(Actor):
                 results.
             channel_registry: The channel registry.
             algorithm: The power management algorithm to use.
+            default_power: The default power to use for the components.
             component_category: The category of the component this power manager
                 instance is going to support.
             component_type: The type of the component of the given category that this
@@ -66,6 +75,7 @@ class PowerManagingActor(Actor):
         """
         self._component_category = component_category
         self._component_type = component_type
+        self._default_power = default_power
         self._bounds_subscription_receiver = bounds_subscription_receiver
         self._power_distributing_requests_sender = power_distributing_requests_sender
         self._power_distributing_results_receiver = power_distributing_results_receiver
@@ -79,11 +89,13 @@ class PowerManagingActor(Actor):
         match algorithm:
             case Algorithm.MATRYOSHKA:
                 self._algorithm: BaseAlgorithm = Matryoshka(
-                    max_proposal_age=timedelta(seconds=60.0)
+                    max_proposal_age=timedelta(seconds=60.0),
+                    default_power=default_power,
                 )
             case Algorithm.SHIFTING_MATRYOSHKA:
                 self._algorithm = ShiftingMatryoshka(
-                    max_proposal_age=timedelta(seconds=60.0)
+                    max_proposal_age=timedelta(seconds=60.0),
+                    default_power=default_power,
                 )
             case _:
                 assert_never(algorithm)

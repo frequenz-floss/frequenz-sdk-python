@@ -199,6 +199,19 @@ class Proposal:
         return hash((self.priority, self.source_id))
 
 
+class DefaultPower(enum.Enum):
+    """The default power for a component category."""
+
+    ZERO = "zero"
+    """The default power is 0 W."""
+
+    MIN = "min"
+    """The default power is the minimum power of the component."""
+
+    MAX = "max"
+    """The default power is the maximum power of the component."""
+
+
 class Algorithm(enum.Enum):
     """The available algorithms for the power manager."""
 
