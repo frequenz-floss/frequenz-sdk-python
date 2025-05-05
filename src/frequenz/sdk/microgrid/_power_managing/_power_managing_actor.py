@@ -21,7 +21,14 @@ from ..._internal._channels import ChannelRegistry
 from ...actor import Actor
 from ...timeseries._base_types import SystemBounds
 from .. import _data_pipeline, _power_distributing
-from ._base_classes import Algorithm, BaseAlgorithm, Proposal, ReportRequest, _Report
+from ._base_classes import (
+    Algorithm,
+    BaseAlgorithm,
+    DefaultPower,
+    Proposal,
+    ReportRequest,
+    _Report,
+)
 from ._matryoshka import Matryoshka
 from ._shifting_matryoshka import ShiftingMatryoshka
 
@@ -40,6 +47,7 @@ class PowerManagingActor(Actor):
         power_distributing_results_receiver: Receiver[_power_distributing.Result],
         channel_registry: ChannelRegistry,
         algorithm: Algorithm,
+        default_power: DefaultPower,
         component_category: ComponentCategory,
         component_type: ComponentType | None = None,
     ):
@@ -54,6 +62,7 @@ class PowerManagingActor(Actor):
                 results.
             channel_registry: The channel registry.
             algorithm: The power management algorithm to use.
+            default_power: The default power to use for the components.
             component_category: The category of the component this power manager
                 instance is going to support.
             component_type: The type of the component of the given category that this
@@ -66,6 +75,7 @@ class PowerManagingActor(Actor):
         """
         self._component_category = component_category
         self._component_type = component_type
+        self._default_power = default_power
         self._bounds_subscription_receiver = bounds_subscription_receiver
         self._power_distributing_requests_sender = power_distributing_requests_sender
         self._power_distributing_results_receiver = power_distributing_results_receiver
@@ -79,11 +89,13 @@ class PowerManagingActor(Actor):
         match algorithm:
             case Algorithm.MATRYOSHKA:
                 self._algorithm: BaseAlgorithm = Matryoshka(
-                    max_proposal_age=timedelta(seconds=60.0)
+                    max_proposal_age=timedelta(seconds=60.0),
+                    default_power=default_power,
                 )
             case Algorithm.SHIFTING_MATRYOSHKA:
                 self._algorithm = ShiftingMatryoshka(
-                    max_proposal_age=timedelta(seconds=60.0)
+                    max_proposal_age=timedelta(seconds=60.0),
+                    default_power=default_power,
                 )
             case _:
                 assert_never(algorithm)
@@ -121,7 +133,14 @@ class PowerManagingActor(Actor):
                 collective bounds of.
             bounds_receiver: The receiver for power bounds.
         """
+        last_bounds: SystemBounds | None = None
         async for bounds in bounds_receiver:
+            if (
+                last_bounds is not None
+                and bounds.inclusion_bounds == last_bounds.inclusion_bounds
+            ):
+                continue
+            last_bounds = bounds
             self._system_bounds[component_ids] = bounds
             await self._send_updated_target_power(component_ids, None)
             await self._send_reports(component_ids)
@@ -179,13 +198,11 @@ class PowerManagingActor(Actor):
         self,
         component_ids: frozenset[int],
         proposal: Proposal | None,
-        must_send: bool = False,
     ) -> None:
         target_power = self._algorithm.calculate_target_power(
             component_ids,
             proposal,
             self._system_bounds[component_ids],
-            must_send,
         )
         if target_power is not None:
             await self._power_distributing_requests_sender.send(
@@ -221,9 +238,7 @@ class PowerManagingActor(Actor):
                 # This can be removed as soon as
                 # https://github.com/frequenz-floss/frequenz-sdk-python/issues/293 is
                 # implemented.
-                await self._send_updated_target_power(
-                    proposal.component_ids, proposal, must_send=True
-                )
+                await self._send_updated_target_power(proposal.component_ids, proposal)
                 await self._send_reports(proposal.component_ids)
 
             elif selected_from(selected, self._bounds_subscription_receiver):
@@ -258,7 +273,7 @@ class PowerManagingActor(Actor):
                         if not last_result_partial_failure:
                             last_result_partial_failure = True
                             await self._send_updated_target_power(
-                                frozenset(request.component_ids), None, must_send=True
+                                frozenset(request.component_ids), None
                             )
                     case _power_distributing.Success():
                         last_result_partial_failure = False

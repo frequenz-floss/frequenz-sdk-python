@@ -199,6 +199,19 @@ class Proposal:
         return hash((self.priority, self.source_id))
 
 
+class DefaultPower(enum.Enum):
+    """The default power for a component category."""
+
+    ZERO = "zero"
+    """The default power is 0 W."""
+
+    MIN = "min"
+    """The default power is the minimum power of the component."""
+
+    MAX = "max"
+    """The default power is the maximum power of the component."""
+
+
 class Algorithm(enum.Enum):
     """The available algorithms for the power manager."""
 
@@ -215,7 +228,6 @@ class BaseAlgorithm(abc.ABC):
         component_ids: frozenset[int],
         proposal: Proposal | None,
         system_bounds: SystemBounds,
-        must_return_power: bool = False,
     ) -> Power | None:
         """Calculate and return the target power for the given components.
 
@@ -224,12 +236,10 @@ class BaseAlgorithm(abc.ABC):
             proposal: If given, the proposal to added to the bucket, before the target
                 power is calculated.
             system_bounds: The system bounds for the components in the proposal.
-            must_return_power: If `True`, the algorithm must return a target power,
-                even if it hasn't changed since the last call.
 
         Returns:
             The new target power for the components, or `None` if the target power
-                didn't change.
+                couldn't be calculated.
         """
 
     # The arguments for this method are tightly coupled to the `Matryoshka` algorithm.

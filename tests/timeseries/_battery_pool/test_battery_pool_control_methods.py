@@ -527,3 +527,26 @@ class TestBatteryPoolControl:
                 result, _power_distributing.Success
             ),
         )
+
+        # Resetting the power should lead to default (zero) power getting set for all
+        # the batteries.
+        set_power.reset_mock()
+        await battery_pool.propose_power(None)
+        self._assert_report(
+            await bounds_rx.receive(), power=None, lower=-4000.0, upper=4000.0
+        )
+        await asyncio.sleep(0.0)
+        assert set_power.call_count == 4
+        assert sorted(set_power.call_args_list) == [
+            mocker.call(inv_id, 0.0) for inv_id in mocks.microgrid.battery_inverter_ids
+        ]
+        self._assert_report(
+            await bounds_rx.receive(),
+            power=None,
+            lower=-4000.0,
+            upper=4000.0,
+            dist_result=latest_dist_result.get(),
+            expected_result_pred=lambda result: isinstance(
+                result, _power_distributing.Success
+            ),
+        )

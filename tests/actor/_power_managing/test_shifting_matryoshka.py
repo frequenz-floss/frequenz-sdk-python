@@ -14,6 +14,7 @@ from frequenz.quantities import Power
 
 from frequenz.sdk import timeseries
 from frequenz.sdk.microgrid._power_managing import Proposal
+from frequenz.sdk.microgrid._power_managing._base_classes import DefaultPower
 from frequenz.sdk.microgrid._power_managing._shifting_matryoshka import (
     ShiftingMatryoshka,
 )
@@ -32,7 +33,9 @@ class StatefulTester:
         self._call_count = 0
         self._batteries = batteries
         self._system_bounds = system_bounds
-        self.algorithm = ShiftingMatryoshka(max_proposal_age=timedelta(seconds=60.0))
+        self.algorithm = ShiftingMatryoshka(
+            max_proposal_age=timedelta(seconds=60.0), default_power=DefaultPower.ZERO
+        )
 
     def tgt_power(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
@@ -41,7 +44,6 @@ class StatefulTester:
         bounds: tuple[float | None, float | None],
         expected: float | None,
         creation_time: float | None = None,
-        must_send: bool = False,
         batteries: frozenset[int] | None = None,
     ) -> None:
         """Test the target power calculation."""
@@ -64,7 +66,6 @@ class StatefulTester:
                 ),
             ),
             self._system_bounds,
-            must_send,
         )
         assert tgt_power == (
             Power.from_watts(expected) if expected is not None else None
@@ -114,9 +115,7 @@ async def test_matryoshka_no_excl() -> None:  # pylint: disable=too-many-stateme
     tester.bounds(priority=1, expected_power=25.0, expected_bounds=(0.0, 25.0))
 
     tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=45.0)
-    tester.tgt_power(
-        priority=1, power=20.0, bounds=(20.0, 50.0), expected=45.0, must_send=True
-    )
+    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=45.0)
     tester.bounds(priority=1, expected_power=45.0, expected_bounds=(0.0, 25.0))
 
     tester.tgt_power(priority=3, power=10.0, bounds=(10.0, 15.0), expected=15.0)
@@ -129,7 +128,7 @@ async def test_matryoshka_no_excl() -> None:  # pylint: disable=too-many-stateme
     tester.bounds(priority=2, expected_power=22.0, expected_bounds=(0.0, 12.0))
     tester.bounds(priority=1, expected_power=22.0, expected_bounds=(0.0, 0.0))
 
-    tester.tgt_power(priority=1, power=30.0, bounds=(20.0, 50.0), expected=None)
+    tester.tgt_power(priority=1, power=30.0, bounds=(20.0, 50.0), expected=22.0)
     tester.bounds(priority=1, expected_power=22.0, expected_bounds=(0.0, 0.0))
 
     tester.tgt_power(priority=3, power=10.0, bounds=(10.0, 50.0), expected=50.0)
@@ -137,7 +136,7 @@ async def test_matryoshka_no_excl() -> None:  # pylint: disable=too-many-stateme
     tester.bounds(priority=2, expected_power=50.0, expected_bounds=(0.0, 40.0))
     tester.bounds(priority=1, expected_power=50.0, expected_bounds=(0.0, 15.0))
 
-    tester.tgt_power(priority=2, power=40.0, bounds=(40.0, None), expected=None)
+    tester.tgt_power(priority=2, power=40.0, bounds=(40.0, None), expected=50.0)
     tester.bounds(priority=3, expected_power=50.0, expected_bounds=(-200.0, 200.0))
     tester.bounds(priority=2, expected_power=50.0, expected_bounds=(0.0, 40.0))
     tester.bounds(priority=1, expected_power=50.0, expected_bounds=(0.0, 0.0))
@@ -154,14 +153,14 @@ async def test_matryoshka_no_excl() -> None:  # pylint: disable=too-many-stateme
     tester.bounds(priority=2, expected_power=-50.0, expected_bounds=(0.0, 0.0))
     tester.bounds(priority=1, expected_power=-50.0, expected_bounds=(0.0, 0.0))
 
-    tester.tgt_power(priority=3, power=0.0, bounds=(-200.0, 200.0), expected=None)
+    tester.tgt_power(priority=3, power=0.0, bounds=(-200.0, 200.0), expected=-50.0)
     tester.bounds(priority=1, expected_power=-50.0, expected_bounds=(-150.0, 0.0))
 
     tester.tgt_power(priority=1, power=-150.0, bounds=(-200.0, -150.0), expected=-200.0)
     tester.bounds(priority=2, expected_power=-200.0, expected_bounds=(-150.0, 0.0))
     tester.bounds(priority=1, expected_power=-200.0, expected_bounds=(-150.0, 0.0))
 
-    tester.tgt_power(priority=4, power=-180.0, bounds=(-200.0, -50.0), expected=None)
+    tester.tgt_power(priority=4, power=-180.0, bounds=(-200.0, -50.0), expected=-200.0)
     tester.bounds(priority=1, expected_power=-200.0, expected_bounds=(-20.0, 130.0))
 
     tester.tgt_power(priority=4, power=50.0, bounds=(50.0, None), expected=50.0)
@@ -176,7 +175,7 @@ async def test_matryoshka_no_excl() -> None:  # pylint: disable=too-many-stateme
     tester.bounds(priority=2, expected_power=-150.0, expected_bounds=(-200.0, 200.0))
     tester.bounds(priority=1, expected_power=-150.0, expected_bounds=(-200.0, 200.0))
 
-    tester.tgt_power(priority=3, power=0.0, bounds=(-200.0, 200.0), expected=None)
+    tester.tgt_power(priority=3, power=0.0, bounds=(-200.0, 200.0), expected=-150.0)
     tester.bounds(priority=3, expected_power=-150.0, expected_bounds=(-200.0, 200.0))
     tester.bounds(priority=2, expected_power=-150.0, expected_bounds=(-200.0, 200.0))
     tester.bounds(priority=1, expected_power=-150.0, expected_bounds=(-200.0, 200.0))
@@ -189,7 +188,7 @@ async def test_matryoshka_no_excl() -> None:  # pylint: disable=too-many-stateme
     tester.tgt_power(priority=1, power=100.0, bounds=(100, 200), expected=100.0)
     tester.bounds(priority=1, expected_power=100.0, expected_bounds=(-150.0, 50.0))
 
-    tester.tgt_power(priority=1, power=50.0, bounds=(50, 200), expected=None)
+    tester.tgt_power(priority=1, power=50.0, bounds=(50, 200), expected=100.0)
     tester.bounds(priority=1, expected_power=100.0, expected_bounds=(-150.0, 50.0))
 
     tester.tgt_power(priority=1, power=10.0, bounds=(10, 200), expected=60.0)
@@ -198,7 +197,7 @@ async def test_matryoshka_no_excl() -> None:  # pylint: disable=too-many-stateme
     tester.tgt_power(priority=1, power=0.0, bounds=(-200, 200), expected=50.0)
     tester.bounds(priority=1, expected_power=50.0, expected_bounds=(-150.0, 50.0))
 
-    tester.tgt_power(priority=1, power=None, bounds=(-200, 200), expected=None)
+    tester.tgt_power(priority=1, power=None, bounds=(-200, 200), expected=50.0)
     tester.bounds(priority=1, expected_power=50.0, expected_bounds=(-150.0, 50.0))
 
 
@@ -222,12 +221,12 @@ async def test_matryoshka_simple() -> None:
     tester = StatefulTester(batteries, system_bounds)
     tester.tgt_power(priority=3, power=None, bounds=(-200.0, 200.0), expected=0.0)
     tester.bounds(priority=2, expected_power=0.0, expected_bounds=(-200.0, 200.0))
-    tester.tgt_power(priority=1, power=None, bounds=(-200.0, 200.0), expected=None)
+    tester.tgt_power(priority=1, power=None, bounds=(-200.0, 200.0), expected=0.0)
     tester.bounds(priority=2, expected_power=0.0, expected_bounds=(-200.0, 200.0))
     tester.tgt_power(priority=2, power=25.0, bounds=(25.0, 50.0), expected=30.0)
     # tester.tgt_power(priority=2, power=-10.0, bounds=(-10.0, 50.0), expected=-10.0)
     # tester.bounds(priority=1, expected_power=-10.0, expected_bounds=(0.0, 60.0))
-    # tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, 20.0), expected=None)
+    # tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, 20.0), expected=-10.0)
     # tester.bounds(priority=0, expected_power=-10.0, expected_bounds=(0.0, 20.0))
 
 
@@ -264,7 +263,7 @@ async def test_matryoshka_with_excl_1() -> None:
     tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, 50.0), expected=0.0)
     tester.bounds(priority=0, expected_power=0.0, expected_bounds=(0.0, 50.0))
 
-    tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, -5.0), expected=None)
+    tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, -5.0), expected=0.0)
     tester.bounds(priority=0, expected_power=0.0, expected_bounds=(0.0, 0.0))
 
     tester.tgt_power(priority=2, power=-10.0, bounds=(-200.0, -5.0), expected=-30.0)
@@ -275,7 +274,7 @@ async def test_matryoshka_with_excl_1() -> None:
     tester.bounds(priority=2, expected_power=0.0, expected_bounds=(-200.0, 200.0))
     tester.bounds(priority=1, expected_power=0.0, expected_bounds=(-200.0, 200.0))
 
-    tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, -5.0), expected=None)
+    tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, -5.0), expected=0.0)
     tester.bounds(priority=0, expected_power=0.0, expected_bounds=(0.0, 5.0))
 
     tester.tgt_power(priority=1, power=-10.0, bounds=(-100.0, -5.0), expected=-30.0)
@@ -318,7 +317,7 @@ async def test_matryoshka_with_excl_2() -> None:
     tester.bounds(priority=1, expected_power=0.0, expected_bounds=(0.0, 60.0))
     tester.bounds(priority=0, expected_power=0.0, expected_bounds=(-5.0, 0.0))
 
-    tester.tgt_power(priority=0, power=40, bounds=(None, None), expected=None)
+    tester.tgt_power(priority=0, power=40, bounds=(None, None), expected=0.0)
 
     tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, 50.0), expected=30.0)
     tester.bounds(priority=0, expected_power=30.0, expected_bounds=(0.0, 50.0))
@@ -333,7 +332,7 @@ async def test_matryoshka_with_excl_2() -> None:
     tester.bounds(priority=1, expected_power=-15.0, expected_bounds=(-190.0, 5.0))
     tester.bounds(priority=0, expected_power=-15.0, expected_bounds=(0.0, 5.0))
 
-    tester.tgt_power(priority=1, power=-10.0, bounds=(-100.0, -5.0), expected=None)
+    tester.tgt_power(priority=1, power=-10.0, bounds=(-100.0, -5.0), expected=-15.0)
     tester.bounds(priority=0, expected_power=-15.0, expected_bounds=(-90.0, 5.0))
 
     tester.tgt_power(priority=1, power=-40.0, bounds=(-100.0, -35.0), expected=-45.0)
@@ -380,17 +379,17 @@ async def test_matryoshka_with_excl_3() -> None:
     tester.bounds(priority=1, expected_power=30.0, expected_bounds=(0.0, 60.0))
     tester.bounds(priority=0, expected_power=30.0, expected_bounds=(-5.0, 0.0))
 
-    tester.tgt_power(priority=1, power=40.0, bounds=(-10.0, 50.0), expected=None)
+    tester.tgt_power(priority=1, power=40.0, bounds=(-10.0, 50.0), expected=30.0)
     tester.bounds(priority=0, expected_power=30.0, expected_bounds=(-40.0, 10.0))
 
-    tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, 20.0), expected=None)
+    tester.tgt_power(priority=1, power=-10.0, bounds=(-10.0, 20.0), expected=30.0)
     tester.bounds(priority=0, expected_power=30.0, expected_bounds=(0.0, 20.0))
 
     tester.tgt_power(priority=2, power=-10.0, bounds=(-200.0, -5.0), expected=-30.0)
     tester.bounds(priority=1, expected_power=-30.0, expected_bounds=(-190.0, 5.0))
     tester.bounds(priority=0, expected_power=-30.0, expected_bounds=(0.0, 15.0))
 
-    tester.tgt_power(priority=1, power=-10.0, bounds=(-100.0, -5.0), expected=None)
+    tester.tgt_power(priority=1, power=-10.0, bounds=(-100.0, -5.0), expected=-30.0)
     tester.bounds(priority=0, expected_power=-30.0, expected_bounds=(-90.0, 5.0))
 
     tester.tgt_power(priority=1, power=-40.0, bounds=(-100.0, -35.0), expected=-50.0)
@@ -428,13 +427,9 @@ async def test_matryoshka_drop_old_proposals() -> None:
         expected=47.0,
     )
 
-    tester.tgt_power(
-        priority=1, power=20.0, bounds=(20.0, 50.0), expected=67.0, must_send=True
-    )
+    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=67.0)
     tester.algorithm.drop_old_proposals(now)
-    tester.tgt_power(
-        priority=1, power=20.0, bounds=(20.0, 50.0), expected=42.0, must_send=True
-    )
+    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=42.0)
 
     # When overwritten by a newer proposal, that proposal is not dropped.
     tester.tgt_power(
@@ -450,16 +445,11 @@ async def test_matryoshka_drop_old_proposals() -> None:
         bounds=(25.0, 50.0),
         creation_time=now - 30.0,
         expected=67.0,
-        must_send=True,
     )
 
-    tester.tgt_power(
-        priority=1, power=20.0, bounds=(20.0, 50.0), expected=67.0, must_send=True
-    )
+    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=67.0)
     tester.algorithm.drop_old_proposals(now)
-    tester.tgt_power(
-        priority=1, power=20.0, bounds=(20.0, 50.0), expected=67.0, must_send=True
-    )
+    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=67.0)
 
     # When all proposals are too old, they are dropped, and the buckets are dropped as
     # well.  After that, sending a request for a different but overlapping bucket will
@@ -476,7 +466,6 @@ async def test_matryoshka_drop_old_proposals() -> None:
             power=25.0,
             bounds=(25.0, 50.0),
             expected=25.0,
-            must_send=True,
             batteries=overlapping_batteries,
         )
 
@@ -486,7 +475,6 @@ async def test_matryoshka_drop_old_proposals() -> None:
         bounds=(25.0, 100.0),
         creation_time=now - 70.0,
         expected=72.0,
-        must_send=True,
     )
     tester.tgt_power(
         priority=2,
@@ -494,7 +482,6 @@ async def test_matryoshka_drop_old_proposals() -> None:
         bounds=(25.0, 100.0),
         creation_time=now - 70.0,
         expected=72.0,
-        must_send=True,
     )
     tester.tgt_power(
         priority=3,
@@ -502,7 +489,6 @@ async def test_matryoshka_drop_old_proposals() -> None:
         bounds=(25.0, 100.0),
         creation_time=now - 70.0,
         expected=75.0,
-        must_send=True,
     )
 
     tester.algorithm.drop_old_proposals(now)
@@ -512,7 +498,6 @@ async def test_matryoshka_drop_old_proposals() -> None:
         power=25.0,
         bounds=(25.0, 50.0),
         expected=25.0,
-        must_send=True,
         batteries=overlapping_batteries,
     )
 
@@ -547,7 +532,6 @@ async def test_matryoshka_none_proposals() -> None:
                 power=None,
                 bounds=(20.0, 50.0),
                 expected=None,
-                must_send=True,
                 batteries=overlapping_batteries,
             )
 
@@ -555,14 +539,14 @@ async def test_matryoshka_none_proposals() -> None:
 
     tester.tgt_power(priority=3, power=22.0, bounds=(22.0, 30.0), expected=22.0)
     tester.tgt_power(priority=2, power=25.0, bounds=(25.0, 50.0), expected=30.0)
-    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=None)
+    tester.tgt_power(priority=1, power=20.0, bounds=(20.0, 50.0), expected=30.0)
 
     ensure_overlapping_bucket_request_fails()
-    tester.tgt_power(priority=1, power=None, bounds=(None, None), expected=None)
+    tester.tgt_power(priority=1, power=None, bounds=(None, None), expected=30.0)
     ensure_overlapping_bucket_request_fails()
     tester.tgt_power(priority=3, power=None, bounds=(None, None), expected=25.0)
     ensure_overlapping_bucket_request_fails()
-    tester.tgt_power(priority=2, power=None, bounds=(None, None), expected=None)
+    tester.tgt_power(priority=2, power=None, bounds=(None, None), expected=0.0)
 
     # Overlapping battery bucket is dropped.
     tester.tgt_power(
@@ -630,7 +614,7 @@ async def test_matryoshka_shifting_limiting() -> None:
     tester.tgt_power(priority=1, power=25.0, bounds=(-50.0, 40.0), expected=60.0)
     tester.bounds(priority=0, expected_power=60.0, expected_bounds=(-60.0, 0.0))
 
-    tester.tgt_power(priority=0, power=12.0, bounds=(None, None), expected=None)
+    tester.tgt_power(priority=0, power=12.0, bounds=(None, None), expected=60.0)
     tester.bounds(priority=-1, expected_power=60.0, expected_bounds=(-60.0, 0.0))
 
     tester.tgt_power(priority=-1, power=-10.0, bounds=(-40.0, -10.0), expected=50.0)

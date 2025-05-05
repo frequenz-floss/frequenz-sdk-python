@@ -24,7 +24,7 @@ from frequenz.sdk.microgrid._power_distributing._component_pool_status_tracker i
     ComponentPoolStatusTracker,
 )
 from frequenz.sdk.timeseries import ResamplerConfig, Sample3Phase
-from frequenz.sdk.timeseries.ev_charger_pool import EVChargerPool, EVChargerPoolReport
+from frequenz.sdk.timeseries.ev_charger_pool import EVChargerPoolReport
 
 from ...microgrid.fixtures import _Mocks
 from ...utils.component_data_streamer import MockComponentDataStreamer
@@ -140,9 +140,26 @@ class TestEVChargerPoolControl:
                 0.05,
             )
 
+    async def _recv_reports_until(
+        self,
+        bounds_rx: Receiver[EVChargerPoolReport],
+        check: typing.Callable[[EVChargerPoolReport], bool],
+    ) -> EVChargerPoolReport | None:
+        """Receive reports until the given condition is met."""
+        max_reports = 10
+        ctr = 0
+        latest_report: EVChargerPoolReport | None = None
+        while ctr < max_reports:
+            ctr += 1
+            latest_report = await bounds_rx.receive()
+            if check(latest_report):
+                break
+
+        return latest_report
+
     def _assert_report(  # pylint: disable=too-many-arguments
         self,
-        report: EVChargerPoolReport,
+        report: EVChargerPoolReport | None,
         *,
         power: float | None,
         lower: float,
@@ -152,7 +169,7 @@ class TestEVChargerPoolControl:
             typing.Callable[[_power_distributing.Result], bool] | None
         ) = None,
     ) -> None:
-        assert report.target_power == (
+        assert report is not None and report.target_power == (
             Power.from_watts(power) if power is not None else None
         )
         assert report.bounds is not None
@@ -161,24 +178,6 @@ class TestEVChargerPoolControl:
         if expected_result_pred is not None:
             assert dist_result is not None
             assert expected_result_pred(dist_result)
-
-    async def _get_bounds_receiver(
-        self, ev_charger_pool: EVChargerPool
-    ) -> Receiver[EVChargerPoolReport]:
-        bounds_rx = ev_charger_pool.power_status.new_receiver()
-
-        # Consume initial reports as chargers are initialized
-        expected_upper_bounds = 44160.0
-        max_reports = 10
-        ctr = 0
-        while ctr < max_reports:
-            ctr += 1
-            report = await bounds_rx.receive()
-            assert report.bounds is not None
-            if report.bounds.upper == Power.from_watts(expected_upper_bounds):
-                break
-
-        return bounds_rx
 
     async def test_setting_power(
         self,
@@ -197,20 +196,21 @@ class TestEVChargerPoolControl:
         await self._patch_ev_pool_status(mocks, mocker)
         await self._patch_power_distributing_actor(mocker)
 
-        bounds_rx = await self._get_bounds_receiver(ev_charger_pool)
+        bounds_rx = ev_charger_pool.power_status.new_receiver()
+        latest_report = await self._recv_reports_until(
+            bounds_rx,
+            lambda x: x.bounds is not None and x.bounds.upper.as_watts() == 44160.0,
+        )
+
+        self._assert_report(latest_report, power=None, lower=0.0, upper=44160.0)
 
         # Check that chargers are initialized to Power.zero()
         assert set_power.call_count == 4
         assert all(x.args[1] == 0.0 for x in set_power.call_args_list)
 
-        self._assert_report(
-            await bounds_rx.receive(), power=None, lower=0.0, upper=44160.0
-        )
-
         set_power.reset_mock()
         await ev_charger_pool.propose_power(Power.from_watts(40000.0))
         # ignore one report because it is not always immediately updated.
-        await bounds_rx.receive()
         self._assert_report(
             await bounds_rx.receive(), power=40000.0, lower=0.0, upper=44160.0
         )

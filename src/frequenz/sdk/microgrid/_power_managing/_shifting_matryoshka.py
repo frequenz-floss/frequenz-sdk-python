@@ -16,7 +16,7 @@ from frequenz.sdk.timeseries._base_types import Bounds
 
 from ... import timeseries
 from . import _bounds
-from ._base_classes import BaseAlgorithm, Proposal, _Report
+from ._base_classes import BaseAlgorithm, DefaultPower, Proposal, _Report
 
 if typing.TYPE_CHECKING:
     from ...timeseries._base_types import SystemBounds
@@ -55,8 +55,13 @@ class ShiftingMatryoshka(BaseAlgorithm):
     Details about the algorithm can be found in the [microgrid module documentation](https://frequenz-floss.github.io/frequenz-sdk-python/v1.0-dev/user-guide/microgrid-concepts/#frequenz.sdk.microgrid--setting-power).
     """  # noqa: E501 (line too long)
 
-    def __init__(self, max_proposal_age: timedelta) -> None:
+    def __init__(
+        self,
+        max_proposal_age: timedelta,
+        default_power: DefaultPower,
+    ) -> None:
         """Create a new instance of the matryoshka algorithm."""
+        self._default_power = default_power
         self._max_proposal_age_sec = max_proposal_age.total_seconds()
         self._component_buckets: dict[frozenset[int], set[Proposal]] = {}
         self._target_power: dict[frozenset[int], Power] = {}
@@ -218,7 +223,6 @@ class ShiftingMatryoshka(BaseAlgorithm):
         component_ids: frozenset[int],
         proposal: Proposal | None,
         system_bounds: SystemBounds,
-        must_return_power: bool = False,
     ) -> Power | None:
         """Calculate and return the target power for the given components.
 
@@ -227,12 +231,10 @@ class ShiftingMatryoshka(BaseAlgorithm):
             proposal: If given, the proposal to added to the bucket, before the target
                 power is calculated.
             system_bounds: The system bounds for the components in the proposal.
-            must_return_power: If `True`, the algorithm must return a target power,
-                even if it hasn't changed since the last call.
 
         Returns:
             The new target power for the components, or `None` if the target power
-                didn't change.
+                couldn't be calculated.
 
         Raises:  # noqa: DOC502
             NotImplementedError: When the proposal contains component IDs that are
@@ -253,18 +255,29 @@ class ShiftingMatryoshka(BaseAlgorithm):
                 bucket.add(proposal)
             elif not bucket:
                 del self._component_buckets[component_ids]
-                _ = self._target_power.pop(component_ids, None)
 
         target_power, _ = self._calc_targets(component_ids, system_bounds)
 
-        if target_power is not None and (
-            must_return_power
-            or component_ids not in self._target_power
-            or self._target_power[component_ids] != target_power
-        ):
+        if target_power is not None:
             self._target_power[component_ids] = target_power
-            return target_power
-        return None
+        elif self._target_power.get(component_ids) is not None:
+            # If the target power was previously set, but is now `None`, then we send
+            # the default power of the component category, to reset it immediately.
+            del self._target_power[component_ids]
+            bounds = system_bounds.inclusion_bounds
+            if bounds is None:
+                return None
+            match self._default_power:
+                case DefaultPower.MIN:
+                    return bounds.lower
+                case DefaultPower.MAX:
+                    return bounds.upper
+                case DefaultPower.ZERO:
+                    return Power.zero()
+                case other:
+                    typing.assert_never(other)
+
+        return target_power
 
     @override
     def get_status(  # pylint: disable=too-many-locals

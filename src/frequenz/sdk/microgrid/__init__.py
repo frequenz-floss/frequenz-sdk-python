@@ -296,6 +296,21 @@ Battery bounds available for use: -100kW to 100kW
 | -1       | -60 kW .. 0 kW    | -40 kW .. -10 kW | -10 kW    | -10 kW       | 50 kW     |
 |          |                   |                  |           | Target Power | 50 kW     |
 
+## Withdrawing power proposals
+
+An actor can withdraw its power proposal by calling `propose_power` with `None`
+target_power and `None` bounds (which are the default anyway).  As soon as an actor
+calls `pool.propose_power(None)`, its proposal is dropped and the target power is
+recalculated and the component powers are updated.
+
+When all the proposals for a pool are withdrawn, the components get reset to their
+default powers immediately.  These are:
+
+| component category | default power (according to Passive Sign Convention) |
+|--------------------|------------------------------------------------------|
+| Batteries          | Zero                                                 |
+| PV                 | Max production (Min power according to PSC)          |
+| EV Chargers        | Max consumption (Max power according to PSC)         |
 """  # noqa: D205, D400
 
 from datetime import timedelta
