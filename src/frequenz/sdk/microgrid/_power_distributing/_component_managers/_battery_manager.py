@@ -21,7 +21,6 @@ from frequenz.client.microgrid import (
 from frequenz.quantities import Power
 from typing_extensions import override
 
-from ...._internal._math import is_close_to_zero
 from ... import connection_manager
 from .._component_pool_status_tracker import ComponentPoolStatusTracker
 from .._component_status import BatteryStatusTracker, ComponentPoolStatus
@@ -264,14 +263,12 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         Returns:
             Result from the microgrid API.
         """
-        distributed_power_value = (
-            request.power.as_watts() - distribution.remaining_power
-        )
-        battery_distribution: dict[int, float] = {}
+        distributed_power_value = request.power - distribution.remaining_power
+        battery_distribution: dict[int, Power] = {}
         for inverter_id, dist in distribution.distribution.items():
             for battery_id in self._inv_bats_map[inverter_id]:
                 battery_distribution[battery_id] = (
-                    battery_distribution.get(battery_id, 0.0) + dist
+                    battery_distribution.get(battery_id, Power.zero()) + dist
                 )
         _logger.debug(
             "Distributing power %d between the batteries %s",
@@ -288,21 +285,19 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             succeed_batteries = set(battery_distribution.keys()) - failed_batteries
             response = PartialFailure(
                 request=request,
-                succeeded_power=Power.from_watts(
-                    distributed_power_value - failed_power
-                ),
+                succeeded_power=distributed_power_value - failed_power,
                 succeeded_components=succeed_batteries,
-                failed_power=Power.from_watts(failed_power),
+                failed_power=failed_power,
                 failed_components=failed_batteries,
-                excess_power=Power.from_watts(distribution.remaining_power),
+                excess_power=distribution.remaining_power,
             )
         else:
             succeed_batteries = set(battery_distribution.keys())
             response = Success(
                 request=request,
-                succeeded_power=Power.from_watts(distributed_power_value),
+                succeeded_power=distributed_power_value,
                 succeeded_components=succeed_batteries,
-                excess_power=Power.from_watts(distribution.remaining_power),
+                excess_power=distribution.remaining_power,
             )
 
         await asyncio.gather(
@@ -346,39 +341,59 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         """
         return PowerBounds(
             inclusion_lower=sum(
-                max(
-                    battery.power_bounds.inclusion_lower,
-                    sum(
-                        inverter.active_power_inclusion_lower_bound
-                        for inverter in inverters
-                    ),
-                )
-                for battery, inverters in pairs_data
+                (
+                    max(
+                        battery.power_bounds.inclusion_lower,
+                        Power.from_watts(
+                            sum(
+                                inverter.active_power_inclusion_lower_bound
+                                for inverter in inverters
+                            )
+                        ),
+                    )
+                    for battery, inverters in pairs_data
+                ),
+                start=Power.zero(),
             ),
             inclusion_upper=sum(
-                min(
-                    battery.power_bounds.inclusion_upper,
-                    sum(
-                        inverter.active_power_inclusion_upper_bound
-                        for inverter in inverters
-                    ),
-                )
-                for battery, inverters in pairs_data
+                (
+                    min(
+                        battery.power_bounds.inclusion_upper,
+                        Power.from_watts(
+                            sum(
+                                inverter.active_power_inclusion_upper_bound
+                                for inverter in inverters
+                            )
+                        ),
+                    )
+                    for battery, inverters in pairs_data
+                ),
+                start=Power.zero(),
             ),
             exclusion_lower=min(
-                sum(battery.power_bounds.exclusion_lower for battery, _ in pairs_data),
                 sum(
-                    inverter.active_power_exclusion_lower_bound
-                    for _, inverters in pairs_data
-                    for inverter in inverters
+                    (battery.power_bounds.exclusion_lower for battery, _ in pairs_data),
+                    start=Power.zero(),
+                ),
+                Power.from_watts(
+                    sum(
+                        inverter.active_power_exclusion_lower_bound
+                        for _, inverters in pairs_data
+                        for inverter in inverters
+                    )
                 ),
             ),
             exclusion_upper=max(
-                sum(battery.power_bounds.exclusion_upper for battery, _ in pairs_data),
                 sum(
-                    inverter.active_power_exclusion_upper_bound
-                    for _, inverters in pairs_data
-                    for inverter in inverters
+                    (battery.power_bounds.exclusion_upper for battery, _ in pairs_data),
+                    start=Power.zero(),
+                ),
+                Power.from_watts(
+                    sum(
+                        inverter.active_power_exclusion_upper_bound
+                        for _, inverters in pairs_data
+                        for inverter in inverters
+                    )
                 ),
             ),
         )
@@ -410,11 +425,11 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
 
         bounds = self._get_bounds(pairs_data)
 
-        power = request.power.as_watts()
+        power = request.power
 
         # Zero power requests are always forwarded to the microgrid API, even if they
         # are outside the exclusion bounds.
-        if is_close_to_zero(power):
+        if power.isclose(Power.zero()):
             return None
 
         if request.adjust_power:
@@ -599,7 +614,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             unavailable_inv_ids = unavailable_inv_ids.union(inverter_ids)
 
         result = self._distribution_algorithm.distribute_power(
-            request.power.as_watts(), inv_bat_pairs
+            request.power, inv_bat_pairs
         )
 
         return result
@@ -608,7 +623,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         self,
         distribution: DistributionResult,
         timeout: timedelta,
-    ) -> tuple[float, set[int]]:
+    ) -> tuple[Power, set[int]]:
         """Send distributed power to the inverters.
 
         Args:
@@ -622,7 +637,9 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         api = connection_manager.get().api_client
 
         tasks = {
-            inverter_id: asyncio.create_task(api.set_power(inverter_id, power))
+            inverter_id: asyncio.create_task(
+                api.set_power(inverter_id, power.as_watts())
+            )
             for inverter_id, power in distribution.distribution.items()
         }
 
@@ -639,9 +656,9 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
     def _parse_result(
         self,
         tasks: dict[int, asyncio.Task[None]],
-        distribution: dict[int, float],
+        distribution: dict[int, Power],
         request_timeout: timedelta,
-    ) -> tuple[float, set[int]]:
+    ) -> tuple[Power, set[int]]:
         """Parse the results of `set_power` requests.
 
         Check if any task has failed and determine the reason for failure.
@@ -658,7 +675,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             A tuple where the first element is the total failed power, and the second element is
             the set of batteries that failed.
         """
-        failed_power: float = 0.0
+        failed_power: Power = Power.zero()
         failed_batteries: set[int] = set()
 
         for inverter_id, aws in tasks.items():

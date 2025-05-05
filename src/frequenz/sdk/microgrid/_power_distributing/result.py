@@ -71,16 +71,16 @@ class Error(_BaseResultMixin):
 class PowerBounds:
     """Inclusion and exclusion power bounds for the requested components."""
 
-    inclusion_lower: float
+    inclusion_lower: Power
     """The lower value of the inclusion power bounds for the requested components."""
 
-    exclusion_lower: float
+    exclusion_lower: Power
     """The lower value of the exclusion power bounds for the requested components."""
 
-    exclusion_upper: float
+    exclusion_upper: Power
     """The upper value of the exclusion power bounds for the requested components."""
 
-    inclusion_upper: float
+    inclusion_upper: Power
     """The upper value of the inclusion power bounds for the requested components."""
 
 
