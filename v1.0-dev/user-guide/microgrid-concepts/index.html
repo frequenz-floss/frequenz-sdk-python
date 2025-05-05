@@ -786,6 +786,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--withdrawing-power-proposals" class="md-nav__link">
+    <span class="md-ellipsis">
+      Withdrawing power proposals
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1736,6 +1745,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--withdrawing-power-proposals" class="md-nav__link">
+    <span class="md-ellipsis">
+      Withdrawing power proposals
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2114,6 +2132,35 @@ available power is used.</p>
 | 0        | -60 kW .. 0 kW    | None             | 12 kW     | 0 kW         | 60 kW     |
 | -1       | -60 kW .. 0 kW    | -40 kW .. -10 kW | -10 kW    | -10 kW       | 50 kW     |
 |          |                   |                  |           | Target Power | 50 kW     |</p>
+<h3 id="frequenz.sdk.microgrid--withdrawing-power-proposals">Withdrawing power proposals<a class="headerlink" href="#frequenz.sdk.microgrid--withdrawing-power-proposals" title="Permanent link">¤</a></h3>
+<p>An actor can withdraw its power proposal by calling <code>propose_power</code> with <code>None</code>
+target_power and <code>None</code> bounds (which are the default anyway).  As soon as an actor
+calls <code>pool.propose_power(None)</code>, its proposal is dropped and the target power is
+recalculated and the component powers are updated.</p>
+<p>When all the proposals for a pool are withdrawn, the components get reset to their
+default powers immediately.  These are:</p>
+<table>
+<thead>
+<tr>
+<th>component category</th>
+<th>default power (according to Passive Sign Convention)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Batteries</td>
+<td>Zero</td>
+</tr>
+<tr>
+<td>PV</td>
+<td>Max production (Min power according to PSC)</td>
+</tr>
+<tr>
+<td>EV Chargers</td>
+<td>Max consumption (Max power according to PSC)</td>
+</tr>
+</tbody>
+</table>
 
 
 
