@@ -180,8 +180,8 @@ class PeriodicFeatureExtractor:
         return dist_to_oldest
 
     def _reshape_np_array(
-        self, array: NDArray[np.float_], window_size: int
-    ) -> NDArray[np.float_]:
+        self, array: NDArray[np.float64], window_size: int
+    ) -> NDArray[np.float64]:
         """
         Reshape a numpy array to a 2D array where each row represents a window.
 
@@ -361,7 +361,7 @@ class PeriodicFeatureExtractor:
 
     def _get_reshaped_np_array(
         self, start: datetime, end: datetime
-    ) -> tuple[NDArray[np.float_], int]:
+    ) -> tuple[NDArray[np.float64], int]:
         """
         Create a reshaped numpy array from the MovingWindow.
 
@@ -392,7 +392,7 @@ class PeriodicFeatureExtractor:
 
     def avg(
         self, start: datetime, end: datetime, weights: list[float] | None = None
-    ) -> NDArray[np.float_]:
+    ) -> NDArray[np.float64]:
         """
         Create the average window out of the window defined by `start` and `end`.
 
