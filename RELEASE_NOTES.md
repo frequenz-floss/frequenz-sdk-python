@@ -6,7 +6,7 @@
 
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
+* Includes a major update of the numpy dependency to v2.x.
 
 ## New Features
 
