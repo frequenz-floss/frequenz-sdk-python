@@ -250,6 +250,7 @@ class TestConfigManagerIntegration:
             value = 42
 
             [logging.loggers.test]
+            name = "test"
             level = "DEBUG"
             """
         )
@@ -276,6 +277,7 @@ class TestConfigManagerIntegration:
                 value = 43
 
                 [logging.loggers.test]
+                name = "test"
                 level = "INFO"
                 """
             )
@@ -313,6 +315,7 @@ class TestConfigManagerIntegration:
                 value = 43
 
                 [logging.loggers.test]
+                name = "test"
                 level = "DEBUG"
                 """
             )

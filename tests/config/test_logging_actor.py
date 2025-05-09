@@ -16,6 +16,7 @@ from frequenz.sdk.config import (
     LoggerConfig,
     LoggingConfig,
     LoggingConfigUpdatingActor,
+    RootLoggerConfig,
     load_config,
 )
 
@@ -25,15 +26,15 @@ def test_logging_config() -> None:
     config_raw = {
         "root_logger": {"level": "DEBUG"},
         "loggers": {
-            "frequenz.sdk.actor": {"level": "INFO"},
-            "frequenz.sdk.timeseries": {"level": "ERROR"},
+            "actor": {"name": "frequenz.sdk.actor", "level": "INFO"},
+            "timeseries": {"name": "frequenz.sdk.timeseries", "level": "ERROR"},
         },
     }
     config = LoggingConfig(
-        root_logger=LoggerConfig(level="DEBUG"),
+        root_logger=RootLoggerConfig(level="DEBUG"),
         loggers={
-            "frequenz.sdk.actor": LoggerConfig(level="INFO"),
-            "frequenz.sdk.timeseries": LoggerConfig(level="ERROR"),
+            "actor": LoggerConfig(name="frequenz.sdk.actor", level="INFO"),
+            "timeseries": LoggerConfig(name="frequenz.sdk.timeseries", level="ERROR"),
         },
     )
 
@@ -92,10 +93,12 @@ async def test_logging_config_updating_actor(
 
         # Send first config
         expected_config = LoggingConfig(
-            root_logger=LoggerConfig(level="ERROR"),
+            root_logger=RootLoggerConfig(level="ERROR"),
             loggers={
-                "frequenz.sdk.actor": LoggerConfig(level="DEBUG"),
-                "frequenz.sdk.timeseries": LoggerConfig(level="ERROR"),
+                "actor": LoggerConfig(name="frequenz.sdk.actor", level="DEBUG"),
+                "timeseries": LoggerConfig(
+                    name="frequenz.sdk.timeseries", level="ERROR"
+                ),
             },
         )
         await mock_config_manager.config_channel.new_sender().send(expected_config)
@@ -121,9 +124,9 @@ async def test_logging_config_updating_actor(
 
         # Update config
         expected_config = LoggingConfig(
-            root_logger=LoggerConfig(level="WARNING"),
+            root_logger=RootLoggerConfig(level="WARNING"),
             loggers={
-                "frequenz.sdk.actor": LoggerConfig(level="INFO"),
+                "actor": LoggerConfig(name="frequenz.sdk.actor", level="INFO"),
             },
         )
         await mock_config_manager.config_channel.new_sender().send(expected_config)
