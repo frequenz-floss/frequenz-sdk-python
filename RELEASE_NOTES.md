@@ -53,3 +53,5 @@
   | Battery            | 0.0                                       |
   | PV                 | Minimum power (aka max production power)  |
   | EV Chargers        | Maximum power (aka max consumption power) |
+
+- PV Pool instances can now be created in sites without any PV.  This allows for writing generic code that works for all locations, that depends on the PV power formula, for example.
