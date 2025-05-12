@@ -171,7 +171,12 @@ class TestPowerDistributingActor:
                     battery_id,
                     capacity=Metric(98000),
                     soc=Metric(40, Bound(20, 80)),
-                    power=PowerBounds(-1000, 0, 0, 1000),
+                    power=PowerBounds(
+                        Power.from_watts(-1000),
+                        Power.zero(),
+                        Power.zero(),
+                        Power.from_watts(1000),
+                    ),
                 ),
                 0.05,
             )
@@ -182,7 +187,12 @@ class TestPowerDistributingActor:
             mocks.streamer.start_streaming(
                 inverter_msg(
                     inverter_id,
-                    power=PowerBounds(-500, 0, 0, 500),
+                    power=PowerBounds(
+                        Power.from_watts(-500),
+                        Power.zero(),
+                        Power.zero(),
+                        Power.from_watts(500),
+                    ),
                 ),
                 0.05,
             )
@@ -238,7 +248,12 @@ class TestPowerDistributingActor:
                     9,
                     soc=Metric(60, Bound(20, 80)),
                     capacity=Metric(98000),
-                    power=PowerBounds(-1000, -300, 300, 1000),
+                    power=PowerBounds(
+                        Power.from_watts(-1000),
+                        Power.from_watts(-300),
+                        Power.from_watts(300),
+                        Power.from_watts(1000),
+                    ),
                 ),
                 0.05,
             )
@@ -248,7 +263,12 @@ class TestPowerDistributingActor:
                     19,
                     soc=Metric(60, Bound(20, 80)),
                     capacity=Metric(98000),
-                    power=PowerBounds(-1000, -300, 300, 1000),
+                    power=PowerBounds(
+                        Power.from_watts(-1000),
+                        Power.from_watts(-300),
+                        Power.from_watts(300),
+                        Power.from_watts(1000),
+                    ),
                 ),
                 0.05,
             )
@@ -302,7 +322,12 @@ class TestPowerDistributingActor:
                 assert isinstance(
                     result, OutOfBounds
                 ), f"Expected OutOfBounds, got {result}"
-                assert result.bounds == PowerBounds(-1000, -600, 600, 1000)
+                assert result.bounds == PowerBounds(
+                    Power.from_watts(-1000),
+                    Power.from_watts(-600),
+                    Power.from_watts(600),
+                    Power.from_watts(1000),
+                )
                 assert result.request == request
 
     # pylint: disable=too-many-locals
@@ -406,7 +431,12 @@ class TestPowerDistributingActor:
                     bat_components[0].component_id,
                     soc=Metric(math.nan, Bound(20, 80)),
                     capacity=Metric(98000),
-                    power=PowerBounds(-1000, 0, 0, 1000),
+                    power=PowerBounds(
+                        Power.from_watts(-1000),
+                        Power.zero(),
+                        Power.zero(),
+                        Power.from_watts(1000),
+                    ),
                 ),
                 0.05,
             )
@@ -564,7 +594,12 @@ class TestPowerDistributingActor:
             mocks.streamer.start_streaming(
                 inverter_msg(
                     inverter.component_id,
-                    power=PowerBounds(-1000, -500, 500, 1000),
+                    power=PowerBounds(
+                        Power.from_watts(-1000),
+                        Power.from_watts(-500),
+                        Power.from_watts(500),
+                        Power.from_watts(1000),
+                    ),
                 ),
                 0.05,
             )
@@ -573,7 +608,12 @@ class TestPowerDistributingActor:
                     batteries[0].component_id,
                     soc=Metric(40, Bound(20, 80)),
                     capacity=Metric(10_000),
-                    power=PowerBounds(-1000, -200, 200, 1000),
+                    power=PowerBounds(
+                        Power.from_watts(-1000),
+                        Power.from_watts(-200),
+                        Power.from_watts(200),
+                        Power.from_watts(1000),
+                    ),
                 ),
                 0.05,
             )
@@ -582,7 +622,12 @@ class TestPowerDistributingActor:
                     batteries[1].component_id,
                     soc=Metric(40, Bound(20, 80)),
                     capacity=Metric(10_000),
-                    power=PowerBounds(-1000, -100, 100, 1000),
+                    power=PowerBounds(
+                        Power.from_watts(-1000),
+                        Power.from_watts(-100),
+                        Power.from_watts(100),
+                        Power.from_watts(1000),
+                    ),
                 ),
                 0.05,
             )
@@ -618,7 +663,12 @@ class TestPowerDistributingActor:
 
                 assert isinstance(result, OutOfBounds)
                 assert result.request == request
-                assert result.bounds == PowerBounds(-1000, -500, 500, 1000)
+                assert result.bounds == PowerBounds(
+                    Power.from_watts(-1000),
+                    Power.from_watts(-500),
+                    Power.from_watts(500),
+                    Power.from_watts(1000),
+                )
 
     async def test_two_batteries_one_inverter_different_exclusion_bounds(
         self, mocker: MockerFixture
@@ -655,7 +705,12 @@ class TestPowerDistributingActor:
                     batteries[0].component_id,
                     soc=Metric(40, Bound(20, 80)),
                     capacity=Metric(10_000),
-                    power=PowerBounds(-1000, -200, 200, 1000),
+                    power=PowerBounds(
+                        Power.from_watts(-1000),
+                        Power.from_watts(-200),
+                        Power.from_watts(200),
+                        Power.from_watts(1000),
+                    ),
                 ),
                 0.05,
             )
@@ -664,7 +719,12 @@ class TestPowerDistributingActor:
                     batteries[1].component_id,
                     soc=Metric(40, Bound(20, 80)),
                     capacity=Metric(10_000),
-                    power=PowerBounds(-1000, -100, 100, 1000),
+                    power=PowerBounds(
+                        Power.from_watts(-1000),
+                        Power.from_watts(-100),
+                        Power.from_watts(100),
+                        Power.from_watts(1000),
+                    ),
                 ),
                 0.05,
             )
@@ -701,7 +761,12 @@ class TestPowerDistributingActor:
                 assert isinstance(result, OutOfBounds)
                 assert result.request == request
                 # each inverter is bounded at 500
-                assert result.bounds == PowerBounds(-500, -400, 400, 500)
+                assert result.bounds == PowerBounds(
+                    Power.from_watts(-500),
+                    Power.from_watts(-400),
+                    Power.from_watts(400),
+                    Power.from_watts(500),
+                )
 
     async def test_connected_but_not_requested_batteries(
         self, mocker: MockerFixture
@@ -774,7 +839,12 @@ class TestPowerDistributingActor:
                     9,
                     soc=Metric(math.nan, Bound(20, 80)),
                     capacity=Metric(98000),
-                    power=PowerBounds(-1000, 0, 0, 1000),
+                    power=PowerBounds(
+                        Power.from_watts(-1000),
+                        Power.zero(),
+                        Power.zero(),
+                        Power.from_watts(1000),
+                    ),
                 ),
                 0.05,
             )
@@ -823,7 +893,12 @@ class TestPowerDistributingActor:
                     9,
                     soc=Metric(40, Bound(20, 80)),
                     capacity=Metric(math.nan),
-                    power=PowerBounds(-1000, 0, 0, 1000),
+                    power=PowerBounds(
+                        Power.from_watts(-1000),
+                        Power.zero(),
+                        Power.zero(),
+                        Power.from_watts(1000),
+                    ),
                 ),
                 0.05,
             )
@@ -873,7 +948,12 @@ class TestPowerDistributingActor:
             mocks.streamer.start_streaming(
                 inverter_msg(
                     18,
-                    power=PowerBounds(-1000, 0, 0, 1000),
+                    power=PowerBounds(
+                        Power.from_watts(-1000),
+                        Power.zero(),
+                        Power.zero(),
+                        Power.from_watts(1000),
+                    ),
                 ),
                 0.05,
             )
@@ -882,7 +962,12 @@ class TestPowerDistributingActor:
             mocks.streamer.start_streaming(
                 inverter_msg(
                     8,
-                    power=PowerBounds(-1000, 0, 0, math.nan),
+                    power=PowerBounds(
+                        Power.from_watts(-1000),
+                        Power.zero(),
+                        Power.zero(),
+                        Power.from_watts(math.nan),
+                    ),
                 ),
                 0.05,
             )
@@ -892,7 +977,12 @@ class TestPowerDistributingActor:
                     9,
                     soc=Metric(40, Bound(20, 80)),
                     capacity=Metric(float(98000)),
-                    power=PowerBounds(math.nan, 0, 0, math.nan),
+                    power=PowerBounds(
+                        Power.from_watts(math.nan),
+                        Power.zero(),
+                        Power.zero(),
+                        Power.from_watts(math.nan),
+                    ),
                 ),
                 0.05,
             )
@@ -1009,7 +1099,7 @@ class TestPowerDistributingActor:
             assert isinstance(result, OutOfBounds)
             assert result is not None
             assert result.request == request
-            assert result.bounds.inclusion_upper == 1000
+            assert result.bounds.inclusion_upper == Power.from_watts(1000)
 
     async def test_power_distributor_one_user_adjust_power_supply(
         self, mocker: MockerFixture
@@ -1051,7 +1141,7 @@ class TestPowerDistributingActor:
             assert isinstance(result, OutOfBounds)
             assert result is not None
             assert result.request == request
-            assert result.bounds.inclusion_lower == -1000
+            assert result.bounds.inclusion_lower == Power.from_watts(-1000)
 
     async def test_power_distributor_one_user_adjust_power_success(
         self, mocker: MockerFixture
@@ -1144,7 +1234,7 @@ class TestPowerDistributingActor:
 
             batteries = {9, 19, 29}
             failed_batteries = {9}
-            failed_power = 500.0
+            failed_power = Power.from_watts(500.0)
 
             await self._patch_battery_pool_status(mocks, mocker, batteries)
 
@@ -1185,6 +1275,6 @@ class TestPowerDistributingActor:
                 assert result.succeeded_components == batteries - failed_batteries
                 assert result.failed_components == failed_batteries
                 assert result.succeeded_power.isclose(Power.from_watts(1000.0))
-                assert result.failed_power.isclose(Power.from_watts(failed_power))
+                assert result.failed_power.isclose(failed_power)
                 assert result.excess_power.isclose(Power.from_watts(200.0))
                 assert result.request == request

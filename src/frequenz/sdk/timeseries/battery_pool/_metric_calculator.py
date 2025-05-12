@@ -534,10 +534,10 @@ class PowerBoundsCalculator(MetricCalculator[SystemBounds]):
         """
         timestamp = _MIN_TIMESTAMP
         loop_timestamp = _MIN_TIMESTAMP
-        inclusion_bounds_lower = 0.0
-        inclusion_bounds_upper = 0.0
-        exclusion_bounds_lower = 0.0
-        exclusion_bounds_upper = 0.0
+        inclusion_bounds_lower = Power.zero()
+        inclusion_bounds_upper = Power.zero()
+        exclusion_bounds_lower = Power.zero()
+        exclusion_bounds_upper = Power.zero()
 
         battery_sets = {
             self._bat_bats_map[battery_id] for battery_id in working_batteries
@@ -563,10 +563,10 @@ class PowerBoundsCalculator(MetricCalculator[SystemBounds]):
 
             loop_timestamp = local_timestamp
             return PowerBounds(
-                inclusion_lower=results[0],
-                exclusion_lower=results[1],
-                exclusion_upper=results[2],
-                inclusion_upper=results[3],
+                inclusion_lower=Power.from_watts(results[0]),
+                exclusion_lower=Power.from_watts(results[1]),
+                exclusion_upper=Power.from_watts(results[2]),
+                inclusion_upper=Power.from_watts(results[3]),
             )
 
         def get_bounds_list(
@@ -602,19 +602,31 @@ class PowerBoundsCalculator(MetricCalculator[SystemBounds]):
 
             inclusion_bounds_lower += max(
                 aggregated_bat_bounds.inclusion_lower,
-                sum(bound.inclusion_lower for bound in inverter_bounds),
+                sum(
+                    (bound.inclusion_lower for bound in inverter_bounds),
+                    start=Power.zero(),
+                ),
             )
             inclusion_bounds_upper += min(
                 aggregated_bat_bounds.inclusion_upper,
-                sum(bound.inclusion_upper for bound in inverter_bounds),
+                sum(
+                    (bound.inclusion_upper for bound in inverter_bounds),
+                    start=Power.zero(),
+                ),
             )
             exclusion_bounds_lower += min(
                 aggregated_bat_bounds.exclusion_lower,
-                sum(bound.exclusion_lower for bound in inverter_bounds),
+                sum(
+                    (bound.exclusion_lower for bound in inverter_bounds),
+                    start=Power.zero(),
+                ),
             )
             exclusion_bounds_upper += max(
                 aggregated_bat_bounds.exclusion_upper,
-                sum(bound.exclusion_upper for bound in inverter_bounds),
+                sum(
+                    (bound.exclusion_upper for bound in inverter_bounds),
+                    start=Power.zero(),
+                ),
             )
 
         if timestamp == _MIN_TIMESTAMP:
@@ -627,11 +639,11 @@ class PowerBoundsCalculator(MetricCalculator[SystemBounds]):
         return SystemBounds(
             timestamp=timestamp,
             inclusion_bounds=timeseries.Bounds(
-                Power.from_watts(inclusion_bounds_lower),
-                Power.from_watts(inclusion_bounds_upper),
+                inclusion_bounds_lower,
+                inclusion_bounds_upper,
             ),
             exclusion_bounds=timeseries.Bounds(
-                Power.from_watts(exclusion_bounds_lower),
-                Power.from_watts(exclusion_bounds_upper),
+                exclusion_bounds_lower,
+                exclusion_bounds_upper,
             ),
         )

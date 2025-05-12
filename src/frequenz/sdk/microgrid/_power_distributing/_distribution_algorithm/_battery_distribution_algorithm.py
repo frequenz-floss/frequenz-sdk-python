@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import NamedTuple, Sequence
 
 from frequenz.client.microgrid import BatteryData, InverterData
+from frequenz.quantities import Power
 
 from ...._internal._math import is_close_to_zero
 from ..result import PowerBounds
@@ -81,10 +82,18 @@ class AggregatedBatteryData:
             list(
                 map(
                     lambda metrics: PowerBounds(
-                        inclusion_upper=metrics.power_inclusion_upper_bound,
-                        inclusion_lower=metrics.power_inclusion_lower_bound,
-                        exclusion_upper=metrics.power_exclusion_upper_bound,
-                        exclusion_lower=metrics.power_exclusion_lower_bound,
+                        inclusion_upper=Power.from_watts(
+                            metrics.power_inclusion_upper_bound
+                        ),
+                        inclusion_lower=Power.from_watts(
+                            metrics.power_inclusion_lower_bound
+                        ),
+                        exclusion_upper=Power.from_watts(
+                            metrics.power_exclusion_upper_bound
+                        ),
+                        exclusion_lower=Power.from_watts(
+                            metrics.power_exclusion_lower_bound
+                        ),
                     ),
                     batteries,
                 )
@@ -107,21 +116,23 @@ def _aggregate_battery_power_bounds(
 
     # Calculate the aggregated bounds for the set of batteries
     power_inclusion_upper_bound = sum(
-        bounds.inclusion_upper for bounds in battery_metrics
+        (bounds.inclusion_upper for bounds in battery_metrics), start=Power.zero()
     )
     power_inclusion_lower_bound = sum(
-        bounds.inclusion_lower for bounds in battery_metrics
+        (bounds.inclusion_lower for bounds in battery_metrics), start=Power.zero()
     )
 
     # To satisfy the largest exclusion bounds in the set we need to
     # provide the power defined by the largest bounds multiplied by the
     # number of batteries in the set.
-    power_exclusion_upper_bound = max(
-        bounds.exclusion_upper for bounds in battery_metrics
-    ) * len(battery_metrics)
-    power_exclusion_lower_bound = min(
-        bounds.exclusion_lower for bounds in battery_metrics
-    ) * len(battery_metrics)
+    power_exclusion_upper_bound = Power.from_watts(
+        max(bounds.exclusion_upper for bounds in battery_metrics).as_watts()
+        * len(battery_metrics)
+    )
+    power_exclusion_lower_bound = Power.from_watts(
+        min(bounds.exclusion_lower for bounds in battery_metrics).as_watts()
+        * len(battery_metrics)
+    )
 
     return PowerBounds(
         inclusion_lower=power_inclusion_lower_bound,
@@ -154,7 +165,7 @@ class AvailabilityRatio:
     ratio: float
     """The availability ratio."""
 
-    min_power: float
+    min_power: Power
     """The minimum power that can be set for the battery-inverters pair."""
 
 
@@ -162,10 +173,10 @@ class AvailabilityRatio:
 class _Power:
     """Helper class for distribution algorithm."""
 
-    upper_bound: float
+    upper_bound: Power
     """The upper bound of the power that can be set for the battery."""
 
-    power: float
+    power: Power
     """The power to be set for the inverter."""
 
 
@@ -180,7 +191,7 @@ class _Allocation:
     inverter_ids: _InverterSet
     """The IDs of the inverters."""
 
-    power: float
+    power: Power
     """The power to be set for the inverters."""
 
 
@@ -188,14 +199,14 @@ class _Allocation:
 class DistributionResult:
     """Distribution result."""
 
-    distribution: dict[int, float]
+    distribution: dict[int, Power]
     """The power to be set for each inverter.
 
     The key is inverter ID, and the value is the power that should be set for
     that inverter.
     """
 
-    remaining_power: float
+    remaining_power: Power
     """The power which could not be distributed because of bounds."""
 
 
@@ -281,6 +292,8 @@ class BatteryDistributionAlgorithm:
             / total_battery_availability_ratio
     ```
     """
+
+    _MINIMUM_DEFICIT_TO_CONSIDER = Power.from_watts(-0.1)
 
     def __init__(self, distributor_exponent: float = 1) -> None:
         """Create distribution algorithm instance.
@@ -386,7 +399,7 @@ class BatteryDistributionAlgorithm:
         self,
         components: list[InvBatPair],
         available_soc: dict[int, float],
-        excl_bounds: dict[int, float],
+        excl_bounds: dict[int, Power],
     ) -> tuple[list[AvailabilityRatio], float]:
         r"""Compute battery ratio and the total sum of all of them.
 
@@ -451,10 +464,10 @@ class BatteryDistributionAlgorithm:
         self,
         *,
         components: list[InvBatPair],
-        power_w: float,
+        power: Power,
         available_soc: dict[int, float],
-        incl_bounds: dict[int, float],
-        excl_bounds: dict[int, float],
+        incl_bounds: dict[int, Power],
+        excl_bounds: dict[int, Power],
     ) -> DistributionResult:
         # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         """Distribute power between given components.
@@ -464,7 +477,7 @@ class BatteryDistributionAlgorithm:
 
         Args:
             components: list of components.
-            power_w: power to distribute
+            power: power to distribute
             available_soc: how much SoC remained to reach:
                 * SoC upper bound - if need to distribute consumption power
                 * SoC lower bound - if need to distribute supply power
@@ -484,21 +497,21 @@ class BatteryDistributionAlgorithm:
         # sum_ratio == 0 means that all batteries are fully charged / discharged
         if is_close_to_zero(sum_ratio):
             final_distribution = {
-                inverter.component_id: 0.0
+                inverter.component_id: Power.zero()
                 for _, inverters in components
                 for inverter in inverters
             }
-            return DistributionResult(final_distribution, power_w)
+            return DistributionResult(final_distribution, power)
 
         # key: inverter_ids, value: _Power(upper_bound, power)
         distribution: dict[_InverterSet, _Power] = {}
-        distributed_power: float = 0.0
-        reserved_power: float = 0.0
-        power_to_distribute: float = power_w
+        distributed_power: Power = Power.zero()
+        reserved_power: Power = Power.zero()
+        power_to_distribute: Power = power
         used_ratio: float = 0.0
         ratio = sum_ratio
-        excess_reserved: dict[_InverterSet, float] = {}
-        deficits: dict[_InverterSet, float] = {}
+        excess_reserved: dict[_InverterSet, Power] = {}
+        deficits: dict[_InverterSet, Power] = {}
 
         for ratio_data in battery_availability_ratio:
             inverter_set = _InverterSet(ratio_data.inverter_ids)
@@ -506,12 +519,12 @@ class BatteryDistributionAlgorithm:
             # capacity
             if is_close_to_zero(ratio):
                 distribution[inverter_set] = _Power(
-                    upper_bound=0.0,
-                    power=0.0,
+                    upper_bound=Power.zero(),
+                    power=Power.zero(),
                 )
                 continue
 
-            power_to_distribute = power_w - reserved_power
+            power_to_distribute = power - reserved_power
             calculated_power = power_to_distribute * ratio_data.ratio / ratio
             reserved_power += max(calculated_power, ratio_data.min_power)
             used_ratio += ratio_data.ratio
@@ -521,7 +534,11 @@ class BatteryDistributionAlgorithm:
             # then we need to distribute more power over all remaining batteries.
             incl_bound = min(
                 sum(
-                    incl_bounds[inverter_id] for inverter_id in ratio_data.inverter_ids
+                    (
+                        incl_bounds[inverter_id]
+                        for inverter_id in ratio_data.inverter_ids
+                    ),
+                    start=Power.zero(),
                 ),
                 incl_bounds[ratio_data.battery_id],
             )
@@ -540,28 +557,28 @@ class BatteryDistributionAlgorithm:
             )
 
         for inverter_ids, deficit in deficits.items():
-            while not is_close_to_zero(deficit) and deficit < 0.0:
+            while not deficit.isclose(Power.zero()) and deficit < Power.zero():
                 if not excess_reserved:
                     break
                 largest = _Allocation(
                     *max(excess_reserved.items(), key=lambda item: item[1])
                 )
 
-                if is_close_to_zero(largest.power) or largest.power < 0.0:
+                if largest.power.isclose(Power.zero()) or largest.power < Power.zero():
                     break
-                if largest.power >= -deficit or math.isclose(largest.power, -deficit):
+                if largest.power >= -deficit or largest.power.isclose(-deficit):
                     excess_reserved[largest.inverter_ids] += deficit
-                    deficits[inverter_ids] = 0.0
-                    deficit = 0.0
+                    deficits[inverter_ids] = Power.zero()
+                    deficit = Power.zero()
                 else:
                     deficit += excess_reserved[largest.inverter_ids]
                     deficits[inverter_ids] = deficit
-                    excess_reserved[largest.inverter_ids] = 0.0
-            if deficit < -0.1:
-                left_over = power_w - distributed_power
+                    excess_reserved[largest.inverter_ids] = Power.zero()
+            if deficit < self._MINIMUM_DEFICIT_TO_CONSIDER:
+                left_over = power - distributed_power
                 if left_over > -deficit:
                     distributed_power += deficit
-                elif left_over > 0.0:
+                elif left_over > Power.zero():
                     distributed_power += left_over
 
         for inverter_ids, excess in excess_reserved.items():
@@ -571,7 +588,7 @@ class BatteryDistributionAlgorithm:
             # Add excess power to the inverter set
             distribution[inverter_ids] = battery_power
 
-        left_over = power_w - distributed_power
+        left_over = power - distributed_power
 
         distribution, left_over = self._greedy_distribute_remaining_power(
             distribution, left_over
@@ -587,9 +604,9 @@ class BatteryDistributionAlgorithm:
     def _distribute_multi_inverter_pairs(
         self,
         distribution: dict[_InverterSet, _Power],
-        excl_bounds: dict[int, float],
-        incl_bounds: dict[int, float],
-    ) -> dict[int, float]:
+        excl_bounds: dict[int, Power],
+        incl_bounds: dict[int, Power],
+    ) -> dict[int, Power]:
         """Distribute power between inverters in a set for a single pair.
 
         Args:
@@ -600,7 +617,7 @@ class BatteryDistributionAlgorithm:
         Returns:
             Return the power for each inverter in given distribution.
         """
-        new_distribution: dict[int, float] = {}
+        new_distribution: dict[int, Power] = {}
 
         for inverter_ids, power in distribution.items():
             if len(inverter_ids) == 1:
@@ -616,7 +633,7 @@ class BatteryDistributionAlgorithm:
 
                 for inverter_id in sorted_inverter_ids:
                     if (
-                        not is_close_to_zero(remaining_power)
+                        not remaining_power.isclose(Power.zero())
                         and excl_bounds[inverter_id] <= remaining_power
                     ):
                         new_power = min(incl_bounds[inverter_id], remaining_power)
@@ -624,13 +641,13 @@ class BatteryDistributionAlgorithm:
                         new_distribution[inverter_id] = new_power
                         remaining_power -= new_power
                     else:
-                        new_distribution[inverter_id] = 0.0
+                        new_distribution[inverter_id] = Power.zero()
 
         return new_distribution
 
     def _greedy_distribute_remaining_power(
-        self, distribution: dict[_InverterSet, _Power], remaining_power: float
-    ) -> tuple[dict[_InverterSet, _Power], float]:
+        self, distribution: dict[_InverterSet, _Power], remaining_power: Power
+    ) -> tuple[dict[_InverterSet, _Power], Power]:
         """Add remaining power greedily to the given distribution.
 
         Distribution for each inverter will not exceed its upper bound.
@@ -642,13 +659,15 @@ class BatteryDistributionAlgorithm:
         Returns:
             Return the new distribution and remaining power.
         """
-        if is_close_to_zero(remaining_power):
+        if remaining_power.isclose(Power.zero()):
             return distribution, remaining_power
 
         for inverter_ids, power in distribution.items():
             # The power.power == 0 means the inverter shall not be used due to
             # SoC bounds or no capacity
-            if is_close_to_zero(remaining_power) or is_close_to_zero(power.power):
+            if remaining_power.isclose(Power.zero()) or power.power.isclose(
+                Power.zero()
+            ):
                 distribution[inverter_ids] = power
             else:
                 additional_power = min(power.upper_bound - power.power, remaining_power)
@@ -658,7 +677,7 @@ class BatteryDistributionAlgorithm:
         return distribution, remaining_power
 
     def distribute_power_equally(
-        self, power: float, inverters: set[int]
+        self, power: Power, inverters: set[int]
     ) -> DistributionResult:
         """Distribute the power equally between the inverters in the set.
 
@@ -675,11 +694,11 @@ class BatteryDistributionAlgorithm:
         power_per_inverter = power / len(inverters)
         return DistributionResult(
             distribution={id: power_per_inverter for id in inverters},
-            remaining_power=0.0,
+            remaining_power=Power.zero(),
         )
 
     def distribute_power(
-        self, power: float, components: list[InvBatPair]
+        self, power: Power, components: list[InvBatPair]
     ) -> DistributionResult:
         """Distribute given power between given components.
 
@@ -691,21 +710,21 @@ class BatteryDistributionAlgorithm:
         Returns:
             Distribution result
         """
-        if is_close_to_zero(power):
+        if power.isclose(Power.zero()):
             return DistributionResult(
                 distribution={
-                    inverter.component_id: 0.0
+                    inverter.component_id: Power.zero()
                     for _, inverters in components
                     for inverter in inverters
                 },
-                remaining_power=0.0,
+                remaining_power=Power.zero(),
             )
-        if power > 0.0:
+        if power > Power.zero():
             return self._distribute_consume_power(power, components)
         return self._distribute_supply_power(power, components)
 
     def _distribute_consume_power(
-        self, power_w: float, components: list[InvBatPair]
+        self, power: Power, components: list[InvBatPair]
     ) -> DistributionResult:
         """Distribute power between the given components.
 
@@ -714,7 +733,7 @@ class BatteryDistributionAlgorithm:
             * will try to align himself to the same level.
 
         Args:
-            power_w: power to distribute
+            power: power to distribute
             components: list of components between which the power should be
                 distributed.
 
@@ -736,14 +755,14 @@ class BatteryDistributionAlgorithm:
 
         return self._distribute_power(
             components=components,
-            power_w=power_w,
+            power=power,
             available_soc=available_soc,
             incl_bounds=incl_bounds,
             excl_bounds=excl_bounds,
         )
 
     def _distribute_supply_power(
-        self, power_w: float, components: list[InvBatPair]
+        self, power: Power, components: list[InvBatPair]
     ) -> DistributionResult:
         """Distribute power between the given components.
 
@@ -752,7 +771,7 @@ class BatteryDistributionAlgorithm:
             * will try to align himself to the same level.
 
         Args:
-            power_w: power to distribute
+            power: power to distribute
             components: list of components between which the power should be
                 distributed.
 
@@ -771,21 +790,21 @@ class BatteryDistributionAlgorithm:
 
         result: DistributionResult = self._distribute_power(
             components=components,
-            power_w=-1 * power_w,
+            power=-power,
             available_soc=available_soc,
             incl_bounds=incl_bounds,
             excl_bounds=excl_bounds,
         )
 
         for inverter_id in result.distribution.keys():
-            result.distribution[inverter_id] *= -1
-        result.remaining_power *= -1
+            result.distribution[inverter_id] = -result.distribution[inverter_id]
+        result.remaining_power = -result.remaining_power
 
         return result
 
     def _inclusion_exclusion_bounds(
         self, components: list[InvBatPair], supply: bool = False
-    ) -> tuple[dict[int, float], dict[int, float]]:
+    ) -> tuple[dict[int, Power], dict[int, Power]]:
         """Calculate inclusion and exclusion bounds for given components.
 
         Inverter exclusion bounds are _not_ adjusted to battery inclusion
@@ -800,8 +819,8 @@ class BatteryDistributionAlgorithm:
         Returns:
             inclusion and exclusion bounds.
         """
-        incl_bounds: dict[int, float] = {}
-        excl_bounds: dict[int, float] = {}
+        incl_bounds: dict[int, Power] = {}
+        excl_bounds: dict[int, Power] = {}
         for battery, inverters in components:
             if supply:
                 excl_bounds[battery.component_id] = (
@@ -817,19 +836,19 @@ class BatteryDistributionAlgorithm:
             for inverter in inverters:
                 if supply:
                     incl_bounds[inverter.component_id] = -max(
-                        inverter.active_power_inclusion_lower_bound,
+                        Power.from_watts(inverter.active_power_inclusion_lower_bound),
                         battery.power_bounds.inclusion_lower,
                     )
-                    excl_bounds[inverter.component_id] = (
+                    excl_bounds[inverter.component_id] = Power.from_watts(
                         -inverter.active_power_exclusion_lower_bound
                     )
 
                 else:
                     incl_bounds[inverter.component_id] = min(
-                        inverter.active_power_inclusion_upper_bound,
+                        Power.from_watts(inverter.active_power_inclusion_upper_bound),
                         battery.power_bounds.inclusion_upper,
                     )
-                    excl_bounds[inverter.component_id] = (
+                    excl_bounds[inverter.component_id] = Power.from_watts(
                         inverter.active_power_exclusion_upper_bound
                     )
         return incl_bounds, excl_bounds
