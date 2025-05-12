@@ -590,45 +590,21 @@ class TestComponentGraph:
 
         # Find the first descendant component of the grid endpoint.
         result = graph.find_first_descendant_component(
-            root_category=ComponentCategory.GRID,
             descendant_categories=(ComponentCategory.METER,),
         )
         assert result == Component(2, ComponentCategory.METER)
-
-        # Find the first descendant component of the first meter found.
-        result = graph.find_first_descendant_component(
-            root_category=ComponentCategory.METER,
-            descendant_categories=(ComponentCategory.INVERTER,),
-        )
-        assert result == Component(4, ComponentCategory.INVERTER, InverterType.BATTERY)
 
         # Find the first descendant component of the grid,
         # considering meter or inverter categories.
         result = graph.find_first_descendant_component(
-            root_category=ComponentCategory.GRID,
             descendant_categories=(ComponentCategory.METER, ComponentCategory.INVERTER),
         )
         assert result == Component(2, ComponentCategory.METER)
-
-        # Find the first descendant component of the first meter with nested meters.
-        result = graph.find_first_descendant_component(
-            root_category=ComponentCategory.METER,
-            descendant_categories=(ComponentCategory.METER,),
-        )
-        assert result == Component(3, ComponentCategory.METER)
-
-        # Verify behavior when root component is not found.
-        with pytest.raises(ValueError):
-            graph.find_first_descendant_component(
-                root_category=ComponentCategory.CHP,
-                descendant_categories=(ComponentCategory.INVERTER,),
-            )
 
         # Verify behavior when component is not found in immediate descendant
         # categories for the first meter.
         with pytest.raises(ValueError):
             graph.find_first_descendant_component(
-                root_category=ComponentCategory.METER,
                 descendant_categories=(
                     ComponentCategory.EV_CHARGER,
                     ComponentCategory.BATTERY,
@@ -639,7 +615,6 @@ class TestComponentGraph:
         # categories from the grid component as root.
         with pytest.raises(ValueError):
             graph.find_first_descendant_component(
-                root_category=ComponentCategory.GRID,
                 descendant_categories=(ComponentCategory.INVERTER,),
             )
 

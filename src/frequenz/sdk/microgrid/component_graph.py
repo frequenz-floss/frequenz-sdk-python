@@ -311,16 +311,11 @@ class ComponentGraph(ABC):
     def find_first_descendant_component(
         self,
         *,
-        root_category: ComponentCategory,
         descendant_categories: Iterable[ComponentCategory],
     ) -> Component:
         """Find the first descendant component given root and descendant categories.
 
-        This method searches for the root component within the provided root
-        category. If multiple components share the same root category, the
-        first found one is considered as the root component.
-
-        Subsequently, it looks for the first descendant component from the root
+        This method looks for the first descendant component from the GRID
         component, considering only the immediate descendants.
 
         The priority of the component to search for is determined by the order
@@ -328,13 +323,12 @@ class ComponentGraph(ABC):
         highest priority.
 
         Args:
-            root_category: The class of the root component to search for.
             descendant_categories: The descendant classes to search for the first
                 descendant component in.
 
         Returns:
             The first descendant component found in the component graph,
-                considering the specified `root` and `descendants` categories.
+                considering the specified `descendants` categories.
         """
 
 
@@ -824,16 +818,11 @@ class _MicrogridComponentGraph(
     def find_first_descendant_component(
         self,
         *,
-        root_category: ComponentCategory,
         descendant_categories: Iterable[ComponentCategory],
     ) -> Component:
         """Find the first descendant component given root and descendant categories.
 
-        This method searches for the root component within the provided root
-        category. If multiple components share the same root category, the
-        first found one is considered as the root component.
-
-        Subsequently, it looks for the first descendant component from the root
+        This method looks for the first descendant component from the GRID
         component, considering only the immediate descendants.
 
         The priority of the component to search for is determined by the order
@@ -841,25 +830,28 @@ class _MicrogridComponentGraph(
         highest priority.
 
         Args:
-            root_category: The class of the root component to search for.
             descendant_categories: The descendant classes to search for the first
                 descendant component in.
 
         Returns:
             The first descendant component found in the component graph,
-                considering the specified `root` and `descendants` categories.
+                considering the specified `descendants` categories.
 
         Raises:
-            ValueError: When the root component is not found in the component
-                graph or when no component is found in the given categories.
+            InvalidGraphError: When no GRID component is found in the graph.
+            ValueError: When no component is found in the given categories.
         """
         root_component = next(
-            (comp for comp in self.components(component_categories={root_category})),
+            (
+                comp
+                for comp in self.components(
+                    component_categories={ComponentCategory.GRID}
+                )
+            ),
             None,
         )
-
         if root_component is None:
-            raise ValueError(f"Root component not found for {root_category.name}")
+            raise InvalidGraphError("No GRID component found in the component graph!")
 
         # Sort by component ID to ensure consistent results.
         successors = sorted(
