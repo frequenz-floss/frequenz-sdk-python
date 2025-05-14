@@ -8,7 +8,7 @@ from collections.abc import Callable
 from math import isclose
 
 from frequenz.channels import Receiver
-from frequenz.client.microgrid import ComponentMetricId
+from frequenz.client.microgrid import ComponentId, ComponentMetricId
 
 from frequenz.sdk.microgrid import _data_pipeline
 from frequenz.sdk.timeseries._base_types import QuantityT, Sample
@@ -19,7 +19,7 @@ from frequenz.sdk.timeseries.formula_engine._resampled_formula_builder import (
 
 def get_resampled_stream(
     namespace: str,
-    comp_id: int,
+    comp_id: ComponentId,
     metric_id: ComponentMetricId,
     create_method: Callable[[float], QuantityT],
 ) -> Receiver[Sample[QuantityT]]:

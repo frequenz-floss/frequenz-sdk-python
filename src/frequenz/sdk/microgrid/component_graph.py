@@ -30,6 +30,7 @@ import networkx as nx
 from frequenz.client.microgrid import (
     Component,
     ComponentCategory,
+    ComponentId,
     Connection,
     InverterType,
     MicrogridApiClient,
@@ -54,7 +55,7 @@ class ComponentGraph(ABC):
     @abstractmethod
     def components(
         self,
-        component_ids: set[int] | None = None,
+        component_ids: set[ComponentId] | None = None,
         component_categories: set[ComponentCategory] | None = None,
     ) -> set[Component]:
         """Fetch the components of the microgrid.
@@ -71,8 +72,8 @@ class ComponentGraph(ABC):
     @abstractmethod
     def connections(
         self,
-        start: set[int] | None = None,
-        end: set[int] | None = None,
+        start: set[ComponentId] | None = None,
+        end: set[ComponentId] | None = None,
     ) -> set[Connection]:
         """Fetch the connections between microgrid components.
 
@@ -86,7 +87,7 @@ class ComponentGraph(ABC):
         """
 
     @abstractmethod
-    def predecessors(self, component_id: int) -> set[Component]:
+    def predecessors(self, component_id: ComponentId) -> set[Component]:
         """Fetch the graph predecessors of the specified component.
 
         Args:
@@ -103,7 +104,7 @@ class ComponentGraph(ABC):
         """
 
     @abstractmethod
-    def successors(self, component_id: int) -> set[Component]:
+    def successors(self, component_id: ComponentId) -> set[Component]:
         """Fetch the graph successors of the specified component.
 
         Args:
@@ -373,7 +374,7 @@ class _MicrogridComponentGraph(
 
     def components(
         self,
-        component_ids: set[int] | None = None,
+        component_ids: set[ComponentId] | None = None,
         component_categories: set[ComponentCategory] | None = None,
     ) -> set[Component]:
         """Fetch the components of the microgrid.
@@ -402,8 +403,8 @@ class _MicrogridComponentGraph(
 
     def connections(
         self,
-        start: set[int] | None = None,
-        end: set[int] | None = None,
+        start: set[ComponentId] | None = None,
+        end: set[ComponentId] | None = None,
     ) -> set[Connection]:
         """Fetch the connections between microgrid components.
 
@@ -429,7 +430,7 @@ class _MicrogridComponentGraph(
 
         return set(self._graph.edges[i][_DATA_KEY] for i in selection_ids)
 
-    def predecessors(self, component_id: int) -> set[Component]:
+    def predecessors(self, component_id: ComponentId) -> set[Component]:
         """Fetch the graph predecessors of the specified component.
 
         Args:
@@ -446,14 +447,14 @@ class _MicrogridComponentGraph(
         """
         if component_id not in self._graph:
             raise KeyError(
-                f"Component {component_id} not in graph, cannot get predecessors!"
+                f"Component with {component_id} not in graph, cannot get predecessors!"
             )
 
         predecessors_ids = self._graph.predecessors(component_id)
 
         return set(map(lambda idx: self._graph.nodes[idx][_DATA_KEY], predecessors_ids))
 
-    def successors(self, component_id: int) -> set[Component]:
+    def successors(self, component_id: ComponentId) -> set[Component]:
         """Fetch the graph successors of the specified component.
 
         Args:
@@ -469,7 +470,7 @@ class _MicrogridComponentGraph(
         """
         if component_id not in self._graph:
             raise KeyError(
-                f"Component {component_id} not in graph, cannot get successors!"
+                f"Component with {component_id} not in graph, cannot get successors!"
             )
 
         successors_ids = self._graph.successors(component_id)
@@ -977,11 +978,13 @@ class _MicrogridComponentGraph(
         if self._graph.in_degree(grid_id) > 0:
             grid_predecessors = list(self.predecessors(grid_id))
             raise InvalidGraphError(
-                f"Grid endpoint {grid_id} has graph predecessors: {grid_predecessors}"
+                f"Grid endpoint with {grid_id} has graph predecessors: {grid_predecessors}"
             )
 
         if self._graph.out_degree(grid_id) == 0:
-            raise InvalidGraphError(f"Grid endpoint {grid_id} has no graph successors!")
+            raise InvalidGraphError(
+                f"Grid endpoint with {grid_id} has no graph successors!"
+            )
 
     def _validate_intermediary_components(self) -> None:
         """Check that intermediary components (e.g. meters) are configured correctly.

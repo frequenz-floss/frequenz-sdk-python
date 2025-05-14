@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from frequenz.client.microgrid import (
     Component,
     ComponentCategory,
+    ComponentId,
     Connection,
     InverterType,
 )
@@ -48,8 +49,8 @@ def create_component_graph_structure(
     Returns:
         Create set of components and set of connections between them.
     """
-    grid_id = 1
-    main_meter_id = 2
+    grid_id = ComponentId(1)
+    main_meter_id = ComponentId(2)
 
     components = {
         Component(grid_id, ComponentCategory.GRID),
@@ -57,15 +58,15 @@ def create_component_graph_structure(
     }
     connections = {Connection(grid_id, main_meter_id)}
 
-    junction_id: int = grid_id
+    junction_id = grid_id
     if component_graph_config.grid_side_meter:
         junction_id = main_meter_id
 
     start_idx = 3
     for _ in range(component_graph_config.batteries_num):
-        meter_id = start_idx
-        inv_id = start_idx + 1
-        battery_id = start_idx + 2
+        meter_id = ComponentId(start_idx)
+        inv_id = ComponentId(int(start_idx) + 1)
+        battery_id = ComponentId(start_idx + 2)
         start_idx += 3
 
         components.add(Component(meter_id, ComponentCategory.METER))
@@ -79,8 +80,8 @@ def create_component_graph_structure(
         connections.add(Connection(inv_id, battery_id))
 
     for _ in range(component_graph_config.solar_inverters_num):
-        meter_id = start_idx
-        inv_id = start_idx + 1
+        meter_id = ComponentId(start_idx)
+        inv_id = ComponentId(start_idx + 1)
         start_idx += 2
 
         components.add(Component(meter_id, ComponentCategory.METER))
@@ -91,7 +92,7 @@ def create_component_graph_structure(
         connections.add(Connection(meter_id, inv_id))
 
     for _ in range(component_graph_config.ev_chargers):
-        ev_id = start_idx
+        ev_id = ComponentId(start_idx)
         start_idx += 1
 
         components.add(Component(ev_id, ComponentCategory.EV_CHARGER))

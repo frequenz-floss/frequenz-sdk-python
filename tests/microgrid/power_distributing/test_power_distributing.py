@@ -12,7 +12,7 @@ from typing import TypeVar
 from unittest.mock import MagicMock
 
 from frequenz.channels import Broadcast
-from frequenz.client.microgrid import ComponentCategory
+from frequenz.client.microgrid import ComponentCategory, ComponentId
 from frequenz.quantities import Power
 from pytest_mock import MockerFixture
 
@@ -64,7 +64,7 @@ class TestPowerDistributingActor:
         self,
         mocks: _Mocks,
         mocker: MockerFixture,
-        battery_ids: abc.Set[int] | None = None,
+        battery_ids: abc.Set[ComponentId] | None = None,
     ) -> None:
         """Patch the battery pool status.
 
@@ -115,14 +115,14 @@ class TestPowerDistributingActor:
             ) as distributor:
                 assert isinstance(distributor._component_manager, BatteryManager)
                 assert distributor._component_manager._bat_invs_map == {
-                    9: {8},
-                    19: {18},
-                    29: {28},
+                    ComponentId(9): frozenset({ComponentId(8)}),
+                    ComponentId(19): frozenset({ComponentId(18)}),
+                    ComponentId(29): frozenset({ComponentId(28)}),
                 }
                 assert distributor._component_manager._inv_bats_map == {
-                    8: {9},
-                    18: {19},
-                    28: {29},
+                    ComponentId(8): frozenset({ComponentId(9)}),
+                    ComponentId(18): frozenset({ComponentId(19)}),
+                    ComponentId(28): frozenset({ComponentId(29)}),
                 }
 
     async def test_constructor_without_grid_meter(self, mocker: MockerFixture) -> None:
@@ -147,22 +147,22 @@ class TestPowerDistributingActor:
             ) as distributor:
                 assert isinstance(distributor._component_manager, BatteryManager)
                 assert distributor._component_manager._bat_invs_map == {
-                    9: {8},
-                    19: {18},
-                    29: {28},
+                    ComponentId(9): frozenset({ComponentId(8)}),
+                    ComponentId(19): frozenset({ComponentId(18)}),
+                    ComponentId(29): frozenset({ComponentId(28)}),
                 }
                 assert distributor._component_manager._inv_bats_map == {
-                    8: {9},
-                    18: {19},
-                    28: {29},
+                    ComponentId(8): frozenset({ComponentId(9)}),
+                    ComponentId(18): frozenset({ComponentId(19)}),
+                    ComponentId(28): frozenset({ComponentId(29)}),
                 }
 
     async def init_component_data(
         self,
         mocks: _Mocks,
         *,
-        skip_batteries: abc.Set[int] | None = None,
-        skip_inverters: abc.Set[int] | None = None,
+        skip_batteries: abc.Set[ComponentId] | None = None,
+        skip_inverters: abc.Set[ComponentId] | None = None,
     ) -> None:
         """Send initial component data, for power distributor to start."""
         for battery_id in set(mocks.microgrid.battery_ids) - (skip_batteries or set()):
@@ -205,7 +205,7 @@ class TestPowerDistributingActor:
 
         request = Request(
             power=Power.from_kilowatts(1.2),
-            component_ids={9, 19},
+            component_ids={ComponentId(9), ComponentId(19)},
         )
 
         await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
@@ -240,12 +240,16 @@ class TestPowerDistributingActor:
     ) -> None:
         """Test if power distributing actor rejects non-zero requests in exclusion bounds."""
         async with _mocks(mocker, ComponentCategory.BATTERY) as mocks:
-            await self._patch_battery_pool_status(mocks, mocker, {9, 19})
-            await self.init_component_data(mocks, skip_batteries={9, 19})
+            await self._patch_battery_pool_status(
+                mocks, mocker, {ComponentId(9), ComponentId(19)}
+            )
+            await self.init_component_data(
+                mocks, skip_batteries={ComponentId(9), ComponentId(19)}
+            )
 
             mocks.streamer.start_streaming(
                 battery_msg(
-                    9,
+                    ComponentId(9),
                     soc=Metric(60, Bound(20, 80)),
                     capacity=Metric(98000),
                     power=PowerBounds(
@@ -260,7 +264,7 @@ class TestPowerDistributingActor:
 
             mocks.streamer.start_streaming(
                 battery_msg(
-                    19,
+                    ComponentId(19),
                     soc=Metric(60, Bound(20, 80)),
                     capacity=Metric(98000),
                     power=PowerBounds(
@@ -292,7 +296,7 @@ class TestPowerDistributingActor:
                 # zero power requests should pass through despite the exclusion bounds.
                 request = Request(
                     power=Power.zero(),
-                    component_ids={9, 19},
+                    component_ids={ComponentId(9), ComponentId(19)},
                 )
 
                 await requests_channel.new_sender().send(request)
@@ -310,7 +314,7 @@ class TestPowerDistributingActor:
                 # rejected.
                 request = Request(
                     power=Power.from_watts(300.0),
-                    component_ids={9, 19},
+                    component_ids={ComponentId(9), ComponentId(19)},
                 )
 
                 await requests_channel.new_sender().send(request)
@@ -472,7 +476,7 @@ class TestPowerDistributingActor:
                 assert result.request == request
                 assert (
                     result.msg
-                    == "No data for at least one of the given batteries: 9, 19"
+                    == "No data for at least one of the given batteries: CID9, CID19"
                 )
 
     async def test_battery_two_inverters(self, mocker: MockerFixture) -> None:
@@ -826,17 +830,18 @@ class TestPowerDistributingActor:
                 assert result.request == request
                 assert (
                     result.msg
-                    == "Inverter(s) (48) are connected to battery(ies) (19) that were not requested"
+                    == "Inverter(s) (CID48) are connected to battery(ies) (CID19) that"
+                    " were not requested"
                 )
 
     async def test_battery_soc_nan(self, mocker: MockerFixture) -> None:
         """Test if battery with SoC==NaN is not used."""
         async with _mocks(mocker, ComponentCategory.BATTERY, grid_meter=False) as mocks:
-            await self.init_component_data(mocks, skip_batteries={9})
+            await self.init_component_data(mocks, skip_batteries={ComponentId(9)})
 
             mocks.streamer.start_streaming(
                 battery_msg(
-                    9,
+                    ComponentId(9),
                     soc=Metric(math.nan, Bound(20, 80)),
                     capacity=Metric(98000),
                     power=PowerBounds(
@@ -854,7 +859,7 @@ class TestPowerDistributingActor:
 
             request = Request(
                 power=Power.from_kilowatts(1.2),
-                component_ids={9, 19},
+                component_ids={ComponentId(9), ComponentId(19)},
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
@@ -878,7 +883,7 @@ class TestPowerDistributingActor:
                     result = await result_rx.receive()
 
             assert isinstance(result, Success)
-            assert result.succeeded_components == {19}
+            assert result.succeeded_components == {ComponentId(19)}
             assert result.succeeded_power.isclose(Power.from_watts(500.0))
             assert result.excess_power.isclose(Power.from_watts(700.0))
             assert result.request == request
@@ -886,11 +891,11 @@ class TestPowerDistributingActor:
     async def test_battery_capacity_nan(self, mocker: MockerFixture) -> None:
         """Test battery with capacity set to NaN is not used."""
         async with _mocks(mocker, ComponentCategory.BATTERY, grid_meter=False) as mocks:
-            await self.init_component_data(mocks, skip_batteries={9})
+            await self.init_component_data(mocks, skip_batteries={ComponentId(9)})
 
             mocks.streamer.start_streaming(
                 battery_msg(
-                    9,
+                    ComponentId(9),
                     soc=Metric(40, Bound(20, 80)),
                     capacity=Metric(math.nan),
                     power=PowerBounds(
@@ -908,7 +913,7 @@ class TestPowerDistributingActor:
 
             request = Request(
                 power=Power.from_kilowatts(1.2),
-                component_ids={9, 19},
+                component_ids={ComponentId(9), ComponentId(19)},
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
@@ -933,7 +938,7 @@ class TestPowerDistributingActor:
                     result = await result_rx.receive()
 
             assert isinstance(result, Success)
-            assert result.succeeded_components == {19}
+            assert result.succeeded_components == {ComponentId(19)}
             assert result.succeeded_power.isclose(Power.from_watts(500.0))
             assert result.excess_power.isclose(Power.from_watts(700.0))
             assert result.request == request
@@ -942,12 +947,14 @@ class TestPowerDistributingActor:
         """Test battery with power bounds set to NaN is not used."""
         async with _mocks(mocker, ComponentCategory.BATTERY, grid_meter=False) as mocks:
             await self.init_component_data(
-                mocks, skip_batteries={9}, skip_inverters={8, 18}
+                mocks,
+                skip_batteries={ComponentId(9)},
+                skip_inverters={ComponentId(8), ComponentId(18)},
             )
 
             mocks.streamer.start_streaming(
                 inverter_msg(
-                    18,
+                    ComponentId(18),
                     power=PowerBounds(
                         Power.from_watts(-1000),
                         Power.zero(),
@@ -961,7 +968,7 @@ class TestPowerDistributingActor:
             # Battery 9 should not work because both battery and inverter sends NaN
             mocks.streamer.start_streaming(
                 inverter_msg(
-                    8,
+                    ComponentId(8),
                     power=PowerBounds(
                         Power.from_watts(-1000),
                         Power.zero(),
@@ -974,7 +981,7 @@ class TestPowerDistributingActor:
 
             mocks.streamer.start_streaming(
                 battery_msg(
-                    9,
+                    ComponentId(9),
                     soc=Metric(40, Bound(20, 80)),
                     capacity=Metric(float(98000)),
                     power=PowerBounds(
@@ -992,7 +999,7 @@ class TestPowerDistributingActor:
 
             request = Request(
                 power=Power.from_kilowatts(1.2),
-                component_ids={9, 19},
+                component_ids={ComponentId(9), ComponentId(19)},
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
@@ -1017,7 +1024,7 @@ class TestPowerDistributingActor:
                     result = await result_rx.receive()
 
             assert isinstance(result, Success)
-            assert result.succeeded_components == {19}
+            assert result.succeeded_components == {ComponentId(19)}
             assert result.succeeded_power.isclose(Power.from_kilowatts(1.0))
             assert result.excess_power.isclose(Power.from_watts(200.0))
             assert result.request == request
@@ -1033,7 +1040,7 @@ class TestPowerDistributingActor:
             results_channel = Broadcast[Result](name="power_distributor results")
             request = Request(
                 power=Power.from_kilowatts(1.2),
-                component_ids={9, 100},
+                component_ids={ComponentId(9), ComponentId(100)},
             )
 
             await self._patch_battery_pool_status(mocks, mocker, request.component_ids)
@@ -1057,7 +1064,10 @@ class TestPowerDistributingActor:
 
             assert isinstance(result, Error)
             assert result.request == request
-            assert result.msg == "No battery 100, available batteries: 9, 19, 29"
+            assert (
+                result.msg
+                == "No battery CID100, available batteries: CID9, CID19, CID29"
+            )
 
     async def test_power_distributor_one_user_adjust_power_consume(
         self, mocker: MockerFixture
@@ -1071,7 +1081,7 @@ class TestPowerDistributingActor:
 
             request = Request(
                 power=Power.from_kilowatts(1.2),
-                component_ids={9, 19},
+                component_ids={ComponentId(9), ComponentId(19)},
                 adjust_power=False,
             )
 
@@ -1113,7 +1123,7 @@ class TestPowerDistributingActor:
 
             request = Request(
                 power=-Power.from_kilowatts(1.2),
-                component_ids={9, 19},
+                component_ids={ComponentId(9), ComponentId(19)},
                 adjust_power=False,
             )
 
@@ -1155,7 +1165,7 @@ class TestPowerDistributingActor:
 
             request = Request(
                 power=Power.from_kilowatts(1.0),
-                component_ids={9, 19},
+                component_ids={ComponentId(9), ComponentId(19)},
                 adjust_power=False,
             )
 
@@ -1190,9 +1200,11 @@ class TestPowerDistributingActor:
         async with _mocks(mocker, ComponentCategory.BATTERY, grid_meter=False) as mocks:
             await self.init_component_data(mocks)
 
-            batteries = {9, 19}
+            batteries = {ComponentId(9), ComponentId(19)}
 
-            await self._patch_battery_pool_status(mocks, mocker, batteries - {9})
+            await self._patch_battery_pool_status(
+                mocks, mocker, batteries - {ComponentId(9)}
+            )
 
             requests_channel = Broadcast[Request](name="power_distributor requests")
             results_channel = Broadcast[Result](name="power_distributor results")
@@ -1222,7 +1234,7 @@ class TestPowerDistributingActor:
                     result = await result_rx.receive()
 
                 assert isinstance(result, Success)
-                assert result.succeeded_components == {19}
+                assert result.succeeded_components == {ComponentId(19)}
                 assert result.excess_power.isclose(Power.from_watts(700.0))
                 assert result.succeeded_power.isclose(Power.from_watts(500.0))
                 assert result.request == request
@@ -1232,8 +1244,8 @@ class TestPowerDistributingActor:
         async with _mocks(mocker, ComponentCategory.BATTERY, grid_meter=False) as mocks:
             await self.init_component_data(mocks)
 
-            batteries = {9, 19, 29}
-            failed_batteries = {9}
+            batteries = {ComponentId(9), ComponentId(19), ComponentId(29)}
+            failed_batteries = {ComponentId(9)}
             failed_power = Power.from_watts(500.0)
 
             await self._patch_battery_pool_status(mocks, mocker, batteries)

@@ -8,7 +8,7 @@ import math
 from dataclasses import dataclass
 from typing import NamedTuple, Sequence
 
-from frequenz.client.microgrid import BatteryData, InverterData
+from frequenz.client.microgrid import BatteryData, ComponentId, InverterData
 from frequenz.quantities import Power
 
 from ...._internal._math import is_close_to_zero
@@ -21,7 +21,7 @@ _logger = logging.getLogger(__name__)
 class AggregatedBatteryData:
     """Aggregated battery data."""
 
-    component_id: int
+    component_id: ComponentId
     """The component ID of the first battery.
 
     This is only used to identify the pair of battery and inverter.
@@ -156,10 +156,10 @@ class InvBatPair(NamedTuple):
 class AvailabilityRatio:
     """Availability ratio for a battery-inverter pair."""
 
-    battery_id: int
+    battery_id: ComponentId
     """The battery ID."""
 
-    inverter_ids: list[int]
+    inverter_ids: list[ComponentId]
     """The inverter IDs."""
 
     ratio: float
@@ -180,7 +180,7 @@ class _Power:
     """The power to be set for the inverter."""
 
 
-_InverterSet = frozenset[int]
+_InverterSet = frozenset[ComponentId]
 """A set of inverter IDs."""
 
 
@@ -199,7 +199,7 @@ class _Allocation:
 class DistributionResult:
     """Distribution result."""
 
-    distribution: dict[int, Power]
+    distribution: dict[ComponentId, Power]
     """The power to be set for each inverter.
 
     The key is inverter ID, and the value is the power that should be set for
@@ -398,8 +398,8 @@ class BatteryDistributionAlgorithm:
     def _compute_battery_availability_ratio(
         self,
         components: list[InvBatPair],
-        available_soc: dict[int, float],
-        excl_bounds: dict[int, Power],
+        available_soc: dict[ComponentId, float],
+        excl_bounds: dict[ComponentId, Power],
     ) -> tuple[list[AvailabilityRatio], float]:
         r"""Compute battery ratio and the total sum of all of them.
 
@@ -465,9 +465,9 @@ class BatteryDistributionAlgorithm:
         *,
         components: list[InvBatPair],
         power: Power,
-        available_soc: dict[int, float],
-        incl_bounds: dict[int, Power],
-        excl_bounds: dict[int, Power],
+        available_soc: dict[ComponentId, float],
+        incl_bounds: dict[ComponentId, Power],
+        excl_bounds: dict[ComponentId, Power],
     ) -> DistributionResult:
         # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         """Distribute power between given components.
@@ -604,9 +604,9 @@ class BatteryDistributionAlgorithm:
     def _distribute_multi_inverter_pairs(
         self,
         distribution: dict[_InverterSet, _Power],
-        excl_bounds: dict[int, Power],
-        incl_bounds: dict[int, Power],
-    ) -> dict[int, Power]:
+        excl_bounds: dict[ComponentId, Power],
+        incl_bounds: dict[ComponentId, Power],
+    ) -> dict[ComponentId, Power]:
         """Distribute power between inverters in a set for a single pair.
 
         Args:
@@ -617,7 +617,7 @@ class BatteryDistributionAlgorithm:
         Returns:
             Return the power for each inverter in given distribution.
         """
-        new_distribution: dict[int, Power] = {}
+        new_distribution: dict[ComponentId, Power] = {}
 
         for inverter_ids, power in distribution.items():
             if len(inverter_ids) == 1:
@@ -677,7 +677,7 @@ class BatteryDistributionAlgorithm:
         return distribution, remaining_power
 
     def distribute_power_equally(
-        self, power: Power, inverters: set[int]
+        self, power: Power, inverters: set[ComponentId]
     ) -> DistributionResult:
         """Distribute the power equally between the inverters in the set.
 
@@ -743,7 +743,7 @@ class BatteryDistributionAlgorithm:
         # If SoC exceeded bound then remaining SoC should be 0.
         # Otherwise algorithm would try to supply power from that battery
         # in order to keep equal SoC level.
-        available_soc: dict[int, float] = {}
+        available_soc: dict[ComponentId, float] = {}
         for battery, _ in components:
             available_soc[battery.component_id] = max(
                 0.0, battery.soc_upper_bound - battery.soc
@@ -778,7 +778,7 @@ class BatteryDistributionAlgorithm:
         Returns:
             Distribution result.
         """
-        available_soc: dict[int, float] = {}
+        available_soc: dict[ComponentId, float] = {}
         for battery, _ in components:
             available_soc[battery.component_id] = max(
                 0.0, battery.soc - battery.soc_lower_bound
@@ -804,7 +804,7 @@ class BatteryDistributionAlgorithm:
 
     def _inclusion_exclusion_bounds(
         self, components: list[InvBatPair], supply: bool = False
-    ) -> tuple[dict[int, Power], dict[int, Power]]:
+    ) -> tuple[dict[ComponentId, Power], dict[ComponentId, Power]]:
         """Calculate inclusion and exclusion bounds for given components.
 
         Inverter exclusion bounds are _not_ adjusted to battery inclusion
@@ -819,8 +819,8 @@ class BatteryDistributionAlgorithm:
         Returns:
             inclusion and exclusion bounds.
         """
-        incl_bounds: dict[int, Power] = {}
-        excl_bounds: dict[int, Power] = {}
+        incl_bounds: dict[ComponentId, Power] = {}
+        excl_bounds: dict[ComponentId, Power] = {}
         for battery, inverters in components:
             if supply:
                 excl_bounds[battery.component_id] = (

@@ -7,6 +7,7 @@
 import dataclasses
 from collections import abc
 
+from frequenz.client.microgrid import ComponentId
 from frequenz.quantities import Power
 
 from .request import Request
@@ -27,7 +28,7 @@ class _BaseSuccessMixin:
     succeeded_power: Power
     """The part of the requested power that was successfully set."""
 
-    succeeded_components: abc.Set[int]
+    succeeded_components: abc.Set[ComponentId]
     """The subset of components for which power was set successfully."""
 
     excess_power: Power
@@ -55,7 +56,7 @@ class PartialFailure(_BaseSuccessMixin, _BaseResultMixin):
     failed_power: Power
     """The part of the requested power that failed to be set."""
 
-    failed_components: abc.Set[int]
+    failed_components: abc.Set[ComponentId]
     """The subset of batteries for which the request failed."""
 
 
@@ -118,6 +119,7 @@ Example: Handling power distribution results
     from frequenz.sdk.actor.power_distributing.request import Request
     from frequenz.sdk.actor.power_distributing.result import PowerBounds
     from frequenz.quantities import Power
+    from frequenz.client.microgrid import ComponentId
 
     def handle_power_request_result(result: Result) -> None:
         match result:
@@ -135,22 +137,22 @@ Example: Handling power distribution results
     request = Request(
         namespace="TestChannel",
         power=Power.from_watts(123.4),
-        component_ids={8, 18},
+        component_ids={ComponentId(8), ComponentId(18)},
     )
 
     results: list[Result] = [
         Success(
             request,
             succeeded_power=Power.from_watts(123.4),
-            succeeded_components={8, 18},
+            succeeded_components={ComponentId(8), ComponentId(18)},
             excess_power=Power.zero(),
         ),
         PartialFailure(
             request,
             succeeded_power=Power.from_watts(103.4),
-            succeeded_components={8},
+            succeeded_components={ComponentId(8)},
             excess_power=Power.zero(),
-            failed_components={18},
+            failed_components={ComponentId(18)},
             failed_power=Power.from_watts(20.0),
         ),
         OutOfBounds(request, bounds=PowerBounds(0, 0, 0, 800)),

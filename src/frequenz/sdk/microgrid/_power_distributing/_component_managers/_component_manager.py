@@ -7,6 +7,7 @@ import abc
 import collections.abc
 
 from frequenz.channels import Sender
+from frequenz.client.microgrid import ComponentId
 
 from .._component_status import ComponentPoolStatus
 from ..request import Request
@@ -31,7 +32,7 @@ class ComponentManager(abc.ABC):
         """
 
     @abc.abstractmethod
-    def component_ids(self) -> collections.abc.Set[int]:
+    def component_ids(self) -> collections.abc.Set[ComponentId]:
         """Return the set of component ids."""
 
     @abc.abstractmethod

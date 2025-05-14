@@ -6,6 +6,7 @@
 import dataclasses
 from collections import abc
 
+from frequenz.client.microgrid import ComponentId
 from frequenz.quantities import Power
 
 
@@ -16,7 +17,7 @@ class Request:
     power: Power
     """The requested power."""
 
-    component_ids: abc.Set[int]
+    component_ids: abc.Set[ComponentId]
     """The component ids of the components to be used for this request."""
 
     adjust_power: bool = True

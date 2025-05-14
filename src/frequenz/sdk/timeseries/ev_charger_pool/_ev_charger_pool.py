@@ -8,6 +8,7 @@ import asyncio
 import uuid
 from collections import abc
 
+from frequenz.client.microgrid import ComponentId
 from frequenz.quantities import Current, Power
 
 from ..._internal._channels import MappingReceiverFetcher, ReceiverFetcher
@@ -108,7 +109,7 @@ class EVChargerPool:
         )
 
     @property
-    def component_ids(self) -> abc.Set[int]:
+    def component_ids(self) -> abc.Set[ComponentId]:
         """Return component IDs of all EV Chargers managed by this EVChargerPool.
 
         Returns:

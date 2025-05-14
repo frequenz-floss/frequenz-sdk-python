@@ -9,6 +9,7 @@ from typing import Any, overload
 from frequenz.client.microgrid import (
     Component,
     ComponentCategory,
+    ComponentId,
     ComponentType,
     Connection,
     GridMetadata,
@@ -33,7 +34,7 @@ class GraphGenerator:
         """Create a new instance."""
         self._id_increment = 0
 
-    def new_id(self) -> dict[ComponentCategory, int]:
+    def new_id(self) -> dict[ComponentCategory, ComponentId]:
         """Get the next available component id.
 
         Usage example:
@@ -59,8 +60,8 @@ class GraphGenerator:
             a dict containing the next available id for each component category.
         """
         id_per_category = {
-            category: self._id_increment * 10 + suffix
-            for category, suffix in self.SUFFIXES.items()
+            cat: ComponentId(self._id_increment * 10 + suffix)
+            for cat, suffix in self.SUFFIXES.items()
         }
         self._id_increment += 1
         return id_per_category
@@ -186,7 +187,9 @@ class GraphGenerator:
         Returns:
             a new grid component with default id.
         """
-        return Component(1, ComponentCategory.GRID, None, GridMetadata(None))
+        return Component(
+            ComponentId(1), ComponentCategory.GRID, None, GridMetadata(None)
+        )
 
     def to_graph(self, components: Any) -> _MicrogridComponentGraph:
         """Convert a list of components to a graph.

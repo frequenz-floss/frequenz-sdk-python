@@ -7,7 +7,7 @@
 import logging
 from collections import abc
 
-from frequenz.client.microgrid import ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid import ComponentCategory, ComponentId, ComponentMetricId
 from frequenz.quantities import Power
 
 from ....microgrid import connection_manager
@@ -58,7 +58,7 @@ class CHPPowerFormula(FormulaGenerator[Power]):
 
         return builder.build()
 
-    def _get_chp_meters(self) -> abc.Set[int]:
+    def _get_chp_meters(self) -> abc.Set[ComponentId]:
         """Get the meter IDs of the CHPs from the component graph.
 
         Returns:
@@ -75,7 +75,7 @@ class CHPPowerFormula(FormulaGenerator[Power]):
             if comp.category == ComponentCategory.CHP
         )
 
-        chp_meters: set[int] = set()
+        chp_meters: set[ComponentId] = set()
         for chp in chps:
             predecessors = component_graph.predecessors(chp.component_id)
             if len(predecessors) != 1:

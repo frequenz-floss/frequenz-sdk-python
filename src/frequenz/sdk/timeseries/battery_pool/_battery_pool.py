@@ -12,6 +12,7 @@ import asyncio
 import uuid
 from collections import abc
 
+from frequenz.client.microgrid import ComponentId
 from frequenz.quantities import Energy, Percentage, Power, Temperature
 
 from ... import timeseries
@@ -185,7 +186,7 @@ class BatteryPool:
         )
 
     @property
-    def component_ids(self) -> abc.Set[int]:
+    def component_ids(self) -> abc.Set[ComponentId]:
         """Return ids of the batteries in the pool.
 
         Returns:

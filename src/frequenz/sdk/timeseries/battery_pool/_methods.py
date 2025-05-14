@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Generic
 
 from frequenz.channels import Broadcast, Receiver
+from frequenz.client.microgrid import ComponentId
 
 from ..._internal._asyncio import cancel_and_await, run_forever
 from ..._internal._constants import RECEIVER_MAX_SIZE, WAIT_FOR_COMPONENT_DATA_SEC
@@ -32,7 +33,7 @@ class MetricAggregator(Generic[T], ABC):
     """Interface to control how the component data should be aggregated and send."""
 
     @abstractmethod
-    def update_working_batteries(self, new_working_batteries: set[int]) -> None:
+    def update_working_batteries(self, new_working_batteries: set[ComponentId]) -> None:
         """Update set of the working batteries.
 
         Args:
@@ -74,7 +75,7 @@ class SendOnUpdate(MetricAggregator[T]):
 
     def __init__(
         self,
-        working_batteries: set[int],
+        working_batteries: set[ComponentId],
         metric_calculator: MetricCalculator[T],
         min_update_interval: timedelta,
     ) -> None:
@@ -93,7 +94,7 @@ class SendOnUpdate(MetricAggregator[T]):
             inv_invs=False,
         )["bat_invs"]
 
-        self._working_batteries: set[int] = working_batteries.intersection(
+        self._working_batteries: set[ComponentId] = working_batteries.intersection(
             metric_calculator.batteries
         )
         self._result_channel: Broadcast[T] = Broadcast(
@@ -102,7 +103,7 @@ class SendOnUpdate(MetricAggregator[T]):
         )
 
         self._update_event = asyncio.Event()
-        self._cached_metrics: dict[int, ComponentMetricsData] = {}
+        self._cached_metrics: dict[ComponentId, ComponentMetricsData] = {}
 
         self._update_task = asyncio.create_task(run_forever(self._update_and_notify))
         self._send_task = asyncio.create_task(
@@ -112,7 +113,7 @@ class SendOnUpdate(MetricAggregator[T]):
             set()
         )
 
-        self._fetchers: dict[int, ComponentMetricFetcher] = {}
+        self._fetchers: dict[ComponentId, ComponentMetricFetcher] = {}
 
     @classmethod
     def name(cls) -> str:
@@ -136,7 +137,7 @@ class SendOnUpdate(MetricAggregator[T]):
             return self._result_channel.new_receiver()
         return self._result_channel.new_receiver(limit=limit)
 
-    def update_working_batteries(self, new_working_batteries: set[int]) -> None:
+    def update_working_batteries(self, new_working_batteries: set[ComponentId]) -> None:
         """Update set of the working batteries.
 
         Recalculate metric if set changed.
@@ -172,7 +173,7 @@ class SendOnUpdate(MetricAggregator[T]):
             fetcher.stop()
 
     async def _create_data_fetchers(self) -> None:
-        fetchers: dict[int, ComponentMetricFetcher] = {
+        fetchers: dict[ComponentId, ComponentMetricFetcher] = {
             cid: await LatestBatteryMetricsFetcher.async_new(cid, metrics)
             for cid, metrics in self._metric_calculator.battery_metrics.items()
         }
@@ -183,7 +184,7 @@ class SendOnUpdate(MetricAggregator[T]):
         }
         self._fetchers.update(inverter_fetchers)
 
-    def _remove_metric_fetcher(self, component_id: int) -> None:
+    def _remove_metric_fetcher(self, component_id: ComponentId) -> None:
         _logger.error(
             "Removing component %d from the %s formula.",
             component_id,
@@ -213,7 +214,7 @@ class SendOnUpdate(MetricAggregator[T]):
             for item in done:
                 metrics = item.result()
                 if metrics is None:
-                    self._remove_metric_fetcher(int(item.get_name()))
+                    self._remove_metric_fetcher(ComponentId(int(item.get_name())))
                     continue
                 if self._metric_updated(metrics):
                     self._update_event.set()

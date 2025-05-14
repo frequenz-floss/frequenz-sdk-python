@@ -12,6 +12,7 @@ from frequenz.channels import Receiver, Sender
 from frequenz.client.microgrid import (
     BatteryData,
     ComponentCategory,
+    ComponentId,
     ComponentMetricId,
     EVChargerData,
     InverterData,
@@ -148,20 +149,22 @@ class MicrogridApiSource:
             registry: A channel registry.  To be replaced by a singleton
                 instance.
         """
-        self._comp_categories_cache: dict[int, ComponentCategory] = {}
+        self._comp_categories_cache: dict[ComponentId, ComponentCategory] = {}
 
-        self.comp_data_receivers: dict[int, Receiver[Any]] = {}
+        self.comp_data_receivers: dict[ComponentId, Receiver[Any]] = {}
         """The dictionary of component IDs to data receivers."""
 
-        self.comp_data_tasks: dict[int, asyncio.Task[None]] = {}
+        self.comp_data_tasks: dict[ComponentId, asyncio.Task[None]] = {}
         """The dictionary of component IDs to asyncio tasks."""
 
         self._registry = registry
         self._req_streaming_metrics: dict[
-            int, dict[ComponentMetricId, list[ComponentMetricRequest]]
+            ComponentId, dict[ComponentMetricId, list[ComponentMetricRequest]]
         ] = {}
 
-    async def _get_component_category(self, comp_id: int) -> ComponentCategory | None:
+    async def _get_component_category(
+        self, comp_id: ComponentId
+    ) -> ComponentCategory | None:
         """Get the component category of the given component.
 
         Args:
@@ -185,7 +188,7 @@ class MicrogridApiSource:
 
     async def _check_battery_request(
         self,
-        comp_id: int,
+        comp_id: ComponentId,
         requests: dict[ComponentMetricId, list[ComponentMetricRequest]],
     ) -> None:
         """Check if the requests are valid Battery metrics.
@@ -210,7 +213,7 @@ class MicrogridApiSource:
 
     async def _check_ev_charger_request(
         self,
-        comp_id: int,
+        comp_id: ComponentId,
         requests: dict[ComponentMetricId, list[ComponentMetricRequest]],
     ) -> None:
         """Check if the requests are valid EV Charger metrics.
@@ -235,7 +238,7 @@ class MicrogridApiSource:
 
     async def _check_inverter_request(
         self,
-        comp_id: int,
+        comp_id: ComponentId,
         requests: dict[ComponentMetricId, list[ComponentMetricRequest]],
     ) -> None:
         """Check if the requests are valid Inverter metrics.
@@ -260,7 +263,7 @@ class MicrogridApiSource:
 
     async def _check_meter_request(
         self,
-        comp_id: int,
+        comp_id: ComponentId,
         requests: dict[ComponentMetricId, list[ComponentMetricRequest]],
     ) -> None:
         """Check if the requests are valid Meter metrics.
@@ -285,7 +288,7 @@ class MicrogridApiSource:
 
     async def _check_requested_component_and_metrics(
         self,
-        comp_id: int,
+        comp_id: ComponentId,
         category: ComponentCategory,
         requests: dict[ComponentMetricId, list[ComponentMetricRequest]],
     ) -> None:
@@ -376,7 +379,7 @@ class MicrogridApiSource:
 
     async def _handle_data_stream(
         self,
-        comp_id: int,
+        comp_id: ComponentId,
         category: ComponentCategory,
     ) -> None:
         """Stream component data and send the requested metrics out.
@@ -448,7 +451,7 @@ class MicrogridApiSource:
 
     async def _update_streams(
         self,
-        comp_id: int,
+        comp_id: ComponentId,
         category: ComponentCategory,
     ) -> None:
         """Update the requested metric streams for the given component.

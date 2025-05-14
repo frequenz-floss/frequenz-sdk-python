@@ -14,6 +14,7 @@ from frequenz.client.microgrid import (
     Component,
     ComponentCategory,
     ComponentData,
+    ComponentId,
     Connection,
     EVChargerCableState,
     EVChargerComponentState,
@@ -42,8 +43,8 @@ from .mock_resampler import MockResampler
 class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
     """Setup a MockApi instance with multiple component layouts for tests."""
 
-    grid_id = 1
-    _grid_meter_id = 4
+    grid_id = ComponentId(1)
+    _grid_meter_id = ComponentId(4)
 
     chp_id_suffix = 5
     evc_id_suffix = 6
@@ -91,7 +92,9 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
         self._components: set[Component] = (
             {
-                Component(1, ComponentCategory.GRID, None, GridMetadata(fuse)),
+                Component(
+                    ComponentId(1), ComponentCategory.GRID, None, GridMetadata(fuse)
+                ),
             }
             if graph is None
             else graph.components()
@@ -109,7 +112,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
         self._connect_to = self.grid_id
 
-        def filter_comp(category: ComponentCategory) -> list[int]:
+        def filter_comp(category: ComponentCategory) -> list[ComponentId]:
             if graph is None:
                 return []
             return sorted(
@@ -121,7 +124,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                 )
             )
 
-        def inverters(comp_type: InverterType) -> list[int]:
+        def inverters(comp_type: InverterType) -> list[ComponentId]:
             if graph is None:
                 return []
 
@@ -135,15 +138,15 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                 ]
             )
 
-        self.chp_ids: list[int] = filter_comp(ComponentCategory.CHP)
-        self.battery_ids: list[int] = filter_comp(ComponentCategory.BATTERY)
-        self.evc_ids: list[int] = filter_comp(ComponentCategory.EV_CHARGER)
-        self.meter_ids: list[int] = filter_comp(ComponentCategory.METER)
+        self.chp_ids: list[ComponentId] = filter_comp(ComponentCategory.CHP)
+        self.battery_ids: list[ComponentId] = filter_comp(ComponentCategory.BATTERY)
+        self.evc_ids: list[ComponentId] = filter_comp(ComponentCategory.EV_CHARGER)
+        self.meter_ids: list[ComponentId] = filter_comp(ComponentCategory.METER)
 
-        self.battery_inverter_ids: list[int] = inverters(InverterType.BATTERY)
-        self.pv_inverter_ids: list[int] = inverters(InverterType.SOLAR)
+        self.battery_inverter_ids: list[ComponentId] = inverters(InverterType.BATTERY)
+        self.pv_inverter_ids: list[ComponentId] = inverters(InverterType.SOLAR)
 
-        self.bat_inv_map: dict[int, int] = (
+        self.bat_inv_map: dict[ComponentId, ComponentId] = (
             {}
             if graph is None
             else {
@@ -156,17 +159,19 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             }
         )
 
-        self.evc_component_states: dict[int, EVChargerComponentState] = {}
-        self.evc_cable_states: dict[int, EVChargerCableState] = {}
+        self.evc_component_states: dict[ComponentId, EVChargerComponentState] = {}
+        self.evc_cable_states: dict[ComponentId, EVChargerCableState] = {}
 
-        self._streaming_coros: list[tuple[int, Coroutine[None, None, None]]] = []
+        self._streaming_coros: list[tuple[ComponentId, Coroutine[None, None, None]]] = (
+            []
+        )
         """The streaming coroutines for each component.
 
         The tuple stores the component id we are streaming for as the first item and the
         coroutine as the second item.
         """
 
-        self._streaming_tasks: dict[int, asyncio.Task[None]] = {}
+        self._streaming_tasks: dict[ComponentId, asyncio.Task[None]] = {}
         """The streaming tasks for each component.
 
         The key is the component id we are streaming for in this task.
@@ -249,14 +254,16 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         return self.mock_client
 
     async def _comp_data_send_task(
-        self, comp_id: int, make_comp_data: Callable[[int, datetime], ComponentData]
+        self,
+        comp_id: ComponentId,
+        make_comp_data: Callable[[int, datetime], ComponentData],
     ) -> None:
         for value in range(1, self._num_values + 1):
             timestamp = datetime.now(tz=timezone.utc)
-            val_to_send = value + int(comp_id / 10)
+            val_to_send = value + int(int(comp_id) / 10)
             # for inverters with component_id > 100, send only half the messages.
-            if comp_id % 10 == self.inverter_id_suffix:
-                if comp_id < 100 or value <= 5:
+            if int(comp_id) % 10 == self.inverter_id_suffix:
+                if int(comp_id) < 100 or value <= 5:
                     await self.mock_client.send(make_comp_data(val_to_send, timestamp))
             else:
                 await self.mock_client.send(make_comp_data(val_to_send, timestamp))
@@ -264,7 +271,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
         await self.mock_client.close_channel(comp_id)
 
-    def _start_meter_streaming(self, meter_id: int) -> None:
+    def _start_meter_streaming(self, meter_id: ComponentId) -> None:
         if not self._api_client_streaming:
             return
         self._streaming_coros.append(
@@ -284,7 +291,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             )
         )
 
-    def _start_battery_streaming(self, bat_id: int) -> None:
+    def _start_battery_streaming(self, bat_id: ComponentId) -> None:
         if not self._api_client_streaming:
             return
         self._streaming_coros.append(
@@ -299,7 +306,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             )
         )
 
-    def _start_inverter_streaming(self, inv_id: int) -> None:
+    def _start_inverter_streaming(self, inv_id: ComponentId) -> None:
         if not self._api_client_streaming:
             return
         self._streaming_coros.append(
@@ -317,7 +324,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             )
         )
 
-    def _start_ev_charger_streaming(self, evc_id: int) -> None:
+    def _start_ev_charger_streaming(self, evc_id: ComponentId) -> None:
         if not self._api_client_streaming:
             return
         self._streaming_coros.append(
@@ -351,7 +358,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             count: number of consumer meters to add.
         """
         for _ in range(count):
-            meter_id = self._id_increment * 10 + self.meter_id_suffix
+            meter_id = ComponentId(self._id_increment * 10 + self.meter_id_suffix)
             self._id_increment += 1
             self.meter_ids.append(meter_id)
             self._components.add(
@@ -371,7 +378,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             no_meters: if True, do not add a meter for each CHP.
         """
         for _ in range(count):
-            chp_id = self._id_increment * 10 + self.chp_id_suffix
+            chp_id = ComponentId(self._id_increment * 10 + self.chp_id_suffix)
             self.chp_ids.append(chp_id)
             self._components.add(
                 Component(
@@ -382,7 +389,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             if no_meters:
                 self._connections.add(Connection(self._connect_to, chp_id))
             else:
-                meter_id = self._id_increment * 10 + self.meter_id_suffix
+                meter_id = ComponentId(self._id_increment * 10 + self.meter_id_suffix)
                 self.meter_ids.append(meter_id)
                 self._components.add(
                     Component(
@@ -404,9 +411,9 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             no_meter: if True, do not add a meter for each battery set.
         """
         for _ in range(count):
-            meter_id = self._id_increment * 10 + self.meter_id_suffix
-            inv_id = self._id_increment * 10 + self.inverter_id_suffix
-            bat_id = self._id_increment * 10 + self.battery_id_suffix
+            meter_id = ComponentId(self._id_increment * 10 + self.meter_id_suffix)
+            inv_id = ComponentId(self._id_increment * 10 + self.inverter_id_suffix)
+            bat_id = ComponentId(self._id_increment * 10 + self.battery_id_suffix)
             self._id_increment += 1
 
             self.battery_inverter_ids.append(inv_id)
@@ -448,8 +455,8 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             no_meter: if True, do not add a meter for each inverter.
         """
         for _ in range(count):
-            meter_id = self._id_increment * 10 + self.meter_id_suffix
-            inv_id = self._id_increment * 10 + self.inverter_id_suffix
+            meter_id = ComponentId(self._id_increment * 10 + self.meter_id_suffix)
+            inv_id = ComponentId(self._id_increment * 10 + self.inverter_id_suffix)
             self._id_increment += 1
 
             self.pv_inverter_ids.append(inv_id)
@@ -484,7 +491,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             count: Number of ev chargers to add to the microgrid.
         """
         for _ in range(count):
-            evc_id = self._id_increment * 10 + self.evc_id_suffix
+            evc_id = ComponentId(self._id_increment * 10 + self.evc_id_suffix)
             self._id_increment += 1
 
             self.evc_ids.append(evc_id)

@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock
 import async_solipsism
 import pytest
 from frequenz.channels import Receiver
-from frequenz.client.microgrid import InverterComponentState
+from frequenz.client.microgrid import ComponentId, InverterComponentState
 from frequenz.quantities import Power
 from pytest_mock import MockerFixture
 
@@ -75,7 +75,9 @@ class TestPVPoolControl:
                 0.05,
             )
 
-    async def _fail_pv_inverters(self, fail_ids: list[int], mocks: _Mocks) -> None:
+    async def _fail_pv_inverters(
+        self, fail_ids: list[ComponentId], mocks: _Mocks
+    ) -> None:
         now = datetime.now(tz=timezone.utc)
         for idx, comp_id in enumerate(mocks.microgrid.pv_inverter_ids):
             mocks.streamer.update_stream(

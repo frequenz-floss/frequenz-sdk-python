@@ -15,7 +15,12 @@ import logging
 from datetime import timedelta
 
 from frequenz.channels import Receiver, Sender
-from frequenz.client.microgrid import ComponentCategory, ComponentType, InverterType
+from frequenz.client.microgrid import (
+    ComponentCategory,
+    ComponentId,
+    ComponentType,
+    InverterType,
+)
 from typing_extensions import override
 
 from ...actor._actor import Actor
@@ -101,10 +106,10 @@ class PowerDistributingActor(Actor):
         self._result_sender = results_sender
         self._api_power_request_timeout = api_power_request_timeout
 
-        self._processing_tasks: dict[frozenset[int], asyncio.Task[None]] = {}
+        self._processing_tasks: dict[frozenset[ComponentId], asyncio.Task[None]] = {}
         """Track the power request tasks currently being processed."""
 
-        self._pending_requests: dict[frozenset[int], Request] = {}
+        self._pending_requests: dict[frozenset[ComponentId], Request] = {}
         """Track the power requests that are waiting to be processed.
 
         Only one pending power request is kept for each set of components, the
@@ -173,7 +178,10 @@ class PowerDistributingActor(Actor):
         await super().stop(msg)
 
     def _handle_task_completion(
-        self, req_id: frozenset[int], request: Request, task: asyncio.Task[None]
+        self,
+        req_id: frozenset[ComponentId],
+        request: Request,
+        task: asyncio.Task[None],
     ) -> None:
         """Handle the completion of a power request task.
 
@@ -194,7 +202,9 @@ class PowerDistributingActor(Actor):
         else:
             _logger.error("Request id not found in processing tasks: %s", req_id)
 
-    def _process_request(self, req_id: frozenset[int], request: Request) -> None:
+    def _process_request(
+        self, req_id: frozenset[ComponentId], request: Request
+    ) -> None:
         """Process a power request.
 
         Args:

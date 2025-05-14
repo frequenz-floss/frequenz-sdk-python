@@ -13,9 +13,11 @@ import pytest
 from frequenz.client.microgrid import (
     Component,
     ComponentCategory,
+    ComponentId,
     Connection,
     Location,
     Metadata,
+    MicrogridId,
 )
 
 from frequenz.sdk.microgrid import connection_manager
@@ -37,22 +39,22 @@ class TestMicrogridApi:
         """
         components = [
             [
-                Component(1, ComponentCategory.GRID),
-                Component(4, ComponentCategory.METER),
-                Component(5, ComponentCategory.METER),
-                Component(7, ComponentCategory.METER),
-                Component(8, ComponentCategory.INVERTER),
-                Component(9, ComponentCategory.BATTERY),
-                Component(10, ComponentCategory.METER),
-                Component(11, ComponentCategory.INVERTER),
-                Component(12, ComponentCategory.BATTERY),
+                Component(ComponentId(1), ComponentCategory.GRID),
+                Component(ComponentId(4), ComponentCategory.METER),
+                Component(ComponentId(5), ComponentCategory.METER),
+                Component(ComponentId(7), ComponentCategory.METER),
+                Component(ComponentId(8), ComponentCategory.INVERTER),
+                Component(ComponentId(9), ComponentCategory.BATTERY),
+                Component(ComponentId(10), ComponentCategory.METER),
+                Component(ComponentId(11), ComponentCategory.INVERTER),
+                Component(ComponentId(12), ComponentCategory.BATTERY),
             ],
             [
-                Component(1, ComponentCategory.GRID),
-                Component(4, ComponentCategory.METER),
-                Component(7, ComponentCategory.METER),
-                Component(8, ComponentCategory.INVERTER),
-                Component(9, ComponentCategory.BATTERY),
+                Component(ComponentId(1), ComponentCategory.GRID),
+                Component(ComponentId(4), ComponentCategory.METER),
+                Component(ComponentId(7), ComponentCategory.METER),
+                Component(ComponentId(8), ComponentCategory.INVERTER),
+                Component(ComponentId(9), ComponentCategory.BATTERY),
             ],
         ]
         return components
@@ -70,20 +72,20 @@ class TestMicrogridApi:
         """
         connections = [
             [
-                Connection(1, 4),
-                Connection(1, 5),
-                Connection(1, 7),
-                Connection(7, 8),
-                Connection(8, 9),
-                Connection(1, 10),
-                Connection(10, 11),
-                Connection(11, 12),
+                Connection(ComponentId(1), ComponentId(4)),
+                Connection(ComponentId(1), ComponentId(5)),
+                Connection(ComponentId(1), ComponentId(7)),
+                Connection(ComponentId(7), ComponentId(8)),
+                Connection(ComponentId(8), ComponentId(9)),
+                Connection(ComponentId(1), ComponentId(10)),
+                Connection(ComponentId(10), ComponentId(11)),
+                Connection(ComponentId(11), ComponentId(12)),
             ],
             [
-                Connection(1, 4),
-                Connection(1, 7),
-                Connection(7, 8),
-                Connection(8, 9),
+                Connection(ComponentId(1), ComponentId(4)),
+                Connection(ComponentId(1), ComponentId(7)),
+                Connection(ComponentId(7), ComponentId(8)),
+                Connection(ComponentId(8), ComponentId(9)),
             ],
         ]
         return connections
@@ -96,7 +98,7 @@ class TestMicrogridApi:
             the microgrid metadata.
         """
         return Metadata(
-            microgrid_id=8,
+            microgrid_id=MicrogridId(8),
             location=Location(
                 latitude=52.520008,
                 longitude=13.404954,

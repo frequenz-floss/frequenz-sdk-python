@@ -8,7 +8,7 @@ from collections.abc import Sequence, Set
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
-from frequenz.client.microgrid import BatteryData, InverterData
+from frequenz.client.microgrid import BatteryData, ComponentId, InverterData
 from frequenz.quantities import Power
 from pytest import approx, raises
 
@@ -40,7 +40,7 @@ class Metric:
 
 
 def battery_msg(  # pylint: disable=too-many-arguments
-    component_id: int,
+    component_id: ComponentId,
     capacity: Metric,
     soc: Metric,
     power: PowerBounds,
@@ -73,7 +73,7 @@ def battery_msg(  # pylint: disable=too-many-arguments
 
 
 def inverter_msg(
-    component_id: int,
+    component_id: ComponentId,
     power: PowerBounds,
     timestamp: datetime = datetime.now(timezone.utc),
 ) -> InverterData:
@@ -116,8 +116,10 @@ def create_components(
     """
     components: list[InvBatPair] = []
     for i in range(0, num):
-        battery = battery_msg(2 * i, capacity[i], soc[i], power_bounds[2 * i])
-        inverter = inverter_msg(2 * i + 1, power_bounds[2 * i + 1])
+        battery = battery_msg(
+            ComponentId(2 * i), capacity[i], soc[i], power_bounds[2 * i]
+        )
+        inverter = inverter_msg(ComponentId(2 * i + 1), power_bounds[2 * i + 1])
         components.append(InvBatPair(AggregatedBatteryData([battery]), [inverter]))
     return components
 
@@ -141,12 +143,13 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
 
         if share_inverter:
             shared_inverter = InverterDataWrapper(
-                component_id=start_id + 1, timestamp=datetime.now(tz=timezone.utc)
+                component_id=ComponentId(start_id + 1),
+                timestamp=datetime.now(tz=timezone.utc),
             )
 
         for i in range(start_id, num):
             battery_data = BatteryDataWrapper(
-                component_id=2 * i,
+                component_id=ComponentId(2 * i),
                 timestamp=datetime.now(tz=timezone.utc),
                 capacity=capacity[i],
             )
@@ -155,7 +158,8 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
                 inverter_data = shared_inverter
             else:
                 inverter_data = InverterDataWrapper(
-                    component_id=2 * i + 1, timestamp=datetime.now(tz=timezone.utc)
+                    component_id=ComponentId(2 * i + 1),
+                    timestamp=datetime.now(tz=timezone.utc),
                 )
 
             components.append(
@@ -185,12 +189,15 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         capacity: list[float] = [98000]
         components = self.create_components_with_capacity(1, capacity)
 
-        available_soc: dict[int, float] = {0: 40}
-        incl_bounds: dict[int, Power] = {
-            0: Power.from_watts(500),
-            1: Power.from_watts(500),
+        available_soc: dict[ComponentId, float] = {ComponentId(0): 40}
+        incl_bounds: dict[ComponentId, Power] = {
+            ComponentId(0): Power.from_watts(500),
+            ComponentId(1): Power.from_watts(500),
         }
-        excl_bounds: dict[int, Power] = {0: Power.zero(), 1: Power.zero()}
+        excl_bounds: dict[ComponentId, Power] = {
+            ComponentId(0): Power.zero(),
+            ComponentId(1): Power.zero(),
+        }
 
         algorithm = BatteryDistributionAlgorithm(distributor_exponent=1)
         result = algorithm._distribute_power(  # pylint: disable=protected-access
@@ -202,7 +209,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         )
 
         for key, value in {1: 500}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(150.0)
 
@@ -215,18 +222,21 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         capacity: list[float] = [98000, 98000]
         components = self.create_components_with_capacity(2, capacity)
 
-        available_soc: dict[int, float] = {0: 40, 2: 20}
-        incl_bounds: dict[int, Power] = {
-            0: Power.from_watts(500),
-            2: Power.from_watts(500),
-            1: Power.from_watts(500),
-            3: Power.from_watts(500),
+        available_soc: dict[ComponentId, float] = {
+            ComponentId(0): 40,
+            ComponentId(2): 20,
         }
-        excl_bounds: dict[int, Power] = {
-            0: Power.zero(),
-            2: Power.zero(),
-            1: Power.zero(),
-            3: Power.zero(),
+        incl_bounds: dict[ComponentId, Power] = {
+            ComponentId(0): Power.from_watts(500),
+            ComponentId(2): Power.from_watts(500),
+            ComponentId(1): Power.from_watts(500),
+            ComponentId(3): Power.from_watts(500),
+        }
+        excl_bounds: dict[ComponentId, Power] = {
+            ComponentId(0): Power.zero(),
+            ComponentId(2): Power.zero(),
+            ComponentId(1): Power.zero(),
+            ComponentId(3): Power.zero(),
         }
 
         algorithm = BatteryDistributionAlgorithm(distributor_exponent=1)
@@ -239,7 +249,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         )
 
         for key, value in {1: 400, 3: 200}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -252,18 +262,21 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         capacity: list[float] = [49000, 98000]
         components = self.create_components_with_capacity(2, capacity)
 
-        available_soc: dict[int, float] = {0: 20, 2: 20}
-        incl_bounds: dict[int, Power] = {
-            0: Power.from_watts(500),
-            2: Power.from_watts(500),
-            1: Power.from_watts(500),
-            3: Power.from_watts(500),
+        available_soc: dict[ComponentId, float] = {
+            ComponentId(0): 20,
+            ComponentId(2): 20,
         }
-        excl_bounds: dict[int, Power] = {
-            0: Power.zero(),
-            2: Power.zero(),
-            1: Power.zero(),
-            3: Power.zero(),
+        incl_bounds: dict[ComponentId, Power] = {
+            ComponentId(0): Power.from_watts(500),
+            ComponentId(2): Power.from_watts(500),
+            ComponentId(1): Power.from_watts(500),
+            ComponentId(3): Power.from_watts(500),
+        }
+        excl_bounds: dict[ComponentId, Power] = {
+            ComponentId(0): Power.zero(),
+            ComponentId(2): Power.zero(),
+            ComponentId(1): Power.zero(),
+            ComponentId(3): Power.zero(),
         }
 
         algorithm = BatteryDistributionAlgorithm(distributor_exponent=1)
@@ -276,7 +289,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         )
 
         for key, value in {1: 200, 3: 400}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -291,16 +304,19 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
             2, capacity, share_inverter=True
         )
 
-        available_soc: dict[int, float] = {0: 20, 2: 30}
-        incl_bounds: dict[int, Power] = {
-            0: Power.from_watts(500),
-            2: Power.from_watts(500),
-            1: Power.from_watts(500),
+        available_soc: dict[ComponentId, float] = {
+            ComponentId(0): 20,
+            ComponentId(2): 30,
         }
-        excl_bounds: dict[int, Power] = {
-            0: Power.zero(),
-            2: Power.zero(),
-            1: Power.zero(),
+        incl_bounds: dict[ComponentId, Power] = {
+            ComponentId(0): Power.from_watts(500),
+            ComponentId(2): Power.from_watts(500),
+            ComponentId(1): Power.from_watts(500),
+        }
+        excl_bounds: dict[ComponentId, Power] = {
+            ComponentId(0): Power.zero(),
+            ComponentId(2): Power.zero(),
+            ComponentId(1): Power.zero(),
         }
 
         algorithm = BatteryDistributionAlgorithm(distributor_exponent=1)
@@ -313,7 +329,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         )
 
         for key, value in {1: 500}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(100.0)
 
@@ -327,18 +343,21 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         capacity: list[float] = [49000, 98000]
         components = self.create_components_with_capacity(2, capacity)
 
-        available_soc: dict[int, float] = {0: 40, 2: 20}
-        incl_bounds: dict[int, Power] = {
-            0: Power.from_watts(250),
-            2: Power.from_watts(330),
-            1: Power.from_watts(250),
-            3: Power.from_watts(330),
+        available_soc: dict[ComponentId, float] = {
+            ComponentId(0): 40,
+            ComponentId(2): 20,
         }
-        excl_bounds: dict[int, Power] = {
-            0: Power.zero(),
-            2: Power.zero(),
-            1: Power.zero(),
-            3: Power.zero(),
+        incl_bounds: dict[ComponentId, Power] = {
+            ComponentId(0): Power.from_watts(250),
+            ComponentId(2): Power.from_watts(330),
+            ComponentId(1): Power.from_watts(250),
+            ComponentId(3): Power.from_watts(330),
+        }
+        excl_bounds: dict[ComponentId, Power] = {
+            ComponentId(0): Power.zero(),
+            ComponentId(2): Power.zero(),
+            ComponentId(1): Power.zero(),
+            ComponentId(3): Power.zero(),
         }
 
         algorithm = BatteryDistributionAlgorithm(distributor_exponent=1)
@@ -351,7 +370,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         )
 
         for key, value in {1: 250, 3: 330}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(20.0)
 
@@ -360,22 +379,26 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         capacity: list[float] = [49000, 98000, 49000]
         components = self.create_components_with_capacity(3, capacity)
 
-        available_soc: dict[int, float] = {0: 40, 2: 20, 4: 20}
-        incl_bounds: dict[int, Power] = {
-            0: Power.from_watts(1000),
-            2: Power.from_watts(1000),
-            4: Power.from_watts(1000),
-            1: Power.from_watts(1000),
-            3: Power.from_watts(3400),
-            5: Power.from_watts(3550),
+        available_soc: dict[ComponentId, float] = {
+            ComponentId(0): 40,
+            ComponentId(2): 20,
+            ComponentId(4): 20,
         }
-        excl_bounds: dict[int, Power] = {
-            0: Power.zero(),
-            2: Power.zero(),
-            4: Power.zero(),
-            1: Power.zero(),
-            3: Power.zero(),
-            5: Power.zero(),
+        incl_bounds: dict[ComponentId, Power] = {
+            ComponentId(0): Power.from_watts(1000),
+            ComponentId(2): Power.from_watts(1000),
+            ComponentId(4): Power.from_watts(1000),
+            ComponentId(1): Power.from_watts(1000),
+            ComponentId(3): Power.from_watts(3400),
+            ComponentId(5): Power.from_watts(3550),
+        }
+        excl_bounds: dict[ComponentId, Power] = {
+            ComponentId(0): Power.zero(),
+            ComponentId(2): Power.zero(),
+            ComponentId(4): Power.zero(),
+            ComponentId(1): Power.zero(),
+            ComponentId(3): Power.zero(),
+            ComponentId(5): Power.zero(),
         }
 
         algorithm = BatteryDistributionAlgorithm(distributor_exponent=1)
@@ -388,7 +411,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         )
 
         for key, value in {1: 400, 3: 400, 5: 200}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -397,22 +420,26 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         capacity: list[float] = [98000, 49000, 49000]
         components = self.create_components_with_capacity(3, capacity)
 
-        available_soc: dict[int, float] = {0: 80, 2: 10, 4: 20}
-        incl_bounds: dict[int, Power] = {
-            0: Power.from_watts(1000),
-            2: Power.from_watts(1000),
-            4: Power.from_watts(1000),
-            1: Power.from_watts(400),
-            3: Power.from_watts(3400),
-            5: Power.from_watts(300),
+        available_soc: dict[ComponentId, float] = {
+            ComponentId(0): 80,
+            ComponentId(2): 10,
+            ComponentId(4): 20,
         }
-        excl_bounds: dict[int, Power] = {
-            0: Power.zero(),
-            2: Power.zero(),
-            4: Power.zero(),
-            1: Power.zero(),
-            3: Power.zero(),
-            5: Power.zero(),
+        incl_bounds: dict[ComponentId, Power] = {
+            ComponentId(0): Power.from_watts(1000),
+            ComponentId(2): Power.from_watts(1000),
+            ComponentId(4): Power.from_watts(1000),
+            ComponentId(1): Power.from_watts(400),
+            ComponentId(3): Power.from_watts(3400),
+            ComponentId(5): Power.from_watts(300),
+        }
+        excl_bounds: dict[ComponentId, Power] = {
+            ComponentId(0): Power.zero(),
+            ComponentId(2): Power.zero(),
+            ComponentId(4): Power.zero(),
+            ComponentId(1): Power.zero(),
+            ComponentId(3): Power.zero(),
+            ComponentId(5): Power.zero(),
         }
 
         algorithm = BatteryDistributionAlgorithm(distributor_exponent=1)
@@ -425,7 +452,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         )
 
         for key, value in {1: 400, 3: 300, 5: 300}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -434,22 +461,26 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         capacity: list[float] = [0, 49000, 0]
         components = self.create_components_with_capacity(3, capacity)
 
-        available_soc: dict[int, float] = {0: 80, 2: 10, 4: 20}
-        incl_bounds: dict[int, Power] = {
-            0: Power.from_watts(1000),
-            2: Power.from_watts(1000),
-            4: Power.from_watts(1000),
-            1: Power.from_watts(500),
-            3: Power.from_watts(300),
-            5: Power.from_watts(300),
+        available_soc: dict[ComponentId, float] = {
+            ComponentId(0): 80,
+            ComponentId(2): 10,
+            ComponentId(4): 20,
         }
-        excl_bounds: dict[int, Power] = {
-            0: Power.zero(),
-            2: Power.zero(),
-            4: Power.zero(),
-            1: Power.zero(),
-            3: Power.zero(),
-            5: Power.zero(),
+        incl_bounds: dict[ComponentId, Power] = {
+            ComponentId(0): Power.from_watts(1000),
+            ComponentId(2): Power.from_watts(1000),
+            ComponentId(4): Power.from_watts(1000),
+            ComponentId(1): Power.from_watts(500),
+            ComponentId(3): Power.from_watts(300),
+            ComponentId(5): Power.from_watts(300),
+        }
+        excl_bounds: dict[ComponentId, Power] = {
+            ComponentId(0): Power.zero(),
+            ComponentId(2): Power.zero(),
+            ComponentId(4): Power.zero(),
+            ComponentId(1): Power.zero(),
+            ComponentId(3): Power.zero(),
+            ComponentId(5): Power.zero(),
         }
 
         algorithm = BatteryDistributionAlgorithm(distributor_exponent=1)
@@ -462,7 +493,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         )
 
         for key, value in {1: 0, 3: 300, 5: 0}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(700.0)
 
@@ -504,7 +535,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(-1200), components)
 
         for key, value in {1: -200, 3: -400, 5: -600}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -543,7 +574,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(-1400), components)
 
         for key, value in {1: -400, 3: -400, 5: -600}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -582,7 +613,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(-1400), components)
 
         for key, value in {1: -500, 3: -100, 5: -800}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -621,7 +652,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(-1700), components)
 
         for key, value in {1: -600, 3: -100, 5: -800}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(-200.0)
 
@@ -660,7 +691,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(-1700), components)
 
         for key, value in {1: 0, 3: -100, 5: 0}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(-1600.0)
 
@@ -693,7 +724,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(-600), components)
 
         for key, value in {1: -500, 3: -100}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -725,7 +756,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(-600), components)
 
         for key, value in {1: -346.1538, 3: -253.8461}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -765,7 +796,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(1200), components)
 
         for key, value in {1: 200, 3: 400, 5: 600}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -804,7 +835,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(1400), components)
 
         for key, value in {1: 400, 3: 400, 5: 600}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -843,7 +874,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(1400), components)
 
         for key, value in {1: 500, 3: 100, 5: 800}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -882,7 +913,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(1700), components)
 
         for key, value in {1: 600, 3: 100, 5: 800}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(200.0)
 
@@ -921,7 +952,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(1700), components)
 
         for key, value in {1: 0, 3: 100, 5: 0}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(1600.0)
 
@@ -960,7 +991,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(1700), components)
 
         for key, value in {1: 0, 3: 100, 5: 800}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(800.0)
 
@@ -999,7 +1030,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(500), components)
 
         for key, value in {1: 498.3388, 3: 1.661129, 5: 0}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -1031,7 +1062,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(600), components)
 
         for key, value in {1: 100, 3: 500}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -1063,7 +1094,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(8000), components)
 
         for key, value in {1: 2000.0, 3: 6000.0}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -1071,7 +1102,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result2 = algorithm2.distribute_power(Power.from_watts(8000), components)
 
         for key, value in {1: 800.0, 3: 7200.0}.items():
-            assert result2.distribution[key].as_watts() == approx(value)
+            assert result2.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result2.remaining_power.as_watts() == approx(0.0)
 
@@ -1079,7 +1110,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result3 = algorithm3.distribute_power(Power.from_watts(8000), components)
 
         for key, value in {1: 285.7142, 3: 7714.2857}.items():
-            assert result3.distribution[key].as_watts() == approx(value)
+            assert result3.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result3.remaining_power.as_watts() == approx(0.0)
 
@@ -1111,7 +1142,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(900), components)
 
         for key, value in {1: 300.0, 3: 600.0}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -1119,7 +1150,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(8000), components)
 
         for key, value in {1: 2666.6666, 3: 5333.3333}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -1127,7 +1158,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result2 = algorithm2.distribute_power(Power.from_watts(900), components)
 
         for key, value in {1: 180, 3: 720}.items():
-            assert result2.distribution[key].as_watts() == approx(value)
+            assert result2.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result2.remaining_power.as_watts() == approx(0.0)
 
@@ -1135,7 +1166,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result2 = algorithm2.distribute_power(Power.from_watts(8000), components)
 
         for key, value in {1: 1600, 3: 6400}.items():
-            assert result2.distribution[key].as_watts() == approx(value)
+            assert result2.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result2.remaining_power.as_watts() == approx(0.0)
 
@@ -1143,7 +1174,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result2 = algorithm2.distribute_power(Power.from_watts(900), components)
 
         for key, value in {1: 100, 3: 800}.items():
-            assert result2.distribution[key].as_watts() == approx(value)
+            assert result2.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result2.remaining_power.as_watts() == approx(0.0)
 
@@ -1151,7 +1182,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result3 = algorithm3.distribute_power(Power.from_watts(8000), components)
 
         for key, value in {1: 888.8888, 3: 7111.1111}.items():
-            assert result3.distribution[key].as_watts() == approx(value)
+            assert result3.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result3.remaining_power.as_watts() == approx(0.0)
 
@@ -1183,7 +1214,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(-8000), components)
 
         for key, value in {1: -2000.0, 3: -6000.0}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -1191,7 +1222,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result2 = algorithm2.distribute_power(Power.from_watts(-8000), components)
 
         for key, value in {1: -800, 3: -7200}.items():
-            assert result2.distribution[key].as_watts() == approx(value)
+            assert result2.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result2.remaining_power.as_watts() == approx(0.0)
 
@@ -1199,7 +1230,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result3 = algorithm3.distribute_power(Power.from_watts(-8000), components)
 
         for key, value in {1: -285.7142, 3: -7714.2857}.items():
-            assert result3.distribution[key].as_watts() == approx(value)
+            assert result3.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result3.remaining_power.as_watts() == approx(0.0)
 
@@ -1231,7 +1262,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(-8000), components)
 
         for key, value in {1: -2666.6666, 3: -5333.3333}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -1239,7 +1270,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result2 = algorithm2.distribute_power(Power.from_watts(-8000), components)
 
         for key, value in {1: -1600, 3: -6400}.items():
-            assert result2.distribution[key].as_watts() == approx(value)
+            assert result2.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result2.remaining_power.as_watts() == approx(0.0)
 
@@ -1247,7 +1278,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result3 = algorithm3.distribute_power(Power.from_watts(-8000), components)
 
         for key, value in {1: -888.8888, 3: -7111.1111}.items():
-            assert result3.distribution[key].as_watts() == approx(value)
+            assert result3.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result3.remaining_power.as_watts() == approx(0.0)
 
@@ -1286,7 +1317,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(-8000), components)
 
         for key, value in {1: -1777.7777, 3: -2666.6666, 5: -3555.5555}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -1294,7 +1325,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result2 = algorithm2.distribute_power(Power.from_watts(-8000), components)
 
         for key, value in {1: -1103.4482, 3: -2482.7586, 5: -4413.7931}.items():
-            assert result2.distribution[key].as_watts() == approx(value)
+            assert result2.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result2.remaining_power.as_watts() == approx(0.0)
 
@@ -1302,7 +1333,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result3 = algorithm3.distribute_power(Power.from_watts(-8000), components)
 
         for key, value in {1: -646.4646, 3: -2181.8181, 5: -5171.7171}.items():
-            assert result3.distribution[key].as_watts() == approx(value)
+            assert result3.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result3.remaining_power.as_watts() == approx(0.0)
 
@@ -1341,7 +1372,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(-1300), components)
 
         for key, value in {1: -600, 3: -400, 5: -300}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -1349,11 +1380,11 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(-1200), components)
 
         for key, value in {1: -400, 3: -400, 5: -400}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
-    def test_supply_two_batteries_distribution_exponent_less_then_1(self) -> None:
+    def test_supply_two_batteries_distribution_exponent_less_than_1(self) -> None:
         """Distribute power."""
         capacity: list[Metric] = [Metric(98000), Metric(98000)]
         soc: list[Metric] = [
@@ -1381,7 +1412,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(1000), components)
 
         for key, value in {1: 600, 3: 400}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -1389,7 +1420,7 @@ class TestDistributionAlgorithm:  # pylint: disable=too-many-public-methods
         result = algorithm.distribute_power(Power.from_watts(1000), components)
 
         for key, value in {1: 500, 3: 500}.items():
-            assert result.distribution[key].as_watts() == approx(value)
+            assert result.distribution[ComponentId(key)].as_watts() == approx(value)
 
         assert result.remaining_power.as_watts() == approx(0.0)
 
@@ -1417,7 +1448,9 @@ class TestDistWithExclBounds:
     ) -> None:
         """Assert the result is as expected, disregarding which power goes to which component."""
         assert result.remaining_power == expected_remaining_power
-        assert {*result.distribution.keys()} == expected_distribution_ids
+        assert {*result.distribution.keys()} == {
+            *map(ComponentId, expected_distribution_ids)
+        }
         assert list(sorted(result.distribution.values())) == list(
             sorted(expected_distribution_powers)
         )
@@ -1503,7 +1536,11 @@ class TestDistWithExclBounds:
         self.assert_result(
             algorithm.distribute_power(Power.zero(), components),
             DistributionResult(
-                {1: Power.zero(), 3: Power.zero(), 5: Power.zero()},
+                {
+                    ComponentId(1): Power.zero(),
+                    ComponentId(3): Power.zero(),
+                    ComponentId(5): Power.zero(),
+                },
                 remaining_power=Power.zero(),
             ),
         )
@@ -1512,9 +1549,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(-300), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(-100),
-                    3: Power.from_watts(-100),
-                    5: Power.from_watts(-100),
+                    ComponentId(1): Power.from_watts(-100),
+                    ComponentId(3): Power.from_watts(-100),
+                    ComponentId(5): Power.from_watts(-100),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1523,9 +1560,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(300), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(100),
-                    3: Power.from_watts(100),
-                    5: Power.from_watts(100),
+                    ComponentId(1): Power.from_watts(100),
+                    ComponentId(3): Power.from_watts(100),
+                    ComponentId(5): Power.from_watts(100),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1534,9 +1571,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(-600), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(-100),
-                    3: Power.from_watts(-200),
-                    5: Power.from_watts(-300),
+                    ComponentId(1): Power.from_watts(-100),
+                    ComponentId(3): Power.from_watts(-200),
+                    ComponentId(5): Power.from_watts(-300),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1545,9 +1582,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(900), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(450),
-                    3: Power.from_watts(300),
-                    5: Power.from_watts(150),
+                    ComponentId(1): Power.from_watts(450),
+                    ComponentId(3): Power.from_watts(300),
+                    ComponentId(5): Power.from_watts(150),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1556,9 +1593,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(-900), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(-150),
-                    3: Power.from_watts(-300),
-                    5: Power.from_watts(-450),
+                    ComponentId(1): Power.from_watts(-150),
+                    ComponentId(3): Power.from_watts(-300),
+                    ComponentId(5): Power.from_watts(-450),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1567,9 +1604,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(2200), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(1000),
-                    3: Power.from_watts(833.33),
-                    5: Power.from_watts(366.66),
+                    ComponentId(1): Power.from_watts(1000),
+                    ComponentId(3): Power.from_watts(833.33),
+                    ComponentId(5): Power.from_watts(366.66),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1578,9 +1615,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(-2200), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(-366.66),
-                    3: Power.from_watts(-833.33),
-                    5: Power.from_watts(-1000),
+                    ComponentId(1): Power.from_watts(-366.66),
+                    ComponentId(3): Power.from_watts(-833.33),
+                    ComponentId(5): Power.from_watts(-1000),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1589,9 +1626,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(2800), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(1000),
-                    3: Power.from_watts(1000),
-                    5: Power.from_watts(800),
+                    ComponentId(1): Power.from_watts(1000),
+                    ComponentId(3): Power.from_watts(1000),
+                    ComponentId(5): Power.from_watts(800),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1600,9 +1637,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(-2800), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(-800),
-                    3: Power.from_watts(-1000),
-                    5: Power.from_watts(-1000),
+                    ComponentId(1): Power.from_watts(-800),
+                    ComponentId(3): Power.from_watts(-1000),
+                    ComponentId(5): Power.from_watts(-1000),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1611,9 +1648,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(3800), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(1000),
-                    3: Power.from_watts(1000),
-                    5: Power.from_watts(1000),
+                    ComponentId(1): Power.from_watts(1000),
+                    ComponentId(3): Power.from_watts(1000),
+                    ComponentId(5): Power.from_watts(1000),
                 },
                 remaining_power=Power.from_watts(800.0),
             ),
@@ -1622,9 +1659,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(-3200), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(-1000),
-                    3: Power.from_watts(-1000),
-                    5: Power.from_watts(-1000),
+                    ComponentId(1): Power.from_watts(-1000),
+                    ComponentId(3): Power.from_watts(-1000),
+                    ComponentId(5): Power.from_watts(-1000),
                 },
                 remaining_power=Power.from_watts(-200.0),
             ),
@@ -1712,9 +1749,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(-300), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(-100),
-                    3: Power.from_watts(-100),
-                    5: Power.from_watts(-100),
+                    ComponentId(1): Power.from_watts(-100),
+                    ComponentId(3): Power.from_watts(-100),
+                    ComponentId(5): Power.from_watts(-100),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1723,9 +1760,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(300), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(100),
-                    3: Power.from_watts(100),
-                    5: Power.from_watts(100),
+                    ComponentId(1): Power.from_watts(100),
+                    ComponentId(3): Power.from_watts(100),
+                    ComponentId(5): Power.from_watts(100),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1734,9 +1771,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(-530), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(-151.42),
-                    3: Power.from_watts(-151.42),
-                    5: Power.from_watts(-227.14),
+                    ComponentId(1): Power.from_watts(-151.42),
+                    ComponentId(3): Power.from_watts(-151.42),
+                    ComponentId(5): Power.from_watts(-227.14),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1745,9 +1782,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(530), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(212),
-                    3: Power.from_watts(212),
-                    5: Power.from_watts(106),
+                    ComponentId(1): Power.from_watts(212),
+                    ComponentId(3): Power.from_watts(212),
+                    ComponentId(5): Power.from_watts(106),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1756,9 +1793,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(2000), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(800),
-                    3: Power.from_watts(800),
-                    5: Power.from_watts(400),
+                    ComponentId(1): Power.from_watts(800),
+                    ComponentId(3): Power.from_watts(800),
+                    ComponentId(5): Power.from_watts(400),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1767,9 +1804,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(-2000), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(-571.42),
-                    3: Power.from_watts(-571.42),
-                    5: Power.from_watts(-857.14),
+                    ComponentId(1): Power.from_watts(-571.42),
+                    ComponentId(3): Power.from_watts(-571.42),
+                    ComponentId(5): Power.from_watts(-857.14),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1778,9 +1815,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(2500), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(1000),
-                    3: Power.from_watts(1000),
-                    5: Power.from_watts(500),
+                    ComponentId(1): Power.from_watts(1000),
+                    ComponentId(3): Power.from_watts(1000),
+                    ComponentId(5): Power.from_watts(500),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1789,9 +1826,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(-2500), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(-785.71),
-                    3: Power.from_watts(-714.28),
-                    5: Power.from_watts(-1000.0),
+                    ComponentId(1): Power.from_watts(-785.71),
+                    ComponentId(3): Power.from_watts(-714.28),
+                    ComponentId(5): Power.from_watts(-1000.0),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1800,9 +1837,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(3000), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(1000),
-                    3: Power.from_watts(1000),
-                    5: Power.from_watts(1000),
+                    ComponentId(1): Power.from_watts(1000),
+                    ComponentId(3): Power.from_watts(1000),
+                    ComponentId(5): Power.from_watts(1000),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1811,9 +1848,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(-3000), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(-1000),
-                    3: Power.from_watts(-1000),
-                    5: Power.from_watts(-1000),
+                    ComponentId(1): Power.from_watts(-1000),
+                    ComponentId(3): Power.from_watts(-1000),
+                    ComponentId(5): Power.from_watts(-1000),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1822,9 +1859,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(3500), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(1000),
-                    3: Power.from_watts(1000),
-                    5: Power.from_watts(1000),
+                    ComponentId(1): Power.from_watts(1000),
+                    ComponentId(3): Power.from_watts(1000),
+                    ComponentId(5): Power.from_watts(1000),
                 },
                 remaining_power=Power.from_watts(500.0),
             ),
@@ -1833,9 +1870,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(-3500), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(-1000),
-                    3: Power.from_watts(-1000),
-                    5: Power.from_watts(-1000),
+                    ComponentId(1): Power.from_watts(-1000),
+                    ComponentId(3): Power.from_watts(-1000),
+                    ComponentId(5): Power.from_watts(-1000),
                 },
                 remaining_power=Power.from_watts(-500.0),
             ),
@@ -1921,9 +1958,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(-320), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(-88),
-                    3: Power.from_watts(-108.57),
-                    5: Power.from_watts(-123.43),
+                    ComponentId(1): Power.from_watts(-88),
+                    ComponentId(3): Power.from_watts(-108.57),
+                    ComponentId(5): Power.from_watts(-123.43),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1932,9 +1969,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(320), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(128),
-                    3: Power.from_watts(128),
-                    5: Power.from_watts(64),
+                    ComponentId(1): Power.from_watts(128),
+                    ComponentId(3): Power.from_watts(128),
+                    ComponentId(5): Power.from_watts(64),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1943,9 +1980,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(-1800), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(-514.28),
-                    3: Power.from_watts(-514.28),
-                    5: Power.from_watts(-771.42),
+                    ComponentId(1): Power.from_watts(-514.28),
+                    ComponentId(3): Power.from_watts(-514.28),
+                    ComponentId(5): Power.from_watts(-771.42),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1954,9 +1991,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(1800), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(720),
-                    3: Power.from_watts(720),
-                    5: Power.from_watts(360),
+                    ComponentId(1): Power.from_watts(720),
+                    ComponentId(3): Power.from_watts(720),
+                    ComponentId(5): Power.from_watts(360),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1965,9 +2002,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(-2800), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(-800),
-                    3: Power.from_watts(-1000),
-                    5: Power.from_watts(-1000),
+                    ComponentId(1): Power.from_watts(-800),
+                    ComponentId(3): Power.from_watts(-1000),
+                    ComponentId(5): Power.from_watts(-1000),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1976,9 +2013,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(2800), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(1000),
-                    3: Power.from_watts(1000),
-                    5: Power.from_watts(800),
+                    ComponentId(1): Power.from_watts(1000),
+                    ComponentId(3): Power.from_watts(1000),
+                    ComponentId(5): Power.from_watts(800),
                 },
                 remaining_power=Power.zero(),
             ),
@@ -1987,9 +2024,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(-3500), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(-1000),
-                    3: Power.from_watts(-1000),
-                    5: Power.from_watts(-1000),
+                    ComponentId(1): Power.from_watts(-1000),
+                    ComponentId(3): Power.from_watts(-1000),
+                    ComponentId(5): Power.from_watts(-1000),
                 },
                 remaining_power=Power.from_watts(-500.0),
             ),
@@ -1998,9 +2035,9 @@ class TestDistWithExclBounds:
             algorithm.distribute_power(Power.from_watts(3500), components),
             DistributionResult(
                 {
-                    1: Power.from_watts(1000),
-                    3: Power.from_watts(1000),
-                    5: Power.from_watts(1000),
+                    ComponentId(1): Power.from_watts(1000),
+                    ComponentId(3): Power.from_watts(1000),
+                    ComponentId(5): Power.from_watts(1000),
                 },
                 remaining_power=Power.from_watts(500.0),
             ),
@@ -2034,7 +2071,7 @@ class TestDistWithExclBounds:
                 AggregatedBatteryData(
                     [
                         battery_msg(
-                            component_id=1,
+                            component_id=ComponentId(1),
                             capacity=Metric(10000),
                             soc=Metric(50, Bound(10, 90)),
                             power=PowerBounds(
@@ -2048,7 +2085,7 @@ class TestDistWithExclBounds:
                 ),
                 [
                     inverter_msg(
-                        2,
+                        ComponentId(2),
                         PowerBounds(
                             Power.from_watts(-1000),
                             Power.from_watts(-100),
@@ -2057,7 +2094,7 @@ class TestDistWithExclBounds:
                         ),
                     ),
                     inverter_msg(
-                        3,
+                        ComponentId(3),
                         PowerBounds(
                             Power.from_watts(-1000),
                             Power.from_watts(-100),
@@ -2132,7 +2169,7 @@ class TestDistWithExclBounds:
                 AggregatedBatteryData(
                     [
                         battery_msg(
-                            component_id=1,
+                            component_id=ComponentId(1),
                             capacity=Metric(10000),
                             soc=Metric(20, Bound(10, 90)),
                             power=PowerBounds(
@@ -2146,7 +2183,7 @@ class TestDistWithExclBounds:
                 ),
                 [
                     inverter_msg(
-                        10,
+                        ComponentId(10),
                         PowerBounds(
                             Power.from_watts(-1000),
                             Power.from_watts(-100),
@@ -2155,7 +2192,7 @@ class TestDistWithExclBounds:
                         ),
                     ),
                     inverter_msg(
-                        11,
+                        ComponentId(11),
                         PowerBounds(
                             Power.from_watts(-1000),
                             Power.from_watts(-100),
@@ -2169,7 +2206,7 @@ class TestDistWithExclBounds:
                 AggregatedBatteryData(
                     [
                         battery_msg(
-                            component_id=2,
+                            component_id=ComponentId(2),
                             capacity=Metric(10000),
                             soc=Metric(60, Bound(10, 90)),
                             power=PowerBounds(
@@ -2183,7 +2220,7 @@ class TestDistWithExclBounds:
                 ),
                 [
                     inverter_msg(
-                        20,
+                        ComponentId(20),
                         PowerBounds(
                             Power.from_watts(-1000),
                             Power.from_watts(-100),
@@ -2192,7 +2229,7 @@ class TestDistWithExclBounds:
                         ),
                     ),
                     inverter_msg(
-                        21,
+                        ComponentId(21),
                         PowerBounds(
                             Power.from_watts(-1000),
                             Power.from_watts(-100),

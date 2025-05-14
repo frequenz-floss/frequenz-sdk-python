@@ -13,6 +13,7 @@ import pytest
 from frequenz.client.microgrid import (
     Component,
     ComponentCategory,
+    ComponentId,
     ComponentMetadata,
     Connection,
     Fuse,
@@ -48,10 +49,10 @@ def _add_connections(
 
 
 def _check_predecessors_and_successors(graph: gr.ComponentGraph) -> None:
-    expected_predecessors: dict[int, set[Component]] = {}
-    expected_successors: dict[int, set[Component]] = {}
+    expected_predecessors: dict[ComponentId, set[Component]] = {}
+    expected_successors: dict[ComponentId, set[Component]] = {}
 
-    components: dict[int, Component] = {
+    components: dict[ComponentId, Component] = {
         component.component_id: component for component in graph.components()
     }
 
@@ -85,21 +86,21 @@ class TestComponentGraph:
     def sample_input_components(self) -> set[Component]:
         """Create a sample set of components for testing purposes."""
         return {
-            Component(11, ComponentCategory.GRID),
-            Component(21, ComponentCategory.METER),
-            Component(41, ComponentCategory.METER),
-            Component(51, ComponentCategory.INVERTER),
-            Component(61, ComponentCategory.BATTERY),
+            Component(ComponentId(11), ComponentCategory.GRID),
+            Component(ComponentId(21), ComponentCategory.METER),
+            Component(ComponentId(41), ComponentCategory.METER),
+            Component(ComponentId(51), ComponentCategory.INVERTER),
+            Component(ComponentId(61), ComponentCategory.BATTERY),
         }
 
     @pytest.fixture()
     def sample_input_connections(self) -> set[Connection]:
         """Create a sample set of connections for testing purposes."""
         return {
-            Connection(11, 21),
-            Connection(21, 41),
-            Connection(41, 51),
-            Connection(51, 61),
+            Connection(ComponentId(11), ComponentId(21)),
+            Connection(ComponentId(21), ComponentId(41)),
+            Connection(ComponentId(41), ComponentId(51)),
+            Connection(ComponentId(51), ComponentId(61)),
         }
 
     @pytest.fixture()
@@ -124,58 +125,62 @@ class TestComponentGraph:
         assert graph.connections() == set()
         with pytest.raises(
             KeyError,
-            match="Component 1 not in graph, cannot get predecessors!",
+            match="Component with CID1 not in graph, cannot get predecessors!",
         ):
-            graph.predecessors(1)
+            graph.predecessors(ComponentId(1))
         with pytest.raises(
             KeyError,
-            match="Component 1 not in graph, cannot get successors!",
+            match="Component with CID1 not in graph, cannot get successors!",
         ):
-            graph.successors(1)
+            graph.successors(ComponentId(1))
 
         # simplest valid microgrid: a grid endpoint and a meter
         _graph_implementation.refresh_from(
             components={
-                Component(1, ComponentCategory.GRID),
-                Component(3, ComponentCategory.METER),
+                Component(ComponentId(1), ComponentCategory.GRID),
+                Component(ComponentId(3), ComponentCategory.METER),
             },
-            connections={Connection(1, 3)},
+            connections={Connection(ComponentId(1), ComponentId(3))},
         )
         expected_components = {
-            Component(1, ComponentCategory.GRID),
-            Component(3, ComponentCategory.METER),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(3), ComponentCategory.METER),
         }
         assert len(graph.components()) == len(expected_components)
         assert graph.components() == expected_components
-        assert graph.connections() == {Connection(1, 3)}
+        assert graph.connections() == {Connection(ComponentId(1), ComponentId(3))}
 
-        assert graph.predecessors(1) == set()
-        assert graph.successors(1) == {Component(3, ComponentCategory.METER)}
-        assert graph.predecessors(3) == {Component(1, ComponentCategory.GRID)}
-        assert graph.successors(3) == set()
+        assert graph.predecessors(ComponentId(1)) == set()
+        assert graph.successors(ComponentId(1)) == {
+            Component(ComponentId(3), ComponentCategory.METER)
+        }
+        assert graph.predecessors(ComponentId(3)) == {
+            Component(ComponentId(1), ComponentCategory.GRID)
+        }
+        assert graph.successors(ComponentId(3)) == set()
         with pytest.raises(
             KeyError,
-            match="Component 2 not in graph, cannot get predecessors!",
+            match="Component with CID2 not in graph, cannot get predecessors!",
         ):
-            graph.predecessors(2)
+            graph.predecessors(ComponentId(2))
         with pytest.raises(
             KeyError,
-            match="Component 2 not in graph, cannot get successors!",
+            match="Component with CID2 not in graph, cannot get successors!",
         ):
-            graph.successors(2)
+            graph.successors(ComponentId(2))
 
         input_components = {
-            101: Component(101, ComponentCategory.GRID),
-            102: Component(102, ComponentCategory.METER),
-            104: Component(104, ComponentCategory.METER),
-            105: Component(105, ComponentCategory.INVERTER),
-            106: Component(106, ComponentCategory.BATTERY),
+            ComponentId(101): Component(ComponentId(101), ComponentCategory.GRID),
+            ComponentId(102): Component(ComponentId(102), ComponentCategory.METER),
+            ComponentId(104): Component(ComponentId(104), ComponentCategory.METER),
+            ComponentId(105): Component(ComponentId(105), ComponentCategory.INVERTER),
+            ComponentId(106): Component(ComponentId(106), ComponentCategory.BATTERY),
         }
         input_connections = {
-            Connection(101, 102),
-            Connection(102, 104),
-            Connection(104, 105),
-            Connection(105, 106),
+            Connection(ComponentId(101), ComponentId(102)),
+            Connection(ComponentId(102), ComponentId(104)),
+            Connection(ComponentId(104), ComponentId(105)),
+            Connection(ComponentId(105), ComponentId(106)),
         }
 
         # more complex microgrid: grid endpoint, load, grid-side meter,
@@ -193,46 +198,50 @@ class TestComponentGraph:
 
         with pytest.raises(
             KeyError,
-            match="Component 9 not in graph, cannot get predecessors!",
+            match="Component with CID9 not in graph, cannot get predecessors!",
         ):
-            graph.predecessors(9)
+            graph.predecessors(ComponentId(9))
         with pytest.raises(
             KeyError,
-            match="Component 99 not in graph, cannot get successors!",
+            match="Component with CID99 not in graph, cannot get successors!",
         ):
-            graph.successors(99)
+            graph.successors(ComponentId(99))
 
     @pytest.mark.parametrize(
-        "ids, expected",
+        "int_ids, expected",
         [
             ({1}, set()),
             ({1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, set()),
-            ({11}, {Component(11, ComponentCategory.GRID)}),
-            ({21}, {Component(21, ComponentCategory.METER)}),
-            ({41}, {Component(41, ComponentCategory.METER)}),
-            ({51}, {Component(51, ComponentCategory.INVERTER)}),
-            ({61}, {Component(61, ComponentCategory.BATTERY)}),
+            ({11}, {Component(ComponentId(11), ComponentCategory.GRID)}),
+            ({21}, {Component(ComponentId(21), ComponentCategory.METER)}),
+            ({41}, {Component(ComponentId(41), ComponentCategory.METER)}),
+            ({51}, {Component(ComponentId(51), ComponentCategory.INVERTER)}),
+            ({61}, {Component(ComponentId(61), ComponentCategory.BATTERY)}),
             (
                 {11, 61},
                 {
-                    Component(11, ComponentCategory.GRID),
-                    Component(61, ComponentCategory.BATTERY),
+                    Component(ComponentId(11), ComponentCategory.GRID),
+                    Component(ComponentId(61), ComponentCategory.BATTERY),
                 },
             ),
             (
                 {9, 51, 41, 21, 101},
                 {
-                    Component(41, ComponentCategory.METER),
-                    Component(51, ComponentCategory.INVERTER),
-                    Component(21, ComponentCategory.METER),
+                    Component(ComponentId(41), ComponentCategory.METER),
+                    Component(ComponentId(51), ComponentCategory.INVERTER),
+                    Component(ComponentId(21), ComponentCategory.METER),
                 },
             ),
         ],
     )
     def test_filter_graph_components_by_id(
-        self, sample_graph: gr.ComponentGraph, ids: set[int], expected: set[Component]
+        self,
+        sample_graph: gr.ComponentGraph,
+        int_ids: set[int],
+        expected: set[Component],
     ) -> None:
         """Test the graph component query with component ID filter."""
+        ids = set(ComponentId(id) for id in int_ids)
         # with component_id filter specified, we get back only components whose ID
         # matches one of the specified values
         assert len(sample_graph.components(component_ids=ids)) == len(expected)
@@ -244,23 +253,32 @@ class TestComponentGraph:
             ({ComponentCategory.EV_CHARGER}, set()),
             (
                 {ComponentCategory.BATTERY, ComponentCategory.EV_CHARGER},
-                {Component(61, ComponentCategory.BATTERY)},
+                {Component(ComponentId(61), ComponentCategory.BATTERY)},
             ),
-            ({ComponentCategory.GRID}, {Component(11, ComponentCategory.GRID)}),
+            (
+                {ComponentCategory.GRID},
+                {Component(ComponentId(11), ComponentCategory.GRID)},
+            ),
             (
                 {ComponentCategory.METER},
                 {
-                    Component(21, ComponentCategory.METER),
-                    Component(41, ComponentCategory.METER),
+                    Component(ComponentId(21), ComponentCategory.METER),
+                    Component(ComponentId(41), ComponentCategory.METER),
                 },
             ),
-            ({ComponentCategory.INVERTER}, {Component(51, ComponentCategory.INVERTER)}),
-            ({ComponentCategory.BATTERY}, {Component(61, ComponentCategory.BATTERY)}),
+            (
+                {ComponentCategory.INVERTER},
+                {Component(ComponentId(51), ComponentCategory.INVERTER)},
+            ),
+            (
+                {ComponentCategory.BATTERY},
+                {Component(ComponentId(61), ComponentCategory.BATTERY)},
+            ),
             (
                 {ComponentCategory.GRID, ComponentCategory.BATTERY},
                 {
-                    Component(11, ComponentCategory.GRID),
-                    Component(61, ComponentCategory.BATTERY),
+                    Component(ComponentId(11), ComponentCategory.GRID),
+                    Component(ComponentId(61), ComponentCategory.BATTERY),
                 },
             ),
             (
@@ -270,9 +288,9 @@ class TestComponentGraph:
                     ComponentCategory.EV_CHARGER,
                 },
                 {
-                    Component(21, ComponentCategory.METER),
-                    Component(61, ComponentCategory.BATTERY),
-                    Component(41, ComponentCategory.METER),
+                    Component(ComponentId(21), ComponentCategory.METER),
+                    Component(ComponentId(61), ComponentCategory.BATTERY),
+                    Component(ComponentId(41), ComponentCategory.METER),
                 },
             ),
         ],
@@ -290,21 +308,25 @@ class TestComponentGraph:
         assert sample_graph.components(component_categories=types) == expected
 
     @pytest.mark.parametrize(
-        "ids, types, expected",
+        "int_ids, types, expected",
         [
-            ({11}, {ComponentCategory.GRID}, {Component(11, ComponentCategory.GRID)}),
+            (
+                {11},
+                {ComponentCategory.GRID},
+                {Component(ComponentId(11), ComponentCategory.GRID)},
+            ),
             ({31}, {ComponentCategory.GRID}, set()),
             (
                 {61},
                 {ComponentCategory.BATTERY},
-                {Component(61, ComponentCategory.BATTERY)},
+                {Component(ComponentId(61), ComponentCategory.BATTERY)},
             ),
             (
                 {11, 21, 31, 61},
                 {ComponentCategory.METER, ComponentCategory.BATTERY},
                 {
-                    Component(61, ComponentCategory.BATTERY),
-                    Component(21, ComponentCategory.METER),
+                    Component(ComponentId(61), ComponentCategory.BATTERY),
+                    Component(ComponentId(21), ComponentCategory.METER),
                 },
             ),
         ],
@@ -312,11 +334,12 @@ class TestComponentGraph:
     def test_filter_graph_components_with_composite_filter(
         self,
         sample_graph: gr.ComponentGraph,
-        ids: set[int],
+        int_ids: set[int],
         types: set[ComponentCategory],
         expected: set[Component],
     ) -> None:
         """Test the graph component query with composite filter."""
+        ids = set(ComponentId(id) for id in int_ids)
         # when both filters are applied, they are combined via AND logic, i.e.
         # the component must have one of the specified IDs and be of one of
         # the specified types
@@ -340,120 +363,147 @@ class TestComponentGraph:
         """Test the graph connection query with filters."""
         _graph_implementation = gr._MicrogridComponentGraph(
             components={
-                Component(1, ComponentCategory.GRID),
-                Component(2, ComponentCategory.METER),
-                Component(3, ComponentCategory.METER),
-                Component(4, ComponentCategory.EV_CHARGER),
-                Component(5, ComponentCategory.EV_CHARGER),
-                Component(6, ComponentCategory.EV_CHARGER),
+                Component(ComponentId(1), ComponentCategory.GRID),
+                Component(ComponentId(2), ComponentCategory.METER),
+                Component(ComponentId(3), ComponentCategory.METER),
+                Component(ComponentId(4), ComponentCategory.EV_CHARGER),
+                Component(ComponentId(5), ComponentCategory.EV_CHARGER),
+                Component(ComponentId(6), ComponentCategory.EV_CHARGER),
             },
             connections={
-                Connection(1, 2),
-                Connection(1, 3),
-                Connection(2, 4),
-                Connection(2, 5),
-                Connection(2, 6),
+                Connection(ComponentId(1), ComponentId(2)),
+                Connection(ComponentId(1), ComponentId(3)),
+                Connection(ComponentId(2), ComponentId(4)),
+                Connection(ComponentId(2), ComponentId(5)),
+                Connection(ComponentId(2), ComponentId(6)),
             },
         )
         graph: gr.ComponentGraph = _graph_implementation
 
         # without any filter applied, we get back all the connections in the graph
         assert graph.connections() == {
-            Connection(1, 2),
-            Connection(1, 3),
-            Connection(2, 4),
-            Connection(2, 5),
-            Connection(2, 6),
+            Connection(ComponentId(1), ComponentId(2)),
+            Connection(ComponentId(1), ComponentId(3)),
+            Connection(ComponentId(2), ComponentId(4)),
+            Connection(ComponentId(2), ComponentId(5)),
+            Connection(ComponentId(2), ComponentId(6)),
         }
 
         # with start filter applied, we get back only connections whose `start`
         # component matches one of the provided IDs
-        assert graph.connections(start={8}) == set()
-        assert graph.connections(start={7}) == set()
-        assert graph.connections(start={6}) == set()
-        assert graph.connections(start={5}) == set()
-        assert graph.connections(start={4}) == set()
-        assert graph.connections(start={3}) == set()
-        assert graph.connections(start={2}) == {
-            Connection(2, 4),
-            Connection(2, 5),
-            Connection(2, 6),
+        assert graph.connections(start={ComponentId(8)}) == set()
+        assert graph.connections(start={ComponentId(7)}) == set()
+        assert graph.connections(start={ComponentId(6)}) == set()
+        assert graph.connections(start={ComponentId(5)}) == set()
+        assert graph.connections(start={ComponentId(4)}) == set()
+        assert graph.connections(start={ComponentId(3)}) == set()
+        assert graph.connections(start={ComponentId(2)}) == {
+            Connection(ComponentId(2), ComponentId(4)),
+            Connection(ComponentId(2), ComponentId(5)),
+            Connection(ComponentId(2), ComponentId(6)),
         }
-        assert graph.connections(start={1}) == {
-            Connection(1, 2),
-            Connection(1, 3),
+        assert graph.connections(start={ComponentId(1)}) == {
+            Connection(ComponentId(1), ComponentId(2)),
+            Connection(ComponentId(1), ComponentId(3)),
         }
-        assert graph.connections(start={1, 3, 5}) == {
-            Connection(1, 2),
-            Connection(1, 3),
+        assert graph.connections(
+            start={ComponentId(1), ComponentId(3), ComponentId(5)}
+        ) == {
+            Connection(ComponentId(1), ComponentId(2)),
+            Connection(ComponentId(1), ComponentId(3)),
         }
-        assert graph.connections(start={1, 2, 5, 6}) == {
-            Connection(1, 2),
-            Connection(1, 3),
-            Connection(2, 4),
-            Connection(2, 5),
-            Connection(2, 6),
+        assert graph.connections(
+            start={ComponentId(1), ComponentId(2), ComponentId(5), ComponentId(6)}
+        ) == {
+            Connection(ComponentId(1), ComponentId(2)),
+            Connection(ComponentId(1), ComponentId(3)),
+            Connection(ComponentId(2), ComponentId(4)),
+            Connection(ComponentId(2), ComponentId(5)),
+            Connection(ComponentId(2), ComponentId(6)),
         }
 
         # with end filter applied, we get back only connections whose `end`
         # component matches one of the provided IDs
-        assert graph.connections(end={8}) == set()
-        assert graph.connections(end={6}) == {Connection(2, 6)}
-        assert graph.connections(end={5}) == {Connection(2, 5)}
-        assert graph.connections(end={4}) == {Connection(2, 4)}
-        assert graph.connections(end={3}) == {Connection(1, 3)}
-        assert graph.connections(end={2}) == {Connection(1, 2)}
-        assert graph.connections(end={1}) == set()
-        assert graph.connections(end={1, 2, 3}) == {
-            Connection(1, 2),
-            Connection(1, 3),
+        assert graph.connections(end={ComponentId(8)}) == set()
+        assert graph.connections(end={ComponentId(6)}) == {
+            Connection(ComponentId(2), ComponentId(6))
         }
-        assert graph.connections(end={4, 5, 6}) == {
-            Connection(2, 4),
-            Connection(2, 5),
-            Connection(2, 6),
+        assert graph.connections(end={ComponentId(5)}) == {
+            Connection(ComponentId(2), ComponentId(5))
+        }
+        assert graph.connections(end={ComponentId(4)}) == {
+            Connection(ComponentId(2), ComponentId(4))
+        }
+        assert graph.connections(end={ComponentId(3)}) == {
+            Connection(ComponentId(1), ComponentId(3))
+        }
+        assert graph.connections(end={ComponentId(2)}) == {
+            Connection(ComponentId(1), ComponentId(2))
+        }
+        assert graph.connections(end={ComponentId(1)}) == set()
+        assert graph.connections(
+            end={ComponentId(1), ComponentId(2), ComponentId(3)}
+        ) == {
+            Connection(ComponentId(1), ComponentId(2)),
+            Connection(ComponentId(1), ComponentId(3)),
+        }
+        assert graph.connections(
+            end={ComponentId(4), ComponentId(5), ComponentId(6)}
+        ) == {
+            Connection(ComponentId(2), ComponentId(4)),
+            Connection(ComponentId(2), ComponentId(5)),
+            Connection(ComponentId(2), ComponentId(6)),
         }
 
-        assert graph.connections(end={2, 4, 6, 8}) == {
-            Connection(1, 2),
-            Connection(2, 4),
-            Connection(2, 6),
+        assert graph.connections(
+            end={ComponentId(2), ComponentId(4), ComponentId(6), ComponentId(8)}
+        ) == {
+            Connection(ComponentId(1), ComponentId(2)),
+            Connection(ComponentId(2), ComponentId(4)),
+            Connection(ComponentId(2), ComponentId(6)),
         }
-        assert graph.connections(end={1}) == set()
+        assert graph.connections(end={ComponentId(1)}) == set()
 
         # when both filters are applied, they are combined via AND logic, i.e.
         # a connection must have its `start` matching one of the provided start
         # values, and its `end` matching one of the provided end values
-        assert graph.connections(start={1}, end={2}) == {Connection(1, 2)}
-        assert graph.connections(start={2}, end={3}) == set()
-        assert graph.connections(start={1, 2}, end={3, 4}) == {
-            Connection(1, 3),
-            Connection(2, 4),
+        assert graph.connections(start={ComponentId(1)}, end={ComponentId(2)}) == {
+            Connection(ComponentId(1), ComponentId(2))
         }
-        assert graph.connections(start={2, 3}, end={5, 6, 7}) == {
-            Connection(2, 5),
-            Connection(2, 6),
+        assert graph.connections(start={ComponentId(2)}, end={ComponentId(3)}) == set()
+        assert graph.connections(
+            start={ComponentId(1), ComponentId(2)}, end={ComponentId(3), ComponentId(4)}
+        ) == {
+            Connection(ComponentId(1), ComponentId(3)),
+            Connection(ComponentId(2), ComponentId(4)),
+        }
+        assert graph.connections(
+            start={ComponentId(2), ComponentId(3)},
+            end={ComponentId(5), ComponentId(6), ComponentId(7)},
+        ) == {
+            Connection(ComponentId(2), ComponentId(5)),
+            Connection(ComponentId(2), ComponentId(6)),
         }
 
     def test_dfs_search_two_grid_meters(self) -> None:
         """Test DFS searching PV components in a graph with two grid meters."""
-        grid = Component(1, ComponentCategory.GRID)
+        grid = Component(ComponentId(1), ComponentCategory.GRID)
         pv_inverters = {
-            Component(4, ComponentCategory.INVERTER, InverterType.SOLAR),
-            Component(5, ComponentCategory.INVERTER, InverterType.SOLAR),
+            Component(ComponentId(4), ComponentCategory.INVERTER, InverterType.SOLAR),
+            Component(ComponentId(5), ComponentCategory.INVERTER, InverterType.SOLAR),
         }
 
         graph = gr._MicrogridComponentGraph(
             components={
                 grid,
-                Component(2, ComponentCategory.METER),
-                Component(3, ComponentCategory.METER),
+                Component(ComponentId(2), ComponentCategory.METER),
+                Component(ComponentId(3), ComponentCategory.METER),
             }.union(pv_inverters),
             connections={
-                Connection(1, 2),
-                Connection(1, 3),
-                Connection(2, 4),
-                Connection(2, 5),
+                Connection(ComponentId(1), ComponentId(2)),
+                Connection(ComponentId(1), ComponentId(3)),
+                Connection(ComponentId(2), ComponentId(4)),
+                Connection(ComponentId(2), ComponentId(5)),
             },
         )
 
@@ -462,25 +512,29 @@ class TestComponentGraph:
 
     def test_dfs_search_grid_meter(self) -> None:
         """Test DFS searching PV components in a graph with a single grid meter."""
-        grid = Component(1, ComponentCategory.GRID)
+        grid = Component(ComponentId(1), ComponentCategory.GRID)
         pv_meters = {
-            Component(3, ComponentCategory.METER),
-            Component(4, ComponentCategory.METER),
+            Component(ComponentId(3), ComponentCategory.METER),
+            Component(ComponentId(4), ComponentCategory.METER),
         }
 
         graph = gr._MicrogridComponentGraph(
             components={
                 grid,
-                Component(2, ComponentCategory.METER),
-                Component(5, ComponentCategory.INVERTER, InverterType.SOLAR),
-                Component(6, ComponentCategory.INVERTER, InverterType.SOLAR),
+                Component(ComponentId(2), ComponentCategory.METER),
+                Component(
+                    ComponentId(5), ComponentCategory.INVERTER, InverterType.SOLAR
+                ),
+                Component(
+                    ComponentId(6), ComponentCategory.INVERTER, InverterType.SOLAR
+                ),
             }.union(pv_meters),
             connections={
-                Connection(1, 2),
-                Connection(2, 3),
-                Connection(2, 4),
-                Connection(3, 5),
-                Connection(4, 6),
+                Connection(ComponentId(1), ComponentId(2)),
+                Connection(ComponentId(2), ComponentId(3)),
+                Connection(ComponentId(2), ComponentId(4)),
+                Connection(ComponentId(3), ComponentId(5)),
+                Connection(ComponentId(4), ComponentId(6)),
             },
         )
 
@@ -489,21 +543,21 @@ class TestComponentGraph:
 
     def test_dfs_search_grid_meter_no_pv_meter(self) -> None:
         """Test DFS searching PV components in a graph with a single grid meter."""
-        grid = Component(1, ComponentCategory.GRID)
+        grid = Component(ComponentId(1), ComponentCategory.GRID)
         pv_inverters = {
-            Component(3, ComponentCategory.INVERTER, InverterType.SOLAR),
-            Component(4, ComponentCategory.INVERTER, InverterType.SOLAR),
+            Component(ComponentId(3), ComponentCategory.INVERTER, InverterType.SOLAR),
+            Component(ComponentId(4), ComponentCategory.INVERTER, InverterType.SOLAR),
         }
 
         graph = gr._MicrogridComponentGraph(
             components={
                 grid,
-                Component(2, ComponentCategory.METER),
+                Component(ComponentId(2), ComponentCategory.METER),
             }.union(pv_inverters),
             connections={
-                Connection(1, 2),
-                Connection(2, 3),
-                Connection(2, 4),
+                Connection(ComponentId(1), ComponentId(2)),
+                Connection(ComponentId(2), ComponentId(3)),
+                Connection(ComponentId(2), ComponentId(4)),
             },
         )
 
@@ -512,25 +566,29 @@ class TestComponentGraph:
 
     def test_dfs_search_no_grid_meter(self) -> None:
         """Test DFS searching PV components in a graph with no grid meter."""
-        grid = Component(1, ComponentCategory.GRID)
+        grid = Component(ComponentId(1), ComponentCategory.GRID)
         pv_meters = {
-            Component(3, ComponentCategory.METER),
-            Component(4, ComponentCategory.METER),
+            Component(ComponentId(3), ComponentCategory.METER),
+            Component(ComponentId(4), ComponentCategory.METER),
         }
 
         graph = gr._MicrogridComponentGraph(
             components={
                 grid,
-                Component(2, ComponentCategory.METER),
-                Component(5, ComponentCategory.INVERTER, InverterType.SOLAR),
-                Component(6, ComponentCategory.INVERTER, InverterType.SOLAR),
+                Component(ComponentId(2), ComponentCategory.METER),
+                Component(
+                    ComponentId(5), ComponentCategory.INVERTER, InverterType.SOLAR
+                ),
+                Component(
+                    ComponentId(6), ComponentCategory.INVERTER, InverterType.SOLAR
+                ),
             }.union(pv_meters),
             connections={
-                Connection(1, 2),
-                Connection(1, 3),
-                Connection(1, 4),
-                Connection(3, 5),
-                Connection(4, 6),
+                Connection(ComponentId(1), ComponentId(2)),
+                Connection(ComponentId(1), ComponentId(3)),
+                Connection(ComponentId(1), ComponentId(4)),
+                Connection(ComponentId(3), ComponentId(5)),
+                Connection(ComponentId(4), ComponentId(6)),
             },
         )
 
@@ -539,29 +597,33 @@ class TestComponentGraph:
 
     def test_dfs_search_nested_components(self) -> None:
         """Test DFS searching PV components in a graph with nested components."""
-        grid = Component(1, ComponentCategory.GRID)
+        grid = Component(ComponentId(1), ComponentCategory.GRID)
         battery_components = {
-            Component(4, ComponentCategory.METER),
-            Component(5, ComponentCategory.METER),
-            Component(6, ComponentCategory.INVERTER, InverterType.BATTERY),
+            Component(ComponentId(4), ComponentCategory.METER),
+            Component(ComponentId(5), ComponentCategory.METER),
+            Component(ComponentId(6), ComponentCategory.INVERTER, InverterType.BATTERY),
         }
 
         graph = gr._MicrogridComponentGraph(
             components={
                 grid,
-                Component(2, ComponentCategory.METER),
-                Component(3, ComponentCategory.METER),
-                Component(7, ComponentCategory.INVERTER, InverterType.BATTERY),
-                Component(8, ComponentCategory.INVERTER, InverterType.BATTERY),
+                Component(ComponentId(2), ComponentCategory.METER),
+                Component(ComponentId(3), ComponentCategory.METER),
+                Component(
+                    ComponentId(7), ComponentCategory.INVERTER, InverterType.BATTERY
+                ),
+                Component(
+                    ComponentId(8), ComponentCategory.INVERTER, InverterType.BATTERY
+                ),
             }.union(battery_components),
             connections={
-                Connection(1, 2),
-                Connection(2, 3),
-                Connection(2, 6),
-                Connection(3, 4),
-                Connection(3, 5),
-                Connection(4, 7),
-                Connection(5, 8),
+                Connection(ComponentId(1), ComponentId(2)),
+                Connection(ComponentId(2), ComponentId(3)),
+                Connection(ComponentId(2), ComponentId(6)),
+                Connection(ComponentId(3), ComponentId(4)),
+                Connection(ComponentId(3), ComponentId(5)),
+                Connection(ComponentId(4), ComponentId(7)),
+                Connection(ComponentId(5), ComponentId(8)),
             },
         )
 
@@ -572,19 +634,23 @@ class TestComponentGraph:
         """Test scenarios for finding the first descendant component."""
         graph = gr._MicrogridComponentGraph(
             components={
-                Component(1, ComponentCategory.GRID),
-                Component(2, ComponentCategory.METER),
-                Component(3, ComponentCategory.METER),
-                Component(4, ComponentCategory.INVERTER, InverterType.BATTERY),
-                Component(5, ComponentCategory.INVERTER, InverterType.SOLAR),
-                Component(6, ComponentCategory.EV_CHARGER),
+                Component(ComponentId(1), ComponentCategory.GRID),
+                Component(ComponentId(2), ComponentCategory.METER),
+                Component(ComponentId(3), ComponentCategory.METER),
+                Component(
+                    ComponentId(4), ComponentCategory.INVERTER, InverterType.BATTERY
+                ),
+                Component(
+                    ComponentId(5), ComponentCategory.INVERTER, InverterType.SOLAR
+                ),
+                Component(ComponentId(6), ComponentCategory.EV_CHARGER),
             },
             connections={
-                Connection(1, 2),
-                Connection(2, 3),
-                Connection(2, 4),
-                Connection(2, 5),
-                Connection(3, 6),
+                Connection(ComponentId(1), ComponentId(2)),
+                Connection(ComponentId(2), ComponentId(3)),
+                Connection(ComponentId(2), ComponentId(4)),
+                Connection(ComponentId(2), ComponentId(5)),
+                Connection(ComponentId(3), ComponentId(6)),
             },
         )
 
@@ -592,14 +658,14 @@ class TestComponentGraph:
         result = graph.find_first_descendant_component(
             descendant_categories=(ComponentCategory.METER,),
         )
-        assert result == Component(2, ComponentCategory.METER)
+        assert result == Component(ComponentId(2), ComponentCategory.METER)
 
         # Find the first descendant component of the grid,
         # considering meter or inverter categories.
         result = graph.find_first_descendant_component(
             descendant_categories=(ComponentCategory.METER, ComponentCategory.INVERTER),
         )
-        assert result == Component(2, ComponentCategory.METER)
+        assert result == Component(ComponentId(2), ComponentCategory.METER)
 
         # Verify behavior when component is not found in immediate descendant
         # categories for the first meter.
@@ -643,11 +709,13 @@ class Test_MicrogridComponentGraph:
         # other
         with pytest.raises(gr.InvalidGraphError):
             gr._MicrogridComponentGraph(
-                components={Component(1, ComponentCategory.GRID)}
+                components={Component(ComponentId(1), ComponentCategory.GRID)}
             )
 
         with pytest.raises(gr.InvalidGraphError):
-            gr._MicrogridComponentGraph(connections={Connection(1, 2)})
+            gr._MicrogridComponentGraph(
+                connections={Connection(ComponentId(1), ComponentId(2))}
+            )
 
         # if both are provided, the graph data must itself
         # be valid (we give just a couple of cases of each
@@ -659,49 +727,60 @@ class Test_MicrogridComponentGraph:
         # connected to a meter
         grid_and_meter = gr._MicrogridComponentGraph(
             components={
-                Component(1, ComponentCategory.GRID),
-                Component(2, ComponentCategory.METER),
+                Component(ComponentId(1), ComponentCategory.GRID),
+                Component(ComponentId(2), ComponentCategory.METER),
             },
-            connections={Connection(1, 2)},
+            connections={Connection(ComponentId(1), ComponentId(2))},
         )
         expected = {
-            Component(1, ComponentCategory.GRID),
-            Component(2, ComponentCategory.METER),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(2), ComponentCategory.METER),
         }
         assert len(grid_and_meter.components()) == len(expected)
         assert set(grid_and_meter.components()) == expected
-        assert list(grid_and_meter.connections()) == [Connection(1, 2)]
+        assert list(grid_and_meter.connections()) == [
+            Connection(ComponentId(1), ComponentId(2))
+        ]
         grid_and_meter.validate()
 
         # invalid graph data: unknown component category
         with pytest.raises(gr.InvalidGraphError):
             gr._MicrogridComponentGraph(
                 components={
-                    Component(1, ComponentCategory.GRID),
-                    Component(2, ComponentCategory.METER),
-                    Component(3, 666),  # type: ignore
+                    Component(ComponentId(1), ComponentCategory.GRID),
+                    Component(ComponentId(2), ComponentCategory.METER),
+                    Component(ComponentId(3), 666),  # type: ignore
                 },
-                connections={Connection(1, 2), Connection(1, 3)},
+                connections={
+                    Connection(ComponentId(1), ComponentId(2)),
+                    Connection(ComponentId(1), ComponentId(3)),
+                },
             )
 
         # invalid graph data: a connection between components that do not exist
         with pytest.raises(gr.InvalidGraphError):
             gr._MicrogridComponentGraph(
                 components={
-                    Component(1, ComponentCategory.GRID),
-                    Component(2, ComponentCategory.METER),
+                    Component(ComponentId(1), ComponentCategory.GRID),
+                    Component(ComponentId(2), ComponentCategory.METER),
                 },
-                connections={Connection(1, 2), Connection(1, 3)},
+                connections={
+                    Connection(ComponentId(1), ComponentId(2)),
+                    Connection(ComponentId(1), ComponentId(3)),
+                },
             )
 
         # invalid graph data: one of the connections is not valid
         with pytest.raises(gr.InvalidGraphError):
             gr._MicrogridComponentGraph(
                 components={
-                    Component(1, ComponentCategory.GRID),
-                    Component(2, ComponentCategory.METER),
+                    Component(ComponentId(1), ComponentCategory.GRID),
+                    Component(ComponentId(2), ComponentCategory.METER),
                 },
-                connections={Connection(1, 2), Connection(2, 2)},
+                connections={
+                    Connection(ComponentId(1), ComponentId(2)),
+                    Connection(ComponentId(2), ComponentId(2)),
+                },
             )
 
     def test_refresh_from(self) -> None:
@@ -721,14 +800,16 @@ class Test_MicrogridComponentGraph:
             graph.validate()
 
         with pytest.raises(gr.InvalidGraphError):
-            graph.refresh_from(set(), {Connection(1, 2)})
+            graph.refresh_from(set(), {Connection(ComponentId(1), ComponentId(2))})
         assert set(graph.components()) == set()
         assert list(graph.connections()) == []
         with pytest.raises(gr.InvalidGraphError):
             graph.validate()
 
         with pytest.raises(gr.InvalidGraphError):
-            graph.refresh_from({Component(1, ComponentCategory.GRID)}, set())
+            graph.refresh_from(
+                {Component(ComponentId(1), ComponentCategory.GRID)}, set()
+            )
         assert set(graph.components()) == set()
         assert list(graph.connections()) == []
         with pytest.raises(gr.InvalidGraphError):
@@ -740,11 +821,11 @@ class Test_MicrogridComponentGraph:
         with pytest.raises(gr.InvalidGraphError):
             graph.refresh_from(
                 components={
-                    Component(0, ComponentCategory.GRID),
-                    Component(1, ComponentCategory.METER),
-                    Component(2, ComponentCategory.METER),
+                    Component(ComponentId(0), ComponentCategory.GRID),
+                    Component(ComponentId(1), ComponentCategory.METER),
+                    Component(ComponentId(2), ComponentCategory.METER),
                 },
-                connections={Connection(1, 2)},
+                connections={Connection(ComponentId(1), ComponentId(2))},
             )
         assert set(graph.components()) == set()
         assert list(graph.connections()) == []
@@ -755,11 +836,14 @@ class Test_MicrogridComponentGraph:
         with pytest.raises(gr.InvalidGraphError):
             graph.refresh_from(
                 components={
-                    Component(1, ComponentCategory.GRID),
-                    Component(2, ComponentCategory.METER),
-                    Component(3, ComponentCategory.METER),
+                    Component(ComponentId(1), ComponentCategory.GRID),
+                    Component(ComponentId(2), ComponentCategory.METER),
+                    Component(ComponentId(3), ComponentCategory.METER),
                 },
-                connections={Connection(1, 1), Connection(2, 3)},
+                connections={
+                    Connection(ComponentId(1), ComponentId(1)),
+                    Connection(ComponentId(2), ComponentId(3)),
+                },
             )
         assert set(graph.components()) == set()
         assert list(graph.connections()) == []
@@ -769,33 +853,33 @@ class Test_MicrogridComponentGraph:
         # valid graph with both load and battery setup
         graph.refresh_from(
             components={
-                Component(1, ComponentCategory.GRID),
-                Component(2, ComponentCategory.METER),
-                Component(4, ComponentCategory.METER),
-                Component(5, ComponentCategory.INVERTER),
-                Component(6, ComponentCategory.BATTERY),
+                Component(ComponentId(1), ComponentCategory.GRID),
+                Component(ComponentId(2), ComponentCategory.METER),
+                Component(ComponentId(4), ComponentCategory.METER),
+                Component(ComponentId(5), ComponentCategory.INVERTER),
+                Component(ComponentId(6), ComponentCategory.BATTERY),
             },
             connections={
-                Connection(1, 2),
-                Connection(2, 4),
-                Connection(4, 5),
-                Connection(5, 6),
+                Connection(ComponentId(1), ComponentId(2)),
+                Connection(ComponentId(2), ComponentId(4)),
+                Connection(ComponentId(4), ComponentId(5)),
+                Connection(ComponentId(5), ComponentId(6)),
             },
         )
         expected = {
-            Component(1, ComponentCategory.GRID),
-            Component(2, ComponentCategory.METER),
-            Component(4, ComponentCategory.METER),
-            Component(5, ComponentCategory.INVERTER),
-            Component(6, ComponentCategory.BATTERY),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(2), ComponentCategory.METER),
+            Component(ComponentId(4), ComponentCategory.METER),
+            Component(ComponentId(5), ComponentCategory.INVERTER),
+            Component(ComponentId(6), ComponentCategory.BATTERY),
         }
         assert len(graph.components()) == len(expected)
         assert set(graph.components()) == expected
         assert graph.connections() == {
-            Connection(1, 2),
-            Connection(2, 4),
-            Connection(4, 5),
-            Connection(5, 6),
+            Connection(ComponentId(1), ComponentId(2)),
+            Connection(ComponentId(2), ComponentId(4)),
+            Connection(ComponentId(4), ComponentId(5)),
+            Connection(ComponentId(5), ComponentId(6)),
         }
         graph.validate()
 
@@ -805,14 +889,14 @@ class Test_MicrogridComponentGraph:
         with pytest.raises(gr.InvalidGraphError):
             graph.refresh_from(
                 components={
-                    Component(7, ComponentCategory.GRID),
-                    Component(8, ComponentCategory.METER),
-                    Component(9, ComponentCategory.INVERTER),
+                    Component(ComponentId(7), ComponentCategory.GRID),
+                    Component(ComponentId(8), ComponentCategory.METER),
+                    Component(ComponentId(9), ComponentCategory.INVERTER),
                 },
                 connections={
-                    Connection(7, 8),
-                    Connection(8, 9),
-                    Connection(9, 8),
+                    Connection(ComponentId(7), ComponentId(8)),
+                    Connection(ComponentId(8), ComponentId(9)),
+                    Connection(ComponentId(9), ComponentId(8)),
                 },
             )
 
@@ -820,10 +904,10 @@ class Test_MicrogridComponentGraph:
         assert graph.components() == expected
 
         assert graph.connections() == {
-            Connection(1, 2),
-            Connection(2, 4),
-            Connection(4, 5),
-            Connection(5, 6),
+            Connection(ComponentId(1), ComponentId(2)),
+            Connection(ComponentId(2), ComponentId(4)),
+            Connection(ComponentId(4), ComponentId(5)),
+            Connection(ComponentId(5), ComponentId(6)),
         }
         graph.validate()
 
@@ -838,10 +922,10 @@ class Test_MicrogridComponentGraph:
         with pytest.raises(gr.InvalidGraphError):
             graph.refresh_from(
                 components={
-                    Component(7, ComponentCategory.GRID),
-                    Component(9, ComponentCategory.METER),
+                    Component(ComponentId(7), ComponentCategory.GRID),
+                    Component(ComponentId(9), ComponentCategory.METER),
                 },
-                connections={Connection(9, 7)},
+                connections={Connection(ComponentId(9), ComponentId(7))},
                 correct_errors=pretend_to_correct_errors,
             )
 
@@ -851,19 +935,19 @@ class Test_MicrogridComponentGraph:
         # contents will be overwritten
         graph.refresh_from(
             components={
-                Component(10, ComponentCategory.GRID),
-                Component(11, ComponentCategory.METER),
+                Component(ComponentId(10), ComponentCategory.GRID),
+                Component(ComponentId(11), ComponentCategory.METER),
             },
-            connections={Connection(10, 11)},
+            connections={Connection(ComponentId(10), ComponentId(11))},
         )
 
         expected = {
-            Component(10, ComponentCategory.GRID),
-            Component(11, ComponentCategory.METER),
+            Component(ComponentId(10), ComponentCategory.GRID),
+            Component(ComponentId(11), ComponentCategory.METER),
         }
         assert len(graph.components()) == len(expected)
         assert set(graph.components()) == expected
-        assert graph.connections() == {Connection(10, 11)}
+        assert graph.connections() == {Connection(ComponentId(10), ComponentId(11))}
         graph.validate()
 
     async def test_refresh_from_api(self) -> None:
@@ -888,7 +972,9 @@ class Test_MicrogridComponentGraph:
         with pytest.raises(gr.InvalidGraphError):
             graph.validate()
 
-        client.components.return_value = [Component(1, ComponentCategory.GRID)]
+        client.components.return_value = [
+            Component(ComponentId(1), ComponentCategory.GRID)
+        ]
         with pytest.raises(gr.InvalidGraphError):
             await graph.refresh_from_api(client)
         assert graph.components() == set()
@@ -897,7 +983,7 @@ class Test_MicrogridComponentGraph:
             graph.validate()
 
         client.components.return_value = []
-        client.connections.return_value = [Connection(1, 2)]
+        client.connections.return_value = [Connection(ComponentId(1), ComponentId(2))]
         with pytest.raises(gr.InvalidGraphError):
             await graph.refresh_from_api(client)
         assert graph.components() == set()
@@ -910,16 +996,16 @@ class Test_MicrogridComponentGraph:
         # valid graph with meter, and EV charger
         client.components.return_value = [
             Component(
-                101,
+                ComponentId(101),
                 ComponentCategory.GRID,
                 metadata=ComponentMetadata(fuse=Fuse(max_current=0.0)),
             ),
-            Component(111, ComponentCategory.METER),
-            Component(131, ComponentCategory.EV_CHARGER),
+            Component(ComponentId(111), ComponentCategory.METER),
+            Component(ComponentId(131), ComponentCategory.EV_CHARGER),
         ]
         client.connections.return_value = [
-            Connection(101, 111),
-            Connection(111, 131),
+            Connection(ComponentId(101), ComponentId(111)),
+            Connection(ComponentId(111), ComponentId(131)),
         ]
         await graph.refresh_from_api(client)
 
@@ -928,19 +1014,19 @@ class Test_MicrogridComponentGraph:
         # two graphs.
         expected = {
             Component(
-                101,
+                ComponentId(101),
                 ComponentCategory.GRID,
                 None,
                 ComponentMetadata(fuse=Fuse(max_current=0.0)),
             ),
-            Component(111, ComponentCategory.METER),
-            Component(131, ComponentCategory.EV_CHARGER),
+            Component(ComponentId(111), ComponentCategory.METER),
+            Component(ComponentId(131), ComponentCategory.EV_CHARGER),
         }
         assert len(graph.components()) == len(expected)
         assert graph.components() == expected
         assert graph.connections() == {
-            Connection(101, 111),
-            Connection(111, 131),
+            Connection(ComponentId(101), ComponentId(111)),
+            Connection(ComponentId(111), ComponentId(131)),
         }
         graph.validate()
 
@@ -948,43 +1034,45 @@ class Test_MicrogridComponentGraph:
         # contents will be overwritten
         client.components.return_value = [
             Component(
-                707,
+                ComponentId(707),
                 ComponentCategory.GRID,
                 metadata=ComponentMetadata(fuse=Fuse(max_current=0.0)),
             ),
-            Component(717, ComponentCategory.METER),
-            Component(727, ComponentCategory.INVERTER, type=InverterType.NONE),
-            Component(737, ComponentCategory.BATTERY),
-            Component(747, ComponentCategory.METER),
+            Component(ComponentId(717), ComponentCategory.METER),
+            Component(
+                ComponentId(727), ComponentCategory.INVERTER, type=InverterType.NONE
+            ),
+            Component(ComponentId(737), ComponentCategory.BATTERY),
+            Component(ComponentId(747), ComponentCategory.METER),
         ]
         client.connections.return_value = [
-            Connection(707, 717),
-            Connection(717, 727),
-            Connection(727, 737),
-            Connection(717, 747),
+            Connection(ComponentId(707), ComponentId(717)),
+            Connection(ComponentId(717), ComponentId(727)),
+            Connection(ComponentId(727), ComponentId(737)),
+            Connection(ComponentId(717), ComponentId(747)),
         ]
         await graph.refresh_from_api(client)
 
         expected = {
             Component(
-                707,
+                ComponentId(707),
                 ComponentCategory.GRID,
                 None,
                 ComponentMetadata(fuse=Fuse(max_current=0.0)),
             ),
-            Component(717, ComponentCategory.METER),
-            Component(727, ComponentCategory.INVERTER, InverterType.NONE),
-            Component(737, ComponentCategory.BATTERY),
-            Component(747, ComponentCategory.METER),
+            Component(ComponentId(717), ComponentCategory.METER),
+            Component(ComponentId(727), ComponentCategory.INVERTER, InverterType.NONE),
+            Component(ComponentId(737), ComponentCategory.BATTERY),
+            Component(ComponentId(747), ComponentCategory.METER),
         }
         assert len(graph.components()) == len(expected)
         assert graph.components() == expected
 
         assert graph.connections() == {
-            Connection(707, 717),
-            Connection(717, 727),
-            Connection(717, 747),
-            Connection(727, 737),
+            Connection(ComponentId(707), ComponentId(717)),
+            Connection(ComponentId(717), ComponentId(727)),
+            Connection(ComponentId(717), ComponentId(747)),
+            Connection(ComponentId(727), ComponentId(737)),
         }
         graph.validate()
 
@@ -1017,11 +1105,15 @@ class Test_MicrogridComponentGraph:
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.GRID),
-            Component(2, ComponentCategory.NONE),
-            Component(3, ComponentCategory.METER),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(2), ComponentCategory.NONE),
+            Component(ComponentId(3), ComponentCategory.METER),
         )
-        _add_connections(graph, Connection(1, 3), Connection(2, 3))
+        _add_connections(
+            graph,
+            Connection(ComponentId(1), ComponentId(3)),
+            Connection(ComponentId(2), ComponentId(3)),
+        )
         with pytest.raises(gr.InvalidGraphError, match="Multiple potential root nodes"):
             graph.validate()
 
@@ -1029,11 +1121,15 @@ class Test_MicrogridComponentGraph:
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.GRID),
-            Component(2, ComponentCategory.GRID),
-            Component(3, ComponentCategory.METER),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(2), ComponentCategory.GRID),
+            Component(ComponentId(3), ComponentCategory.METER),
         )
-        _add_connections(graph, Connection(1, 2), Connection(2, 3))
+        _add_connections(
+            graph,
+            Connection(ComponentId(1), ComponentId(2)),
+            Connection(ComponentId(2), ComponentId(3)),
+        )
         with pytest.raises(
             gr.InvalidGraphError, match="Multiple grid endpoints in component graph"
         ):
@@ -1044,11 +1140,15 @@ class Test_MicrogridComponentGraph:
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.GRID),
-            Component(2, ComponentCategory.BATTERY),
-            Component(3, ComponentCategory.METER),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(2), ComponentCategory.BATTERY),
+            Component(ComponentId(3), ComponentCategory.METER),
         )
-        _add_connections(graph, Connection(1, 2), Connection(2, 3))
+        _add_connections(
+            graph,
+            Connection(ComponentId(1), ComponentId(2)),
+            Connection(ComponentId(2), ComponentId(3)),
+        )
         with pytest.raises(
             gr.InvalidGraphError, match="Leaf components with graph successors"
         ):
@@ -1069,7 +1169,7 @@ class Test_MicrogridComponentGraph:
 
         # graph has no connections
         graph._graph.clear()
-        _add_components(graph, Component(1, ComponentCategory.GRID))
+        _add_components(graph, Component(ComponentId(1), ComponentCategory.GRID))
         with pytest.raises(
             gr.InvalidGraphError, match="No connections in component graph!"
         ):
@@ -1079,11 +1179,16 @@ class Test_MicrogridComponentGraph:
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.GRID),
-            Component(2, ComponentCategory.INVERTER),
-            Component(3, ComponentCategory.METER),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(2), ComponentCategory.INVERTER),
+            Component(ComponentId(3), ComponentCategory.METER),
         )
-        _add_connections(graph, Connection(1, 2), Connection(2, 3), Connection(3, 2))
+        _add_connections(
+            graph,
+            Connection(ComponentId(1), ComponentId(2)),
+            Connection(ComponentId(2), ComponentId(3)),
+            Connection(ComponentId(3), ComponentId(2)),
+        )
         with pytest.raises(
             gr.InvalidGraphError, match="Component graph is not a tree!"
         ):
@@ -1093,11 +1198,11 @@ class Test_MicrogridComponentGraph:
         # (this violates the tree property):
         _add_components(
             graph,
-            Component(1, ComponentCategory.GRID),
-            Component(2, ComponentCategory.METER),
-            Component(3, ComponentCategory.NONE),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(2), ComponentCategory.METER),
+            Component(ComponentId(3), ComponentCategory.NONE),
         )
-        _add_connections(graph, Connection(1, 2))
+        _add_connections(graph, Connection(ComponentId(1), ComponentId(2)))
         with pytest.raises(
             gr.InvalidGraphError, match="Component graph is not a tree!"
         ):
@@ -1118,11 +1223,16 @@ class Test_MicrogridComponentGraph:
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.METER),
-            Component(2, ComponentCategory.METER),
-            Component(3, ComponentCategory.METER),
+            Component(ComponentId(1), ComponentCategory.METER),
+            Component(ComponentId(2), ComponentCategory.METER),
+            Component(ComponentId(3), ComponentCategory.METER),
         )
-        _add_connections(graph, Connection(1, 2), Connection(2, 3), Connection(3, 1))
+        _add_connections(
+            graph,
+            Connection(ComponentId(1), ComponentId(2)),
+            Connection(ComponentId(2), ComponentId(3)),
+            Connection(ComponentId(3), ComponentId(1)),
+        )
         with pytest.raises(
             gr.InvalidGraphError, match="No valid root nodes of component graph!"
         ):
@@ -1133,11 +1243,15 @@ class Test_MicrogridComponentGraph:
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.METER),
-            Component(2, ComponentCategory.INVERTER),
-            Component(3, ComponentCategory.BATTERY),
+            Component(ComponentId(1), ComponentCategory.METER),
+            Component(ComponentId(2), ComponentCategory.INVERTER),
+            Component(ComponentId(3), ComponentCategory.BATTERY),
         )
-        _add_connections(graph, Connection(1, 2), Connection(2, 3))
+        _add_connections(
+            graph,
+            Connection(ComponentId(1), ComponentId(2)),
+            Connection(ComponentId(2), ComponentId(3)),
+        )
         with pytest.raises(
             gr.InvalidGraphError, match="No valid root nodes of component graph!"
         ):
@@ -1148,44 +1262,55 @@ class Test_MicrogridComponentGraph:
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.NONE),
-            Component(2, ComponentCategory.GRID),
-            Component(3, ComponentCategory.METER),
+            Component(ComponentId(1), ComponentCategory.NONE),
+            Component(ComponentId(2), ComponentCategory.GRID),
+            Component(ComponentId(3), ComponentCategory.METER),
         )
-        _add_connections(graph, Connection(1, 3), Connection(2, 3))
+        _add_connections(
+            graph,
+            Connection(ComponentId(1), ComponentId(3)),
+            Connection(ComponentId(2), ComponentId(3)),
+        )
         with pytest.raises(gr.InvalidGraphError, match="Multiple potential root nodes"):
             graph._validate_graph_root()
 
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.GRID),
-            Component(2, ComponentCategory.GRID),
-            Component(3, ComponentCategory.METER),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(2), ComponentCategory.GRID),
+            Component(ComponentId(3), ComponentCategory.METER),
         )
-        _add_connections(graph, Connection(1, 3), Connection(2, 3))
+        _add_connections(
+            graph,
+            Connection(ComponentId(1), ComponentId(3)),
+            Connection(ComponentId(2), ComponentId(3)),
+        )
         with pytest.raises(gr.InvalidGraphError, match="Multiple potential root nodes"):
             graph._validate_graph_root()
 
         # there is just one potential root node but it has no successors
         graph._graph.clear()
-        _add_components(graph, Component(1, ComponentCategory.NONE))
+        _add_components(graph, Component(ComponentId(1), ComponentCategory.NONE))
         with pytest.raises(
-            gr.InvalidGraphError, match="Graph root .*id=1.* has no successors!"
+            gr.InvalidGraphError,
+            match=r"Graph root .*component_id=ComponentId\(1\).* has no successors!",
         ):
             graph._validate_graph_root()
 
         graph._graph.clear()
-        _add_components(graph, Component(2, ComponentCategory.GRID))
+        _add_components(graph, Component(ComponentId(2), ComponentCategory.GRID))
         with pytest.raises(
-            gr.InvalidGraphError, match="Graph root .*id=2.* has no successors!"
+            gr.InvalidGraphError,
+            match=r"Graph root .*component_id=ComponentId\(2\).* has no successors!",
         ):
             graph._validate_graph_root()
 
         graph._graph.clear()
-        _add_components(graph, Component(3, ComponentCategory.GRID))
+        _add_components(graph, Component(ComponentId(3), ComponentCategory.GRID))
         with pytest.raises(
-            gr.InvalidGraphError, match="Graph root .*id=3.* has no successors!"
+            gr.InvalidGraphError,
+            match=r"Graph root .*component_id=ComponentId\(3\).* has no successors!",
         ):
             graph._validate_graph_root()
 
@@ -1193,28 +1318,28 @@ class Test_MicrogridComponentGraph:
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.NONE),
-            Component(2, ComponentCategory.METER),
+            Component(ComponentId(1), ComponentCategory.NONE),
+            Component(ComponentId(2), ComponentCategory.METER),
         )
-        _add_connections(graph, Connection(1, 2))
+        _add_connections(graph, Connection(ComponentId(1), ComponentId(2)))
         graph._validate_graph_root()
 
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.GRID),
-            Component(2, ComponentCategory.METER),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(2), ComponentCategory.METER),
         )
-        _add_connections(graph, Connection(1, 2))
+        _add_connections(graph, Connection(ComponentId(1), ComponentId(2)))
         graph._validate_graph_root()
 
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.GRID),
-            Component(2, ComponentCategory.METER),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(2), ComponentCategory.METER),
         )
-        _add_connections(graph, Connection(1, 2))
+        _add_connections(graph, Connection(ComponentId(1), ComponentId(2)))
         graph._validate_graph_root()
 
     def test__validate_grid_endpoint(self) -> None:
@@ -1229,18 +1354,22 @@ class Test_MicrogridComponentGraph:
         # missing grid endpoint is OK as the graph might have
         # another kind of root
         graph._graph.clear()
-        _add_components(graph, Component(2, ComponentCategory.METER))
+        _add_components(graph, Component(ComponentId(2), ComponentCategory.METER))
         graph._validate_grid_endpoint()
 
         # multiple grid endpoints
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.GRID),
-            Component(2, ComponentCategory.METER),
-            Component(3, ComponentCategory.GRID),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(2), ComponentCategory.METER),
+            Component(ComponentId(3), ComponentCategory.GRID),
         )
-        _add_connections(graph, Connection(1, 2), Connection(3, 2))
+        _add_connections(
+            graph,
+            Connection(ComponentId(1), ComponentId(2)),
+            Connection(ComponentId(3), ComponentId(2)),
+        )
         with pytest.raises(
             gr.InvalidGraphError,
             match="Multiple grid endpoints in component graph",
@@ -1251,24 +1380,24 @@ class Test_MicrogridComponentGraph:
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.GRID),
-            Component(99, ComponentCategory.METER),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(99), ComponentCategory.METER),
         )
-        _add_connections(graph, Connection(99, 1))
+        _add_connections(graph, Connection(ComponentId(99), ComponentId(1)))
         with pytest.raises(
             gr.InvalidGraphError,
-            match=r"Grid endpoint 1 has graph predecessors: \[Component"
-            r"\(component_id=99, category=<ComponentCategory.METER.*>, "
+            match=r"Grid endpoint with CID1 has graph predecessors: \[Component"
+            r"\(component_id=ComponentId\(99\), category=<ComponentCategory.METER.*>, "
             r"type=None, metadata=None\)\]",
         ):
             graph._validate_grid_endpoint()
 
         # grid endpoint has no successors
         graph._graph.clear()
-        _add_components(graph, Component(101, ComponentCategory.GRID))
+        _add_components(graph, Component(ComponentId(101), ComponentCategory.GRID))
         with pytest.raises(
             gr.InvalidGraphError,
-            match="Grid endpoint 101 has no graph successors!",
+            match="Grid endpoint with CID101 has no graph successors!",
         ):
             graph._validate_grid_endpoint()
 
@@ -1276,10 +1405,10 @@ class Test_MicrogridComponentGraph:
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.GRID),
-            Component(2, ComponentCategory.METER),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(2), ComponentCategory.METER),
         )
-        _add_connections(graph, Connection(1, 2))
+        _add_connections(graph, Connection(ComponentId(1), ComponentId(2)))
         graph._validate_grid_endpoint()
 
     def test__validate_intermediary_components(self) -> None:
@@ -1293,7 +1422,7 @@ class Test_MicrogridComponentGraph:
 
         # missing predecessor for at least one intermediary node
         graph._graph.clear()
-        _add_components(graph, Component(3, ComponentCategory.INVERTER))
+        _add_components(graph, Component(ComponentId(3), ComponentCategory.INVERTER))
         with pytest.raises(
             gr.InvalidGraphError,
             match="Intermediary components without graph predecessors",
@@ -1303,20 +1432,24 @@ class Test_MicrogridComponentGraph:
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.GRID),
-            Component(3, ComponentCategory.INVERTER),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(3), ComponentCategory.INVERTER),
         )
-        _add_connections(graph, Connection(1, 3))
+        _add_connections(graph, Connection(ComponentId(1), ComponentId(3)))
         graph._validate_intermediary_components()
 
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.GRID),
-            Component(2, ComponentCategory.METER),
-            Component(3, ComponentCategory.INVERTER),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(2), ComponentCategory.METER),
+            Component(ComponentId(3), ComponentCategory.INVERTER),
         )
-        _add_connections(graph, Connection(1, 2), Connection(2, 3))
+        _add_connections(
+            graph,
+            Connection(ComponentId(1), ComponentId(2)),
+            Connection(ComponentId(2), ComponentId(3)),
+        )
         graph._validate_intermediary_components()
 
         # all intermediary nodes have at least one predecessor
@@ -1324,12 +1457,17 @@ class Test_MicrogridComponentGraph:
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.GRID),
-            Component(2, ComponentCategory.METER),
-            Component(3, ComponentCategory.INVERTER),
-            Component(4, ComponentCategory.BATTERY),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(2), ComponentCategory.METER),
+            Component(ComponentId(3), ComponentCategory.INVERTER),
+            Component(ComponentId(4), ComponentCategory.BATTERY),
         )
-        _add_connections(graph, Connection(1, 2), Connection(2, 3), Connection(3, 4))
+        _add_connections(
+            graph,
+            Connection(ComponentId(1), ComponentId(2)),
+            Connection(ComponentId(2), ComponentId(3)),
+            Connection(ComponentId(3), ComponentId(4)),
+        )
         graph._validate_intermediary_components()
 
     def test__validate_leaf_components(self) -> None:
@@ -1343,14 +1481,14 @@ class Test_MicrogridComponentGraph:
 
         # missing predecessor for at least one leaf node
         graph._graph.clear()
-        _add_components(graph, Component(3, ComponentCategory.BATTERY))
+        _add_components(graph, Component(ComponentId(3), ComponentCategory.BATTERY))
         with pytest.raises(
             gr.InvalidGraphError, match="Leaf components without graph predecessors"
         ):
             graph._validate_leaf_components()
 
         graph._graph.clear()
-        _add_components(graph, Component(4, ComponentCategory.EV_CHARGER))
+        _add_components(graph, Component(ComponentId(4), ComponentCategory.EV_CHARGER))
         with pytest.raises(
             gr.InvalidGraphError, match="Leaf components without graph predecessors"
         ):
@@ -1360,12 +1498,16 @@ class Test_MicrogridComponentGraph:
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.GRID),
-            Component(2, ComponentCategory.EV_CHARGER),
-            Component(3, ComponentCategory.BATTERY),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(2), ComponentCategory.EV_CHARGER),
+            Component(ComponentId(3), ComponentCategory.BATTERY),
         )
 
-        _add_connections(graph, Connection(1, 2), Connection(2, 3))
+        _add_connections(
+            graph,
+            Connection(ComponentId(1), ComponentId(2)),
+            Connection(ComponentId(2), ComponentId(3)),
+        )
         with pytest.raises(
             gr.InvalidGraphError, match="Leaf components with graph successors"
         ):
@@ -1374,11 +1516,15 @@ class Test_MicrogridComponentGraph:
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.GRID),
-            Component(3, ComponentCategory.BATTERY),
-            Component(4, ComponentCategory.EV_CHARGER),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(3), ComponentCategory.BATTERY),
+            Component(ComponentId(4), ComponentCategory.EV_CHARGER),
         )
-        _add_connections(graph, Connection(1, 3), Connection(3, 4))
+        _add_connections(
+            graph,
+            Connection(ComponentId(1), ComponentId(3)),
+            Connection(ComponentId(3), ComponentId(4)),
+        )
         with pytest.raises(
             gr.InvalidGraphError, match="Leaf components with graph successors"
         ):
@@ -1389,12 +1535,17 @@ class Test_MicrogridComponentGraph:
         graph._graph.clear()
         _add_components(
             graph,
-            Component(1, ComponentCategory.GRID),
-            Component(2, ComponentCategory.METER),
-            Component(3, ComponentCategory.BATTERY),
-            Component(4, ComponentCategory.EV_CHARGER),
+            Component(ComponentId(1), ComponentCategory.GRID),
+            Component(ComponentId(2), ComponentCategory.METER),
+            Component(ComponentId(3), ComponentCategory.BATTERY),
+            Component(ComponentId(4), ComponentCategory.EV_CHARGER),
         )
-        _add_connections(graph, Connection(1, 2), Connection(1, 3), Connection(1, 4))
+        _add_connections(
+            graph,
+            Connection(ComponentId(1), ComponentId(2)),
+            Connection(ComponentId(1), ComponentId(3)),
+            Connection(ComponentId(1), ComponentId(4)),
+        )
         graph._validate_leaf_components()
 
 
@@ -1403,10 +1554,14 @@ class TestComponentTypeIdentification:
 
     def test_no_comp_meters_pv(self) -> None:
         """Test the case where there are no meters in the graph."""
-        grid = Component(1, ComponentCategory.GRID)
-        grid_meter = Component(2, ComponentCategory.METER)
-        pv_inv_1 = Component(3, ComponentCategory.INVERTER, InverterType.SOLAR)
-        pv_inv_2 = Component(4, ComponentCategory.INVERTER, InverterType.SOLAR)
+        grid = Component(ComponentId(1), ComponentCategory.GRID)
+        grid_meter = Component(ComponentId(2), ComponentCategory.METER)
+        pv_inv_1 = Component(
+            ComponentId(3), ComponentCategory.INVERTER, InverterType.SOLAR
+        )
+        pv_inv_2 = Component(
+            ComponentId(4), ComponentCategory.INVERTER, InverterType.SOLAR
+        )
 
         graph = gr._MicrogridComponentGraph(
             components={
@@ -1416,9 +1571,9 @@ class TestComponentTypeIdentification:
                 pv_inv_2,
             },
             connections={
-                Connection(1, 2),
-                Connection(2, 3),
-                Connection(2, 4),
+                Connection(ComponentId(1), ComponentId(2)),
+                Connection(ComponentId(2), ComponentId(3)),
+                Connection(ComponentId(2), ComponentId(4)),
             },
         )
 
@@ -1431,11 +1586,15 @@ class TestComponentTypeIdentification:
 
     def test_no_comp_meters_mixed(self) -> None:
         """Test the case where there are no meters in the graph."""
-        grid = Component(1, ComponentCategory.GRID)
-        grid_meter = Component(2, ComponentCategory.METER)
-        pv_inv = Component(3, ComponentCategory.INVERTER, InverterType.SOLAR)
-        battery_inv = Component(4, ComponentCategory.INVERTER, InverterType.BATTERY)
-        battery = Component(5, ComponentCategory.BATTERY)
+        grid = Component(ComponentId(1), ComponentCategory.GRID)
+        grid_meter = Component(ComponentId(2), ComponentCategory.METER)
+        pv_inv = Component(
+            ComponentId(3), ComponentCategory.INVERTER, InverterType.SOLAR
+        )
+        battery_inv = Component(
+            ComponentId(4), ComponentCategory.INVERTER, InverterType.BATTERY
+        )
+        battery = Component(ComponentId(5), ComponentCategory.BATTERY)
 
         graph = gr._MicrogridComponentGraph(
             components={
@@ -1446,10 +1605,10 @@ class TestComponentTypeIdentification:
                 battery,
             },
             connections={
-                Connection(1, 2),
-                Connection(2, 3),
-                Connection(2, 4),
-                Connection(4, 5),
+                Connection(ComponentId(1), ComponentId(2)),
+                Connection(ComponentId(2), ComponentId(3)),
+                Connection(ComponentId(2), ComponentId(4)),
+                Connection(ComponentId(4), ComponentId(5)),
             },
         )
 
@@ -1471,13 +1630,17 @@ class TestComponentTypeIdentification:
 
     def test_with_meters(self) -> None:
         """Test the case where there are meters in the graph."""
-        grid = Component(1, ComponentCategory.GRID)
-        grid_meter = Component(2, ComponentCategory.METER)
-        pv_meter = Component(3, ComponentCategory.METER)
-        pv_inv = Component(4, ComponentCategory.INVERTER, InverterType.SOLAR)
-        battery_meter = Component(5, ComponentCategory.METER)
-        battery_inv = Component(6, ComponentCategory.INVERTER, InverterType.BATTERY)
-        battery = Component(7, ComponentCategory.BATTERY)
+        grid = Component(ComponentId(1), ComponentCategory.GRID)
+        grid_meter = Component(ComponentId(2), ComponentCategory.METER)
+        pv_meter = Component(ComponentId(3), ComponentCategory.METER)
+        pv_inv = Component(
+            ComponentId(4), ComponentCategory.INVERTER, InverterType.SOLAR
+        )
+        battery_meter = Component(ComponentId(5), ComponentCategory.METER)
+        battery_inv = Component(
+            ComponentId(6), ComponentCategory.INVERTER, InverterType.BATTERY
+        )
+        battery = Component(ComponentId(7), ComponentCategory.BATTERY)
 
         graph = gr._MicrogridComponentGraph(
             components={
@@ -1490,12 +1653,12 @@ class TestComponentTypeIdentification:
                 battery,
             },
             connections={
-                Connection(1, 2),
-                Connection(2, 3),
-                Connection(3, 4),
-                Connection(2, 5),
-                Connection(5, 6),
-                Connection(6, 7),
+                Connection(ComponentId(1), ComponentId(2)),
+                Connection(ComponentId(2), ComponentId(3)),
+                Connection(ComponentId(3), ComponentId(4)),
+                Connection(ComponentId(2), ComponentId(5)),
+                Connection(ComponentId(5), ComponentId(6)),
+                Connection(ComponentId(6), ComponentId(7)),
             },
         )
 
@@ -1515,11 +1678,11 @@ class TestComponentTypeIdentification:
 
     def test_without_grid_meters(self) -> None:
         """Test the case where there are no grid meters in the graph."""
-        grid = Component(1, ComponentCategory.GRID)
-        ev_meter = Component(2, ComponentCategory.METER)
-        ev_charger = Component(3, ComponentCategory.EV_CHARGER)
-        chp_meter = Component(4, ComponentCategory.METER)
-        chp = Component(5, ComponentCategory.CHP)
+        grid = Component(ComponentId(1), ComponentCategory.GRID)
+        ev_meter = Component(ComponentId(2), ComponentCategory.METER)
+        ev_charger = Component(ComponentId(3), ComponentCategory.EV_CHARGER)
+        chp_meter = Component(ComponentId(4), ComponentCategory.METER)
+        chp = Component(ComponentId(5), ComponentCategory.CHP)
 
         graph = gr._MicrogridComponentGraph(
             components={
@@ -1530,10 +1693,10 @@ class TestComponentTypeIdentification:
                 chp,
             },
             connections={
-                Connection(1, 2),
-                Connection(2, 3),
-                Connection(1, 4),
-                Connection(4, 5),
+                Connection(ComponentId(1), ComponentId(2)),
+                Connection(ComponentId(2), ComponentId(3)),
+                Connection(ComponentId(1), ComponentId(4)),
+                Connection(ComponentId(4), ComponentId(5)),
             },
         )
 

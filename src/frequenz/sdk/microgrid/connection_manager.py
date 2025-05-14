@@ -11,7 +11,12 @@ component graph.
 import logging
 from abc import ABC, abstractmethod
 
-from frequenz.client.microgrid import Location, Metadata, MicrogridApiClient
+from frequenz.client.microgrid import (
+    Location,
+    Metadata,
+    MicrogridApiClient,
+    MicrogridId,
+)
 
 from .component_graph import ComponentGraph, _MicrogridComponentGraph
 
@@ -59,7 +64,7 @@ class ConnectionManager(ABC):
 
     @property
     @abstractmethod
-    def microgrid_id(self) -> int | None:
+    def microgrid_id(self) -> MicrogridId | None:
         """Get the ID of the microgrid if available.
 
         Returns:
@@ -115,7 +120,7 @@ class _InsecureConnectionManager(ConnectionManager):
         return self._api
 
     @property
-    def microgrid_id(self) -> int | None:
+    def microgrid_id(self) -> MicrogridId | None:
         """Get the ID of the microgrid if available.
 
         Returns:

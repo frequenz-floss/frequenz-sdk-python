@@ -20,7 +20,7 @@ import async_solipsism
 import pytest
 import time_machine
 from frequenz.channels import Receiver, Sender
-from frequenz.client.microgrid import ComponentCategory
+from frequenz.client.microgrid import ComponentCategory, ComponentId
 from frequenz.quantities import Energy, Percentage, Power, Temperature
 from pytest_mock import MockerFixture
 
@@ -62,7 +62,7 @@ def event_loop_policy() -> async_solipsism.EventLoopPolicy:
 
 def get_components(
     mock_microgrid: MockMicrogridClient, component_category: ComponentCategory
-) -> set[int]:
+) -> set[ComponentId]:
     """Get components of given category from mock microgrid.
 
     Args:
@@ -209,10 +209,12 @@ async def setup_batteries_pool(mocker: MockerFixture) -> AsyncIterator[SetupArgs
     # tests were written). This can also change in the future if generator of mock
     # components changes, as it might produce different IDs, so this solution is also
     # not bullet-proof.
-    assert 8 in all_batteries
-    assert 11 in all_batteries
+    assert ComponentId(8) in all_batteries
+    assert ComponentId(11) in all_batteries
 
-    battery_pool = microgrid.new_battery_pool(priority=5, component_ids=set([8, 11]))
+    battery_pool = microgrid.new_battery_pool(
+        priority=5, component_ids=set([ComponentId(8), ComponentId(11)])
+    )
 
     dp = microgrid._data_pipeline._DATA_PIPELINE
     assert dp is not None
@@ -244,7 +246,7 @@ T = TypeVar("T")
 class Scenario(Generic[T]):
     """Single test scenario."""
 
-    component_id: int
+    component_id: ComponentId
     """Which component should send new metrics."""
 
     new_metrics: dict[str, Any]
@@ -418,8 +420,8 @@ def compare_messages(msg: Any, expected_msg: Any) -> None:
 async def run_test_battery_status_channel(
     battery_status_sender: Sender[ComponentPoolStatus],
     battery_pool_metric_receiver: Receiver[T],
-    all_batteries: set[int],
-    batteries_in_pool: list[int],
+    all_batteries: set[ComponentId],
+    batteries_in_pool: list[ComponentId],
     waiting_time_sec: float,
     all_pool_result: T,
     only_first_battery_result: T,

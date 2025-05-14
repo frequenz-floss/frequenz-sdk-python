@@ -13,7 +13,12 @@ from typing import assert_never
 
 from frequenz.channels import Receiver, Sender, select, selected_from
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
-from frequenz.client.microgrid import ComponentCategory, ComponentType, InverterType
+from frequenz.client.microgrid import (
+    ComponentCategory,
+    ComponentId,
+    ComponentType,
+    InverterType,
+)
 from typing_extensions import override
 
 from ..._internal._asyncio import run_forever
@@ -82,9 +87,11 @@ class PowerManagingActor(Actor):
         self._channel_registry = channel_registry
         self._proposals_receiver = proposals_receiver
 
-        self._system_bounds: dict[frozenset[int], SystemBounds] = {}
-        self._bound_tracker_tasks: dict[frozenset[int], asyncio.Task[None]] = {}
-        self._subscriptions: dict[frozenset[int], dict[int, Sender[_Report]]] = {}
+        self._system_bounds: dict[frozenset[ComponentId], SystemBounds] = {}
+        self._bound_tracker_tasks: dict[frozenset[ComponentId], asyncio.Task[None]] = {}
+        self._subscriptions: dict[
+            frozenset[ComponentId], dict[int, Sender[_Report]]
+        ] = {}
 
         match algorithm:
             case Algorithm.MATRYOSHKA:
@@ -102,7 +109,7 @@ class PowerManagingActor(Actor):
 
         super().__init__()
 
-    async def _send_reports(self, component_ids: frozenset[int]) -> None:
+    async def _send_reports(self, component_ids: frozenset[ComponentId]) -> None:
         """Send reports for a set of components, to all subscribers.
 
         Args:
@@ -123,7 +130,7 @@ class PowerManagingActor(Actor):
 
     async def _bounds_tracker(
         self,
-        component_ids: frozenset[int],
+        component_ids: frozenset[ComponentId],
         bounds_receiver: Receiver[SystemBounds],
     ) -> None:
         """Track the power bounds of a set of components and update the cache.
@@ -145,7 +152,7 @@ class PowerManagingActor(Actor):
             await self._send_updated_target_power(component_ids, None)
             await self._send_reports(component_ids)
 
-    def _add_system_bounds_tracker(self, component_ids: frozenset[int]) -> None:
+    def _add_system_bounds_tracker(self, component_ids: frozenset[ComponentId]) -> None:
         """Add a system bounds tracker for the given components.
 
         Args:
@@ -196,7 +203,7 @@ class PowerManagingActor(Actor):
 
     async def _send_updated_target_power(
         self,
-        component_ids: frozenset[int],
+        component_ids: frozenset[ComponentId],
         proposal: Proposal | None,
     ) -> None:
         target_power = self._algorithm.calculate_target_power(
