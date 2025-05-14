@@ -55,3 +55,5 @@
   | EV Chargers        | Maximum power (aka max consumption power) |
 
 - PV Pool instances can now be created in sites without any PV.  This allows for writing generic code that works for all locations, that depends on the PV power formula, for example.
+
+- The `find_first_descendant_component` method in the component graph was allowing non-root components to be used as the root component during traversal.  This was leading to confusing behaviour when the root component couldn't be identified deterministically.  For example, if the root category was specified as a meter, it could start traversing from a different meter each time.  It is no-longer possible to specify a root category anymore and it always traverses from the `GRID` component.
