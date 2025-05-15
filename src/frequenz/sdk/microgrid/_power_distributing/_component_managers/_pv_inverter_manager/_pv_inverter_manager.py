@@ -8,7 +8,7 @@ import collections.abc
 import logging
 from datetime import timedelta
 
-from frequenz.channels import Broadcast, LatestValueCache, Sender
+from frequenz.channels import LatestValueCache, Sender
 from frequenz.client.microgrid import (
     ApiClientError,
     ComponentCategory,
@@ -67,9 +67,6 @@ class PVManager(ComponentManager):
         self._component_data_caches: dict[
             ComponentId, LatestValueCache[InverterData]
         ] = {}
-        self._target_power = Power.zero()
-        self._target_power_channel = Broadcast[Request](name="target_power")
-        self._target_power_tx = self._target_power_channel.new_sender()
         self._task: asyncio.Task[None] | None = None
 
     @override
@@ -241,7 +238,7 @@ class PVManager(ComponentManager):
                     failed_components=failed_components,
                     succeeded_components=succeeded_components,
                     failed_power=failed_power,
-                    succeeded_power=self._target_power - failed_power,
+                    succeeded_power=request.power - failed_power - remaining_power,
                     excess_power=remaining_power,
                     request=request,
                 )
@@ -250,7 +247,7 @@ class PVManager(ComponentManager):
         await self._results_sender.send(
             Success(
                 succeeded_components=succeeded_components,
-                succeeded_power=self._target_power,
+                succeeded_power=request.power - remaining_power,
                 excess_power=remaining_power,
                 request=request,
             )

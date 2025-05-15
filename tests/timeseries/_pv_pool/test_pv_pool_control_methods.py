@@ -151,6 +151,8 @@ class TestPVPoolControl:
             bounds_rx,
             lambda x: x.bounds is not None and x.bounds.lower.as_watts() == -100000.0,
         )
+        dist_results_rx = pv_pool.power_distribution_results.new_receiver()
+
         self._assert_report(latest_report, power=None, lower=-100000.0, upper=0.0)
         await pv_pool.propose_power(Power.from_watts(-80000.0))
         await self._recv_reports_until(
@@ -172,6 +174,18 @@ class TestPVPoolControl:
             mocker.call(inv_ids[2], -25000.0),
             mocker.call(inv_ids[3], -25000.0),
         ]
+        dist_results = await dist_results_rx.receive()
+        assert isinstance(
+            dist_results, _power_distributing.Success
+        ), f"Expected a success, got {dist_results}"
+        assert dist_results.succeeded_power == Power.from_watts(-80000.0)
+        assert dist_results.excess_power == Power.zero()
+        assert dist_results.succeeded_components == {
+            ComponentId(8),
+            ComponentId(18),
+            ComponentId(28),
+            ComponentId(38),
+        }
 
         set_power.reset_mock()
         await pv_pool.propose_power(Power.from_watts(-4000.0))
@@ -194,6 +208,18 @@ class TestPVPoolControl:
             mocker.call(inv_ids[2], -1000.0),
             mocker.call(inv_ids[3], -1000.0),
         ]
+        dist_results = await dist_results_rx.receive()
+        assert isinstance(
+            dist_results, _power_distributing.Success
+        ), f"Expected a success, got {dist_results}"
+        assert dist_results.succeeded_power == Power.from_watts(-4000.0)
+        assert dist_results.excess_power == Power.zero()
+        assert dist_results.succeeded_components == {
+            ComponentId(8),
+            ComponentId(18),
+            ComponentId(28),
+            ComponentId(38),
+        }
 
         # After failing 1 inverter, bounds should go down and power shouldn't be
         # distributed to that inverter.
@@ -205,6 +231,17 @@ class TestPVPoolControl:
         self._assert_report(
             await bounds_rx.receive(), power=-4000.0, lower=-80000.0, upper=0.0
         )
+        dist_results = await dist_results_rx.receive()
+        assert isinstance(
+            dist_results, _power_distributing.Success
+        ), f"Expected a success, got {dist_results}"
+        assert dist_results.succeeded_power == Power.from_watts(-4000.0)
+        assert dist_results.excess_power == Power.zero()
+        assert dist_results.succeeded_components == {
+            ComponentId(8),
+            ComponentId(28),
+            ComponentId(38),
+        }
 
         set_power.reset_mock()
         await pv_pool.propose_power(Power.from_watts(-70000.0))
@@ -227,6 +264,17 @@ class TestPVPoolControl:
             mocker.call(inv_ids[2], -30000.0),
             mocker.call(inv_ids[3], -30000.0),
         ]
+        dist_results = await dist_results_rx.receive()
+        assert isinstance(
+            dist_results, _power_distributing.Success
+        ), f"Expected a success, got {dist_results}"
+        assert dist_results.succeeded_power == Power.from_watts(-70000.0)
+        assert dist_results.excess_power == Power.zero()
+        assert dist_results.succeeded_components == {
+            ComponentId(8),
+            ComponentId(28),
+            ComponentId(38),
+        }
 
         # After the failed inverter recovers, bounds should go back up and power
         # should be distributed to all inverters
@@ -238,17 +286,29 @@ class TestPVPoolControl:
         self._assert_report(
             await bounds_rx.receive(), power=-70000.0, lower=-100000.0, upper=0.0
         )
+        dist_results = await dist_results_rx.receive()
+        assert isinstance(
+            dist_results, _power_distributing.Success
+        ), f"Expected a success, got {dist_results}"
+        assert dist_results.succeeded_power == Power.from_watts(-70000.0)
+        assert dist_results.excess_power == Power.zero()
+        assert dist_results.succeeded_components == {
+            ComponentId(8),
+            ComponentId(18),
+            ComponentId(28),
+            ComponentId(38),
+        }
 
         set_power.reset_mock()
-        await pv_pool.propose_power(Power.from_watts(-90000.0))
+        await pv_pool.propose_power(Power.from_watts(-200000.0))
         await self._recv_reports_until(
             bounds_rx,
             lambda x: x.target_power is not None
-            and x.target_power.as_watts() == -90000.0,
+            and x.target_power.as_watts() == -100000.0,
         )
 
         self._assert_report(
-            await bounds_rx.receive(), power=-90000.0, lower=-100000.0, upper=0.0
+            await bounds_rx.receive(), power=-100000.0, lower=-100000.0, upper=0.0
         )
         await asyncio.sleep(0.0)
 
@@ -258,8 +318,20 @@ class TestPVPoolControl:
             mocker.call(inv_ids[0], -10000.0),
             mocker.call(inv_ids[1], -20000.0),
             mocker.call(inv_ids[2], -30000.0),
-            mocker.call(inv_ids[3], -30000.0),
+            mocker.call(inv_ids[3], -40000.0),
         ]
+        dist_results = await dist_results_rx.receive()
+        assert isinstance(
+            dist_results, _power_distributing.Success
+        ), f"Expected a success, got {dist_results}"
+        assert dist_results.succeeded_power == Power.from_watts(-100000.0)
+        assert dist_results.excess_power == Power.zero()
+        assert dist_results.succeeded_components == {
+            ComponentId(8),
+            ComponentId(18),
+            ComponentId(28),
+            ComponentId(38),
+        }
 
         # Setting 0 power should set all inverters to 0
         set_power.reset_mock()
@@ -281,6 +353,18 @@ class TestPVPoolControl:
             mocker.call(inv_ids[2], 0.0),
             mocker.call(inv_ids[3], 0.0),
         ]
+        dist_results = await dist_results_rx.receive()
+        assert isinstance(
+            dist_results, _power_distributing.Success
+        ), f"Expected a success, got {dist_results}"
+        assert dist_results.succeeded_power == Power.zero()
+        assert dist_results.excess_power == Power.zero()
+        assert dist_results.succeeded_components == {
+            ComponentId(8),
+            ComponentId(18),
+            ComponentId(28),
+            ComponentId(38),
+        }
 
         # Resetting the power should lead to default (full) power getting set for all
         # inverters.
@@ -301,3 +385,15 @@ class TestPVPoolControl:
             mocker.call(inv_ids[2], -30_000.0),
             mocker.call(inv_ids[3], -40_000.0),
         ]
+        dist_results = await dist_results_rx.receive()
+        assert isinstance(
+            dist_results, _power_distributing.Success
+        ), f"Expected a success, got {dist_results}"
+        assert dist_results.succeeded_power == Power.from_watts(-100000.0)
+        assert dist_results.excess_power == Power.zero()
+        assert dist_results.succeeded_components == {
+            ComponentId(8),
+            ComponentId(18),
+            ComponentId(28),
+            ComponentId(38),
+        }
