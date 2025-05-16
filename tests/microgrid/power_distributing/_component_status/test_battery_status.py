@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Generic, TypeVar
 
+import async_solipsism
 import pytest
 from frequenz.channels import Broadcast, Receiver
 from frequenz.client.microgrid import (
@@ -40,6 +41,12 @@ from tests.timeseries.mock_microgrid import MockMicrogrid
 
 from ....utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
 from ....utils.receive_timeout import Timeout, receive_timeout
+
+
+@pytest.fixture
+def event_loop_policy() -> async_solipsism.EventLoopPolicy:
+    """Event loop policy."""
+    return async_solipsism.EventLoopPolicy()
 
 
 def battery_data(  # pylint: disable=too-many-arguments,too-many-positional-arguments
@@ -995,40 +1002,51 @@ class TestBatteryStatusRecovery:
         setup_tracker: tuple[MockMicrogrid, Receiver[ComponentStatus]],
     ) -> None:
         """Test recovery after stale data."""
-        mock_microgrid, status_receiver = setup_tracker
+        import time_machine  # pylint: disable=import-outside-toplevel
 
-        timestamp = datetime.now(timezone.utc)
-        await self._send_healthy_battery(mock_microgrid, timestamp)
-        await self._send_healthy_inverter(mock_microgrid)
-        assert (await status_receiver.receive()).value is ComponentStatusEnum.WORKING
+        with time_machine.travel("2022-01-01 00:00 UTC", tick=False) as time:
+            mock_microgrid, status_receiver = setup_tracker
 
-        # --- stale battery data ---
-        await self._send_healthy_inverter(mock_microgrid)
-        await self._send_healthy_battery(mock_microgrid, timestamp)
-        assert await receive_timeout(status_receiver) is Timeout
+            timestamp = datetime.now(timezone.utc)
+            await self._send_healthy_battery(mock_microgrid, timestamp)
+            await self._send_healthy_inverter(mock_microgrid)
+            assert (
+                await status_receiver.receive()
+            ).value is ComponentStatusEnum.WORKING
 
-        await self._send_healthy_inverter(mock_microgrid)
-        await self._send_healthy_battery(mock_microgrid, timestamp)
-        assert await receive_timeout(status_receiver, 0.3) == ComponentStatus(
-            BATTERY_ID, ComponentStatusEnum.NOT_WORKING
-        )
+            # --- stale battery data ---
+            await self._send_healthy_inverter(mock_microgrid)
+            await self._send_healthy_battery(mock_microgrid, timestamp)
+            assert await receive_timeout(status_receiver) is Timeout
 
-        timestamp = datetime.now(timezone.utc)
-        await self._send_healthy_battery(mock_microgrid, timestamp)
-        await self._send_healthy_inverter(mock_microgrid, timestamp)
-        assert (await status_receiver.receive()).value is ComponentStatusEnum.WORKING
+            await self._send_healthy_inverter(mock_microgrid)
+            await self._send_healthy_battery(mock_microgrid, timestamp)
+            time.shift(0.3)
+            assert await receive_timeout(status_receiver, 0.3) == ComponentStatus(
+                BATTERY_ID, ComponentStatusEnum.NOT_WORKING
+            )
 
-        # --- stale inverter data ---
-        await self._send_healthy_battery(mock_microgrid)
-        await self._send_healthy_inverter(mock_microgrid, timestamp)
-        assert await receive_timeout(status_receiver) is Timeout
+            timestamp = datetime.now(timezone.utc)
+            await self._send_healthy_battery(mock_microgrid, timestamp)
+            await self._send_healthy_inverter(mock_microgrid, timestamp)
+            assert (
+                await status_receiver.receive()
+            ).value is ComponentStatusEnum.WORKING
 
-        await self._send_healthy_battery(mock_microgrid)
-        await self._send_healthy_inverter(mock_microgrid, timestamp)
-        assert await receive_timeout(status_receiver, 0.3) == ComponentStatus(
-            BATTERY_ID, ComponentStatusEnum.NOT_WORKING
-        )
+            # --- stale inverter data ---
+            await self._send_healthy_battery(mock_microgrid)
+            await self._send_healthy_inverter(mock_microgrid, timestamp)
+            assert await receive_timeout(status_receiver) is Timeout
 
-        await self._send_healthy_battery(mock_microgrid)
-        await self._send_healthy_inverter(mock_microgrid)
-        assert (await status_receiver.receive()).value is ComponentStatusEnum.WORKING
+            await self._send_healthy_battery(mock_microgrid)
+            await self._send_healthy_inverter(mock_microgrid, timestamp)
+            time.shift(0.3)
+            assert await receive_timeout(status_receiver, 0.3) == ComponentStatus(
+                BATTERY_ID, ComponentStatusEnum.NOT_WORKING
+            )
+
+            await self._send_healthy_battery(mock_microgrid)
+            await self._send_healthy_inverter(mock_microgrid)
+            assert (
+                await status_receiver.receive()
+            ).value is ComponentStatusEnum.WORKING
