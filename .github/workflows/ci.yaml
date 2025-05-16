@@ -36,6 +36,7 @@ jobs:
         python:
           - "3.11"
           - "3.12"
+          - "3.13"
         nox-session:
           # To speed things up a bit we use the special ci_checks_max session
           # that uses the same venv to run multiple linting sessions
@@ -113,6 +114,7 @@ jobs:
         python:
           - "3.11"
           - "3.12"
+          - "3.13"
     runs-on: ${{ matrix.os }}${{ matrix.arch != 'amd64' && format('-{0}', matrix.arch) || '' }}
 
     steps:
