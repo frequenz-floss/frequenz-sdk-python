@@ -71,19 +71,20 @@ async def mocks(mocker: MockerFixture) -> typing.AsyncIterator[Mocks]:
     dp = microgrid._data_pipeline._DATA_PIPELINE
     assert dp is not None
 
-    yield Mocks(
-        mockgrid,
-        streamer,
-        dp._battery_power_wrapper.status_channel.new_sender(),
-    )
-
-    await asyncio.gather(
-        *[
-            dp._stop(),
-            streamer.stop(),
-            mockgrid.cleanup(),
-        ]
-    )
+    try:
+        yield Mocks(
+            mockgrid,
+            streamer,
+            dp._battery_power_wrapper.status_channel.new_sender(),
+        )
+    finally:
+        _ = await asyncio.gather(
+            *[
+                dp._stop(),
+                streamer.stop(),
+                mockgrid.cleanup(),
+            ]
+        )
 
 
 class TestBatteryPoolControl:

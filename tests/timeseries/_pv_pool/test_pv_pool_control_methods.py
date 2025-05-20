@@ -50,11 +50,20 @@ async def mocks(mocker: MockerFixture) -> typing.AsyncIterator[_Mocks]:
 
     dp = typing.cast(_DataPipeline, microgrid._data_pipeline._DATA_PIPELINE)
 
-    yield _Mocks(
-        mockgrid,
-        streamer,
-        dp._pv_power_wrapper.status_channel.new_sender(),
-    )
+    try:
+        yield _Mocks(
+            mockgrid,
+            streamer,
+            dp._pv_power_wrapper.status_channel.new_sender(),
+        )
+    finally:
+        _ = await asyncio.gather(
+            *[
+                dp._stop(),
+                streamer.stop(),
+                mockgrid.cleanup(),
+            ]
+        )
 
 
 class TestPVPoolControl:

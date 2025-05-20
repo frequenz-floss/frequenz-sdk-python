@@ -495,8 +495,14 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         if self._resampling_actor:
             await self._resampling_actor.actor.stop()
         await self._battery_power_wrapper.stop()
+        await self._ev_power_wrapper.stop()
+        await self._pv_power_wrapper.stop()
         for pool in self._battery_pool_reference_stores.values():
             await pool.stop()
+        for evpool in self._ev_charger_pool_reference_stores.values():
+            await evpool.stop()
+        for pvpool in self._pv_pool_reference_stores.values():
+            await pvpool.stop()
 
 
 _DATA_PIPELINE: _DataPipeline | None = None
