@@ -56,6 +56,14 @@ async def mocks(mocker: MockerFixture) -> typing.AsyncIterator[_Mocks]:
         dp._pv_power_wrapper.status_channel.new_sender(),
     )
 
+    await asyncio.gather(
+        *[
+            dp._stop(),
+            streamer.stop(),
+            mockgrid.cleanup(),
+        ]
+    )
+
 
 class TestPVPoolControl:
     """Test control methods for the PVPool."""

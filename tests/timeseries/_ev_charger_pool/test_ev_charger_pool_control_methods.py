@@ -63,6 +63,14 @@ async def mocks(mocker: MockerFixture) -> typing.AsyncIterator[_Mocks]:
         dp._ev_power_wrapper.status_channel.new_sender(),
     )
 
+    await asyncio.gather(
+        *[
+            dp._stop(),
+            streamer.stop(),
+            mockgrid.cleanup(),
+        ]
+    )
+
 
 class TestEVChargerPoolControl:
     """Test the EV charger pool control methods."""
