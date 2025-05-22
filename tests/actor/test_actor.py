@@ -391,3 +391,12 @@ async def test_actor_stop_if_error_was_raised_during_cancel(
 
     await actor.stop()
     assert actor.restart_count == 0
+
+    assert caplog.record_tuples == [
+        (*ACTOR_INFO, "Actor RaiseExceptionOnCancelActor[test]: Started."),
+        (
+            *ACTOR_ERROR,
+            "Actor RaiseExceptionOnCancelActor[test]: Raised an unhandled exception during stop.",
+        ),
+        (*ACTOR_INFO, "Actor RaiseExceptionOnCancelActor[test]: Stopped."),
+    ]
