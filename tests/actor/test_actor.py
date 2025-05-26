@@ -53,6 +53,31 @@ class NopActor(BaseTestActor):
         print(f"{self} done")
 
 
+class RaiseExceptionOnCancelActor(BaseTestActor):
+    """Actor that raises exception during stop."""
+
+    def __init__(
+        self, *, name: str | None = None, recv: Receiver[int], sender: Sender[int]
+    ) -> None:
+        """Create an instance."""
+        super().__init__(name=name)
+        self._recv = recv
+        self._sender = sender
+
+    async def _run(self) -> None:
+        """Start the actor and raise exception after receiving CancelledError."""
+        self.inc_restart_count()
+        if BaseTestActor.restart_count == 1:
+            # This actor should not restart
+            # If it does we just return to avoid infinite await on `stop`
+            return
+        try:
+            async for msg in self._recv:
+                await self._sender.send(msg)
+        except asyncio.CancelledError as exc:
+            raise RuntimeError("Actor should stop.") from exc
+
+
 class RaiseExceptionActor(BaseTestActor):
     """A faulty actor that raises an Exception as soon as it receives a message."""
 
@@ -332,4 +357,46 @@ async def test_does_not_restart_if_cancelled(
         (*ACTOR_INFO, "Actor EchoActor[EchoActor]: Cancelled."),
         (*RUN_INFO, "Actor EchoActor[EchoActor]: Cancelled while running."),
         (*RUN_INFO, "All 1 actor(s) finished."),
+    ]
+
+
+async def test_actor_stop_if_error_was_raised_during_cancel(
+    actor_auto_restart_once: None,  # pylint: disable=unused-argument
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """If actor raises exception during cancellation it should stop.
+
+    And throw unhandled exception to the user..
+    """
+    caplog.set_level("DEBUG", logger="frequenz.sdk.actor._actor")
+    caplog.set_level("DEBUG", logger="frequenz.sdk.actor._run_utils")
+
+    input_chan: Broadcast[int] = Broadcast(name="TestChannel")
+
+    echo_chan: Broadcast[int] = Broadcast(name="echo output")
+    echo_rx = echo_chan.new_receiver()
+
+    actor = RaiseExceptionOnCancelActor(
+        name="test",
+        recv=input_chan.new_receiver(),
+        sender=echo_chan.new_sender(),
+    )
+
+    # Start actor and make sure it is running
+    actor.start()
+    await input_chan.new_sender().send(5)
+    msg = await echo_rx.receive()
+    assert msg == 5
+    assert actor.is_running is True
+
+    await actor.stop()
+    assert actor.restart_count == 0
+
+    assert caplog.record_tuples == [
+        (*ACTOR_INFO, "Actor RaiseExceptionOnCancelActor[test]: Started."),
+        (
+            *ACTOR_ERROR,
+            "Actor RaiseExceptionOnCancelActor[test]: Raised an unhandled exception during stop.",
+        ),
+        (*ACTOR_INFO, "Actor RaiseExceptionOnCancelActor[test]: Stopped."),
     ]

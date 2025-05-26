@@ -44,6 +44,15 @@ class Actor(BackgroundService, abc.ABC):
         This is mostly used for testing purposes and shouldn't be set in production.
     """
 
+    def __init__(self, *, name: str | None = None) -> None:
+        """Create actor instance.
+
+        Args:
+            name: The name of this background service.
+        """
+        super().__init__(name=name)
+        self._is_cancelled = False
+
     def start(self) -> None:
         """Start this actor.
 
@@ -51,6 +60,8 @@ class Actor(BackgroundService, abc.ABC):
         """
         if self.is_running:
             return
+
+        self._is_cancelled = False
         self._tasks.clear()
         self._tasks.add(asyncio.create_task(self._run_loop()))
 
@@ -94,6 +105,17 @@ class Actor(BackgroundService, abc.ABC):
                 _logger.info("Actor %s: Cancelled.", self)
                 raise
             except Exception:  # pylint: disable=broad-except
+                if self._is_cancelled:
+                    # If actor was cancelled, but any tasks have failed with an exception
+                    # other than asyncio.CancelledError, those exceptions are combined
+                    # in an ExceptionGroup or BaseExceptionGroup.
+                    # We have to handle that case separately to stop actor instead
+                    # of restarting it.
+                    _logger.exception(
+                        "Actor %s: Raised an unhandled exception during stop.", self
+                    )
+                    break
+
                 _logger.exception("Actor %s: Raised an unhandled exception.", self)
                 limit_str = "∞" if self._restart_limit is None else self._restart_limit
                 limit_str = f"({n_restarts}/{limit_str})"
@@ -113,3 +135,14 @@ class Actor(BackgroundService, abc.ABC):
             break
 
         _logger.info("Actor %s: Stopped.", self)
+
+    def cancel(self, msg: str | None = None) -> None:
+        """Cancel actor.
+
+        Cancelled actor can't be started again.
+
+        Args:
+            msg: The message to be passed to the tasks being cancelled.
+        """
+        self._is_cancelled = True
+        return super().cancel(msg)
