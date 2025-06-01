@@ -29,7 +29,7 @@ dependencies = [
   # Make sure to update the mkdocs.yml file when
   # changing the version
   # (plugins.mkdocstrings.handlers.python.import)
-  "frequenz-client-microgrid >= 0.7.0, < 0.8.0",
+  "frequenz-client-microgrid >= 0.7.0, < 0.9.0",
   "frequenz-channels >= 1.6.0, < 2.0.0",
   "frequenz-quantities[marshmallow] >= 1.0.0, < 2.0.0",
   "networkx >= 2.8, < 4",
