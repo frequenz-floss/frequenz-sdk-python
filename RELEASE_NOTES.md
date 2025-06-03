@@ -10,7 +10,7 @@
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+* Added a `done()` method to `BackgroundService` to check for completion.
 
 ## Bug Fixes
 

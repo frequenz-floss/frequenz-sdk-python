@@ -17,6 +17,18 @@ def event_loop_policy() -> async_solipsism.EventLoopPolicy:
     return async_solipsism.EventLoopPolicy()
 
 
+def assert_service_done(service: BackgroundService) -> None:
+    """Assert if service is done."""
+    assert service.is_running is False
+    assert service.done() is True
+
+
+def assert_service_is_running(service: BackgroundService) -> None:
+    """Assert if service is running."""
+    assert service.is_running is True
+    assert service.done() is False
+
+
 class FakeService(BackgroundService):
     """A background service that does nothing."""
 
@@ -49,7 +61,7 @@ async def test_construction_defaults() -> None:
     fake_service = FakeService()
     assert fake_service.name == str(id(fake_service))
     assert fake_service.tasks == set()
-    assert fake_service.is_running is False
+    assert_service_done(fake_service)
     assert str(fake_service) == f"FakeService[{fake_service.name}]"
     assert repr(fake_service) == f"FakeService(name={fake_service.name!r}, tasks=set())"
 
@@ -59,50 +71,50 @@ async def test_construction_custom() -> None:
     fake_service = FakeService(name="test")
     assert fake_service.name == "test"
     assert fake_service.tasks == set()
-    assert fake_service.is_running is False
+    assert_service_done(fake_service)
 
 
 async def test_start_await() -> None:
     """Test a background service starts and can be awaited."""
     fake_service = FakeService(name="test")
     assert fake_service.name == "test"
-    assert fake_service.is_running is False
+    assert_service_done(fake_service)
 
     # Is a no-op if the service is not running
     await fake_service.stop()
-    assert fake_service.is_running is False
+    assert_service_done(fake_service)
 
     fake_service.start()
-    assert fake_service.is_running is True
+    assert_service_is_running(fake_service)
 
     # Should stop immediately
     async with asyncio.timeout(1.0):
         await fake_service
 
-    assert fake_service.is_running is False
+    assert_service_done(fake_service)
 
 
 async def test_start_stop() -> None:
     """Test a background service starts and stops correctly."""
     fake_service = FakeService(name="test", sleep=2.0)
     assert fake_service.name == "test"
-    assert fake_service.is_running is False
+    assert_service_done(fake_service)
 
     # Is a no-op if the service is not running
     await fake_service.stop()
-    assert fake_service.is_running is False
+    assert_service_done(fake_service)
 
     fake_service.start()
-    assert fake_service.is_running is True
+    assert_service_is_running(fake_service)
 
     await asyncio.sleep(1.0)
-    assert fake_service.is_running is True
+    assert_service_is_running(fake_service)
 
     await fake_service.stop()
-    assert fake_service.is_running is False
+    assert_service_done(fake_service)
 
     await fake_service.stop()
-    assert fake_service.is_running is False
+    assert_service_done(fake_service)
 
 
 @pytest.mark.parametrize("method", ["await", "wait", "stop"])
@@ -113,7 +125,7 @@ async def test_start_and_crash(
     exc = RuntimeError("error")
     fake_service = FakeService(name="test", exc=exc)
     assert fake_service.name == "test"
-    assert fake_service.is_running is False
+    assert_service_done(fake_service)
 
     fake_service.start()
     with pytest.raises(BaseExceptionGroup) as exc_info:
@@ -140,10 +152,10 @@ async def test_start_and_crash(
 async def test_async_context_manager() -> None:
     """Test a background service works as an async context manager."""
     async with FakeService(name="test", sleep=1.0) as fake_service:
-        assert fake_service.is_running is True
+        assert_service_is_running(fake_service)
         # Is a no-op if the service is running
         fake_service.start()
         await asyncio.sleep(0)
-        assert fake_service.is_running is True
+        assert_service_is_running(fake_service)
 
-    assert fake_service.is_running is False
+    assert_service_done(fake_service)

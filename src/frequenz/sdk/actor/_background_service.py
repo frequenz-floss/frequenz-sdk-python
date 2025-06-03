@@ -161,6 +161,17 @@ class BackgroundService(abc.ABC):
         """
         return any(not task.done() for task in self._tasks)
 
+    def done(self) -> bool:
+        """Return whether this background service is done.
+
+        A service is considered done when all tasks
+        are finished or raised exception or were cancelled.
+
+        Returns:
+            Whether this background service is done.
+        """
+        return not self.is_running
+
     def cancel(self, msg: str | None = None) -> None:
         """Cancel all running tasks spawned by this background service.
 
