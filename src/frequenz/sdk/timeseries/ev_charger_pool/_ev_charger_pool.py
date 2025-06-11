@@ -8,7 +8,7 @@ import asyncio
 import uuid
 from collections import abc
 
-from frequenz.client.microgrid import ComponentId
+from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Current, Power
 
 from ..._internal._channels import MappingReceiverFetcher, ReceiverFetcher

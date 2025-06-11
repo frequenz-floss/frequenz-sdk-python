@@ -11,12 +11,8 @@ component graph.
 import logging
 from abc import ABC, abstractmethod
 
-from frequenz.client.microgrid import (
-    Location,
-    Metadata,
-    MicrogridApiClient,
-    MicrogridId,
-)
+from frequenz.client.common.microgrid import MicrogridId
+from frequenz.client.microgrid import Location, Metadata, MicrogridApiClient
 
 from .component_graph import ComponentGraph, _MicrogridComponentGraph
 

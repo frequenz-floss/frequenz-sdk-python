@@ -17,7 +17,8 @@ from dataclasses import dataclass
 from datetime import timedelta
 
 from frequenz.channels import Broadcast, Sender
-from frequenz.client.microgrid import ComponentCategory, ComponentId, InverterType
+from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.microgrid import ComponentCategory, InverterType
 
 from frequenz.sdk.microgrid._power_managing._base_classes import Algorithm, DefaultPower
 

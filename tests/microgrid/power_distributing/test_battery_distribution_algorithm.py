@@ -8,7 +8,8 @@ from collections.abc import Sequence, Set
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
-from frequenz.client.microgrid import BatteryData, ComponentId, InverterData
+from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.microgrid import BatteryData, InverterData
 from frequenz.quantities import Power
 from pytest import approx, raises
 

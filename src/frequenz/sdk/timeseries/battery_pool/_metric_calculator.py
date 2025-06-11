@@ -11,7 +11,8 @@ from collections.abc import Mapping, Set
 from datetime import datetime, timezone
 from typing import Generic, TypeVar
 
-from frequenz.client.microgrid import ComponentId, ComponentMetricId
+from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.microgrid import ComponentMetricId
 from frequenz.quantities import Energy, Percentage, Power, Temperature
 
 from ... import timeseries

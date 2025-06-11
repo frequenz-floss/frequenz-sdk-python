@@ -7,7 +7,8 @@
 import logging
 from collections import abc
 
-from frequenz.client.microgrid import ComponentId, ComponentMetricId
+from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.microgrid import ComponentMetricId
 from frequenz.quantities import Current
 
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase

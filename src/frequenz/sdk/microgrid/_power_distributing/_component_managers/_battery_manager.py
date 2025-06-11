@@ -11,11 +11,11 @@ import typing
 from datetime import timedelta
 
 from frequenz.channels import LatestValueCache, Receiver, Sender
+from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     ApiClientError,
     BatteryData,
     ComponentCategory,
-    ComponentId,
     InverterData,
     OperationOutOfRange,
 )

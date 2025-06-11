@@ -8,7 +8,8 @@ import math
 from dataclasses import dataclass
 from typing import NamedTuple, Sequence
 
-from frequenz.client.microgrid import BatteryData, ComponentId, InverterData
+from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.microgrid import BatteryData, InverterData
 from frequenz.quantities import Power
 
 from ...._internal._math import is_close_to_zero

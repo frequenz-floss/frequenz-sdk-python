@@ -11,7 +11,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Generic
 
 from frequenz.channels import Broadcast, Receiver
-from frequenz.client.microgrid import ComponentId
+from frequenz.client.common.microgrid.components import ComponentId
 
 from ..._internal._asyncio import cancel_and_await, run_forever
 from ..._internal._constants import RECEIVER_MAX_SIZE, WAIT_FOR_COMPONENT_DATA_SEC

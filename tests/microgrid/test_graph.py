@@ -10,10 +10,10 @@
 from unittest import mock
 
 import pytest
+from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     Component,
     ComponentCategory,
-    ComponentId,
     ComponentMetadata,
     Connection,
     Fuse,

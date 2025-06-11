@@ -16,10 +16,10 @@ from frequenz.channels import (
     select,
     selected_from,
 )
+from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     ApiClientError,
     ComponentCategory,
-    ComponentId,
     EVChargerData,
     MicrogridApiClient,
 )

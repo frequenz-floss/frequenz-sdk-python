@@ -6,7 +6,8 @@
 from contextlib import AsyncExitStack
 
 import frequenz.client.microgrid as client
-from frequenz.client.microgrid import ComponentCategory, ComponentId
+from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.microgrid import ComponentCategory
 from frequenz.quantities import Current, Power, Quantity, ReactivePower
 from pytest_mock import MockerFixture
 

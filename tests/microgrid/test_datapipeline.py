@@ -9,10 +9,10 @@ from datetime import timedelta
 import async_solipsism
 import pytest
 import time_machine
+from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     Component,
     ComponentCategory,
-    ComponentId,
     Connection,
     InverterType,
 )

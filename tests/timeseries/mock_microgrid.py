@@ -10,11 +10,11 @@ from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 from typing import Coroutine
 
+from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     Component,
     ComponentCategory,
     ComponentData,
-    ComponentId,
     Connection,
     EVChargerCableState,
     EVChargerComponentState,

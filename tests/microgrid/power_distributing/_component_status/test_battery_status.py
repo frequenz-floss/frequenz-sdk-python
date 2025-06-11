@@ -15,13 +15,13 @@ from typing import Generic, TypeVar
 import async_solipsism
 import pytest
 from frequenz.channels import Broadcast, Receiver
+from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     BatteryComponentState,
     BatteryData,
     BatteryError,
     BatteryErrorCode,
     BatteryRelayState,
-    ComponentId,
     ErrorLevel,
     InverterComponentState,
     InverterData,

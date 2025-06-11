@@ -29,12 +29,13 @@ dependencies = [
   # Make sure to update the mkdocs.yml file when
   # changing the version
   # (plugins.mkdocstrings.handlers.python.import)
-  "frequenz-client-microgrid >= 0.7.0, < 0.8.0",
-  "frequenz-channels >= 1.6.0, < 2.0.0",
+  "frequenz-client-microgrid >= 0.9.0, < 0.10.0",
+  "frequenz-client-common >= 0.3.2, < 0.4.0",
+  "frequenz-channels >= 1.6.1, < 2.0.0",
   "frequenz-quantities[marshmallow] >= 1.0.0, < 2.0.0",
   "networkx >= 2.8, < 4",
   "numpy >= 2, < 3",
-  "typing_extensions >= 4.6.1, < 5",
+  "typing_extensions >= 4.13.0, < 5",
   "marshmallow >= 3.19.0, < 5",
   "marshmallow_dataclass >= 8.7.1, < 9",
 ]
@@ -163,20 +164,29 @@ disable = [
 max-attributes = 12
 
 [tool.pytest.ini_options]
-# We need to ignore PytestUnraisableExceptionWarning because we have some
-# cleanup issues, and sometimes exceptions are raised in __del__ methods, for
-# example when trying to do async stuff and the event loop is already closed.
-# This could even be caused by the GC, some time after the test function that
-# has the issue was completed.
-# Please see this issue for more details:
-# https://github.com/frequenz-floss/frequenz-sdk-python/issues/982
-addopts = "-W=all -Werror -Wdefault::DeprecationWarning -Wdefault::PendingDeprecationWarning -Wdefault::pytest.PytestUnraisableExceptionWarning -vv"
+addopts = "-vv"
 testpaths = ["tests", "src"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 required_plugins = ["pytest-asyncio", "pytest-mock"]
 markers = [
   "integration: integration tests (deselect with '-m \"not integration\"')",
+]
+filterwarnings = [
+  "error",
+  "once::DeprecationWarning",
+  "once::PendingDeprecationWarning",
+  # We need to ignore PytestUnraisableExceptionWarning because we have some
+  # cleanup issues, and sometimes exceptions are raised in __del__ methods, for
+  # example when trying to do async stuff and the event loop is already closed.
+  # This could even be caused by the GC, some time after the test function that
+  # has the issue was completed.
+  # Please see this issue for more details:
+  # https://github.com/frequenz-floss/frequenz-sdk-python/issues/982
+  "default::pytest.PytestUnraisableExceptionWarning",
+  # We use a raw string (single quote) to avoid the need to escape special
+  # chars as this is a regex
+  'ignore:Protobuf gencode version .*exactly one major version older.*:UserWarning',
 ]
 
 [tool.mypy]

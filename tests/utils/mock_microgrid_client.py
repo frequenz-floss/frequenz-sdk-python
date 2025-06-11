@@ -7,18 +7,18 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 from frequenz.channels import Broadcast, Receiver
+from frequenz.client.common.microgrid import MicrogridId
+from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     BatteryData,
     Component,
     ComponentCategory,
     ComponentData,
-    ComponentId,
     Connection,
     EVChargerData,
     InverterData,
     Location,
     MeterData,
-    MicrogridId,
 )
 from pytest_mock import MockerFixture
 

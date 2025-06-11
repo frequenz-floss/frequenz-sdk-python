@@ -11,7 +11,7 @@ from collections import abc
 from datetime import timedelta
 
 from frequenz.channels import Broadcast, Merger, Receiver, Sender, merge
-from frequenz.client.microgrid import ComponentId
+from frequenz.client.common.microgrid.components import ComponentId
 
 from ..._internal._asyncio import cancel_and_await
 from ._component_status import (

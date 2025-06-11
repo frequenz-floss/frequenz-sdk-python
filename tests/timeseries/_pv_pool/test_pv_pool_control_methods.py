@@ -11,7 +11,8 @@ from unittest.mock import AsyncMock
 import async_solipsism
 import pytest
 from frequenz.channels import Receiver
-from frequenz.client.microgrid import ComponentId, InverterComponentState
+from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.microgrid import InverterComponentState
 from frequenz.quantities import Power
 from pytest_mock import MockerFixture
 

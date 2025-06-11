@@ -9,7 +9,8 @@ from datetime import datetime, timedelta, timezone
 
 from frequenz.channels import Receiver, Sender, select, selected_from
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
-from frequenz.client.microgrid import ComponentId, InverterComponentState, InverterData
+from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.microgrid import InverterComponentState, InverterData
 from typing_extensions import override
 
 from ...._internal._asyncio import run_forever

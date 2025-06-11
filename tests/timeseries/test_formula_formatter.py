@@ -8,9 +8,7 @@ from frequenz.channels import Broadcast
 from frequenz.quantities import Quantity
 
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries.formula_engine._formula_engine import (
-    FormulaBuilder,
-)
+from frequenz.sdk.timeseries.formula_engine._formula_engine import FormulaBuilder
 from frequenz.sdk.timeseries.formula_engine._formula_formatter import format_formula
 from frequenz.sdk.timeseries.formula_engine._formula_steps import (
     Clipper,

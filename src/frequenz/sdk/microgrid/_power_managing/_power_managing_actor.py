@@ -13,12 +13,8 @@ from typing import assert_never
 
 from frequenz.channels import Receiver, Sender, select, selected_from
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
-from frequenz.client.microgrid import (
-    ComponentCategory,
-    ComponentId,
-    ComponentType,
-    InverterType,
-)
+from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.microgrid import ComponentCategory, ComponentType, InverterType
 from typing_extensions import override
 
 from ..._internal._asyncio import run_forever

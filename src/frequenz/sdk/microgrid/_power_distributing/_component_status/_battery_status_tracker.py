@@ -23,13 +23,13 @@ from datetime import datetime, timedelta, timezone
 
 from frequenz.channels import Receiver, Sender, select, selected_from
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
+from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     BatteryComponentState,
     BatteryData,
     BatteryRelayState,
     ComponentCategory,
     ComponentData,
-    ComponentId,
     ErrorLevel,
     InverterComponentState,
     InverterData,
