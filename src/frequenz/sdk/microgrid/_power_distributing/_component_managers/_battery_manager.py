@@ -273,7 +273,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
                     battery_distribution.get(battery_id, Power.zero()) + dist
                 )
         _logger.debug(
-            "Distributing power %d between the batteries %s",
+            "Distributing power %s between the batteries %s",
             distributed_power_value,
             str(battery_distribution),
         )
