@@ -14,4 +14,4 @@
 
 ## Bug Fixes
 
-* Fix TypeError raised by BatteryManager when distributing power
+<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
