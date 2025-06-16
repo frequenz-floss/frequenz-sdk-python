@@ -9,7 +9,8 @@ import math
 from datetime import datetime
 
 from frequenz.channels import Broadcast, Receiver, Sender
-from frequenz.client.microgrid import ComponentId, ComponentMetricId
+from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.microgrid import ComponentMetricId
 from frequenz.quantities import Quantity
 from pytest_mock import MockerFixture
 

@@ -7,7 +7,8 @@ import asyncio
 from collections import abc
 
 from frequenz.channels import Receiver, Sender, merge, select, selected_from
-from frequenz.client.microgrid import ComponentId, InverterData
+from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.microgrid import InverterData
 from frequenz.quantities import Power
 
 from ..._internal._asyncio import run_forever

@@ -20,7 +20,8 @@ import async_solipsism
 import pytest
 import time_machine
 from frequenz.channels import Receiver, Sender
-from frequenz.client.microgrid import ComponentCategory, ComponentId
+from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.microgrid import ComponentCategory
 from frequenz.quantities import Energy, Percentage, Power, Temperature
 from pytest_mock import MockerFixture
 

@@ -8,7 +8,8 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from frequenz.channels import Receiver, Sender
-from frequenz.client.microgrid import ComponentId, ComponentMetricId
+from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.microgrid import ComponentMetricId
 from frequenz.quantities import Quantity
 
 from ..._internal._channels import ChannelRegistry

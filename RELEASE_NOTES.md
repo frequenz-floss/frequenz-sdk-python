@@ -6,7 +6,7 @@
 
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
+* The microgrid client dependency has been updated to version 0.9.0
 
 ## New Features
 

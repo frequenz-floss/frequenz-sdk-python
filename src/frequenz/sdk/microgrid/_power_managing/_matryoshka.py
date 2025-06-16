@@ -23,7 +23,7 @@ import logging
 import typing
 from datetime import timedelta
 
-from frequenz.client.microgrid import ComponentId
+from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Power
 from typing_extensions import override
 

@@ -8,7 +8,8 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 
 from frequenz.channels import Broadcast
-from frequenz.client.microgrid import ComponentId, InverterComponentState
+from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.microgrid import InverterComponentState
 from pytest_mock import MockerFixture
 
 from frequenz.sdk._internal._asyncio import cancel_and_await

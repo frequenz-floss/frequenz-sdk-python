@@ -6,10 +6,10 @@
 from dataclasses import replace
 from typing import Any, overload
 
+from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     Component,
     ComponentCategory,
-    ComponentId,
     ComponentType,
     Connection,
     GridMetadata,

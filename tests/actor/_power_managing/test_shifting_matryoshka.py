@@ -10,7 +10,7 @@ import re
 from datetime import datetime, timedelta, timezone
 
 import pytest
-from frequenz.client.microgrid import ComponentId
+from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Power
 
 from frequenz.sdk import timeseries

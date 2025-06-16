@@ -7,7 +7,7 @@ from collections import abc
 from dataclasses import dataclass, field
 from datetime import timedelta
 
-from frequenz.client.microgrid import ComponentId
+from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Current
 
 

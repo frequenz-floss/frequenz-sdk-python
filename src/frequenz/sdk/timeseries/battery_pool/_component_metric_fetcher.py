@@ -14,11 +14,11 @@ from datetime import datetime, timezone
 from typing import Any, Generic, Self, TypeVar
 
 from frequenz.channels import ChannelClosedError, Receiver
+from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     BatteryData,
     ComponentCategory,
     ComponentData,
-    ComponentId,
     ComponentMetricId,
     InverterData,
 )

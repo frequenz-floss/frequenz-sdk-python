@@ -8,7 +8,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
 
-from frequenz.client.microgrid import ComponentId, ComponentMetricId
+from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.microgrid import ComponentMetricId
 
 
 @dataclass(frozen=True, eq=False)

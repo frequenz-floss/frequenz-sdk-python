@@ -10,7 +10,7 @@ import dataclasses
 import enum
 import typing
 
-from frequenz.client.microgrid import ComponentId
+from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Power
 
 from ... import timeseries

@@ -7,7 +7,7 @@
 import dataclasses
 from collections import abc
 
-from frequenz.client.microgrid import ComponentId
+from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Power
 
 from .request import Request
@@ -119,7 +119,6 @@ Example: Handling power distribution results
     from frequenz.sdk.actor.power_distributing.request import Request
     from frequenz.sdk.actor.power_distributing.result import PowerBounds
     from frequenz.quantities import Power
-    from frequenz.client.microgrid import ComponentId
 
     def handle_power_request_result(result: Result) -> None:
         match result:

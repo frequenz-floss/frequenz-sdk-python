@@ -16,12 +16,12 @@ import math
 from dataclasses import dataclass, replace
 from datetime import datetime
 
+from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     BatteryComponentState,
     BatteryData,
     BatteryError,
     BatteryRelayState,
-    ComponentId,
     EVChargerCableState,
     EVChargerComponentState,
     EVChargerData,

@@ -7,7 +7,7 @@ import abc
 import collections.abc
 
 from frequenz.channels import Sender
-from frequenz.client.microgrid import ComponentId
+from frequenz.client.common.microgrid.components import ComponentId
 
 from .._component_status import ComponentPoolStatus
 from ..request import Request

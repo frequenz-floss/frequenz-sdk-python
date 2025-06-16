@@ -6,7 +6,8 @@ import asyncio
 from datetime import timedelta
 
 from frequenz.channels import Broadcast
-from frequenz.client.microgrid import ComponentCategory, ComponentId
+from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.microgrid import ComponentCategory
 from pytest_mock import MockerFixture
 
 from frequenz.sdk.microgrid._power_distributing._component_pool_status_tracker import (

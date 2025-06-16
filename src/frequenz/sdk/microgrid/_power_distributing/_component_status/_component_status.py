@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 
 from frequenz.channels import Receiver, Sender
-from frequenz.client.microgrid import ComponentId
+from frequenz.client.common.microgrid.components import ComponentId
 
 from ....actor._background_service import BackgroundService
 

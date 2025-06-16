@@ -10,7 +10,8 @@ import async_solipsism
 import pytest
 import time_machine
 from frequenz.channels import Broadcast
-from frequenz.client.microgrid import ComponentId, ComponentMetricId
+from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.microgrid import ComponentMetricId
 from frequenz.quantities import Quantity
 
 from frequenz.sdk._internal._channels import ChannelRegistry

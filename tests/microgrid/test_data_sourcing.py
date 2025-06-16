@@ -12,6 +12,7 @@ from unittest import mock
 import pytest
 import pytest_mock
 from frequenz.channels import Broadcast
+from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     BatteryComponentState,
     BatteryData,
@@ -19,7 +20,6 @@ from frequenz.client.microgrid import (
     Component,
     ComponentCategory,
     ComponentData,
-    ComponentId,
     ComponentMetricId,
     EVChargerCableState,
     EVChargerComponentState,

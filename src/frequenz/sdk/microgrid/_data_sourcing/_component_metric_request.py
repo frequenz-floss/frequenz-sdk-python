@@ -6,7 +6,8 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from frequenz.client.microgrid import ComponentId, ComponentMetricId
+from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.microgrid import ComponentMetricId
 
 __all__ = ["ComponentMetricRequest", "ComponentMetricId"]
 

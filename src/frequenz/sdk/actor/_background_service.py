@@ -268,13 +268,6 @@ class BackgroundService(abc.ABC):
         """
         return self.wait().__await__()
 
-    def __del__(self) -> None:
-        """Destroy this instance.
-
-        Cancel all running tasks spawned by this background service.
-        """
-        self.cancel("{self!r} was deleted")
-
     def __repr__(self) -> str:
         """Return a string representation of this instance.
 
