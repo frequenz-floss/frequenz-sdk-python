@@ -54,13 +54,14 @@ def test_load_config_dataclass(
     [SimpleConfig, MmSimpleConfig],
     ids=["dataclass", "marshmallow_dataclass"],
 )
-def test_load_config_load_None(
+@pytest.mark.parametrize("config", [dict(), None], ids=["empty", "none"])
+def test_load_config_load_empty(
     config_class: type[SimpleConfig] | type[MmSimpleConfig],
+    config: dict[str, Any] | None,
 ) -> None:
-    """Test that load_config raises ValidationError if the configuration is None."""
-    config: dict[str, Any] = {}
+    """Test that load_config raises ValidationError if the configuration is empty."""
     with pytest.raises(marshmallow.ValidationError):
-        _ = load_config(config_class, config.get("loggers", None))
+        _ = load_config(config_class, config)  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(
