@@ -46,9 +46,22 @@ async def run_forever(
     while True:
         try:
             await async_callable()
+        except RuntimeError as exc:
+            if "no running event loop" in str(exc):
+                _logger.exception(
+                    "Something went wrong, no running event loop, skipping execution of %s",
+                    async_callable.__name__,
+                )
+                return
         except Exception:  # pylint: disable=broad-except
+            if not asyncio.get_event_loop().is_running():
+                _logger.exception(
+                    "Something went wrong, no running event loop, skipping execution of %s",
+                    async_callable.__name__,
+                )
+                return
             _logger.exception("Restarting after exception")
-            await asyncio.sleep(interval_s)
+        await asyncio.sleep(interval_s)
 
 
 class NotSyncConstructible(AssertionError):

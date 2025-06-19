@@ -8,6 +8,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
+from types import TracebackType
 from typing import Coroutine
 
 from frequenz.client.common.microgrid.components import ComponentId
@@ -622,6 +623,12 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         await self.start()
         return self
 
-    async def __aexit__(self, exc_type: None, exc_val: None, exc_tb: None) -> None:
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+        /,
+    ) -> None:
         """Exit context manager."""
         await self.cleanup()

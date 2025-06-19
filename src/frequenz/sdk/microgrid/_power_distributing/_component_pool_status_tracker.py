@@ -6,14 +6,13 @@
 
 import asyncio
 import contextlib
-import logging
 from collections import abc
 from datetime import timedelta
 
 from frequenz.channels import Broadcast, Merger, Receiver, Sender, merge
 from frequenz.client.common.microgrid.components import ComponentId
 
-from ..._internal._asyncio import cancel_and_await
+from ..._internal._asyncio import cancel_and_await, run_forever
 from ._component_status import (
     ComponentPoolStatus,
     ComponentStatus,
@@ -21,8 +20,6 @@ from ._component_status import (
     ComponentStatusTracker,
     SetPowerResult,
 )
-
-_logger = logging.getLogger(__name__)
 
 
 class ComponentPoolStatusTracker:
@@ -112,14 +109,7 @@ class ComponentPoolStatusTracker:
         async with contextlib.AsyncExitStack() as stack:
             for tracker in self._component_status_trackers:
                 await stack.enter_async_context(tracker)
-            while True:
-                try:
-                    await self._update_status()
-                except Exception as err:  # pylint: disable=broad-except
-                    _logger.error(
-                        "ComponentPoolStatus failed with error: %s. Restarting.", err
-                    )
-                    await asyncio.sleep(1.0)
+            await run_forever(self._update_status)
 
     async def _update_status(self) -> None:
         async for status in self._merged_status_receiver:
