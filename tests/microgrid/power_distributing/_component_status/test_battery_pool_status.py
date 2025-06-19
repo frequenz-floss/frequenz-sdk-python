@@ -3,6 +3,7 @@
 """Tests for BatteryPoolStatus."""
 
 import asyncio
+from contextlib import AsyncExitStack
 from datetime import timedelta
 
 from frequenz.channels import Broadcast
@@ -37,7 +38,8 @@ class TestBatteryPoolStatus:
         mock_microgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
         mock_microgrid.add_batteries(3)
 
-        async with mock_microgrid:
+        async with AsyncExitStack() as stack:
+            await stack.enter_async_context(mock_microgrid)
             batteries = {
                 battery.component_id
                 for battery in mock_microgrid.mock_client.component_graph.components(
@@ -55,6 +57,7 @@ class TestBatteryPoolStatus:
                 max_blocking_duration=timedelta(seconds=30),
                 component_status_tracker_type=BatteryStatusTracker,
             )
+            stack.push_async_callback(batteries_status.stop)
             await asyncio.sleep(0.1)
 
             expected_working: set[ComponentId] = set()
@@ -123,5 +126,3 @@ class TestBatteryPoolStatus:
                 ComponentId(9),
                 ComponentId(19),
             }
-
-            await batteries_status.stop()
