@@ -36,6 +36,8 @@ from frequenz.client.microgrid import (
 )
 from typing_extensions import override
 
+from frequenz.sdk._internal._asyncio import run_forever
+
 from ....actor._background_service import BackgroundService
 from ... import connection_manager
 from ._blocking_status import BlockingStatus
@@ -262,7 +264,7 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
         inverter = inverter_receiver
         set_power_result = set_power_result_receiver
 
-        while True:
+        async def _loop() -> None:
             try:
                 async for selected in select(
                     battery,
@@ -316,6 +318,8 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
 
             except Exception as err:  # pylint: disable=broad-except
                 _logger.exception("BatteryStatusTracker crashed with error: %s", err)
+
+        await run_forever(_loop)
 
     def _get_current_status(self) -> ComponentStatusEnum:
         """Get current battery status.
