@@ -104,7 +104,16 @@ class Actor(BackgroundService, abc.ABC):
             except asyncio.CancelledError:
                 _logger.info("Actor %s: Cancelled.", self)
                 raise
-            except Exception:  # pylint: disable=broad-except
+            except Exception as exc:  # pylint: disable=broad-except
+                if isinstance(exc, RuntimeError) and "no running event loop" in str(
+                    exc
+                ):
+                    _logger.exception(
+                        "Something went wrong, no running event loop,"
+                        " not trying to restart %s again.",
+                        self,
+                    )
+                    break
                 if self._is_cancelled:
                     # If actor was cancelled, but any tasks have failed with an exception
                     # other than asyncio.CancelledError, those exceptions are combined
