@@ -48,7 +48,7 @@ async def run_forever(
             await async_callable()
         except Exception:  # pylint: disable=broad-except
             _logger.exception("Restarting after exception")
-            await asyncio.sleep(interval_s)
+        await asyncio.sleep(interval_s)
 
 
 class NotSyncConstructible(AssertionError):
