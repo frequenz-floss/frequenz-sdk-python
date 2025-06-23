@@ -23,6 +23,9 @@ async def cancel_and_await(task: asyncio.Task[Any]) -> None:
 
     Args:
         task: The task to be cancelled and waited for.
+
+    Raises:
+        asyncio.CancelledError: when our task was cancelled
     """
     if task.done():
         return
@@ -30,7 +33,8 @@ async def cancel_and_await(task: asyncio.Task[Any]) -> None:
     try:
         await task
     except asyncio.CancelledError:
-        pass
+        if not task.cancelled():
+            raise
 
 
 def is_loop_running() -> bool:
