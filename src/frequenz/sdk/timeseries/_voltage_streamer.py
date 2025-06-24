@@ -190,6 +190,5 @@ class VoltageStreamer:
                     "Phase-to-neutral 3-phase voltage streaming task cancelled: %s",
                     self._source_component,
                 )
-                break
-            else:
-                await sender.send(msg)
+                raise
+            await sender.send(msg)

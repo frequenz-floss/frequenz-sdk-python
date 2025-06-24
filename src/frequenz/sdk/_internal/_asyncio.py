@@ -6,6 +6,7 @@
 
 import asyncio
 import logging
+import sys
 from abc import ABC
 from datetime import timedelta
 from typing import Any, Callable, Coroutine
@@ -22,6 +23,9 @@ async def cancel_and_await(task: asyncio.Task[Any]) -> None:
 
     Args:
         task: The task to be cancelled and waited for.
+
+    Raises:
+        asyncio.CancelledError: when our task was cancelled
     """
     if task.done():
         return
@@ -29,7 +33,17 @@ async def cancel_and_await(task: asyncio.Task[Any]) -> None:
     try:
         await task
     except asyncio.CancelledError:
-        pass
+        if not task.cancelled():
+            raise
+
+
+def is_loop_running() -> bool:
+    """Check if the event loop is running."""
+    try:
+        asyncio.get_running_loop()
+        return True
+    except RuntimeError:
+        return False
 
 
 async def run_forever(
@@ -46,20 +60,10 @@ async def run_forever(
     while True:
         try:
             await async_callable()
-        except RuntimeError as exc:
-            if "no running event loop" in str(exc):
-                _logger.exception(
-                    "Something went wrong, no running event loop, skipping execution of %s",
-                    async_callable.__name__,
-                )
-                return
         except Exception:  # pylint: disable=broad-except
-            if not asyncio.get_event_loop().is_running():
-                _logger.exception(
-                    "Something went wrong, no running event loop, skipping execution of %s",
-                    async_callable.__name__,
-                )
-                return
+            if not is_loop_running():
+                _logger.exception("There is no running event loop, aborting...")
+                sys.exit(-1)
             _logger.exception("Restarting after exception")
         await asyncio.sleep(interval_s)
 

@@ -8,6 +8,7 @@ import asyncio
 import logging
 from datetime import timedelta
 
+from .._internal._asyncio import is_loop_running
 from ._background_service import BackgroundService
 
 _logger = logging.getLogger(__name__)
@@ -105,6 +106,14 @@ class Actor(BackgroundService, abc.ABC):
                 _logger.info("Actor %s: Cancelled.", self)
                 raise
             except Exception:  # pylint: disable=broad-except
+                if not is_loop_running():
+                    _logger.exception(
+                        "Something went wrong, no running event loop,"
+                        " not trying to restart %s again.",
+                        self,
+                    )
+                    raise
+
                 if self._is_cancelled:
                     # If actor was cancelled, but any tasks have failed with an exception
                     # other than asyncio.CancelledError, those exceptions are combined

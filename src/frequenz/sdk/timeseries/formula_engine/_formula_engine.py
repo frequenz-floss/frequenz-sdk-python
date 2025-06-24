@@ -584,9 +584,8 @@ class FormulaEngine3Phase(Generic[QuantityT]):
                 )
             except asyncio.CancelledError:
                 _logger.debug("FormulaEngine task cancelled: %s", self._name)
-                break
-            else:
-                await sender.send(msg)
+                raise
+            await sender.send(msg)
 
     def new_receiver(
         self, name: str | None = None, max_size: int = 50
