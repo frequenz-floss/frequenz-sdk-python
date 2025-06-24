@@ -3,7 +3,7 @@
 
 [build-system]
 requires = [
-  "setuptools == 80.3.1",
+  "setuptools == 80.9.0",
   "setuptools_scm[toml] == 8.3.1",
   "frequenz-repo-config[lib] == 0.13.4",
 ]
@@ -47,7 +47,7 @@ email = "floss@frequenz.com"
 
 [project.optional-dependencies]
 dev-flake8 = [
-  "flake8 == 7.2.0",
+  "flake8 == 7.3.0",
   "flake8-docstrings == 1.7.0",
   "flake8-pyproject == 1.2.3", # For reading the flake8 config from pyproject.toml
   "pydoclint == 0.6.6",
@@ -67,10 +67,10 @@ dev-mkdocs = [
   "frequenz-repo-config[lib] == 0.13.4",
 ]
 dev-mypy = [
-  "mypy == 1.15.0",
+  "mypy == 1.16.1",
   "types-Markdown == 3.8.0.20250415",
   "types-protobuf == 6.30.2.20250516",
-  "types-setuptools == 80.3.0.20250505",
+  "types-setuptools == 80.9.0.20250529",
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
@@ -81,13 +81,13 @@ dev-pylint = [
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
 dev-pytest = [
-  "pytest == 8.3.5",
+  "pytest == 8.4.1",
   "frequenz-repo-config[extra-lint-examples] == 0.13.4",
   "pytest-mock == 3.14.1",
   "pytest-asyncio == 0.26.0",
   "time-machine == 2.16.0",
   "async-solipsism == 0.7",
-  "hypothesis == 6.131.9",
+  "hypothesis == 6.135.14",
 ]
 dev = [
   "frequenz-sdk[dev-mkdocs,dev-flake8,dev-formatting,dev-mkdocs,dev-mypy,dev-noxfile,dev-pylint,dev-pytest]",
