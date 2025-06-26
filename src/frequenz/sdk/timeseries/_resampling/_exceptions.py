@@ -31,7 +31,7 @@ class SourceStoppedError(RuntimeError):
 
 
 class ResamplingError(RuntimeError):
-    """An Error ocurred while resampling.
+    """An Error occurred while resampling.
 
     This error is a container for errors raised by the underlying sources and
     or sinks.
