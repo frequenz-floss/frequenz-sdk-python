@@ -394,8 +394,8 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
             True if inverter is in correct state. False otherwise.
         """
         # Component state is not exposed to the user.
-        # pylint: disable=protected-access
         state = msg.component_state
+        # pylint: disable-next=protected-access
         if state not in BatteryStatusTracker._inverter_valid_state:
             if self._last_status == ComponentStatusEnum.WORKING:
                 _logger.warning(
@@ -404,7 +404,6 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
                     state.name,
                 )
             return False
-        # pylint: enable=protected-access
         return True
 
     def _is_battery_state_correct(self, msg: BatteryData) -> bool:
@@ -417,8 +416,8 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
             True if battery is in correct state. False otherwise.
         """
         # Component state is not exposed to the user.
-        # pylint: disable=protected-access
         state = msg.component_state
+        # pylint: disable-next=protected-access
         if state not in BatteryStatusTracker._battery_valid_state:
             if self._last_status == ComponentStatusEnum.WORKING:
                 _logger.warning(
@@ -439,7 +438,6 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
                 )
             return False
         return True
-        # pylint: enable=protected-access
 
     def _is_timestamp_outdated(self, timestamp: datetime) -> bool:
         """Return if timestamp is to old.

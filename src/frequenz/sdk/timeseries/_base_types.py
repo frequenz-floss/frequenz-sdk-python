@@ -7,13 +7,10 @@ import dataclasses
 import functools
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, Generic, Protocol, Self, TypeVar, cast, overload
 
 from frequenz.quantities import Power, Quantity
-
-UNIX_EPOCH = datetime.fromtimestamp(0.0, tz=timezone.utc)
-"""The UNIX epoch (in UTC)."""
 
 QuantityT = TypeVar("QuantityT", bound=Quantity)
 """Type variable for representing various quantity types."""

@@ -33,8 +33,7 @@ from .result import Result
 _logger = logging.getLogger(__name__)
 
 
-class PowerDistributingActor(Actor):
-    # pylint: disable=too-many-instance-attributes
+class PowerDistributingActor(Actor):  # pylint: disable=too-many-instance-attributes
     """Actor to distribute the power between components in a microgrid.
 
     One instance of the actor can handle only one component category and type,

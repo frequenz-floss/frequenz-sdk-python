@@ -17,19 +17,22 @@ from frequenz.channels import Broadcast, SenderError
 from frequenz.quantities import Quantity
 
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._resampling import (
-    DEFAULT_BUFFER_LEN_MAX,
-    DEFAULT_BUFFER_LEN_WARN,
-    Resampler,
-    ResamplerConfig,
-    ResamplingError,
-    ResamplingFunction,
+from frequenz.sdk.timeseries._resampling._base_types import (
     Sink,
     Source,
     SourceProperties,
-    SourceStoppedError,
-    _ResamplingHelper,
 )
+from frequenz.sdk.timeseries._resampling._config import (
+    DEFAULT_BUFFER_LEN_MAX,
+    DEFAULT_BUFFER_LEN_WARN,
+    ResamplerConfig,
+    ResamplingFunction,
+)
+from frequenz.sdk.timeseries._resampling._exceptions import (
+    ResamplingError,
+    SourceStoppedError,
+)
+from frequenz.sdk.timeseries._resampling._resampler import Resampler, _ResamplingHelper
 
 from ..utils import a_sequence
 
@@ -49,6 +52,12 @@ async def source_chan() -> AsyncIterator[Broadcast[Sample[Quantity]]]:
     chan = Broadcast[Sample[Quantity]](name="test")
     yield chan
     await chan.close()
+
+
+def as_float_tuple(sample: Sample[Quantity]) -> tuple[datetime, float]:
+    """Convert a sample to a tuple of datetime and float value."""
+    assert sample.value is not None, "Sample value should not be None"
+    return (sample.timestamp, sample.value.base_value)
 
 
 async def _advance_time(fake_time: time_machine.Coordinates, seconds: float) -> None:
@@ -119,9 +128,11 @@ async def test_resampler_config_len_warn(
     )
     assert config.initial_buffer_len == init_len
     # Ignore errors produced by wrongly finalized gRPC server in unrelated tests
-    assert _filter_logs(caplog.record_tuples) == [
+    assert _filter_logs(
+        caplog.record_tuples, logger_name="frequenz.sdk.timeseries._resampling._config"
+    ) == [
         (
-            "frequenz.sdk.timeseries._resampling",
+            "frequenz.sdk.timeseries._resampling._config",
             logging.WARNING,
             f"initial_buffer_len ({init_len}) is bigger than "
             f"warn_buffer_len ({DEFAULT_BUFFER_LEN_WARN})",
@@ -154,14 +165,14 @@ async def test_helper_buffer_too_big(
     helper = _ResamplingHelper("test", config)
 
     for i in range(DEFAULT_BUFFER_LEN_MAX + 1):
-        sample = Sample(datetime.now(timezone.utc), Quantity(i))
+        sample = (datetime.now(timezone.utc), i)
         helper.add_sample(sample)
         await _advance_time(fake_time, 1)
 
     _ = helper.resample(datetime.now(timezone.utc))
     # Ignore errors produced by wrongly finalized gRPC server in unrelated tests
     assert (
-        "frequenz.sdk.timeseries._resampling",
+        "frequenz.sdk.timeseries._resampling._resampler",
         logging.ERROR,
         f"The new buffer length ({DEFAULT_BUFFER_LEN_MAX + 1}) "
         f"for timeseries test is too big, using {DEFAULT_BUFFER_LEN_MAX} instead",
@@ -309,7 +320,7 @@ async def test_resampling_window_size_is_constant(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample1s), config, source_props
+        a_sequence(as_float_tuple(sample1s)), config, source_props
     )
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
@@ -336,7 +347,13 @@ async def test_resampling_window_size_is_constant(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample2_5s, sample3s, sample4s), config, source_props
+        a_sequence(
+            as_float_tuple(sample2_5s),
+            as_float_tuple(sample3s),
+            as_float_tuple(sample4s),
+        ),
+        config,
+        source_props,
     )
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
@@ -402,7 +419,12 @@ async def test_timer_errors_are_logged(  # pylint: disable=too-many-statements
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample0s, sample1s), config, source_props
+        a_sequence(
+            as_float_tuple(sample0s),
+            as_float_tuple(sample1s),
+        ),
+        config,
+        source_props,
     )
     assert not [
         *_filter_logs(
@@ -436,7 +458,12 @@ async def test_timer_errors_are_logged(  # pylint: disable=too-many-statements
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample1s, sample2_5s, sample3s, sample4s),
+        a_sequence(
+            as_float_tuple(sample1s),
+            as_float_tuple(sample2_5s),
+            as_float_tuple(sample3s),
+            as_float_tuple(sample4s),
+        ),
         config,
         source_props,
     )
@@ -470,12 +497,18 @@ async def test_timer_errors_are_logged(  # pylint: disable=too-many-statements
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample3s, sample4s, sample4_5s, sample5s, sample6s),
+        a_sequence(
+            as_float_tuple(sample3s),
+            as_float_tuple(sample4s),
+            as_float_tuple(sample4_5s),
+            as_float_tuple(sample5s),
+            as_float_tuple(sample6s),
+        ),
         config,
         source_props,
     )
     assert (
-        "frequenz.sdk.timeseries._resampling",
+        "frequenz.sdk.timeseries._resampling._resampler",
         logging.WARNING,
         "The resampling task woke up too late. Resampling should have started at "
         "1970-01-01 00:00:06+00:00, but it started at 1970-01-01 "
@@ -541,7 +574,12 @@ async def test_future_samples_not_included(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample0s, sample1s), config, source_props  # sample2_1s is not here
+        a_sequence(
+            as_float_tuple(sample0s),
+            as_float_tuple(sample1s),
+        ),
+        config,
+        source_props,  # sample2_1s is not here
     )
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=3, sampling_period=None
@@ -566,7 +604,11 @@ async def test_future_samples_not_included(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample1s, sample2_1s, sample3s),
+        a_sequence(
+            as_float_tuple(sample1s),
+            as_float_tuple(sample2_1s),
+            as_float_tuple(sample3s),
+        ),
         config,
         source_props,  # sample4_1s is not here
     )
@@ -624,7 +666,11 @@ async def test_resampling_with_one_window(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample1s), config, source_props
+        a_sequence(
+            as_float_tuple(sample1s),
+        ),
+        config,
+        source_props,
     )
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=2, sampling_period=None
@@ -651,7 +697,13 @@ async def test_resampling_with_one_window(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample2_5s, sample3s, sample4s), config, source_props
+        a_sequence(
+            as_float_tuple(sample2_5s),
+            as_float_tuple(sample3s),
+            as_float_tuple(sample4s),
+        ),
+        config,
+        source_props,
     )
     # By now we have a full buffer (5 samples and a buffer of length 4), which
     # we received in 4 seconds, so we have an input period of 0.8s.
@@ -738,7 +790,12 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample0s, sample1s), config, source_props
+        a_sequence(
+            as_float_tuple(sample0s),
+            as_float_tuple(sample1s),
+        ),
+        config,
+        source_props,
     )
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=2, sampling_period=None
@@ -766,7 +823,13 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     )
     # It should include samples in the interval (1, 4] seconds
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample2_5s, sample3s, sample4s), config, source_props
+        a_sequence(
+            as_float_tuple(sample2_5s),
+            as_float_tuple(sample3s),
+            as_float_tuple(sample4s),
+        ),
+        config,
+        source_props,
     )
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=5, sampling_period=None
@@ -792,7 +855,13 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     )
     # It should include samples in the interval (3, 6] seconds
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample4s, sample5s, sample6s), config, source_props
+        a_sequence(
+            as_float_tuple(sample4s),
+            as_float_tuple(sample5s),
+            as_float_tuple(sample6s),
+        ),
+        config,
+        source_props,
     )
     # By now we have a full buffer (7 samples and a buffer of length 6), which
     # we received in 4 seconds, so we have an input period of 6/7s.
@@ -821,7 +890,7 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     )
     # It should include samples in the interval (5, 8] seconds
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample6s),
+        a_sequence(as_float_tuple(sample6s)),
         config,
         source_props,
     )
@@ -900,7 +969,12 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample0s, sample1s), config, source_props
+        a_sequence(
+            as_float_tuple(sample0s),
+            as_float_tuple(sample1s),
+        ),
+        config,
+        source_props,
     )
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=2, sampling_period=None
@@ -928,7 +1002,14 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     )
     # It should include samples in the interval (0, 4] seconds
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample1s, sample2_5s, sample3s, sample4s), config, source_props
+        a_sequence(
+            as_float_tuple(sample1s),
+            as_float_tuple(sample2_5s),
+            as_float_tuple(sample3s),
+            as_float_tuple(sample4s),
+        ),
+        config,
+        source_props,
     )
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=5, sampling_period=None
@@ -954,7 +1035,13 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     )
     # It should include samples in the interval (2, 6] seconds
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample2_5s, sample3s, sample4s, sample5s, sample6s),
+        a_sequence(
+            as_float_tuple(sample2_5s),
+            as_float_tuple(sample3s),
+            as_float_tuple(sample4s),
+            as_float_tuple(sample5s),
+            as_float_tuple(sample6s),
+        ),
         config,
         source_props,
     )
@@ -978,7 +1065,12 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     )
     # It should include samples in the interval (4, 8] seconds
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample5s, sample6s), config, source_props
+        a_sequence(
+            as_float_tuple(sample5s),
+            as_float_tuple(sample6s),
+        ),
+        config,
+        source_props,
     )
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=7, sampling_period=None
@@ -1043,7 +1135,7 @@ async def test_receiving_stopped_resampling_error(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample0s), config, source_props
+        a_sequence(as_float_tuple(sample0s)), config, source_props
     )
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
@@ -1178,7 +1270,13 @@ async def test_timer_is_aligned(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample1s, sample1_5s, sample2_5s, sample3s, sample4s),
+        a_sequence(
+            as_float_tuple(sample1s),
+            as_float_tuple(sample1_5s),
+            as_float_tuple(sample2_5s),
+            as_float_tuple(sample3s),
+            as_float_tuple(sample4s),
+        ),
         config,
         source_props,
     )
@@ -1244,7 +1342,7 @@ async def test_resampling_all_zeros(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample1s), config, source_props
+        a_sequence(as_float_tuple(sample1s)), config, source_props
     )
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=2, sampling_period=None
@@ -1271,7 +1369,13 @@ async def test_resampling_all_zeros(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(sample2_5s, sample3s, sample4s), config, source_props
+        a_sequence(
+            as_float_tuple(sample2_5s),
+            as_float_tuple(sample3s),
+            as_float_tuple(sample4s),
+        ),
+        config,
+        source_props,
     )
     # By now we have a full buffer (5 samples and a buffer of length 4), which
     # we received in 4 seconds, so we have an input period of 0.8s.
@@ -1313,7 +1417,7 @@ def _get_buffer_len(resampler: Resampler, source_receiver: Source) -> int:
 def _filter_logs(
     record_tuples: list[tuple[str, int, str]],
     *,
-    logger_name: str = "frequenz.sdk.timeseries._resampling",
+    logger_name: str = "frequenz.sdk.timeseries._resampling._resampler",
     logger_level: int | None = None,
 ) -> list[tuple[str, int, str]]:
     return [

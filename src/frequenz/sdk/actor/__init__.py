@@ -597,7 +597,7 @@ Received message=False
 [_run]: #the-_run-method
 """
 
-from ..timeseries._resampling import ResamplerConfig
+from ..timeseries._resampling._config import ResamplerConfig
 from ._actor import Actor
 from ._background_service import BackgroundService
 from ._run_utils import run

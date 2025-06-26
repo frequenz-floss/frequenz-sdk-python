@@ -11,8 +11,9 @@ from typing import Generic, SupportsIndex, TypeVar, overload
 
 import numpy as np
 import numpy.typing as npt
+from frequenz.core.datetime import UNIX_EPOCH
 
-from .._base_types import UNIX_EPOCH, QuantityT, Sample
+from .._base_types import QuantityT, Sample
 
 FloatArray = TypeVar("FloatArray", list[float], npt.NDArray[np.float64])
 """Type variable of the buffer container."""

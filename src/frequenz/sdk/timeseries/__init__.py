@@ -9,8 +9,8 @@ A timeseries is a stream (normally an async iterator) of
 
 # Periodicity and alignment
 
-All the data produced by this package is always periodic and aligned to the
-`UNIX_EPOCH` (by default).
+All the data produced by this package is always periodic, in UTC, and aligned to the
+[Epoch](https://en.wikipedia.org/wiki/Epoch_(computing)) (by default).
 
 Classes normally take a (re)sampling period as and argument and, optionally, an
 `align_to` argument.
@@ -36,11 +36,12 @@ Example:
 """
 
 from .._internal._channels import ReceiverFetcher
-from ._base_types import UNIX_EPOCH, Bounds, Sample, Sample3Phase
+from ._base_types import Bounds, Sample, Sample3Phase
 from ._fuse import Fuse
 from ._moving_window import MovingWindow
 from ._periodic_feature_extractor import PeriodicFeatureExtractor
-from ._resampling import ResamplerConfig
+from ._resampling._base_types import SourceProperties
+from ._resampling._config import ResamplerConfig, ResamplingFunction
 
 __all__ = [
     "Bounds",
@@ -49,7 +50,8 @@ __all__ = [
     "PeriodicFeatureExtractor",
     "ResamplerConfig",
     "ReceiverFetcher",
+    "ResamplingFunction",
     "Sample",
     "Sample3Phase",
-    "UNIX_EPOCH",
+    "SourceProperties",
 ]
