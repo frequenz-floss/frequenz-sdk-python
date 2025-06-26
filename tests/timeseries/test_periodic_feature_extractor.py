@@ -10,10 +10,10 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 import pytest
 from frequenz.channels import Broadcast
+from frequenz.core.datetime import UNIX_EPOCH
 from frequenz.quantities import Quantity
 
 from frequenz.sdk.timeseries import (
-    UNIX_EPOCH,
     MovingWindow,
     PeriodicFeatureExtractor,
     Sample,

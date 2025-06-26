@@ -12,7 +12,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Protocol
 
-from .._base_types import UNIX_EPOCH
+from frequenz.core.datetime import UNIX_EPOCH
+
 from ._base_types import SourceProperties
 
 _logger = logging.getLogger(__name__)

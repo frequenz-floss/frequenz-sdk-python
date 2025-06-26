@@ -13,11 +13,12 @@ from typing import SupportsIndex, assert_never, overload
 
 import numpy as np
 from frequenz.channels import Broadcast, Receiver, Sender
+from frequenz.core.datetime import UNIX_EPOCH
 from frequenz.quantities import Quantity
 from numpy.typing import ArrayLike
 
 from ..actor._background_service import BackgroundService
-from ._base_types import UNIX_EPOCH, Sample
+from ._base_types import Sample
 from ._resampling._config import ResamplerConfig
 from ._resampling._resampler import Resampler
 from ._ringbuffer import OrderedRingBuffer

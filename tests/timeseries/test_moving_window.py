@@ -13,10 +13,10 @@ import numpy as np
 import pytest
 import time_machine
 from frequenz.channels import Broadcast, Sender
+from frequenz.core.datetime import UNIX_EPOCH
 from frequenz.quantities import Quantity
 
 from frequenz.sdk.timeseries import (
-    UNIX_EPOCH,
     MovingWindow,
     ResamplerConfig,
     Sample,
