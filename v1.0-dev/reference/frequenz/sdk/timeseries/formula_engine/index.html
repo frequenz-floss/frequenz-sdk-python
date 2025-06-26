@@ -2257,7 +2257,7 @@ Model</a>.</p>
 <h4 id="frequenz.sdk.timeseries.formula_engine--streaming-interface">Streaming Interface<a class="headerlink" href="#frequenz.sdk.timeseries.formula_engine--streaming-interface" title="Permanent link">¤</a></h4>
 <p>The
 <a class="autorefs autorefs-internal" title="new_receiver" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine.new_receiver"><code>FormulaEngine.new_receiver()</code></a>
-method can be used to create a <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a> that streams the
+method can be used to create a <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a> that streams the
 <a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
 
 
@@ -2334,7 +2334,7 @@ etc.) are implemented as per-phase formulas.</p>
 <h4 id="frequenz.sdk.timeseries.formula_engine--streaming-interface_1">Streaming Interface<a class="headerlink" href="#frequenz.sdk.timeseries.formula_engine--streaming-interface_1" title="Permanent link">¤</a></h4>
 <p>The
 <a class="autorefs autorefs-internal" title="new_receiver" href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase.new_receiver"><code>FormulaEngine3Phase.new_receiver()</code></a>
-method can be used to create a <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a> that streams the
+method can be used to create a <a class="autorefs autorefs-external" href="https://frequenz-floss.github.io/frequenz-channels-python/v1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a> that streams the
 <a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample3Phase
 
 
@@ -3774,7 +3774,7 @@ positive or 0.</p>
 <a href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine.from_receiver" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">from_receiver</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">receiver</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">receiver</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
 
 
   
@@ -3855,7 +3855,7 @@ from the same resampler and that the <code>create_method</code>s match.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
+                      <code><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
 
 
   
@@ -4289,7 +4289,7 @@ into a formula engine.</p>
 <a href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine.new_receiver" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">new_receiver</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">max_size</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">50</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
 
 
   
@@ -4365,7 +4365,7 @@ into a formula engine.</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
+                    <code><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample
 
 
   
@@ -6014,7 +6014,7 @@ into a formula engine.</p>
 <a href="#frequenz.sdk.timeseries.formula_engine.FormulaEngine3Phase.new_receiver" class="headerlink" title="Permanent link">¤</a></h6>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">new_receiver</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">max_size</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">50</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample3Phase
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample3Phase
 
 
   
@@ -6090,7 +6090,7 @@ into a formula engine.</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1.1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample3Phase
+                    <code><a class="autorefs autorefs-external" title="frequenz.channels.Receiver" href="https://frequenz-floss.github.io/frequenz-channels-python/v1/reference/frequenz/channels/#frequenz.channels.Receiver">Receiver</a>[<a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.Sample3Phase
 
 
   
