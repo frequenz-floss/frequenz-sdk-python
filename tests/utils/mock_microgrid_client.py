@@ -8,11 +8,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 from frequenz.channels import Broadcast, Receiver
 from frequenz.client.common.microgrid import MicrogridId
-from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.common.microgrid.components import ComponentCategory, ComponentId
 from frequenz.client.microgrid import (
     BatteryData,
     Component,
-    ComponentCategory,
     ComponentData,
     Connection,
     EVChargerData,

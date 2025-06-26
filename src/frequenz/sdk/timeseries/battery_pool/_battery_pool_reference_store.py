@@ -11,8 +11,7 @@ from datetime import timedelta
 from typing import Any
 
 from frequenz.channels import Receiver, Sender
-from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ComponentCategory
+from frequenz.client.common.microgrid.components import ComponentCategory, ComponentId
 
 from ..._internal._asyncio import cancel_and_await
 from ..._internal._channels import ChannelRegistry, ReceiverFetcher

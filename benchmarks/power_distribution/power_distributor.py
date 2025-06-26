@@ -12,8 +12,8 @@ from datetime import timedelta
 from typing import Any
 
 from frequenz.channels import Broadcast
-from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import Component, ComponentCategory
+from frequenz.client.common.microgrid.components import ComponentCategory, ComponentId
+from frequenz.client.microgrid import Component
 from frequenz.quantities import Power
 
 from frequenz.sdk import microgrid

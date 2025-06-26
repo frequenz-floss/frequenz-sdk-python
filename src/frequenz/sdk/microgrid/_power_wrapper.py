@@ -9,11 +9,12 @@ import logging
 from datetime import timedelta
 
 from frequenz.channels import Broadcast
+from frequenz.client.common.microgrid.components import ComponentCategory
 
 # pylint seems to think this is a cyclic import, but it is not.
 #
 # pylint: disable=cyclic-import
-from frequenz.client.microgrid import ComponentCategory, ComponentType
+from frequenz.client.microgrid import ComponentType
 
 from .._internal._channels import ChannelRegistry, ReceiverFetcher
 from . import _power_managing, connection_manager

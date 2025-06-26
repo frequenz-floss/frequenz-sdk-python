@@ -14,7 +14,8 @@ import logging
 from typing import TYPE_CHECKING
 
 from frequenz.channels import Receiver, Sender
-from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.client.common.microgrid.components import ComponentCategory
+from frequenz.client.microgrid import Component, ComponentMetricId
 from frequenz.quantities import Quantity, Voltage
 
 from .._internal._channels import ChannelRegistry

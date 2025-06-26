@@ -3,7 +3,8 @@
 
 """Formula generator from component graph for 3-phase Grid Current."""
 
-from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.client.common.microgrid.components import ComponentCategory
+from frequenz.client.microgrid import Component, ComponentMetricId
 from frequenz.quantities import Current
 
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase

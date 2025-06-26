@@ -11,10 +11,9 @@ from datetime import datetime, timedelta, timezone
 from types import TracebackType
 from typing import Coroutine
 
-from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.common.microgrid.components import ComponentCategory, ComponentId
 from frequenz.client.microgrid import (
     Component,
-    ComponentCategory,
     ComponentData,
     Connection,
     EVChargerCableState,

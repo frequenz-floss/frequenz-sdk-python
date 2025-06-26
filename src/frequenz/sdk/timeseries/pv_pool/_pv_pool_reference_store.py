@@ -9,8 +9,8 @@ import uuid
 from collections import abc
 
 from frequenz.channels import Broadcast, Receiver, Sender
-from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ComponentCategory, InverterType
+from frequenz.client.common.microgrid.components import ComponentCategory, ComponentId
+from frequenz.client.microgrid import InverterType
 
 from ..._internal._channels import ChannelRegistry, ReceiverFetcher
 from ...microgrid import connection_manager

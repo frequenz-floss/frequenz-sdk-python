@@ -9,13 +9,8 @@ import logging
 from datetime import timedelta
 
 from frequenz.channels import LatestValueCache, Sender
-from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
-    ApiClientError,
-    ComponentCategory,
-    InverterData,
-    InverterType,
-)
+from frequenz.client.common.microgrid.components import ComponentCategory, ComponentId
+from frequenz.client.microgrid import ApiClientError, InverterData, InverterType
 from frequenz.quantities import Power
 from typing_extensions import override
 

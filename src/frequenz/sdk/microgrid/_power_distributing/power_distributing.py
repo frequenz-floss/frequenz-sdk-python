@@ -15,8 +15,8 @@ import logging
 from datetime import timedelta
 
 from frequenz.channels import Receiver, Sender
-from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ComponentCategory, ComponentType, InverterType
+from frequenz.client.common.microgrid.components import ComponentCategory, ComponentId
+from frequenz.client.microgrid import ComponentType, InverterType
 from typing_extensions import override
 
 from ...actor._actor import Actor

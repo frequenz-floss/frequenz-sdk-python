@@ -11,14 +11,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from frequenz.client.common.microgrid import MicrogridId
-from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
-    Component,
-    ComponentCategory,
-    Connection,
-    Location,
-    Metadata,
-)
+from frequenz.client.common.microgrid.components import ComponentCategory, ComponentId
+from frequenz.client.microgrid import Component, Connection, Location, Metadata
 
 from frequenz.sdk.microgrid import connection_manager
 

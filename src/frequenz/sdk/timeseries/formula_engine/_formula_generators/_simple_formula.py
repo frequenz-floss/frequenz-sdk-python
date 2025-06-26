@@ -3,7 +3,8 @@
 
 """Formula generator from component graph."""
 
-from frequenz.client.microgrid import ComponentCategory, ComponentMetricId
+from frequenz.client.common.microgrid.components import ComponentCategory
+from frequenz.client.microgrid import ComponentMetricId
 from frequenz.quantities import Power, ReactivePower
 
 from ....microgrid import connection_manager

@@ -5,7 +5,8 @@
 
 import logging
 
-from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.client.common.microgrid.components import ComponentCategory
+from frequenz.client.microgrid import Component, ComponentMetricId
 from frequenz.quantities import Power
 
 from ....microgrid import connection_manager

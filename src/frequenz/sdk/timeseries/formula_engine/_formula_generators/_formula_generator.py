@@ -13,8 +13,8 @@ from dataclasses import dataclass
 from typing import Generic
 
 from frequenz.channels import Sender
-from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.client.common.microgrid.components import ComponentCategory, ComponentId
+from frequenz.client.microgrid import Component, ComponentMetricId
 
 from ...._internal._channels import ChannelRegistry
 from ....microgrid import connection_manager

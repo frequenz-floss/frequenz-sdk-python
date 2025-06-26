@@ -16,13 +16,8 @@ from frequenz.channels import (
     select,
     selected_from,
 )
-from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
-    ApiClientError,
-    ComponentCategory,
-    EVChargerData,
-    MicrogridApiClient,
-)
+from frequenz.client.common.microgrid.components import ComponentCategory, ComponentId
+from frequenz.client.microgrid import ApiClientError, EVChargerData, MicrogridApiClient
 from frequenz.quantities import Power, Voltage
 from typing_extensions import override
 

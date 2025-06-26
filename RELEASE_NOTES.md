@@ -7,6 +7,7 @@
 ## Upgrading
 
 * The microgrid client dependency has been updated to version 0.9.0
+* The `ComponentCategory` is now based on the frequenz.client.common package
 
 ## New Features
 

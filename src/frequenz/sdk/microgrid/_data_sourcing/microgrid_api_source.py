@@ -9,10 +9,9 @@ from collections.abc import Callable
 from typing import Any
 
 from frequenz.channels import Receiver, Sender
-from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.common.microgrid.components import ComponentCategory, ComponentId
 from frequenz.client.microgrid import (
     BatteryData,
-    ComponentCategory,
     ComponentMetricId,
     EVChargerData,
     InverterData,

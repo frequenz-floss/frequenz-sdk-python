@@ -12,8 +12,7 @@ from typing import TypeVar
 from unittest.mock import MagicMock
 
 from frequenz.channels import Broadcast
-from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ComponentCategory
+from frequenz.client.common.microgrid.components import ComponentCategory, ComponentId
 from frequenz.quantities import Power
 from pytest_mock import MockerFixture
 

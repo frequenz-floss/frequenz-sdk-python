@@ -5,7 +5,8 @@
 
 from abc import ABC, abstractmethod
 
-from frequenz.client.microgrid import Component, ComponentCategory
+from frequenz.client.common.microgrid.components import ComponentCategory
+from frequenz.client.microgrid import Component
 
 from ..._base_types import QuantityT
 from .._formula_engine import FormulaEngine
