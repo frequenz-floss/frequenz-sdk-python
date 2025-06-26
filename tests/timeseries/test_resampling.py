@@ -7,7 +7,6 @@
 import asyncio
 import logging
 from collections.abc import AsyncIterator
-from dataclasses import astuple
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock
 
@@ -53,6 +52,12 @@ async def source_chan() -> AsyncIterator[Broadcast[Sample[Quantity]]]:
     chan = Broadcast[Sample[Quantity]](name="test")
     yield chan
     await chan.close()
+
+
+def as_float_tuple(sample: Sample[Quantity]) -> tuple[datetime, float]:
+    """Convert a sample to a tuple of datetime and float value."""
+    assert sample.value is not None, "Sample value should not be None"
+    return (sample.timestamp, sample.value.base_value)
 
 
 async def _advance_time(fake_time: time_machine.Coordinates, seconds: float) -> None:
@@ -160,7 +165,7 @@ async def test_helper_buffer_too_big(
     helper = _ResamplingHelper("test", config)
 
     for i in range(DEFAULT_BUFFER_LEN_MAX + 1):
-        sample = (datetime.now(timezone.utc), Quantity(i))
+        sample = (datetime.now(timezone.utc), i)
         helper.add_sample(sample)
         await _advance_time(fake_time, 1)
 
@@ -315,7 +320,7 @@ async def test_resampling_window_size_is_constant(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(astuple(sample1s)), config, source_props
+        a_sequence(as_float_tuple(sample1s)), config, source_props
     )
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
@@ -343,9 +348,9 @@ async def test_resampling_window_size_is_constant(
     )
     resampling_fun_mock.assert_called_once_with(
         a_sequence(
-            astuple(sample2_5s),
-            astuple(sample3s),
-            astuple(sample4s),
+            as_float_tuple(sample2_5s),
+            as_float_tuple(sample3s),
+            as_float_tuple(sample4s),
         ),
         config,
         source_props,
@@ -415,8 +420,8 @@ async def test_timer_errors_are_logged(  # pylint: disable=too-many-statements
     )
     resampling_fun_mock.assert_called_once_with(
         a_sequence(
-            astuple(sample0s),
-            astuple(sample1s),
+            as_float_tuple(sample0s),
+            as_float_tuple(sample1s),
         ),
         config,
         source_props,
@@ -454,10 +459,10 @@ async def test_timer_errors_are_logged(  # pylint: disable=too-many-statements
     )
     resampling_fun_mock.assert_called_once_with(
         a_sequence(
-            astuple(sample1s),
-            astuple(sample2_5s),
-            astuple(sample3s),
-            astuple(sample4s),
+            as_float_tuple(sample1s),
+            as_float_tuple(sample2_5s),
+            as_float_tuple(sample3s),
+            as_float_tuple(sample4s),
         ),
         config,
         source_props,
@@ -493,11 +498,11 @@ async def test_timer_errors_are_logged(  # pylint: disable=too-many-statements
     )
     resampling_fun_mock.assert_called_once_with(
         a_sequence(
-            astuple(sample3s),
-            astuple(sample4s),
-            astuple(sample4_5s),
-            astuple(sample5s),
-            astuple(sample6s),
+            as_float_tuple(sample3s),
+            as_float_tuple(sample4s),
+            as_float_tuple(sample4_5s),
+            as_float_tuple(sample5s),
+            as_float_tuple(sample6s),
         ),
         config,
         source_props,
@@ -570,8 +575,8 @@ async def test_future_samples_not_included(
     )
     resampling_fun_mock.assert_called_once_with(
         a_sequence(
-            astuple(sample0s),
-            astuple(sample1s),
+            as_float_tuple(sample0s),
+            as_float_tuple(sample1s),
         ),
         config,
         source_props,  # sample2_1s is not here
@@ -600,9 +605,9 @@ async def test_future_samples_not_included(
     )
     resampling_fun_mock.assert_called_once_with(
         a_sequence(
-            astuple(sample1s),
-            astuple(sample2_1s),
-            astuple(sample3s),
+            as_float_tuple(sample1s),
+            as_float_tuple(sample2_1s),
+            as_float_tuple(sample3s),
         ),
         config,
         source_props,  # sample4_1s is not here
@@ -662,7 +667,7 @@ async def test_resampling_with_one_window(
     )
     resampling_fun_mock.assert_called_once_with(
         a_sequence(
-            astuple(sample1s),
+            as_float_tuple(sample1s),
         ),
         config,
         source_props,
@@ -693,9 +698,9 @@ async def test_resampling_with_one_window(
     )
     resampling_fun_mock.assert_called_once_with(
         a_sequence(
-            astuple(sample2_5s),
-            astuple(sample3s),
-            astuple(sample4s),
+            as_float_tuple(sample2_5s),
+            as_float_tuple(sample3s),
+            as_float_tuple(sample4s),
         ),
         config,
         source_props,
@@ -786,8 +791,8 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     )
     resampling_fun_mock.assert_called_once_with(
         a_sequence(
-            astuple(sample0s),
-            astuple(sample1s),
+            as_float_tuple(sample0s),
+            as_float_tuple(sample1s),
         ),
         config,
         source_props,
@@ -819,9 +824,9 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     # It should include samples in the interval (1, 4] seconds
     resampling_fun_mock.assert_called_once_with(
         a_sequence(
-            astuple(sample2_5s),
-            astuple(sample3s),
-            astuple(sample4s),
+            as_float_tuple(sample2_5s),
+            as_float_tuple(sample3s),
+            as_float_tuple(sample4s),
         ),
         config,
         source_props,
@@ -851,9 +856,9 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     # It should include samples in the interval (3, 6] seconds
     resampling_fun_mock.assert_called_once_with(
         a_sequence(
-            astuple(sample4s),
-            astuple(sample5s),
-            astuple(sample6s),
+            as_float_tuple(sample4s),
+            as_float_tuple(sample5s),
+            as_float_tuple(sample6s),
         ),
         config,
         source_props,
@@ -885,7 +890,7 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     )
     # It should include samples in the interval (5, 8] seconds
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(astuple(sample6s)),
+        a_sequence(as_float_tuple(sample6s)),
         config,
         source_props,
     )
@@ -965,8 +970,8 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     )
     resampling_fun_mock.assert_called_once_with(
         a_sequence(
-            astuple(sample0s),
-            astuple(sample1s),
+            as_float_tuple(sample0s),
+            as_float_tuple(sample1s),
         ),
         config,
         source_props,
@@ -998,10 +1003,10 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     # It should include samples in the interval (0, 4] seconds
     resampling_fun_mock.assert_called_once_with(
         a_sequence(
-            astuple(sample1s),
-            astuple(sample2_5s),
-            astuple(sample3s),
-            astuple(sample4s),
+            as_float_tuple(sample1s),
+            as_float_tuple(sample2_5s),
+            as_float_tuple(sample3s),
+            as_float_tuple(sample4s),
         ),
         config,
         source_props,
@@ -1031,11 +1036,11 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     # It should include samples in the interval (2, 6] seconds
     resampling_fun_mock.assert_called_once_with(
         a_sequence(
-            astuple(sample2_5s),
-            astuple(sample3s),
-            astuple(sample4s),
-            astuple(sample5s),
-            astuple(sample6s),
+            as_float_tuple(sample2_5s),
+            as_float_tuple(sample3s),
+            as_float_tuple(sample4s),
+            as_float_tuple(sample5s),
+            as_float_tuple(sample6s),
         ),
         config,
         source_props,
@@ -1061,8 +1066,8 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     # It should include samples in the interval (4, 8] seconds
     resampling_fun_mock.assert_called_once_with(
         a_sequence(
-            astuple(sample5s),
-            astuple(sample6s),
+            as_float_tuple(sample5s),
+            as_float_tuple(sample6s),
         ),
         config,
         source_props,
@@ -1130,7 +1135,7 @@ async def test_receiving_stopped_resampling_error(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(astuple(sample0s)), config, source_props
+        a_sequence(as_float_tuple(sample0s)), config, source_props
     )
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
@@ -1266,11 +1271,11 @@ async def test_timer_is_aligned(
     )
     resampling_fun_mock.assert_called_once_with(
         a_sequence(
-            astuple(sample1s),
-            astuple(sample1_5s),
-            astuple(sample2_5s),
-            astuple(sample3s),
-            astuple(sample4s),
+            as_float_tuple(sample1s),
+            as_float_tuple(sample1_5s),
+            as_float_tuple(sample2_5s),
+            as_float_tuple(sample3s),
+            as_float_tuple(sample4s),
         ),
         config,
         source_props,
@@ -1337,7 +1342,7 @@ async def test_resampling_all_zeros(
         )
     )
     resampling_fun_mock.assert_called_once_with(
-        a_sequence(astuple(sample1s)), config, source_props
+        a_sequence(as_float_tuple(sample1s)), config, source_props
     )
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=2, sampling_period=None
@@ -1365,9 +1370,9 @@ async def test_resampling_all_zeros(
     )
     resampling_fun_mock.assert_called_once_with(
         a_sequence(
-            astuple(sample2_5s),
-            astuple(sample3s),
-            astuple(sample4s),
+            as_float_tuple(sample2_5s),
+            as_float_tuple(sample3s),
+            as_float_tuple(sample4s),
         ),
         config,
         source_props,

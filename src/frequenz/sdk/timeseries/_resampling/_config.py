@@ -11,9 +11,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Protocol
 
-from frequenz.quantities import Quantity
-
-from .._base_types import UNIX_EPOCH, QuantityT
+from .._base_types import UNIX_EPOCH
 from ._base_types import SourceProperties
 
 _logger = logging.getLogger(__name__)
@@ -60,7 +58,7 @@ class ResamplingFunction(Protocol):
 
     def __call__(
         self,
-        input_samples: Sequence[tuple[datetime, Quantity]],
+        input_samples: Sequence[tuple[datetime, float]],
         resampler_config: ResamplerConfig,
         source_properties: SourceProperties,
         /,
@@ -82,7 +80,7 @@ class ResamplingFunction(Protocol):
 
 
 def average(
-    samples: Sequence[tuple[datetime, QuantityT]],
+    samples: Sequence[tuple[datetime, float]],
     resampler_config: ResamplerConfig,  # pylint: disable=unused-argument
     source_properties: SourceProperties,  # pylint: disable=unused-argument
 ) -> float:
@@ -98,7 +96,7 @@ def average(
         The average of all `samples` values.
     """
     assert len(samples) > 0, "Average cannot be given an empty list of samples"
-    values = list(sample[1].base_value for sample in samples)
+    values = list(sample[1] for sample in samples)
     return sum(values) / len(values)
 
 

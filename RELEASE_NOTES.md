@@ -7,6 +7,7 @@
 ## Upgrading
 
 * The microgrid client dependency has been updated to version 0.9.0
+* The resampling function now takes plain `float`s as values instead of `Quantity` objects.
 
 ## New Features
 

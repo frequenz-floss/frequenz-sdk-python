@@ -258,7 +258,7 @@ class _ResamplingHelper:
         """
         self._name = name
         self._config = config
-        self._buffer: deque[tuple[datetime, Quantity]] = deque(
+        self._buffer: deque[tuple[datetime, float]] = deque(
             maxlen=config.initial_buffer_len
         )
         self._source_properties: SourceProperties = SourceProperties()
@@ -272,7 +272,7 @@ class _ResamplingHelper:
         """
         return self._source_properties
 
-    def add_sample(self, sample: tuple[datetime, Quantity]) -> None:
+    def add_sample(self, sample: tuple[datetime, float]) -> None:
         """Add a new sample to the internal buffer.
 
         Args:
@@ -511,7 +511,7 @@ class _StreamingHelper:
         """
         async for sample in self._source:
             if sample.value is not None and not sample.value.isnan():
-                self._helper.add_sample((sample.timestamp, sample.value))
+                self._helper.add_sample((sample.timestamp, sample.value.base_value))
 
     # We need the noqa because pydoclint can't figure out that `recv_exception` is an
     # `Exception` instance.
