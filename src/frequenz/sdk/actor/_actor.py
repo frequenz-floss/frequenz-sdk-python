@@ -153,5 +153,8 @@ class Actor(BackgroundService, abc.ABC):
         Args:
             msg: The message to be passed to the tasks being cancelled.
         """
+        if msg is not None:
+            _logger.info("Actor %s cancelled, reason: %s", self, msg)
+
         self._is_cancelled = True
         return super().cancel(msg)
