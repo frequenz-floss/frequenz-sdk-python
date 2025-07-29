@@ -43,9 +43,16 @@ from ._periodic_feature_extractor import PeriodicFeatureExtractor
 from ._resampling._base_types import SourceProperties
 from ._resampling._config import ResamplerConfig, ResamplingFunction
 from ._resampling._exceptions import ResamplingError, SourceStoppedError
+from ._resampling._wall_clock_timer import (
+    ClocksInfo,
+    TickInfo,
+    WallClockTimer,
+    WallClockTimerConfig,
+)
 
 __all__ = [
     "Bounds",
+    "ClocksInfo",
     "Fuse",
     "MovingWindow",
     "PeriodicFeatureExtractor",
@@ -57,4 +64,7 @@ __all__ = [
     "Sample3Phase",
     "SourceProperties",
     "SourceStoppedError",
+    "TickInfo",
+    "WallClockTimer",
+    "WallClockTimerConfig",
 ]
