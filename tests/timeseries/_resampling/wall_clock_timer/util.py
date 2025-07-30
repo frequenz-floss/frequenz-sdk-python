@@ -3,6 +3,7 @@
 
 """Utility functions for testing the wall clock timer."""
 
+import re
 from datetime import datetime, timedelta, timezone
 from typing import assert_never, overload
 
@@ -15,6 +16,7 @@ import pytest
 # It also looks like we are not the only ones doing this, see:
 # https://github.com/pytest-dev/pytest/issues/8395
 from _pytest.python_api import ApproxBase
+from typing_extensions import override
 
 from frequenz.sdk.timeseries._resampling._wall_clock_timer import ClocksInfo, TickInfo
 
@@ -188,3 +190,21 @@ def approx_tick_info(
     object.__setattr__(approx_tick_info, "sleep_infos", approx_sleeps)
 
     return approx_tick_info
+
+
+class matches_re:  # pylint: disable=invalid-name
+    """Assert that a given string (or string representation) matches a regex pattern."""
+
+    def __init__(self, pattern: str, flags: int = 0) -> None:
+        """Initialize with a regex pattern and optional flags."""
+        self._regex = re.compile(pattern, flags)
+
+    @override
+    def __eq__(self, other: object) -> bool:
+        """Check if the string representation of `other` matches the regex pattern."""
+        return bool(self._regex.match(str(other)))
+
+    @override
+    def __repr__(self) -> str:
+        """Return a string representation of this instance."""
+        return self._regex.pattern
