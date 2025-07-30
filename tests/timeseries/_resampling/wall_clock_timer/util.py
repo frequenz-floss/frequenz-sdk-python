@@ -6,6 +6,8 @@
 from datetime import datetime, timedelta, timezone
 from typing import assert_never, overload
 
+import pytest
+
 # This is not great, we are depending on an internal pytest API, but it is
 # the most convenient way to provide a custom approx() comparison for datetime
 # and timedelta.
@@ -13,6 +15,8 @@ from typing import assert_never, overload
 # It also looks like we are not the only ones doing this, see:
 # https://github.com/pytest-dev/pytest/issues/8395
 from _pytest.python_api import ApproxBase
+
+from frequenz.sdk.timeseries._resampling._wall_clock_timer import ClocksInfo, TickInfo
 
 
 @overload
@@ -95,3 +99,92 @@ class approx_time(ApproxBase):  # pylint: disable=invalid-name, abstract-method
                 return NotImplemented
 
         return abs(diff) <= self.abs
+
+
+# We need to rewrite most of the attributes in these classes to use approximate
+# comparisons. This means if a new field is added, we need to update the
+# approx_tick_info function below to handle the new fields. To catch this, we do
+# a sanity check here, so if new fields are added we get an early warning instead of
+# getting tests errors because of some rounding error in a newly added field.
+assert set(ClocksInfo.__dataclass_fields__.keys()) == {
+    "monotonic_requested_sleep",
+    "monotonic_time",
+    "wall_clock_time",
+    "monotonic_elapsed",
+    "wall_clock_elapsed",
+    "wall_clock_factor",
+}, "ClocksInfo fields were added or removed, please update the approx_tick_info function."
+assert set(TickInfo.__dataclass_fields__.keys()) == {
+    "expected_tick_time",
+    "sleep_infos",
+}, "TickInfo fields were added or removed, please update the approx_tick_info function."
+
+
+def approx_tick_info(
+    expected: TickInfo,
+    *,
+    abs: timedelta = timedelta(milliseconds=1),  # pylint: disable=redefined-builtin
+) -> TickInfo:
+    """Create a copy of a `TickInfo` object with approximate comparisons.
+
+    Fields are replaced by approximate comparison objects (`approx_time` or
+    `pytest.approx`).
+
+    This version bypasses `__post_init__` to avoid validation `TypeError`s.
+
+    Args:
+        expected: The expected `TickInfo` object to compare against.
+        abs: The absolute tolerance as a `timedelta` for all time-based
+            comparisons. Defaults to 1ms.
+
+    Returns:
+        A new `TickInfo` instance ready for approximate comparison.
+    """
+    abs_s = abs.total_seconds()
+    approx_sleeps = []
+    for s_info in expected.sleep_infos:
+        # HACK: Create a blank instance to bypass __init__ and __post_init__.
+        # This prevents the TypeError from the validation logic.
+        approx_s = object.__new__(ClocksInfo)
+
+        # Use object.__setattr__ to assign fields to the frozen instance.
+        object.__setattr__(
+            approx_s,
+            "monotonic_requested_sleep",
+            approx_time(s_info.monotonic_requested_sleep, abs=abs),
+        )
+        # Use the standard pytest.approx for float values
+        object.__setattr__(
+            approx_s, "monotonic_time", pytest.approx(s_info.monotonic_time, abs=abs_s)
+        )
+        object.__setattr__(
+            approx_s, "wall_clock_time", approx_time(s_info.wall_clock_time, abs=abs)
+        )
+        object.__setattr__(
+            approx_s,
+            "monotonic_elapsed",
+            approx_time(s_info.monotonic_elapsed, abs=abs),
+        )
+        object.__setattr__(
+            approx_s,
+            "wall_clock_elapsed",
+            approx_time(s_info.wall_clock_elapsed, abs=abs),
+        )
+        if s_info.wall_clock_factor is not None:
+            object.__setattr__(
+                approx_s,
+                "wall_clock_factor",
+                pytest.approx(s_info.wall_clock_factor, abs=abs_s),
+            )
+        approx_sleeps.append(approx_s)
+
+    # Do the same for the top-level frozen TickInfo object
+    approx_tick_info = object.__new__(TickInfo)
+    object.__setattr__(
+        approx_tick_info,
+        "expected_tick_time",
+        approx_time(expected.expected_tick_time, abs=abs),
+    )
+    object.__setattr__(approx_tick_info, "sleep_infos", approx_sleeps)
+
+    return approx_tick_info
