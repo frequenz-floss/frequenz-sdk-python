@@ -16,6 +16,9 @@ from frequenz.core.datetime import UNIX_EPOCH
 # error messages
 pytest.register_assert_rewrite("tests.timeseries._resampling.wall_clock_timer.util")
 
+# We need to import this module after registering the assert rewrite
+from .util import TimeDriver  # noqa: E402
+
 
 @pytest.fixture
 def datetime_mock() -> Iterator[MagicMock]:
@@ -38,3 +41,11 @@ def asyncio_sleep_mock() -> Iterator[AsyncMock]:
     asyncio_mock.sleep = mock
     with patch(asyncio_symbol, new=asyncio_mock):
         yield mock
+
+
+@pytest.fixture
+async def time_driver(datetime_mock: MagicMock) -> TimeDriver:
+    """Fixture to mock the clocks environment for testing."""
+    return TimeDriver(
+        datetime_mock=datetime_mock,
+    )
