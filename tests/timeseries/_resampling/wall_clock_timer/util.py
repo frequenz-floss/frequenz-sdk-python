@@ -72,6 +72,11 @@ def wall_now() -> datetime:
     return mock_datetime.now(timezone.utc)
 
 
+def mono_now() -> float:
+    """Get the current monotonic time."""
+    return asyncio.get_running_loop().time()
+
+
 # Pylint complains about abstract-method because _yield_comparisons is not implemented
 # but it is used only in the default __eq__ method, which we are re-defining, so we can
 # ignore it.
