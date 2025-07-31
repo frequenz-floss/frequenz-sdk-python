@@ -12,6 +12,11 @@ import pytest
 from frequenz.core.datetime import UNIX_EPOCH
 
 
+# Some of the utils do assertions and we want them to be rewritten by pytest for better
+# error messages
+pytest.register_assert_rewrite("tests.timeseries._resampling.wall_clock_timer.util")
+
+
 @pytest.fixture
 def datetime_mock() -> Iterator[MagicMock]:
     """Mock the datetime class in the target module and set now to the UNIX epoch."""
