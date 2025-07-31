@@ -158,6 +158,7 @@ disable = [
   "unnecessary-lambda-assignment",
   "unused-import",
   "unused-variable",
+  "wrong-import-position",
 ]
 
 [tool.pylint.design]
