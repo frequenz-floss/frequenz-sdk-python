@@ -42,6 +42,20 @@ def to_seconds(value: datetime | timedelta | float | None) -> float | None:
             assert_never(unexpected)
 
 
+def timestamp(ts: datetime | float, /) -> datetime:
+    """Convert a timestamp in seconds since the epoch to a UTC datetime."""
+    if isinstance(ts, datetime):
+        return ts
+    return datetime.fromtimestamp(ts, tz=timezone.utc)
+
+
+def delta(sec: float | timedelta, /) -> timedelta:
+    """Create a timedelta from seconds."""
+    if isinstance(sec, timedelta):
+        return sec
+    return timedelta(seconds=sec)
+
+
 # This is needed to work with the datetime_mock fixture in conftest.py
 def wall_now() -> datetime:
     """Get the current wall clock time from the mocked datetime in the target module."""
