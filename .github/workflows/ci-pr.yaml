@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Run nox
-        uses: frequenz-floss/gh-action-nox@v1.0.0
+        uses: frequenz-floss/gh-action-nox@v1.0.1
         with:
           python-version: "3.11"
           nox-session: ci_checks_max
@@ -35,7 +35,7 @@ jobs:
           submodules: true
 
       - name: Setup Python
-        uses: frequenz-floss/gh-action-setup-python-with-deps@v1.0.0
+        uses: frequenz-floss/gh-action-setup-python-with-deps@v1.0.1
         with:
           python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
           dependencies: .[dev-mkdocs]
