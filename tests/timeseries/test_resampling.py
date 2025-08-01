@@ -16,17 +16,15 @@ import time_machine
 from frequenz.channels import Broadcast, SenderError
 from frequenz.quantities import Quantity
 
-from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries._resampling._base_types import (
-    Sink,
-    Source,
-    SourceProperties,
-)
-from frequenz.sdk.timeseries._resampling._config import (
+from frequenz.sdk.timeseries import (
     DEFAULT_BUFFER_LEN_MAX,
     DEFAULT_BUFFER_LEN_WARN,
     ResamplerConfig,
     ResamplingFunction,
+    Sample,
+    Sink,
+    Source,
+    SourceProperties,
 )
 from frequenz.sdk.timeseries._resampling._exceptions import (
     ResamplingError,
