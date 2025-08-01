@@ -35,11 +35,11 @@ class VoltageStreamer:
         from datetime import timedelta
 
         from frequenz.sdk import microgrid
-        from frequenz.sdk.timeseries import ResamplerConfig
+        from frequenz.sdk.timeseries import ResamplerConfig2
 
         await microgrid.initialize(
             "grpc://127.0.0.1:50051",
-            ResamplerConfig(resampling_period=timedelta(seconds=1))
+            ResamplerConfig2(resampling_period=timedelta(seconds=1))
         )
 
         # Get a receiver for the phase-to-neutral voltage.
