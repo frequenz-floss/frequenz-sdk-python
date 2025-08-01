@@ -46,7 +46,9 @@ from ._resampling._config import (
     DEFAULT_BUFFER_LEN_MAX,
     DEFAULT_BUFFER_LEN_WARN,
     ResamplerConfig,
+    ResamplerConfig2,
     ResamplingFunction,
+    ResamplingFunction2,
 )
 from ._resampling._exceptions import ResamplingError, SourceStoppedError
 from ._resampling._wall_clock_timer import (
@@ -67,8 +69,10 @@ __all__ = [
     "PeriodicFeatureExtractor",
     "ReceiverFetcher",
     "ResamplerConfig",
+    "ResamplerConfig2",
     "ResamplingError",
     "ResamplingFunction",
+    "ResamplingFunction2",
     "Sample",
     "Sample3Phase",
     "Sink",
