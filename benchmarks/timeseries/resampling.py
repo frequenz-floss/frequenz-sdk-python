@@ -7,7 +7,7 @@ from collections.abc import Sequence
 from datetime import datetime, timedelta, timezone
 from timeit import timeit
 
-from frequenz.sdk.timeseries import ResamplerConfig
+from frequenz.sdk.timeseries import ResamplerConfig, ResamplerConfig2
 from frequenz.sdk.timeseries._resampling._base_types import SourceProperties
 from frequenz.sdk.timeseries._resampling._resampler import _ResamplingHelper
 
@@ -25,7 +25,7 @@ def _benchmark_resampling_helper(resamples: int, samples: int) -> None:
     """Benchmark the resampling helper."""
     helper = _ResamplingHelper(
         "benchmark",
-        ResamplerConfig(
+        ResamplerConfig2(
             resampling_period=timedelta(seconds=1.0),
             max_data_age_in_periods=3.0,
             resampling_function=nop,
