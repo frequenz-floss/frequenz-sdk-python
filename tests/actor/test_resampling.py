@@ -17,7 +17,7 @@ from frequenz.quantities import Quantity
 from frequenz.sdk._internal._channels import ChannelRegistry
 from frequenz.sdk.microgrid._data_sourcing import ComponentMetricRequest
 from frequenz.sdk.microgrid._resampling import ComponentMetricsResamplingActor
-from frequenz.sdk.timeseries import ResamplerConfig, Sample
+from frequenz.sdk.timeseries import ResamplerConfig2, Sample
 
 
 @pytest.fixture(autouse=True)
@@ -113,7 +113,7 @@ async def test_single_request(
         channel_registry=channel_registry,
         data_sourcing_request_sender=data_source_req_chan.new_sender(),
         resampling_request_receiver=resampling_req_chan.new_receiver(),
-        config=ResamplerConfig(
+        config=ResamplerConfig2(
             resampling_period=timedelta(seconds=0.2),
             max_data_age_in_periods=2,
         ),
@@ -156,7 +156,7 @@ async def test_duplicate_request(
         channel_registry=channel_registry,
         data_sourcing_request_sender=data_source_req_chan.new_sender(),
         resampling_request_receiver=resampling_req_chan.new_receiver(),
-        config=ResamplerConfig(
+        config=ResamplerConfig2(
             resampling_period=timedelta(seconds=0.2),
             max_data_age_in_periods=2,
         ),
