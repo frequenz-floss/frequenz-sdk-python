@@ -239,7 +239,7 @@ async def test_calculate_window_end_trivial_cases(
         )
     )
     fake_time.move_to(now)
-    # pylint: disable=protected-access
+    # pylint: disable-next=protected-access
     assert resampler._calculate_window_end() == result
 
     # Repeat the test with align_to=None, so the result should be align to now
@@ -1406,7 +1406,7 @@ async def test_resampling_all_zeros(
 
 
 def _get_buffer_len(resampler: Resampler, source_receiver: Source) -> int:
-    # pylint: disable=protected-access
+    # pylint: disable-next=protected-access
     blen = resampler._resamplers[source_receiver]._helper._buffer.maxlen
     assert blen is not None
     return blen
