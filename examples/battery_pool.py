@@ -11,7 +11,7 @@ from datetime import timedelta
 from frequenz.channels import merge
 
 from frequenz.sdk import microgrid
-from frequenz.sdk.actor import ResamplerConfig
+from frequenz.sdk.timeseries import ResamplerConfig
 
 MICROGRID_API_URL = "grpc://microgrid.sandbox.api.frequenz.io:62060"
 

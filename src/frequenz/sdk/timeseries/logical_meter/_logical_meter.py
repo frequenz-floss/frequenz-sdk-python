@@ -33,7 +33,7 @@ class LogicalMeter:
         from datetime import timedelta
 
         from frequenz.sdk import microgrid
-        from frequenz.sdk.actor import ResamplerConfig
+        from frequenz.sdk.timeseries import ResamplerConfig
         from frequenz.client.microgrid import ComponentMetricId
 
 

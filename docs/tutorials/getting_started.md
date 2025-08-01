@@ -32,7 +32,7 @@ import asyncio
 
 from datetime import timedelta
 from frequenz.sdk import microgrid
-from frequenz.sdk.actor import ResamplerConfig
+from frequenz.sdk.timeseries import ResamplerConfig
 ```
 
 ## Create the application skeleton
@@ -100,7 +100,7 @@ import asyncio
 
 from datetime import timedelta
 from frequenz.sdk import microgrid
-from frequenz.sdk.actor import ResamplerConfig
+from frequenz.sdk.timeseries import ResamplerConfig
 
 async def run() -> None:
     # This points to the default Frequenz microgrid sandbox

@@ -27,9 +27,9 @@ from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
 from frequenz.sdk._internal._asyncio import cancel_and_await
-from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.microgrid import _data_pipeline
 from frequenz.sdk.microgrid.component_graph import _MicrogridComponentGraph
+from frequenz.sdk.timeseries import ResamplerConfig
 
 from ..utils import MockMicrogridClient
 from ..utils.component_data_wrapper import (
