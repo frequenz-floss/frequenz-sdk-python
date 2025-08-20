@@ -67,7 +67,7 @@ dev-mkdocs = [
   "frequenz-repo-config[lib] == 0.13.5",
 ]
 dev-mypy = [
-  "mypy == 1.16.1",
+  "mypy == 1.17.1",
   "types-Markdown == 3.8.0.20250708",
   "types-protobuf == 6.30.2.20250703",
   "types-setuptools == 80.9.0.20250801",
@@ -87,7 +87,7 @@ dev-pytest = [
   "pytest-asyncio == 1.1.0",
   "time-machine == 2.16.0",
   "async-solipsism == 0.8",
-  "hypothesis == 6.135.20",
+  "hypothesis == 6.136.8",
 ]
 dev = [
   "frequenz-sdk[dev-mkdocs,dev-flake8,dev-formatting,dev-mkdocs,dev-mypy,dev-noxfile,dev-pylint,dev-pytest]",
