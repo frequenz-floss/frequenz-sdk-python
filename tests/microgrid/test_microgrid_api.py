@@ -4,7 +4,6 @@
 """Tests of MicrogridApi."""
 
 import asyncio
-import zoneinfo
 from asyncio.tasks import ALL_COMPLETED
 from unittest import mock
 from unittest.mock import AsyncMock, MagicMock
@@ -102,7 +101,6 @@ class TestMicrogridApi:
             location=Location(
                 latitude=52.520008,
                 longitude=13.404954,
-                timezone=zoneinfo.ZoneInfo("Europe/Berlin"),
             ),
         )
 
@@ -170,8 +168,6 @@ class TestMicrogridApi:
 
             assert api.microgrid_id == metadata.microgrid_id
             assert api.location == metadata.location
-            assert api.location and api.location.timezone
-            assert api.location.timezone.key == "Europe/Berlin"
 
             # It should not be possible to initialize method once again
             with pytest.raises(AssertionError):
@@ -215,5 +211,3 @@ class TestMicrogridApi:
 
         assert api.microgrid_id == metadata.microgrid_id
         assert api.location == metadata.location
-        assert api.location and api.location.timezone
-        assert api.location.timezone.key == "Europe/Berlin"
