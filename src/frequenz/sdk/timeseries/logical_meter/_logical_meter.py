@@ -33,13 +33,13 @@ class LogicalMeter:
         from datetime import timedelta
 
         from frequenz.sdk import microgrid
-        from frequenz.sdk.actor import ResamplerConfig
+        from frequenz.sdk.timeseries import ResamplerConfig2
         from frequenz.client.microgrid import ComponentMetricId
 
 
         await microgrid.initialize(
             "grpc://microgrid.sandbox.api.frequenz.io:62060",
-            ResamplerConfig(resampling_period=timedelta(seconds=1)),
+            ResamplerConfig2(resampling_period=timedelta(seconds=1)),
         )
 
         logical_meter = (

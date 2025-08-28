@@ -315,7 +315,7 @@ default powers immediately.  These are:
 
 from datetime import timedelta
 
-from ..actor import ResamplerConfig
+from ..timeseries._resampling._config import ResamplerConfig
 from . import _data_pipeline, connection_manager
 from ._data_pipeline import (
     consumer,

@@ -30,12 +30,11 @@ from frequenz.sdk._internal._constants import (
     MAX_BATTERY_DATA_AGE_SEC,
     WAIT_FOR_COMPONENT_DATA_SEC,
 )
-from frequenz.sdk.actor import ResamplerConfig
 from frequenz.sdk.microgrid._power_distributing import ComponentPoolStatus
 from frequenz.sdk.microgrid._power_distributing._component_managers._battery_manager import (
     _get_battery_inverter_mappings,
 )
-from frequenz.sdk.timeseries import Bounds, Sample
+from frequenz.sdk.timeseries import Bounds, ResamplerConfig2, Sample
 from frequenz.sdk.timeseries._base_types import SystemBounds
 from frequenz.sdk.timeseries.battery_pool import BatteryPool
 from frequenz.sdk.timeseries.formula_engine._formula_generators._formula_generator import (
@@ -139,7 +138,7 @@ async def setup_all_batteries(mocker: MockerFixture) -> AsyncIterator[SetupArgs]
     # pylint: disable=protected-access
     microgrid._data_pipeline._DATA_PIPELINE = None
     await microgrid._data_pipeline.initialize(
-        ResamplerConfig(resampling_period=timedelta(seconds=min_update_interval))
+        ResamplerConfig2(resampling_period=timedelta(seconds=min_update_interval))
     )
     streamer = MockComponentDataStreamer(mock_microgrid)
 
@@ -192,7 +191,7 @@ async def setup_batteries_pool(mocker: MockerFixture) -> AsyncIterator[SetupArgs
     # pylint: disable=protected-access
     microgrid._data_pipeline._DATA_PIPELINE = None
     await microgrid._data_pipeline.initialize(
-        ResamplerConfig(resampling_period=timedelta(seconds=min_update_interval))
+        ResamplerConfig2(resampling_period=timedelta(seconds=min_update_interval))
     )
 
     # We don't use status channel from the sdk interface to limit

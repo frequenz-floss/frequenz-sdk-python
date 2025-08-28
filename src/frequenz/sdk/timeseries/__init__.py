@@ -40,18 +40,46 @@ from ._base_types import Bounds, Sample, Sample3Phase
 from ._fuse import Fuse
 from ._moving_window import MovingWindow
 from ._periodic_feature_extractor import PeriodicFeatureExtractor
-from ._resampling._base_types import SourceProperties
-from ._resampling._config import ResamplerConfig, ResamplingFunction
+from ._resampling._base_types import Sink, Source, SourceProperties
+from ._resampling._config import (
+    DEFAULT_BUFFER_LEN_INIT,
+    DEFAULT_BUFFER_LEN_MAX,
+    DEFAULT_BUFFER_LEN_WARN,
+    ResamplerConfig,
+    ResamplerConfig2,
+    ResamplingFunction,
+    ResamplingFunction2,
+)
+from ._resampling._exceptions import ResamplingError, SourceStoppedError
+from ._resampling._wall_clock_timer import (
+    ClocksInfo,
+    TickInfo,
+    WallClockTimer,
+    WallClockTimerConfig,
+)
 
 __all__ = [
     "Bounds",
+    "ClocksInfo",
+    "DEFAULT_BUFFER_LEN_INIT",
+    "DEFAULT_BUFFER_LEN_MAX",
+    "DEFAULT_BUFFER_LEN_WARN",
     "Fuse",
     "MovingWindow",
     "PeriodicFeatureExtractor",
-    "ResamplerConfig",
     "ReceiverFetcher",
+    "ResamplerConfig",
+    "ResamplerConfig2",
+    "ResamplingError",
     "ResamplingFunction",
+    "ResamplingFunction2",
     "Sample",
     "Sample3Phase",
+    "Sink",
+    "Source",
     "SourceProperties",
+    "SourceStoppedError",
+    "TickInfo",
+    "WallClockTimer",
+    "WallClockTimerConfig",
 ]

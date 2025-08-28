@@ -12,6 +12,7 @@ import math
 from bisect import bisect
 from collections import deque
 from datetime import datetime, timedelta, timezone
+from typing import assert_never
 
 from frequenz.channels.timer import Timer, TriggerAllMissed, _to_microseconds
 from frequenz.quantities import Quantity
@@ -19,8 +20,9 @@ from frequenz.quantities import Quantity
 from ..._internal._asyncio import cancel_and_await
 from .._base_types import Sample
 from ._base_types import Sink, Source, SourceProperties
-from ._config import ResamplerConfig
+from ._config import ResamplerConfig, ResamplerConfig2
 from ._exceptions import ResamplingError, SourceStoppedError
+from ._wall_clock_timer import TickInfo, WallClockTimer
 
 _logger = logging.getLogger(__name__)
 
@@ -44,13 +46,23 @@ class Resampler:
         """Initialize an instance.
 
         Args:
-            config: The configuration for the resampler.
+            config: The configuration for the resampler. If a `ResamplerConfig2` is
+                provided, the resampler will use a
+                [`WallClockTimer`][frequenz.sdk.timeseries.WallClockTimer] instead of a
+                [`Timer`][frequenz.channels.timer.Timer].
         """
         self._config = config
         """The configuration for this resampler."""
 
         self._resamplers: dict[Source, _StreamingHelper] = {}
         """A mapping between sources and the streaming helper handling that source."""
+
+        self._timer: Timer | WallClockTimer
+        """The timer used to trigger the resampling windows."""
+
+        if isinstance(config, ResamplerConfig2):
+            self._timer = WallClockTimer(config.resampling_period, config.timer_config)
+            return
 
         window_end, start_delay_time = self._calculate_window_end()
         self._window_end: datetime = window_end
@@ -66,7 +78,7 @@ class Resampler:
         the window end is deterministic.
         """
 
-        self._timer: Timer = Timer(config.resampling_period, TriggerAllMissed())
+        self._timer = Timer(config.resampling_period, TriggerAllMissed())
         """The timer used to trigger the resampling windows."""
 
         # Hack to align the timer, this should be implemented in the Timer class
@@ -162,20 +174,31 @@ class Resampler:
             seconds=self._config.resampling_period.total_seconds() / 10.0
         )
 
-        async for drift in self._timer:
-            now = datetime.now(tz=timezone.utc)
+        async for tick_info in self._timer:
+            next_tick_time: datetime
+            match tick_info:
+                case TickInfo():  # WallClockTimer
+                    next_tick_time = tick_info.expected_tick_time
 
-            if drift > tolerance:
-                _logger.warning(
-                    "The resampling task woke up too late. Resampling should have "
-                    "started at %s, but it started at %s (tolerance: %s, "
-                    "difference: %s; resampling period: %s)",
-                    self._window_end,
-                    now,
-                    tolerance,
-                    drift,
-                    self._config.resampling_period,
-                )
+                case timedelta() as drift:  # Timer (monotonic)
+                    next_tick_time = self._window_end
+
+                    if drift > tolerance:
+                        _logger.warning(
+                            "The resampling task woke up too late. Resampling should have "
+                            "started at %s, but it started at %s (tolerance: %s, "
+                            "difference: %s; resampling period: %s)",
+                            self._window_end,
+                            datetime.now(tz=timezone.utc),
+                            tolerance,
+                            tick_info,
+                            self._config.resampling_period,
+                        )
+
+                    self._window_end += self._config.resampling_period
+
+                case unexpected:
+                    assert_never(unexpected)
 
             # We need to make a copy here because we need to match the results to the
             # current resamplers, and since we await here, new resamplers could be added
@@ -183,11 +206,10 @@ class Resampler:
             # cause the results to be out of sync.
             resampler_sources = list(self._resamplers)
             results = await asyncio.gather(
-                *[r.resample(self._window_end) for r in self._resamplers.values()],
+                *[r.resample(next_tick_time) for r in self._resamplers.values()],
                 return_exceptions=True,
             )
 
-            self._window_end += self._config.resampling_period
             exceptions = {
                 source: result
                 for source, result in zip(resampler_sources, results)
