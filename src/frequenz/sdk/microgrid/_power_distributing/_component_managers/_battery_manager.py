@@ -267,8 +267,10 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         """
         distributed_power_value = request.power - distribution.remaining_power
         battery_distribution: dict[ComponentId, Power] = {}
+        battery_ids: set[ComponentId] = set()
         for inverter_id, dist in distribution.distribution.items():
             for battery_id in self._inv_bats_map[inverter_id]:
+                battery_ids.add(battery_id)
                 battery_distribution[battery_id] = (
                     battery_distribution.get(battery_id, Power.zero()) + dist
                 )
@@ -284,7 +286,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
 
         response: Success | PartialFailure
         if len(failed_batteries) > 0:
-            succeed_batteries = set(battery_distribution.keys()) - failed_batteries
+            succeed_batteries = battery_ids - failed_batteries
             response = PartialFailure(
                 request=request,
                 succeeded_power=distributed_power_value - failed_power,
@@ -294,7 +296,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
                 excess_power=distribution.remaining_power,
             )
         else:
-            succeed_batteries = set(battery_distribution.keys())
+            succeed_batteries = battery_ids
             response = Success(
                 request=request,
                 succeeded_power=distributed_power_value,
