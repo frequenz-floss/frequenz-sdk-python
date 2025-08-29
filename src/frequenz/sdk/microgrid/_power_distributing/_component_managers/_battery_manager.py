@@ -266,19 +266,26 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             Result from the microgrid API.
         """
         distributed_power_value = request.power - distribution.remaining_power
-        battery_distribution: dict[ComponentId, Power] = {}
+        battery_distribution: dict[frozenset[ComponentId], Power] = {}
         battery_ids: set[ComponentId] = set()
         for inverter_id, dist in distribution.distribution.items():
             for battery_id in self._inv_bats_map[inverter_id]:
                 battery_ids.add(battery_id)
-                battery_distribution[battery_id] = (
-                    battery_distribution.get(battery_id, Power.zero()) + dist
-                )
-        _logger.debug(
-            "Distributing power %s between the batteries %s",
-            distributed_power_value,
-            str(battery_distribution),
-        )
+            battery_distribution[self._inv_bats_map[inverter_id]] = dist
+        if _logger.isEnabledFor(logging.DEBUG):
+            _logger.debug(
+                "Distributing power %s between the batteries: %s",
+                distributed_power_value,
+                ", ".join(
+                    (
+                        str(next(iter(cids)))
+                        if len(cids) == 1
+                        else f"({', '.join(str(cid) for cid in cids)})"
+                    )
+                    + f": {power}"
+                    for cids, power in battery_distribution.items()
+                ),
+            )
 
         failed_power, failed_batteries = await self._set_distributed_power(
             distribution, self._api_power_request_timeout
