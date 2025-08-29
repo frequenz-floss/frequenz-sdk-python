@@ -30,3 +30,5 @@
 ## Bug Fixes
 
 - When using the new wall clock timer in the resampmler, it will now resync to the system time if it drifts away for more than a resample period, and do dynamic adjustments to the timer if the monotonic clock has a small drift compared to the wall clock.
+
+- A power distributor logging issue is fixed, that was causing the power for multiple batteries connected to the same inverter to be reported incorrectly.
